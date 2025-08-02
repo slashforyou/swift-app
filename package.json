@@ -1,6 +1,6 @@
 {
   "name": "swift-app",
-  "main": "src/App.tsx",
+  "main": "App.tsx",
   "version": "0.0.1",
   "scripts": {
     "start": "expo start",
@@ -12,6 +12,9 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
+    "@react-native-vector-icons/evil-icons": "^12.2.0",
+    "@react-native-vector-icons/fontawesome6": "^12.1.0",
+    "@react-native-vector-icons/ionicons": "^12.2.0",
     "@react-navigation/bottom-tabs": "^7.3.10",
     "@react-navigation/elements": "^2.3.8",
     "@react-navigation/native": "^7.1.16",

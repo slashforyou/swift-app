@@ -7,7 +7,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "swiftapp",
     "userInterfaceStyle": "automatic",
-    "entryPoint": "src/App.tsx",
+    "entryPoint": "App.tsx",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true

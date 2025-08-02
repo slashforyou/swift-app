@@ -2,32 +2,20 @@ import React from 'react'
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { View, Text, Button } from 'react-native'
+// Make sure the file exists at ../../screens/home.tsx or ../../screens/home/index.tsx
+import HomeScreen from '../screens/home'
+import CalendarNavigation from './calendar'
+import JobDetails from '../screens/jobDetails'
 
 const Stack = createNativeStackNavigator()
-
-function HomeScreen({ navigation }: any) {
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>🏠 Home Screen</Text>
-      <Button title="Go to Jobs" onPress={() => navigation.navigate('Jobs')} />
-    </View>
-  )
-}
-
-function JobsScreen() {
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>📦 Jobs Screen</Text>
-    </View>
-  )
-}
 
 export default function Navigation() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Home">
+      <Stack.Navigator initialRouteName="Home" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="Jobs" component={JobsScreen} />
+        <Stack.Screen name="Calendar" component={CalendarNavigation} />
+        <Stack.Screen name="JobDetails" component={JobDetails} />
       </Stack.Navigator>
     </NavigationContainer>
   )
