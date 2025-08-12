@@ -1,9 +1,10 @@
 
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
+import copyToClipBoard from '../../services/copyToClipBoard';
 
 
-const RefBookMark = ({ jobRef }: { jobRef: string }) => {
+const RefBookMark = ({ jobRef, toastIt }: { jobRef: string, toastIt: any }) => {
     const Style = {
         refBookMarkContainer: {
             padding: 10,
@@ -38,10 +39,18 @@ const RefBookMark = ({ jobRef }: { jobRef: string }) => {
         }
     };
 
+    const copyRefToClipboard = () => {
+        // Function to copy the job reference to clipboard
+        // This can be implemented using Clipboard API or any other method
+
+        copyToClipBoard(jobRef);
+        toastIt(`Job Ref. ${jobRef} copied to clipboard`, 'success', true);
+    }
+
     return (
-        <View style={Style.refBookMarkContainer}>
+        <Pressable style={Style.refBookMarkContainer} onPress={copyRefToClipboard}>
             <Text style={Style.refBookMarkText}> Job Ref. { jobRef }</Text>
-        </View>
+        </Pressable>
     );
 }
 

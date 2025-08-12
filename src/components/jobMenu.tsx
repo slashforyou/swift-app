@@ -7,7 +7,7 @@ const JobMenu = ({ jobPanel, setJobPanel }: any ) => {
     const styles = StyleSheet.create({
         menuContainer: {
             flexDirection: 'row',
-            justifyContent: 'space-around',
+            justifyContent: 'space-between',
             padding: 10,
             backgroundColor: '#f8f8f8',
             borderTopWidth: 1,
@@ -23,11 +23,20 @@ const JobMenu = ({ jobPanel, setJobPanel }: any ) => {
             shadowOpacity: 0.1,
             shadowRadius: 4,
             elevation: 5,
+            width: '100%',
         },
         menuItem: {
             flex: 1,
             alignItems: 'center',
+            justifyContent: 'center',
             paddingVertical: 10,
+            display: 'flex',
+            flexDirection: 'column',
+            textAlign: 'center',
+        },
+        menuIcon: {
+            marginBottom: 5,
+            alignSelf: 'center',
         },
     });
 
@@ -40,19 +49,19 @@ const JobMenu = ({ jobPanel, setJobPanel }: any ) => {
     return (
         <View style={styles.menuContainer}>
             <Text style={styles.menuItem} onPress={() => switchJobPanel(0)}>
-                <Ionicons name="bookmark" size={24} color={jobPanel === 0 ? 'blue' : '#333'} />
+                <Ionicons name="bookmark" style={styles.menuIcon} size={24} color={jobPanel === 0 ? 'rgba(245, 126, 126, 1)' : '#777'} />
             </Text>
             <Text style={styles.menuItem} onPress={() => switchJobPanel(1)}>
-                <Ionicons name="chatbubble" size={24} color={jobPanel === 1 ? 'blue' : '#333'} />
+                <Ionicons name="construct" style={styles.menuIcon} size={24} color={jobPanel === 1 ? 'rgba(245, 126, 126, 1)' : '#777'} />
             </Text>
             <Text style={styles.menuItem} onPress={() => switchJobPanel(2)}>
-                <Ionicons name="call" size={24} color={jobPanel === 2 ? 'blue' : '#333'} />
+                <Ionicons name="person" style={styles.menuIcon} size={24} color={jobPanel === 2 ? 'rgba(245, 126, 126, 1)' : '#777'} />
             </Text>
             <Text style={styles.menuItem} onPress={() => switchJobPanel(3)}>
-                <Ionicons name="information-circle" size={24} color={jobPanel === 3 ? 'blue' : '#333'} />
+                <Ionicons name="chatbubble" style={styles.menuIcon} size={24} color={jobPanel === 3 ? 'rgba(245, 126, 126, 1)' : '#777'} />
             </Text>
             <Text style={styles.menuItem} onPress={() => switchJobPanel(4)}>
-                <Ionicons name="settings" size={24} color={jobPanel === 4 ? 'blue' : '#333'} />
+                <Ionicons name="card" style={styles.menuIcon} size={24} color={jobPanel === 4 ? 'rgba(245, 126, 126, 1)' : '#777'} />
             </Text>
         </View>
     );
