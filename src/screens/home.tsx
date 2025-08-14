@@ -28,7 +28,7 @@ function HomeScreen({ navigation }: any) {
         />
         <HomeButton
             title="Parameter"
-            onPress={() => navigation.navigate('Parameter')}
+            onPress={() => navigation.navigate('Parameters')}
         />
     </View>
   )

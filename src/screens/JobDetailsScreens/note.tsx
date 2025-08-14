@@ -5,7 +5,7 @@ import JobPageScrollContainer from '@/src/components/ui/jobPage/jobPageScrollCon
 import React from 'react';
 import { View, Text, ScrollView } from 'react-native';
 
-const JobNote = ({ job }: { job: any }) => {
+const JobNote = ({ job, setJob }: { job: any, setJob: React.Dispatch<React.SetStateAction<any>> }) => {
     const Style = {
         jobDetailsPage: {
             flex: 1,

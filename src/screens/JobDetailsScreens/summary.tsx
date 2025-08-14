@@ -1,5 +1,6 @@
 // Summary Page for Job Details, displaying main job information such as client details, addresses, and truck information.
 
+import SigningBloc from '@/src/components/signingBloc';
 import JobContainerWithTitle from '@/src/components/ui/jobPage/jobContainerWithTitle';
 import JobPageScrollContainer from '@/src/components/ui/jobPage/jobPageScrollContainer';
 import JobTimeLine from '@/src/components/ui/jobPage/jobTimeLine';
@@ -10,7 +11,7 @@ import Ionicons from '@react-native-vector-icons/ionicons';
 import React from 'react';
 import { View, Text, ScrollView, Pressable } from 'react-native';
 
-const JobSummary = ({ job } : { job: any }) => {
+const JobSummary = ({ job, setJob } : { job: any, setJob: React.Dispatch<React.SetStateAction<any>> }) => {
     const Style = {
         jobDetailsPage: {
             flex: 1,
@@ -130,6 +131,33 @@ const JobSummary = ({ job } : { job: any }) => {
             fontSize: 16,
             marginBottom: 5,
         },
+        jobDetailsPageClientZoneSigning: {
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: 20,
+        },
+        jobDetailsPageClientSignatureText: {
+            fontSize: 16,
+            color: '#333',
+            marginBottom: 10,
+        },
+        jobDetailsPageClientSignatureButton: {
+            backgroundColor: '#e0e0e0',
+            padding: 10,
+            borderRadius: 5,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            display: 'flex',
+            gap: 10,
+        },
+        jobDetailsPageClientSignatureButtonText: {
+            fontSize: 16,
+            color: '#333',
+        },
     };
     const handleAdressPress = (index: number) => {
         // Handle address press, e.g., navigate to a map view or show address details
@@ -140,12 +168,34 @@ const JobSummary = ({ job } : { job: any }) => {
         console.log(`Phone number pressed: ${phone}`);
     };
 
+    const [isSigningVisible, setIsSigningVisible] = React.useState(false);
+
     return (
+        <>
+        {isSigningVisible && (
+        <SigningBloc 
+            isVisible={isSigningVisible} setIsVisible={setIsSigningVisible} onSave={(signature) => console.log('Signature saved:', signature)} job={job} setJob={setJob}/>
+        )}
         <JobPageScrollContainer>
                 <JobContainerWithTitle title="Job Summary">
                     <JobTimeLine job={job} />
                 </JobContainerWithTitle>
                 <JobContainerWithTitle title="Client Details">
+                    <View style={ Style.jobDetailsPageClientZoneSigning }>
+                        {
+                            job.signatureDataUrl !== '' && job.signatureFileUri !== '' ?
+                            <Text style={ Style.jobDetailsPageClientSignatureText }>The client has signed the contract.</Text>
+                            :
+                            <>
+                                <Text style={ Style.jobDetailsPageClientSignatureText }>The client has not signed the contract.</Text>
+                                <Pressable onPress={() => setIsSigningVisible(true)} style={ Style.jobDetailsPageClientSignatureButton }>
+                                    <Text style={ Style.jobDetailsPageClientSignatureButtonText }>Sign Contract</Text>
+                                    <Ionicons name="create-outline" size={20} color="#333" />
+                                </Pressable>
+                            </>
+                        }
+                        
+                    </View>
                     <Text style={ Style.jobDetailsPageClientZoneTextName }>{ job.client.firstName } { job.client.lastName }</Text>
                     <Text style={ Style.jobDetailsPageClientZoneText }>Phone:  
                         <Pressable onPress={() => copyToClipBoard(job.client.phone)} >
@@ -188,7 +238,8 @@ const JobSummary = ({ job } : { job: any }) => {
                     <Text style={ Style.jobDetailsPageClientZoneText }>Truck License Plate: { job.truck.licensePlate }</Text>
                     <Text style={ Style.jobDetailsPageClientZoneText }>Truck Name: { job.truck.name }</Text>
                 </JobContainerWithTitle>
-            </JobPageScrollContainer>
+        </JobPageScrollContainer>
+        </>
     );
 };
 

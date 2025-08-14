@@ -14,8 +14,10 @@ import { title } from 'process';
 import Toast from '../components/ui/toastNotification';
 
 const JobDetails = ({ route, navigation, jobId, day, month, year }: any) => {
-    const job = {
+    const [job, setJob] = useState({
         id: jobId || "#LM0000000001",
+        signatureDataUrl: '',
+        signatureFileUri: '',
         step : {
             actualStep: 1,
             steps : [
@@ -110,14 +112,62 @@ const JobDetails = ({ route, navigation, jobId, day, month, year }: any) => {
             paymentLink: 'N/A', // link to payment portal if available
             paymentTime: 'N/A', // time of payment if already paid
             paymentDetails: 'N/A', // additional details about the payment
-            savedCard: {
-                cardType: 'N/A', // Visa, MasterCard, etc.
-                lastFourDigits: 'N/A', // last four digits of the card
-                expiryDate: 'N/A', // expiry date of the card
-                cardHolderName: 'N/A', // name on the card
-            },
+            savedCards: [
+                {
+                    id: 1,
+                    cardNumber: '4242 4242 4242 4242',
+                    cardHolderName: 'John Doe',
+                    expiryDate: '12/25',
+                    cvv: '123',
+                },
+                {
+                    id: 2,
+                    cardNumber: '5555 5555 5555 4444',
+                    cardHolderName: 'Jane Doe',
+                    expiryDate: '11/24',
+                    cvv: '456',
+                },
+            ],
         },
-    };
+        items : [
+            {
+                id: 1,
+                name: "Toy-boy",
+                number: 1,
+                checked: false, // true if the item is checked
+            },
+            {
+                id: 2,
+                name: "TV Unit",
+                number: 1,
+                checked: false, // true if the item is checked
+            },
+            {
+                id: 3,
+                name: "Sofa",
+                number: 1,
+                checked: false, // true if the item is checked
+            },
+            {
+                id: 4,
+                name: "Bed",
+                number: 1,
+                checked: false, // true if the item is checked
+            },
+        ],
+        contractor : {
+            Name: "Contractor A",
+            ContactName: "Contact A",
+            Phone: "+1234567890",
+            Email: "contractor@example.com"
+        },
+        contractee : {
+            Name: "Contractee A",
+            ContactName: "Contact A",
+            Phone: "+1234567890",
+            Email: "contractee@example.com"
+        }
+    });
     const [jobPanel, setJobPanel] = useState(0);
     // jobPanel: 0 - Details, 1 - Chat, 2 - Call, 3 - Info, 4 - Settings
 
@@ -152,11 +202,11 @@ const JobDetails = ({ route, navigation, jobId, day, month, year }: any) => {
         <View style={ Style.jobDetailsContainer }>
             <TopMenu navigation={ navigation } />
             <RefBookMark jobRef={ job.id } toastIt={ toastIt } />
-            {jobPanel === 0 && (<JobSummary job={job} />)}
-            {jobPanel === 1 && (<JobPage job={job} />)}
-            {jobPanel === 2 && (<JobClient job={job} />)}
-            {jobPanel === 3 && (<JobNote job={job} />)}
-            {jobPanel === 4 && (<JobPayment job={job} />)}
+            {jobPanel === 0 && (<JobSummary job={job} setJob={setJob} />)}
+            {jobPanel === 1 && (<JobPage job={job} setJob={setJob} />)}
+            {jobPanel === 2 && (<JobClient job={job} setJob={setJob} />)}
+            {jobPanel === 3 && (<JobNote job={job} setJob={setJob} />)}
+            {jobPanel === 4 && (<JobPayment job={job} setJob={setJob} />)}
             <JobMenu jobPanel={jobPanel} setJobPanel={setJobPanel} />
             <Toast message={toastDetails.message} type={toastDetails.type} status={toastDetails.status} />
         </View>

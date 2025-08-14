@@ -6,7 +6,7 @@ import { backup } from 'node:sqlite';
 import React, { useState } from 'react';
 import { View, Text, ScrollView, Pressable } from 'react-native';
 import PaymentWindow from './paymentWindow';
-const JobPayment = ({ job }: { job: any }) => {
+const JobPayment = ({ job, setJob }: { job: any, setJob: React.Dispatch<React.SetStateAction<any>> }) => {
     const Style = {
         jobDetailsPage: {
             flex: 1,
@@ -217,18 +217,17 @@ const JobPayment = ({ job }: { job: any }) => {
                         <Text style={Style.jobPaymentDetailText}>Payment Time: {job.payment?.paymentTime || 'N/A'}</Text>
                         <Text style={Style.jobPaymentDetailText}>Payment Details: {job.payment?.paymentDetails || 'N/A'}</Text>
                     </View>
-                    {job.payment?.savedCard && (
-                        <View style={Style.jobPaymentDetailCard}>
+                    {job.payment?.savedCards && job.payment.savedCards.length > 0 && job.payment.savedCards.map ((card: any, index: number) => (
+                        <View key={index} style={Style.jobPaymentDetailCard}>
                             <Text style={Style.jobPaymentDetailTitle}>
-                                <Ionicons name='card' size={20} color='#444' />
-                                {" "}Saved Card Details:
+                                <Ionicons style={Style.jobPaymentDetailIcon} name='card' size={20} color='#444' />
+                                {" "}Saved Card {index + 1}
                             </Text>
-                            <Text style={Style.jobPaymentDetailText}>Card Type: {job.payment.savedCard.cardType || 'N/A'}</Text>
-                            <Text style={Style.jobPaymentDetailText}>Last Four Digits: {job.payment.savedCard.lastFourDigits || 'N/A'}</Text>
-                            <Text style={Style.jobPaymentDetailText}>Expiry Date: {job.payment.savedCard.expiryDate || 'N/A'}</Text>
-                            <Text style={Style.jobPaymentDetailText}>Card Holder Name: {job.payment.savedCard.cardHolderName || 'N/A'}</Text>
+                            <Text style={Style.jobPaymentDetailText}>Card Number: {card.cardNumber || 'N/A'}</Text>
+                            <Text style={Style.jobPaymentDetailText}>Card Holder Name: {card.cardHolderName || 'N/A'}</Text>
+                            <Text style={Style.jobPaymentDetailText}>Expiry Date: {card.expiryDate || 'N/A'}</Text>
                         </View>
-                    )}
+                    ))}
                     {job.payment?.taxe && (
                         <View style={Style.jobPaymentDetailTax}>
                             <Text style={Style.jobPaymentDetailTitle}>

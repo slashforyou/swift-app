@@ -1,7 +1,7 @@
 // The payment indow is where the user can finalize the payment for the job.
 import React, { useState } from 'react';
 import { View, Text, ScrollView, Pressable, Dimensions, TextInput } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import DropDownPicker, { ItemType } from 'react-native-dropdown-picker';
 
 import { Ionicons } from '@expo/vector-icons';
 
@@ -16,6 +16,15 @@ const PaymentWindow = ({ job, status, setPaymentStatus }: { job: any, status: bo
     const [cvv, setCvv] = useState('');
     const [cardHolderName, setCardHolderName] = useState('');
 
+    const [dropDownCardopen, dropDownCardSetOpen] = useState(false);
+    const [dropDownCardValue, setDropDownCardValue] = useState<string | null>(null);
+    const [dropDownCarditems, dropDownCardSetItems] = useState<ItemType[]>(job.payment.savedCards.map((card: any) => ({
+        label: `${card.cardHolderName} - **** ${card.cardNumber.slice(-4)}`, // Display card holder name and last 4 digits
+        value: card.id, // Use card ID as value
+        cardNumber: card.cardNumber,
+        expiryDate: card.expiryDate,
+        cardHolderName: card.cardHolderName,
+    })));
 
     const Style = {
         paymentWindowMask: {
@@ -271,6 +280,33 @@ const PaymentWindow = ({ job, status, setPaymentStatus }: { job: any, status: bo
             fontWeight: 'bold',
             color: '#333',
         },
+        dropdown: {
+            height: 40,
+            borderColor: '#ccc',
+            borderWidth: 1,
+            borderRadius: 5,
+            paddingHorizontal: 10,
+            marginBottom: 20,
+            width: '100%',
+        },
+        dropdownContainer: {
+            borderColor: '#ccc',
+            borderWidth: 1,
+            borderRadius: 5,
+            backgroundColor: '#fff',
+        },
+        placeholder: {
+            color: '#999',
+            fontSize: 14,
+        },
+        selectedItem: {
+            color: '#000',
+            fontSize: 14,
+        },
+        itemLabel: {
+            color: '#000',
+            fontSize: 14,
+        },
     };
     const [paymentStep, setPaymentStep] = useState(1);
 
@@ -323,6 +359,33 @@ const PaymentWindow = ({ job, status, setPaymentStatus }: { job: any, status: bo
                             </View>
 
                             {/* Input to choose a card already saved */}
+                            <DropDownPicker
+                            open={dropDownCardopen}
+                            value={dropDownCardValue}
+                            items={dropDownCarditems}
+                            setOpen={dropDownCardSetOpen}
+                            setValue={setDropDownCardValue}
+                            setItems={dropDownCardSetItems}
+                            placeholder="Registered cards"
+                            style={Style.dropdown}
+                            dropDownContainerStyle={Style.dropdownContainer}
+                            placeholderStyle={Style.placeholder}
+                            selectedItemLabelStyle={Style.selectedItem}
+                            listItemLabelStyle={Style.itemLabel}
+                            onChangeValue={(value) => {
+                                const selectedCard = dropDownCarditems.find(item => item.value === value);
+                                if (selectedCard) {
+                                    const cardDetails = selectedCard.label.split(' ');
+                                    setCardNumber(selectedCard.cardNumber);
+                                    setExpiryDate(selectedCard.expiryDate);
+                                    setCardHolderName(selectedCard.cardHolderName);
+                                    // You can also set CVV if needed, but it's not recommended to store CVV for security reasons
+                                    setCvv(''); // Clear CVV as it's sensitive information
+                                    dropDownCardSetOpen(false); // Close the dropdown after selection
+
+                                }
+                            }}
+                            />
                             
 
                             <TextInput

@@ -6,6 +6,8 @@ import { View, Text, Button } from 'react-native'
 import HomeScreen from '../screens/home'
 import CalendarNavigation from './calendar'
 import JobDetails from '../screens/jobDetails'
+import Profile from '../screens/profile'
+import Parameters from '../screens/parameters'
 
 const Stack = createNativeStackNavigator()
 
@@ -16,6 +18,8 @@ export default function Navigation() {
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Calendar" component={CalendarNavigation} />
         <Stack.Screen name="JobDetails" component={JobDetails} />
+        <Stack.Screen name="Profile" component={Profile} />
+        <Stack.Screen name="Parameters" component={Parameters} />
       </Stack.Navigator>
     </NavigationContainer>
   )

@@ -8,7 +8,7 @@ import React from 'react';
 import { View, Text, ScrollView, Pressable } from 'react-native';
 import { text } from 'stream/consumers';
 
-const JobClient = ({ job }: any) => {
+const JobClient = ({ job, setJob }: any) => {
     const Style = {
         jobDetailsPageClientZone: {
             flex: 1,
