@@ -1,9 +1,10 @@
-// The payment indow is where the user can finalize the payment for the job.
+// The payment window is where the user can finalize the payment for the job.
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Pressable, Dimensions, TextInput } from 'react-native';
+import { View, Text, ScrollView, Pressable, Dimensions, TextInput, StyleSheet } from 'react-native';
 import DropDownPicker, { ItemType } from 'react-native-dropdown-picker';
-
 import { Ionicons } from '@expo/vector-icons';
+import { useThemedStyles, useThemeColors } from '../../../hooks/useThemeColor';
+import { Colors } from '../../constants/Colors';
 
 const PaymentWindow = ({ job, status, setPaymentStatus }: { job: any, status: boolean, setPaymentStatus: (status: boolean) => void }) => {
 

@@ -9,7 +9,9 @@ import copyToClipBoard from '@/src/services/copyToClipBoard';
 import openMap from '@/src/services/openMap';
 import Ionicons from '@react-native-vector-icons/ionicons';
 import React from 'react';
-import { View, Text, ScrollView, Pressable } from 'react-native';
+import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
+import { useThemedStyles, useThemeColors } from '../../../hooks/useThemeColor';
+import { Colors } from '../../constants/Colors';
 
 const JobSummary = ({ job, setJob } : { job: any, setJob: React.Dispatch<React.SetStateAction<any>> }) => {
     const Style = {

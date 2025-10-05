@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "swift-app",
-    "slug": "swift-app",
+    "slug": "swiftapp",
     "version": "0.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -22,6 +22,15 @@
     "web": {
       "bundler": "metro",
       "favicon": "./assets/images/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "197a33fd-1b2f-4c2e-b51b-b3ff8f976a80"
+      }
+    },
+    "plugins": [
+      "expo-secure-store"
+    ],
+    "owner": "slash4u"
   }
 }

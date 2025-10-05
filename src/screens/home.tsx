@@ -1,21 +1,47 @@
-import { View, Text } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { useThemedStyles, useThemeColors } from '../../hooks/useThemeColor';
 import HomeButton from '../components/ui/home_button';
+import ServerConnectionTest from '@/tests/server/connectionTest';
+import { ensureSession } from '../utils/session';
 
 function HomeScreen({ navigation }: any) {
-    const style = {
-        logo: {
-            width: 100,
-            height: 100,
-            backgroundColor: 'rgb(215, 36, 36)',
-            borderRadius: 50,
-            marginBottom: 20,
-            justifyContent: 'center',
-            alignItems: 'center',
-        },
-    };
+    const colors = useThemeColors();
+
+    const createStyles = (colors: any) =>
+        StyleSheet.create({
+            container: {
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: colors.background,
+            },
+            logo: {
+                width: 100,
+                height: 100,
+                backgroundColor: colors.primary,
+                borderRadius: 50,
+                marginBottom: 20,
+                justifyContent: 'center',
+                alignItems: 'center',
+            },
+        });
+
+    const styles = useThemedStyles(createStyles);
+
+    useEffect(() => {
+                const checkSession = async () => {
+                    const userLoggedIn = await ensureSession();
+                    if (!userLoggedIn || userLoggedIn.authenticated === false) {
+                        navigation.navigate('Connection');
+                    }
+                };
+                checkSession();
+    }, [navigation]);
+
     return (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <View style={style.logo}>
+        <View style={styles.container}>
+            <View style={styles.logo}>
             </View>
 
         <HomeButton
@@ -30,6 +56,12 @@ function HomeScreen({ navigation }: any) {
             title="Parameter"
             onPress={() => navigation.navigate('Parameters')}
         />
+
+        {/* Connection test button - only appears in dev mode */}
+
+        {__DEV__ && (
+            <ServerConnectionTest />
+        )}
     </View>
   )
 }

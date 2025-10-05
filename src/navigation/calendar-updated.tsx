@@ -15,8 +15,6 @@ import TopMenu from '../components/top_menu/top_menu'
 import { useAuthGuard } from '../hooks/useSession'
 import { useCalendarData } from '../hooks/useCalendar'
 import { getCalendarDateRange } from '../utils/dateUtils'
-import { useThemedStyles, useThemeColors } from '../../hooks/useThemeColor'
-import { Colors } from '../constants/Colors'
 
 // Types
 type RootStackParamList = {
@@ -45,19 +43,15 @@ export default function CalendarNavigation({ navigation }: CalendarNavigationPro
   // Authentication guard - redirects to login if not authenticated
   const session = useAuthGuard(navigation)
   
-  // Calendar data management with auto-loading - calculer les dates une seule fois
-  const [dateRange] = React.useState(() => getCalendarDateRange())
-  const calendar = useCalendarData(dateRange.start, dateRange.end, session.isAuthenticated === true)
-
-  // Get themed styles and colors
-  const styles = useThemedStyles(createStyles)
-  const colors = useThemeColors()
+  // Calendar data management with auto-loading
+  const { start, end } = getCalendarDateRange()
+  const calendar = useCalendarData(start, end, session.isAuthenticated === true)
 
   // Show loading screen while checking session
   if (session.isLoading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={colors.loadingSpinner} />
+        <ActivityIndicator size="large" color="#007bff" />
         <Text style={styles.loadingText}>Checking authentication...</Text>
       </View>
     )
@@ -87,7 +81,7 @@ export default function CalendarNavigation({ navigation }: CalendarNavigationPro
       {/* Show calendar data loading overlay */}
       {calendar.isLoading && (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="small" color={colors.loadingSpinner} />
+          <ActivityIndicator size="small" color="#007bff" />
           <Text style={styles.overlayText}>Loading calendar data...</Text>
         </View>
       )}
@@ -156,49 +150,45 @@ export default function CalendarNavigation({ navigation }: CalendarNavigationPro
   )
 }
 
-// Create themed styles function
-const createStyles = (colors: typeof Colors.light) => StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.background,
   },
   loadingText: {
     marginTop: 10,
     fontSize: 16,
-    color: colors.textSecondary,
+    color: '#666',
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: colors.background,
   },
   errorText: {
     fontSize: 16,
-    color: colors.errorBannerText,
+    color: '#ff6b6b',
     textAlign: 'center',
     marginBottom: 20,
   },
   retryButton: {
-    backgroundColor: colors.buttonPrimary,
+    backgroundColor: '#007bff',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
     elevation: 2,
-    shadowColor: colors.shadow,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
   retryButtonText: {
-    color: colors.buttonPrimaryText,
+    color: 'white',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -207,31 +197,31 @@ const createStyles = (colors: typeof Colors.light) => StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    backgroundColor: colors.loadingBackground,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     padding: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1000,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: '#e0e0e0',
   },
   overlayText: {
     marginLeft: 8,
     fontSize: 14,
-    color: colors.textSecondary,
+    color: '#666',
   },
   errorBanner: {
-    backgroundColor: colors.errorBanner,
+    backgroundColor: '#ffebee',
     paddingVertical: 12,
     paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     borderLeftWidth: 4,
-    borderLeftColor: colors.errorBannerBorder,
+    borderLeftColor: '#ff6b6b',
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: '#ffcdd2',
   },
   bannerContent: {
     flex: 1,
@@ -242,32 +232,32 @@ const createStyles = (colors: typeof Colors.light) => StyleSheet.create({
   bannerText: {
     flex: 1,
     fontSize: 14,
-    color: colors.errorBannerText,
+    color: '#d32f2f',
     marginRight: 8,
   },
   bannerButton: {
-    backgroundColor: colors.errorButton,
+    backgroundColor: '#ff6b6b',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 4,
     marginRight: 8,
   },
   bannerButtonText: {
-    color: colors.errorButtonText,
+    color: 'white',
     fontSize: 12,
     fontWeight: '600',
   },
   dismissButton: {
     padding: 4,
     borderRadius: 12,
-    backgroundColor: colors.errorLight,
+    backgroundColor: 'rgba(211, 47, 47, 0.1)',
     minWidth: 24,
     minHeight: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
   dismissButtonText: {
-    color: colors.errorBannerText,
+    color: '#d32f2f',
     fontSize: 16,
     fontWeight: 'bold',
   },

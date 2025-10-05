@@ -1,4 +1,5 @@
-import { Pressable, Text } from "react-native";
+import { Pressable, Text, StyleSheet } from "react-native";
+import { useThemedStyles, useThemeColors } from '../../../hooks/useThemeColor';
 
 type HomeButtonProps = {
   title: string;
@@ -7,25 +8,36 @@ type HomeButtonProps = {
 };
 
 const HomeButton = ({ title, onPress, disabled = false }: HomeButtonProps) => {
-    const HomeButtonStyle = {
-  backgroundColor:'rgb(215, 36, 36)',
-  padding: 10,
-  borderRadius: 5,
-  alignItems: 'center' as const,
-  justifyContent: 'center' as const,
-  marginVertical: 5,
-  opacity: disabled ? 0.5 : 1,
-  width: '80%',
-  maxWidth: 300,
-};
+    const colors = useThemeColors();
+
+    const createStyles = (colors: any) =>
+        StyleSheet.create({
+            homeButton: {
+                backgroundColor: colors.primary,
+                padding: 10,
+                borderRadius: 5,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginVertical: 5,
+                opacity: disabled ? 0.5 : 1,
+                width: '80%',
+                maxWidth: 300,
+            },
+            buttonText: {
+                color: colors.buttonPrimaryText,
+                fontSize: 16,
+            },
+        });
+
+    const styles = useThemedStyles(createStyles);
 
   return (
     <Pressable
       onPress={onPress}
       disabled={disabled}
-      style={HomeButtonStyle}
+      style={styles.homeButton}
     >
-        <Text style={{ color: 'white', fontSize: 16 }}>
+        <Text style={styles.buttonText}>
       {title}
     </Text>
     </Pressable>

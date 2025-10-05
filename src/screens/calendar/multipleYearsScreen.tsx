@@ -1,68 +1,77 @@
 // This page show all the years of the calendar. You can only select a year.
 
 import React from 'react';
-import { View, Text, Pressable, ScrollView } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { useThemedStyles, useThemeColors } from '../../../hooks/useThemeColor';
+
 const MultipleYearsScreen = ({ navigation }: any) => {
+    const colors = useThemeColors();
 
     const selectedYear = new Date().getFullYear().toString();
     const yearList = Array.from({ length: 20 }, (_, i) => (parseInt(selectedYear) + i).toString());
-    const monthYearSwitchButton = {
-        backgroundColor: 'rgb(215, 36, 36)',
-        padding: 10,
-        borderRadius: 5,
-        marginBottom: 20,
-    };
 
-    const Style = {
-        yearSelectTitleContainer: {
-            justifyContent: 'center',
-            alignItems: 'center',
-            paddingTop: 100,
-            paddingBottom: 20,
-            backgroundColor: '#fff',
-            width: '100%',
-        },
-        YearSelectContainer: {
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: '#f5f5f5',
-        },
-        YearSelectButton: {
-            width: '95%',
-            height: 50,
-            justifyContent: 'center',
-            alignItems: 'center',
-            borderWidth: 1,
-            margin: 2,
-            borderRadius: 5,
-            backgroundColor: '#444',
-            color: '#fff',
-        },
-        YearSelectText: {
-            fontSize: 18,
-            fontWeight: 'bold',
-            marginBottom: 10,
-            color: '#000',
-        },
-        YearSelectButtonText: {
-            fontSize: 16,
-            color: '#fff',
-        },
-    };
+    const createStyles = (colors: any) =>
+        StyleSheet.create({
+            container: {
+                flex: 1,
+            },
+            yearSelectTitleContainer: {
+                justifyContent: 'center',
+                alignItems: 'center',
+                paddingTop: 100,
+                paddingBottom: 20,
+                backgroundColor: colors.background,
+                width: '100%',
+            },
+            YearSelectContainer: {
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: colors.background,
+            },
+            yearListContainer: {
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                justifyContent: 'center',
+                alignItems: 'center',
+            },
+            YearSelectButton: {
+                width: '95%',
+                height: 50,
+                justifyContent: 'center',
+                alignItems: 'center',
+                borderWidth: 1,
+                borderColor: colors.border,
+                margin: 2,
+                borderRadius: 5,
+                backgroundColor: colors.primaryLight,
+            },
+            YearSelectText: {
+                fontSize: 18,
+                fontWeight: 'bold',
+                marginBottom: 10,
+                color: colors.text,
+            },
+            YearSelectButtonText: {
+                fontSize: 16,
+                color: colors.text,
+            },
+        });
+
+    const styles = useThemedStyles(createStyles);
 
     return (
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={ Style.YearSelectContainer}>
-           <View style={Style.yearSelectTitleContainer}>
-                <Text style={Style.YearSelectText}>Select a Year</Text>
+        <ScrollView style={styles.container} contentContainerStyle={styles.YearSelectContainer}>
+           <View style={styles.yearSelectTitleContainer}>
+                <Text style={styles.YearSelectText}>Select a Year</Text>
             </View> 
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' }}>
+            <View style={styles.yearListContainer}>
                 {yearList.map((year) => (
                 <Pressable
                     key={year}
-                    style={Style.YearSelectButton}
+                    style={styles.YearSelectButton}
                     onPress={() => navigation.navigate('Year', { year })}
                 >
-                    <Text style={Style.YearSelectButtonText}>{year}</Text>
+                    <Text style={styles.YearSelectButtonText}>{year}</Text>
                 </Pressable>
                 ))}
             </View>

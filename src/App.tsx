@@ -1,12 +1,16 @@
 // src/App.tsx
 import React from 'react'
 import Navigation from './navigation/index'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
+import { ThemeProvider } from './context/ThemeProvider'
 
 export default function App() {
+  
   return (
-    <View style={{ flex: 1 }}>
-      <Navigation />
-    </View>
+    <ThemeProvider>
+      <View style={{ flex: 1 }}>
+        <Navigation />
+      </View>
+    </ThemeProvider>
   )
 }

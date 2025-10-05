@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, ScrollView, Pressable } from 'react-native';
 import TopMenu from '../components/top_menu/top_menu';
 import { text } from 'stream/consumers';
@@ -12,6 +12,7 @@ import JobPayment from './JobDetailsScreens/payment';
 import RefBookMark from '../components/ui/refBookMark';
 import { title } from 'process';
 import Toast from '../components/ui/toastNotification';
+import { ensureSession } from '../utils/session';
 
 const JobDetails = ({ route, navigation, jobId, day, month, year }: any) => {
     const [job, setJob] = useState({
@@ -197,6 +198,16 @@ const JobDetails = ({ route, navigation, jobId, day, month, year }: any) => {
             setToastDetails({ message: '', type: 'info', status: false });
         }, 3000); // Hide toast after 3 seconds
     }
+
+    useEffect(() => {
+                const checkSession = async () => {
+                    const userLoggedIn = await ensureSession();
+                    if (!userLoggedIn || userLoggedIn.authenticated === false) {
+                        navigation.navigate('Connection');
+                    }
+                };
+                checkSession();
+    }, [navigation]);
 
     return (
         <View style={ Style.jobDetailsContainer }>

@@ -3,7 +3,8 @@
 import JobBox from '@/src/components/calendar/jobBox';
 import Ionicons from '@react-native-vector-icons/ionicons';
 import React from 'react';
-import { View, Text, ScrollView, Pressable } from 'react-native';
+import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
+import { useThemedStyles, useThemeColors } from '../../../hooks/useThemeColor';
 
     const DayScreen = ({ route, navigation }: any) => {
         const { day, month, year } = route.params || {};
@@ -11,41 +12,9 @@ import { View, Text, ScrollView, Pressable } from 'react-native';
         const selectedMonth = month || new Date().getMonth() + 1;
         const selectedYear = year || new Date().getFullYear();
 
-    const Style = {
-        dayScreenContainerScroll: {
-            flexGrow: 1,
-            justifyContent: 'flex-start',
-            alignItems: 'center',
-        },
-        dayScreenContainer: {
-            flex: 1,
-            backgroundColor: '#f0f0f0',
-            padding: 20,
-            paddingTop: 100, // Adjusted for the top menu
-            paddingBottom: 20,
-        },
-        dayScreenTitle: {
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: 20,
-            width: '100%',
-        },
-        backButton: {
-            backgroundColor: '#aaa',
-            borderRadius: 5,
-            marginRight: 10,
-            padding: 10,
-        },
-        dayScreenText: {
-            fontSize: 24,
-            fontWeight: 'bold',
-            color: '#333',
-            textAlign: 'center',
-            flex: 1,
-            textAlignVertical: 'center',
-        },
-    };
+        // Get themed colors and styles
+        const colors = useThemeColors();
+        const styles = useThemedStyles(createDayScreenStyles);
 
     const jobs = [
         {
@@ -96,12 +65,12 @@ import { View, Text, ScrollView, Pressable } from 'react-native';
     ]; // This should be replaced with the actual jobs data for the selected day
 
     return (
-        <ScrollView style={Style.dayScreenContainer} contentContainerStyle={Style.dayScreenContainerScroll}>
-            <View style={Style.dayScreenTitle}>
-                <Pressable onPress={() => navigation.navigate('Month', { month: selectedMonth, year: selectedYear })} style={ Style.backButton }>
-                    <Ionicons name="arrow-back" size={24} color="#333" />
+        <ScrollView style={styles.dayScreenContainer} contentContainerStyle={styles.dayScreenContainerScroll}>
+            <View style={styles.dayScreenTitle}>
+                <Pressable onPress={() => navigation.navigate('Month', { month: selectedMonth, year: selectedYear })} style={styles.backButton}>
+                    <Ionicons name="arrow-back" size={24} color={colors.buttonPrimaryText} />
                 </Pressable>
-                <Text style={Style.dayScreenText}>
+                <Text style={styles.dayScreenText}>
                     {/* Date in full letters format */}
                     {`${selectedDay} ${new Intl.DateTimeFormat('en-US', { month: 'long' }).format(new Date(selectedYear, selectedMonth - 1, selectedDay))} ${selectedYear}`}
                 </Text>
@@ -121,11 +90,54 @@ import { View, Text, ScrollView, Pressable } from 'react-native';
                             />
                         ))
                     ) : (
-                        <Text>No jobs available for this day.</Text>
+                        <Text style={styles.noJobsText}>No jobs available for this day.</Text>
                     )}
             </View>
         </ScrollView>
     );
 };
+
+// Create themed styles function
+const createDayScreenStyles = (colors: any) => StyleSheet.create({
+    dayScreenContainerScroll: {
+        flexGrow: 1,
+        justifyContent: 'flex-start' as const,
+        alignItems: 'center' as const,
+    },
+    dayScreenContainer: {
+        flex: 1,
+        backgroundColor: colors.backgroundTertiary,
+        padding: 20,
+        paddingTop: 100, // Adjusted for the top menu
+        paddingBottom: 20,
+    },
+    dayScreenTitle: {
+        flexDirection: 'row' as const,
+        justifyContent: 'space-between' as const,
+        alignItems: 'center' as const,
+        marginBottom: 20,
+        width: '100%',
+    },
+    backButton: {
+        backgroundColor: colors.buttonSecondary,
+        borderRadius: 5,
+        marginRight: 10,
+        padding: 10,
+    },
+    dayScreenText: {
+        fontSize: 24,
+        fontWeight: 'bold' as const,
+        color: colors.text,
+        textAlign: 'center' as const,
+        flex: 1,
+    },
+    noJobsText: {
+        fontSize: 16,
+        color: colors.textSecondary,
+        textAlign: 'center' as const,
+        marginTop: 20,
+    },
+});
+
 export default DayScreen;
 

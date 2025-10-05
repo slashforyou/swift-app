@@ -1,66 +1,67 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import Ionicons from '@react-native-vector-icons/ionicons';
+import { useThemedStyles, useThemeColors } from '../../../../hooks/useThemeColor';
 
-
+const createStyles = (colors: any) => StyleSheet.create({
+    jobNote: {
+        width: '95%',
+        marginTop: 10,
+        marginBottom: 10,
+        borderRadius: 10,
+        borderWidth: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        justifyContent: 'flex-start',
+        shadowColor: colors.shadow,
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+    },
+    jobNoteTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: colors.text,
+        marginBottom: 5,
+        display: 'flex',
+        flexDirection: 'row',
+        borderBottomWidth: 1,
+        width: '100%',
+        padding: 10,
+    },
+    jobNoteIcon: {
+        marginRight: 10,
+    },
+    jobNoteContent: {
+        fontSize: 16,
+        color: colors.textSecondary,
+        padding: 10,
+    },
+});
 
 const JobNoteItem = ({ note }: { note: any }) => {
-
-    const Style = {
-        jobNote: {
-            width: '95%',
-            marginTop: 10,
-            marginBottom: 10,
-            borderRadius: 10,
-            borderWidth: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'flex-start',
-            justifyContent: 'flex-start',
-            shadowColor: '#000',
-            shadowOffset: {
-                width: 0,
-                height: 2,
-            },
-            shadowOpacity: 0.1,
-            shadowRadius: 4,
-        },
-        jobNoteTitle: {
-            fontSize: 18,
-            fontWeight: 'bold',
-            color: '#333',
-            marginBottom: 5,
-            display: 'flex',
-            flexDirection: 'row',
-            borderBottomWidth: 1,
-            width: '100%',
-            padding: 10,
-        },
-        jobNoteIcon: {
-            marginRight: 10,
-        },
-        jobNoteContent: {
-            fontSize: 16,
-            color: '#555',
-            padding: 10,
-        },
-    };
+    const colors = useThemeColors();
+    const styles = useThemedStyles(createStyles);
 
     const noteTypes = [
-        { name: "Classic", color: "#f0f0f0", borderColor: "#ccc", icon: "document-text" },
-        { name: "Info", color: "#d1ecf1", borderColor: "#bee5eb", icon: "information-circle" },
-        { name: "Warning", color: "#fff3cd", borderColor: "#ffeeba", icon: "warning" },
-        { name: "Error", color: "#f8d7da", borderColor: "#f5c6cb", icon: "alert-circle" },
-        { name: "Success", color: "#d4edda", borderColor: "#c3e6cb", icon: "checkmark-circle" },
+        { name: "Classic", color: colors.backgroundSecondary, borderColor: colors.textSecondary, icon: "document-text" },
+        { name: "Info", color: colors.info, borderColor: colors.primary, icon: "information-circle" },
+        { name: "Warning", color: colors.warning, borderColor: colors.primary, icon: "warning" },
+        { name: "Error", color: colors.error, borderColor: colors.primary, icon: "alert-circle" },
+        { name: "Success", color: colors.success, borderColor: colors.primary, icon: "checkmark-circle" },
     ]
 
     return (
-        <View style={{ ...Style.jobNote, backgroundColor: noteTypes[note.type].color, borderColor: noteTypes[note.type].borderColor }}>
-            <Text style={{ ...Style.jobNoteTitle, borderBottomColor: noteTypes[note.type].borderColor }}>
-                <Ionicons name={noteTypes[note.type].icon} size={24} color="#333" style={Style.jobNoteIcon} />
+        <View style={{ ...styles.jobNote, backgroundColor: noteTypes[note.type].color, borderColor: noteTypes[note.type].borderColor }}>
+            <Text style={{ ...styles.jobNoteTitle, borderBottomColor: noteTypes[note.type].borderColor }}>
+                <Ionicons name={noteTypes[note.type].icon as any} size={24} color={colors.text} style={styles.jobNoteIcon} />
                 {note.title}
             </Text>
-            <Text style={Style.jobNoteContent}>{note.content}</Text>
+            <Text style={styles.jobNoteContent}>{note.content}</Text>
         </View>
     );
 }

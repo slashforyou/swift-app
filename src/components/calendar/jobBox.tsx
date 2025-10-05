@@ -1,19 +1,22 @@
 import Ionicons from '@react-native-vector-icons/ionicons';
 import e from 'express';
 import React from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { useThemedStyles, useThemeColors } from '../../../hooks/useThemeColor';
 // This component is used to display a job box in the calendar day screen
 // It shows basic information about the job
 
 const JobBox = ({ job, navigation, day, month, year }: any) => {
+    const colors = useThemeColors();
 
-    const Style = {
-        dayJobBox: {
-            backgroundColor: '#f9f9f9',
-            padding: 10,
-            borderRadius: 5,
-            marginBottom: 10,
-            shadowColor: '#000',
+    const createStyles = (colors: any) =>
+        StyleSheet.create({
+            dayJobBox: {
+                backgroundColor: colors.backgroundSecondary,
+                padding: 10,
+                borderRadius: 5,
+                marginBottom: 10,
+                shadowColor: colors.shadow,
             shadowOffset: { width: 0, height: 2 },
             shadowOpacity: 0.1,
             shadowRadius: 4,
@@ -21,30 +24,29 @@ const JobBox = ({ job, navigation, day, month, year }: any) => {
             width: '100%',
             flexDirection: 'column',
         },
-        jobTitle: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            marginBottom: 5,
-            padding : 5,
-            backgroundColor: 'rgb(217, 88, 88)',
-            color: '#fff',
-            justifyContent: 'center',
-            borderRadius: 5,
-        },
-        jobTitleText: {
-            fontSize: 18,
-            fontWeight: 'bold',
-            color: '#fff',
-        },
-        jobStartSuburb: {
-            fontSize: 14,
-            color: '#666',
-            fontWeight: 'bold',
-            marginTop: 5,
-        },
-        jobClientName: {
-            fontSize: 16,
-            color: '#333',
+            jobTitle: {
+                flexDirection: 'row',
+                alignItems: 'center',
+                marginBottom: 5,
+                padding: 5,
+                backgroundColor: colors.primary,
+                justifyContent: 'center',
+                borderRadius: 5,
+            },
+            jobTitleText: {
+                fontSize: 18,
+                fontWeight: 'bold',
+                color: colors.buttonPrimaryText,
+            },
+            jobStartSuburb: {
+                fontSize: 14,
+                color: colors.textSecondary,
+                fontWeight: 'bold',
+                marginTop: 5,
+            },
+            jobClientName: {
+                fontSize: 16,
+                color: colors.text,
             marginTop: 5,
         },
         dayJobBoxRightPanel: {
@@ -54,12 +56,12 @@ const JobBox = ({ job, navigation, day, month, year }: any) => {
         },
         jobStartTimeTitle: {
             fontSize: 16,
-            color: '#555',
+            color: colors.textSecondary,
             fontWeight: 'bold',
         },
         jobStartTime: {
             fontSize: 16,
-            color: '#333',
+            color: colors.text,
             marginTop: 5,
         },
         dayJobBoxLeftPanel: {
@@ -75,14 +77,14 @@ const JobBox = ({ job, navigation, day, month, year }: any) => {
         },
         jobTruckTitle: {
             fontSize: 16,
-            color: '#555',
+            color: colors.textSecondary,
             fontWeight: 'bold',
             flexDirection: 'row',
             alignItems: 'center',
         },
         jobTruckText: {
             fontSize: 16,
-            color: '#333',
+            color: colors.text,
             marginLeft: 5,
         },
         dayJobBoxTopPanel: {
@@ -91,21 +93,21 @@ const JobBox = ({ job, navigation, day, month, year }: any) => {
             alignItems: 'center',
             paddingBottom: 10,
             borderBottomWidth: 1,
-            borderBottomColor: '#eee',
+            borderBottomColor: colors.backgroundSecondary,
             width: '100%',
             marginBottom: 10,
         },
         dayJobTruckPlate: {
-            backgroundColor: '#eee',
+            backgroundColor: colors.backgroundSecondary,
             padding: 5,
             borderRadius: 5,
             marginTop: 5,
             borderWidth: 2,
-            borderColor: '#555',
+            borderColor: colors.textSecondary,
         },
         jobTruckPlateText: {
             fontSize: 16,
-            color: '#333',
+            color: colors.text,
             fontWeight: 'bold',
             textAlign: 'center',
         },
@@ -116,7 +118,7 @@ const JobBox = ({ job, navigation, day, month, year }: any) => {
         },
         jobTruckNameText: {
             fontSize: 16,
-            color: '#333',
+            color: colors.text,
             fontWeight: 'bold',
         },
         jobTruckIcon: {
@@ -124,17 +126,17 @@ const JobBox = ({ job, navigation, day, month, year }: any) => {
         },
         jobTruckPlateIcon: {
             marginRight: 5,
-            color: '#555',
+            color: colors.textSecondary,
         },
         jobTruckNameIcon: {
             marginRight: 5,
-            color: '#555',
+            color: colors.textSecondary,
         },
         jobQuickActionButtonCall: {
-            backgroundColor: '#fff',
+            backgroundColor: colors.background,
             padding: 5,
             borderRadius: 5,
-            shadowColor: '#000',
+            shadowColor: colors.shadow,
             shadowOffset: { width: 0, height: 2 },
             shadowOpacity: 0.1,
             shadowRadius: 4,
@@ -145,19 +147,19 @@ const JobBox = ({ job, navigation, day, month, year }: any) => {
             width: '100%',
             marginBottom: 10,
             borderWidth: 1,
-            borderColor: 'rgb(4, 223, 146)',
+            borderColor: colors.primary,
         },
         jobQuickActionButtonCallText: {
             fontSize: 16,
-            color: '#555',
+            color: colors.textSecondary,
             marginBottom: 5,
             textAlign: 'center',
         },
         jobQuickActionButtonMap: {
-            backgroundColor: '#fff',
+            backgroundColor: colors.background,
             padding: 5,
             borderRadius: 5,
-            shadowColor: '#000',
+            shadowColor: colors.shadow,
             shadowOffset: { width: 0, height: 2 },
             shadowOpacity: 0.1,
             shadowRadius: 4,
@@ -167,17 +169,19 @@ const JobBox = ({ job, navigation, day, month, year }: any) => {
             justifyContent: 'center',
             width: '100%',
             borderWidth: 1,
-            borderColor: 'rgb(4, 143, 223)',
+            borderColor: colors.primary,
         },
-        jobQuickActionButtonMapText: {
-            fontSize: 16,
-            color: '#555',
-            marginBottom: 5,
-            textAlign: 'center',
-        },
-    };
+            jobQuickActionButtonMapText: {
+                fontSize: 16,
+                color: colors.textSecondary,
+                marginBottom: 5,
+                textAlign: 'center',
+            },
+        });
 
-    const handlePress = (e) => {
+    const styles = useThemedStyles(createStyles);
+
+    const handlePress = (e: any) => {
         e.stopPropagation(); // Prevents the event from bubbling up
         if (navigation && typeof navigation.navigate === 'function') {
             console.log(`Job ${job.id} selected, navigating to details...`);
@@ -189,48 +193,48 @@ const JobBox = ({ job, navigation, day, month, year }: any) => {
 
 
     return (
-        <Pressable style={Style.dayJobBox} onPress={handlePress}>
-            <View style={ Style.dayJobBoxTopPanel }>
-                <View style={ Style.dayJobBoxLeftPanel }>
-                    <View style={ Style.jobTitle }>
-                    <Text style={Style.jobTitleText}>{job.id}</Text>
+        <Pressable style={styles.dayJobBox} onPress={handlePress}>
+            <View style={ styles.dayJobBoxTopPanel }>
+                <View style={ styles.dayJobBoxLeftPanel }>
+                    <View style={ styles.jobTitle }>
+                    <Text style={styles.jobTitleText}>{job.id}</Text>
                     </View>
-                    <Text style={Style.jobStartSuburb }>{job.addresses[0].city}</Text>
-                    <Text style={Style.jobClientName}>
+                    <Text style={styles.jobStartSuburb }>{job.addresses[0].city}</Text>
+                    <Text style={styles.jobClientName}>
                         {job.client.firstName} {job.client.lastName}
                     </Text>
                 </View>
-                <View style={ Style.dayJobBoxRightPanel }>
-                    <Text style={Style.jobStartTimeTitle}>Start Time:</Text>
-                    <Text style={Style.jobStartTime}>{
+                <View style={ styles.dayJobBoxRightPanel }>
+                    <Text style={styles.jobStartTimeTitle}>Start Time:</Text>
+                    <Text style={styles.jobStartTime}>{
                         new Date(job.time.startWindowStart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                     }</Text>
-                    <Text style={Style.jobStartTime}>{
+                    <Text style={styles.jobStartTime}>{
                         new Date(job.time.startWindowEnd).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                     }</Text>
                 </View>
             </View>
-            <View style={ Style.dayJobBoxBottomPanel }>
-                <View style={Style.dayJobBoxLeftPanel}>
-                    <Text style={Style.jobTruckTitle}>
-                         <Ionicons name="car" size={16} color="#555" />
+            <View style={ styles.dayJobBoxBottomPanel }>
+                <View style={styles.dayJobBoxLeftPanel}>
+                    <Text style={styles.jobTruckTitle}>
+                         <Ionicons name="car" size={16} color="colors.textSecondary" />
                          Truck:
                     </Text>
-                    <View style={Style.dayJobTruckPlate}>
-                        <Text style={Style.jobTruckPlateText}>{job.truck.licensePlate}</Text>
+                    <View style={styles.dayJobTruckPlate}>
+                        <Text style={styles.jobTruckPlateText}>{job.truck.licensePlate}</Text>
                     </View>
-                    <View style={Style.jobTruckName}>
-                        <Text style={Style.jobTruckNameText}>{job.truck.name}</Text>
+                    <View style={styles.jobTruckName}>
+                        <Text style={styles.jobTruckNameText}>{job.truck.name}</Text>
                     </View>
                 </View>
-                <View style={Style.dayJobBoxRightPanel}>
-                    <Pressable onPress={() => console.log(`QUICK ACTION : Call ${job.client.phone}`)} style={ Style.jobQuickActionButtonCall }>
-                        <Ionicons name="call" size={18} color="#555" style={ Style.jobTruckIcon } />
-                        <Text style={ Style.jobQuickActionButtonCallText }>Call</Text>
+                <View style={styles.dayJobBoxRightPanel}>
+                    <Pressable onPress={() => console.log(`QUICK ACTION : Call ${job.client.phone}`)} style={ styles.jobQuickActionButtonCall }>
+                        <Ionicons name="call" size={18} color={colors.textSecondary} style={ styles.jobTruckIcon } />
+                        <Text style={ styles.jobQuickActionButtonCallText }>Call</Text>
                     </Pressable>
-                    <Pressable onPress={() => console.log(`QUICK ACTION : Map to ${job.addresses[0].street}`)} style={ Style.jobQuickActionButtonMap }>
-                        <Ionicons name="navigate" size={18} color="#555" style={ Style.jobTruckIcon } />
-                        <Text style={ Style.jobQuickActionButtonMapText }>Map</Text>
+                    <Pressable onPress={() => console.log(`QUICK ACTION : Map to ${job.addresses[0].street}`)} style={ styles.jobQuickActionButtonMap }>
+                        <Ionicons name="navigate" size={18} color={colors.textSecondary} style={ styles.jobTruckIcon } />
+                        <Text style={ styles.jobQuickActionButtonMapText }>Map</Text>
                     </Pressable>
                 </View>
             </View>
