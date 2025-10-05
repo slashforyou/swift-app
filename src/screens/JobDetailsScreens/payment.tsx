@@ -22,7 +22,7 @@ const JobPayment = ({ job, setJob }: { job: any, setJob: React.Dispatch<React.Se
                             onPress={() => setPaymentStatus('paymentWindow')}
                         >
                             <Text style={commonStyles.buttonPrimaryText}>Make Payment</Text>
-                            <Ionicons name="chevron-forward" size={18} color="#fff" />
+                            <Ionicons name="chevron-forward" size={18} color={colors.backgroundTertiary} />
                         </Pressable>
                     ) : (
                         <View style={[commonStyles.panel, { marginVertical: 16, backgroundColor: colors.warningLight }]}>

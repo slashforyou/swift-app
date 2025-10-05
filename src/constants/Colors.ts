@@ -6,18 +6,18 @@
 
 export const Colors = {
   light: {
-    // Base colors (neutral_slate_bluish palette)
-    text: '#233551', // neutral_slate_bluish.900
-    textSecondary: '#516386', // neutral_slate_bluish.700
-    textMuted: '#6C7FA1', // neutral_slate_bluish.600
-    background: '#F6F8FC', // neutral_slate_bluish.50
-    backgroundSecondary: '#EDF1F8', // neutral_slate_bluish.100
-    backgroundTertiary: '#DCE4F0', // neutral_slate_bluish.200
+    // Base colors - Référence exacte du thème
+    text: '#233551', // text_light selon spécifications
+    textSecondary: '#516386', // text_secondary_light selon spécifications
+    textMuted: '#6C7FA1', // variant intermédiaire
+    background: '#F6F8FC', // background_light selon spécifications
+    backgroundSecondary: '#EDF1F8', // surface proche du blanc
+    backgroundTertiary: '#FFFFFF', // surface_light selon spécifications
     
-    // Primary brand colors (primary_orange palette)
-    primary: '#FF6A4A', // primary_orange.500
-    primaryDark: '#CC452F', // primary_orange.700
-    primaryLight: '#FF8F73', // primary_orange.400
+    // Primary brand colors - Référence exacte
+    primary: '#FF6A4A', // primary selon spécifications 
+    primaryHover: '#F0553A', // primary_hover selon spécifications
+    primaryPressed: '#CC452F', // primary_pressed selon spécifications
     
     // Accent colors
     tint: '#3B82F6', // info_blue.500
@@ -32,12 +32,13 @@ export const Colors = {
     info: '#3B82F6', // info_blue.500
     infoLight: '#60A5FA', // info_blue.400
     
-    // UI Elements
-    border: '#DCE4F0', // neutral_slate_bluish.200
-    borderLight: '#EDF1F8', // neutral_slate_bluish.100
-    shadow: '#233551', // neutral_slate_bluish.900
+    // UI Elements - Référence exacte
+    border: '#DCE4F0', // border selon spécifications
+    borderLight: '#EDF1F8', // variant plus clair
+    shadow: 'rgba(2,6,23,0.08)', // shadow_soft selon spécifications
+    shadowMedium: 'rgba(2,6,23,0.12)', // shadow_medium selon spécifications
     overlay: 'rgba(246, 248, 252, 0.95)', // background with opacity
-    overlayDark: 'rgba(35, 53, 81, 0.5)', // text with opacity
+    overlayDark: 'rgba(35, 53, 81, 0.5)', // overlay modal
     
     // Navigation & Icons
     icon: '#8B9EBB', // neutral_slate_bluish.500
@@ -81,18 +82,18 @@ export const Colors = {
     errorButtonText: '#FFFFFF',
   },
   dark: {
-    // Base colors (dark theme palette)
-    text: '#F5F7FB', // text-primary
-    textSecondary: '#C8D0E0', // text-secondary
-    textMuted: '#9AA7BF', // text-muted
-    background: '#0F1420', // background
-    backgroundSecondary: '#0B101B', // surface-2
-    backgroundTertiary: '#121826', // surface/card
+    // Base colors - Dark theme référence exacte
+    text: '#F5F7FB', // text_dark selon spécifications
+    textSecondary: '#C8D0E0', // text_secondary_dark selon spécifications
+    textMuted: '#9AA7BF', // variant intermédiaire
+    background: '#0F1420', // background_dark selon spécifications
+    backgroundSecondary: '#121826', // surface_dark selon spécifications
+    backgroundTertiary: '#121826', // surface_dark selon spécifications
     
-    // Primary brand colors
-    primary: '#FF6A4A', // primary (same as light)
-    primaryDark: '#CC452F', // primary-pressed
-    primaryLight: '#FF8F73', // lighter variant
+    // Primary brand colors - Identique au light
+    primary: '#FF6A4A', // primary selon spécifications
+    primaryHover: '#F0553A', // primary_hover selon spécifications 
+    primaryPressed: '#CC452F', // primary_pressed selon spécifications
     
     // Accent colors
     tint: '#6EA8FF', // accent

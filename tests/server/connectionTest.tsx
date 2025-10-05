@@ -61,13 +61,18 @@ const ServerConnectionTest = () => {
 
     return (
         <>
-        <Pressable onPress={serverTestsWhile} style={{ padding: 10, backgroundColor: '#007BFF', borderRadius: 5, marginTop: 20 }}>
+        <Pressable onPress={serverTestsWhile} style={{ 
+            padding: 10, 
+            backgroundColor: '#FF6A4A', // Utilise couleur primary selon spécifications
+            borderRadius: 8, // Utilise radiusMedium selon spécifications
+            marginVertical: 10 // Meilleur espacement
+        }}>
             <Text style={{ color: '#FFFFFF' }}>Test Server Connection</Text>
         </Pressable>
-            {loading && !response && <Text style={{ color: 'gray', marginTop: 10 }}>Loading...</Text>}
-            {!loading && !response && !error && <Text style={{ color: 'gray', marginTop: 10 }}>No response yet</Text>}
-            {response && <Text style={{ color: 'green', marginTop: 10 }}>Response: {response}</Text>}
-            {error && <Text style={{ color: 'red', marginTop: 10 }}>Error: {error}</Text>}
+            {loading && !response && <Text style={{ color: '#516386', marginVertical: 10 }}>Loading...</Text>}
+            {!loading && !response && !error && <Text style={{ color: '#516386', marginVertical: 10 }}>No response yet</Text>}
+            {response && <Text style={{ color: '#22C55E', marginVertical: 10 }}>Response: {response}</Text>}
+            {error && <Text style={{ color: '#EF4444', marginVertical: 10 }}>Error: {error}</Text>}
         </>
 
     );

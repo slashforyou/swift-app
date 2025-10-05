@@ -1,11 +1,10 @@
 // The profile screen displays user profile information and allows editing.
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, Pressable, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import TopMenu from '../components/top_menu/top_menu';
 import { ensureSession } from '../utils/session';
-import { useThemedStyles, useThemeColors } from '../../hooks/useThemeColor';
-import { Colors } from '../constants/Colors';
+import { useCommonThemedStyles } from '../hooks/useCommonStyles';
 
 const Profile = () => {
     const navigation = useNavigation();
@@ -15,9 +14,8 @@ const Profile = () => {
         email: "john.doe@example.com"
     });
 
-    // Use themed styles
-    const styles = useThemedStyles(createStyles);
-    const colors = useThemeColors();
+    // Use common themed styles
+    const { colors, styles } = useCommonThemedStyles();
 
     useEffect(() => {
             const checkSession = async () => {
@@ -30,156 +28,59 @@ const Profile = () => {
     }, [navigation]);
 
     return (
-        <View style={styles.profileContainer}>
+        <SafeAreaView style={styles.container}>
             <TopMenu navigation={navigation} />
-            <ScrollView style={styles.profileContainerScroll} contentContainerStyle={styles.profileContainerScrollContent}>
-                <View style={styles.profilePicture}>
-                    <Text style={styles.profilePictureTitle}>Profile</Text>
-                    <View style={styles.profilePictureImage}>
-                        <Text style={styles.placeholderText}>Image Placeholder</Text>
+            <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.padding16}>
+                {/* Profile Header */}
+                <View style={[styles.card, styles.itemsCenter, styles.marginBottom, { backgroundColor: colors.primary }]}>
+                    <Text style={[styles.h2, { color: colors.backgroundTertiary }]}>Profile</Text>
+                    <View style={[
+                        { width: 100, height: 100, borderRadius: 50, backgroundColor: colors.backgroundSecondary, alignItems: 'center', justifyContent: 'center', marginVertical: 16 }
+                    ]}>
+                        <Text style={[styles.body, { color: colors.textMuted }]}>Image Placeholder</Text>
                     </View>
-                    <Text style={styles.profileName}>
+                    <Text style={[styles.h3, { color: colors.backgroundTertiary }]}>
                         {user.firstName} {user.lastName}
                     </Text>
-                    {/* TODO : Progress bar with level of the employee/worker */}
                 </View>
-                <View style={styles.profileDetails}>
-                    <View style={styles.profileDetailsItem}>
-                        <Text style={styles.profileDetailsItemText}>First Name:</Text>
-                        <Text style={styles.profileDetailsItemValue}>{user.firstName}</Text>
-                        <Pressable style={styles.profileDetailsItemButton}>
-                            <Text style={styles.profileDetailsItemButtonText}>Edit</Text>
+                
+                {/* Profile Details */}
+                <View style={styles.card}>
+                    <View style={[styles.listItem, styles.marginBottom]}>
+                        <View style={{ flex: 1 }}>
+                            <Text style={styles.listItemTitle}>First Name:</Text>
+                            <Text style={styles.listItemSubtitle}>{user.firstName}</Text>
+                        </View>
+                        <Pressable style={[styles.button, { backgroundColor: colors.backgroundSecondary }]}>
+                            <Text style={[styles.body, { color: colors.primary }]}>Edit</Text>
                         </Pressable>
                     </View>
-                    <View style={styles.profileDetailsItem}>
-                        <Text style={styles.profileDetailsItemText}>Last Name:</Text>
-                        <Text style={styles.profileDetailsItemValue}>{user.lastName}</Text>
-                        <Pressable style={styles.profileDetailsItemButton}>
-                            <Text style={styles.profileDetailsItemButtonText}>Edit</Text>
+                    
+                    <View style={[styles.listItem, styles.marginBottom]}>
+                        <View style={{ flex: 1 }}>
+                            <Text style={styles.listItemTitle}>Last Name:</Text>
+                            <Text style={styles.listItemSubtitle}>{user.lastName}</Text>
+                        </View>
+                        <Pressable style={[styles.button, { backgroundColor: colors.backgroundSecondary }]}>
+                            <Text style={[styles.body, { color: colors.primary }]}>Edit</Text>
                         </Pressable>
                     </View>
-                    <View style={styles.profileDetailsItem}>
-                        <Text style={styles.profileDetailsItemText}>Email:</Text>
-                        <Text style={styles.profileDetailsItemValue}>{user.email}</Text>
-                        <Pressable style={styles.profileDetailsItemButton}>
-                            <Text style={styles.profileDetailsItemButtonText}>Edit</Text>
+                    
+                    <View style={styles.listItem}>
+                        <View style={{ flex: 1 }}>
+                            <Text style={styles.listItemTitle}>Email:</Text>
+                            <Text style={styles.listItemSubtitle}>{user.email}</Text>
+                        </View>
+                        <Pressable style={[styles.button, { backgroundColor: colors.backgroundSecondary }]}>
+                            <Text style={[styles.body, { color: colors.primary }]}>Edit</Text>
                         </Pressable>
                     </View>
                 </View>
             </ScrollView>
-        </View>
+        </SafeAreaView>
     );
 };
 
-// Themed styles function
-const createStyles = (colors: typeof Colors.light) => StyleSheet.create({
-    profileContainer: {
-        flex: 1,
-        backgroundColor: colors.background,
-        width: '100%',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'flex-start',
-    },
-    profileContainerScroll: {
-        width: '100%',
-        flex: 1,
-        marginTop: 80,
-    },
-    profileContainerScrollContent: {
-        width: '100%',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'flex-start',
-    },
-    profilePicture: {
-        width: '100%',
-        padding: 20,
-        backgroundColor: colors.primary,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderBottomWidth: 1,
-        borderBottomColor: colors.border,
-    },
-    profilePictureTitle: {
-        fontSize: 20,
-        color: colors.buttonPrimaryText,
-        marginBottom: 10,
-        width: '100%',
-        textAlign: 'left',
-    },
-    profilePictureImage: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        backgroundColor: colors.backgroundSecondary,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: 10,
-    },
-    placeholderText: {
-        color: colors.textSecondary,
-        fontSize: 12,
-    },
-    profileName: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: colors.buttonPrimaryText,
-        marginBottom: 10,
-        letterSpacing: 1,
-        textAlign: 'center',
-        width: '100%',
-    },
-    profileDetails: {
-        width: '95%',
-        padding: 20,
-        backgroundColor: colors.inputBackground,
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'flex-start',
-        borderRadius: 10,
-        shadowColor: colors.shadow,
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 10,
-        elevation: 5,
-        marginBottom: 20,
-        marginTop: 20,
-    },
-    profileDetailsItem: {
-        width: '100%',
-        padding: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: colors.border,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    profileDetailsItemText: {
-        fontSize: 16,
-        color: colors.text,
-        flex: 1,
-    },
-    profileDetailsItemValue: {
-        fontSize: 16,
-        color: colors.textSecondary,
-        flex: 2,
-    },
-    profileDetailsItemButton: {
-        paddingVertical: 5,
-        paddingHorizontal: 10,
-        backgroundColor: colors.buttonPrimary,
-        borderRadius: 5,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    profileDetailsItemButtonText: {
-        color: colors.buttonPrimaryText,
-        fontSize: 14,
-    },
-});
+// Profile migré vers le système de styles communs
 
 export default Profile;

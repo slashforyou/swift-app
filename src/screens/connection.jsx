@@ -1,35 +1,10 @@
 import React, { useEffect } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { useThemedStyles, useThemeColors } from '../../hooks/useThemeColor';
+import { View, Text, Pressable, SafeAreaView } from 'react-native';
+import { useCommonThemedStyles } from '../hooks/useCommonStyles';
 import { ensureSession } from '../utils/session';
 
 const ConnectionScreen = ({ navigation }) => {
-    const colors = useThemeColors();
-
-    const createStyles = (colors) =>
-        StyleSheet.create({
-            container: {
-                flex: 1,
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: colors.background,
-            },
-            button: {
-                backgroundColor: colors.primary,
-                width: '80%',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: 15,
-                borderRadius: 5,
-                marginVertical: 10,
-            },
-            buttonText: {
-                color: colors.buttonPrimaryText,
-                fontSize: 16,
-            },
-        });
-
-    const styles = useThemedStyles(createStyles);
+    const { colors, styles } = useCommonThemedStyles();
 
     useEffect(() => {
         console.log("ConnectionScreen mounted, checking session...");
@@ -45,20 +20,20 @@ const ConnectionScreen = ({ navigation }) => {
     }, [navigation]);
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.containerCentered}>
             <Pressable
-                style={styles.button}
+                style={[styles.buttonPrimary, { width: '80%', marginVertical: 10 }]}
                 onPress={() => navigation.navigate('Login')}
             >
-                <Text style={styles.buttonText}>Log In</Text>
+                <Text style={styles.buttonPrimaryText}>Log In</Text>
             </Pressable>
             <Pressable
-                style={styles.button}
+                style={[styles.buttonPrimary, { width: '80%', marginVertical: 10 }]}
                 onPress={() => navigation.navigate('Subscribe')}
             >
-                <Text style={styles.buttonText}>Subscribe</Text>
+                <Text style={styles.buttonPrimaryText}>Subscribe</Text>
             </Pressable>
-        </View>
+        </SafeAreaView>
     );
 };
 

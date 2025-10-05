@@ -40,31 +40,31 @@ const RESPONSIVE = {
   containerMaxWidth: Math.min(screenWidth - 32, 600),
 };
 
-// Shadow presets (soft shadows, no pure black)
+// Shadow presets - Selon spécifications du thème de référence  
 const SHADOWS = {
   soft: {
-    shadowColor: '#233551', // Our blue-grey, never pure black
+    shadowColor: '#020617', // Couleur de base pour shadow_soft
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.08, // shadow_soft = rgba(2,6,23,0.08)
     shadowRadius: 2,
     elevation: 1,
   },
   medium: {
-    shadowColor: '#233551',
+    shadowColor: '#020617', // Couleur de base pour shadow_medium
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
+    shadowOpacity: 0.12, // shadow_medium = rgba(2,6,23,0.12)
     shadowRadius: 4,
     elevation: 3,
   },
   strong: {
-    shadowColor: '#233551',
+    shadowColor: '#020617',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.16,
     shadowRadius: 8,
     elevation: 5,
   },
   floating: {
-    shadowColor: '#233551',
+    shadowColor: '#020617',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.20,
     shadowRadius: 16,
@@ -577,7 +577,7 @@ export const createCommonStyles = (colors: typeof Colors.light) => StyleSheet.cr
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(35, 53, 81, 0.5)', // Blue-grey overlay
+    backgroundColor: colors.overlayDark, // Utilise la couleur du thème
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1000,
@@ -615,7 +615,7 @@ export const createCommonStyles = (colors: typeof Colors.light) => StyleSheet.cr
   },
 
   primaryButtonText: {
-    color: '#ffffff',
+    color: colors.backgroundTertiary, // Utilise couleur du thème au lieu de hardcodé
     fontSize: RESPONSIVE.fontBase,
     fontWeight: '600',
   },
@@ -628,7 +628,7 @@ export const createCommonStyles = (colors: typeof Colors.light) => StyleSheet.cr
   // Signature component styles
   mask: { 
     flex: 1, 
-    backgroundColor: 'rgba(35, 53, 81, 0.5)', 
+    backgroundColor: colors.overlayDark, // Utilise couleur du thème
     justifyContent: 'center', 
     alignItems: 'center' 
   },
