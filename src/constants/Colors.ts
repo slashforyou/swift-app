@@ -16,6 +16,7 @@ export const Colors = {
     
     // Primary brand colors - Référence exacte
     primary: '#FF6A4A', // primary selon spécifications 
+    primaryLight: '#FF9B85', // variant plus clair pour badges et highlights
     primaryHover: '#F0553A', // primary_hover selon spécifications
     primaryPressed: '#CC452F', // primary_pressed selon spécifications
     
@@ -92,6 +93,7 @@ export const Colors = {
     
     // Primary brand colors - Identique au light
     primary: '#FF6A4A', // primary selon spécifications
+    primaryLight: '#FF8A70', // variant plus clair pour dark mode
     primaryHover: '#F0553A', // primary_hover selon spécifications 
     primaryPressed: '#CC452F', // primary_pressed selon spécifications
     
@@ -112,6 +114,7 @@ export const Colors = {
     border: '#223049', // border
     borderLight: '#121826', // surface
     shadow: '#000000',
+    shadowMedium: 'rgba(0,0,0,0.25)', // shadow_medium pour dark mode
     overlay: 'rgba(15, 20, 32, 0.95)', // background with opacity
     overlayDark: 'rgba(0, 0, 0, 0.8)',
     

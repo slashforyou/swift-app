@@ -1,8 +1,7 @@
 /**
- * Common Styles System for Swift App
- * Centralized, responsive and reusable styles
- * Uses our color system with soft shadows and no pure black
- * Orange accents with blue-grey backgrounds
+ * Common Styles System for Swift App - REFACTORED
+ * Conformes aux meilleures pratiques UI mobiles iOS/Android
+ * Grille de 8pt, Safe Areas, Touch targets ≥44pt, Typography optimisée
  */
 
 import { StyleSheet, Dimensions } from 'react-native';
@@ -10,49 +9,77 @@ import { Colors } from './Colors';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-// Responsive dimensions
-const RESPONSIVE = {
-  // Base spacing system (8pt grid)
-  xs: 4,
-  sm: 8, 
-  md: 16,
-  lg: 24,
-  xl: 32,
-  xxl: 40,
+// Design tokens - Basés sur les meilleures pratiques UI mobiles
+const DESIGN_TOKENS = {
+  // Spacing scale - Grille de 8pt avec ajustements fins de 4pt
+  spacing: {
+    xs: 4,   // ajustements fins
+    sm: 8,   // espacement minimal entre éléments
+    md: 12,  // espacement texte/valeur
+    lg: 16,  // espacement standard entre composants
+    xl: 24,  // espacement sections
+    xxl: 32, // espacement grandes sections
+    xxxl: 40, // espacement majeur
+  },
   
-  // Font sizes (responsive)
-  fontTiny: screenWidth < 350 ? 10 : 12,
-  fontSmall: screenWidth < 350 ? 12 : 14,
-  fontBase: screenWidth < 350 ? 14 : 16,
-  fontLarge: screenWidth < 350 ? 16 : 18,
-  fontXL: screenWidth < 350 ? 18 : 20,
-  fontXXL: screenWidth < 350 ? 20 : 24,
-  fontHuge: screenWidth < 350 ? 24 : 28,
+  // Typography scale - Hiérarchie claire avec line-height optimal
+  typography: {
+    title: { 
+      fontSize: 20, 
+      lineHeight: 26, // ratio 1.3
+      fontWeight: '600' as const 
+    },
+    subtitle: { 
+      fontSize: 17, 
+      lineHeight: 22, // ratio ~1.3
+      fontWeight: '500' as const 
+    },
+    body: { 
+      fontSize: 15, 
+      lineHeight: 20, // ratio ~1.33
+      fontWeight: '400' as const 
+    },
+    caption: { 
+      fontSize: 13, 
+      lineHeight: 18, // ratio ~1.38
+      fontWeight: '400' as const 
+    },
+  },
   
-  // Border radius
-  radiusSmall: 4,
-  radiusMedium: 8,
-  radiusLarge: 12,
-  radiusXL: 16,
+  // Border radius scale
+  radius: {
+    sm: 4,
+    md: 8,
+    lg: 12,
+  },
   
-  // Container widths (responsive)
-  containerPadding: screenWidth < 350 ? 12 : 16,
-  containerMaxWidth: Math.min(screenWidth - 32, 600),
+  // Touch targets - Conformité aux guidelines Apple/Material
+  touch: {
+    minSize: 44, // minimum pour accessibilité
+    comfortable: 48, // taille recommandée pour boutons
+    hitSlop: 8, // extension zone tactile invisible
+  },
+  
+  // Container gutters - Marges latérales globales
+  gutters: {
+    horizontal: 16, // selon meilleures pratiques
+    vertical: 16,
+  },
 };
 
 // Shadow presets - Selon spécifications du thème de référence  
 const SHADOWS = {
   soft: {
-    shadowColor: '#020617', // Couleur de base pour shadow_soft
+    shadowColor: '#020617',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08, // shadow_soft = rgba(2,6,23,0.08)
+    shadowOpacity: 0.08,
     shadowRadius: 2,
     elevation: 1,
   },
   medium: {
-    shadowColor: '#020617', // Couleur de base pour shadow_medium
+    shadowColor: '#020617',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12, // shadow_medium = rgba(2,6,23,0.12)
+    shadowOpacity: 0.12,
     shadowRadius: 4,
     elevation: 3,
   },
@@ -63,21 +90,216 @@ const SHADOWS = {
     shadowRadius: 8,
     elevation: 5,
   },
-  floating: {
-    shadowColor: '#020617',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.20,
-    shadowRadius: 16,
-    elevation: 8,
+};
+
+// Styles primitifs - Conformes aux meilleures pratiques UI mobiles
+const LAYOUT_PRIMITIVES = {
+  screen: {
+    flex: 1,
+    paddingHorizontal: DESIGN_TOKENS.gutters.horizontal,
+    // paddingTop et paddingBottom seront appliqués via SafeAreaView
+  },
+  fullWidth: {
+    alignSelf: 'stretch' as const,
+  },
+  centerContent: {
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
   },
 };
 
+const STACK_PRIMITIVES = {
+  vStack: (gap: number = DESIGN_TOKENS.spacing.lg) => ({
+    gap,
+    flexDirection: 'column' as const,
+  }),
+  hStack: (gap: number = DESIGN_TOKENS.spacing.md) => ({
+    gap,
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+  }),
+};
+
+const CARD_PRIMITIVES = {
+  base: {
+    backgroundColor: Colors.light.backgroundTertiary, // sera overridden par le thème
+    borderRadius: DESIGN_TOKENS.radius.lg,
+    padding: DESIGN_TOKENS.spacing.lg,
+    ...SHADOWS.medium,
+  },
+};
+
+const TEXT_PRIMITIVES = {
+  title: {
+    ...DESIGN_TOKENS.typography.title,
+    color: Colors.light.text, // sera overridden par le thème
+    allowFontScaling: true,
+  },
+  subtitle: {
+    ...DESIGN_TOKENS.typography.subtitle,
+    color: Colors.light.text,
+    allowFontScaling: true,
+  },
+  body: {
+    ...DESIGN_TOKENS.typography.body,
+    color: Colors.light.text,
+    allowFontScaling: true,
+  },
+  muted: {
+    ...DESIGN_TOKENS.typography.caption,
+    color: Colors.light.textMuted,
+    allowFontScaling: true,
+  },
+};
+
+const BUTTON_PRIMITIVES = {
+  primary: {
+    height: DESIGN_TOKENS.touch.comfortable,
+    borderRadius: DESIGN_TOKENS.radius.md,
+    backgroundColor: Colors.light.primary,
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+    ...SHADOWS.medium,
+    paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+  },
+  secondary: {
+    height: DESIGN_TOKENS.touch.comfortable,
+    borderRadius: DESIGN_TOKENS.radius.md,
+    backgroundColor: Colors.light.backgroundTertiary,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+    paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+  },
+};
+
+const INPUT_PRIMITIVES = {
+  base: {
+    height: DESIGN_TOKENS.touch.comfortable,
+    borderRadius: DESIGN_TOKENS.radius.md,
+    backgroundColor: Colors.light.backgroundTertiary,
+    borderColor: Colors.light.border,
+    borderWidth: 1,
+    paddingHorizontal: DESIGN_TOKENS.spacing.md,
+    ...DESIGN_TOKENS.typography.body,
+  },
+};
+
+// Export des primitives pour utilisation directe
+export { DESIGN_TOKENS, LAYOUT_PRIMITIVES, STACK_PRIMITIVES, CARD_PRIMITIVES, TEXT_PRIMITIVES, BUTTON_PRIMITIVES, INPUT_PRIMITIVES };
+
 export const createCommonStyles = (colors: typeof Colors.light) => StyleSheet.create({
   // ===================
-  // CONTAINER STYLES
+  // LAYOUT PRIMITIVES - Conformes aux meilleures pratiques
   // ===================
   
-  // Main containers
+  // Screen wrapper - applique SafeArea + gutters
+  screen: {
+    ...LAYOUT_PRIMITIVES.screen,
+    backgroundColor: colors.background,
+  },
+  
+  fullWidth: LAYOUT_PRIMITIVES.fullWidth,
+  centerContent: LAYOUT_PRIMITIVES.centerContent,
+  
+  // Stacks - Remplacent les anciennes méthodes de spacing
+  vStack: STACK_PRIMITIVES.vStack(),
+  vStackTight: STACK_PRIMITIVES.vStack(DESIGN_TOKENS.spacing.sm),
+  vStackLoose: STACK_PRIMITIVES.vStack(DESIGN_TOKENS.spacing.xl),
+  
+  hStack: STACK_PRIMITIVES.hStack(),
+  hStackTight: STACK_PRIMITIVES.hStack(DESIGN_TOKENS.spacing.sm),
+  hStackLoose: STACK_PRIMITIVES.hStack(DESIGN_TOKENS.spacing.lg),
+  
+  // ===================
+  // CARDS & CONTAINERS
+  // ===================
+  
+  card: {
+    ...CARD_PRIMITIVES.base,
+    backgroundColor: colors.backgroundTertiary,
+  },
+  
+  panel: {
+    backgroundColor: colors.backgroundSecondary,
+    borderRadius: DESIGN_TOKENS.radius.md,
+    padding: DESIGN_TOKENS.spacing.lg,
+    ...SHADOWS.soft,
+  },
+  
+  // ===================
+  // TYPOGRAPHY - Hiérarchie claire
+  // ===================
+  
+  title: {
+    ...TEXT_PRIMITIVES.title,
+    color: colors.text,
+  },
+  
+  subtitle: {
+    ...TEXT_PRIMITIVES.subtitle,
+    color: colors.text,
+  },
+  
+  bodyText: {
+    ...TEXT_PRIMITIVES.body,
+    color: colors.text,
+  },
+  
+  mutedText: {
+    ...TEXT_PRIMITIVES.muted,
+    color: colors.textMuted,
+  },
+  
+  // ===================
+  // BUTTONS - Touch targets conformes
+  // ===================
+  
+  buttonPrimary: {
+    ...BUTTON_PRIMITIVES.primary,
+    backgroundColor: colors.primary,
+  },
+  
+  buttonSecondary: {
+    ...BUTTON_PRIMITIVES.secondary,
+    backgroundColor: colors.backgroundTertiary,
+    borderColor: colors.border,
+  },
+  
+  buttonText: {
+    ...DESIGN_TOKENS.typography.body,
+    fontWeight: '600',
+  },
+  
+  buttonTextPrimary: {
+    color: colors.buttonPrimaryText,
+  },
+  
+  buttonTextSecondary: {
+    color: colors.text,
+  },
+  
+  // ===================
+  // INPUTS
+  // ===================
+  
+  inputBase: {
+    ...INPUT_PRIMITIVES.base,
+    backgroundColor: colors.inputBackground,
+    borderColor: colors.inputBorder,
+    color: colors.inputText,
+  },
+  
+  inputFocused: {
+    borderColor: colors.inputBorderFocused,
+    borderWidth: 2,
+  },
+  
+  // ===================
+  // LEGACY SUPPORT (à migrer progressivement)
+  // ===================
+  
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -88,638 +310,155 @@ export const createCommonStyles = (colors: typeof Colors.light) => StyleSheet.cr
     backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: RESPONSIVE.containerPadding,
-  },
-  
-  containerSafeArea: {
-    flex: 1,
-    backgroundColor: colors.background,
-    paddingTop: 40, // Safe area simulation
-  },
-  
-  // Content containers
-  contentContainer: {
-    paddingHorizontal: RESPONSIVE.containerPadding,
-    paddingVertical: RESPONSIVE.md,
-  },
-  
-  scrollContainer: {
-    flexGrow: 1,
-    paddingHorizontal: RESPONSIVE.containerPadding,
-    paddingBottom: RESPONSIVE.xl,
-  },
-  
-  // Cards and panels
-  card: {
-    backgroundColor: colors.backgroundSecondary,
-    borderRadius: RESPONSIVE.radiusLarge,
-    padding: RESPONSIVE.lg,
-    marginVertical: RESPONSIVE.sm,
-    ...SHADOWS.medium,
-  },
-  
-  cardElevated: {
-    backgroundColor: colors.backgroundSecondary,
-    borderRadius: RESPONSIVE.radiusLarge,
-    padding: RESPONSIVE.lg,
-    marginVertical: RESPONSIVE.sm,
-    ...SHADOWS.floating,
-  },
-  
-  panel: {
-    backgroundColor: colors.backgroundTertiary,
-    borderRadius: RESPONSIVE.radiusMedium,
-    padding: RESPONSIVE.md,
-    marginVertical: RESPONSIVE.xs,
-    ...SHADOWS.soft,
+    paddingHorizontal: DESIGN_TOKENS.gutters.horizontal,
   },
   
   // ===================
-  // TYPOGRAPHY STYLES
+  // UTILITIES
   // ===================
   
-  // Headers
-  h1: {
-    fontSize: RESPONSIVE.fontHuge,
-    fontWeight: '700',
-    color: colors.text,
-    lineHeight: RESPONSIVE.fontHuge * 1.2,
-    marginBottom: RESPONSIVE.md,
+  separator: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginVertical: DESIGN_TOKENS.spacing.md,
   },
   
-  h2: {
-    fontSize: RESPONSIVE.fontXXL,
-    fontWeight: '600',
-    color: colors.text,
-    lineHeight: RESPONSIVE.fontXXL * 1.3,
-    marginBottom: RESPONSIVE.sm,
+  spacingXS: { height: DESIGN_TOKENS.spacing.xs },
+  spacingSM: { height: DESIGN_TOKENS.spacing.sm },
+  spacingMD: { height: DESIGN_TOKENS.spacing.md },
+  spacingLG: { height: DESIGN_TOKENS.spacing.lg },
+  spacingXL: { height: DESIGN_TOKENS.spacing.xl },
+  
+  // ===================
+  // LEGACY STYLES - Compatibility (à migrer vers les nouveaux)
+  // ===================
+  
+  // Layout utilities
+  rowBetween: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   
-  h3: {
-    fontSize: RESPONSIVE.fontXL,
-    fontWeight: '600',
-    color: colors.text,
-    lineHeight: RESPONSIVE.fontXL * 1.4,
-    marginBottom: RESPONSIVE.sm,
-  },
-  
-  h4: {
-    fontSize: RESPONSIVE.fontLarge,
-    fontWeight: '500',
-    color: colors.text,
-    lineHeight: RESPONSIVE.fontLarge * 1.4,
-    marginBottom: RESPONSIVE.xs,
-  },
-  
-  // Body text
-  bodyLarge: {
-    fontSize: RESPONSIVE.fontLarge,
-    fontWeight: '400',
-    color: colors.text,
-    lineHeight: RESPONSIVE.fontLarge * 1.5,
-  },
-  
-  body: {
-    fontSize: RESPONSIVE.fontBase,
-    fontWeight: '400',
-    color: colors.text,
-    lineHeight: RESPONSIVE.fontBase * 1.5,
-  },
-  
-  bodySmall: {
-    fontSize: RESPONSIVE.fontSmall,
-    fontWeight: '400',
-    color: colors.textSecondary,
-    lineHeight: RESPONSIVE.fontSmall * 1.5,
-  },
-  
-  // Special text
-  textMuted: {
-    fontSize: RESPONSIVE.fontBase,
-    color: colors.textMuted,
-    lineHeight: RESPONSIVE.fontBase * 1.5,
-  },
-  
-  textSecondary: {
-    fontSize: RESPONSIVE.fontBase,
-    color: colors.textSecondary,
-    lineHeight: RESPONSIVE.fontBase * 1.5,
+  itemsCenter: {
+    alignItems: 'center',
   },
   
   textCenter: {
     textAlign: 'center',
   },
   
-  textBold: {
-    fontWeight: '700',
+  // Spacing utilities
+  marginTop: { marginTop: DESIGN_TOKENS.spacing.lg },
+  marginBottom: { marginBottom: DESIGN_TOKENS.spacing.lg },
+  padding16: { padding: DESIGN_TOKENS.spacing.lg },
+  
+  // Content containers
+  contentContainer: {
+    paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+    paddingVertical: DESIGN_TOKENS.spacing.lg,
   },
   
-  textSemiBold: {
+  scrollContainer: {
+    flexGrow: 1,
+    paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+    paddingBottom: DESIGN_TOKENS.spacing.xl,
+  },
+  
+  // Typography legacy
+  h2: {
+    fontSize: 18,
     fontWeight: '600',
+    color: colors.text,
+    lineHeight: 24,
   },
   
-  // ===================
-  // BUTTON STYLES
-  // ===================
-  
-  // Primary buttons (orange)
-  buttonPrimary: {
-    backgroundColor: colors.primary,
-    paddingVertical: RESPONSIVE.md,
-    paddingHorizontal: RESPONSIVE.lg,
-    borderRadius: RESPONSIVE.radiusMedium,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...SHADOWS.medium,
+  h3: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    lineHeight: 20,
   },
   
-  buttonPrimaryLarge: {
-    backgroundColor: colors.primary,
-    paddingVertical: RESPONSIVE.lg,
-    paddingHorizontal: RESPONSIVE.xl,
-    borderRadius: RESPONSIVE.radiusLarge,
+  body: {
+    fontSize: 15,
+    color: colors.text,
+    lineHeight: 20,
+  },
+  
+  bodySmall: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    lineHeight: 18,
+  },
+  
+  // Buttons legacy
+  button: {
+    paddingHorizontal: DESIGN_TOKENS.spacing.md,
+    paddingVertical: DESIGN_TOKENS.spacing.sm,
+    borderRadius: DESIGN_TOKENS.radius.md,
     alignItems: 'center',
     justifyContent: 'center',
-    ...SHADOWS.medium,
+  },
+  
+  buttonIcon: {
+    padding: DESIGN_TOKENS.spacing.sm,
+    borderRadius: DESIGN_TOKENS.radius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   
   buttonPrimaryText: {
     color: colors.buttonPrimaryText,
-    fontSize: RESPONSIVE.fontBase,
     fontWeight: '600',
-  },
-  
-  buttonPrimaryTextLarge: {
-    color: colors.buttonPrimaryText,
-    fontSize: RESPONSIVE.fontLarge,
-    fontWeight: '600',
-  },
-  
-  // Secondary buttons
-  buttonSecondary: {
-    backgroundColor: colors.backgroundTertiary,
-    paddingVertical: RESPONSIVE.md,
-    paddingHorizontal: RESPONSIVE.lg,
-    borderRadius: RESPONSIVE.radiusMedium,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
-    ...SHADOWS.soft,
+    fontSize: 15,
   },
   
   buttonSecondaryText: {
-    color: colors.text,
-    fontSize: RESPONSIVE.fontBase,
-    fontWeight: '500',
-  },
-  
-  // Outline buttons
-  buttonOutline: {
-    backgroundColor: 'transparent',
-    paddingVertical: RESPONSIVE.md,
-    paddingHorizontal: RESPONSIVE.lg,
-    borderRadius: RESPONSIVE.radiusMedium,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: colors.primary,
-  },
-  
-  buttonOutlineText: {
-    color: colors.primary,
-    fontSize: RESPONSIVE.fontBase,
+    color: colors.buttonSecondaryText,
     fontWeight: '600',
+    fontSize: 15,
   },
   
-  // Icon buttons
-  buttonIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.backgroundTertiary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...SHADOWS.soft,
-  },
-  
-  buttonIconLarge: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.backgroundTertiary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...SHADOWS.medium,
-  },
-  
-  // ===================
-  // FORM STYLES
-  // ===================
-  
-  // Input fields
-  input: {
-    backgroundColor: colors.backgroundSecondary,
-    borderRadius: RESPONSIVE.radiusMedium,
-    paddingHorizontal: RESPONSIVE.md,
-    paddingVertical: RESPONSIVE.sm,
-    fontSize: RESPONSIVE.fontBase,
-    color: colors.text,
-    borderWidth: 1,
-    borderColor: colors.border,
-    ...SHADOWS.soft,
-  },
-  
-  inputFocused: {
-    borderColor: colors.primary,
-    borderWidth: 2,
-    ...SHADOWS.medium,
-  },
-  
-  inputError: {
-    borderColor: colors.error,
-    borderWidth: 2,
-  },
-  
-  // Labels
-  label: {
-    fontSize: RESPONSIVE.fontSmall,
-    fontWeight: '600',
-    color: colors.textSecondary,
-    marginBottom: RESPONSIVE.xs,
-  },
-  
-  labelRequired: {
-    color: colors.primary,
-  },
-  
-  // ===================
-  // LIST STYLES
-  // ===================
-  
-  // List items
+  // List items legacy
   listItem: {
-    backgroundColor: colors.backgroundSecondary,
-    borderRadius: RESPONSIVE.radiusMedium,
-    padding: RESPONSIVE.md,
-    marginVertical: RESPONSIVE.xs / 2,
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    ...SHADOWS.soft,
-  },
-  
-  listItemContent: {
-    flex: 1,
-    marginLeft: RESPONSIVE.sm,
+    paddingVertical: DESIGN_TOKENS.spacing.md,
   },
   
   listItemTitle: {
-    fontSize: RESPONSIVE.fontBase,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: RESPONSIVE.xs / 2,
+    ...DESIGN_TOKENS.typography.caption,
+    color: colors.textMuted,
+    fontWeight: '500',
   },
   
   listItemSubtitle: {
-    fontSize: RESPONSIVE.fontSmall,
-    color: colors.textSecondary,
-  },
-  
-  // ===================
-  // NAVIGATION STYLES
-  // ===================
-  
-  // Tab bar
-  tabBar: {
-    backgroundColor: colors.backgroundSecondary,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    paddingBottom: 20, // Safe area for home indicator
-    ...SHADOWS.strong,
-  },
-  
-  // Navigation header
-  navigationHeader: {
-    backgroundColor: colors.backgroundSecondary,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    ...SHADOWS.soft,
-  },
-  
-  // ===================
-  // STATUS STYLES
-  // ===================
-  
-  // Success
-  statusSuccess: {
-    backgroundColor: colors.success,
-    padding: RESPONSIVE.md,
-    borderRadius: RESPONSIVE.radiusMedium,
-    alignItems: 'center',
-  },
-  
-  statusSuccessText: {
-    color: colors.backgroundSecondary,
-    fontSize: RESPONSIVE.fontBase,
-    fontWeight: '600',
-  },
-  
-  // Warning
-  statusWarning: {
-    backgroundColor: colors.warning,
-    padding: RESPONSIVE.md,
-    borderRadius: RESPONSIVE.radiusMedium,
-    alignItems: 'center',
-  },
-  
-  statusWarningText: {
-    color: colors.backgroundSecondary,
-    fontSize: RESPONSIVE.fontBase,
-    fontWeight: '600',
-  },
-  
-  // Error
-  statusError: {
-    backgroundColor: colors.error,
-    padding: RESPONSIVE.md,
-    borderRadius: RESPONSIVE.radiusMedium,
-    alignItems: 'center',
-  },
-  
-  statusErrorText: {
-    color: colors.backgroundSecondary,
-    fontSize: RESPONSIVE.fontBase,
-    fontWeight: '600',
-  },
-  
-  // Info
-  statusInfo: {
-    backgroundColor: colors.info,
-    padding: RESPONSIVE.md,
-    borderRadius: RESPONSIVE.radiusMedium,
-    alignItems: 'center',
-  },
-  
-  statusInfoText: {
-    color: colors.backgroundSecondary,
-    fontSize: RESPONSIVE.fontBase,
-    fontWeight: '600',
-  },
-  
-  // ===================
-  // UTILITY STYLES
-  // ===================
-  
-  // Spacing
-  marginTop: { marginTop: RESPONSIVE.md },
-  marginBottom: { marginBottom: RESPONSIVE.md },
-  marginVertical: { marginVertical: RESPONSIVE.md },
-  marginHorizontal: { marginHorizontal: RESPONSIVE.md },
-  
-  paddingTop: { paddingTop: RESPONSIVE.md },
-  paddingBottom: { paddingBottom: RESPONSIVE.md },
-  paddingVertical: { paddingVertical: RESPONSIVE.md },
-  paddingHorizontal: { paddingHorizontal: RESPONSIVE.md },
-  
-  // Flex utilities
-  flex1: { flex: 1 },
-  flexRow: { flexDirection: 'row' },
-  flexColumn: { flexDirection: 'column' },
-  alignCenter: { alignItems: 'center' },
-  justifyCenter: { justifyContent: 'center' },
-  justifyBetween: { justifyContent: 'space-between' },
-  justifyAround: { justifyContent: 'space-around' },
-  
-  // Common combinations
-  centerContent: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  
-  rowBetween: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  
-  rowCenter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  
-  // ===================
-  // OVERLAY & MODALS
-  // ===================
-  
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: colors.overlayDark,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  
-  modal: {
-    backgroundColor: colors.backgroundSecondary,
-    borderRadius: RESPONSIVE.radiusXL,
-    padding: RESPONSIVE.lg,
-    marginHorizontal: RESPONSIVE.lg,
-    maxWidth: RESPONSIVE.containerMaxWidth,
-    width: '90%',
-    ...SHADOWS.floating,
-  },
-  
-  modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: RESPONSIVE.md,
-    paddingBottom: RESPONSIVE.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  
-  modalTitle: {
-    fontSize: RESPONSIVE.fontXL,
-    fontWeight: '700',
+    ...DESIGN_TOKENS.typography.body,
     color: colors.text,
-  },
-  
-  modalContent: {
-    marginVertical: RESPONSIVE.md,
-  },
-  
-  modalActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: RESPONSIVE.lg,
-    gap: RESPONSIVE.sm,
-  },
-
-  // ===================
-  // BASIC EXTENSIONS (Minimal additions for consistency)
-  // ===================
-  
-  // Essential flex utilities that are commonly needed
-  itemsCenter: { alignItems: 'center' },
-  
-  // Basic gap utility for modern layouts
-  gap8: { gap: 8 },
-
-  // Modal and overlay styles
-  modalOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: colors.overlayDark, // Utilise la couleur du thème
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1000,
-  },
-
-  // Additional layout styles
-  rowReverse: {
-    flexDirection: 'row-reverse',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-
-  padding16: {
-    padding: RESPONSIVE.md,
-  },
-
-  // Button styles
-  button: {
-    borderRadius: RESPONSIVE.radiusMedium,
-    padding: 10,
-    ...SHADOWS.soft,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  // Primary button styles
-  primaryButton: {
-    backgroundColor: colors.primary,
-    borderRadius: RESPONSIVE.radiusMedium,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...SHADOWS.soft,
-  },
-
-  primaryButtonText: {
-    color: colors.backgroundTertiary, // Utilise couleur du thème au lieu de hardcodé
-    fontSize: RESPONSIVE.fontBase,
     fontWeight: '600',
   },
-
-  // Flex row utility
-  row: {
-    flexDirection: 'row',
+  
+  // Status styles
+  statusError: {
+    backgroundColor: colors.errorBanner,
+    borderColor: colors.errorBannerBorder,
+    borderWidth: 1,
+    borderRadius: DESIGN_TOKENS.radius.md,
+    padding: DESIGN_TOKENS.spacing.md,
   },
-
-  // Signature component styles
-  mask: { 
-    flex: 1, 
-    backgroundColor: colors.overlayDark, // Utilise couleur du thème
-    justifyContent: 'center', 
-    alignItems: 'center' 
-  },
-
-  cardScrollView: { 
-    flexGrow: 1, 
-    justifyContent: 'center' 
-  },
-
-  title: { 
-    fontSize: RESPONSIVE.fontLarge, 
-    fontWeight: '700', 
-    marginBottom: 12, 
-    padding: 10, 
-    color: colors.text 
-  },
-
-  contractBloc: { 
-    padding: RESPONSIVE.lg, 
-    backgroundColor: colors.backgroundSecondary, 
-    borderRadius: RESPONSIVE.radiusLarge,
-    marginBottom: RESPONSIVE.md,
-  },
-
-  contractBlocContent: { 
-    fontSize: RESPONSIVE.fontSmall, 
-    color: colors.text, 
-    marginBottom: 10, 
-    lineHeight: 20, 
-    margin: 10 
-  },
-
-  lastLine: { 
-    fontSize: RESPONSIVE.fontTiny, 
-    color: colors.textSecondary, 
-    marginTop: 10, 
-    textAlign: 'center' 
-  },
-
-  signingBloc: { 
-    backgroundColor: colors.background, 
-    borderRadius: RESPONSIVE.radiusLarge, 
-    width: '100%', 
-    flexDirection: 'column' 
-  },
-
-  signingCanvas: { 
-    flex: 1, 
-    backgroundColor: colors.background, 
-    height: 150 
-  },
-
-  signingCanvasContainer: { 
-    height: 170, 
-    overflow: 'hidden', 
-    marginBottom: RESPONSIVE.lg, 
-    padding: 10,
-    borderRadius: RESPONSIVE.radiusMedium,
-    backgroundColor: colors.backgroundTertiary,
-  },
-
-  btn: { 
-    paddingVertical: 10, 
-    paddingHorizontal: 16, 
-    backgroundColor: colors.backgroundSecondary, 
-    borderRadius: RESPONSIVE.radiusMedium, 
-    alignItems: 'center',
-    flex: 1,
-  },
-
-  btnDisabled: { 
-    opacity: 0.6 
-  },
-
-  hint: { 
-    marginTop: 8, 
-    color: colors.textSecondary, 
-    fontSize: RESPONSIVE.fontTiny 
-  },
-
-  savingBar: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    gap: 8, 
-    paddingHorizontal: RESPONSIVE.lg, 
-    paddingBottom: 8 
-  },
+  
+  // Touch improvements - hitSlop sera appliqué directement sur les composants Pressable
 });
 
-// Export responsive values and shadows for direct use
-export { RESPONSIVE, SHADOWS };
+// Hook pour utilisation facile
+import { useTheme } from '../context/ThemeProvider';
 
-// Utility function to create themed common styles
-export const useCommonStyles = (colors: typeof Colors.light) => createCommonStyles(colors);
+export const useCommonThemedStyles = () => {
+  const { colors } = useTheme();
+  return createCommonStyles(colors);
+};
+
+// Alias pour compatibilité
+export const useCommonStyles = useCommonThemedStyles;
