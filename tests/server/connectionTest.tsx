@@ -1,29 +1,40 @@
-// This file is used to test the server connection [GET, POST, PUT, DELETE] and return the response.
-// It is a React component that can be used in the app to test the server connection.
-// It use the `axios` library to make HTTP requests to the server.
+/**
+ * Server Connection Test - Refactorisé selon meilleures pratiques UI mobiles
+ * Test des endpoints GET, POST, PUT, DELETE avec interface moderne
+ */
+
 import React, { useState } from 'react';
+import { 
+  Screen, 
+  VStack, 
+  Card, 
+  Button, 
+  Title, 
+  Body, 
+  Muted 
+} from '../../src/components';
 import { ServerData } from '@/src/constants/ServerData';
-import { Pressable, Text } from 'react-native';
+import { useTheme } from '../../src/context/ThemeProvider';
 
 const ServerConnectionTest = () => {
+    const { colors } = useTheme();
     const [response, setResponse] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
     const [serverResponses, setServerResponses] = useState<string[]>([]);
 
-    const serverTestsWhile =  () => {
+    const runServerTests = () => {
         setResponse(null);
         setError(null);
         setLoading(true);
-        // Define the methods to test the server connection
         setServerResponses([]);
+        
         const methods: ('GET' | 'POST' | 'PUT' | 'DELETE')[] = ['GET', 'POST', 'PUT', 'DELETE'];
         methods.forEach(async (method) => {
             const result = await testServer(method);
             setServerResponses(prevResponses => [...prevResponses, result]);
         });
-    }
-    // Call the server tests when the component mounts
+    };
 
     React.useEffect(() => {
         if(serverResponses.length > 0) {
@@ -60,21 +71,50 @@ const ServerConnectionTest = () => {
     };
 
     return (
-        <>
-        <Pressable onPress={serverTestsWhile} style={{ 
-            padding: 10, 
-            backgroundColor: '#FF6A4A', // Utilise couleur primary selon spécifications
-            borderRadius: 8, // Utilise radiusMedium selon spécifications
-            marginVertical: 10 // Meilleur espacement
-        }}>
-            <Text style={{ color: '#FFFFFF' }}>Test Server Connection</Text>
-        </Pressable>
-            {loading && !response && <Text style={{ color: '#516386', marginVertical: 10 }}>Loading...</Text>}
-            {!loading && !response && !error && <Text style={{ color: '#516386', marginVertical: 10 }}>No response yet</Text>}
-            {response && <Text style={{ color: '#22C55E', marginVertical: 10 }}>Response: {response}</Text>}
-            {error && <Text style={{ color: '#EF4444', marginVertical: 10 }}>Error: {error}</Text>}
-        </>
-
+        <Screen>
+            <VStack gap="lg">
+                <Card>
+                    <VStack gap="lg">
+                        <Title>Server Connection Test</Title>
+                        <Muted>Test des endpoints REST API (GET, POST, PUT, DELETE)</Muted>
+                        
+                        <Button 
+                            title="🔄 Test Server Connection" 
+                            variant="primary" 
+                            onPress={runServerTests}
+                            disabled={loading}
+                        />
+                    </VStack>
+                </Card>
+                
+                {/* Status Display */}
+                <Card>
+                    <VStack gap="md">
+                        {loading && !response && (
+                            <Body style={{ color: colors.textSecondary }}>⏳ Loading...</Body>
+                        )}
+                        
+                        {!loading && !response && !error && (
+                            <Muted>No response yet. Click the button to test server connection.</Muted>
+                        )}
+                        
+                        {response && (
+                            <VStack gap="sm">
+                                <Muted>Server Response:</Muted>
+                                <Body style={{ color: colors.success }}>{response}</Body>
+                            </VStack>
+                        )}
+                        
+                        {error && (
+                            <VStack gap="sm">
+                                <Muted>Error:</Muted>
+                                <Body style={{ color: colors.error }}>{error}</Body>
+                            </VStack>
+                        )}
+                    </VStack>
+                </Card>
+            </VStack>
+        </Screen>
     );
 }
 
