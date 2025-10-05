@@ -15,7 +15,7 @@ import TopMenu from '../components/top_menu/top_menu'
 import { useAuthGuard } from '../hooks/useSession'
 import { useCalendarData } from '../hooks/useCalendar'
 import { getCalendarDateRange } from '../utils/dateUtils'
-import { useThemedStyles, useThemeColors } from '../../hooks/useThemeColor'
+import { useCommonThemedStyles } from '../hooks/useCommonStyles'
 import { Colors } from '../constants/Colors'
 
 // Types
@@ -50,15 +50,62 @@ export default function CalendarNavigation({ navigation }: CalendarNavigationPro
   const calendar = useCalendarData(dateRange.start, dateRange.end, session.isAuthenticated === true)
 
   // Get themed styles and colors
-  const styles = useThemedStyles(createStyles)
-  const colors = useThemeColors()
+  const { colors, styles: commonStyles } = useCommonThemedStyles()
+  
+  // Combine common styles with custom navigation styles
+  const customStyles = StyleSheet.create({
+    loadingOverlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: colors.overlayDark,
+      padding: 12,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    errorBanner: {
+      ...commonStyles.statusError,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      borderLeftWidth: 4,
+      borderLeftColor: colors.error,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      borderRadius: 0, // Override border radius for banner
+    },
+    bannerContent: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    bannerButton: {
+      ...commonStyles.buttonSecondary,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      marginRight: 8,
+    },
+    dismissButton: {
+      ...commonStyles.buttonIcon,
+      backgroundColor: colors.errorLight,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+    },
+  })
 
   // Show loading screen while checking session
   if (session.isLoading) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={colors.loadingSpinner} />
-        <Text style={styles.loadingText}>Checking authentication...</Text>
+      <View style={commonStyles.containerCentered}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[commonStyles.body, commonStyles.marginTop]}>Checking authentication...</Text>
       </View>
     )
   }
@@ -66,10 +113,10 @@ export default function CalendarNavigation({ navigation }: CalendarNavigationPro
   // Show session error
   if (session.error) {
     return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Authentication Error: {session.error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={session.refreshSession}>
-          <Text style={styles.retryButtonText}>Retry</Text>
+      <View style={commonStyles.containerCentered}>
+        <Text style={[commonStyles.h3, { color: colors.error, textAlign: 'center' }]}>Authentication Error: {session.error}</Text>
+        <TouchableOpacity style={[commonStyles.buttonPrimary, commonStyles.marginTop]} onPress={session.refreshSession}>
+          <Text style={commonStyles.buttonPrimaryText}>Retry</Text>
         </TouchableOpacity>
       </View>
     )
@@ -81,34 +128,34 @@ export default function CalendarNavigation({ navigation }: CalendarNavigationPro
   }
 
   return (
-    <View style={styles.container}>
+    <View style={commonStyles.container}>
       <TopMenu navigation={navigation} />
       
       {/* Show calendar data loading overlay */}
       {calendar.isLoading && (
-        <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="small" color={colors.loadingSpinner} />
-          <Text style={styles.overlayText}>Loading calendar data...</Text>
+        <View style={customStyles.loadingOverlay}>
+          <ActivityIndicator size="small" color={colors.primary} />
+          <Text style={[commonStyles.bodySmall, { marginLeft: 8 }]}>Loading calendar data...</Text>
         </View>
       )}
       
       {/* Show calendar data error */}
       {calendar.error && (
-        <View style={styles.errorBanner}>
-          <View style={styles.bannerContent}>
-            <Text style={styles.bannerText}>{calendar.error}</Text>
+        <View style={customStyles.errorBanner}>
+          <View style={customStyles.bannerContent}>
+            <Text style={[commonStyles.body, { flex: 1, marginRight: 8 }]}>{calendar.error}</Text>
             <TouchableOpacity 
               onPress={calendar.refresh} 
-              style={styles.bannerButton}
+              style={customStyles.bannerButton}
             >
-              <Text style={styles.bannerButtonText}>Retry</Text>
+              <Text style={commonStyles.buttonSecondaryText}>Retry</Text>
             </TouchableOpacity>
           </View>
           <TouchableOpacity 
             onPress={calendar.clearError}
-            style={styles.dismissButton}
+            style={customStyles.dismissButton}
           >
-            <Text style={styles.dismissButtonText}>×</Text>
+            <Text style={[commonStyles.h3, { color: colors.background }]}>×</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -155,120 +202,3 @@ export default function CalendarNavigation({ navigation }: CalendarNavigationPro
     </View>
   )
 }
-
-// Create themed styles function
-const createStyles = (colors: typeof Colors.light) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: colors.background,
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: colors.textSecondary,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    backgroundColor: colors.background,
-  },
-  errorText: {
-    fontSize: 16,
-    color: colors.errorBannerText,
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  retryButton: {
-    backgroundColor: colors.buttonPrimary,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-    elevation: 2,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  retryButtonText: {
-    color: colors.buttonPrimaryText,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  loadingOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: colors.loadingBackground,
-    padding: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 1000,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  overlayText: {
-    marginLeft: 8,
-    fontSize: 14,
-    color: colors.textSecondary,
-  },
-  errorBanner: {
-    backgroundColor: colors.errorBanner,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderLeftWidth: 4,
-    borderLeftColor: colors.errorBannerBorder,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  bannerContent: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  bannerText: {
-    flex: 1,
-    fontSize: 14,
-    color: colors.errorBannerText,
-    marginRight: 8,
-  },
-  bannerButton: {
-    backgroundColor: colors.errorButton,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 4,
-    marginRight: 8,
-  },
-  bannerButtonText: {
-    color: colors.errorButtonText,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  dismissButton: {
-    padding: 4,
-    borderRadius: 12,
-    backgroundColor: colors.errorLight,
-    minWidth: 24,
-    minHeight: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dismissButtonText: {
-    color: colors.errorBannerText,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-})

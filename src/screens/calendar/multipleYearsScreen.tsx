@@ -2,16 +2,16 @@
 
 import React from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
-import { useThemedStyles, useThemeColors } from '../../../hooks/useThemeColor';
+import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 
 const MultipleYearsScreen = ({ navigation }: any) => {
-    const colors = useThemeColors();
+    const { colors, styles: commonStyles } = useCommonThemedStyles();
 
     const selectedYear = new Date().getFullYear().toString();
     const yearList = Array.from({ length: 20 }, (_, i) => (parseInt(selectedYear) + i).toString());
 
-    const createStyles = (colors: any) =>
-        StyleSheet.create({
+    const useCustomStyles = () => {
+        return StyleSheet.create({
             container: {
                 flex: 1,
             },
@@ -45,33 +45,24 @@ const MultipleYearsScreen = ({ navigation }: any) => {
                 borderRadius: 5,
                 backgroundColor: colors.primaryLight,
             },
-            YearSelectText: {
-                fontSize: 18,
-                fontWeight: 'bold',
-                marginBottom: 10,
-                color: colors.text,
-            },
-            YearSelectButtonText: {
-                fontSize: 16,
-                color: colors.text,
-            },
         });
+    };
 
-    const styles = useThemedStyles(createStyles);
+    const customStyles = useCustomStyles();
 
     return (
-        <ScrollView style={styles.container} contentContainerStyle={styles.YearSelectContainer}>
-           <View style={styles.yearSelectTitleContainer}>
-                <Text style={styles.YearSelectText}>Select a Year</Text>
+        <ScrollView style={customStyles.container} contentContainerStyle={customStyles.YearSelectContainer}>
+           <View style={customStyles.yearSelectTitleContainer}>
+                <Text style={[commonStyles.h2, commonStyles.textCenter, { color: colors.text }]}>Select a Year</Text>
             </View> 
-            <View style={styles.yearListContainer}>
+            <View style={customStyles.yearListContainer}>
                 {yearList.map((year) => (
                 <Pressable
                     key={year}
-                    style={styles.YearSelectButton}
+                    style={customStyles.YearSelectButton}
                     onPress={() => navigation.navigate('Year', { year })}
                 >
-                    <Text style={styles.YearSelectButtonText}>{year}</Text>
+                    <Text style={[commonStyles.body, commonStyles.textSemiBold, { color: colors.text }]}>{year}</Text>
                 </Pressable>
                 ))}
             </View>

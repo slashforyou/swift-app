@@ -1,27 +1,8 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, Pressable, Modal, Alert, StyleSheet, Platform, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable, Modal, Alert, Platform, ScrollView, ActivityIndicator } from 'react-native';
 import Signature, { SignatureViewRef } from 'react-native-signature-canvas';
 import * as FileSystem from 'expo-file-system';
-import { useThemedStyles, useThemeColors } from '../../hooks/useThemeColor';
-
-const createStyles = (colors: any) => StyleSheet.create({
-  mask: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
-  card: { width: '90%', backgroundColor: colors.background, borderRadius: 12, shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4, elevation: 5, maxHeight: '80%' },
-  cardScrollView: { flexGrow: 1, justifyContent: 'center' },
-  title: { fontSize: 18, fontWeight: '700', marginBottom: 12, padding: 10, color: colors.text },
-  row: { flexDirection: 'row', justifyContent: 'space-between', gap: 10, padding: 20, width: '100%' },
-  btn: { paddingVertical: 10, paddingHorizontal: 16, backgroundColor: colors.backgroundSecondary, borderRadius: 8, alignItems: 'center' },
-  btnDisabled: { opacity: 0.6 },
-  hint: { marginTop: 8, color: colors.textSecondary, fontSize: 12 },
-  signingBloc: { backgroundColor: colors.background, borderRadius: 12, width: '100%', display: 'flex', flexDirection: 'column' },
-  contractBloc: { padding: 20, backgroundColor: colors.backgroundSecondary, borderRadius: 12 },
-  contractBlocContent: { fontSize: 14, color: colors.text, marginBottom: 10, lineHeight: 20, margin: 10 },
-  lastLine: { fontSize: 12, color: colors.textSecondary, marginTop: 10, textAlign: 'center' },
-  signingCanvas: { flex: 1, backgroundColor: colors.background, height: 150 },
-  signingCanvasContainer: { height: 170, overflow: 'hidden', marginBottom: 20, padding: 10 },
-  savingBar: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingBottom: 8 }
-});
+import { useCommonThemedStyles } from '../hooks/useCommonStyles';
 
 const SigningBloc = ({
   onSave,
@@ -41,8 +22,7 @@ const SigningBloc = ({
   const [isSigning, setIsSigning] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const colors = useThemeColors();
-  const styles = useThemedStyles(createStyles);
+  const { colors, styles } = useCommonThemedStyles();
 
   // Convertit le data URL en fichier PNG dans le sandbox Expo
   const dataUrlToPngFile = async (dataUrl: string) => {
@@ -149,7 +129,7 @@ const SigningBloc = ({
               />
             </View>
 
-            <View style={styles.row}>
+            <View style={[{ flexDirection: 'row', justifyContent: 'space-between', gap: 10, padding: 20, width: '100%' }]}>
               <Pressable
                 onPress={() => signatureRef.current?.clearSignature()}
                 style={[styles.btn, isSaving && styles.btnDisabled]}

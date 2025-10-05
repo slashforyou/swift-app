@@ -4,7 +4,7 @@ import JobBox from '@/src/components/calendar/jobBox';
 import Ionicons from '@react-native-vector-icons/ionicons';
 import React from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
-import { useThemedStyles, useThemeColors } from '../../../hooks/useThemeColor';
+import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 
     const DayScreen = ({ route, navigation }: any) => {
         const { day, month, year } = route.params || {};
@@ -13,8 +13,27 @@ import { useThemedStyles, useThemeColors } from '../../../hooks/useThemeColor';
         const selectedYear = year || new Date().getFullYear();
 
         // Get themed colors and styles
-        const colors = useThemeColors();
-        const styles = useThemedStyles(createDayScreenStyles);
+        const { colors, styles: commonStyles } = useCommonThemedStyles();
+        
+        // Custom styles for day screen specific elements
+        const customStyles = StyleSheet.create({
+            dayScreenContainer: {
+                ...commonStyles.container,
+                ...commonStyles.contentContainer,
+                paddingTop: 100, // Adjusted for the top menu
+            },
+            dayScreenTitle: {
+                ...commonStyles.rowBetween,
+                marginBottom: 20,
+                width: '100%',
+            },
+            backButton: {
+                ...commonStyles.buttonSecondary,
+                borderRadius: 8,
+                marginRight: 10,
+                padding: 10,
+            },
+        });
 
     const jobs = [
         {
@@ -65,12 +84,12 @@ import { useThemedStyles, useThemeColors } from '../../../hooks/useThemeColor';
     ]; // This should be replaced with the actual jobs data for the selected day
 
     return (
-        <ScrollView style={styles.dayScreenContainer} contentContainerStyle={styles.dayScreenContainerScroll}>
-            <View style={styles.dayScreenTitle}>
-                <Pressable onPress={() => navigation.navigate('Month', { month: selectedMonth, year: selectedYear })} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color={colors.buttonPrimaryText} />
+        <ScrollView style={customStyles.dayScreenContainer} contentContainerStyle={commonStyles.scrollContainer}>
+            <View style={customStyles.dayScreenTitle}>
+                <Pressable onPress={() => navigation.navigate('Month', { month: selectedMonth, year: selectedYear })} style={customStyles.backButton}>
+                    <Ionicons name="arrow-back" size={24} color={colors.text} />
                 </Pressable>
-                <Text style={styles.dayScreenText}>
+                <Text style={[commonStyles.h2, commonStyles.textCenter, { flex: 1 }]}>
                     {/* Date in full letters format */}
                     {`${selectedDay} ${new Intl.DateTimeFormat('en-US', { month: 'long' }).format(new Date(selectedYear, selectedMonth - 1, selectedDay))} ${selectedYear}`}
                 </Text>
@@ -90,54 +109,12 @@ import { useThemedStyles, useThemeColors } from '../../../hooks/useThemeColor';
                             />
                         ))
                     ) : (
-                        <Text style={styles.noJobsText}>No jobs available for this day.</Text>
+                        <Text style={[commonStyles.body, commonStyles.textCenter, { marginTop: 20 }]}>No jobs available for this day.</Text>
                     )}
             </View>
         </ScrollView>
     );
 };
-
-// Create themed styles function
-const createDayScreenStyles = (colors: any) => StyleSheet.create({
-    dayScreenContainerScroll: {
-        flexGrow: 1,
-        justifyContent: 'flex-start' as const,
-        alignItems: 'center' as const,
-    },
-    dayScreenContainer: {
-        flex: 1,
-        backgroundColor: colors.backgroundTertiary,
-        padding: 20,
-        paddingTop: 100, // Adjusted for the top menu
-        paddingBottom: 20,
-    },
-    dayScreenTitle: {
-        flexDirection: 'row' as const,
-        justifyContent: 'space-between' as const,
-        alignItems: 'center' as const,
-        marginBottom: 20,
-        width: '100%',
-    },
-    backButton: {
-        backgroundColor: colors.buttonSecondary,
-        borderRadius: 5,
-        marginRight: 10,
-        padding: 10,
-    },
-    dayScreenText: {
-        fontSize: 24,
-        fontWeight: 'bold' as const,
-        color: colors.text,
-        textAlign: 'center' as const,
-        flex: 1,
-    },
-    noJobsText: {
-        fontSize: 16,
-        color: colors.textSecondary,
-        textAlign: 'center' as const,
-        marginTop: 20,
-    },
-});
 
 export default DayScreen;
 

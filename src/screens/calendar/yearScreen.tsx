@@ -2,10 +2,10 @@
 
 import React from 'react';
 import { View, Text, Pressable, Dimensions, StyleSheet } from 'react-native';
-import { useThemedStyles, useThemeColors } from '../../../hooks/useThemeColor';
+import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 
 const YearCalendarScreen = ({ navigation, route }: any) => {
-    const colors = useThemeColors();
+    const { colors, styles: commonStyles } = useCommonThemedStyles();
 
     const { year } = route.params || {};
     const selectedYear = year || new Date().getFullYear().toString();
@@ -18,8 +18,8 @@ const YearCalendarScreen = ({ navigation, route }: any) => {
     const screenWidth = Dimensions.get('window').width;
     const monthCaseSize = (screenWidth - 40) / 3; // 3 months in a row
 
-    const createStyles = (colors: any) =>
-        StyleSheet.create({
+    const useCustomStyles = () => {
+        return StyleSheet.create({
             container: {
                 flex: 1,
                 justifyContent: 'center',
@@ -54,14 +54,6 @@ const YearCalendarScreen = ({ navigation, route }: any) => {
                 alignItems: 'center',
                 flexDirection: 'row',
             },
-            prevNextButtonText: {
-                color: colors.buttonPrimaryText,
-                fontSize: 16,
-            },
-            yearButtonText: {
-                color: colors.buttonPrimaryText,
-                fontSize: 16,
-            },
             monthsContainer: {
                 flexDirection: 'row',
                 flexWrap: 'wrap',
@@ -82,36 +74,32 @@ const YearCalendarScreen = ({ navigation, route }: any) => {
                 paddingVertical: 10,
                 backgroundColor: colors.primaryLight,
             },
-            monthCaseButtonText: {
-                fontSize: 16,
-                color: colors.text,
-                textAlign: 'center',
-            },
         });
+    };
 
-    const styles = useThemedStyles(createStyles);
+    const customStyles = useCustomStyles();
 
     return (
-        <View style={styles.container}>
-            <View style={styles.monthScreenYearSwitchButtons}>
-                <Pressable style={styles.PrevNextButton} onPress={() => navigation.navigate('Year', {year: selectedYear - 1})}>
-                    <Text style={styles.prevNextButtonText}> {'<'} </Text>
+        <View style={customStyles.container}>
+            <View style={customStyles.monthScreenYearSwitchButtons}>
+                <Pressable style={customStyles.PrevNextButton} onPress={() => navigation.navigate('Year', {year: selectedYear - 1})}>
+                    <Text style={[commonStyles.body, commonStyles.textBold, { color: colors.buttonPrimaryText }]}> {'<'} </Text>
                 </Pressable>
-                <Pressable style={styles.monthYearSwitchButton} onPress={() => navigation.navigate('MultipleYears')}>
-                    <Text style={styles.yearButtonText}>{selectedYear}</Text>
+                <Pressable style={customStyles.monthYearSwitchButton} onPress={() => navigation.navigate('MultipleYears')}>
+                    <Text style={[commonStyles.h3, { color: colors.buttonPrimaryText }]}>{selectedYear}</Text>
                 </Pressable>
-                <Pressable style={styles.PrevNextButton} onPress={() => navigation.navigate('Year', { year: selectedYear + 1 })}>
-                    <Text style={styles.prevNextButtonText}> {'>'} </Text>
+                <Pressable style={customStyles.PrevNextButton} onPress={() => navigation.navigate('Year', { year: selectedYear + 1 })}>
+                    <Text style={[commonStyles.body, commonStyles.textBold, { color: colors.buttonPrimaryText }]}> {'>'} </Text>
                 </Pressable>
             </View>
-            <View style={styles.monthsContainer}>
+            <View style={customStyles.monthsContainer}>
                 {monthList.map((month, i) => (
                     <Pressable
                         key={i}
-                        style={styles.monthCaseButton}
+                        style={customStyles.monthCaseButton}
                         onPress={() => navigation.navigate('Month', { month: i + 1, year: selectedYear })} // Pass the selected month and year to the Month screen
                     >
-                        <Text style={styles.monthCaseButtonText}>{month}</Text>
+                        <Text style={[commonStyles.body, commonStyles.textCenter, commonStyles.textSemiBold, { color: colors.text }]}>{month}</Text>
                     </Pressable>
                 ))}
             </View>

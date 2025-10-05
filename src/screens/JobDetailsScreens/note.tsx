@@ -3,68 +3,11 @@ import JobContainerWithTitle from '@/src/components/ui/jobPage/jobContainerWithT
 import JobNoteItem from '@/src/components/ui/jobPage/jobNoteItem';
 import JobPageScrollContainer from '@/src/components/ui/jobPage/jobPageScrollContainer';
 import React from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text } from 'react-native';
+import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 
 const JobNote = ({ job, setJob }: { job: any, setJob: React.Dispatch<React.SetStateAction<any>> }) => {
-    const Style = {
-        jobDetailsPage: {
-            flex: 1,
-            marginTop: 80,
-            marginBottom: 95,
-            backgroundColor: '#fff',
-            paddingTop: 30,
-        },
-        jobDetailsPageContainerScroll: {
-            padding: 20,
-        },
-        jobDetailsPageTitle: {
-            width: '100%',
-            padding: 10,
-            backgroundColor: '#f0f0f0',
-            borderBottomWidth: 1,
-            borderBottomColor: '#ddd',
-            marginBottom: 20,
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            position: 'relative',
-            borderTopLeftRadius: 10,
-            borderTopRightRadius: 10,
-        },
-        jobDetailsPageTitleText: {
-            fontSize: 24,
-            fontWeight: 'bold',
-            color: '#333',
-        },
-        jobDetailsPageNoteText: {
-            fontSize: 16,
-            marginBottom: 10,
-        },
-        jobDetailsPageNotesZone: {
-            flex: 1,
-            marginTop: 80,
-            marginBottom: 95,
-            backgroundColor: '#fff',
-            paddingTop: 30,
-            width: '100%',
-            borderRadius: 10,
-            shadowColor: '#000',
-            shadowOffset: {
-                width: 0,
-                height: 2,
-            },
-            shadowOpacity: 0.1,
-            shadowRadius: 4,
-        },
-        jobDetailsPageNotesZoneContainerScroll: {
-            width: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'flex-start',
-        },
-    };
+    const { colors, styles: commonStyles } = useCommonThemedStyles();
 
     console.log("Job Note Component Rendered", job.notes);
 
@@ -76,7 +19,11 @@ const JobNote = ({ job, setJob }: { job: any, setJob: React.Dispatch<React.SetSt
                         <JobNoteItem key={index} note={note} />
                     ))
                 ) : (
-                    <Text style={Style.jobDetailsPageNoteText}> No notes available.</Text>
+                    <View style={{ paddingVertical: 32, alignItems: 'center' }}>
+                        <Text style={[commonStyles.textMuted, commonStyles.textCenter]}>
+                            No notes available for this job.
+                        </Text>
+                    </View>
                 )}
             </JobContainerWithTitle>
         </JobPageScrollContainer>
