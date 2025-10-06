@@ -26,7 +26,9 @@ Swift App is a solution designed to help moving companies digitize and simplify 
 
 - Electronic contract signature – Let the client sign the service contract directly in the app via a signature capture component. The signature is saved and attached to the corresponding job.
 
-Note: The project is currently in early development (version 0.0.1). Some features above are in progress or planned for upcoming versions.
+- **Payment processing** – Complete payment system with credit card validation, multiple payment methods (card/cash), saved cards management, and real-time Luhn algorithm validation. Features an interactive credit card preview with visual feedback and modern UI design.
+
+Note: The project is currently in active development (version 0.0.1). Core features like job management, calendar views, and payment processing are implemented. Authentication and signature features are planned for upcoming versions.
 
 ## Technical Overview
 
