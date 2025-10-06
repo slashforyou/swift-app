@@ -1,16 +1,16 @@
-# 🎨 Système de Styles Communs - Swift App
+# 🎨 Common Styles System - Swift App
 
-## Vue d'ensemble
+## Overview
 
-Ce système fournit un ensemble complet de styles réutilisables pour maintenir une interface utilisateur cohérente dans toute l'application. Il respecte nos principes de design :
+This system provides a comprehensive set of reusable styles to maintain a consistent user interface throughout the application. It respects our design principles:
 
-- **Palette Orange/Blue-Grey** : Orange primary avec nuances blue-grey
-- **Ombres douces** : Jamais d'ombres dures, toujours subtiles
-- **Pas de noir pur** : Règle stricte, on utilise notre blue-grey foncé (#233551)
-- **Responsive** : Adaptation automatique aux différentes tailles d'écran
-- **Théming** : Support complet light/dark mode
+- **Orange/Blue-Grey Palette**: Primary orange with blue-grey nuances
+- **Soft Shadows**: Never harsh shadows, always subtle
+- **No Pure Black**: Strict rule, we use our dark blue-grey (#233551)
+- **Responsive**: Automatic adaptation to different screen sizes
+- **Theming**: Complete light/dark mode support
 
-## 🚀 Utilisation Rapide
+## 🚀 Quick Usage
 
 ```tsx
 import { useCommonThemedStyles } from '../hooks/useCommonStyles';
@@ -20,81 +20,81 @@ const MyComponent = () => {
   
   return (
     <View style={styles.container}>
-      <Text style={styles.h1}>Mon Titre</Text>
-      <Text style={styles.body}>Mon contenu</Text>
+      <Text style={styles.h1}>My Title</Text>
+      <Text style={styles.body}>My content</Text>
     </View>
   );
 };
 ```
 
-## 📦 Styles Disponibles
+## 📦 Available Styles
 
-### Conteneurs
-- `container` - Container principal avec background thématique
-- `containerCentered` - Container centré avec padding
-- `containerSafeArea` - Container avec safe area
-- `contentContainer` - Container de contenu avec padding
-- `scrollContainer` - Container pour ScrollView
-- `card` - Carte avec ombre medium
-- `cardElevated` - Carte avec ombre forte
-- `panel` - Panneau simple avec ombre douce
+### Containers
+- `container` - Main container with themed background
+- `containerCentered` - Centered container with padding
+- `containerSafeArea` - Container with safe area
+- `contentContainer` - Content container with padding
+- `scrollContainer` - Container for ScrollView
+- `card` - Card with medium shadow
+- `cardElevated` - Card with strong shadow
+- `panel` - Simple panel with soft shadow
 
-### Typographie
-- `h1, h2, h3, h4` - Titres hiérarchisés
-- `body, bodyLarge, bodySmall` - Corps de texte
-- `textMuted, textSecondary` - Textes atténués
-- `textCenter, textBold, textSemiBold` - Utilitaires de texte
+### Typography
+- `h1, h2, h3, h4` - Hierarchical titles
+- `body, bodyLarge, bodySmall` - Body text
+- `textMuted, textSecondary` - Muted texts
+- `textCenter, textBold, textSemiBold` - Text utilities
 
-### Boutons
-- `buttonPrimary` - Bouton orange principal
-- `buttonPrimaryLarge` - Version large du bouton principal
-- `buttonSecondary` - Bouton secondaire (background tertiaire)
-- `buttonOutline` - Bouton outline orange
-- `buttonIcon` - Bouton circulaire pour icônes
-- `buttonIconLarge` - Version large du bouton icône
+### Buttons
+- `buttonPrimary` - Primary orange button
+- `buttonPrimaryLarge` - Large version of primary button
+- `buttonSecondary` - Secondary button (tertiary background)
+- `buttonOutline` - Orange outline button
+- `buttonIcon` - Circular button for icons
+- `buttonIconLarge` - Large version of icon button
 
-### Formulaires
-- `input` - Champ de saisie standard
-- `inputFocused` - Champ focalisé (bordure orange)
-- `inputError` - Champ avec erreur (bordure rouge)
-- `label` - Label de champ
-- `labelRequired` - Label requis (couleur orange)
+### Forms
+- `input` - Standard input field
+- `inputFocused` - Focused field (orange border)
+- `inputError` - Field with error (red border)
+- `label` - Field label
+- `labelRequired` - Required label (orange color)
 
-### Listes
-- `listItem` - Élément de liste avec ombre
-- `listItemContent` - Contenu d'un élément de liste
-- `listItemTitle` - Titre d'élément de liste
-- `listItemSubtitle` - Sous-titre d'élément de liste
+### Lists
+- `listItem` - List item with shadow
+- `listItemContent` - List item content
+- `listItemTitle` - List item title
+- `listItemSubtitle` - List item subtitle
 
-### Statuts
-- `statusSuccess` - Message de succès (vert)
-- `statusWarning` - Message d'attention (jaune)
-- `statusError` - Message d'erreur (rouge)
-- `statusInfo` - Message d'information (bleu)
+### Status
+- `statusSuccess` - Success message (green)
+- `statusWarning` - Warning message (yellow)
+- `statusError` - Error message (red)
+- `statusInfo` - Information message (blue)
 
 ### Navigation
-- `tabBar` - Barre d'onglets avec ombre
-- `navigationHeader` - Header de navigation
+- `tabBar` - Tab bar with shadow
+- `navigationHeader` - Navigation header
 
-### Modals et Overlays
-- `overlay` - Overlay semi-transparent
-- `modal` - Container de modal
-- `modalHeader` - Header de modal
-- `modalContent` - Contenu de modal
-- `modalActions` - Zone d'actions de modal
+### Modals and Overlays
+- `overlay` - Semi-transparent overlay
+- `modal` - Modal container
+- `modalHeader` - Modal header
+- `modalContent` - Modal content
+- `modalActions` - Modal actions area
 
-### Utilitaires
+### Utilities
 - `flex1, flexRow, flexColumn` - Flexbox
-- `alignCenter, justifyCenter, justifyBetween` - Alignement
-- `centerContent, rowBetween, rowCenter` - Combinaisons courantes
-- `marginTop, marginBottom, paddingVertical, etc.` - Espacement
+- `alignCenter, justifyCenter, justifyBetween` - Alignment
+- `centerContent, rowBetween, rowCenter` - Common combinations
+- `marginTop, marginBottom, paddingVertical, etc.` - Spacing
 
-## 🎯 Composants avec Styles Intégrés
+## 🎯 Components with Built-in Styles
 
-### HomeButton Amélioré
+### Enhanced HomeButton
 ```tsx
 <HomeButton 
-  title="Mon Bouton" 
+  title="My Button" 
   onPress={() => {}}
   variant="primary" // primary | secondary | outline
   size="default" // default | large
@@ -104,73 +104,73 @@ const MyComponent = () => {
 
 ## 📱 Responsive Design
 
-Le système s'adapte automatiquement :
-- **Écrans < 350px** : Tailles de police réduites
-- **Écrans normaux** : Tailles standards
-- **Padding intelligent** : S'adapte à la largeur d'écran
-- **Container max-width** : Limite à 600px sur grands écrans
+The system adapts automatically:
+- **Screens < 350px**: Reduced font sizes
+- **Normal screens**: Standard sizes
+- **Smart padding**: Adapts to screen width
+- **Container max-width**: Limits to 600px on large screens
 
-## 🌈 Système de Couleurs
+## 🌈 Color System
 
 ```tsx
-colors.primary          // #FF6A4A (Orange principal)
-colors.text            // #233551 (Blue-grey foncé, jamais noir pur)
-colors.textSecondary    // #516386 (Blue-grey moyen)
-colors.background       // #F6F8FC (Background clair)
+colors.primary          // #FF6A4A (Primary orange)
+colors.text            // #233551 (Dark blue-grey, never pure black)
+colors.textSecondary    // #516386 (Medium blue-grey)
+colors.background       // #F6F8FC (Light background)
 colors.backgroundSecondary // #EDF1F8 (Cards/panels)
-colors.success          // #22C55E (Vert succès)
-colors.warning          // #F59E0B (Jaune attention)
-colors.error           // #EF4444 (Rouge erreur)
-colors.info            // #3B82F6 (Bleu info)
+colors.success          // #22C55E (Success green)
+colors.warning          // #F59E0B (Warning yellow)
+colors.error           // #EF4444 (Error red)
+colors.info            // #3B82F6 (Info blue)
 ```
 
-## 🎭 Ombres Prédéfinies
+## 🎭 Predefined Shadows
 
 ```tsx
 import { SHADOWS } from '../constants/Styles';
 
-// Utilisation dans vos styles personnalisés
+// Usage in your custom styles
 const myStyle = {
-  ...SHADOWS.soft,    // Ombre légère
-  ...SHADOWS.medium,  // Ombre standard
-  ...SHADOWS.strong,  // Ombre prononcée
-  ...SHADOWS.floating // Ombre de survol
+  ...SHADOWS.soft,    // Light shadow
+  ...SHADOWS.medium,  // Standard shadow
+  ...SHADOWS.strong,  // Pronounced shadow
+  ...SHADOWS.floating // Hover shadow
 };
 ```
 
-## 📏 Valeurs Responsives
+## 📏 Responsive Values
 
 ```tsx
 import { RESPONSIVE } from '../constants/Styles';
 
 const myStyle = {
   padding: RESPONSIVE.md,          // 16px
-  fontSize: RESPONSIVE.fontBase,   // Adaptatif selon l'écran
+  fontSize: RESPONSIVE.fontBase,   // Adaptive according to screen
   borderRadius: RESPONSIVE.radiusMedium, // 8px
 };
 ```
 
-## ✨ Bonnes Pratiques
+## ✨ Best Practices
 
-1. **Toujours utiliser les styles communs** plutôt que créer des styles custom
-2. **Combiner les styles** avec l'opérateur spread : `[styles.card, styles.marginTop]`
-3. **Respecter la hiérarchie** des titres (h1 > h2 > h3 > h4)
-4. **Utiliser les couleurs thématiques** plutôt que hardcoder
-5. **Tester en light/dark mode** pour vérifier la cohérence
+1. **Always use common styles** rather than creating custom styles
+2. **Combine styles** with the spread operator: `[styles.card, styles.marginTop]`
+3. **Respect the hierarchy** of titles (h1 > h2 > h3 > h4)
+4. **Use themed colors** rather than hardcode
+5. **Test in light/dark mode** to verify consistency
 
-## 🔧 Extension du Système
+## 🔧 System Extension
 
-Pour ajouter de nouveaux styles communs :
+To add new common styles:
 
-1. Modifier `src/constants/Styles.ts`
-2. Ajouter le nouveau style dans `createCommonStyles`
-3. Documenter ici
-4. Tester en responsive et dans les deux thèmes
+1. Modify `src/constants/Styles.ts`
+2. Add the new style in `createCommonStyles`
+3. Document here
+4. Test in responsive and both themes
 
-## 🎨 Exemples Complets
+## 🎨 Complete Examples
 
-Voir le fichier `src/screens/StylesExampleScreen.tsx` pour des exemples concrets d'utilisation de tous les styles disponibles.
+See the file `src/screens/StylesExampleScreen.tsx` for concrete examples of using all available styles.
 
 ---
 
-**Note** : Ce système garantit une interface professionnelle, cohérente et agréable à utiliser. L'orange est utilisé avec parcimonie pour les éléments interactifs importants, et nos ombres douces créent une hiérarchie visuelle subtile.
+**Note**: This system ensures a professional, consistent and pleasant interface. Orange is used sparingly for important interactive elements, and our soft shadows create a subtle visual hierarchy.

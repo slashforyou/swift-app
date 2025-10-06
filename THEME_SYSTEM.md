@@ -1,14 +1,14 @@
-# 🎨 Système de Couleurs Swift App
+# 🎨 Swift App Color System
 
-## 📋 Vue d'ensemble
+## 📋 Overview
 
-Le système de couleurs a été entièrement refactorisé pour supporter les thèmes light/dark avec une palette complète de couleurs sémantiques.
+The color system has been completely refactored to support light/dark themes with a comprehensive palette of semantic colors.
 
-## 🚀 Configuration
+## 🚀 Setup
 
 ### 1. ThemeProvider
 
-L'app est maintenant wrappée dans un `ThemeProvider` qui gère l'état global du thème :
+The app is now wrapped in a `ThemeProvider` that manages the global theme state:
 
 ```tsx
 // src/app.tsx
@@ -25,9 +25,9 @@ export default function App() {
 }
 ```
 
-### 2. Palette de couleurs
+### 2. Color Palette
 
-Les couleurs sont définies dans `src/constants/Colors.ts` avec des versions light et dark :
+Colors are defined in `src/constants/Colors.ts` with light and dark versions:
 
 ```typescript
 export const Colors = {
@@ -54,10 +54,10 @@ export const Colors = {
     // Interactive elements
     buttonPrimary: '#007bff',
     buttonPrimaryText: '#ffffff',
-    // ... et beaucoup d'autres
+    // ... and many others
   },
   dark: {
-    // Version sombre de toutes les couleurs
+    // Dark version of all colors
     text: '#ECEDEE',
     background: '#151718',
     primary: '#4dabf7',
@@ -66,9 +66,9 @@ export const Colors = {
 }
 ```
 
-## 🛠️ Utilisation
+## 🛠️ Usage
 
-### 1. Hook useThemedStyles (Recommandé)
+### 1. useThemedStyles Hook (Recommended)
 
 ```tsx
 import { useThemedStyles } from '@/hooks/useThemeColor'
@@ -97,9 +97,9 @@ const createStyles = (colors: typeof Colors.light) => StyleSheet.create({
 })
 ```
 
-### 2. Hook useThemeColors
+### 2. useThemeColors Hook
 
-Pour accéder aux couleurs directement :
+To access colors directly:
 
 ```tsx
 import { useThemeColors } from '@/hooks/useThemeColor'
@@ -113,7 +113,7 @@ const MyComponent = () => {
 }
 ```
 
-### 3. Hook useTheme (Contexte complet)
+### 3. useTheme Hook (Complete Context)
 
 ```tsx
 import { useTheme } from '@/src/context/ThemeProvider'
@@ -131,9 +131,9 @@ const MyComponent = () => {
 }
 ```
 
-## 🎛️ Bouton de changement de thème
+## 🎛️ Theme Toggle Button
 
-### ThemeToggle complet
+### Complete ThemeToggle
 
 ```tsx
 import { ThemeToggle } from '@/src/components/ui/ThemeToggle'
@@ -141,7 +141,7 @@ import { ThemeToggle } from '@/src/components/ui/ThemeToggle'
 <ThemeToggle showText={true} size="medium" />
 ```
 
-### Icône seulement
+### Icon Only
 
 ```tsx
 import { ThemeToggleIcon } from '@/src/components/ui/ThemeToggle'
@@ -149,73 +149,73 @@ import { ThemeToggleIcon } from '@/src/components/ui/ThemeToggle'
 <ThemeToggleIcon size="small" />
 ```
 
-## 📱 Couleurs disponibles
+## 📱 Available Colors
 
-### Couleurs de base
+### Base Colors
 - `text`, `textSecondary`, `textMuted`
 - `background`, `backgroundSecondary`, `backgroundTertiary`
 
-### Couleurs primaires
+### Primary Colors
 - `primary`, `primaryDark`, `primaryLight`
 - `tint`
 
-### Couleurs de statut
+### Status Colors
 - `success`, `successLight`
 - `warning`, `warningLight` 
 - `error`, `errorLight`
 - `info`, `infoLight`
 
-### Éléments UI
+### UI Elements
 - `border`, `borderLight`
 - `shadow`, `overlay`, `overlayDark`
 
-### Éléments interactifs
+### Interactive Elements
 - `buttonPrimary`, `buttonPrimaryText`
 - `buttonSecondary`, `buttonSecondaryText`
 - `buttonOutline`, `buttonOutlineText`
 - `buttonDisabled`, `buttonDisabledText`
 
-### Navigation & Icônes
+### Navigation & Icons
 - `icon`, `iconActive`
 - `tabIconDefault`, `tabIconSelected`
 
-### Formulaires
+### Forms
 - `inputBackground`, `inputBorder`, `inputBorderFocused`
 - `inputText`, `inputPlaceholder`
 
-### Calendrier
+### Calendar
 - `calendarBackground`, `calendarBorder`
 - `calendarToday`, `calendarSelected`, `calendarEvent`
 
-### États de chargement
+### Loading States
 - `loadingBackground`, `loadingSpinner`
 
-### Bannières d'erreur
+### Error Banners
 - `errorBanner`, `errorBannerBorder`, `errorBannerText`
 - `errorButton`, `errorButtonText`
 
 ## 🔄 Migration
 
-### Avant
+### Before
 ```tsx
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#ffffff', // ❌ Couleur hardcodée
+    backgroundColor: '#ffffff', // ❌ Hardcoded color
   },
   text: {
-    color: '#333333', // ❌ Couleur hardcodée
+    color: '#333333', // ❌ Hardcoded color
   },
 })
 ```
 
-### Après
+### After
 ```tsx
 const createStyles = (colors: typeof Colors.light) => StyleSheet.create({
   container: {
-    backgroundColor: colors.background, // ✅ Couleur thématique
+    backgroundColor: colors.background, // ✅ Themed color
   },
   text: {
-    color: colors.text, // ✅ Couleur thématique
+    color: colors.text, // ✅ Themed color
   },
 })
 
@@ -225,20 +225,20 @@ const MyComponent = () => {
 }
 ```
 
-## 💾 Persistance
+## 💾 Persistence
 
-Le thème choisi par l'utilisateur est automatiquement sauvegardé dans `SecureStore` et restauré au redémarrage de l'app.
+The user's chosen theme is automatically saved in `SecureStore` and restored when the app restarts.
 
-## 🎯 Exemples de fichiers mis à jour
+## 🎯 Updated File Examples
 
-- ✅ `src/navigation/calendar.tsx` - Système complet
-- ✅ `src/screens/calendar/dayScreen.tsx` - Styles thématiques
-- ✅ `src/components/top_menu/top_menu.tsx` - Avec bouton de thème
-- 🔄 Autres fichiers à migrer...
+- ✅ `src/navigation/calendar.tsx` - Complete system
+- ✅ `src/screens/calendar/dayScreen.tsx` - Themed styles
+- ✅ `src/components/top_menu/top_menu.tsx` - With theme button
+- 🔄 Other files to migrate...
 
-## 📝 Notes importantes
+## 📝 Important Notes
 
-1. **Couleurs pour composants natifs** : Utilisez `useThemeColors()` ou `useTheme()` pour les couleurs directes
-2. **StyleSheet** : Utilisez `useThemedStyles()` avec une fonction de création de styles
-3. **Fallback** : Le système fonctionne même sans ThemeProvider (fallback vers l'ancien système)
-4. **Performance** : Les styles sont mémorisés et recalculés seulement lors du changement de thème
+1. **Colors for native components**: Use `useThemeColors()` or `useTheme()` for direct colors
+2. **StyleSheet**: Use `useThemedStyles()` with a style creation function
+3. **Fallback**: The system works even without ThemeProvider (fallback to the old system)
+4. **Performance**: Styles are memoized and recalculated only when theme changes
