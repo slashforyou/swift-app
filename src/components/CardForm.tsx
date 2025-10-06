@@ -36,7 +36,7 @@ const CardForm: React.FC<CardFormProps> = ({ initialCard, onCardChange, onValida
 
 
 
-  // Synchroniser avec initialCard quand il change (carte sélectionnée)
+  // Sync with initialCard when it changes (selected card)
   useEffect(() => {
     const formatted = {
       number: formatCardNumber(initialCard.number || ''),
@@ -68,14 +68,14 @@ const CardForm: React.FC<CardFormProps> = ({ initialCard, onCardChange, onValida
     }
   }, [initialCard]);
 
-  // Fonction pour formater le numéro de carte
+  // Function to format card number
   const formatCardNumber = (text: string): string => {
     const cleaned = text.replace(/\s/g, '');
     const match = cleaned.match(/\d{1,4}/g);
     return match ? match.join(' ').substr(0, 19) : '';
   };
 
-  // Fonction pour formater la date d'expiration
+  // Function to format expiration date
   const formatExpiry = (text: string): string => {
     const cleaned = text.replace(/\D/g, '');
     if (cleaned.length >= 2) {
@@ -96,10 +96,10 @@ const CardForm: React.FC<CardFormProps> = ({ initialCard, onCardChange, onValida
 
   const validateCardNumber = (number: string): { isValid: boolean; message: string } => {
     const cleanNumber = number.replace(/\s/g, '');
-    if (cleanNumber.length === 0) return { isValid: false, message: 'Numéro requis' };
-    if (cleanNumber.length < 13) return { isValid: false, message: 'Numéro trop court' };
-    if (cleanNumber.length > 19) return { isValid: false, message: 'Numéro trop long' };
-    return { isValid: true, message: 'Valide' };
+    if (cleanNumber.length === 0) return { isValid: false, message: 'Number required' };
+    if (cleanNumber.length < 13) return { isValid: false, message: 'Number too short' };
+    if (cleanNumber.length > 19) return { isValid: false, message: 'Number too long' };
+    return { isValid: true, message: 'Valid' };
   };
 
   const validateExpiry = (expiry: string): boolean => {
@@ -198,10 +198,10 @@ const CardForm: React.FC<CardFormProps> = ({ initialCard, onCardChange, onValida
 
   return (
     <View style={{ gap: 16, padding: 16, backgroundColor: 'white', borderRadius: 8 }}>
-      {/* Numéro de carte */}
+      {/* Card Number */}
       <View>
         <Text style={{ fontSize: 12, color: Colors.light.textSecondary, marginBottom: 8 }}>
-          Numéro de carte
+          Card Number
         </Text>
         <TextInput
           ref={cardNumberRef}
@@ -224,11 +224,11 @@ const CardForm: React.FC<CardFormProps> = ({ initialCard, onCardChange, onValida
         />
       </View>
 
-      {/* Date d'expiration et CVV */}
+      {/* Expiration Date and CVV */}
       <View style={{ flexDirection: 'row', gap: 12 }}>
         <View style={{ flex: 1 }}>
           <Text style={{ fontSize: 12, color: Colors.light.textSecondary, marginBottom: 8 }}>
-            Expiration
+            Expiry Date
           </Text>
           <TextInput
             ref={expiryRef}
@@ -278,10 +278,10 @@ const CardForm: React.FC<CardFormProps> = ({ initialCard, onCardChange, onValida
         </View>
       </View>
 
-      {/* Nom du porteur */}
+      {/* Cardholder Name */}
       <View>
         <Text style={{ fontSize: 12, color: Colors.light.textSecondary, marginBottom: 8 }}>
-          Nom du porteur
+          Cardholder Name
         </Text>
         <TextInput
           ref={nameRef}
