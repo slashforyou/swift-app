@@ -1,6 +1,6 @@
 /**
- * PaymentWindow - Interface moderne de paiement avec animations
- * Design système cohérent, carte bancaire interactive, sécurité renforcée
+ * PaymentWindow - Modern payment interface with animations
+ * Coherent design system, interactive credit card, enhanced security
  */
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { 
@@ -83,7 +83,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
   const insets = useSafeAreaInsets();
   const isVisible = visibleCondition === 'paymentWindow';
   
-  // État du paiement
+  // Payment state
   const [state, setState] = useState<PaymentState>({
     step: 'method',
     selectedMethod: null,
@@ -99,7 +99,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
   const scaleAnimation = useRef(new Animated.Value(0.9)).current;
   const cardFlipAnimation = useRef(new Animated.Value(0)).current;
 
-  // Mise à jour de la validation quand on sélectionne une carte sauvée
+  // Update validation when selecting a saved card
   useEffect(() => {
     if (state.selectedCard) {
       const card = state.newCard;
@@ -162,7 +162,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
     setState(prev => ({ ...prev, ...updates }));
   };
 
-  // État de validation
+  // Validation state
   const [cardValidation, setCardValidation] = useState({
     number: { isValid: false, message: '' },
     expiry: { isValid: false, message: '' },
@@ -170,10 +170,10 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
     cardType: 'unknown' as 'visa' | 'mastercard' | 'amex' | 'discover' | 'unknown'
   });
 
-  // Debounced setState pour éviter les re-renders fréquents
+  // Debounced setState to avoid frequent re-renders
   const debouncedStateUpdate = useRef<NodeJS.Timeout | null>(null);
 
-  // Nettoyage du timeout au démontage
+  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (debouncedStateUpdate.current) {
@@ -183,17 +183,17 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
   }, []);
   
   const handleCardUpdate = useCallback((card: { number: string; expiry: string; cvv: string; name: string }) => {
-    console.log('📝 Card update (déboucé):', card); // DEBUG
+    console.log('📝 Card update (debounced):', card); // DEBUG
     
-    // SOLUTION: Pas de validation ici pour éviter les re-renders !
-    // Juste mettre à jour les données de la carte
+    // SOLUTION: No validation here to avoid re-renders!
+    // Just update the card data
     setState(prev => ({ 
       ...prev, 
       newCard: card
     }));
   }, []);
 
-  // Callback séparé pour la validation qui ne cause pas de re-render
+  // Separate callback for validation that doesn't cause re-render
   const handleValidationUpdate = useCallback((validation: {
     cardType: string;
     isNumberValid: boolean;
@@ -203,7 +203,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
   }) => {
     console.log('🔍 Validation update:', validation); // DEBUG
     
-    // Mise à jour de la validation séparément
+    // Update validation separately
     setCardValidation({
       number: { isValid: validation.isNumberValid, message: validation.numberMessage },
       expiry: { isValid: validation.isExpiryValid, message: '' },
@@ -212,27 +212,27 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
     });
   }, []);
 
-  // Détection avancée du type de carte
+  // Advanced card type detection
   const getCardType = (number: string): 'visa' | 'mastercard' | 'amex' | 'discover' | 'unknown' => {
     const cleanNumber = number.replace(/\s/g, '');
     
-    // Visa: commence par 4, 13-19 chiffres
+    // Visa: starts with 4, 13-19 digits
     if (/^4[0-9]{12}(?:[0-9]{3})?$/.test(cleanNumber) || cleanNumber.startsWith('4')) {
       return 'visa';
     }
     
-    // Mastercard: 5[1-5] ou 2[2-7], 16 chiffres
+    // Mastercard: 5[1-5] or 2[2-7], 16 digits
     if (/^5[1-5][0-9]{14}$/.test(cleanNumber) || /^2[2-7][0-9]{14}$/.test(cleanNumber) || 
         cleanNumber.startsWith('5') || (cleanNumber.startsWith('2') && cleanNumber.length >= 2 && parseInt(cleanNumber.substring(0,2)) >= 22)) {
       return 'mastercard';
     }
     
-    // American Express: 34 ou 37, 15 chiffres
+    // American Express: 34 or 37, 15 digits
     if (/^3[47][0-9]{13}$/.test(cleanNumber) || cleanNumber.startsWith('34') || cleanNumber.startsWith('37')) {
       return 'amex';
     }
     
-    // Discover: 6011, 622126-622925, 644-649, 65, 16 chiffres
+    // Discover: 6011, 622126-622925, 644-649, 65, 16 digits
     if (/^6(?:011|5[0-9]{2})[0-9]{12}$/.test(cleanNumber) || cleanNumber.startsWith('6011') || cleanNumber.startsWith('65')) {
       return 'discover';
     }
@@ -240,16 +240,16 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
     return 'unknown';
   };
 
-  // Validation du numéro de carte
+  // Card number validation
   const validateCardNumber = (number: string): { isValid: boolean; message: string } => {
     const cleanNumber = number.replace(/\s/g, '');
     const cardType = getCardType(cleanNumber);
     
     if (cleanNumber.length === 0) {
-      return { isValid: false, message: 'Numéro requis' };
+      return { isValid: false, message: 'Number required' };
     }
     
-    // Vérification de la longueur selon le type
+    // Length verification by card type
     const expectedLengths = {
       visa: [13, 16, 19],
       mastercard: [16],
@@ -262,19 +262,19 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
     if (!validLengths.includes(cleanNumber.length)) {
       return { 
         isValid: false, 
-        message: `${cardType.toUpperCase()} doit avoir ${validLengths.join(' ou ')} chiffres` 
+        message: `${cardType.toUpperCase()} must have ${validLengths.join(' or ')} digits` 
       };
     }
     
-    // Algorithme de Luhn pour validation
+    // Luhn algorithm for validation
     if (!luhnCheck(cleanNumber)) {
-      return { isValid: false, message: 'Numéro de carte invalide' };
+      return { isValid: false, message: 'Invalid card number' };
     }
     
-    return { isValid: true, message: 'Valide' };
+    return { isValid: true, message: 'Valid' };
   };
 
-  // Algorithme de Luhn
+  // Luhn algorithm
   const luhnCheck = (number: string): boolean => {
     let sum = 0;
     let alternate = false;
@@ -296,17 +296,17 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
     return (sum % 10) === 0;
   };
 
-  // Validation de la date d'expiration
+  // Expiry date validation
   const validateExpiry = (expiry: string): { isValid: boolean; message: string } => {
     if (expiry.length !== 4) {
-      return { isValid: false, message: 'Format MM/YY requis' };
+      return { isValid: false, message: 'MM/YY format required' };
     }
     
     const month = parseInt(expiry.substring(0, 2));
     const year = parseInt(expiry.substring(2, 4)) + 2000;
     
     if (month < 1 || month > 12) {
-      return { isValid: false, message: 'Mois invalide' };
+      return { isValid: false, message: 'Invalid month' };
     }
     
     const currentDate = new Date();
@@ -314,16 +314,16 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
     const currentMonth = currentDate.getMonth() + 1;
     
     if (year < currentYear || (year === currentYear && month < currentMonth)) {
-      return { isValid: false, message: 'Date expirée' };
+      return { isValid: false, message: 'Expired date' };
     }
     
-    return { isValid: true, message: 'Valide' };
+    return { isValid: true, message: 'Valid' };
   };
 
-  // Validation du CVV
+  // CVV validation
   const validateCVV = (cvv: string, cardType: string): { isValid: boolean; message: string } => {
     if (cvv.length === 0) {
-      return { isValid: false, message: 'CVV requis' };
+      return { isValid: false, message: 'CVV required' };
     }
     
     const expectedLength = cardType === 'amex' ? 4 : 3;
@@ -331,11 +331,11 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
     if (cvv.length !== expectedLength) {
       return { 
         isValid: false, 
-        message: `CVV doit avoir ${expectedLength} chiffres pour ${cardType.toUpperCase()}` 
+        message: `CVV must have ${expectedLength} digits for ${cardType.toUpperCase()}` 
       };
     }
     
-    return { isValid: true, message: 'Valide' };
+    return { isValid: true, message: 'Valid' };
   };
 
   const formatCardNumber = (number: string): string => {
@@ -374,7 +374,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
     setTimeout(() => {
       updateState({ isProcessing: false, step: 'success' });
       
-      // Mise à jour du job
+      // Update job
       setJob(prev => ({
         ...prev,
         payment: {
@@ -383,7 +383,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
         }
       }));
       
-      // Fermeture après succès
+      // Close after success
       setTimeout(() => {
         handleClose();
       }, 2000);
@@ -403,7 +403,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
       presentationStyle="overFullScreen"
     >
       <View style={{ flex: 1 }}>
-        {/* Backdrop animé */}
+        {/* Animated backdrop */}
         <Animated.View 
           style={{
             position: 'absolute',
@@ -416,7 +416,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
           }}
         />
         
-        {/* Modal content avec animations */}
+        {/* Modal content with animations */}
         <Animated.View
           style={{
             flex: 1,
@@ -550,7 +550,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
     </Modal>
   );
 
-  // Composants internes avec la fausse carte interactive
+  // Internal components with interactive mock card
   function MethodSelection() {
     return (
       <VStack gap="lg">
@@ -713,7 +713,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
           </VStack>
         )}
 
-        {/* New Card Form avec fausse carte */}
+        {/* New Card Form with mock card */}
         <VStack gap="md">
           <Text style={{
             fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
@@ -723,7 +723,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
             {job.payment.savedCards?.length ? 'Or Add New Card' : 'Card Information'}
           </Text>
           
-          {/* Fausse carte interactive */}
+          {/* Interactive mock card */}
           <CreditCardPreview />
           
           {/* Form Fields */}
@@ -759,7 +759,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
               Payment Validation
             </Text>
             
-            {/* État des champs requis */}
+            {/* Required fields status */}
             <VStack gap="xs">
               <HStack gap="sm" align="center" justify="space-between">
                 <Text style={{ color: Colors.light.textSecondary }}>Card Number</Text>
@@ -1058,7 +1058,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
       unknown: 'CARD'
     };
     
-    // Icônes par type de carte
+    // Icons by card type
     const cardIcons = {
       visa: 'card',
       mastercard: 'card',
@@ -1076,13 +1076,13 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
         marginVertical: DESIGN_TOKENS.spacing.md,
         shadowColor: cardValidation.number.isValid && state.newCard.number.length > 0
           ? '#00b894' 
-          : cardValidation.number.message !== 'Numéro requis' && !cardValidation.number.isValid
+          : cardValidation.number.message !== 'Number required' && !cardValidation.number.isValid
             ? '#e74c3c'
             : '#000',
         shadowOffset: { width: 0, height: 8 },
         shadowOpacity: cardValidation.number.isValid && state.newCard.number.length > 0
           ? 0.4
-          : cardValidation.number.message !== 'Numéro requis' && !cardValidation.number.isValid
+          : cardValidation.number.message !== 'Number required' && !cardValidation.number.isValid
             ? 0.3
             : 0.15,
         shadowRadius: 12,
@@ -1147,7 +1147,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
         </LinearGradient>
       </View>
       
-      {/* Bulle de validation moderne avec animation */}
+      {/* Modern validation bubble with animation */}
       {state.newCard.number.length > 0 && (
         <Animated.View style={{
           alignSelf: 'center',
@@ -1189,20 +1189,20 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
     return (
       <Pressable
         onPress={() => {
-          // Si la carte est déjà sélectionnée, on la désélectionne
+          // If the card is already selected, deselect it
           if (state.selectedCard?.id === card.id) {
             updateState({ 
               selectedCard: null,
               newCard: { number: '', expiry: '', cvv: '', name: '' }
             });
           } else {
-            // Sinon on la sélectionne et prérempli les champs
+            // Otherwise select it and prefill the fields
             updateState({ 
               selectedCard: card,
               newCard: {
                 number: card.cardNumber.replace(/\s/g, ''),
                 expiry: card.expiryDate,
-                cvv: '',  // On ne prérempli jamais le CVV pour des raisons de sécurité
+                cvv: '',  // Never prefill CVV for security reasons
                 name: card.cardHolderName
               }
             });
