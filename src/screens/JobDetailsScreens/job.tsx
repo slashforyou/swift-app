@@ -1,17 +1,224 @@
-// Job Page for displaying job details including type of job, number of men, number of stops, and more.
-
-import JobContainerWithTitle from '@/src/components/ui/jobPage/jobContainerWithTitle';
-import JobPageScrollContainer from '@/src/components/ui/jobPage/jobPageScrollContainer';
+/**
+ * Job Page - Affichage des détails du travail, items à checker, contacts
+ * Conforme aux normes mobiles iOS/Android - Touch targets ≥44pt, 8pt grid
+ */
 import React from 'react';
 import { View, Text, Switch, Pressable } from 'react-native';
+import { VStack, HStack } from '../../components/primitives/Stack';
+import { Card } from '../../components/ui/Card';
+import { DESIGN_TOKENS } from '../../constants/Styles';
+import { Colors } from '../../constants/Colors';
+import contactLink from '../../services/contactLink';
 import Ionicons from '@react-native-vector-icons/ionicons';
-import contactLink from '@/src/services/contactLink';
-import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 
 
-const JobPage = ({ job, setJob }: { job: any, setJob: React.Dispatch<React.SetStateAction<any>> }) => {
-    const { colors, styles: commonStyles } = useCommonThemedStyles();
+interface JobPageProps {
+    job: any;
+    setJob: React.Dispatch<React.SetStateAction<any>>;
+}
 
+interface InfoRowProps {
+    label: string;
+    value: string;
+    badge?: boolean;
+}
+
+interface ContactRowProps {
+    label: string;
+    value: string;
+    contactType: 'tel' | 'mailto';
+    icon: string;
+    buttonLabel: string;
+    description?: string;
+}
+
+interface ItemRowProps {
+    item: any;
+    index: number;
+    onToggle: (index: number, checked: boolean) => void;
+}
+
+// Composant pour afficher une information simple
+const InfoRow: React.FC<InfoRowProps> = ({ label, value, badge }) => (
+    <VStack gap="xs" style={{ paddingVertical: DESIGN_TOKENS.spacing.sm }}>
+        <Text 
+            style={{
+                fontSize: DESIGN_TOKENS.typography.caption.fontSize,
+                lineHeight: DESIGN_TOKENS.typography.caption.lineHeight,
+                fontWeight: DESIGN_TOKENS.typography.caption.fontWeight,
+                color: Colors.light.textSecondary,
+            }}
+        >
+            {label}
+        </Text>
+        {badge ? (
+            <View 
+                style={{
+                    backgroundColor: Colors.light.backgroundTertiary,
+                    paddingHorizontal: DESIGN_TOKENS.spacing.md,
+                    paddingVertical: DESIGN_TOKENS.spacing.xs,
+                    borderRadius: DESIGN_TOKENS.radius.lg,
+                    alignSelf: 'flex-start',
+                }}
+            >
+                <Text 
+                    style={{
+                        fontSize: DESIGN_TOKENS.typography.caption.fontSize,
+                        fontWeight: '500',
+                        color: Colors.light.tint,
+                    }}
+                >
+                    {value}
+                </Text>
+            </View>
+        ) : (
+            <Text 
+                style={{
+                    fontSize: DESIGN_TOKENS.typography.body.fontSize,
+                    lineHeight: DESIGN_TOKENS.typography.body.lineHeight,
+                    fontWeight: DESIGN_TOKENS.typography.body.fontWeight,
+                    color: Colors.light.text,
+                }}
+            >
+                {value}
+            </Text>
+        )}
+    </VStack>
+);
+
+// Composant pour afficher une ligne de contact avec bouton d'action
+const ContactRow: React.FC<ContactRowProps> = ({ label, value, contactType, icon, buttonLabel, description }) => (
+    <VStack gap="xs" style={{ paddingVertical: DESIGN_TOKENS.spacing.sm }}>
+        <Text 
+            style={{
+                fontSize: DESIGN_TOKENS.typography.caption.fontSize,
+                lineHeight: DESIGN_TOKENS.typography.caption.lineHeight,
+                fontWeight: DESIGN_TOKENS.typography.caption.fontWeight,
+                color: Colors.light.textSecondary,
+            }}
+        >
+            {label}
+        </Text>
+        <HStack gap="md" align="center" justify="space-between">
+            <VStack gap="xs" style={{ flex: 1 }}>
+                <Text 
+                    style={{
+                        fontSize: DESIGN_TOKENS.typography.body.fontSize,
+                        lineHeight: DESIGN_TOKENS.typography.body.lineHeight,
+                        fontWeight: DESIGN_TOKENS.typography.body.fontWeight,
+                        color: Colors.light.text,
+                    }}
+                >
+                    {value}
+                </Text>
+                {description && (
+                    <Text 
+                        style={{
+                            fontSize: DESIGN_TOKENS.typography.caption.fontSize,
+                            color: Colors.light.textSecondary,
+                        }}
+                    >
+                        {description}
+                    </Text>
+                )}
+            </VStack>
+            <Pressable
+                onPress={() => contactLink(value, contactType)}
+                hitSlop={DESIGN_TOKENS.touch.hitSlop}
+                style={({ pressed }) => ([
+                    {
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        paddingVertical: DESIGN_TOKENS.spacing.sm,
+                        paddingHorizontal: DESIGN_TOKENS.spacing.md,
+                        backgroundColor: pressed 
+                            ? Colors.light.backgroundSecondary
+                            : Colors.light.tint,
+                        borderRadius: DESIGN_TOKENS.radius.md,
+                        minHeight: DESIGN_TOKENS.touch.minSize,
+                        minWidth: DESIGN_TOKENS.touch.minSize,
+                    }
+                ])}
+                accessibilityRole="button"
+                accessibilityLabel={`${buttonLabel} ${value}`}
+            >
+                <Ionicons 
+                    name={icon as any} 
+                    size={16} 
+                    color={Colors.light.background} 
+                />
+                <Text 
+                    style={{
+                        fontSize: DESIGN_TOKENS.typography.body.fontSize,
+                        fontWeight: '500',
+                        color: Colors.light.background,
+                        marginLeft: DESIGN_TOKENS.spacing.xs,
+                    }}
+                >
+                    {buttonLabel}
+                </Text>
+            </Pressable>
+        </HStack>
+    </VStack>
+);
+
+// Composant pour un item avec toggle
+const ItemRow: React.FC<ItemRowProps> = ({ item, index, onToggle }) => (
+    <HStack 
+        gap="md" 
+        align="center" 
+        style={{ 
+            paddingVertical: DESIGN_TOKENS.spacing.md,
+            minHeight: DESIGN_TOKENS.touch.minSize,
+        }}
+    >
+        <VStack gap="xs" style={{ flex: 1 }}>
+            <Text 
+                style={{
+                    fontSize: DESIGN_TOKENS.typography.body.fontSize,
+                    lineHeight: DESIGN_TOKENS.typography.body.lineHeight,
+                    fontWeight: '500',
+                    color: Colors.light.text,
+                }}
+            >
+                {item.name}
+            </Text>
+            {item.number && (
+                <Text 
+                    style={{
+                        fontSize: DESIGN_TOKENS.typography.caption.fontSize,
+                        color: Colors.light.textSecondary,
+                    }}
+                >
+                    Quantity: {item.number}
+                </Text>
+            )}
+        </VStack>
+        <Pressable
+            onPress={() => onToggle(index, !item.checked)}
+            hitSlop={DESIGN_TOKENS.touch.hitSlop}
+            style={{
+                padding: DESIGN_TOKENS.spacing.xs,
+            }}
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: item.checked || false }}
+            accessibilityLabel={`${item.checked ? 'Uncheck' : 'Check'} ${item.name}`}
+        >
+            <Switch
+                value={item.checked || false}
+                onValueChange={(v) => onToggle(index, v)}
+                thumbColor={item.checked ? Colors.light.tint : Colors.light.backgroundTertiary}
+                trackColor={{ 
+                    false: Colors.light.backgroundTertiary, 
+                    true: Colors.light.tint + '50' // 50% opacity
+                }}
+                ios_backgroundColor={Colors.light.backgroundTertiary}
+            />
+        </Pressable>
+    </HStack>
+);
+
+const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
     const handleItemToggle = (itemIndex: number, checked: boolean) => {
         const updatedJob = { ...job };
         if (updatedJob.items && updatedJob.items[itemIndex]) {
@@ -21,206 +228,159 @@ const JobPage = ({ job, setJob }: { job: any, setJob: React.Dispatch<React.SetSt
     };
 
     return (
-        <JobPageScrollContainer>
-            {/* Job Items Checklist */}
-            {job.items && job.items.length > 0 && (
-                <JobContainerWithTitle title="Job Items">
-                    {job.items.map((item: any, index: number) => (
-                        <View key={index} style={[commonStyles.listItem, { paddingVertical: 12 }]}>
-                            <View style={{ flex: 1 }}>
-                                <Text style={[commonStyles.body, commonStyles.textSemiBold, { color: colors.text }]}>
-                                    {item.name}
-                                </Text>
-                                {item.number && (
-                                    <Text style={[commonStyles.bodySmall, { color: colors.textSecondary, marginTop: 2 }]}>
-                                        Quantity: {item.number}
-                                    </Text>
-                                )}
-                            </View>
-                            <Switch
-                                value={item.checked || false}
-                                onValueChange={(v) => handleItemToggle(index, v)}
-                                thumbColor={item.checked ? colors.primary : colors.backgroundTertiary}
-                                trackColor={{ 
-                                    false: colors.backgroundTertiary, 
-                                    true: colors.primaryLight 
+        <VStack gap="lg">
+                {/* Job Items Checklist */}
+                {job.items && job.items.length > 0 && (
+                    <Card style={{ padding: DESIGN_TOKENS.spacing.lg }}>
+                        <VStack gap="sm">
+                            <Text 
+                                style={{
+                                    fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
+                                    lineHeight: DESIGN_TOKENS.typography.subtitle.lineHeight,
+                                    fontWeight: DESIGN_TOKENS.typography.subtitle.fontWeight,
+                                    color: Colors.light.text,
+                                    marginBottom: DESIGN_TOKENS.spacing.sm,
                                 }}
-                            />
-                        </View>
-                    ))}
-                </JobContainerWithTitle>
-            )}
-
-            {/* Job Details */}
-            <JobContainerWithTitle title="Job Information">
-                {job.type && (
-                    <View style={commonStyles.listItem}>
-                        <Text style={[commonStyles.bodySmall, commonStyles.textSemiBold, { color: colors.textSecondary }]}>
-                            Job Type
-                        </Text>
-                        <Text style={[commonStyles.body, { color: colors.text, marginTop: 4 }]}>
-                            {job.type}
-                        </Text>
-                    </View>
+                            >
+                                Job Items
+                            </Text>
+                            
+                            {job.items.map((item: any, index: number) => (
+                                <ItemRow
+                                    key={index}
+                                    item={item}
+                                    index={index}
+                                    onToggle={handleItemToggle}
+                                />
+                            ))}
+                        </VStack>
+                    </Card>
                 )}
 
-                <View style={commonStyles.listItem}>
-                    <Text style={[commonStyles.bodySmall, commonStyles.textSemiBold, { color: colors.textSecondary }]}>
-                        Number of Items
-                    </Text>
-                    <Text style={[commonStyles.body, { color: colors.text, marginTop: 4 }]}>
-                        {job.itemsCount || job.items?.length || 0}
-                    </Text>
-                </View>
-
-                {job.status && (
-                    <View style={commonStyles.listItem}>
-                        <Text style={[commonStyles.bodySmall, commonStyles.textSemiBold, { color: colors.textSecondary }]}>
-                            Status
+                {/* Job Information */}
+                <Card style={{ padding: DESIGN_TOKENS.spacing.lg }}>
+                    <VStack gap="sm">
+                        <Text 
+                            style={{
+                                fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
+                                lineHeight: DESIGN_TOKENS.typography.subtitle.lineHeight,
+                                fontWeight: DESIGN_TOKENS.typography.subtitle.fontWeight,
+                                color: Colors.light.text,
+                                marginBottom: DESIGN_TOKENS.spacing.sm,
+                            }}
+                        >
+                            Job Information
                         </Text>
-                        <View style={[{ backgroundColor: colors.primaryLight, paddingHorizontal: 12, paddingVertical: 4, borderRadius: 16, marginTop: 4 }]}>
-                            <Text style={[commonStyles.bodySmall, { color: colors.primary }]}>
-                                {job.status}
+                        
+                        {job.type && (
+                            <InfoRow label="Job Type" value={job.type} />
+                        )}
+                        
+                        <InfoRow 
+                            label="Number of Items" 
+                            value={String(job.itemsCount || job.items?.length || 0)} 
+                        />
+                        
+                        {job.status && (
+                            <InfoRow label="Status" value={job.status} badge />
+                        )}
+                    </VStack>
+                </Card>
+
+                {/* Contractor Details */}
+                {job.contractor && (
+                    <Card style={{ padding: DESIGN_TOKENS.spacing.lg }}>
+                        <VStack gap="sm">
+                            <Text 
+                                style={{
+                                    fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
+                                    lineHeight: DESIGN_TOKENS.typography.subtitle.lineHeight,
+                                    fontWeight: DESIGN_TOKENS.typography.subtitle.fontWeight,
+                                    color: Colors.light.text,
+                                    marginBottom: DESIGN_TOKENS.spacing.sm,
+                                }}
+                            >
+                                Contractor
                             </Text>
-                        </View>
-                    </View>
+                            
+                            {job.contractor.Name && (
+                                <InfoRow label="Company Name" value={job.contractor.Name} />
+                            )}
+                            
+                            {job.contractor.ContactName && (
+                                <InfoRow label="Contact Person" value={job.contractor.ContactName} />
+                            )}
+                            
+                            {job.contractor.Phone && (
+                                <ContactRow
+                                    label="Phone"
+                                    value={job.contractor.Phone}
+                                    contactType="tel"
+                                    icon="call"
+                                    buttonLabel="Call"
+                                />
+                            )}
+                            
+                            {job.contractor.Email && (
+                                <ContactRow
+                                    label="Email"
+                                    value={job.contractor.Email}
+                                    contactType="mailto"
+                                    icon="mail"
+                                    buttonLabel="Email"
+                                />
+                            )}
+                        </VStack>
+                    </Card>
                 )}
-            </JobContainerWithTitle>
 
-            {/* Contractor Details */}
-            {job.contractor && (
-                <JobContainerWithTitle title="Contractor">
-                    {job.contractor.Name && (
-                        <View style={commonStyles.listItem}>
-                            <Text style={[commonStyles.bodySmall, commonStyles.textSemiBold, { color: colors.textSecondary }]}>
-                                Company Name
-                            </Text>
-                            <Text style={[commonStyles.body, { color: colors.text, marginTop: 4 }]}>
-                                {job.contractor.Name}
-                            </Text>
-                        </View>
-                    )}
-
-                    {job.contractor.ContactName && (
-                        <View style={commonStyles.listItem}>
-                            <Text style={[commonStyles.bodySmall, commonStyles.textSemiBold, { color: colors.textSecondary }]}>
-                                Contact Person
-                            </Text>
-                            <Text style={[commonStyles.body, { color: colors.text, marginTop: 4 }]}>
-                                {job.contractor.ContactName}
-                            </Text>
-                        </View>
-                    )}
-
-                    {job.contractor.Phone && (
-                        <View style={[commonStyles.listItem, { paddingBottom: 0 }]}>
-                            <View style={{ flex: 1 }}>
-                                <Text style={[commonStyles.bodySmall, commonStyles.textSemiBold, { color: colors.textSecondary }]}>
-                                    Phone
-                                </Text>
-                                <Text style={[commonStyles.body, { color: colors.text, marginTop: 4 }]}>
-                                    {job.contractor.Phone}
-                                </Text>
-                            </View>
-                            <Pressable 
-                                style={[{ backgroundColor: colors.primary, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 6, flexDirection: 'row', alignItems: 'center' }]}
-                                onPress={() => contactLink(job.contractor.Phone, 'tel')}
+                {/* Contractee Details */}
+                {job.contractee && (
+                    <Card style={{ padding: DESIGN_TOKENS.spacing.lg }}>
+                        <VStack gap="sm">
+                            <Text 
+                                style={{
+                                    fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
+                                    lineHeight: DESIGN_TOKENS.typography.subtitle.lineHeight,
+                                    fontWeight: DESIGN_TOKENS.typography.subtitle.fontWeight,
+                                    color: Colors.light.text,
+                                    marginBottom: DESIGN_TOKENS.spacing.sm,
+                                }}
                             >
-                                <Ionicons name="call" size={16} color={colors.buttonPrimaryText} />
-                                <Text style={[commonStyles.buttonPrimaryText, { marginLeft: 6, fontSize: 14 }]}>Call</Text>
-                            </Pressable>
-                        </View>
-                    )}
-
-                    {job.contractor.Email && (
-                        <View style={[commonStyles.listItem, { paddingBottom: 0 }]}>
-                            <View style={{ flex: 1 }}>
-                                <Text style={[commonStyles.bodySmall, commonStyles.textSemiBold, { color: colors.textSecondary }]}>
-                                    Email
-                                </Text>
-                                <Text style={[commonStyles.body, { color: colors.text, marginTop: 4 }]}>
-                                    {job.contractor.Email}
-                                </Text>
-                            </View>
-                            <Pressable 
-                                style={[{ backgroundColor: colors.primary, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 6, flexDirection: 'row', alignItems: 'center' }]}
-                                onPress={() => contactLink(job.contractor.Email, 'mailto')}
-                            >
-                                <Ionicons name="mail" size={16} color={colors.buttonPrimaryText} />
-                                <Text style={[commonStyles.buttonPrimaryText, { marginLeft: 6, fontSize: 14 }]}>Email</Text>
-                            </Pressable>
-                        </View>
-                    )}
-                </JobContainerWithTitle>
-            )}
-
-            {/* Contractee Details */}
-            {job.contractee && (
-                <JobContainerWithTitle title="Contractee">
-                    {job.contractee.Name && (
-                        <View style={commonStyles.listItem}>
-                            <Text style={[commonStyles.bodySmall, commonStyles.textSemiBold, { color: colors.textSecondary }]}>
-                                Company Name
+                                Contractee
                             </Text>
-                            <Text style={[commonStyles.body, { color: colors.text, marginTop: 4 }]}>
-                                {job.contractee.Name}
-                            </Text>
-                        </View>
-                    )}
-
-                    {job.contractee.ContactName && (
-                        <View style={commonStyles.listItem}>
-                            <Text style={[commonStyles.bodySmall, commonStyles.textSemiBold, { color: colors.textSecondary }]}>
-                                Contact Person
-                            </Text>
-                            <Text style={[commonStyles.body, { color: colors.text, marginTop: 4 }]}>
-                                {job.contractee.ContactName}
-                            </Text>
-                        </View>
-                    )}
-
-                    {job.contractee.Phone && (
-                        <View style={[commonStyles.listItem, { paddingBottom: 0 }]}>
-                            <View style={{ flex: 1 }}>
-                                <Text style={[commonStyles.bodySmall, commonStyles.textSemiBold, { color: colors.textSecondary }]}>
-                                    Phone
-                                </Text>
-                                <Text style={[commonStyles.body, { color: colors.text, marginTop: 4 }]}>
-                                    {job.contractee.Phone}
-                                </Text>
-                            </View>
-                            <Pressable 
-                                style={[{ backgroundColor: colors.primary, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 6, flexDirection: 'row', alignItems: 'center' }]}
-                                onPress={() => contactLink(job.contractee.Phone, 'tel')}
-                            >
-                                <Ionicons name="call" size={16} color={colors.buttonPrimaryText} />
-                                <Text style={[commonStyles.buttonPrimaryText, { marginLeft: 6, fontSize: 14 }]}>Call</Text>
-                            </Pressable>
-                        </View>
-                    )}
-
-                    {job.contractee.Email && (
-                        <View style={[commonStyles.listItem, { paddingBottom: 0 }]}>
-                            <View style={{ flex: 1 }}>
-                                <Text style={[commonStyles.bodySmall, commonStyles.textSemiBold, { color: colors.textSecondary }]}>
-                                    Email
-                                </Text>
-                                <Text style={[commonStyles.body, { color: colors.text, marginTop: 4 }]}>
-                                    {job.contractee.Email}
-                                </Text>
-                            </View>
-                            <Pressable 
-                                style={[{ backgroundColor: colors.primary, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 6, flexDirection: 'row', alignItems: 'center' }]}
-                                onPress={() => contactLink(job.contractee.Email, 'mailto')}
-                            >
-                                <Ionicons name="mail" size={16} color={colors.buttonPrimaryText} />
-                                <Text style={[commonStyles.buttonPrimaryText, { marginLeft: 6, fontSize: 14 }]}>Email</Text>
-                            </Pressable>
-                        </View>
-                    )}
-                </JobContainerWithTitle>
-            )}
-        </JobPageScrollContainer>
+                            
+                            {job.contractee.Name && (
+                                <InfoRow label="Company Name" value={job.contractee.Name} />
+                            )}
+                            
+                            {job.contractee.ContactName && (
+                                <InfoRow label="Contact Person" value={job.contractee.ContactName} />
+                            )}
+                            
+                            {job.contractee.Phone && (
+                                <ContactRow
+                                    label="Phone"
+                                    value={job.contractee.Phone}
+                                    contactType="tel"
+                                    icon="call"
+                                    buttonLabel="Call"
+                                />
+                            )}
+                            
+                            {job.contractee.Email && (
+                                <ContactRow
+                                    label="Email"
+                                    value={job.contractee.Email}
+                                    contactType="mailto"
+                                    icon="mail"
+                                    buttonLabel="Email"
+                                />
+                            )}
+                        </VStack>
+                    </Card>
+                )}
+        </VStack>
     );
 };
 

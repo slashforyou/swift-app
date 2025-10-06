@@ -1,20 +1,61 @@
-import React, { useEffect } from 'react';
-import { View, Text, ScrollView, Pressable } from 'react-native';
+/**
+ * JobDetails - Écran principal des détails de tâche
+ * Architecture moderne avec gestion correcte des Safe Areas et marges
+ */
+import React, { useEffect, useState } from 'react';
+import { View, ScrollView } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import TopMenu from '../components/top_menu/top_menu';
-import { text } from 'stream/consumers';
 import JobMenu from '../components/jobMenu';
 import JobSummary from './JobDetailsScreens/summary';
-import { useState } from 'react';
 import JobClient from './JobDetailsScreens/client';
 import JobPage from './JobDetailsScreens/job';
 import JobNote from './JobDetailsScreens/note';
 import JobPayment from './JobDetailsScreens/payment';
 import RefBookMark from '../components/ui/refBookMark';
-import { title } from 'process';
 import Toast from '../components/ui/toastNotification';
 import { ensureSession } from '../utils/session';
+import { DESIGN_TOKENS } from '../constants/Styles';
+import { Colors } from '../constants/Colors';
 
-const JobDetails = ({ route, navigation, jobId, day, month, year }: any) => {
+// Types et interfaces
+interface JobDetailsProps {
+    route?: any;
+    navigation: any;
+    jobId?: string;
+    day?: string;
+    month?: string;
+    year?: string;
+}
+
+interface ToastState {
+    message: string;
+    type: 'info' | 'success' | 'error';
+    status: boolean;
+}
+
+// Hook personnalisé pour les toasts
+const useToast = () => {
+    const [toastDetails, setToastDetails] = useState<ToastState>({
+        message: '',
+        type: 'info',
+        status: false,
+    });
+
+    const showToast = (message: string, type: 'info' | 'success' | 'error') => {
+        setToastDetails({ message, type, status: true });
+        setTimeout(() => {
+            setToastDetails({ message: '', type: 'info', status: false });
+        }, 3000);
+    };
+
+    return { toastDetails, showToast };
+};
+
+const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, month, year }) => {
+    const insets = useSafeAreaInsets();
+    const { toastDetails, showToast } = useToast();
+    
     const [job, setJob] = useState({
         id: jobId || "#LM0000000001",
         signatureDataUrl: '',
@@ -97,14 +138,14 @@ const JobDetails = ({ route, navigation, jobId, day, month, year }: any) => {
         ],
         payment: {
             status: "unsettled", // unsettled, pending, accepted, rejected, paid
-            amount: 'N/A', // total amount for the job with taxes
-            amountWithoutTax: 'N/A', // total amount without taxes
-            amountPaid: 'N/A', // total amount paid so far
-            amountToBePaid: 'N/A', // amount to be paid
+            amount: '550.00', // total amount for the job with taxes
+            amountWithoutTax: '500.00', // total amount without taxes
+            amountPaid: '0.00', // total amount paid so far
+            amountToBePaid: '550.00', // amount to be paid
             taxe: {
-                gst: 'N/A',
+                gst: '50.00',
                 gstRate: 10, // GST rate in percentage
-                amountWithoutTax: 'N/A', // amount without tax
+                amountWithoutTax: '500.00', // amount without tax
             },
             currency: 'AUD',
             dueDate: 'N/A',
@@ -169,35 +210,9 @@ const JobDetails = ({ route, navigation, jobId, day, month, year }: any) => {
             Email: "contractee@example.com"
         }
     });
+    
     const [jobPanel, setJobPanel] = useState(0);
-    // jobPanel: 0 - Details, 1 - Chat, 2 - Call, 3 - Info, 4 - Settings
-
-    const Style = {
-        jobDetailsContainer: {
-            backgroundColor: '#fff',
-            width: '100%',
-            height: '100%',
-            position: 'relative',
-            flex: 1,
-            flexDirection: 'column',
-            justifyContent: 'flex-start',
-            alignItems: 'center',
-        },
-        
-    };
-
-    const [toastDetails, setToastDetails] = useState({
-        message: '',
-        type: 'info', // info, success, warning, error
-        status: false,
-    });
-
-    const toastIt = (message: string, type: string, status: boolean) => {
-        setToastDetails({ message, type, status });
-        setTimeout(() => {
-            setToastDetails({ message: '', type: 'info', status: false });
-        }, 3000); // Hide toast after 3 seconds
-    }
+    // jobPanel: 0 - Summary, 1 - Job Details, 2 - Client, 3 - Notes, 4 - Payment
 
     useEffect(() => {
                 const checkSession = async () => {
@@ -210,19 +225,76 @@ const JobDetails = ({ route, navigation, jobId, day, month, year }: any) => {
     }, [navigation]);
 
     return (
-        <View style={ Style.jobDetailsContainer }>
-            <TopMenu navigation={ navigation } />
-            <RefBookMark jobRef={ job.id } toastIt={ toastIt } />
-            {jobPanel === 0 && (<JobSummary job={job} setJob={setJob} />)}
-            {jobPanel === 1 && (<JobPage job={job} setJob={setJob} />)}
-            {jobPanel === 2 && (<JobClient job={job} setJob={setJob} />)}
-            {jobPanel === 3 && (<JobNote job={job} setJob={setJob} />)}
-            {jobPanel === 4 && (<JobPayment job={job} setJob={setJob} />)}
-            <JobMenu jobPanel={jobPanel} setJobPanel={setJobPanel} />
-            <Toast message={toastDetails.message} type={toastDetails.type} status={toastDetails.status} />
+        <View style={{
+            backgroundColor: Colors.light.background,
+            width: '100%',
+            height: '100%',
+            flex: 1,
+            position: 'relative',
+        }}>
+            {/* Top Menu avec Safe Area */}
+            <View style={{ 
+                paddingTop: insets.top,
+                backgroundColor: Colors.light.backgroundSecondary,
+                zIndex: 10,
+            }}>
+                <TopMenu navigation={navigation} />
+            </View>
+
+            {/* RefBookMark */}
+            <RefBookMark 
+                jobRef={job.id} 
+                toastIt={(message: string, type: 'info' | 'success' | 'error') => showToast(message, type)} 
+            />
+            
+            {/* ScrollView principal avec paddingTop calculé pour éviter TopMenu + RefBookMark */}
+            <ScrollView
+                style={{ flex: 1 }}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{
+                    paddingTop: insets.top + 50 + 35 + DESIGN_TOKENS.spacing.sm, // Safe area + TopMenu + RefBookMark + petit spacing
+                    paddingBottom: 60 + insets.bottom + DESIGN_TOKENS.spacing.md, // JobMenu + Safe area + espacement réduit
+                    paddingHorizontal: DESIGN_TOKENS.spacing.md, // Marges latérales réduites
+                }}
+            >
+                {jobPanel === 0 && <JobSummary job={job} setJob={setJob} />}
+                {jobPanel === 1 && <JobPage job={job} setJob={setJob} />}
+                {jobPanel === 2 && <JobClient job={job} setJob={setJob} />}
+                {jobPanel === 3 && <JobNote job={job} setJob={setJob} />}
+                {jobPanel === 4 && <JobPayment job={job} setJob={setJob} />}
+            </ScrollView>
+            
+            {/* Job Menu fixé en bas */}
+            <View style={{ 
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                paddingBottom: insets.bottom,
+                backgroundColor: Colors.light.backgroundSecondary,
+                zIndex: 10,
+            }}>
+                <JobMenu jobPanel={jobPanel} setJobPanel={setJobPanel} />
+            </View>
+            
+            {/* Toast au-dessus de tout */}
+            <View style={{
+                position: 'absolute',
+                top: insets.top + 80, // Sous le TopMenu
+                left: 0,
+                right: 0,
+                zIndex: 20, // Au-dessus de tout
+                pointerEvents: 'none', // Permet le clic au travers
+            }}>
+                <Toast 
+                    message={toastDetails.message} 
+                    type={toastDetails.type} 
+                    status={toastDetails.status} 
+                />
+            </View>
         </View>
     );
-}
+};
 
 export default JobDetails;
     

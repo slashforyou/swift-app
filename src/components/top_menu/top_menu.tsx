@@ -12,7 +12,7 @@ const TopMenu = ({ navigation }: any) => {
   return (
     <View style={styles.topMenu}>
       <Pressable style={styles.backButton} onPress={() => navigation.navigate('Home')}>
-        <Ionicons name="home" size={24} color={colors.buttonPrimaryText} />
+        <Ionicons name="home" size={24} color="white" />
       </Pressable>
     </View>
   );
@@ -41,8 +41,10 @@ const createTopMenuStyles = (colors: typeof Colors.light) => StyleSheet.create({
   },
   backButton: {
     padding: 10,
-    backgroundColor: colors.overlayDark,
+    backgroundColor: 'transparent',
     borderRadius: 5,
+    borderWidth: 1,
+    borderColor: 'white',
   },
 });
 

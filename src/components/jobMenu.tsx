@@ -1,61 +1,111 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { useCommonThemedStyles } from '../hooks/useCommonStyles';
+import { Pressable, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { HStack, VStack } from './primitives/Stack';
+import { DESIGN_TOKENS } from '../constants/Styles';
+import { Colors } from '../constants/Colors';
 import Ionicons from '@react-native-vector-icons/ionicons';
 
-const JobMenu = ({ jobPanel, setJobPanel }: any ) => {
-    const { colors, styles: commonStyles } = useCommonThemedStyles();
+interface JobMenuProps {
+    jobPanel: number;
+    setJobPanel: (panelIndex: number) => void;
+}
 
-    // Styles personnalisés basés sur notre système commun
-    const customStyles = StyleSheet.create({
-        menuContainer: {
-            ...commonStyles.tabBar, // Utilise le style de tabBar commun
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            zIndex: 1000,
-            width: '100%',
-        },
-            menuItem: {
+interface TabItemProps {
+    icon: string;
+    isActive: boolean;
+    onPress: () => void;
+    accessibilityLabel: string;
+}
+
+const TabItem: React.FC<TabItemProps> = ({ icon, isActive, onPress, accessibilityLabel }) => {
+    return (
+        <Pressable
+            onPress={onPress}
+            hitSlop={DESIGN_TOKENS.touch.hitSlop}
+            style={({ pressed }) => ({
                 flex: 1,
+                paddingVertical: DESIGN_TOKENS.spacing.lg, // 16pt = 32pt total touch target
+                paddingHorizontal: DESIGN_TOKENS.spacing.sm, // 8pt
                 alignItems: 'center',
                 justifyContent: 'center',
-                paddingVertical: 10,
-                display: 'flex',
-                flexDirection: 'column',
-            },
-            menuIcon: {
-                marginBottom: 5,
-                alignSelf: 'center',
-            },
-        });
+                backgroundColor: pressed 
+                    ? Colors.light.backgroundSecondary
+                    : 'transparent',
+                borderRadius: DESIGN_TOKENS.radius.sm,
+                minHeight: DESIGN_TOKENS.touch.minSize, // 44pt minimum
+            })}
+            accessibilityRole="tab"
+            accessibilityLabel={accessibilityLabel}
+            accessibilityState={{ selected: isActive }}
+        >
+            <Ionicons 
+                name={icon as any}
+                size={24}
+                color={isActive 
+                    ? Colors.light.tint 
+                    : Colors.light.textMuted
+                }
+                style={{
+                    marginBottom: DESIGN_TOKENS.spacing.xs, // 4pt spacing between icon and potential label
+                }}
+            />
+        </Pressable>
+    );
+};
 
+const JobMenu: React.FC<JobMenuProps> = ({ jobPanel, setJobPanel }) => {
+    const insets = useSafeAreaInsets();
+    
     const switchJobPanel = (panelIndex: number) => {
         if (jobPanel !== panelIndex) {
             setJobPanel(panelIndex);
         }
     };
 
+    const tabs = [
+        { icon: 'bookmark', label: 'Favoris', index: 0 },
+        { icon: 'construct', label: 'Travaux', index: 1 },
+        { icon: 'person', label: 'Client', index: 2 },
+        { icon: 'chatbubble', label: 'Notes', index: 3 },
+        { icon: 'card', label: 'Paiement', index: 4 },
+    ];
+
     return (
-        <View style={customStyles.menuContainer}>
-            <Text style={customStyles.menuItem} onPress={() => switchJobPanel(0)}>
-                <Ionicons name="bookmark" style={customStyles.menuIcon} size={24} color={jobPanel === 0 ? colors.primary : colors.textSecondary} />
-            </Text>
-            <Text style={customStyles.menuItem} onPress={() => switchJobPanel(1)}>
-                <Ionicons name="construct" style={customStyles.menuIcon} size={24} color={jobPanel === 1 ? colors.primary : colors.textSecondary} />
-            </Text>
-            <Text style={customStyles.menuItem} onPress={() => switchJobPanel(2)}>
-                <Ionicons name="person" style={customStyles.menuIcon} size={24} color={jobPanel === 2 ? colors.primary : colors.textSecondary} />
-            </Text>
-            <Text style={customStyles.menuItem} onPress={() => switchJobPanel(3)}>
-                <Ionicons name="chatbubble" style={customStyles.menuIcon} size={24} color={jobPanel === 3 ? colors.primary : colors.textSecondary} />
-            </Text>
-            <Text style={customStyles.menuItem} onPress={() => switchJobPanel(4)}>
-                <Ionicons name="card" style={customStyles.menuIcon} size={24} color={jobPanel === 4 ? colors.primary : colors.textSecondary} />
-            </Text>
+        <View
+            style={{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                backgroundColor: Colors.light.background,
+                borderTopWidth: 1,
+                borderTopColor: Colors.light.border,
+                // Safe area padding - plus important sur Android
+                paddingBottom: Math.max(insets.bottom, DESIGN_TOKENS.spacing.sm),
+                paddingTop: DESIGN_TOKENS.spacing.sm,
+                paddingHorizontal: DESIGN_TOKENS.spacing.sm,
+                shadowColor: '#020617',
+                shadowOffset: { width: 0, height: -2 },
+                shadowOpacity: 0.12,
+                shadowRadius: 4,
+                elevation: 3,
+                zIndex: 1000, // S'assurer qu'il est au-dessus du contenu mais en-dessous des overlays
+            }}
+            accessibilityRole="tablist"
+            accessibilityLabel="Menu de navigation des sections du travail"
+        >
+            <HStack gap={0} style={{ flex: 1 }}>
+                {tabs.map((tab) => (
+                    <TabItem
+                        key={tab.index}
+                        icon={tab.icon}
+                        isActive={jobPanel === tab.index}
+                        onPress={() => switchJobPanel(tab.index)}
+                        accessibilityLabel={tab.label}
+                    />
+                ))}
+            </HStack>
         </View>
     );
 }

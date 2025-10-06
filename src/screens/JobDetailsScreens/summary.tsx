@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { ScrollView, Pressable } from 'react-native';
+import { Pressable } from 'react-native';
 import { 
   Screen, 
   VStack, 
@@ -41,8 +41,7 @@ const JobSummary = ({ job, setJob } : { job: any, setJob: React.Dispatch<React.S
         />
         )}
         <Screen>
-            <ScrollView showsVerticalScrollIndicator={false}>
-                <VStack gap="xl">
+            <VStack gap="xl">
                 
                     {/* Job Timeline */}
                     <Card>
@@ -210,7 +209,6 @@ const JobSummary = ({ job, setJob } : { job: any, setJob: React.Dispatch<React.S
                     </Card>
                     
                 </VStack>
-            </ScrollView>
         </Screen>
         </>
     );
