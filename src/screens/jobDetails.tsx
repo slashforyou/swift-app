@@ -2,7 +2,7 @@
  * JobDetails - Écran principal des détails de tâche
  * Architecture moderne avec gestion correcte des Safe Areas et marges
  */
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { View, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import TopMenu from '../components/top_menu/top_menu';
@@ -14,7 +14,7 @@ import JobNote from './JobDetailsScreens/note';
 import JobPayment from './JobDetailsScreens/payment';
 import RefBookMark from '../components/ui/refBookMark';
 import Toast from '../components/ui/toastNotification';
-import { ensureSession } from '../utils/session';
+import { useAuthCheck } from '../utils/checkAuth';
 import { DESIGN_TOKENS } from '../constants/Styles';
 import { Colors } from '../constants/Colors';
 
@@ -55,6 +55,7 @@ const useToast = () => {
 const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, month, year }) => {
     const insets = useSafeAreaInsets();
     const { toastDetails, showToast } = useToast();
+    const { isLoading, LoadingComponent } = useAuthCheck(navigation);
     
     const [job, setJob] = useState({
         id: jobId || "#LM0000000001",
@@ -214,15 +215,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
     const [jobPanel, setJobPanel] = useState(0);
     // jobPanel: 0 - Summary, 1 - Job Details, 2 - Client, 3 - Notes, 4 - Payment
 
-    useEffect(() => {
-                const checkSession = async () => {
-                    const userLoggedIn = await ensureSession();
-                    if (!userLoggedIn || userLoggedIn.authenticated === false) {
-                        navigation.navigate('Connection');
-                    }
-                };
-                checkSession();
-    }, [navigation]);
+    if (isLoading) return LoadingComponent;
 
     return (
         <View style={{

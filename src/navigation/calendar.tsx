@@ -17,6 +17,7 @@ import { useAuthGuard } from '../hooks/useSession'
 import { useCalendarData } from '../hooks/useCalendar'
 import { getCalendarDateRange } from '../utils/dateUtils'
 import { useCommonThemedStyles } from '../hooks/useCommonStyles'
+import { useAuthCheck } from '../utils/checkAuth'
 import { Colors } from '../constants/Colors'
 
 // Types
@@ -43,12 +44,12 @@ const CalendarStack = createNativeStackNavigator<CalendarStackParamList>()
  * Manages calendar stack navigation with authentication and data loading
  */
 export default function CalendarNavigation({ navigation }: CalendarNavigationProps) {
-  // Authentication guard - redirects to login if not authenticated
-  const session = useAuthGuard(navigation)
+  // Authentication check with loading UI
+  const authCheck = useAuthCheck(navigation, "Loading calendar")
   
   // Calendar data management with auto-loading - calculer les dates une seule fois
   const [dateRange] = React.useState(() => getCalendarDateRange())
-  const calendar = useCalendarData(dateRange.start, dateRange.end, session.isAuthenticated === true)
+  const calendar = useCalendarData(dateRange.start, dateRange.end, authCheck.isAuthenticated === true)
 
   // Get themed styles and colors
   const { colors, styles: commonStyles } = useCommonThemedStyles()
@@ -101,39 +102,25 @@ export default function CalendarNavigation({ navigation }: CalendarNavigationPro
     },
   })
 
-  // Show loading screen while checking session
-  if (session.isLoading) {
-    return (
-      <View style={commonStyles.containerCentered}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <LoadingDots 
-          text="Checking authentication" 
-          style={{ 
-            fontSize: 16,
-            color: colors.text,
-            marginTop: 16,
-            textAlign: 'center'
-          }} 
-          interval={500} 
-        />
-      </View>
-    )
+  // Show loading screen while checking authentication
+  if (authCheck.isLoading) {
+    return authCheck.LoadingComponent;
   }
 
-  // Show session error
-  if (session.error) {
+  // Show authentication error
+  if (authCheck.error) {
     return (
       <View style={commonStyles.containerCentered}>
-        <Text style={[commonStyles.h3, { color: colors.error, textAlign: 'center' }]}>Authentication Error: {session.error}</Text>
-        <TouchableOpacity style={[commonStyles.buttonPrimary, commonStyles.marginTop]} onPress={session.refreshSession}>
-          <Text style={commonStyles.buttonPrimaryText}>Retry</Text>
+        <Text style={[commonStyles.h3, { color: colors.error, textAlign: 'center' }]}>Authentication Error: {authCheck.error}</Text>
+        <TouchableOpacity style={[commonStyles.buttonPrimary, commonStyles.marginTop]} onPress={() => navigation.navigate('Connection' as any)}>
+          <Text style={commonStyles.buttonPrimaryText}>Go to Login</Text>
         </TouchableOpacity>
       </View>
     )
   }
 
   // Don't render if not authenticated (useAuthGuard will handle redirect)
-  if (!session.isAuthenticated) {
+  if (!authCheck.isAuthenticated) {
     return null
   }
 

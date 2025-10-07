@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { VStack, HStack } from '../components/primitives/Stack';
 import { Screen } from '../components/primitives/Screen';
-import { ensureSession } from '../utils/session';
+import { useAuthCheck } from '../utils/checkAuth';
 import { DESIGN_TOKENS } from '../constants/Styles';
 import { Colors } from '../constants/Colors';
 
@@ -161,6 +161,7 @@ const ProfileField: React.FC<ProfileFieldProps> = ({
 
 const Profile: React.FC<ProfileProps> = ({ navigation }) => {
     const insets = useSafeAreaInsets();
+    const { isLoading, LoadingComponent } = useAuthCheck(navigation);
     const [user, setUser] = useState<UserProfile>({
         firstName: "John",
         lastName: "Doe",
@@ -171,15 +172,7 @@ const Profile: React.FC<ProfileProps> = ({ navigation }) => {
     });
     const [editingField, setEditingField] = useState<string | null>(null);
 
-    useEffect(() => {
-        const checkSession = async () => {
-            const userLoggedIn = await ensureSession();
-            if (!userLoggedIn || userLoggedIn.authenticated === false) {
-                navigation?.navigate('Connection');
-            }
-        };
-        checkSession();
-    }, [navigation]);
+    if (isLoading) return LoadingComponent;
 
     const handleEdit = (field: string) => {
         setEditingField(field);

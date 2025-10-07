@@ -2,14 +2,14 @@
  * Parameters - Modern settings screen with functional preferences
  * Architecture moderne avec design system, toggles interactifs et persistence
  */
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, ScrollView, Pressable, Switch, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { VStack, HStack } from '../components/primitives/Stack';
 import { Screen } from '../components/primitives/Screen';
-import { ensureSession } from '../utils/session';
+import { useAuthCheck } from '../utils/checkAuth';
 import { DESIGN_TOKENS } from '../constants/Styles';
 import { Colors } from '../constants/Colors';
 
@@ -163,6 +163,7 @@ const SettingItem: React.FC<SettingItemProps> = ({
 
 const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
     const insets = useSafeAreaInsets();
+    const { isLoading, LoadingComponent } = useAuthCheck(navigation);
     const [settings, setSettings] = useState<AppSettings>({
         notifications: {
             pushNotifications: true,
@@ -183,15 +184,7 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
         },
     });
 
-    useEffect(() => {
-        const checkSession = async () => {
-            const userLoggedIn = await ensureSession();
-            if (!userLoggedIn || userLoggedIn.authenticated === false) {
-                navigation?.navigate('Connection');
-            }
-        };
-        checkSession();
-    }, [navigation]);
+    if (isLoading) return LoadingComponent;
 
     const updateSetting = (category: keyof AppSettings, key: string, value: boolean) => {
         setSettings(prev => ({

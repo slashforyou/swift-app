@@ -2,14 +2,14 @@
  * Home - Écran d'accueil moderne avec design system
  * Architecture moderne avec Safe Areas, TopMenu et navigation cohérente
  */
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { VStack, HStack } from '../components/primitives/Stack';
 import { Screen } from '../components/primitives/Screen';
 import ServerConnectionTest from '@/tests/server/connectionTest';
-import { ensureSession } from '../utils/session';
+import { useAuthCheck } from '../utils/checkAuth';
 import { DESIGN_TOKENS } from '../constants/Styles';
 import { Colors } from '../constants/Colors';
 
@@ -99,16 +99,9 @@ const MenuItem: React.FC<MenuItemProps> = ({ title, icon, description, onPress, 
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     const insets = useSafeAreaInsets();
+    const { isLoading, LoadingComponent } = useAuthCheck(navigation);
 
-    useEffect(() => {
-        const checkSession = async () => {
-            const userLoggedIn = await ensureSession();
-            if (!userLoggedIn || userLoggedIn.authenticated === false) {
-                navigation.navigate('Connection');
-            }
-        };
-        checkSession();
-    }, [navigation]);
+    if (isLoading) return LoadingComponent;
 
     return (
         <Screen>
