@@ -10,6 +10,7 @@ import YearCalendarScreen from '../screens/calendar/yearScreen'
 import MultipleYearsScreen from '../screens/calendar/multipleYearsScreen'
 import DayScreen from '../screens/calendar/dayScreen'
 import TopMenu from '../components/top_menu/top_menu'
+import LoadingDots from '../components/ui/LoadingDots'
 
 // Hooks & Utils
 import { useAuthGuard } from '../hooks/useSession'
@@ -105,7 +106,16 @@ export default function CalendarNavigation({ navigation }: CalendarNavigationPro
     return (
       <View style={commonStyles.containerCentered}>
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={[commonStyles.body, commonStyles.marginTop]}>Checking authentication...</Text>
+        <LoadingDots 
+          text="Checking authentication" 
+          style={{ 
+            fontSize: 16,
+            color: colors.text,
+            marginTop: 16,
+            textAlign: 'center'
+          }} 
+          interval={500} 
+        />
       </View>
     )
   }
@@ -135,7 +145,15 @@ export default function CalendarNavigation({ navigation }: CalendarNavigationPro
       {calendar.isLoading && (
         <View style={customStyles.loadingOverlay}>
           <ActivityIndicator size="small" color={colors.primary} />
-          <Text style={[commonStyles.bodySmall, { marginLeft: 8 }]}>Loading calendar data...</Text>
+          <LoadingDots 
+            text="Loading" 
+            style={{ 
+              fontSize: 14,
+              color: colors.text,
+              marginLeft: 8 
+            }} 
+            interval={500} 
+          />
         </View>
       )}
       
