@@ -1,0 +1,240 @@
+{
+  "project": {
+    "name": "Swift App",
+    "version": "0.0.1",
+    "description": "Mobile application for moving companies with job management, client tracking, and payment processing",
+    "tech_stack": {
+      "framework": "React Native with Expo (managed workflow)",
+      "language": "TypeScript",
+      "navigation": "React Navigation (Stack/Tabs)",
+      "state_management": "React hooks + local state",
+      "ui_system": "Custom theme system with light/dark mode support",
+      "payment": "Custom card validation with Luhn algorithm",
+      "styling": "StyleSheet with responsive design tokens"
+    },
+    "current_status": "Active development",
+    "implemented_features": [
+      "Job management with full tracking (status, date, details)",
+      "Client information management with contact integration",
+      "Notes and comments per job system",
+      "Calendar views (day, month, year, multiple years)",
+      "Complete payment system with card validation",
+      "Credit card form with real-time Luhn validation",
+      "Saved cards management",
+      "Interactive card preview with visual feedback",
+      "Modern UI with theme system (light/dark)",
+      "Responsive design with mobile-first approach",
+      "Professional validation bubbles and animations"
+    ],
+    "planned_features": [
+      "User authentication system",
+      "Electronic contract signature",
+      "Route planning with map integration",
+      "Inventory management for items to move",
+      "Push notifications system",
+      "Offline support"
+    ],
+    "architecture": {
+      "structure": "Feature-oriented modular structure",
+      "folders": {
+        "src/components/": "Reusable UI components",
+        "src/screens/": "Screen components organized by feature",
+        "src/navigation/": "App navigators and routing",
+        "src/constants/": "Colors, styles, and configuration",
+        "src/hooks/": "Custom React hooks",
+        "src/services/": "Utility functions and external APIs",
+        "src/utils/": "Generic utility functions"
+      }
+    },
+    "key_components": {
+      "PaymentWindow": "Complete payment interface with card/cash options",
+      "CardForm": "Credit card input with focus preservation and validation",
+      "Calendar views": "Multi-level calendar navigation system",
+      "Theme system": "Comprehensive light/dark theme support"
+    }
+  },
+  "agent": {
+    "behavior_instructions": [
+      "Always use tools instead of providing code blocks unless specifically asked",
+      "Use proper Markdown formatting with backticks for filenames and symbols",
+      "When editing files, include 3-5 lines of context before and after changes",
+      "Generate meaningful commit messages with emojis and clear descriptions",
+      "Prefer multiple logical commits over single large commits",
+      "Always check for compilation errors after making changes",
+      "Maintain TypeScript strict typing throughout the project",
+      "Respect the established code architecture and patterns"
+    ],
+    "code_standards": [
+      "Use TypeScript for all new code",
+      "Follow React Native best practices",
+      "Maintain consistent indentation and formatting",
+      "Use semantic component and variable names",
+      "Add JSDoc comments for complex functions",
+      "Prefer functional components with hooks",
+      "Use proper error handling and validation"
+    ],
+    "response_style": [
+      "Be concise and action-oriented",
+      "Provide clear explanations of changes made",
+      "Use emojis appropriately in commit messages and responses",
+      "Prioritize working solutions over theoretical discussions",
+      "Always validate changes work before completing tasks"
+    ],
+    "preferred_approaches": [
+      "Use replace_string_in_file for code modifications",
+      "Create multiple focused commits rather than large ones",
+      "Test changes immediately after implementation",
+      "Maintain backward compatibility when possible",
+      "Document complex logic with clear comments"
+    ]
+  },
+  "updates": [
+    {
+      "date": "2025-10-07",
+      "title": "Complete Payment Card Validation System",
+      "description": "Implemented comprehensive credit card validation with focus preservation",
+      "approach": [
+        "Created uncontrolled TextInput architecture to prevent focus loss",
+        "Implemented Luhn algorithm for real-time card validation",
+        "Added card type detection (Visa, Mastercard, Amex, Discover)",
+        "Built interactive card preview with animated validation feedback",
+        "Used onBlur callbacks to avoid re-renders during typing"
+      ],
+      "files_modified": [
+        "src/components/CardForm.tsx",
+        "src/screens/JobDetailsScreens/paymentWindow.tsx"
+      ],
+      "problems_encountered": [
+        "TextInput losing focus after each character due to parent re-renders",
+        "State updates causing component re-renders during typing",
+        "Validation callbacks triggering unnecessary re-renders"
+      ],
+      "solutions_implemented": [
+        "Used useRef for TextInput references with setNativeProps",
+        "Separated validation state from typing experience",
+        "Implemented debounced callbacks for parent notifications",
+        "Used onBlur-only approach for validation synchronization"
+      ],
+      "commit_hash": "754e7df",
+      "status": "Completed"
+    },
+    {
+      "date": "2025-10-07", 
+      "title": "Documentation Internationalization",
+      "description": "Translated all French documentation and interface text to English",
+      "approach": [
+        "Systematically reviewed all .md files for French content",
+        "Translated THEME_SYSTEM.md and STYLES_SYSTEM.md completely",
+        "Updated README.md with current implemented features",
+        "Converted all French UI text in payment system to English",
+        "Maintained technical accuracy during translation"
+      ],
+      "files_modified": [
+        "README.md",
+        "THEME_SYSTEM.md", 
+        "STYLES_SYSTEM.md",
+        "src/screens/JobDetailsScreens/paymentWindow.tsx",
+        "src/components/CardForm.tsx"
+      ],
+      "problems_encountered": [
+        "Mixed French/English content in codebase",
+        "Technical terms requiring careful translation",
+        "Maintaining consistency across files"
+      ],
+      "solutions_implemented": [
+        "Used systematic grep searches to find French text",
+        "Maintained professional terminology in translations", 
+        "Created separate commits for each translation area",
+        "Verified no compilation errors after changes"
+      ],
+      "commit_hashes": [
+        "1fb108e", "306aac3", "5eeae11", "ce7b5aa"
+      ],
+      "status": "Completed"
+    },
+    {
+      "date": "2025-10-07",
+      "title": "Project Documentation and Tracking Setup", 
+      "description": "Created claude.json for project tracking and agent behavior documentation",
+      "approach": [
+        "Analyzed entire project structure and current state",
+        "Documented all implemented and planned features",
+        "Created comprehensive agent behavior guidelines",
+        "Established update tracking system for future sessions",
+        "Added claude.json to .gitignore for privacy"
+      ],
+      "files_created": [
+        "claude.json"
+      ],
+      "files_modified": [
+        ".gitignore"
+      ],
+      "purpose": [
+        "Maintain project knowledge across sessions",
+        "Document agent behavior preferences and standards", 
+        "Track all updates and modifications systematically",
+        "Enable faster onboarding for future development"
+      ],
+      "commit_hash": "232d231",
+      "status": "Completed"
+    },
+    {
+      "date": "2025-10-07",
+      "title": "Animated Loading Dots Component",
+      "description": "Created reusable animated loading component to replace static loading text",
+      "approach": [
+        "Created LoadingDots component with TypeScript support",
+        "Implemented progressive dot animation (1, 2, 3 dots, then reset)",
+        "Used setInterval for smooth 500ms animation cycles",
+        "Integrated into calendar navigation for better user experience",
+        "Replaced static 'Loading calendar data...' and 'Checking authentication...' text"
+      ],
+      "files_created": [
+        "src/components/ui/LoadingDots.tsx"
+      ],
+      "files_modified": [
+        "src/navigation/calendar.tsx"
+      ],
+      "features_implemented": [
+        "Progressive dot animation with customizable interval",
+        "Configurable base text and styling props",
+        "TypeScript interface support",
+        "Clean animation cycle that resets after 3 dots",
+        "Reusable component for any loading state"
+      ],
+      "technical_details": {
+        "animation_logic": "useState + useEffect with setInterval",
+        "cycle": "'' → '.' → '..' → '...' → '' (repeat)",
+        "default_interval": "500ms",
+        "cleanup": "clearInterval on component unmount"
+      },
+      "commit_hash": "8af9d1c",
+      "status": "Completed"
+    }
+  ],
+  "technical_notes": {
+    "focus_preservation_solution": {
+      "problem": "TextInput losing focus on each character due to parent re-renders",
+      "solution": "Use uncontrolled TextInputs with refs and setNativeProps, onBlur-only validation",
+      "key_insight": "Separate typing experience from parent state management completely"
+    },
+    "validation_architecture": {
+      "approach": "Real-time visual feedback with delayed state synchronization",
+      "components": "CardForm handles internal validation, parent handles business logic",
+      "performance": "Zero re-renders during typing, validation on blur only"
+    },
+    "theme_system": {
+      "status": "Fully implemented with light/dark support",
+      "usage": "useThemedStyles hook for component styling",
+      "persistence": "Automatic theme persistence with SecureStore"
+    }
+  },
+  "next_priorities": [
+    "Fix compilation errors in common styles system",
+    "Implement user authentication flow",
+    "Add comprehensive error handling",
+    "Create offline data persistence",
+    "Implement push notifications",
+    "Add unit and integration tests"
+  ]
+}
