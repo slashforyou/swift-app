@@ -5,17 +5,16 @@
 import React, { useState } from 'react';
 import { View, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import TopMenu from '../components/top_menu/top_menu';
 import JobMenu from '../components/jobMenu';
 import JobSummary from './JobDetailsScreens/summary';
 import JobClient from './JobDetailsScreens/client';
 import JobPage from './JobDetailsScreens/job';
 import JobNote from './JobDetailsScreens/note';
 import JobPayment from './JobDetailsScreens/payment';
-import RefBookMark from '../components/ui/refBookMark';
+import JobDetailsHeader from '../components/jobDetails/JobDetailsHeader';
 import Toast from '../components/ui/toastNotification';
 import { useAuthCheck } from '../utils/checkAuth';
-import { useCommonThemedStyles } from '../hooks/useCommonStyles';
+import { useTheme } from '../context/ThemeProvider';
 import { DESIGN_TOKENS } from '../constants/Styles';
 
 // Types et interfaces
@@ -56,7 +55,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
     const insets = useSafeAreaInsets();
     const { toastDetails, showToast } = useToast();
     const { isLoading, LoadingComponent } = useAuthCheck(navigation);
-    const { colors } = useCommonThemedStyles();
+    const { colors } = useTheme();
     
     const [job, setJob] = useState({
         id: jobId || "#LM0000000001",
@@ -216,6 +215,18 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
     const [jobPanel, setJobPanel] = useState(0);
     // jobPanel: 0 - Summary, 1 - Job Details, 2 - Client, 3 - Notes, 4 - Payment
 
+    // Titres des panneaux
+    const getPanelTitle = () => {
+        switch (jobPanel) {
+            case 0: return 'Job Summary';
+            case 1: return 'Job Details';
+            case 2: return 'Client Information';
+            case 3: return 'Notes';
+            case 4: return 'Payment';
+            default: return 'Job Details';
+        }
+    };
+
     if (isLoading) return LoadingComponent;
 
     return (
@@ -224,31 +235,23 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
             width: '100%',
             height: '100%',
             flex: 1,
-            position: 'relative',
         }}>
-            {/* Top Menu avec Safe Area */}
-            <View style={{ 
-                paddingTop: insets.top,
-                backgroundColor: colors.backgroundSecondary,
-                zIndex: 10,
-            }}>
-                <TopMenu navigation={navigation} />
-            </View>
-
-            {/* RefBookMark */}
-            <RefBookMark 
-                jobRef={job.id} 
-                toastIt={(message: string, type: 'info' | 'success' | 'error') => showToast(message, type)} 
+            {/* Header moderne avec navigation et RefBookMark */}
+            <JobDetailsHeader
+                navigation={navigation}
+                jobRef={job.id}
+                title={getPanelTitle()}
+                onToast={showToast}
             />
             
-            {/* ScrollView principal avec paddingTop calculé pour éviter TopMenu + RefBookMark */}
+            {/* ScrollView principal */}
             <ScrollView
                 style={{ flex: 1 }}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{
-                    paddingTop: insets.top + 50 + 35 + DESIGN_TOKENS.spacing.sm, // Safe area + TopMenu + RefBookMark + petit spacing
-                    paddingBottom: 60 + insets.bottom + DESIGN_TOKENS.spacing.md, // JobMenu + Safe area + espacement réduit
-                    paddingHorizontal: DESIGN_TOKENS.spacing.md, // Marges latérales réduites
+                    paddingTop: DESIGN_TOKENS.spacing.lg,
+                    paddingBottom: 60 + insets.bottom + DESIGN_TOKENS.spacing.lg, // JobMenu + Safe area + espacement
+                    paddingHorizontal: DESIGN_TOKENS.spacing.lg,
                 }}
             >
                 {jobPanel === 0 && <JobSummary job={job} setJob={setJob} />}
@@ -266,6 +269,8 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
                 right: 0,
                 paddingBottom: insets.bottom,
                 backgroundColor: colors.backgroundSecondary,
+                borderTopWidth: 1,
+                borderTopColor: colors.border,
                 zIndex: 10,
             }}>
                 <JobMenu jobPanel={jobPanel} setJobPanel={setJobPanel} />
@@ -274,11 +279,11 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
             {/* Toast au-dessus de tout */}
             <View style={{
                 position: 'absolute',
-                top: insets.top + 80, // Sous le TopMenu
-                left: 0,
-                right: 0,
-                zIndex: 20, // Au-dessus de tout
-                pointerEvents: 'none', // Permet le clic au travers
+                top: 100, // Position fixe sous le header
+                left: DESIGN_TOKENS.spacing.lg,
+                right: DESIGN_TOKENS.spacing.lg,
+                zIndex: 20,
+                pointerEvents: 'none',
             }}>
                 <Toast 
                     message={toastDetails.message} 
