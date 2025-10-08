@@ -7,7 +7,7 @@ import { Animated, Text, Dimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { VStack, HStack } from '../primitives/Stack';
 import { DESIGN_TOKENS } from '../../constants/Styles';
-import { Colors } from '../../constants/Colors';
+import { useThemeColors } from '../../../hooks/useThemeColor';
 import Ionicons from '@react-native-vector-icons/ionicons';
 
 // Types et interfaces
@@ -25,37 +25,27 @@ interface ToastConfig {
     iconColor: string;
 }
 
-// Configuration des types de toast
-const TOAST_CONFIGS: Record<string, ToastConfig> = {
-    success: {
-        backgroundColor: Colors.light.backgroundSecondary,
-        borderColor: Colors.light.success,
-        textColor: Colors.light.text,
-        icon: 'checkmark-circle',
-        iconColor: Colors.light.success,
-    },
-    error: {
-        backgroundColor: Colors.light.backgroundSecondary,
-        borderColor: Colors.light.error,
-        textColor: Colors.light.text,
-        icon: 'alert-circle',
-        iconColor: Colors.light.error,
-    },
-    info: {
-        backgroundColor: Colors.light.backgroundSecondary,
-        borderColor: Colors.light.info,
-        textColor: Colors.light.text,
-        icon: 'information-circle',
-        iconColor: Colors.light.info,
-    },
-};
+// Configuration des icônes par type de toast
+const TOAST_ICONS = {
+    success: 'checkmark-circle',
+    error: 'alert-circle',
+    info: 'information-circle',
+} as const;
 
 const Toast: React.FC<ToastProps> = ({ message, type, status }) => {
     const insets = useSafeAreaInsets();
     const translateY = useRef(new Animated.Value(-100)).current;
-    
-    const config = TOAST_CONFIGS[type];
+    const colors = useThemeColors();
     const { width: screenWidth } = Dimensions.get('window');
+    
+    // Configuration dynamique des couleurs selon le thème
+    const config = {
+        backgroundColor: colors.backgroundSecondary,
+        textColor: colors.text,
+        icon: TOAST_ICONS[type],
+        borderColor: type === 'success' ? colors.success : type === 'error' ? colors.error : colors.info,
+        iconColor: type === 'success' ? colors.success : type === 'error' ? colors.error : colors.info,
+    };
 
     // Animation simple de glissement
     useEffect(() => {
@@ -97,7 +87,7 @@ const Toast: React.FC<ToastProps> = ({ message, type, status }) => {
                     borderWidth: 2,
                     borderColor: config.borderColor,
                     padding: DESIGN_TOKENS.spacing.lg,
-                    shadowColor: Colors.light.shadow,
+                    shadowColor: colors.shadow,
                     shadowOffset: {
                         width: 0,
                         height: 4,

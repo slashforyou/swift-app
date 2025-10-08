@@ -3,7 +3,7 @@ import { Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HStack, VStack } from './primitives/Stack';
 import { DESIGN_TOKENS } from '../constants/Styles';
-import { Colors } from '../constants/Colors';
+import { useCommonThemedStyles } from '../hooks/useCommonStyles';
 import Ionicons from '@react-native-vector-icons/ionicons';
 
 interface JobMenuProps {
@@ -19,6 +19,8 @@ interface TabItemProps {
 }
 
 const TabItem: React.FC<TabItemProps> = ({ icon, isActive, onPress, accessibilityLabel }) => {
+    const { colors } = useCommonThemedStyles();
+    
     return (
         <Pressable
             onPress={onPress}
@@ -30,7 +32,7 @@ const TabItem: React.FC<TabItemProps> = ({ icon, isActive, onPress, accessibilit
                 alignItems: 'center',
                 justifyContent: 'center',
                 backgroundColor: pressed 
-                    ? Colors.light.backgroundSecondary
+                    ? colors.backgroundSecondary
                     : 'transparent',
                 borderRadius: DESIGN_TOKENS.radius.sm,
                 minHeight: DESIGN_TOKENS.touch.minSize, // 44pt minimum
@@ -43,8 +45,8 @@ const TabItem: React.FC<TabItemProps> = ({ icon, isActive, onPress, accessibilit
                 name={icon as any}
                 size={24}
                 color={isActive 
-                    ? Colors.light.tint 
-                    : Colors.light.textMuted
+                    ? colors.tint 
+                    : colors.textMuted
                 }
                 style={{
                     marginBottom: DESIGN_TOKENS.spacing.xs, // 4pt spacing between icon and potential label
@@ -56,6 +58,7 @@ const TabItem: React.FC<TabItemProps> = ({ icon, isActive, onPress, accessibilit
 
 const JobMenu: React.FC<JobMenuProps> = ({ jobPanel, setJobPanel }) => {
     const insets = useSafeAreaInsets();
+    const { colors } = useCommonThemedStyles();
     
     const switchJobPanel = (panelIndex: number) => {
         if (jobPanel !== panelIndex) {
@@ -78,9 +81,9 @@ const JobMenu: React.FC<JobMenuProps> = ({ jobPanel, setJobPanel }) => {
                 bottom: 0,
                 left: 0,
                 right: 0,
-                backgroundColor: Colors.light.background,
+                backgroundColor: colors.background,
                 borderTopWidth: 1,
-                borderTopColor: Colors.light.border,
+                borderTopColor: colors.border,
                 // Safe area padding - plus important sur Android
                 paddingBottom: Math.max(insets.bottom, DESIGN_TOKENS.spacing.sm),
                 paddingTop: DESIGN_TOKENS.spacing.sm,

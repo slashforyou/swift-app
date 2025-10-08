@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HStack } from '../primitives/Stack';
 import copyToClipBoard from '../../services/copyToClipBoard';
 import { DESIGN_TOKENS } from '../../constants/Styles';
-import { Colors } from '../../constants/Colors';
+import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 import Ionicons from '@react-native-vector-icons/ionicons';
 
 interface RefBookMarkProps {
@@ -19,6 +19,7 @@ interface RefBookMarkProps {
 
 const RefBookMark: React.FC<RefBookMarkProps> = ({ jobRef, toastIt }) => {
     const insets = useSafeAreaInsets();
+    const { colors } = useCommonThemedStyles();
     const [scaleAnim] = useState(new Animated.Value(1));
 
     const copyRefToClipboard = () => {
@@ -54,7 +55,7 @@ const RefBookMark: React.FC<RefBookMarkProps> = ({ jobRef, toastIt }) => {
             <Pressable
                 onPress={copyRefToClipboard}
                 style={({ pressed }) => ({
-                    backgroundColor: pressed ? Colors.light.backgroundTertiary : Colors.light.backgroundSecondary,
+                    backgroundColor: pressed ? colors.backgroundTertiary : colors.backgroundSecondary,
                     paddingHorizontal: DESIGN_TOKENS.spacing.md,
                     paddingVertical: DESIGN_TOKENS.spacing.xs,
                     // Style onglet : bords du haut droits, bords du bas arrondis
@@ -62,7 +63,7 @@ const RefBookMark: React.FC<RefBookMarkProps> = ({ jobRef, toastIt }) => {
                     borderTopRightRadius: 0,
                     borderBottomLeftRadius: DESIGN_TOKENS.radius.md,
                     borderBottomRightRadius: DESIGN_TOKENS.radius.md,
-                    shadowColor: Colors.light.shadow,
+                    shadowColor: colors.shadow,
                     shadowOffset: {
                         width: 0,
                         height: 1,
@@ -71,7 +72,7 @@ const RefBookMark: React.FC<RefBookMarkProps> = ({ jobRef, toastIt }) => {
                     shadowRadius: 2,
                     elevation: 2,
                     borderWidth: 1,
-                    borderColor: Colors.light.border,
+                    borderColor: colors.border,
                     borderTopWidth: 0, // Pas de bordure en haut pour l'effet onglet
                     minHeight: 36, // Plus compact que 44pt
                 })}
@@ -81,13 +82,13 @@ const RefBookMark: React.FC<RefBookMarkProps> = ({ jobRef, toastIt }) => {
                     <Ionicons 
                         name="copy-outline" 
                         size={16} 
-                        color={Colors.light.textSecondary}
+                        color={colors.textSecondary}
                     />
                     
                     {/* Texte de référence */}
                     <Text 
                         style={{
-                            color: Colors.light.text,
+                            color: colors.text,
                             fontSize: DESIGN_TOKENS.typography.caption.fontSize,
                             lineHeight: DESIGN_TOKENS.typography.caption.lineHeight,
                             fontWeight: '500',
