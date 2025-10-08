@@ -210,6 +210,7 @@ const JobTimeLine = ({ job }: { job: any }) => {
                                 inputRange: [0, 1],
                                 outputRange: ['2%', '95%'],
                             }),
+                            transform: [{ scaleX: -1 }], // Effet miroir pour orienter vers la droite
                         },
                     ]}
                 >
