@@ -15,9 +15,10 @@ import Ionicons from '@react-native-vector-icons/ionicons';
 interface RefBookMarkProps {
     jobRef: string;
     toastIt: (message: string, type: 'info' | 'success' | 'error') => void;
+    isHeaderMode?: boolean; // Nouveau mode pour intégration dans header
 }
 
-const RefBookMark: React.FC<RefBookMarkProps> = ({ jobRef, toastIt }) => {
+const RefBookMark: React.FC<RefBookMarkProps> = ({ jobRef, toastIt, isHeaderMode = false }) => {
     const insets = useSafeAreaInsets();
     const { colors } = useCommonThemedStyles();
     const [scaleAnim] = useState(new Animated.Value(1));
@@ -41,24 +42,38 @@ const RefBookMark: React.FC<RefBookMarkProps> = ({ jobRef, toastIt }) => {
         toastIt(`Job Ref. ${jobRef} copied to clipboard`, 'success');
     };
 
+    // Style conditionnel selon le mode
+    const containerStyle = isHeaderMode ? {
+        // Mode header : élément inline
+        transform: [{ scale: scaleAnim }],
+    } : {
+        // Mode classique : positionnement absolu
+        position: 'absolute' as 'absolute',
+        top: insets.top + 50 + 5, // Safe area + hauteur exacte du TopMenu + 5px d'espacement
+        left: DESIGN_TOKENS.spacing.lg,
+        right: DESIGN_TOKENS.spacing.lg,
+        zIndex: 8, // Entre TopMenu (10) et le contenu
+        transform: [{ scale: scaleAnim }],
+    };
+
     return (
-        <Animated.View
-            style={{
-                position: 'absolute',
-                top: insets.top + 50 + 5, // Safe area + hauteur exacte du TopMenu + 5px d'espacement
-                left: DESIGN_TOKENS.spacing.lg,
-                right: DESIGN_TOKENS.spacing.lg,
-                zIndex: 8, // Entre TopMenu (10) et le contenu
-                transform: [{ scale: scaleAnim }],
-            }}
-        >
+        <Animated.View style={containerStyle}>
             <Pressable
                 onPress={copyRefToClipboard}
-                style={({ pressed }) => ({
+                style={({ pressed }) => (isHeaderMode ? {
+                    // Mode header : style compact et intégré
+                    backgroundColor: pressed ? colors.backgroundTertiary : colors.background,
+                    paddingHorizontal: DESIGN_TOKENS.spacing.sm,
+                    paddingVertical: DESIGN_TOKENS.spacing.xs,
+                    borderRadius: DESIGN_TOKENS.radius.md,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                    minHeight: 32,
+                } : {
+                    // Mode classique : style onglet
                     backgroundColor: pressed ? colors.backgroundTertiary : colors.backgroundSecondary,
                     paddingHorizontal: DESIGN_TOKENS.spacing.md,
                     paddingVertical: DESIGN_TOKENS.spacing.xs,
-                    // Style onglet : bords du haut droits, bords du bas arrondis
                     borderTopLeftRadius: 0,
                     borderTopRightRadius: 0,
                     borderBottomLeftRadius: DESIGN_TOKENS.radius.md,
@@ -73,8 +88,8 @@ const RefBookMark: React.FC<RefBookMarkProps> = ({ jobRef, toastIt }) => {
                     elevation: 2,
                     borderWidth: 1,
                     borderColor: colors.border,
-                    borderTopWidth: 0, // Pas de bordure en haut pour l'effet onglet
-                    minHeight: 36, // Plus compact que 44pt
+                    borderTopWidth: 0,
+                    minHeight: 36,
                 })}
             >
                 <HStack gap="xs" align="center" justify="center">
