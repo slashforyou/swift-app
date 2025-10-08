@@ -53,13 +53,15 @@ const JobDetailsHeader: React.FC<JobDetailsHeaderProps> = ({
             elevation: 4,
             zIndex: 10,
         }}>
+            {/* Première ligne : Navigation et RefBookMark */}
             <View style={{
                 flexDirection: 'row',
                 justifyContent: 'space-between',
                 alignItems: 'center',
+                marginBottom: DESIGN_TOKENS.spacing.md,
             }}>
-                {/* Navigation gauche */}
-                <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                {/* Boutons de navigation */}
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <Pressable
                         onPress={goBack}
                         style={{
@@ -82,7 +84,6 @@ const JobDetailsHeader: React.FC<JobDetailsHeaderProps> = ({
                         onPress={goHome}
                         style={{
                             padding: DESIGN_TOKENS.spacing.sm,
-                            marginRight: DESIGN_TOKENS.spacing.lg,
                             borderRadius: DESIGN_TOKENS.radius.md,
                             backgroundColor: colors.background,
                         }}
@@ -95,27 +96,26 @@ const JobDetailsHeader: React.FC<JobDetailsHeaderProps> = ({
                     >
                         <Ionicons name="home" size={24} color={colors.primary} />
                     </Pressable>
-
-                    <Text style={{
-                        fontSize: 20,
-                        fontWeight: '600',
-                        color: colors.text,
-                        flex: 1,
-                    }}>
-                        {title}
-                    </Text>
                 </View>
 
                 {/* RefBookMark en haut à droite */}
-                <View style={{ 
-                    marginLeft: DESIGN_TOKENS.spacing.md,
+                <RefBookMark 
+                    jobRef={jobRef} 
+                    toastIt={onToast}
+                    isHeaderMode={true}
+                />
+            </View>
+
+            {/* Deuxième ligne : Titre complet */}
+            <View>
+                <Text style={{
+                    fontSize: 24,
+                    fontWeight: '700',
+                    color: colors.text,
+                    textAlign: 'left',
                 }}>
-                    <RefBookMark 
-                        jobRef={jobRef} 
-                        toastIt={onToast}
-                        isHeaderMode={true} // Nouveau prop pour le mode header
-                    />
-                </View>
+                    {title}
+                </Text>
             </View>
         </View>
     );
