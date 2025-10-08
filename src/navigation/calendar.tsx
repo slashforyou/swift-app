@@ -9,7 +9,6 @@ import MonthCalendarScreen from '../screens/calendar/monthScreen'
 import YearCalendarScreen from '../screens/calendar/yearScreen'
 import MultipleYearsScreen from '../screens/calendar/multipleYearsScreen'
 import DayScreen from '../screens/calendar/dayScreen'
-import TopMenu from '../components/top_menu/top_menu'
 import LoadingDots from '../components/ui/LoadingDots'
 
 // Hooks & Utils
@@ -126,8 +125,6 @@ export default function CalendarNavigation({ navigation }: CalendarNavigationPro
 
   return (
     <View style={commonStyles.container}>
-      <TopMenu navigation={navigation} />
-      
       {/* Show calendar data loading overlay */}
       {calendar.isLoading && (
         <View style={customStyles.loadingOverlay}>
