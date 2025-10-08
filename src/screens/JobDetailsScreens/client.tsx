@@ -7,7 +7,7 @@ import { View, Text, Pressable } from 'react-native';
 import { VStack, HStack } from '../../components/primitives/Stack';
 import { Card } from '../../components/ui/Card';
 import { DESIGN_TOKENS } from '../../constants/Styles';
-import { Colors } from '../../constants/Colors';
+import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 import contactLink from '../../services/contactLink';
 import Ionicons from '@react-native-vector-icons/ionicons';
 
@@ -22,14 +22,14 @@ interface InfoRowProps {
 }
 
 // Composant réutilisable pour afficher les informations client
-const InfoRow: React.FC<InfoRowProps> = ({ label, value }) => (
+const InfoRow: React.FC<InfoRowProps & { colors: any }> = ({ label, value, colors }) => (
     <VStack gap="xs" style={{ paddingVertical: DESIGN_TOKENS.spacing.sm }}>
         <Text 
             style={{
                 fontSize: DESIGN_TOKENS.typography.caption.fontSize,
                 lineHeight: DESIGN_TOKENS.typography.caption.lineHeight,
                 fontWeight: DESIGN_TOKENS.typography.caption.fontWeight,
-                color: Colors.light.textSecondary,
+                color: colors.textSecondary,
             }}
         >
             {label}
@@ -39,7 +39,7 @@ const InfoRow: React.FC<InfoRowProps> = ({ label, value }) => (
                 fontSize: DESIGN_TOKENS.typography.body.fontSize,
                 lineHeight: DESIGN_TOKENS.typography.body.lineHeight,
                 fontWeight: DESIGN_TOKENS.typography.body.fontWeight,
-                color: Colors.light.text,
+                color: colors.text,
             }}
         >
             {value || 'Not specified'}
@@ -48,6 +48,8 @@ const InfoRow: React.FC<InfoRowProps> = ({ label, value }) => (
 );
 
 const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
+    const { colors } = useCommonThemedStyles();
+    
     // Données client pour éviter la répétition
     const clientInfo = [
         { label: 'First Name', value: job.client?.firstName },
@@ -67,7 +69,7 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
                                 fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
                                 lineHeight: DESIGN_TOKENS.typography.subtitle.lineHeight,
                                 fontWeight: DESIGN_TOKENS.typography.subtitle.fontWeight,
-                                color: Colors.light.text,
+                                color: colors.text,
                                 marginBottom: DESIGN_TOKENS.spacing.sm,
                             }}
                         >
@@ -79,6 +81,7 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
                                 key={index}
                                 label={info.label}
                                 value={info.value}
+                                colors={colors}
                             />
                         ))}
                     </VStack>
@@ -92,7 +95,7 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
                                 fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
                                 lineHeight: DESIGN_TOKENS.typography.subtitle.lineHeight,
                                 fontWeight: DESIGN_TOKENS.typography.subtitle.fontWeight,
-                                color: Colors.light.text,
+                                color: colors.text,
                             }}
                         >
                             Quick Actions
@@ -114,11 +117,11 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
                                                 paddingVertical: DESIGN_TOKENS.spacing.md,
                                                 paddingHorizontal: DESIGN_TOKENS.spacing.lg,
                                                 backgroundColor: pressed 
-                                                    ? Colors.light.backgroundSecondary 
-                                                    : Colors.light.backgroundTertiary,
+                                                    ? colors.backgroundSecondary 
+                                                    : colors.backgroundTertiary,
                                                 borderRadius: DESIGN_TOKENS.radius.md,
                                                 borderWidth: 1,
-                                                borderColor: Colors.light.border,
+                                                borderColor: colors.border,
                                                 minHeight: DESIGN_TOKENS.touch.minSize,
                                             }
                                         ])}
@@ -128,13 +131,13 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
                                         <Ionicons 
                                             name="call" 
                                             size={20} 
-                                            color={Colors.light.tint} 
+                                            color={colors.tint} 
                                         />
                                         <Text 
                                             style={{
                                                 fontSize: DESIGN_TOKENS.typography.body.fontSize,
                                                 fontWeight: DESIGN_TOKENS.typography.body.fontWeight,
-                                                color: Colors.light.tint,
+                                                color: colors.tint,
                                                 marginLeft: DESIGN_TOKENS.spacing.xs,
                                             }}
                                         >
@@ -154,11 +157,11 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
                                                 paddingVertical: DESIGN_TOKENS.spacing.md,
                                                 paddingHorizontal: DESIGN_TOKENS.spacing.lg,
                                                 backgroundColor: pressed 
-                                                    ? Colors.light.backgroundSecondary 
-                                                    : Colors.light.backgroundTertiary,
+                                                    ? colors.backgroundSecondary 
+                                                    : colors.backgroundTertiary,
                                                 borderRadius: DESIGN_TOKENS.radius.md,
                                                 borderWidth: 1,
-                                                borderColor: Colors.light.border,
+                                                borderColor: colors.border,
                                                 minHeight: DESIGN_TOKENS.touch.minSize,
                                             }
                                         ])}
@@ -168,13 +171,13 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
                                         <Ionicons 
                                             name="chatbubble" 
                                             size={20} 
-                                            color={Colors.light.tint} 
+                                            color={colors.tint} 
                                         />
                                         <Text 
                                             style={{
                                                 fontSize: DESIGN_TOKENS.typography.body.fontSize,
                                                 fontWeight: DESIGN_TOKENS.typography.body.fontWeight,
-                                                color: Colors.light.tint,
+                                                color: colors.tint,
                                                 marginLeft: DESIGN_TOKENS.spacing.xs,
                                             }}
                                         >
@@ -197,11 +200,11 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
                                             paddingVertical: DESIGN_TOKENS.spacing.md,
                                             paddingHorizontal: DESIGN_TOKENS.spacing.lg,
                                             backgroundColor: pressed 
-                                                ? Colors.light.backgroundSecondary 
-                                                : Colors.light.backgroundTertiary,
+                                                ? colors.backgroundSecondary 
+                                                : colors.backgroundTertiary,
                                             borderRadius: DESIGN_TOKENS.radius.md,
                                             borderWidth: 1,
-                                            borderColor: Colors.light.border,
+                                            borderColor: colors.border,
                                             minHeight: DESIGN_TOKENS.touch.minSize,
                                         }
                                     ])}
@@ -211,13 +214,13 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
                                     <Ionicons 
                                         name="mail" 
                                         size={20} 
-                                        color={Colors.light.tint} 
+                                        color={colors.tint} 
                                     />
                                     <Text 
                                         style={{
                                             fontSize: DESIGN_TOKENS.typography.body.fontSize,
                                             fontWeight: DESIGN_TOKENS.typography.body.fontWeight,
-                                            color: Colors.light.tint,
+                                            color: colors.tint,
                                             marginLeft: DESIGN_TOKENS.spacing.xs,
                                         }}
                                     >

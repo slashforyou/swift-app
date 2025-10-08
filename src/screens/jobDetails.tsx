@@ -15,8 +15,8 @@ import JobPayment from './JobDetailsScreens/payment';
 import RefBookMark from '../components/ui/refBookMark';
 import Toast from '../components/ui/toastNotification';
 import { useAuthCheck } from '../utils/checkAuth';
+import { useCommonThemedStyles } from '../hooks/useCommonStyles';
 import { DESIGN_TOKENS } from '../constants/Styles';
-import { Colors } from '../constants/Colors';
 
 // Types et interfaces
 interface JobDetailsProps {
@@ -56,6 +56,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
     const insets = useSafeAreaInsets();
     const { toastDetails, showToast } = useToast();
     const { isLoading, LoadingComponent } = useAuthCheck(navigation);
+    const { colors } = useCommonThemedStyles();
     
     const [job, setJob] = useState({
         id: jobId || "#LM0000000001",
@@ -219,7 +220,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
 
     return (
         <View style={{
-            backgroundColor: Colors.light.background,
+            backgroundColor: colors.background,
             width: '100%',
             height: '100%',
             flex: 1,
@@ -228,7 +229,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
             {/* Top Menu avec Safe Area */}
             <View style={{ 
                 paddingTop: insets.top,
-                backgroundColor: Colors.light.backgroundSecondary,
+                backgroundColor: colors.backgroundSecondary,
                 zIndex: 10,
             }}>
                 <TopMenu navigation={navigation} />
@@ -264,7 +265,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
                 left: 0,
                 right: 0,
                 paddingBottom: insets.bottom,
-                backgroundColor: Colors.light.backgroundSecondary,
+                backgroundColor: colors.backgroundSecondary,
                 zIndex: 10,
             }}>
                 <JobMenu jobPanel={jobPanel} setJobPanel={setJobPanel} />

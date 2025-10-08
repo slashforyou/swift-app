@@ -7,7 +7,7 @@ import { BlurView } from 'expo-blur';
 import Signature, { SignatureViewRef } from 'react-native-signature-canvas';
 import * as FileSystem from 'expo-file-system';
 import { DESIGN_TOKENS } from '../constants/Styles';
-import { Colors } from '../constants/Colors';
+import { useThemeColors } from '../../hooks/useThemeColor';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -37,6 +37,7 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
   setJob
 }) => {
   const insets = useSafeAreaInsets();
+  const colors = useThemeColors();
   const signatureRef = useRef<SignatureViewRef>(null);
   const [ready, setReady] = useState(false);
   const [isSigning, setIsSigning] = useState(false);
@@ -136,7 +137,7 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
       backgroundColor: 'rgba(0, 0, 0, 0.7)',
     },
     card: { 
-      backgroundColor: Colors.light.background,
+      backgroundColor: colors.background,
       borderTopLeftRadius: DESIGN_TOKENS.radius.lg,
       borderTopRightRadius: DESIGN_TOKENS.radius.lg,
       paddingTop: DESIGN_TOKENS.spacing.md,
@@ -144,7 +145,7 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
       maxHeight: '95%',
       minHeight: '75%', // Plus haut maintenant
       height: '85%', // Hauteur fixe pour une belle proportion
-      shadowColor: '#000',
+      shadowColor: 'colors.text',
       shadowOffset: { width: 0, height: -12 },
       shadowOpacity: 0.3,
       shadowRadius: 24,
@@ -157,7 +158,7 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
       left: 0,
       right: 0,
       height: 1,
-      backgroundColor: Colors.light.primary,
+      backgroundColor: colors.primary,
       opacity: 0.6,
     },
     
@@ -165,7 +166,7 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
     dragHandle: {
       width: 40,
       height: 4,
-      backgroundColor: Colors.light.border,
+      backgroundColor: colors.border,
       borderRadius: 2,
       alignSelf: 'center',
       marginVertical: DESIGN_TOKENS.spacing.sm,
@@ -185,24 +186,24 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
       gap: DESIGN_TOKENS.spacing.sm,
     },
     title: {
-      color: Colors.light.text,
+      color: colors.text,
       fontSize: DESIGN_TOKENS.typography.title.fontSize,
       fontWeight: '700',
       letterSpacing: 0.5,
     },
     subtitle: {
-      color: Colors.light.textSecondary,
+      color: colors.textSecondary,
       fontSize: DESIGN_TOKENS.typography.caption.fontSize,
       marginTop: 2,
     },
     closeBtn: {
-      backgroundColor: Colors.light.backgroundTertiary,
+      backgroundColor: colors.backgroundTertiary,
       width: 36,
       height: 36,
       borderRadius: 18,
       justifyContent: 'center',
       alignItems: 'center',
-      shadowColor: Colors.light.shadow,
+      shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
       shadowRadius: 4,
@@ -215,11 +216,11 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
       gap: DESIGN_TOKENS.spacing.lg,
     },
     contractBloc: {
-      backgroundColor: Colors.light.backgroundSecondary,
+      backgroundColor: colors.backgroundSecondary,
       padding: DESIGN_TOKENS.spacing.lg,
       borderRadius: DESIGN_TOKENS.radius.lg,
       borderWidth: 1,
-      borderColor: Colors.light.border,
+      borderColor: colors.border,
     },
     contractHeader: {
       flexDirection: 'row',
@@ -228,19 +229,19 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
       marginBottom: DESIGN_TOKENS.spacing.md,
     },
     contractTitle: {
-      color: Colors.light.text,
+      color: colors.text,
       fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
       fontWeight: DESIGN_TOKENS.typography.subtitle.fontWeight,
     },
     contractBlocContent: {
-      color: Colors.light.text,
+      color: colors.text,
       fontSize: DESIGN_TOKENS.typography.body.fontSize,
       lineHeight: DESIGN_TOKENS.typography.body.lineHeight,
       marginBottom: DESIGN_TOKENS.spacing.md,
       textAlign: 'justify',
     },
     lastLine: {
-      color: Colors.light.textSecondary,
+      color: colors.textSecondary,
       fontSize: DESIGN_TOKENS.typography.caption.fontSize,
       textAlign: 'center',
       fontStyle: 'italic',
@@ -248,11 +249,11 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
     
     // Signature section styles - MODERNE MAIS CANVAS PRÉSERVÉ
     signingBloc: { 
-      backgroundColor: 'white',
+      backgroundColor: colors.background,
       borderRadius: DESIGN_TOKENS.radius.lg,
       marginHorizontal: DESIGN_TOKENS.spacing.lg,
       marginBottom: DESIGN_TOKENS.spacing.lg,
-      shadowColor: Colors.light.shadow,
+      shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.08,
       shadowRadius: 12,
@@ -267,7 +268,7 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
       paddingBottom: DESIGN_TOKENS.spacing.md,
     },
     signingTitle: {
-      color: Colors.light.text,
+      color: colors.text,
       fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
       fontWeight: '600',
       flex: 1,
@@ -280,10 +281,10 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
       borderRadius: DESIGN_TOKENS.radius.md,
       borderWidth: 2,
       overflow: 'hidden',
-      backgroundColor: 'white',
+      backgroundColor: colors.background,
     },
     // CANVAS STYLES - PRÉSERVÉS EXACTEMENT
-    signingCanvas: { flex: 1, backgroundColor: '#fff', height: 150 },
+    signingCanvas: { flex: 1, backgroundColor: colors.background, height: 150 },
     signingCanvasContainer: { height: 170, overflow: 'hidden', marginBottom: 20, padding: 10 },
     
     // Button styles - MODERNES
@@ -293,7 +294,7 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
       gap: DESIGN_TOKENS.spacing.sm,
       padding: DESIGN_TOKENS.spacing.lg,
       paddingBottom: DESIGN_TOKENS.spacing.lg,
-      backgroundColor: Colors.light.backgroundSecondary,
+      backgroundColor: colors.backgroundSecondary,
     },
     btn: {
       paddingVertical: DESIGN_TOKENS.spacing.sm + 2,
@@ -302,19 +303,19 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
       minHeight: DESIGN_TOKENS.touch.minSize,
       justifyContent: 'center',
       alignItems: 'center',
-      shadowColor: Colors.light.shadow,
+      shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
       shadowRadius: 4,
       elevation: 2,
     },
     btnSecondary: {
-      backgroundColor: 'white',
+      backgroundColor: colors.background,
       borderWidth: 1.5,
-      borderColor: Colors.light.border,
+      borderColor: colors.border,
     },
     btnPrimary: {
-      backgroundColor: Colors.light.primary,
+      backgroundColor: colors.primary,
       flex: 1.5,
     },
     btnDisabled: { 
@@ -327,15 +328,15 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
       letterSpacing: 0.3,
     },
     btnTextSecondary: {
-      color: Colors.light.text,
+      color: colors.text,
     },
     btnTextPrimary: {
-      color: 'white',
+      color: colors.background,
     },
     
     // Status styles
     hint: {
-      color: Colors.light.textSecondary,
+      color: colors.textSecondary,
       fontSize: DESIGN_TOKENS.typography.caption.fontSize,
       textAlign: 'center',
       marginTop: DESIGN_TOKENS.spacing.sm,
@@ -469,17 +470,17 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
           
           {/* Header moderne avec gradient */}
           <LinearGradient
-            colors={[Colors.light.background, Colors.light.backgroundSecondary + '40']}
+            colors={[colors.background, colors.backgroundSecondary + '40']}
             style={styles.headerGradient}
           >
             <View style={styles.headerContent}>
               <View style={styles.headerTitle}>
                 <View style={{
-                  backgroundColor: Colors.light.primary + '20',
+                  backgroundColor: colors.primary + '20',
                   padding: 8,
                   borderRadius: 12,
                 }}>
-                  <Ionicons name="document-text" size={24} color={Colors.light.primary} />
+                  <Ionicons name="document-text" size={24} color={colors.primary} />
                 </View>
                 <View>
                   <Text style={styles.title}>Contract Signature</Text>
@@ -492,7 +493,7 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
                 disabled={isSaving}
                 style={[styles.closeBtn, isSaving && styles.btnDisabled]}
               >
-                <Ionicons name="close" size={20} color={Colors.light.textSecondary} />
+                <Ionicons name="close" size={20} color={colors.textSecondary} />
               </Pressable>
             </View>
           </LinearGradient>
@@ -507,7 +508,7 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
             {/* Contract Section moderne */}
             <View style={styles.contractBloc}>
               <View style={styles.contractHeader}>
-                <Ionicons name="shield-checkmark" size={20} color={Colors.light.success} />
+                <Ionicons name="shield-checkmark" size={20} color={colors.success} />
                 <Text style={styles.contractTitle}>Service Agreement</Text>
               </View>
               <Text style={styles.contractBlocContent}>
@@ -522,17 +523,17 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
             {/* Signature Section avec animations */}
             <View style={styles.signingBloc}>
               <View style={styles.signingHeader}>
-                <Ionicons name="create" size={22} color={Colors.light.primary} />
+                <Ionicons name="create" size={22} color={colors.primary} />
                 <Text style={styles.signingTitle}>Digital Signature</Text>
                 {ready && (
                   <View style={{
-                    backgroundColor: Colors.light.success + '20',
+                    backgroundColor: colors.success + '20',
                     paddingHorizontal: 8,
                     paddingVertical: 4,
                     borderRadius: 12,
                   }}>
                     <Text style={{
-                      color: Colors.light.success,
+                      color: colors.success,
                       fontSize: 12,
                       fontWeight: '600',
                     }}>Ready</Text>
@@ -547,9 +548,9 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
                   {
                     borderColor: canvasGlowAnimation.interpolate({
                       inputRange: [0, 1],
-                      outputRange: [Colors.light.border, Colors.light.primary]
+                      outputRange: [colors.border, colors.primary]
                     }),
-                    shadowColor: Colors.light.primary,
+                    shadowColor: colors.primary,
                     shadowOpacity: canvasGlowAnimation.interpolate({
                       inputRange: [0, 1],
                       outputRange: [0, 0.4]
@@ -590,15 +591,15 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
                 {/* Indicateurs d'état */}
                 {!ready && (
                   <View style={styles.savingBar}>
-                    <ActivityIndicator size="small" color={Colors.light.primary} />
+                    <ActivityIndicator size="small" color={colors.primary} />
                     <Text style={styles.hint}>Initializing signature pad...</Text>
                   </View>
                 )}
                 
                 {isSigning && (
-                  <View style={[styles.savingBar, { backgroundColor: Colors.light.primary + '10' }]}>
-                    <Ionicons name="create" size={16} color={Colors.light.primary} />
-                    <Text style={[styles.hint, { color: Colors.light.primary, fontWeight: '600' }]}>
+                  <View style={[styles.savingBar, { backgroundColor: colors.primary + '10' }]}>
+                    <Ionicons name="create" size={16} color={colors.primary} />
+                    <Text style={[styles.hint, { color: colors.primary, fontWeight: '600' }]}>
                       ✨ Signing in progress...
                     </Text>
                   </View>
@@ -614,7 +615,7 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
               style={[styles.btn, styles.btnSecondary, isSaving && styles.btnDisabled]}
               disabled={isSaving}
             >
-              <Ionicons name="refresh" size={16} color={Colors.light.text} style={{ marginRight: 6 }} />
+              <Ionicons name="refresh" size={16} color={colors.text} style={{ marginRight: 6 }} />
               <Text style={[styles.btnText, styles.btnTextSecondary]}>Clear</Text>
             </Pressable>
 

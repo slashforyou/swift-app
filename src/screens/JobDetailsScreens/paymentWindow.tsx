@@ -20,7 +20,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { VStack, HStack } from '../../components/primitives/Stack';
 import { DESIGN_TOKENS } from '../../constants/Styles';
-import { Colors } from '../../constants/Colors';
+import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 import CardForm from '../../../src/components/CardForm';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -81,6 +81,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
 }) => {
   console.log('🔄 PaymentWindow render'); // DEBUG
   const insets = useSafeAreaInsets();
+  const { colors } = useCommonThemedStyles();
   const isVisible = visibleCondition === 'paymentWindow';
   
   // Payment state
@@ -429,14 +430,14 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
         >
           <View
             style={{
-              backgroundColor: Colors.light.background,
+              backgroundColor: colors.background,
               borderTopLeftRadius: DESIGN_TOKENS.radius.lg,
               borderTopRightRadius: DESIGN_TOKENS.radius.lg,
               paddingTop: DESIGN_TOKENS.spacing.md,
               paddingBottom: insets.bottom || DESIGN_TOKENS.spacing.lg,
               minHeight: '85%',
               maxHeight: '95%',
-              shadowColor: '#000',
+              shadowColor: colors.shadow,
               shadowOffset: { width: 0, height: -8 },
               shadowOpacity: 0.25,
               shadowRadius: 20,
@@ -447,7 +448,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
             <View style={{
               width: 40,
               height: 4,
-              backgroundColor: Colors.light.border,
+              backgroundColor: colors.border,
               borderRadius: 2,
               alignSelf: 'center',
               marginVertical: DESIGN_TOKENS.spacing.sm,
@@ -470,7 +471,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
                   <Pressable
                     onPress={() => updateState({ step: 'method' })}
                     style={{
-                      backgroundColor: Colors.light.backgroundTertiary,
+                      backgroundColor: colors.backgroundTertiary,
                       width: 36,
                       height: 36,
                       borderRadius: 18,
@@ -479,21 +480,21 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
                       marginRight: DESIGN_TOKENS.spacing.sm,
                     }}
                   >
-                    <Ionicons name="chevron-back" size={20} color={Colors.light.text} />
+                    <Ionicons name="chevron-back" size={20} color={colors.text} />
                   </Pressable>
                 )}
                 
                 <View style={{
-                  backgroundColor: Colors.light.primary + '20',
+                  backgroundColor: colors.primary + '20',
                   padding: 8,
                   borderRadius: 12,
                 }}>
-                  <Ionicons name="card" size={24} color={Colors.light.primary} />
+                  <Ionicons name="card" size={24} color={colors.primary} />
                 </View>
                 
                 <View>
                   <Text style={{
-                    color: Colors.light.text,
+                    color: colors.text,
                     fontSize: DESIGN_TOKENS.typography.title.fontSize,
                     fontWeight: '700',
                   }}>
@@ -504,7 +505,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
                     {state.step === 'success' && 'Payment Complete'}
                   </Text>
                   <Text style={{
-                    color: Colors.light.textSecondary,
+                    color: colors.textSecondary,
                     fontSize: DESIGN_TOKENS.typography.caption.fontSize,
                   }}>
                     Job #{job.id || 'N/A'} • {job.payment?.currency || 'AUD'} {job.payment?.amountToBePaid || '0.00'}
@@ -516,7 +517,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
                 onPress={handleClose}
                 disabled={state.isProcessing}
                 style={{
-                  backgroundColor: Colors.light.backgroundTertiary,
+                  backgroundColor: colors.backgroundTertiary,
                   width: 36,
                   height: 36,
                   borderRadius: 18,
@@ -525,7 +526,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
                   opacity: state.isProcessing ? 0.5 : 1,
                 }}
               >
-                <Ionicons name="close" size={20} color={Colors.light.textSecondary} />
+                <Ionicons name="close" size={20} color={colors.textSecondary} />
               </Pressable>
             </View>
 
@@ -556,37 +557,37 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
       <VStack gap="lg">
         {/* Summary */}
         <View style={{
-          backgroundColor: Colors.light.backgroundSecondary,
+          backgroundColor: colors.backgroundSecondary,
           padding: DESIGN_TOKENS.spacing.lg,
           borderRadius: DESIGN_TOKENS.radius.lg,
         }}>
           <Text style={{
             fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
             fontWeight: '600',
-            color: Colors.light.text,
+            color: colors.text,
             marginBottom: DESIGN_TOKENS.spacing.md,
           }}>
             Payment Summary
           </Text>
           
           <HStack justify="space-between" style={{ marginBottom: DESIGN_TOKENS.spacing.sm }}>
-            <Text style={{ color: Colors.light.textSecondary }}>Subtotal</Text>
+            <Text style={{ color: colors.textSecondary }}>Subtotal</Text>
             <Text style={{ fontWeight: '600' }}>{job.payment?.currency || 'AUD'} {job.payment?.taxe?.amountWithoutTax || '0.00'}</Text>
           </HStack>
           
           <HStack justify="space-between" style={{ marginBottom: DESIGN_TOKENS.spacing.sm }}>
-            <Text style={{ color: Colors.light.textSecondary }}>GST ({job.payment?.taxe?.gstRate || 10}%)</Text>
+            <Text style={{ color: colors.textSecondary }}>GST ({job.payment?.taxe?.gstRate || 10}%)</Text>
             <Text style={{ fontWeight: '600' }}>{job.payment?.currency || 'AUD'} {job.payment?.taxe?.gst || '0.00'}</Text>
           </HStack>
           
-          <View style={{ height: 1, backgroundColor: Colors.light.border, marginVertical: DESIGN_TOKENS.spacing.sm }} />
+          <View style={{ height: 1, backgroundColor: colors.border, marginVertical: DESIGN_TOKENS.spacing.sm }} />
           
           <HStack justify="space-between">
             <Text style={{ fontSize: DESIGN_TOKENS.typography.subtitle.fontSize, fontWeight: '600' }}>Total</Text>
             <Text style={{ 
               fontSize: DESIGN_TOKENS.typography.subtitle.fontSize, 
               fontWeight: '700',
-              color: Colors.light.primary,
+              color: colors.primary,
             }}>
               {job.payment?.currency || 'AUD'} {job.payment?.amountToBePaid || '0.00'}
             </Text>
@@ -598,7 +599,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
           <Text style={{
             fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
             fontWeight: '600',
-            color: Colors.light.text,
+            color: colors.text,
           }}>
             Choose Payment Method
           </Text>
@@ -606,12 +607,12 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
           <Pressable
             onPress={() => updateState({ selectedMethod: 'card', step: 'card' })}
             style={({ pressed }) => ({
-              backgroundColor: pressed ? Colors.light.backgroundSecondary : 'white',
+              backgroundColor: pressed ? colors.backgroundSecondary : colors.background,
               padding: DESIGN_TOKENS.spacing.lg,
               borderRadius: DESIGN_TOKENS.radius.lg,
               borderWidth: 2,
-              borderColor: Colors.light.border,
-              shadowColor: Colors.light.shadow,
+              borderColor: colors.border,
+              shadowColor: colors.shadow,
               shadowOffset: { width: 0, height: 2 },
               shadowOpacity: 0.1,
               shadowRadius: 4,
@@ -620,40 +621,40 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
           >
             <HStack gap="md" align="center">
               <View style={{
-                backgroundColor: Colors.light.primary + '20',
+                backgroundColor: colors.primary + '20',
                 padding: DESIGN_TOKENS.spacing.sm,
                 borderRadius: DESIGN_TOKENS.radius.sm,
               }}>
-                <Ionicons name="card" size={24} color={Colors.light.primary} />
+                <Ionicons name="card" size={24} color={colors.primary} />
               </View>
               <VStack gap="xs" style={{ flex: 1 }}>
                 <Text style={{ 
                   fontSize: DESIGN_TOKENS.typography.body.fontSize,
                   fontWeight: '600',
-                  color: Colors.light.text,
+                  color: colors.text,
                 }}>
                   Credit/Debit Card
                 </Text>
                 <Text style={{ 
                   fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-                  color: Colors.light.textSecondary,
+                  color: colors.textSecondary,
                 }}>
                   Visa, Mastercard, American Express
                 </Text>
               </VStack>
-              <Ionicons name="chevron-forward" size={20} color={Colors.light.textSecondary} />
+              <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
             </HStack>
           </Pressable>
           
           <Pressable
             onPress={() => updateState({ selectedMethod: 'cash', step: 'cash' })}
             style={({ pressed }) => ({
-              backgroundColor: pressed ? Colors.light.backgroundSecondary : 'white',
+              backgroundColor: pressed ? colors.backgroundSecondary : colors.background,
               padding: DESIGN_TOKENS.spacing.lg,
               borderRadius: DESIGN_TOKENS.radius.lg,
               borderWidth: 2,
-              borderColor: Colors.light.border,
-              shadowColor: Colors.light.shadow,
+              borderColor: colors.border,
+              shadowColor: colors.shadow,
               shadowOffset: { width: 0, height: 2 },
               shadowOpacity: 0.1,
               shadowRadius: 4,
@@ -662,28 +663,28 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
           >
             <HStack gap="md" align="center">
               <View style={{
-                backgroundColor: Colors.light.success + '20',
+                backgroundColor: colors.success + '20',
                 padding: DESIGN_TOKENS.spacing.sm,
                 borderRadius: DESIGN_TOKENS.radius.sm,
               }}>
-                <Ionicons name="cash" size={24} color={Colors.light.success} />
+                <Ionicons name="cash" size={24} color={colors.success} />
               </View>
               <VStack gap="xs" style={{ flex: 1 }}>
                 <Text style={{ 
                   fontSize: DESIGN_TOKENS.typography.body.fontSize,
                   fontWeight: '600',
-                  color: Colors.light.text,
+                  color: colors.text,
                 }}>
                   Cash Payment
                 </Text>
                 <Text style={{ 
                   fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-                  color: Colors.light.textSecondary,
+                  color: colors.textSecondary,
                 }}>
                   Pay in person with cash
                 </Text>
               </VStack>
-              <Ionicons name="chevron-forward" size={20} color={Colors.light.textSecondary} />
+              <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
             </HStack>
           </Pressable>
         </VStack>
@@ -700,7 +701,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
             <Text style={{
               fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
               fontWeight: '600',
-              color: Colors.light.text,
+              color: colors.text,
             }}>
               Saved Cards
             </Text>
@@ -718,7 +719,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
           <Text style={{
             fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
             fontWeight: '600',
-            color: Colors.light.text,
+            color: colors.text,
           }}>
             {job.payment.savedCards?.length ? 'Or Add New Card' : 'Card Information'}
           </Text>
@@ -738,10 +739,10 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
         <View style={{
           marginTop: DESIGN_TOKENS.spacing.xl,
           marginBottom: DESIGN_TOKENS.spacing.lg,
-          backgroundColor: 'white',
+          backgroundColor: colors.background,
           borderRadius: 20,
           padding: DESIGN_TOKENS.spacing.md,
-          shadowColor: '#000',
+          shadowColor: colors.shadow,
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: 0.1,
           shadowRadius: 4,
@@ -753,7 +754,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
             <Text style={{
               fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
               fontWeight: '600',
-              color: Colors.light.text,
+              color: colors.text,
               textAlign: 'center',
             }}>
               Payment Validation
@@ -762,27 +763,27 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
             {/* Required fields status */}
             <VStack gap="xs">
               <HStack gap="sm" align="center" justify="space-between">
-                <Text style={{ color: Colors.light.textSecondary }}>Card Number</Text>
+                <Text style={{ color: colors.textSecondary }}>Card Number</Text>
                 <Ionicons 
                   name={state.newCard.number ? "checkmark-circle" : "ellipse-outline"} 
                   size={16} 
-                  color={state.newCard.number ? Colors.light.success : Colors.light.textSecondary} 
+                  color={state.newCard.number ? colors.success : colors.textSecondary} 
                 />
               </HStack>
               <HStack gap="sm" align="center" justify="space-between">
-                <Text style={{ color: Colors.light.textSecondary }}>Expiry Date</Text>
+                <Text style={{ color: colors.textSecondary }}>Expiry Date</Text>
                 <Ionicons 
                   name={state.newCard.expiry ? "checkmark-circle" : "ellipse-outline"} 
                   size={16} 
-                  color={state.newCard.expiry ? Colors.light.success : Colors.light.textSecondary} 
+                  color={state.newCard.expiry ? colors.success : colors.textSecondary} 
                 />
               </HStack>
               <HStack gap="sm" align="center" justify="space-between">
-                <Text style={{ color: Colors.light.textSecondary }}>CVV</Text>
+                <Text style={{ color: colors.textSecondary }}>CVV</Text>
                 <Ionicons 
                   name={state.newCard.cvv ? "checkmark-circle" : "ellipse-outline"} 
                   size={16} 
-                  color={state.newCard.cvv ? Colors.light.success : Colors.light.textSecondary} 
+                  color={state.newCard.cvv ? colors.success : colors.textSecondary} 
                 />
               </HStack>
             </VStack>
@@ -796,24 +797,25 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
               const isComplete = state.newCard.number && state.newCard.expiry && state.newCard.cvv;
               return {
                 backgroundColor: !isComplete
-                  ? Colors.light.backgroundSecondary
+                  ? colors.backgroundSecondary
                   : pressed 
-                  ? '#0066cc'
-                  : Colors.light.primary,
+                  ? colors.primaryHover
+                  : colors.primary,
                 paddingVertical: DESIGN_TOKENS.spacing.lg,
                 paddingHorizontal: DESIGN_TOKENS.spacing.xl,
                 borderRadius: 16,
                 alignItems: 'center',
                 justifyContent: 'center',
                 minHeight: 60,
-                borderWidth: !isComplete ? 2 : 0,
-                borderColor: !isComplete ? Colors.light.border : 'transparent',
-                shadowColor: isComplete ? Colors.light.primary : 'transparent',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 8,
-                elevation: isComplete ? 6 : 0,
-                transform: pressed && isComplete ? [{ scale: 0.98 }] : [{ scale: 1 }],
+                borderWidth: 2,
+                borderColor: !isComplete ? colors.border : colors.primary,
+                shadowColor: isComplete ? colors.primary : 'transparent',
+                shadowOffset: { width: 0, height: 6 },
+                shadowOpacity: 0.4,
+                shadowRadius: 12,
+                elevation: isComplete ? 8 : 0,
+                opacity: !isComplete ? 0.7 : 1,
+                transform: pressed && isComplete ? [{ scale: 0.96 }] : [{ scale: 1 }],
               };
             }}
           >
@@ -821,7 +823,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
               <View style={{
                 backgroundColor: (state.newCard.number && state.newCard.expiry && state.newCard.cvv) 
                   ? 'rgba(255,255,255,0.2)' 
-                  : Colors.light.backgroundTertiary,
+                  : colors.backgroundTertiary,
                 padding: 10,
                 borderRadius: 25,
               }}>
@@ -835,15 +837,15 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
                   color={
                     (state.newCard.number && state.newCard.expiry && state.newCard.cvv) 
                       ? "white" 
-                      : Colors.light.textSecondary
+                      : colors.textSecondary
                   } 
                 />
               </View>
               <VStack gap="xs" align="center">
                 <Text style={{
                   color: (state.newCard.number && state.newCard.expiry && state.newCard.cvv) 
-                    ? 'white' 
-                    : Colors.light.textSecondary,
+                    ? colors.background 
+                    : colors.textSecondary,
                   fontSize: DESIGN_TOKENS.typography.title.fontSize,
                   fontWeight: '700',
                   textAlign: 'center',
@@ -855,8 +857,8 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
                 </Text>
                 <Text style={{
                   color: (state.newCard.number && state.newCard.expiry && state.newCard.cvv) 
-                    ? 'rgba(255,255,255,0.9)' 
-                    : Colors.light.textSecondary,
+                    ? colors.textSecondary 
+                    : colors.textSecondary,
                   fontSize: DESIGN_TOKENS.typography.caption.fontSize,
                   fontWeight: '500',
                   textAlign: 'center',
@@ -882,30 +884,30 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
           <Text style={{
             fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
             fontWeight: '600',
-            color: Colors.light.text,
+            color: colors.text,
           }}>
             Cash Payment Details
           </Text>
           
           <View style={{
-            backgroundColor: Colors.light.backgroundSecondary,
+            backgroundColor: colors.backgroundSecondary,
             padding: DESIGN_TOKENS.spacing.lg,
             borderRadius: DESIGN_TOKENS.radius.lg,
           }}>
             <VStack gap="sm">
               <HStack gap="sm" align="center">
-                <Ionicons name="information-circle" size={20} color={Colors.light.primary} />
+                <Ionicons name="information-circle" size={20} color={colors.primary} />
                 <Text style={{
                   fontSize: DESIGN_TOKENS.typography.body.fontSize,
                   fontWeight: '600',
-                  color: Colors.light.text,
+                  color: colors.text,
                 }}>
                   Payment Instructions
                 </Text>
               </HStack>
               <Text style={{
                 fontSize: DESIGN_TOKENS.typography.body.fontSize,
-                color: Colors.light.textSecondary,
+                color: colors.textSecondary,
                 lineHeight: 22,
               }}>
                 Please prepare the exact amount in cash. Payment will be collected upon service completion.
@@ -919,7 +921,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
           <Text style={{
             fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
             fontWeight: '600',
-            color: Colors.light.text,
+            color: colors.text,
           }}>
             Confirm Amount
           </Text>
@@ -927,16 +929,16 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
           <View>
             <Text style={{
               fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-              color: Colors.light.textSecondary,
+              color: colors.textSecondary,
               marginBottom: DESIGN_TOKENS.spacing.xs,
             }}>
               Cash Amount ({job.payment?.currency || 'AUD'})
             </Text>
             <TextInput
               style={{
-                backgroundColor: 'white',
+                backgroundColor: colors.background,
                 borderWidth: 2,
-                borderColor: Colors.light.border,
+                borderColor: colors.border,
                 borderRadius: DESIGN_TOKENS.radius.md,
                 padding: DESIGN_TOKENS.spacing.md,
                 fontSize: DESIGN_TOKENS.typography.body.fontSize,
@@ -962,38 +964,42 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
             disabled={!state.cashAmount || parseFloat(state.cashAmount) < parseFloat(job.payment?.amountToBePaid || '0')}
             style={({ pressed }) => ({
               backgroundColor: (!state.cashAmount || parseFloat(state.cashAmount) < parseFloat(job.payment?.amountToBePaid || '0'))
-                ? Colors.light.backgroundTertiary
+                ? colors.backgroundTertiary
                 : pressed 
-                ? '#0d8a4a'
-                : Colors.light.success,
+                ? colors.primaryHover
+                : colors.primary,
               paddingVertical: DESIGN_TOKENS.spacing.lg,
               paddingHorizontal: DESIGN_TOKENS.spacing.xl,
               borderRadius: 16,
               alignItems: 'center',
               justifyContent: 'center',
               minHeight: 56,
+              borderWidth: 2,
+              borderColor: (!state.cashAmount || parseFloat(state.cashAmount) < parseFloat(job.payment?.amountToBePaid || '0'))
+                ? colors.border
+                : colors.primary,
               shadowColor: (!state.cashAmount || parseFloat(state.cashAmount) < parseFloat(job.payment?.amountToBePaid || '0'))
                 ? 'transparent' 
-                : Colors.light.success,
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.3,
-              shadowRadius: 8,
-              elevation: (!state.cashAmount || parseFloat(state.cashAmount) < parseFloat(job.payment?.amountToBePaid || '0')) ? 0 : 6,
+                : colors.primary,
+              shadowOffset: { width: 0, height: 6 },
+              shadowOpacity: 0.4,
+              shadowRadius: 12,
+              elevation: (!state.cashAmount || parseFloat(state.cashAmount) < parseFloat(job.payment?.amountToBePaid || '0')) ? 0 : 8,
               opacity: (!state.cashAmount || parseFloat(state.cashAmount) < parseFloat(job.payment?.amountToBePaid || '0')) ? 0.5 : 1,
-              transform: pressed ? [{ scale: 0.98 }] : [{ scale: 1 }],
+              transform: pressed ? [{ scale: 0.96 }] : [{ scale: 1 }],
             })}
           >
             <HStack gap="md" align="center">
               <View style={{
-                backgroundColor: 'rgba(255,255,255,0.2)',
+                backgroundColor: colors.background,
                 padding: 8,
                 borderRadius: 20,
               }}>
-                <Ionicons name="cash" size={20} color="white" />
+                <Ionicons name="cash" size={20} color={colors.primary} />
               </View>
               <VStack gap="xs" align="center">
                 <Text style={{
-                  color: 'white',
+                  color: colors.background,
                   fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
                   fontWeight: '700',
                   textAlign: 'center',
@@ -1001,7 +1007,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
                   Confirm Cash Payment
                 </Text>
                 <Text style={{
-                  color: 'rgba(255,255,255,0.9)',
+                  color: colors.textSecondary,
                   fontSize: DESIGN_TOKENS.typography.caption.fontSize,
                   fontWeight: '500',
                   textAlign: 'center',
@@ -1015,17 +1021,17 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
         
         {/* Note */}
         <View style={{
-          backgroundColor: Colors.light.warning + '20',
+          backgroundColor: colors.warning + '20',
           padding: DESIGN_TOKENS.spacing.md,
           borderRadius: DESIGN_TOKENS.radius.md,
           borderLeftWidth: 4,
-          borderLeftColor: Colors.light.warning,
+          borderLeftColor: colors.warning,
         }}>
           <HStack gap="sm" align="flex-start">
-            <Ionicons name="warning" size={16} color={Colors.light.warning} style={{ marginTop: 2 }} />
+            <Ionicons name="warning" size={16} color={colors.warning} style={{ marginTop: 2 }} />
             <Text style={{
               fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-              color: Colors.light.textSecondary,
+              color: colors.textSecondary,
               flex: 1,
               lineHeight: 18,
             }}>
@@ -1075,10 +1081,10 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
         overflow: 'hidden',
         marginVertical: DESIGN_TOKENS.spacing.md,
         shadowColor: cardValidation.number.isValid && state.newCard.number.length > 0
-          ? '#00b894' 
+          ? 'colors.success' 
           : cardValidation.number.message !== 'Number required' && !cardValidation.number.isValid
-            ? '#e74c3c'
-            : '#000',
+            ? 'colors.error'
+            : 'colors.text',
         shadowOffset: { width: 0, height: 8 },
         shadowOpacity: cardValidation.number.isValid && state.newCard.number.length > 0
           ? 0.4
@@ -1099,7 +1105,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
           {/* Card Top */}
           <HStack justify="space-between" align="center">
             <Text style={{
-              color: 'white',
+              color: colors.background,
               fontSize: 16,
               fontWeight: '600',
               opacity: 0.9,
@@ -1111,17 +1117,17 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
                 <Ionicons 
                   name={cardValidation.number.isValid ? "checkmark-circle" : "close-circle"} 
                   size={20} 
-                  color={cardValidation.number.isValid ? "#00b894" : "#e74c3c"} 
+                  color={cardValidation.number.isValid ? colors.success : colors.error} 
                   style={{ marginRight: 8 }} 
                 />
               )}
-              <Ionicons name="card" size={20} color="white" style={{ opacity: 0.7 }} />
+              <Ionicons name="card" size={20} color={colors.background} style={{ opacity: 0.7 }} />
             </View>
           </HStack>
 
           {/* Card Number */}
           <Text style={{
-            color: 'white',
+            color: colors.background,
             fontSize: 22,
             fontWeight: '600',
             letterSpacing: 2,
@@ -1132,14 +1138,14 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
           {/* Card Bottom */}
           <HStack justify="space-between">
             <VStack>
-              <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 10 }}>CARDHOLDER</Text>
-              <Text style={{ color: 'white', fontSize: 14, fontWeight: '600' }}>
+              <Text style={{ color: colors.textSecondary, fontSize: 10 }}>CARDHOLDER</Text>
+              <Text style={{ color: colors.background, fontSize: 14, fontWeight: '600' }}>
                 {state.newCard.name || 'YOUR NAME'}
               </Text>
             </VStack>
             <VStack>
-              <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 10 }}>EXPIRES</Text>
-              <Text style={{ color: 'white', fontSize: 14, fontWeight: '600' }}>
+              <Text style={{ color: colors.textSecondary, fontSize: 10 }}>EXPIRES</Text>
+              <Text style={{ color: colors.background, fontSize: 14, fontWeight: '600' }}>
                 {state.newCard.expiry || 'MM/YY'}
               </Text>
             </VStack>
@@ -1154,9 +1160,9 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
           marginTop: 12,
           paddingHorizontal: 16,
           paddingVertical: 8,
-          backgroundColor: cardValidation.number.isValid ? '#00b894' : '#e74c3c',
+          backgroundColor: cardValidation.number.isValid ? 'colors.success' : 'colors.error',
           borderRadius: 20,
-          shadowColor: cardValidation.number.isValid ? '#00b894' : '#e74c3c',
+          shadowColor: cardValidation.number.isValid ? 'colors.success' : 'colors.error',
           shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.3,
           shadowRadius: 8,
@@ -1210,14 +1216,14 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
         }}
         style={({ pressed }) => ({
           backgroundColor: state.selectedCard?.id === card.id 
-            ? Colors.light.primary + '10' 
+            ? colors.primary + '10' 
             : pressed 
-            ? Colors.light.backgroundSecondary 
+            ? colors.backgroundSecondary 
             : 'white',
           padding: DESIGN_TOKENS.spacing.lg,
           borderRadius: DESIGN_TOKENS.radius.lg,
           borderWidth: 2,
-          borderColor: state.selectedCard?.id === card.id ? Colors.light.primary : Colors.light.border,
+          borderColor: state.selectedCard?.id === card.id ? colors.primary : colors.border,
         })}
       >
         <HStack gap="md" align="center">
@@ -1234,24 +1240,24 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
             </Text>
             <Text style={{ 
               fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-              color: Colors.light.textSecondary,
+              color: colors.textSecondary,
             }}>
               {card.cardHolderName} • Expires {card.expiryDate}
             </Text>
           </VStack>
           {state.selectedCard?.id === card.id ? (
             <VStack align="center" gap="xs">
-              <Ionicons name="checkmark-circle" size={24} color={Colors.light.primary} />
+              <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
               <Text style={{ 
                 fontSize: 10, 
-                color: Colors.light.textSecondary,
+                color: colors.textSecondary,
                 textAlign: 'center' 
               }}>
                 Tap to deselect
               </Text>
             </VStack>
           ) : (
-            <Ionicons name="radio-button-off" size={24} color={Colors.light.border} />
+            <Ionicons name="radio-button-off" size={24} color={colors.border} />
           )}
         </HStack>
       </Pressable>
@@ -1261,18 +1267,18 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
   function ProcessingView() {
     return (
       <VStack gap="lg" align="center" style={{ paddingVertical: DESIGN_TOKENS.spacing.xl }}>
-        <ActivityIndicator size="large" color={Colors.light.primary} />
+        <ActivityIndicator size="large" color={colors.primary} />
         <VStack gap="sm" align="center">
           <Text style={{
             fontSize: DESIGN_TOKENS.typography.title.fontSize,
             fontWeight: '600',
-            color: Colors.light.text,
+            color: colors.text,
           }}>
             Processing Payment...
           </Text>
           <Text style={{
             fontSize: DESIGN_TOKENS.typography.body.fontSize,
-            color: Colors.light.textSecondary,
+            color: colors.textSecondary,
             textAlign: 'center',
           }}>
             Please don't close this window while we process your payment.
@@ -1286,24 +1292,24 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
     return (
       <VStack gap="lg" align="center" style={{ paddingVertical: DESIGN_TOKENS.spacing.xl }}>
         <View style={{
-          backgroundColor: Colors.light.success + '20',
+          backgroundColor: colors.success + '20',
           padding: DESIGN_TOKENS.spacing.lg,
           borderRadius: 50,
         }}>
-          <Ionicons name="checkmark" size={48} color={Colors.light.success} />
+          <Ionicons name="checkmark" size={48} color={colors.success} />
         </View>
         
         <VStack gap="sm" align="center">
           <Text style={{
             fontSize: DESIGN_TOKENS.typography.title.fontSize,
             fontWeight: '700',
-            color: Colors.light.text,
+            color: colors.text,
           }}>
             Payment Successful!
           </Text>
           <Text style={{
             fontSize: DESIGN_TOKENS.typography.body.fontSize,
-            color: Colors.light.textSecondary,
+            color: colors.textSecondary,
             textAlign: 'center',
           }}>
             Your payment has been processed successfully. You will receive a confirmation email shortly.

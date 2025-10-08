@@ -7,7 +7,7 @@ import { View, Text, Pressable, Alert } from 'react-native';
 import { VStack, HStack } from '../../components/primitives/Stack';
 import { Card } from '../../components/ui/Card';
 import { DESIGN_TOKENS } from '../../constants/Styles';
-import { Colors } from '../../constants/Colors';
+import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 import Ionicons from '@react-native-vector-icons/ionicons';
 
 interface JobNoteProps {
@@ -23,21 +23,21 @@ interface NoteItemProps {
 }
 
 // Types de notes avec couleurs et icônes
-const NOTE_TYPES = [
+const getNoteTypes = (colors: any) => [
     { 
         id: 0, 
         name: "Classic", 
-        color: Colors.light.backgroundTertiary, 
-        borderColor: Colors.light.border, 
-        textColor: Colors.light.text,
+        color: colors.backgroundTertiary, 
+        borderColor: colors.border, 
+        textColor: colors.text,
         icon: "document-text" 
     },
     { 
         id: 1, 
         name: "Info", 
-        color: Colors.light.backgroundTertiary, 
-        borderColor: Colors.light.tint, 
-        textColor: Colors.light.tint,
+        color: colors.backgroundTertiary, 
+        borderColor: colors.tint, 
+        textColor: colors.tint,
         icon: "information-circle" 
     },
     { 
@@ -68,6 +68,8 @@ const NOTE_TYPES = [
 
 // Composant Note Item moderne avec interactions
 const NoteItem: React.FC<NoteItemProps> = ({ note, onEdit, onDelete, onToggleRead }) => {
+    const { colors } = useCommonThemedStyles();
+    const NOTE_TYPES = getNoteTypes(colors);
     const [expanded, setExpanded] = useState(false);
     const noteType = NOTE_TYPES[note.type] || NOTE_TYPES[0];
 
@@ -170,7 +172,7 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onEdit, onDelete, onToggleRea
                         style={{
                             fontSize: DESIGN_TOKENS.typography.body.fontSize,
                             lineHeight: DESIGN_TOKENS.typography.body.lineHeight,
-                            color: Colors.light.text,
+                            color: colors.text,
                         }}
                     >
                         {note.content}
@@ -187,7 +189,7 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onEdit, onDelete, onToggleRea
                                 paddingVertical: DESIGN_TOKENS.spacing.xs,
                                 paddingHorizontal: DESIGN_TOKENS.spacing.sm,
                                 backgroundColor: pressed 
-                                    ? Colors.light.backgroundSecondary 
+                                    ? colors.backgroundSecondary 
                                     : 'transparent',
                                 borderRadius: DESIGN_TOKENS.radius.sm,
                                 minHeight: DESIGN_TOKENS.touch.minSize * 0.8,
@@ -195,11 +197,11 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onEdit, onDelete, onToggleRea
                             accessibilityRole="button"
                             accessibilityLabel="Edit note"
                         >
-                            <Ionicons name="create" size={16} color={Colors.light.tint} />
+                            <Ionicons name="create" size={16} color={colors.tint} />
                             <Text style={{ 
                                 marginLeft: DESIGN_TOKENS.spacing.xs,
                                 fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-                                color: Colors.light.tint 
+                                color: colors.tint 
                             }}>
                                 Edit
                             </Text>
@@ -239,7 +241,9 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onEdit, onDelete, onToggleRea
 };
 
 const JobNote: React.FC<JobNoteProps> = ({ job, setJob }) => {
+    const { colors } = useCommonThemedStyles();
     const [filter, setFilter] = useState<number | null>(null);
+    const NOTE_TYPES = getNoteTypes(colors);
 
     const handleAddNote = () => {
         Alert.alert("Add Note", "Feature coming soon! You'll be able to add notes here.");
@@ -276,7 +280,7 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob }) => {
                                 style={{
                                     fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
                                     fontWeight: DESIGN_TOKENS.typography.subtitle.fontWeight,
-                                    color: Colors.light.text,
+                                    color: colors.text,
                                 }}
                             >
                                 Job Notes
@@ -284,7 +288,7 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob }) => {
                             <Text 
                                 style={{
                                     fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-                                    color: Colors.light.textSecondary,
+                                    color: colors.textSecondary,
                                 }}
                             >
                                 {filteredNotes.length} note{filteredNotes.length !== 1 ? 's' : ''}
@@ -301,20 +305,20 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob }) => {
                                 paddingVertical: DESIGN_TOKENS.spacing.sm,
                                 paddingHorizontal: DESIGN_TOKENS.spacing.md,
                                 backgroundColor: pressed 
-                                    ? Colors.light.backgroundSecondary
-                                    : Colors.light.tint,
+                                    ? colors.backgroundSecondary
+                                    : colors.tint,
                                 borderRadius: DESIGN_TOKENS.radius.md,
                                 minHeight: DESIGN_TOKENS.touch.minSize,
                             })}
                             accessibilityRole="button"
                             accessibilityLabel="Add new note"
                         >
-                            <Ionicons name="add" size={16} color={Colors.light.background} />
+                            <Ionicons name="add" size={16} color={colors.background} />
                             <Text style={{ 
                                 marginLeft: DESIGN_TOKENS.spacing.xs,
                                 fontSize: DESIGN_TOKENS.typography.body.fontSize,
                                 fontWeight: '500',
-                                color: Colors.light.background 
+                                color: colors.background 
                             }}>
                                 Add Note
                             </Text>
@@ -329,7 +333,7 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob }) => {
                             style={{
                                 fontSize: DESIGN_TOKENS.typography.caption.fontSize,
                                 fontWeight: '500',
-                                color: Colors.light.textSecondary,
+                                color: colors.textSecondary,
                                 marginBottom: DESIGN_TOKENS.spacing.sm,
                             }}
                         >
@@ -342,14 +346,14 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob }) => {
                                     paddingVertical: DESIGN_TOKENS.spacing.xs,
                                     paddingHorizontal: DESIGN_TOKENS.spacing.sm,
                                     backgroundColor: filter === null 
-                                        ? Colors.light.tint 
-                                        : (pressed ? Colors.light.backgroundSecondary : Colors.light.backgroundTertiary),
+                                        ? colors.tint 
+                                        : (pressed ? colors.backgroundSecondary : colors.backgroundTertiary),
                                     borderRadius: DESIGN_TOKENS.radius.sm,
                                 })}
                             >
                                 <Text style={{
                                     fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-                                    color: filter === null ? Colors.light.background : Colors.light.text,
+                                    color: filter === null ? colors.background : colors.text,
                                 }}>
                                     All
                                 </Text>
@@ -370,19 +374,19 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob }) => {
                                             paddingHorizontal: DESIGN_TOKENS.spacing.sm,
                                             backgroundColor: filter === type.id 
                                                 ? type.borderColor 
-                                                : (pressed ? Colors.light.backgroundSecondary : Colors.light.backgroundTertiary),
+                                                : (pressed ? colors.backgroundSecondary : colors.backgroundTertiary),
                                             borderRadius: DESIGN_TOKENS.radius.sm,
                                         })}
                                     >
                                         <Ionicons 
                                             name={type.icon as any} 
                                             size={12} 
-                                            color={filter === type.id ? Colors.light.background : type.textColor}
+                                            color={filter === type.id ? colors.background : type.textColor}
                                             style={{ marginRight: DESIGN_TOKENS.spacing.xs }}
                                         />
                                         <Text style={{
                                             fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-                                            color: filter === type.id ? Colors.light.background : Colors.light.text,
+                                            color: filter === type.id ? colors.background : colors.text,
                                         }}>
                                             {type.name} ({count})
                                         </Text>
@@ -415,14 +419,14 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob }) => {
                         <Ionicons 
                             name="document-text-outline" 
                             size={48} 
-                            color={Colors.light.textSecondary}
+                            color={colors.textSecondary}
                             style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}
                         />
                         <Text 
                             style={{
                                 fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
                                 fontWeight: '500',
-                                color: Colors.light.text,
+                                color: colors.text,
                                 textAlign: 'center',
                                 marginBottom: DESIGN_TOKENS.spacing.sm,
                             }}
@@ -432,7 +436,7 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob }) => {
                         <Text 
                             style={{
                                 fontSize: DESIGN_TOKENS.typography.body.fontSize,
-                                color: Colors.light.textSecondary,
+                                color: colors.textSecondary,
                                 textAlign: 'center',
                                 marginBottom: DESIGN_TOKENS.spacing.lg,
                             }}
@@ -450,8 +454,8 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob }) => {
                                 paddingVertical: DESIGN_TOKENS.spacing.sm,
                                 paddingHorizontal: DESIGN_TOKENS.spacing.lg,
                                 backgroundColor: pressed 
-                                    ? Colors.light.backgroundSecondary
-                                    : Colors.light.tint,
+                                    ? colors.backgroundSecondary
+                                    : colors.tint,
                                 borderRadius: DESIGN_TOKENS.radius.md,
                                 minHeight: DESIGN_TOKENS.touch.minSize,
                             })}
@@ -459,13 +463,13 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob }) => {
                             <Ionicons 
                                 name={filter !== null ? "eye" : "add"} 
                                 size={16} 
-                                color={Colors.light.background} 
+                                color={colors.background} 
                             />
                             <Text style={{ 
                                 marginLeft: DESIGN_TOKENS.spacing.xs,
                                 fontSize: DESIGN_TOKENS.typography.body.fontSize,
                                 fontWeight: '500',
-                                color: Colors.light.background 
+                                color: colors.background 
                             }}>
                                 {filter !== null ? 'Show All Notes' : 'Add First Note'}
                             </Text>

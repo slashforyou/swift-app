@@ -7,7 +7,7 @@ import { View, Text, Pressable, Alert } from 'react-native';
 import { VStack, HStack } from '../../components/primitives/Stack';
 import { Card } from '../../components/ui/Card';
 import { DESIGN_TOKENS } from '../../constants/Styles';
-import { Colors } from '../../constants/Colors';
+import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 import Ionicons from '@react-native-vector-icons/ionicons';
 import PaymentWindow from './paymentWindow';
 interface JobPaymentProps {
@@ -99,6 +99,8 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
 
 // Composant Info de paiement
 const PaymentInfo: React.FC<PaymentInfoProps> = ({ label, value, format = 'text', currency = 'AUD' }) => {
+    const { colors } = useCommonThemedStyles();
+    
     const formatValue = (val: string | number) => {
         switch (format) {
             case 'currency':
@@ -115,14 +117,14 @@ const PaymentInfo: React.FC<PaymentInfoProps> = ({ label, value, format = 'text'
             <Text style={{
                 fontSize: DESIGN_TOKENS.typography.caption.fontSize,
                 fontWeight: '500',
-                color: Colors.light.textSecondary,
+                color: colors.textSecondary,
             }}>
                 {label}
             </Text>
             <Text style={{
                 fontSize: DESIGN_TOKENS.typography.body.fontSize,
                 fontWeight: format === 'currency' ? '600' : '400',
-                color: Colors.light.text,
+                color: colors.text,
             }}>
                 {formatValue(value)}
             </Text>
@@ -132,6 +134,8 @@ const PaymentInfo: React.FC<PaymentInfoProps> = ({ label, value, format = 'text'
 
 // Composant Carte de crédit sécurisé
 const CardItem: React.FC<CardItemProps> = ({ card, index, onSelect, onEdit, onDelete, isSelected = false }) => {
+    const { colors } = useCommonThemedStyles();
+    
     const handleEdit = () => {
         Alert.alert("Edit Card", "Feature coming soon! You'll be able to edit card details here.");
     };
@@ -150,7 +154,7 @@ const CardItem: React.FC<CardItemProps> = ({ card, index, onSelect, onEdit, onDe
     const getCardBrand = (cardNumber: string) => {
         if (cardNumber.startsWith('4')) return { name: 'Visa', icon: 'card', color: '#1A1F71' };
         if (cardNumber.startsWith('5')) return { name: 'Mastercard', icon: 'card', color: '#EB001B' };
-        return { name: 'Card', icon: 'card', color: Colors.light.tint };
+        return { name: 'Card', icon: 'card', color: colors.tint };
     };
 
     const brand = getCardBrand(card.cardNumber);
@@ -161,10 +165,10 @@ const CardItem: React.FC<CardItemProps> = ({ card, index, onSelect, onEdit, onDe
             hitSlop={DESIGN_TOKENS.touch.hitSlop}
             style={({ pressed }) => ({
                 backgroundColor: pressed 
-                    ? Colors.light.backgroundSecondary 
-                    : (isSelected ? Colors.light.backgroundTertiary : Colors.light.background),
+                    ? colors.backgroundSecondary 
+                    : (isSelected ? colors.backgroundTertiary : colors.background),
                 borderWidth: 2,
-                borderColor: isSelected ? Colors.light.tint : Colors.light.border,
+                borderColor: isSelected ? colors.tint : colors.border,
                 borderRadius: DESIGN_TOKENS.radius.lg,
                 padding: DESIGN_TOKENS.spacing.lg,
                 minHeight: DESIGN_TOKENS.touch.minSize,
@@ -181,19 +185,19 @@ const CardItem: React.FC<CardItemProps> = ({ card, index, onSelect, onEdit, onDe
                             padding: DESIGN_TOKENS.spacing.sm,
                             borderRadius: DESIGN_TOKENS.radius.sm,
                         }}>
-                            <Ionicons name={brand.icon as any} size={20} color={Colors.light.background} />
+                            <Ionicons name={brand.icon as any} size={20} color={colors.background} />
                         </View>
                         <VStack gap="xs">
                             <Text style={{
                                 fontSize: DESIGN_TOKENS.typography.body.fontSize,
                                 fontWeight: '600',
-                                color: Colors.light.text,
+                                color: colors.text,
                             }}>
                                 {brand.name}
                             </Text>
                             <Text style={{
                                 fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-                                color: Colors.light.textSecondary,
+                                color: colors.textSecondary,
                             }}>
                                 {maskCardNumber(card.cardNumber)}
                             </Text>
@@ -201,7 +205,7 @@ const CardItem: React.FC<CardItemProps> = ({ card, index, onSelect, onEdit, onDe
                     </HStack>
                     
                     {isSelected && (
-                        <Ionicons name="checkmark-circle" size={24} color={Colors.light.tint} />
+                        <Ionicons name="checkmark-circle" size={24} color={colors.tint} />
                     )}
                 </HStack>
 
@@ -209,13 +213,13 @@ const CardItem: React.FC<CardItemProps> = ({ card, index, onSelect, onEdit, onDe
                     <VStack gap="xs">
                         <Text style={{
                             fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-                            color: Colors.light.textSecondary,
+                            color: colors.textSecondary,
                         }}>
                             Card Holder
                         </Text>
                         <Text style={{
                             fontSize: DESIGN_TOKENS.typography.body.fontSize,
-                            color: Colors.light.text,
+                            color: colors.text,
                         }}>
                             {card.cardHolderName}
                         </Text>
@@ -224,13 +228,13 @@ const CardItem: React.FC<CardItemProps> = ({ card, index, onSelect, onEdit, onDe
                     <VStack gap="xs">
                         <Text style={{
                             fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-                            color: Colors.light.textSecondary,
+                            color: colors.textSecondary,
                         }}>
                             Expires
                         </Text>
                         <Text style={{
                             fontSize: DESIGN_TOKENS.typography.body.fontSize,
-                            color: Colors.light.text,
+                            color: colors.text,
                         }}>
                             {card.expiryDate}
                         </Text>
@@ -242,13 +246,13 @@ const CardItem: React.FC<CardItemProps> = ({ card, index, onSelect, onEdit, onDe
                             hitSlop={DESIGN_TOKENS.touch.hitSlop}
                             style={({ pressed }) => ({
                                 padding: DESIGN_TOKENS.spacing.xs,
-                                backgroundColor: pressed ? Colors.light.backgroundSecondary : 'transparent',
+                                backgroundColor: pressed ? colors.backgroundSecondary : 'transparent',
                                 borderRadius: DESIGN_TOKENS.radius.sm,
                             })}
                             accessibilityRole="button"
                             accessibilityLabel="Edit card"
                         >
-                            <Ionicons name="create" size={16} color={Colors.light.tint} />
+                            <Ionicons name="create" size={16} color={colors.tint} />
                         </Pressable>
                         
                         <Pressable
@@ -272,6 +276,7 @@ const CardItem: React.FC<CardItemProps> = ({ card, index, onSelect, onEdit, onDe
 };
 
 const JobPayment: React.FC<JobPaymentProps> = ({ job, setJob }) => {
+    const { colors } = useCommonThemedStyles();
     const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
     const [selectedCard, setSelectedCard] = useState<any>(null);
 
@@ -323,7 +328,7 @@ const JobPayment: React.FC<JobPaymentProps> = ({ job, setJob }) => {
                                 <Text style={{
                                     fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
                                     fontWeight: DESIGN_TOKENS.typography.subtitle.fontWeight,
-                                    color: Colors.light.text,
+                                    color: colors.text,
                                 }}>
                                     Payment Information
                                 </Text>
@@ -342,8 +347,8 @@ const JobPayment: React.FC<JobPaymentProps> = ({ job, setJob }) => {
                                         paddingVertical: DESIGN_TOKENS.spacing.sm,
                                         paddingHorizontal: DESIGN_TOKENS.spacing.md,
                                         backgroundColor: pressed 
-                                            ? Colors.light.backgroundSecondary
-                                            : Colors.light.tint,
+                                            ? colors.backgroundSecondary
+                                            : colors.tint,
                                         borderRadius: DESIGN_TOKENS.radius.md,
                                         minHeight: DESIGN_TOKENS.touch.minSize,
                                     })}
@@ -353,22 +358,22 @@ const JobPayment: React.FC<JobPaymentProps> = ({ job, setJob }) => {
                                     <Text style={{ 
                                         fontSize: DESIGN_TOKENS.typography.body.fontSize,
                                         fontWeight: '600',
-                                        color: Colors.light.background,
+                                        color: colors.background,
                                         marginRight: DESIGN_TOKENS.spacing.xs,
                                     }}>
                                         Pay Now
                                     </Text>
-                                    <Ionicons name="chevron-forward" size={16} color={Colors.light.background} />
+                                    <Ionicons name="chevron-forward" size={16} color={colors.background} />
                                 </Pressable>
                             )}
                         </HStack>
 
                         {!hasPayment && (
                             <VStack gap="sm" style={{ alignItems: 'center', paddingVertical: DESIGN_TOKENS.spacing.lg }}>
-                                <Ionicons name="card-outline" size={48} color={Colors.light.textSecondary} />
+                                <Ionicons name="card-outline" size={48} color={colors.textSecondary} />
                                 <Text style={{
                                     fontSize: DESIGN_TOKENS.typography.body.fontSize,
-                                    color: Colors.light.textSecondary,
+                                    color: colors.textSecondary,
                                     textAlign: 'center',
                                 }}>
                                     No payment information available
@@ -385,7 +390,7 @@ const JobPayment: React.FC<JobPaymentProps> = ({ job, setJob }) => {
                             <Text style={{
                                 fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
                                 fontWeight: DESIGN_TOKENS.typography.subtitle.fontWeight,
-                                color: Colors.light.text,
+                                color: colors.text,
                                 marginBottom: DESIGN_TOKENS.spacing.sm,
                             }}>
                                 Payment Summary
@@ -435,11 +440,11 @@ const JobPayment: React.FC<JobPaymentProps> = ({ job, setJob }) => {
                     <Card style={{ padding: DESIGN_TOKENS.spacing.lg }}>
                         <VStack gap="sm">
                             <HStack gap="sm" align="center" style={{ marginBottom: DESIGN_TOKENS.spacing.sm }}>
-                                <Ionicons name="receipt" size={20} color={Colors.light.tint} />
+                                <Ionicons name="receipt" size={20} color={colors.tint} />
                                 <Text style={{
                                     fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
                                     fontWeight: DESIGN_TOKENS.typography.subtitle.fontWeight,
-                                    color: Colors.light.text,
+                                    color: colors.text,
                                 }}>
                                     Tax Breakdown
                                 </Text>
@@ -467,11 +472,11 @@ const JobPayment: React.FC<JobPaymentProps> = ({ job, setJob }) => {
                         <VStack gap="lg">
                             <HStack gap="md" align="center" justify="space-between">
                                 <HStack gap="sm" align="center">
-                                    <Ionicons name="card" size={20} color={Colors.light.tint} />
+                                    <Ionicons name="card" size={20} color={colors.tint} />
                                     <Text style={{
                                         fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
                                         fontWeight: DESIGN_TOKENS.typography.subtitle.fontWeight,
-                                        color: Colors.light.text,
+                                        color: colors.text,
                                     }}>
                                         Saved Cards
                                     </Text>
@@ -486,20 +491,20 @@ const JobPayment: React.FC<JobPaymentProps> = ({ job, setJob }) => {
                                         paddingVertical: DESIGN_TOKENS.spacing.xs,
                                         paddingHorizontal: DESIGN_TOKENS.spacing.sm,
                                         backgroundColor: pressed 
-                                            ? Colors.light.backgroundSecondary
-                                            : Colors.light.backgroundTertiary,
+                                            ? colors.backgroundSecondary
+                                            : colors.backgroundTertiary,
                                         borderRadius: DESIGN_TOKENS.radius.sm,
                                         minHeight: DESIGN_TOKENS.touch.minSize * 0.8,
                                     })}
                                     accessibilityRole="button"
                                     accessibilityLabel="Add new card"
                                 >
-                                    <Ionicons name="add" size={16} color={Colors.light.tint} />
+                                    <Ionicons name="add" size={16} color={colors.tint} />
                                     <Text style={{ 
                                         marginLeft: DESIGN_TOKENS.spacing.xs,
                                         fontSize: DESIGN_TOKENS.typography.caption.fontSize,
                                         fontWeight: '500',
-                                        color: Colors.light.tint 
+                                        color: colors.tint 
                                     }}>
                                         Add Card
                                     </Text>

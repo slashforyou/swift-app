@@ -7,7 +7,7 @@ import { View, Text, Switch, Pressable } from 'react-native';
 import { VStack, HStack } from '../../components/primitives/Stack';
 import { Card } from '../../components/ui/Card';
 import { DESIGN_TOKENS } from '../../constants/Styles';
-import { Colors } from '../../constants/Colors';
+import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 import contactLink from '../../services/contactLink';
 import Ionicons from '@react-native-vector-icons/ionicons';
 
@@ -39,14 +39,16 @@ interface ItemRowProps {
 }
 
 // Composant pour afficher une information simple
-const InfoRow: React.FC<InfoRowProps> = ({ label, value, badge }) => (
+const InfoRow: React.FC<InfoRowProps> = ({ label, value, badge }) => {
+    const { colors } = useCommonThemedStyles();
+    return (
     <VStack gap="xs" style={{ paddingVertical: DESIGN_TOKENS.spacing.sm }}>
         <Text 
             style={{
                 fontSize: DESIGN_TOKENS.typography.caption.fontSize,
                 lineHeight: DESIGN_TOKENS.typography.caption.lineHeight,
                 fontWeight: DESIGN_TOKENS.typography.caption.fontWeight,
-                color: Colors.light.textSecondary,
+                color: colors.textSecondary,
             }}
         >
             {label}
@@ -54,7 +56,7 @@ const InfoRow: React.FC<InfoRowProps> = ({ label, value, badge }) => (
         {badge ? (
             <View 
                 style={{
-                    backgroundColor: Colors.light.backgroundTertiary,
+                    backgroundColor: colors.backgroundTertiary,
                     paddingHorizontal: DESIGN_TOKENS.spacing.md,
                     paddingVertical: DESIGN_TOKENS.spacing.xs,
                     borderRadius: DESIGN_TOKENS.radius.lg,
@@ -65,7 +67,7 @@ const InfoRow: React.FC<InfoRowProps> = ({ label, value, badge }) => (
                     style={{
                         fontSize: DESIGN_TOKENS.typography.caption.fontSize,
                         fontWeight: '500',
-                        color: Colors.light.tint,
+                        color: colors.tint,
                     }}
                 >
                     {value}
@@ -77,24 +79,27 @@ const InfoRow: React.FC<InfoRowProps> = ({ label, value, badge }) => (
                     fontSize: DESIGN_TOKENS.typography.body.fontSize,
                     lineHeight: DESIGN_TOKENS.typography.body.lineHeight,
                     fontWeight: DESIGN_TOKENS.typography.body.fontWeight,
-                    color: Colors.light.text,
+                    color: colors.text,
                 }}
             >
                 {value}
             </Text>
         )}
     </VStack>
-);
+    );
+};
 
 // Composant pour afficher une ligne de contact avec bouton d'action
-const ContactRow: React.FC<ContactRowProps> = ({ label, value, contactType, icon, buttonLabel, description }) => (
+const ContactRow: React.FC<ContactRowProps> = ({ label, value, contactType, icon, buttonLabel, description }) => {
+    const { colors } = useCommonThemedStyles();
+    return (
     <VStack gap="xs" style={{ paddingVertical: DESIGN_TOKENS.spacing.sm }}>
         <Text 
             style={{
                 fontSize: DESIGN_TOKENS.typography.caption.fontSize,
                 lineHeight: DESIGN_TOKENS.typography.caption.lineHeight,
                 fontWeight: DESIGN_TOKENS.typography.caption.fontWeight,
-                color: Colors.light.textSecondary,
+                color: colors.textSecondary,
             }}
         >
             {label}
@@ -106,7 +111,7 @@ const ContactRow: React.FC<ContactRowProps> = ({ label, value, contactType, icon
                         fontSize: DESIGN_TOKENS.typography.body.fontSize,
                         lineHeight: DESIGN_TOKENS.typography.body.lineHeight,
                         fontWeight: DESIGN_TOKENS.typography.body.fontWeight,
-                        color: Colors.light.text,
+                        color: colors.text,
                     }}
                 >
                     {value}
@@ -115,7 +120,7 @@ const ContactRow: React.FC<ContactRowProps> = ({ label, value, contactType, icon
                     <Text 
                         style={{
                             fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-                            color: Colors.light.textSecondary,
+                            color: colors.textSecondary,
                         }}
                     >
                         {description}
@@ -132,8 +137,8 @@ const ContactRow: React.FC<ContactRowProps> = ({ label, value, contactType, icon
                         paddingVertical: DESIGN_TOKENS.spacing.sm,
                         paddingHorizontal: DESIGN_TOKENS.spacing.md,
                         backgroundColor: pressed 
-                            ? Colors.light.backgroundSecondary
-                            : Colors.light.tint,
+                            ? colors.backgroundSecondary
+                            : colors.tint,
                         borderRadius: DESIGN_TOKENS.radius.md,
                         minHeight: DESIGN_TOKENS.touch.minSize,
                         minWidth: DESIGN_TOKENS.touch.minSize,
@@ -145,13 +150,13 @@ const ContactRow: React.FC<ContactRowProps> = ({ label, value, contactType, icon
                 <Ionicons 
                     name={icon as any} 
                     size={16} 
-                    color={Colors.light.background} 
+                    color={colors.background} 
                 />
                 <Text 
                     style={{
                         fontSize: DESIGN_TOKENS.typography.body.fontSize,
                         fontWeight: '500',
-                        color: Colors.light.background,
+                        color: colors.background,
                         marginLeft: DESIGN_TOKENS.spacing.xs,
                     }}
                 >
@@ -160,10 +165,13 @@ const ContactRow: React.FC<ContactRowProps> = ({ label, value, contactType, icon
             </Pressable>
         </HStack>
     </VStack>
-);
+    );
+};
 
 // Composant pour un item avec toggle
-const ItemRow: React.FC<ItemRowProps> = ({ item, index, onToggle }) => (
+const ItemRow: React.FC<ItemRowProps> = ({ item, index, onToggle }) => {
+    const { colors } = useCommonThemedStyles();
+    return (
     <HStack 
         gap="md" 
         align="center" 
@@ -178,7 +186,7 @@ const ItemRow: React.FC<ItemRowProps> = ({ item, index, onToggle }) => (
                     fontSize: DESIGN_TOKENS.typography.body.fontSize,
                     lineHeight: DESIGN_TOKENS.typography.body.lineHeight,
                     fontWeight: '500',
-                    color: Colors.light.text,
+                    color: colors.text,
                 }}
             >
                 {item.name}
@@ -187,7 +195,7 @@ const ItemRow: React.FC<ItemRowProps> = ({ item, index, onToggle }) => (
                 <Text 
                     style={{
                         fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-                        color: Colors.light.textSecondary,
+                        color: colors.textSecondary,
                     }}
                 >
                     Quantity: {item.number}
@@ -207,18 +215,21 @@ const ItemRow: React.FC<ItemRowProps> = ({ item, index, onToggle }) => (
             <Switch
                 value={item.checked || false}
                 onValueChange={(v) => onToggle(index, v)}
-                thumbColor={item.checked ? Colors.light.tint : Colors.light.backgroundTertiary}
+                thumbColor={item.checked ? colors.tint : colors.backgroundTertiary}
                 trackColor={{ 
-                    false: Colors.light.backgroundTertiary, 
-                    true: Colors.light.tint + '50' // 50% opacity
+                    false: colors.backgroundTertiary, 
+                    true: colors.tint + '50' // 50% opacity
                 }}
-                ios_backgroundColor={Colors.light.backgroundTertiary}
+                ios_backgroundColor={colors.backgroundTertiary}
             />
         </Pressable>
     </HStack>
-);
+    );
+};
 
 const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
+    const { colors } = useCommonThemedStyles();
+    
     const handleItemToggle = (itemIndex: number, checked: boolean) => {
         const updatedJob = { ...job };
         if (updatedJob.items && updatedJob.items[itemIndex]) {
@@ -238,7 +249,7 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
                                     fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
                                     lineHeight: DESIGN_TOKENS.typography.subtitle.lineHeight,
                                     fontWeight: DESIGN_TOKENS.typography.subtitle.fontWeight,
-                                    color: Colors.light.text,
+                                    color: colors.text,
                                     marginBottom: DESIGN_TOKENS.spacing.sm,
                                 }}
                             >
@@ -265,7 +276,7 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
                                 fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
                                 lineHeight: DESIGN_TOKENS.typography.subtitle.lineHeight,
                                 fontWeight: DESIGN_TOKENS.typography.subtitle.fontWeight,
-                                color: Colors.light.text,
+                                color: colors.text,
                                 marginBottom: DESIGN_TOKENS.spacing.sm,
                             }}
                         >
@@ -296,7 +307,7 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
                                     fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
                                     lineHeight: DESIGN_TOKENS.typography.subtitle.lineHeight,
                                     fontWeight: DESIGN_TOKENS.typography.subtitle.fontWeight,
-                                    color: Colors.light.text,
+                                    color: colors.text,
                                     marginBottom: DESIGN_TOKENS.spacing.sm,
                                 }}
                             >
@@ -343,7 +354,7 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
                                     fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
                                     lineHeight: DESIGN_TOKENS.typography.subtitle.lineHeight,
                                     fontWeight: DESIGN_TOKENS.typography.subtitle.fontWeight,
-                                    color: Colors.light.text,
+                                    color: colors.text,
                                     marginBottom: DESIGN_TOKENS.spacing.sm,
                                 }}
                             >
