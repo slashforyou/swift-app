@@ -87,22 +87,40 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         } catch (error: any) {
             console.error('Login error:', error);
             
-            // Messages d'erreur personnalisés
+            // Messages d'erreur personnalisés basés sur les nouveaux codes
             let errorMessage = 'Une erreur inattendue s\'est produite.';
             let errorTitle = 'Erreur de connexion';
             
             if (error.message) {
-                if (error.message.includes('401') || error.message.includes('unauthorized')) {
-                    errorMessage = 'Email ou mot de passe incorrect. Veuillez vérifier vos identifiants.';
-                    errorTitle = 'Identifiants incorrects';
-                } else if (error.message.includes('network') || error.message.includes('Network')) {
-                    errorMessage = 'Problème de connexion réseau. Veuillez vérifier votre connexion internet.';
-                    errorTitle = 'Problème réseau';
-                } else if (error.message.includes('timeout')) {
-                    errorMessage = 'La connexion a pris trop de temps. Veuillez réessayer.';
-                    errorTitle = 'Timeout';
-                } else {
-                    errorMessage = error.message;
+                switch (error.message) {
+                    case 'unauthorized':
+                    case 'invalid_credentials':
+                        errorMessage = 'Email ou mot de passe incorrect. Veuillez vérifier vos identifiants.';
+                        errorTitle = 'Identifiants incorrects';
+                        break;
+                    case 'device_info_unavailable':
+                        errorMessage = 'Impossible de récupérer les informations de votre appareil.';
+                        errorTitle = 'Erreur technique';
+                        break;
+                    case 'server_error':
+                        errorMessage = 'Le serveur rencontre un problème temporaire. Veuillez réessayer plus tard.';
+                        errorTitle = 'Erreur serveur';
+                        break;
+                    case 'invalid_login_response':
+                        errorMessage = 'Réponse du serveur incorrecte. Veuillez contacter le support.';
+                        errorTitle = 'Erreur technique';
+                        break;
+                    default:
+                        if (error.message.includes('network') || error.message.includes('Network')) {
+                            errorMessage = 'Problème de connexion réseau. Veuillez vérifier votre connexion internet.';
+                            errorTitle = 'Problème réseau';
+                        } else if (error.message.includes('timeout')) {
+                            errorMessage = 'La connexion a pris trop de temps. Veuillez réessayer.';
+                            errorTitle = 'Timeout';
+                        } else {
+                            errorMessage = error.message;
+                        }
+                        break;
                 }
             }
             
