@@ -1,198 +1,376 @@
 
-import React from 'react';
-import { View, Text, Pressable, TextInput } from 'react-native';
-import { StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { 
+    View, 
+    Text, 
+    Pressable, 
+    TextInput, 
+    SafeAreaView,
+    ScrollView,
+    KeyboardAvoidingView,
+    Platform 
+} from 'react-native';
+import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 import { ServerData } from '@/src/constants/ServerData';
+import AlertMessage from '../../components/ui/AlertMessage';
 
-const SubscribeScreen = ({ navigation }: any) => {
-    const style = StyleSheet.create({
-        container: {
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: '#f5f5f5',
-        },
-        logo: {
-            width: 100,
-            height: 100,
-            backgroundColor: 'rgb(215, 36, 36)',
-            borderRadius: 50,
-            marginBottom: 20,
-            justifyContent: 'center',
-            alignItems: 'center',
-        },
-        title: {
-            marginBottom: 20,
-        },
-        titleText: {
-            fontSize: 24,
-            fontWeight: 'bold',
-        },
-        button: {
-            padding: 10,
-            backgroundColor: 'rgb(215, 36, 36)',
-            borderRadius: 5,
-            marginTop: 20,
-            alignItems: 'center',
-            width: '80%',
-        },
-        buttonText: {
-            color: 'white',
-            fontSize: 16,
-        },
-        subscribeForm: {
-            width: '80%',
-            marginBottom: 20,
-            justifyContent: 'center',
-            alignItems: 'center',
-        },
-        input: {
-            height: 40,
-            borderColor: 'gray',
-            borderWidth: 1,
-            marginBottom: 10,
-            paddingHorizontal: 10,
-            borderRadius: 5,
-            width: '100%',
-        },
-        backButton: {
-            padding: 10,
-            backgroundColor: 'rgb(100, 100, 100)',
-            borderRadius: 5,
-            marginTop: 20,
-        },
-        backButtonText: {
-            color: 'white',
-            fontSize: 16,
-        },
-        linkButton: {
-            padding: 10,
-            borderRadius: 5,
-            borderWidth: 1,
-            borderColor: 'rgb(100, 100, 100)',
-            marginTop: 20,
-            alignItems: 'center',
-            width: '60%',
-        },
-        linkButtonText: {
-            color: 'rgb(100, 100, 100)',
-            fontSize: 16,
-        },
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+type RootStackParamList = {
+    Home: undefined;
+    Login: undefined;
+    Subscribe: undefined;
+    Connection: undefined;
+    SubscribeMailVerification: {
+        id: string;
+        mail: string;
+        firstName: string;
+        lastName: string;
+    };
+};
+
+interface SubscribeScreenProps {
+    navigation: NativeStackNavigationProp<RootStackParamList>;
+}
+
+const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
+    const { colors, styles } = useCommonThemedStyles();
+    
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [alert, setAlert] = useState<{
+        visible: boolean;
+        type: 'success' | 'error' | 'warning' | 'info';
+        title?: string;
+        message: string;
+    }>({
+        visible: false,
+        type: 'info',
+        message: '',
     });
 
-    const [email, setEmail] = React.useState('');
-    const [password, setPassword] = React.useState('');
-    const [confirmPassword, setConfirmPassword] = React.useState('');
-    const [firstName, setFirstName] = React.useState('');
-    const [lastName, setLastName] = React.useState('');
-    const [alertText, setAlertText] = React.useState('');
+    const showAlert = (type: 'success' | 'error' | 'warning' | 'info', message: string, title?: string) => {
+        setAlert({
+            visible: true,
+            type,
+            title,
+            message,
+        });
+    };
+
+    const hideAlert = () => {
+        setAlert(prev => ({ ...prev, visible: false }));
+    };
 
     const subscribe = async () => {
         console.log('Subscribe function called');
-        // Handle subscription logic here
-        if (!email || !password || !confirmPassword || !firstName || !lastName) {
-            setAlertText('Please fill in all fields.');
-            return;
-        } else if (password !== confirmPassword) {
-            setAlertText('Passwords do not match.');
+        
+        // Validation des champs
+        if (!firstName.trim()) {
+            showAlert('warning', 'Veuillez saisir votre prénom.', 'Prénom requis');
             return;
         }
 
-        const response = await fetch(`${ServerData.serverUrl}subscribe`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                mail: email,
-                password,
-                firstName,
-                lastName,
-            }),
-        });
+        if (!lastName.trim()) {
+            showAlert('warning', 'Veuillez saisir votre nom.', 'Nom requis');
+            return;
+        }
 
-        console.log('Response status:', response.status);
+        if (!email.trim()) {
+            showAlert('warning', 'Veuillez saisir votre adresse email.', 'Email requis');
+            return;
+        }
 
-        if (response.status === 200) {
-            const data = await response.json();
-            if (data.success) {
-                console.log('Subscription successful ! Navigating to mail verification screen. User ID:', data.user.id);
-                navigation.navigate('SubscribeMailVerification', {
-                    id : data.user.id,
+        if (!password.trim()) {
+            showAlert('warning', 'Veuillez saisir un mot de passe.', 'Mot de passe requis');
+            return;
+        }
+
+        if (!confirmPassword.trim()) {
+            showAlert('warning', 'Veuillez confirmer votre mot de passe.', 'Confirmation requise');
+            return;
+        }
+
+        // Validation format email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            showAlert('error', 'Veuillez saisir une adresse email valide.', 'Format invalide');
+            return;
+        }
+
+        // Validation mot de passe
+        if (password.length < 6) {
+            showAlert('error', 'Le mot de passe doit contenir au moins 6 caractères.', 'Mot de passe trop court');
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            showAlert('error', 'Les mots de passe ne correspondent pas.', 'Erreur de confirmation');
+            return;
+        }
+
+        setIsLoading(true);
+
+        try {
+            const response = await fetch(`${ServerData.serverUrl}subscribe`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
                     mail: email,
-                    firstName: firstName,
-                    lastName: lastName,
-                    password: password,
-                });
-            } else {
-                setAlertText(data.message || 'Subscription failed. Please try again.');
-            }
-        } else {
-            const data = await response.json();
-            setAlertText('Subscription failed. Please try again.');
-            console.error('Error response:', data);
-            if (data.error) {
-                console.error('Error:', data.error);
-            }
-        }   
+                    password,
+                    firstName,
+                    lastName,
+                }),
+            });
 
+            console.log('Response status:', response.status);
+
+            if (response.status === 200) {
+                const data = await response.json();
+                if (data.success) {
+                    showAlert('success', 'Compte créé ! Vérifiez votre email pour la confirmation.', 'Inscription réussie');
+                    
+                    setTimeout(() => {
+                        navigation.navigate('SubscribeMailVerification', {
+                            id: data.user.id,
+                            mail: email,
+                            firstName: firstName,
+                            lastName: lastName,
+                        });
+                    }, 1500);
+                    
+                } else {
+                    let errorMessage = 'Une erreur s\'est produite lors de l\'inscription.';
+                    let errorTitle = 'Erreur d\'inscription';
+                    
+                    if (data.message) {
+                        if (data.message.includes('email') || data.message.includes('mail')) {
+                            errorMessage = 'Cette adresse email est déjà utilisée.';
+                            errorTitle = 'Email déjà pris';
+                        } else {
+                            errorMessage = data.message;
+                        }
+                    }
+                    
+                    showAlert('error', errorMessage, errorTitle);
+                }
+            } else {
+                const data = await response.json();
+                showAlert('error', 'Une erreur s\'est produite lors de l\'inscription.', 'Erreur serveur');
+            }
+        } catch (error: any) {
+            console.error('Subscription error:', error);
+            
+            let errorMessage = 'Problème de connexion. Veuillez vérifier votre connexion internet.';
+            if (error.message?.includes('timeout')) {
+                errorMessage = 'La connexion a pris trop de temps. Veuillez réessayer.';
+            }
+            
+            showAlert('error', errorMessage, 'Erreur réseau');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <View style={style.logo}>
-                {/* Logo can be added here */}
-            </View>
-            <View style={ style.title }>
-                <Text style={style.titleText}>Subscribe</Text>
-            </View>
+        <SafeAreaView style={styles.container}>
+            <KeyboardAvoidingView 
+                style={{ flex: 1 }}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            >
+                <ScrollView 
+                    style={{ flex: 1 }}
+                    contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 20, paddingBottom: 60 }}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
+                >
+                    {/* Header avec bouton retour visible */}
+                    <View style={{ 
+                        flexDirection: 'row', 
+                        alignItems: 'center', 
+                        paddingTop: 20,
+                        marginBottom: 20 
+                    }}>
+                        <Pressable
+                            onPress={() => navigation.navigate('Connection')}
+                            disabled={isLoading}
+                            style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                backgroundColor: colors.backgroundSecondary,
+                                paddingHorizontal: 16,
+                                paddingVertical: 8,
+                                borderRadius: 20,
+                                borderWidth: 1,
+                                borderColor: colors.border
+                            }}
+                        >
+                            <Text style={[styles.body, { 
+                                color: colors.primary, 
+                                fontWeight: '600' 
+                            }]}>
+                                ← Retour
+                            </Text>
+                        </Pressable>
+                    </View>
 
-            <View style={ style.subscribeForm }>
-                <TextInput
-                    style={style.input}
-                    placeholder="Email"
-                    keyboardType="email-address"
-                    value={email}
-                    onChangeText={setEmail}
-                />
-                <TextInput
-                    style={style.input}
-                    placeholder="Password"
-                    secureTextEntry
-                    value={password}
-                    onChangeText={setPassword}
-                />
-                <TextInput
-                    style={style.input}
-                    placeholder="Confirm Password"
-                    secureTextEntry
-                    value={confirmPassword}
-                    onChangeText={setConfirmPassword}
-                />
-                <TextInput
-                    style={style.input}
-                    placeholder="First Name"
-                    value={firstName}
-                    onChangeText={setFirstName}
-                />
-                <TextInput
-                    style={style.input}
-                    placeholder="Last Name"
-                    value={lastName}
-                    onChangeText={setLastName}
-                />
-                <Pressable style={style.button} onPress={() => subscribe()}>
-                    <Text style={style.buttonText}>Subscribe</Text>
-                </Pressable>
-                {alertText ? <Text style={{ color: 'red', marginTop: 10 }}>{alertText}</Text> : null}
-            </View>
-            <Pressable onPress={() => navigation.navigate('Login')} style={style.linkButton}>
-                <Text style={style.linkButtonText}>I already have an account</Text>
-            </Pressable>
-            <Pressable onPress={() => navigation.navigate('Connection')} style={style.backButton}>
-                <Text style={style.backButtonText}>Back</Text>
-            </Pressable>
-        </View>
+                    {/* Header Section */}
+                    <View style={{ alignItems: 'center', marginBottom: 40 }}>
+                        <View style={{ 
+                            width: 80, 
+                            height: 80, 
+                            borderRadius: 40, 
+                            backgroundColor: colors.primary,
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            marginBottom: 24,
+                            shadowColor: '#000',
+                            shadowOffset: { width: 0, height: 4 },
+                            shadowOpacity: 0.15,
+                            shadowRadius: 8,
+                            elevation: 6,
+                        }}>
+                            <Text style={[styles.title, { color: colors.background, fontSize: 24 }]}>
+                                S
+                            </Text>
+                        </View>
+                        
+                        <Text style={[styles.title, { marginBottom: 8 }]}>
+                            Créer un compte
+                        </Text>
+                        
+                        <Text style={[styles.body, { 
+                            color: colors.textSecondary, 
+                            textAlign: 'center',
+                            paddingHorizontal: 20
+                        }]}>
+                            Rejoignez Swift pour gérer vos déménagements
+                        </Text>
+                    </View>
+
+                    {/* Alert Section */}
+                    <AlertMessage
+                        type={alert.type}
+                        title={alert.title}
+                        message={alert.message}
+                        visible={alert.visible}
+                        onDismiss={hideAlert}
+                    />
+
+                    {/* Form Section */}
+                    <View style={{ flex: 1, paddingVertical: 20 }}>
+                        <View style={{ marginBottom: 20 }}>
+                            <Text style={[styles.subtitle, { marginBottom: 8 }]}>
+                                Prénom
+                            </Text>
+                            <TextInput
+                                style={styles.inputBase}
+                                placeholder="Votre prénom"
+                                placeholderTextColor={colors.textSecondary}
+                                value={firstName}
+                                onChangeText={setFirstName}
+                                autoCapitalize="words"
+                                editable={!isLoading}
+                            />
+                        </View>
+
+                        <View style={{ marginBottom: 20 }}>
+                            <Text style={[styles.subtitle, { marginBottom: 8 }]}>
+                                Nom
+                            </Text>
+                            <TextInput
+                                style={styles.inputBase}
+                                placeholder="Votre nom"
+                                placeholderTextColor={colors.textSecondary}
+                                value={lastName}
+                                onChangeText={setLastName}
+                                autoCapitalize="words"
+                                editable={!isLoading}
+                            />
+                        </View>
+
+                        <View style={{ marginBottom: 20 }}>
+                            <Text style={[styles.subtitle, { marginBottom: 8 }]}>
+                                Email
+                            </Text>
+                            <TextInput
+                                style={styles.inputBase}
+                                placeholder="votre@email.com"
+                                placeholderTextColor={colors.textSecondary}
+                                value={email}
+                                onChangeText={setEmail}
+                                keyboardType="email-address"
+                                autoCapitalize="none"
+                                autoCorrect={false}
+                                editable={!isLoading}
+                            />
+                        </View>
+
+                        <View style={{ marginBottom: 20 }}>
+                            <Text style={[styles.subtitle, { marginBottom: 8 }]}>
+                                Mot de passe
+                            </Text>
+                            <TextInput
+                                style={styles.inputBase}
+                                placeholder="Au moins 6 caractères"
+                                placeholderTextColor={colors.textSecondary}
+                                value={password}
+                                onChangeText={setPassword}
+                                secureTextEntry
+                                editable={!isLoading}
+                            />
+                        </View>
+
+                        <View style={{ marginBottom: 30 }}>
+                            <Text style={[styles.subtitle, { marginBottom: 8 }]}>
+                                Confirmer le mot de passe
+                            </Text>
+                            <TextInput
+                                style={styles.inputBase}
+                                placeholder="Confirmer votre mot de passe"
+                                placeholderTextColor={colors.textSecondary}
+                                value={confirmPassword}
+                                onChangeText={setConfirmPassword}
+                                secureTextEntry
+                                editable={!isLoading}
+                            />
+                        </View>
+
+                        <Pressable
+                            style={[styles.buttonPrimary, { 
+                                backgroundColor: isLoading ? colors.textSecondary : colors.primary,
+                                opacity: isLoading ? 0.6 : 1
+                            }]}
+                            onPress={subscribe}
+                            disabled={isLoading}
+                        >
+                            <Text style={styles.buttonPrimaryText}>
+                                {isLoading ? 'Création du compte...' : 'Créer mon compte'}
+                            </Text>
+                        </Pressable>
+                    </View>
+
+                    {/* Footer Section */}
+                    <View style={{ alignItems: 'center', paddingBottom: 40 }}>
+                        <Pressable
+                            style={[styles.buttonSecondary, { width: '100%' }]}
+                            onPress={() => navigation.navigate('Login')}
+                            disabled={isLoading}
+                        >
+                            <Text style={styles.buttonSecondaryText}>
+                                J'ai déjà un compte
+                            </Text>
+                        </Pressable>
+                    </View>
+                </ScrollView>
+            </KeyboardAvoidingView>
+        </SafeAreaView>
     );
 }
 export default SubscribeScreen;
