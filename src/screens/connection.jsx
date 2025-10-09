@@ -57,7 +57,7 @@ const ConnectionScreen = ({ navigation }) => {
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
             {/* Fond animé avec emojis camions et cartons */}
-            <AnimatedBackground opacity={0.12} />
+            <AnimatedBackground opacity={0.25} />
             
             <View style={[styles.content, { paddingTop: insets.top + DESIGN_TOKENS.spacing.xl }]}>
                 

@@ -137,7 +137,7 @@ const SubscribeMailVerification = ({ route }: any) => {
     return (
         <SafeAreaView style={styles.container}>
             {/* Fond animé avec emojis camions et cartons */}
-            <AnimatedBackground opacity={0.08} />
+            <AnimatedBackground opacity={0.15} />
             
             <KeyboardAvoidingView 
                 style={{ flex: 1 }}

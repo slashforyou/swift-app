@@ -25,7 +25,6 @@ const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
   // Emojis camions et cartons
   const emojiSet = ['🚛', '📦', '🚚', '📦', '🚛', '📦'];
   
-  // Créer les emojis animés
   useEffect(() => {
     const createEmojis = () => {
       const emojis: MovingEmoji[] = [];
@@ -95,8 +94,12 @@ const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
     };
   }, [width, height]);
   
+  // Afficher les emojis animés
+
   return (
-    <View style={[StyleSheet.absoluteFillObject, { zIndex: -1 }]} pointerEvents="none">
+    <View style={[StyleSheet.absoluteFillObject, { 
+      zIndex: -1
+    }]} pointerEvents="none">
       {emojisRef.current.map((emojiObj) => {
         const translateX = emojiObj.animatedValue.interpolate({
           inputRange: [0, 1],
@@ -114,11 +117,11 @@ const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
             style={[
               styles.emojiContainer,
               {
-                opacity,
+                opacity: opacity,
                 transform: [
                   { translateX },
                   { translateY },
-                  { rotate: '-15deg' } // Légère rotation pour l'effet diagonal
+                  { rotate: '-15deg' }
                 ]
               }
             ]}
