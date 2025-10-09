@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeProvider';
 import { DESIGN_TOKENS } from '../constants/Styles';
 import { ensureSession } from '../utils/session';
+import AnimatedBackground from '../components/ui/AnimatedBackground';
 
 const { width, height } = Dimensions.get('window');
 
@@ -55,6 +56,9 @@ const ConnectionScreen = ({ navigation }) => {
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+            {/* Fond animé avec emojis camions et cartons */}
+            <AnimatedBackground opacity={0.12} />
+            
             <View style={[styles.content, { paddingTop: insets.top + DESIGN_TOKENS.spacing.xl }]}>
                 
                 {/* Header Section */}

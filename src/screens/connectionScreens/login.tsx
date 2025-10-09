@@ -12,6 +12,7 @@ import {
 import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 import { login } from '../../utils/auth';
 import AlertMessage from '../../components/ui/AlertMessage';
+import AnimatedBackground from '../../components/ui/AnimatedBackground';
 
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 type RootStackParamList = {
@@ -132,6 +133,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
     return (
         <SafeAreaView style={styles.container}>
+            {/* Fond animé avec emojis camions et cartons */}
+            <AnimatedBackground opacity={0.08} />
+            
             <KeyboardAvoidingView 
                 style={{ flex: 1 }}
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

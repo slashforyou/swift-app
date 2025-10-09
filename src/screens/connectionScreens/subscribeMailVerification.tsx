@@ -13,6 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 import { ServerData } from '@/src/constants/ServerData';
 import AlertMessage from '../../components/ui/AlertMessage';
+import AnimatedBackground from '../../components/ui/AnimatedBackground';
 
 type RootStackParamList = {
     Subscribe: undefined;
@@ -135,6 +136,9 @@ const SubscribeMailVerification = ({ route }: any) => {
 
     return (
         <SafeAreaView style={styles.container}>
+            {/* Fond animé avec emojis camions et cartons */}
+            <AnimatedBackground opacity={0.08} />
+            
             <KeyboardAvoidingView 
                 style={{ flex: 1 }}
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
