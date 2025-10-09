@@ -3,6 +3,7 @@
     "name": "Swift App",
     "version": "0.0.1",
     "description": "Mobile application for moving companies with job management, client tracking, and payment processing",
+    "root_directory": "C:\\Users\\romai\\OneDrive\\Documents\\client\\Swift\\App\\swift-app",
     "tech_stack": {
       "framework": "React Native with Expo (managed workflow)",
       "language": "TypeScript",
@@ -54,15 +55,30 @@
     }
   },
   "agent": {
+    "terminal_management": {
+      "app_execution_terminal": {
+        "name": "Claude App Test",
+        "purpose": "Dedicated terminal for running the application (expo start, npm run, etc.)",
+        "exclusive": true,
+        "note": "This terminal should always be used for app execution and testing"
+      },
+      "command_terminal": {
+        "name": "Claude Command", 
+        "purpose": "Single additional terminal for all other commands (git, file operations, etc.)",
+        "limit": "Only one additional terminal allowed beyond the app execution terminal"
+      }
+    },
     "behavior_instructions": [
       "Always use tools instead of providing code blocks unless specifically asked",
-      "Use proper Markdown formatting with backticks for filenames and symbols",
+      "Use proper Markdown formatting with backticks for filenames and symbols", 
       "When editing files, include 3-5 lines of context before and after changes",
       "Generate meaningful commit messages with emojis and clear descriptions",
       "Prefer multiple logical commits over single large commits",
       "Always check for compilation errors after making changes",
       "Maintain TypeScript strict typing throughout the project",
-      "Respect the established code architecture and patterns"
+      "Respect the established code architecture and patterns",
+      "Use 'Claude App Test' terminal exclusively for application execution",
+      "Use 'Claude Command' terminal for all other commands (maximum one additional terminal)"
     ],
     "code_standards": [
       "Use TypeScript for all new code",

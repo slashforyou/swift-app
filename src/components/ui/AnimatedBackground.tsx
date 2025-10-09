@@ -34,16 +34,16 @@ const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
       for (let i = 0; i < 12; i++) {
         const emoji = emojiSet[i % emojiSet.length];
         
-        // Position de départ (en haut à droite, hors écran)
-        const startX = width + (i * 100);
-        const startY = -100 - (i * 80);
+        // Position de départ (en haut à droite, légèrement hors écran)
+        const startX = width + 50 + (i * 60);
+        const startY = -50 - (i * 60);
         
-        // Position d'arrivée (en bas à gauche, hors écran)  
-        const endX = -200 - (i * 100);
-        const endY = height + 100 + (i * 80);
+        // Position d'arrivée (en bas à gauche, légèrement hors écran)  
+        const endX = -100 - (i * 60);
+        const endY = height + 50 + (i * 60);
         
-        // Durée variable pour effet naturel
-        const duration = 15000 + (i * 2000); // 15-35 secondes
+        // Durée variable pour effet naturel (plus rapide pour debug)
+        const duration = 8000 + (i * 1000); // 8-20 secondes
         
         emojis.push({
           id: i,
@@ -80,8 +80,8 @@ const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
           });
         };
         
-        // Démarrer avec un délai échelonné
-        setTimeout(startAnimation, index * 1000);
+        // Démarrer avec un délai échelonné (plus court pour debug)
+        setTimeout(startAnimation, index * 500);
       });
     };
     
@@ -96,7 +96,7 @@ const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
   }, [width, height]);
   
   return (
-    <View style={[StyleSheet.absoluteFillObject, { zIndex: 0 }]}>
+    <View style={[StyleSheet.absoluteFillObject, { zIndex: -1 }]} pointerEvents="none">
       {emojisRef.current.map((emojiObj) => {
         const translateX = emojiObj.animatedValue.interpolate({
           inputRange: [0, 1],
