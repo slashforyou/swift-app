@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
+import { fetchJobs as fetchJobsAPI, JobAPI } from '../services/jobs';
+import { isLoggedIn } from '../utils/auth';
 
 export interface Job {
   id: string;
@@ -48,6 +50,40 @@ interface UseJobsForDayReturn {
   totalJobs: number;
   completedJobs: number;
   pendingJobs: number;
+}
+
+// Fonction utilitaire pour convertir les données API vers le format local
+function convertAPIJobToLocal(apiJob: JobAPI): Job {
+  return {
+    id: apiJob.id,
+    status: apiJob.status,
+    priority: apiJob.priority,
+    client: {
+      firstName: apiJob.client?.firstName || '',
+      lastName: apiJob.client?.lastName || '',
+      phone: apiJob.client?.phone || '',
+      email: apiJob.client?.email || '',
+    },
+    contact: apiJob.contact || {
+      firstName: apiJob.client?.firstName || '',
+      lastName: apiJob.client?.lastName || '',
+      phone: apiJob.client?.phone || '',
+      email: apiJob.client?.email || '',
+    },
+    addresses: apiJob.addresses || [],
+    time: {
+      startWindowStart: apiJob.time.startWindowStart,
+      startWindowEnd: apiJob.time.startWindowEnd,
+      endWindowStart: apiJob.time.endWindowStart || '',
+      endWindowEnd: apiJob.time.endWindowEnd || '',
+    },
+    truck: apiJob.truck || {
+      licensePlate: '',
+      name: '',
+    },
+    estimatedDuration: apiJob.estimatedDuration,
+    notes: apiJob.notes,
+  };
 }
 
 export const useJobsForDay = (
@@ -223,18 +259,41 @@ export const useJobsForDay = (
       setIsLoading(true);
       setError(null);
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 400));
-      
-      // Simulate occasional errors
-      if (Math.random() < 0.1) {
-        throw new Error('Failed to load jobs. Please check your connection.');
+      // Vérifier si l'utilisateur est connecté
+      const loggedIn = await isLoggedIn();
+      if (!loggedIn) {
+        // Si pas connecté, utiliser les données mock pour les tests/développement
+        console.warn('User not logged in, using mock data');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const mockJobs = generateMockJobs();
+        setJobs(mockJobs);
+        return;
       }
       
-      const mockJobs = generateMockJobs();
-      setJobs(mockJobs);
+      // Utiliser l'API réelle
+      const apiJobs = await fetchJobsAPI();
+      
+      // Convertir les données API vers le format local
+      const convertedJobs = apiJobs.map(convertAPIJobToLocal);
+      
+      setJobs(convertedJobs);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      console.error('Error fetching jobs:', err);
+      
+      // En cas d'erreur API, fallback vers les données mock avec un message d'avertissement
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      
+      // Si l'erreur est liée à l'authentification, on affiche une erreur spécifique
+      if (errorMessage.includes('401') || errorMessage.includes('Unauthorized')) {
+        setError('Session expirée. Veuillez vous reconnecter.');
+      } else if (errorMessage.includes('Network') || errorMessage.includes('fetch')) {
+        setError('Problème de connexion. Utilisation des données locales.');
+        // Utiliser les données mock comme fallback
+        const mockJobs = generateMockJobs();
+        setJobs(mockJobs);
+      } else {
+        setError(`Erreur lors du chargement: ${errorMessage}`);
+      }
     } finally {
       setIsLoading(false);
     }

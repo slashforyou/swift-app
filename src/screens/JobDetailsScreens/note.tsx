@@ -9,6 +9,7 @@ import { Card } from '../../components/ui/Card';
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 import Ionicons from '@react-native-vector-icons/ionicons';
+import { useJobNotes } from '../../hooks/useJobNotes';
 
 interface JobNoteProps {
     job: any;
@@ -244,9 +245,39 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob }) => {
     const { colors } = useCommonThemedStyles();
     const [filter, setFilter] = useState<number | null>(null);
     const NOTE_TYPES = getNoteTypes(colors);
+    
+    // Utilisation du hook pour les notes API
+    const { 
+        notes: apiNotes, 
+        isLoading: isLoadingNotes, 
+        error: notesError, 
+        addNote 
+    } = useJobNotes(job?.id);
 
-    const handleAddNote = () => {
-        Alert.alert("Add Note", "Feature coming soon! You'll be able to add notes here.");
+    const handleAddNote = async () => {
+        Alert.prompt(
+            "Ajouter une note",
+            "Saisissez le contenu de votre note :",
+            [
+                { text: "Annuler", style: "cancel" },
+                {
+                    text: "Ajouter",
+                    onPress: async (text) => {
+                        if (text && text.trim()) {
+                            try {
+                                await addNote({ 
+                                    content: text.trim(),
+                                    type: 'general' 
+                                });
+                                Alert.alert("Succès", "Note ajoutée avec succès !");
+                            } catch (error) {
+                                Alert.alert("Erreur", "Impossible d'ajouter la note.");
+                            }
+                        }
+                    }
+                }
+            ]
+        );
     };
 
     const handleEditNote = (note: any) => {

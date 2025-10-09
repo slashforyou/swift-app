@@ -53,7 +53,7 @@ export async function login(mail: string, password: string) {
   return { sessionToken, success, hasRefresh: !!refreshToken };
 }
 
-export async function getAuthHeaders() {
+export async function getAuthHeaders(): Promise<Record<string, string>> {
   const st = await SecureStore.getItemAsync("session_token");
   return st ? { Authorization: `Bearer ${st}` } : {};
 }

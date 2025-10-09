@@ -2,14 +2,16 @@
  * Client Page - Affichage des informations client avec actions rapides
  * Conforme aux normes mobiles iOS/Android - Touch targets ≥44pt, 8pt grid
  */
-import React from 'react';
-import { View, Text, Pressable } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Pressable, Alert } from 'react-native';
 import { VStack, HStack } from '../../components/primitives/Stack';
 import { Card } from '../../components/ui/Card';
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 import contactLink from '../../services/contactLink';
 import Ionicons from '@react-native-vector-icons/ionicons';
+import { fetchClientById, ClientAPI } from '../../services/clients';
+import { isLoggedIn } from '../../utils/auth';
 
 interface JobClientProps {
     job: any;
@@ -49,14 +51,46 @@ const InfoRow: React.FC<InfoRowProps & { colors: any }> = ({ label, value, color
 
 const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
     const { colors } = useCommonThemedStyles();
+    const [extendedClientData, setExtendedClientData] = useState<ClientAPI | null>(null);
+    const [isLoadingClient, setIsLoadingClient] = useState(false);
+    
+    // Fonction pour charger les données client étendues depuis l'API
+    const loadExtendedClientData = async () => {
+        if (!job?.client_id) return;
+        
+        try {
+            setIsLoadingClient(true);
+            const loggedIn = await isLoggedIn();
+            
+            if (loggedIn) {
+                const clientData = await fetchClientById(job.client_id);
+                setExtendedClientData(clientData);
+            }
+        } catch (error) {
+            console.error('Error loading extended client data:', error);
+            // En cas d'erreur, on continue avec les données de base du job
+        } finally {
+            setIsLoadingClient(false);
+        }
+    };
+    
+    useEffect(() => {
+        loadExtendedClientData();
+    }, [job?.client_id]);
+    
+    // Utiliser les données étendues si disponibles, sinon les données de base
+    const clientData = extendedClientData || job.client;
     
     // Données client pour éviter la répétition
     const clientInfo = [
-        { label: 'First Name', value: job.client?.firstName },
-        { label: 'Last Name', value: job.client?.lastName },
-        { label: 'Phone', value: job.client?.phone },
-        { label: 'Email', value: job.client?.email },
-        { label: 'Client Type', value: job.client?.type },
+        { label: 'Prénom', value: clientData?.firstName },
+        { label: 'Nom', value: clientData?.lastName },
+        { label: 'Téléphone', value: clientData?.phone },
+        { label: 'Email', value: clientData?.email },
+        { label: 'Entreprise', value: clientData?.company },
+        { label: 'Adresse', value: clientData?.address ? 
+            `${clientData.address.street}, ${clientData.address.city} ${clientData.address.zip}` : null },
+        { label: 'Notes', value: clientData?.notes },
     ].filter(item => item.value); // Ne montre que les champs renseignés
 
     return (
