@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Animated, Dimensions, StyleSheet } from 'react-native';
-import { ThemedText } from '../ThemedText';
+import { View, Animated, Dimensions, StyleSheet, Text } from 'react-native';
 
 interface AnimatedBackgroundProps {
   opacity?: number;
@@ -124,9 +123,9 @@ const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
               }
             ]}
           >
-            <ThemedText style={styles.emoji}>
+            <Text style={styles.emoji}>
               {emojiObj.emoji}
-            </ThemedText>
+            </Text>
           </Animated.View>
         );
       })}

@@ -4,7 +4,6 @@
     "slug": "swiftapp",
     "version": "0.0.1",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
     "scheme": "swiftapp",
     "userInterfaceStyle": "automatic",
     "entryPoint": "App.tsx",
@@ -13,15 +12,10 @@
       "supportsTablet": true
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
       "edgeToEdgeEnabled": true
     },
     "web": {
-      "bundler": "metro",
-      "favicon": "./assets/images/favicon.png"
+      "bundler": "metro"
     },
     "extra": {
       "eas": {
