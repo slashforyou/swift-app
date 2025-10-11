@@ -3,7 +3,7 @@
  * Architecture moderne avec gestion correcte des Safe Areas et marges
  */
 import React, { useState } from 'react';
-import { View, ScrollView } from 'react-native';
+import { View, ScrollView, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import JobMenu from '../components/jobMenu';
 import JobSummary from './JobDetailsScreens/summary';
@@ -16,6 +16,7 @@ import Toast from '../components/ui/toastNotification';
 import { useAuthCheck } from '../utils/checkAuth';
 import { useTheme } from '../context/ThemeProvider';
 import { DESIGN_TOKENS } from '../constants/Styles';
+import { useJobDetails } from '../hooks/useJobDetails';
 
 // Types et interfaces
 interface JobDetailsProps {
@@ -54,11 +55,49 @@ const useToast = () => {
 const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, month, year }) => {
     const insets = useSafeAreaInsets();
     const { toastDetails, showToast } = useToast();
-    const { isLoading, LoadingComponent } = useAuthCheck(navigation);
+    const { isLoading: authLoading, LoadingComponent } = useAuthCheck(navigation);
     const { colors } = useTheme();
     
+    // Récupération de l'ID du job depuis les paramètres de route ou props
+    const actualJobId = route?.params?.jobId || jobId || route?.params?.id;
+    
+    console.log('🔍 [JobDetails] Component props:', {
+        routeParams: route?.params,
+        propJobId: jobId,
+        actualJobId,
+        day, month, year
+    });
+    
+    // Hook principal pour les données du job
+    const { 
+        jobDetails, 
+        isLoading: jobLoading, 
+        error, 
+        refreshJobDetails,
+        updateJob,
+        addNote,
+        startJob,
+        pauseJob,
+        resumeJob,
+        completeJob,
+        isUpdating,
+        isAddingNote,
+        isPerformingAction,
+        isSessionExpired
+    } = useJobDetails(actualJobId);
+    
+    console.log('🔍 [JobDetails] Hook state:', {
+        hasJobDetails: !!jobDetails,
+        jobTitle: jobDetails?.job?.title,
+        clientName: jobDetails?.client?.name,
+        isLoading: jobLoading,
+        hasError: !!error,
+        errorMessage: error
+    });
+    
+    // États locaux pour l'UI et données adaptées des vraies données API
     const [job, setJob] = useState({
-        id: jobId || "#LM0000000001",
+        id: actualJobId || "#LM0000000001",
         signatureDataUrl: '',
         signatureFileUri: '',
         step : {
@@ -71,7 +110,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
         },
         client: {
             firstName: "Client A",
-            lastName: "Last Name",
+            lastName: "Last Name", 
             phone: "+1234567890",
             email: "mail@mail.com",
             type: "First Time Client",
@@ -86,7 +125,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
                 type: "pickup",
                 street: "123 Main St",
                 city: "City A",
-                state: "State A",
+                state: "State A", 
                 zip: "12345",
             },
             {
@@ -95,66 +134,37 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
                 city: "City B",
                 state: "State B",
                 zip: "67890",
-            },
-            {
-                type: "intermediate",
-                street: "789 Oak St",
-                city: "City C",
-                state: "State C",
-                zip: "11223",
-            },
+            }
         ],
         time: {
             startWindowStart: "2023-10-01T08:00:00Z",
             startWindowEnd: "2023-10-01T10:00:00Z",
-            endWindowStart: "2023-10-01T12:00:00Z",
+            endWindowStart: "2023-10-01T12:00:00Z", 
             endWindowEnd: "2023-10-01T14:00:00Z",
         },
         truck: {
             licensePlate: "ABC123",
             name: "Truck A",
         },
-        notes: [
-            {
-                id: 1,
-                title: "Note 1",
-                content: "This is a note for the job.",
-                createdAt: "2023-10-01T08:00:00Z",
-                type: 0, // 0 - Classic, 1 - Info, 2 - Warning, 3 - Error, 4 - Success
-            },
-            {
-                id: 2,
-                title: "Important Note",
-                content: "Note 2",
-                createdAt: "2023-10-01T09:00:00Z",
-                type: 1, // 0 - Classic, 1 - Info, 2 - Warning, 3 - Error, 4 - Success
-            },
-            {
-                id: 3,
-                title: "Warning Note",
-                content: "Note 3",
-                createdAt: "2023-10-01T10:00:00Z",
-                type: 2, // 0 - Classic, 1 - Info, 2 - Warning, 3 - Error, 4 - Success
-            },
-        ],
+        notes: [],
         payment: {
-            status: "unsettled", // unsettled, pending, accepted, rejected, paid
-            amount: '550.00', // total amount for the job with taxes
-            amountWithoutTax: '500.00', // total amount without taxes
-            amountPaid: '0.00', // total amount paid so far
-            amountToBePaid: '550.00', // amount to be paid
+            status: "unsettled", 
+            amount: '550.00',
+            amountWithoutTax: '500.00',
+            amountPaid: '0.00',
+            amountToBePaid: '550.00',
             taxe: {
                 gst: '50.00',
-                gstRate: 10, // GST rate in percentage
-                amountWithoutTax: '500.00', // amount without tax
+                gstRate: 10,
+                amountWithoutTax: '500.00',
             },
             currency: 'AUD',
             dueDate: 'N/A',
-            paymentMethod: 'N/A', // cash, card, bank transfer, etc.
+            paymentMethod: 'N/A',
             transactionId: 'N/A',
-            paymentLink: 'N/A', // link to payment portal if available
-            paymentTime: 'N/A', // time of payment if already paid
-            paymentDetails: 'N/A', // additional details about the payment
+            paymentLink: 'N/A',
+            paymentTime: 'N/A',
+            paymentDetails: 'N/A',
             savedCards: [
                 {
                     id: 1,
@@ -172,12 +182,12 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
                 },
             ],
         },
-        items : [
+        items: [
             {
                 id: 1,
                 name: "Toy-boy",
                 number: 1,
-                checked: false, // true if the item is checked
+                checked: false,
             },
             {
                 id: 2,
@@ -212,6 +222,52 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
         }
     });
     
+    // Effet pour mettre à jour les données locales quand jobDetails change
+    React.useEffect(() => {
+        if (jobDetails) {
+            console.log('🔄 [JobDetails] Updating local job data from API data...');
+            console.log('🔍 [JobDetails] jobDetails structure:', {
+                hasJob: !!jobDetails.job,
+                hasClient: !!jobDetails.client,
+                clientKeys: jobDetails.client ? Object.keys(jobDetails.client) : [],
+                jobKeys: jobDetails.job ? Object.keys(jobDetails.job) : []
+            });
+            
+            // Mise à jour des données avec les vraies données de l'API transformées
+            setJob((prevJob: any) => ({
+                ...prevJob,
+                id: jobDetails.job?.id || actualJobId,
+                client: {
+                    firstName: jobDetails.client?.firstName || 'Client',
+                    lastName: jobDetails.client?.lastName || 'Inconnu', 
+                    phone: jobDetails.client?.phone || 'N/A',
+                    email: jobDetails.job?.client_email || 'N/A', // Fallback sur job.client_email
+                    type: 'Client', // Pour l'instant on met une valeur par défaut
+                },
+                notes: jobDetails.notes?.map((note: any) => ({
+                    id: parseInt(note.id),
+                    title: note.title || 'Note',
+                    content: note.content,
+                    createdAt: note.created_at,
+                    type: note.note_type || 0
+                })) || [],
+                truck: jobDetails.trucks?.length > 0 ? {
+                    licensePlate: jobDetails.trucks[0].license_plate,
+                    name: jobDetails.trucks[0].truck_name,
+                } : prevJob.truck,
+                items: jobDetails.items?.map((item: any, index: number) => ({
+                    id: index + 1,
+                    name: item.name,
+                    number: item.quantity,
+                    checked: item.is_checked === 1,
+                })) || [],
+                addresses: prevJob.addresses // Garder les adresses par défaut pour l'instant
+            }));
+            
+            console.log('✅ [JobDetails] Local job data updated with API data');
+        }
+    }, [jobDetails]);
+    
     const [jobPanel, setJobPanel] = useState(0);
     // jobPanel: 0 - Summary, 1 - Job Details, 2 - Client, 3 - Notes, 4 - Payment
 
@@ -227,7 +283,38 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
         }
     };
 
-    if (isLoading) return LoadingComponent;
+    // Gestion des états de chargement
+    if (authLoading || (jobLoading && !jobDetails)) {
+        return LoadingComponent;
+    }
+    
+    // Si on n'a pas d'ID de job valide
+    if (!actualJobId || actualJobId === 'undefined' || actualJobId === 'null') {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+                <Text style={{ color: colors.text, fontSize: 18, fontWeight: '600' }}>
+                    ❌ ID de job invalide
+                </Text>
+                <Text style={{ color: colors.textSecondary, fontSize: 14, marginTop: 8 }}>
+                    Impossible de charger les détails du job
+                </Text>
+            </View>
+        );
+    }
+
+    // Affichage d'erreur
+    if (error && !isSessionExpired) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background, padding: 20 }}>
+                <Text style={{ color: colors.error, fontSize: 18, fontWeight: '600', textAlign: 'center' }}>
+                    ❌ Erreur de chargement
+                </Text>
+                <Text style={{ color: colors.textSecondary, fontSize: 14, marginTop: 8, textAlign: 'center' }}>
+                    {error}
+                </Text>
+            </View>
+        );
+    }
 
     return (
         <View style={{
@@ -257,7 +344,14 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
                 {jobPanel === 0 && <JobSummary job={job} setJob={setJob} />}
                 {jobPanel === 1 && <JobPage job={job} setJob={setJob} />}
                 {jobPanel === 2 && <JobClient job={job} setJob={setJob} />}
-                {jobPanel === 3 && <JobNote job={job} setJob={setJob} />}
+                {jobPanel === 3 && (
+                    <JobNote 
+                        job={job} 
+                        setJob={setJob} 
+                        notes={jobDetails?.notes || []}
+                        onAddNote={addNote}
+                    />
+                )}
                 {jobPanel === 4 && <JobPayment job={job} setJob={setJob} />}
             </ScrollView>
             

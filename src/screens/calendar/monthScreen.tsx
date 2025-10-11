@@ -1,6 +1,7 @@
 // Modern month calendar screen with enhanced UX, job indicators, and modern design
 
 import React, { useState, useMemo, useCallback } from 'react';
+import { useJobsForMonth } from '../../hooks/useJobsForMonth';
 import { 
     View, 
     Text, 
@@ -14,6 +15,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
+import { JobAPI } from '../../services/jobs';
 
 // Design tokens for consistent spacing and styling
 const DESIGN_TOKENS = {
@@ -48,27 +50,69 @@ const DESIGN_TOKENS = {
     },
 };
 
-// Mock function to get jobs for a specific day
-const getJobsForDay = (day: number, month: number, year: number) => {
-    // Simulate some jobs for demonstration
-    const mockJobs = [
-        { day: 5, status: 'urgent', count: 2 },
-        { day: 8, status: 'completed', count: 1 },
-        { day: 12, status: 'pending', count: 3 },
-        { day: 15, status: 'urgent', count: 1 },
-        { day: 18, status: 'completed', count: 2 },
-        { day: 22, status: 'pending', count: 1 },
-        { day: 25, status: 'urgent', count: 1 },
-    ];
+// Adapter pour normaliser les données de l'API
+const normalizeJob = (rawJob: any): JobAPI => {
+    return {
+        id: rawJob.id?.toString() || '',
+        status: rawJob.status || 'pending',
+        priority: rawJob.priority || 'medium',
+        client_id: rawJob.client_id?.toString() || '',
+        addresses: rawJob.addresses || [],
+        time: {
+            startWindowStart: rawJob.start_window_start || rawJob.time?.startWindowStart || '',
+            startWindowEnd: rawJob.start_window_end || rawJob.time?.startWindowEnd || '',
+            endWindowStart: rawJob.end_window_start || rawJob.time?.endWindowStart,
+            endWindowEnd: rawJob.end_window_end || rawJob.time?.endWindowEnd,
+        },
+        createdAt: rawJob.created_at || rawJob.createdAt || '',
+        updatedAt: rawJob.updated_at || rawJob.updatedAt || '',
+        notes: rawJob.notes,
+        estimatedDuration: rawJob.estimated_duration || rawJob.estimatedDuration,
+        client: rawJob.client,
+        contact: rawJob.contact,
+        truck: rawJob.truck,
+    };
+};
+
+// Helper function to get jobs for a specific day from API data
+const getJobsForDay = (day: number, jobs: any[]) => {
+    const dayJobs = jobs.map(normalizeJob).filter(job => {
+        if (!job.time?.startWindowStart) {
+            return false;
+        }
+        
+        const jobDate = new Date(job.time.startWindowStart);
+        const isMatchingDay = jobDate.getDate() === day;
+        
+        return isMatchingDay;
+    });
     
-    return mockJobs.find(job => job.day === day) || null;
+    if (dayJobs.length === 0) return null;
+
+    // Count by status
+    const statusCount = dayJobs.reduce((acc, job) => {
+        const status = job.status || 'pending';
+        acc[status] = (acc[status] || 0) + 1;
+        return acc;
+    }, {} as Record<string, number>);
+
+    // Determine primary status (highest priority first)
+    const statusPriority = ['urgent', 'pending', 'in-progress', 'completed'];
+    const primaryStatus = statusPriority.find(status => statusCount[status] > 0) || 'pending';
+
+    const result = {
+        count: dayJobs.length,
+        status: primaryStatus,
+        jobs: dayJobs
+    };
+    
+    return result;
 };
 
 const MonthCalendarScreen = ({ navigation, route }: any) => {
     const { colors, styles: commonStyles } = useCommonThemedStyles();
     
     // States for modern UX
-    const [isLoading, setIsLoading] = useState(false);
     const [animatedValue] = useState(new Animated.Value(1));
     
     // Calculate responsive dimensions
@@ -84,6 +128,19 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
 
     const selectedYear = year || new Date().getFullYear();
     const selectedMonthIndex = month ? month - 1 : new Date().getMonth();
+    
+    // Hook pour les jobs du mois
+    const { jobs, isLoading, error, refreshJobs } = useJobsForMonth(selectedYear, selectedMonthIndex + 1);
+    
+    // Debug logs pour suivre l'état des jobs
+    console.log('🔍 [MONTH SCREEN] Component state:', {
+        selectedYear,
+        selectedMonth: selectedMonthIndex + 1,
+        jobsCount: jobs.length,
+        isLoading,
+        hasError: !!error
+    });
+    
     const selectedMonth = monthList[month - 1] || new Date().toLocaleString('default', { month: 'long' });
 
     const daysInMonth = new Date(selectedYear, selectedMonthIndex + 1, 0).getDate();
@@ -130,20 +187,18 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
 
     // Pull to refresh functionality
     const handleRefresh = useCallback(async () => {
-        setIsLoading(true);
-        // Simulate loading time
-        await new Promise(resolve => setTimeout(resolve, 800));
-        setIsLoading(false);
-    }, []);
+        refreshJobs();
+    }, [refreshJobs]);
 
     // Calculate month statistics
     const monthStats = useMemo(() => {
+        console.log('🔍 [MONTH STATS] Calculating stats for', jobs.length, 'jobs');
         let totalJobs = 0;
         let urgentJobs = 0;
         let completedJobs = 0;
         
         for (let day = 1; day <= daysInMonth; day++) {
-            const dayJobs = getJobsForDay(day, selectedMonthIndex + 1, selectedYear);
+            const dayJobs = getJobsForDay(day, jobs);
             if (dayJobs) {
                 totalJobs += dayJobs.count;
                 if (dayJobs.status === 'urgent') urgentJobs += dayJobs.count;
@@ -151,8 +206,9 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
             }
         }
         
+        console.log('🔍 [MONTH STATS] Result:', { totalJobs, urgentJobs, completedJobs });
         return { totalJobs, urgentJobs, completedJobs };
-    }, [selectedMonthIndex, selectedYear, daysInMonth]);
+    }, [selectedMonthIndex, selectedYear, daysInMonth, jobs]);
 
     // Component for job indicator dot
     const JobIndicator = ({ job }: { job: any }) => {
@@ -362,6 +418,35 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
                 height: buttonWidth,
                 backgroundColor: 'transparent',
             },
+            errorContainer: {
+                backgroundColor: '#ffebee',
+                marginHorizontal: DESIGN_TOKENS.spacing.lg,
+                marginVertical: DESIGN_TOKENS.spacing.md,
+                padding: DESIGN_TOKENS.spacing.lg,
+                borderRadius: DESIGN_TOKENS.radius.md,
+                borderLeftWidth: 4,
+                borderLeftColor: '#f44336',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+            },
+            errorText: {
+                fontSize: 14,
+                color: '#d32f2f',
+                flex: 1,
+                marginRight: DESIGN_TOKENS.spacing.md,
+            },
+            retryButton: {
+                backgroundColor: '#f44336',
+                paddingHorizontal: DESIGN_TOKENS.spacing.md,
+                paddingVertical: DESIGN_TOKENS.spacing.sm,
+                borderRadius: DESIGN_TOKENS.radius.sm,
+            },
+            retryText: {
+                fontSize: 12,
+                color: 'white',
+                fontWeight: '600',
+            },
         });
     };
 
@@ -369,6 +454,16 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
 
     return (
         <View style={customStyles.container}>
+            {/* Affichage d'erreur si problème API */}
+            {error && (
+                <View style={customStyles.errorContainer}>
+                    <Text style={customStyles.errorText}>⚠️ {error}</Text>
+                    <Pressable style={customStyles.retryButton} onPress={refreshJobs}>
+                        <Text style={customStyles.retryText}>Réessayer</Text>
+                    </Pressable>
+                </View>
+            )}
+            
             <Animated.View style={[
                 customStyles.header,
                 { transform: [{ scale: animatedValue }] }
@@ -500,7 +595,7 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
 
                         {/* Jours du mois */}
                         {daysArray.map((day) => {
-                            const dayJobs = getJobsForDay(day, selectedMonthIndex + 1, selectedYear);
+                            const dayJobs = getJobsForDay(day, jobs);
                             return (
                                 <Pressable
                                     key={day}

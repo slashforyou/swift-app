@@ -229,11 +229,6 @@ const JobBox: React.FC<JobBoxProps> = ({ job, onPress, navigation, day, month, y
             fontSize: DESIGN_TOKENS.typography.caption.fontSize,
             fontWeight: '600',
         },
-                padding: 5,
-                backgroundColor: colors.primary,
-                justifyContent: 'center',
-                borderRadius: 5,
-            },
     });
 
     return (
@@ -329,87 +324,6 @@ const JobBox: React.FC<JobBoxProps> = ({ job, onPress, navigation, day, month, y
                 >
                     <Text style={styles.actionButtonText}>View</Text>
                 </Pressable>
-            </View>
-        </Pressable>
-    );
-};
-
-export default JobBox;
-            shadowRadius: 4,
-            elevation: 2,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '100%',
-            borderWidth: 1,
-            borderColor: colors.primary,
-        },
-            jobQuickActionButtonMapText: {
-                fontSize: 16,
-                color: colors.textSecondary,
-                marginBottom: 5,
-                textAlign: 'center',
-            },
-        });
-
-    const styles = useThemedStyles(createStyles);
-
-    const handlePress = (e: any) => {
-        e.stopPropagation(); // Prevents the event from bubbling up
-        if (navigation && typeof navigation.navigate === 'function') {
-            console.log(`Job ${job.id} selected, navigating to details...`);
-            navigation.navigate('JobDetails', { jobId: job.id, navigation, day, month, year });
-        } else {
-            console.log(`Job ${job.id} selected`);
-        }
-    }
-
-
-    return (
-        <Pressable style={styles.dayJobBox} onPress={handlePress}>
-            <View style={ styles.dayJobBoxTopPanel }>
-                <View style={ styles.dayJobBoxLeftPanel }>
-                    <View style={ styles.jobTitle }>
-                    <Text style={styles.jobTitleText}>{job.id}</Text>
-                    </View>
-                    <Text style={styles.jobStartSuburb }>{job.addresses[0].city}</Text>
-                    <Text style={styles.jobClientName}>
-                        {job.client.firstName} {job.client.lastName}
-                    </Text>
-                </View>
-                <View style={ styles.dayJobBoxRightPanel }>
-                    <Text style={styles.jobStartTimeTitle}>Start Time:</Text>
-                    <Text style={styles.jobStartTime}>{
-                        new Date(job.time.startWindowStart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                    }</Text>
-                    <Text style={styles.jobStartTime}>{
-                        new Date(job.time.startWindowEnd).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                    }</Text>
-                </View>
-            </View>
-            <View style={ styles.dayJobBoxBottomPanel }>
-                <View style={styles.dayJobBoxLeftPanel}>
-                    <Text style={styles.jobTruckTitle}>
-                         <Ionicons name="car" size={16} color="colors.textSecondary" />
-                         Truck:
-                    </Text>
-                    <View style={styles.dayJobTruckPlate}>
-                        <Text style={styles.jobTruckPlateText}>{job.truck.licensePlate}</Text>
-                    </View>
-                    <View style={styles.jobTruckName}>
-                        <Text style={styles.jobTruckNameText}>{job.truck.name}</Text>
-                    </View>
-                </View>
-                <View style={styles.dayJobBoxRightPanel}>
-                    <Pressable onPress={() => console.log(`QUICK ACTION : Call ${job.client.phone}`)} style={ styles.jobQuickActionButtonCall }>
-                        <Ionicons name="call" size={18} color={colors.textSecondary} style={ styles.jobTruckIcon } />
-                        <Text style={ styles.jobQuickActionButtonCallText }>Call</Text>
-                    </Pressable>
-                    <Pressable onPress={() => console.log(`QUICK ACTION : Map to ${job.addresses[0].street}`)} style={ styles.jobQuickActionButtonMap }>
-                        <Ionicons name="navigate" size={18} color={colors.textSecondary} style={ styles.jobTruckIcon } />
-                        <Text style={ styles.jobQuickActionButtonMapText }>Map</Text>
-                    </Pressable>
-                </View>
             </View>
         </Pressable>
     );

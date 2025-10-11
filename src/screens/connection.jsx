@@ -12,7 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeProvider';
 import { DESIGN_TOKENS } from '../constants/Styles';
 import { ensureSession } from '../utils/session';
-import AnimatedBackground from '../components/ui/AnimatedBackground';
+import SimpleAnimatedBackground from '../components/ui/SimpleAnimatedBackground';
 
 const { width, height } = Dimensions.get('window');
 
@@ -29,9 +29,11 @@ const ConnectionScreen = ({ navigation }) => {
                 setIsLoading(true);
                 console.log("Checking user session...");
                 const userLoggedIn = await ensureSession();
-                if (userLoggedIn && userLoggedIn.authenticated === true) {
-                    navigation.navigate('Home');
-                }
+                console.log("🔍 Session result:", userLoggedIn);
+                // DÉSACTIVÉ TEMPORAIREMENT POUR DEBUG
+                // if (userLoggedIn && userLoggedIn.authenticated === true) {
+                //     navigation.navigate('Home');
+                // }
             } catch (error) {
                 console.error("Error checking session:", error);
             } finally {
@@ -55,20 +57,31 @@ const ConnectionScreen = ({ navigation }) => {
     }
 
     return (
-        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-            {/* Fond animé avec emojis camions et cartons */}
-            <AnimatedBackground opacity={0.25} />
+        <SafeAreaView style={[styles.container, { 
+            backgroundColor: 'red', // TEST: SafeAreaView en rouge
+            flex: 1 
+        }]}>
+            <Text style={{ 
+                color: 'white', 
+                fontSize: 30, 
+                textAlign: 'center', 
+                marginTop: 50,
+                backgroundColor: 'black',
+                padding: 20
+            }}>
+                SAFE AREA VIEW TEST - ES-TU VISIBLE ???
+            </Text>
             
             <View style={[styles.content, { paddingTop: insets.top + DESIGN_TOKENS.spacing.xl }]}>
                 
                 {/* Header Section */}
                 <View style={styles.header}>
-                    <View style={[styles.logo, { backgroundColor: colors.primary }]}>
-                        <Text style={styles.logoText}>Swift</Text>
+                    <View style={[styles.logo, { backgroundColor: 'red' }]}>
+                        <Text style={styles.logoText}>TEST</Text>
                     </View>
                     
-                    <Text style={[styles.title, { color: colors.text }]}>
-                        Bienvenue
+                    <Text style={[styles.title, { color: 'red', fontSize: 50 }]}>
+                        ROUGE TEST VISIBLE ???
                     </Text>
                     
                     <Text style={[styles.subtitle, { color: colors.textSecondary }]}>

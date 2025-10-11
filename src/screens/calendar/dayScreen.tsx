@@ -54,6 +54,11 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
         completedJobs,
         pendingJobs
     } = useJobsForDay(selectedDay, selectedMonth, selectedYear, statusFilter, sortBy);
+    
+    // Debug logs
+    console.log(`🏠 DayScreen Hook Results - Date: ${selectedDay}/${selectedMonth}/${selectedYear}`);
+    console.log(`📊 Hook State - isLoading: ${isLoading}, error: ${error}, jobs: ${jobs.length}, filteredJobs: ${filteredJobs.length}`);
+    
     // Format date for display
     const formattedDate = useMemo(() => {
         const date = new Date(selectedYear, selectedMonth - 1, selectedDay);
@@ -67,9 +72,11 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
 
     // Handle job press
     const handleJobPress = useCallback((job: Job) => {
-        console.log(`Job ${job.id} selected`);
+        // Utiliser le code du job (ex: JOB-NERD-URGENT-006) au lieu de l'ID numérique
+        const jobCode = job.code || job.id; // Fallback sur ID si pas de code
+        console.log(`Job ${job.id} (code: ${jobCode}) selected`);
         navigation.navigate('JobDetails', { 
-            jobId: job.id,
+            jobId: jobCode, // Passer le code du job
             day: selectedDay,
             month: selectedMonth,
             year: selectedYear
@@ -407,6 +414,13 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
                         }
                         showsVerticalScrollIndicator={false}
                     >
+                        {(() => {
+                            console.log(`🔍 Day Screen Render - isLoading: ${isLoading}, jobs: ${jobs.length}, filteredJobs: ${filteredJobs.length}`);
+                            console.log('📋 Jobs data:', JSON.stringify(jobs, null, 2));
+                            console.log('🔽 Filtered jobs:', JSON.stringify(filteredJobs, null, 2));
+                            return null;
+                        })()}
+                        
                         {isLoading ? (
                             <JobsLoadingSkeleton />
                         ) : filteredJobs.length > 0 ? (
