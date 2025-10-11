@@ -2,13 +2,14 @@
  * Job Page - Affichage des détails du travail, items à checker, contacts
  * Conforme aux normes mobiles iOS/Android - Touch targets ≥44pt, 8pt grid
  */
-import React from 'react';
-import { View, Text, Switch, Pressable } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Switch, Pressable, TextInput, Alert } from 'react-native';
 import { VStack, HStack } from '../../components/primitives/Stack';
 import { Card } from '../../components/ui/Card';
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 import contactLink from '../../services/contactLink';
+import { addJobItem } from '../../services/jobs';
 import Ionicons from '@react-native-vector-icons/ionicons';
 
 
@@ -37,6 +38,229 @@ interface ItemRowProps {
     index: number;
     onToggle: (index: number, checked: boolean) => void;
 }
+
+interface SectionHeaderProps {
+    icon: string;
+    title: string;
+    badge?: string;
+}
+
+// Composant pour les headers de section avec icônes
+const SectionHeader: React.FC<SectionHeaderProps> = ({ icon, title, badge }) => {
+    const { colors } = useCommonThemedStyles();
+    return (
+        <HStack gap="sm" align="center" style={{ marginBottom: DESIGN_TOKENS.spacing.md }}>
+            <View style={{
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                backgroundColor: colors.primary + '20',
+                justifyContent: 'center',
+                alignItems: 'center'
+            }}>
+                <Ionicons name={icon as any} size={18} color={colors.primary} />
+            </View>
+            <Text style={{
+                fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
+                fontWeight: '600',
+                color: colors.text,
+                flex: 1
+            }}>
+                {title}
+            </Text>
+            {badge && (
+                <View style={{
+                    backgroundColor: colors.primary,
+                    paddingHorizontal: 8,
+                    paddingVertical: 4,
+                    borderRadius: 12,
+                }}>
+                    <Text style={{
+                        fontSize: 12,
+                        fontWeight: '600',
+                        color: colors.background,
+                    }}>
+                        {badge}
+                    </Text>
+                </View>
+            )}
+        </HStack>
+    );
+};
+
+// Modal pour ajouter un item
+const AddItemModal: React.FC<{
+    visible: boolean;
+    onClose: () => void;
+    onAdd: (name: string, quantity: number) => void;
+}> = ({ visible, onClose, onAdd }) => {
+    const { colors } = useCommonThemedStyles();
+    const [name, setName] = useState('');
+    const [quantity, setQuantity] = useState('1');
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleAdd = async () => {
+        if (!name.trim()) {
+            Alert.alert('Erreur', 'Veuillez saisir un nom pour l\'item');
+            return;
+        }
+
+        const qty = parseInt(quantity);
+        if (isNaN(qty) || qty < 1) {
+            Alert.alert('Erreur', 'Veuillez saisir une quantité valide');
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            await onAdd(name.trim(), qty);
+            setName('');
+            setQuantity('1');
+            onClose();
+        } catch (error) {
+            Alert.alert('Erreur', 'Impossible d\'ajouter l\'item. Veuillez réessayer.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    if (!visible) return null;
+
+    return (
+        <View style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000
+        }}>
+            <View style={{
+                backgroundColor: colors.background,
+                margin: 20,
+                borderRadius: DESIGN_TOKENS.radius.lg,
+                padding: DESIGN_TOKENS.spacing.lg,
+                minWidth: 300,
+                shadowColor: colors.shadow,
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.25,
+                shadowRadius: 12,
+                elevation: 8
+            }}>
+                <HStack align="center" justify="space-between" style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
+                    <Text style={{
+                        fontSize: 18,
+                        fontWeight: '600',
+                        color: colors.text
+                    }}>
+                        Ajouter un item
+                    </Text>
+                    <Pressable onPress={onClose} hitSlop={8}>
+                        <Ionicons name="close" size={24} color={colors.textSecondary} />
+                    </Pressable>
+                </HStack>
+
+                <VStack gap="md">
+                    <VStack gap="xs">
+                        <Text style={{
+                            fontSize: 14,
+                            fontWeight: '500',
+                            color: colors.text
+                        }}>
+                            Nom de l'item *
+                        </Text>
+                        <TextInput
+                            value={name}
+                            onChangeText={setName}
+                            placeholder="Ex: Canapé 3 places"
+                            placeholderTextColor={colors.textSecondary}
+                            style={{
+                                borderWidth: 1,
+                                borderColor: colors.border,
+                                borderRadius: DESIGN_TOKENS.radius.md,
+                                padding: DESIGN_TOKENS.spacing.md,
+                                fontSize: 16,
+                                color: colors.text,
+                                backgroundColor: colors.backgroundSecondary
+                            }}
+                        />
+                    </VStack>
+
+                    <VStack gap="xs">
+                        <Text style={{
+                            fontSize: 14,
+                            fontWeight: '500',
+                            color: colors.text
+                        }}>
+                            Quantité *
+                        </Text>
+                        <TextInput
+                            value={quantity}
+                            onChangeText={setQuantity}
+                            placeholder="1"
+                            keyboardType="numeric"
+                            placeholderTextColor={colors.textSecondary}
+                            style={{
+                                borderWidth: 1,
+                                borderColor: colors.border,
+                                borderRadius: DESIGN_TOKENS.radius.md,
+                                padding: DESIGN_TOKENS.spacing.md,
+                                fontSize: 16,
+                                color: colors.text,
+                                backgroundColor: colors.backgroundSecondary
+                            }}
+                        />
+                    </VStack>
+
+                    <HStack gap="md" style={{ marginTop: DESIGN_TOKENS.spacing.md }}>
+                        <Pressable
+                            onPress={onClose}
+                            style={{
+                                flex: 1,
+                                padding: DESIGN_TOKENS.spacing.md,
+                                borderRadius: DESIGN_TOKENS.radius.md,
+                                borderWidth: 1,
+                                borderColor: colors.border,
+                                alignItems: 'center'
+                            }}
+                        >
+                            <Text style={{
+                                fontSize: 16,
+                                fontWeight: '500',
+                                color: colors.textSecondary
+                            }}>
+                                Annuler
+                            </Text>
+                        </Pressable>
+
+                        <Pressable
+                            onPress={handleAdd}
+                            disabled={isLoading}
+                            style={{
+                                flex: 1,
+                                padding: DESIGN_TOKENS.spacing.md,
+                                borderRadius: DESIGN_TOKENS.radius.md,
+                                backgroundColor: isLoading ? colors.backgroundSecondary : colors.primary,
+                                alignItems: 'center'
+                            }}
+                        >
+                            <Text style={{
+                                fontSize: 16,
+                                fontWeight: '600',
+                                color: colors.background
+                            }}>
+                                {isLoading ? 'Ajout...' : 'Ajouter'}
+                            </Text>
+                        </Pressable>
+                    </HStack>
+                </VStack>
+            </View>
+        </View>
+    );
+};
 
 // Composant pour afficher une information simple
 const InfoRow: React.FC<InfoRowProps> = ({ label, value, badge }) => {
@@ -229,6 +453,7 @@ const ItemRow: React.FC<ItemRowProps> = ({ item, index, onToggle }) => {
 
 const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
     const { colors } = useCommonThemedStyles();
+    const [showAddItemModal, setShowAddItemModal] = useState(false);
     
     const handleItemToggle = (itemIndex: number, checked: boolean) => {
         const updatedJob = { ...job };
@@ -238,50 +463,101 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
         }
     };
 
+    const handleAddItem = async (name: string, quantity: number) => {
+        try {
+            await addJobItem(job.id, { name, quantity });
+            
+            // Mettre à jour la liste des items localement
+            const updatedJob = { ...job };
+            if (!updatedJob.items) {
+                updatedJob.items = [];
+            }
+            updatedJob.items.push({
+                name,
+                number: quantity,
+                checked: false
+            });
+            setJob(updatedJob);
+            
+            Alert.alert('Succès', 'Item ajouté avec succès');
+        } catch (error) {
+            console.error('Erreur lors de l\'ajout de l\'item:', error);
+            throw error;
+        }
+    };
+
+    const itemsCount = job.items?.length || 0;
+    const checkedItems = job.items?.filter((item: any) => item.checked).length || 0;
+
     return (
-        <VStack gap="lg">
+        <>
+            <VStack gap="lg">
                 {/* Job Items Checklist */}
-                {job.items && job.items.length > 0 && (
-                    <Card style={{ padding: DESIGN_TOKENS.spacing.lg }}>
-                        <VStack gap="sm">
-                            <Text 
-                                style={{
-                                    fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
-                                    lineHeight: DESIGN_TOKENS.typography.subtitle.lineHeight,
-                                    fontWeight: DESIGN_TOKENS.typography.subtitle.fontWeight,
-                                    color: colors.text,
-                                    marginBottom: DESIGN_TOKENS.spacing.sm,
-                                }}
-                            >
-                                Job Items
-                            </Text>
-                            
-                            {job.items.map((item: any, index: number) => (
+                <Card style={{ padding: DESIGN_TOKENS.spacing.lg }}>
+                    <VStack gap="sm">
+                        <SectionHeader 
+                            icon="list-outline" 
+                            title="Job Items" 
+                            badge={itemsCount > 0 ? `${checkedItems}/${itemsCount}` : undefined}
+                        />
+                        
+                        {job.items && job.items.length > 0 ? (
+                            job.items.map((item: any, index: number) => (
                                 <ItemRow
                                     key={index}
                                     item={item}
                                     index={index}
                                     onToggle={handleItemToggle}
                                 />
-                            ))}
-                        </VStack>
-                    </Card>
-                )}
+                            ))
+                        ) : (
+                            <Text style={{
+                                fontSize: 14,
+                                color: colors.textSecondary,
+                                fontStyle: 'italic',
+                                textAlign: 'center',
+                                paddingVertical: DESIGN_TOKENS.spacing.lg
+                            }}>
+                                Aucun item pour le moment
+                            </Text>
+                        )}
+                        
+                        {/* Bouton Ajouter un item */}
+                        <Pressable
+                            onPress={() => setShowAddItemModal(true)}
+                            style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: DESIGN_TOKENS.spacing.md,
+                                borderWidth: 2,
+                                borderColor: colors.primary,
+                                borderStyle: 'dashed',
+                                borderRadius: DESIGN_TOKENS.radius.md,
+                                backgroundColor: colors.primary + '10',
+                                marginTop: DESIGN_TOKENS.spacing.sm
+                            }}
+                        >
+                            <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
+                            <Text style={{
+                                fontSize: 16,
+                                fontWeight: '600',
+                                color: colors.primary,
+                                marginLeft: DESIGN_TOKENS.spacing.xs
+                            }}>
+                                Ajouter un item
+                            </Text>
+                        </Pressable>
+                    </VStack>
+                </Card>
 
                 {/* Job Information */}
                 <Card style={{ padding: DESIGN_TOKENS.spacing.lg }}>
                     <VStack gap="sm">
-                        <Text 
-                            style={{
-                                fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
-                                lineHeight: DESIGN_TOKENS.typography.subtitle.lineHeight,
-                                fontWeight: DESIGN_TOKENS.typography.subtitle.fontWeight,
-                                color: colors.text,
-                                marginBottom: DESIGN_TOKENS.spacing.sm,
-                            }}
-                        >
-                            Job Information
-                        </Text>
+                        <SectionHeader 
+                            icon="information-circle-outline" 
+                            title="Job Information" 
+                        />
                         
                         {job.type && (
                             <InfoRow label="Job Type" value={job.type} />
@@ -302,17 +578,10 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
                 {job.contractor && (
                     <Card style={{ padding: DESIGN_TOKENS.spacing.lg }}>
                         <VStack gap="sm">
-                            <Text 
-                                style={{
-                                    fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
-                                    lineHeight: DESIGN_TOKENS.typography.subtitle.lineHeight,
-                                    fontWeight: DESIGN_TOKENS.typography.subtitle.fontWeight,
-                                    color: colors.text,
-                                    marginBottom: DESIGN_TOKENS.spacing.sm,
-                                }}
-                            >
-                                Contractor
-                            </Text>
+                            <SectionHeader 
+                                icon="business-outline" 
+                                title="Contractor" 
+                            />
                             
                             {job.contractor.Name && (
                                 <InfoRow label="Company Name" value={job.contractor.Name} />
@@ -349,17 +618,10 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
                 {job.contractee && (
                     <Card style={{ padding: DESIGN_TOKENS.spacing.lg }}>
                         <VStack gap="sm">
-                            <Text 
-                                style={{
-                                    fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
-                                    lineHeight: DESIGN_TOKENS.typography.subtitle.lineHeight,
-                                    fontWeight: DESIGN_TOKENS.typography.subtitle.fontWeight,
-                                    color: colors.text,
-                                    marginBottom: DESIGN_TOKENS.spacing.sm,
-                                }}
-                            >
-                                Contractee
-                            </Text>
+                            <SectionHeader 
+                                icon="people-outline" 
+                                title="Contractee" 
+                            />
                             
                             {job.contractee.Name && (
                                 <InfoRow label="Company Name" value={job.contractee.Name} />
@@ -391,7 +653,15 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
                         </VStack>
                     </Card>
                 )}
-        </VStack>
+            </VStack>
+
+            {/* Modal d'ajout d'item */}
+            <AddItemModal
+                visible={showAddItemModal}
+                onClose={() => setShowAddItemModal(false)}
+                onAdd={handleAddItem}
+            />
+        </>
     );
 };
 
