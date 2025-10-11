@@ -6,7 +6,6 @@ import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { ThemeProvider } from './context/ThemeProvider'
 
 export default function App() {
-  
   return (
     <SafeAreaProvider>
       <ThemeProvider>

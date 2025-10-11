@@ -40,15 +40,52 @@ Cette documentation présente l'ensemble des endpoints API du serveur Swift App 
 
 ---
 
+# ⚠️ **RÈGLES IMPORTANTES D'USAGE API**
+
+## 📅 **CALENDRIER - TOUJOURS utiliser `calendar-days`**
+```typescript
+// ✅ CORRECT pour les données de calendrier
+POST /swift-app/calendar-days
+Body: { startDate: "01-10-2025", endDate: "31-10-2025" }
+// Retourne: Les jobs complets avec toutes les données
+
+// ❌ INCORRECT - Ne pas utiliser pour le calendrier
+GET /swift-app/v1/jobs?startDate=2025-10-01&endDate=2025-10-31
+// Retourne: Seulement {"success": true, "message": "List Jobs"}
+```
+
+**RAISON** : L'endpoint `/v1/jobs` ne retourne pas les données, seulement un message de statut. L'endpoint `calendar-days` retourne les vraies données des jobs avec toutes les informations nécessaires.
+
+**IMPLEMENTATION** : 
+- `fetchJobs()` dans `services/jobs.ts` utilise `calendar-days`
+- `getJobDetails()` utilise `calendar-days` en fallback
+- Tous les hooks de calendrier s'appuient sur `calendar-days`
+
+---
+
 # 📋 SwiftApp API Endpoints Reference
 
 ## 🛡️ Authentication Endpoints
 ```http
 POST /swift-app/login                  # User login
 POST /swift-app/verify-mail            # Email verification
-GET  /swift-app/user-info              # Get user information
 GET  /swift-app/token                  # Token validation
 POST /swift-app/subscribe              # Subscribe to notifications
+```
+
+## 👤 User Profile Management
+```http
+GET    /swift-app/v1/user/profile      # Get complete user profile
+PUT    /swift-app/v1/user/profile      # Update user profile
+GET    /swift-app/v1/user/stats        # Get detailed user statistics
+```
+
+## 🔐 Security & Session Management
+```http
+GET    /swift-app/v1/user/sessions     # List user sessions
+POST   /swift-app/v1/user/change-password  # Change password
+DELETE /swift-app/v1/user/session/{deviceId}  # Revoke specific session
+DELETE /swift-app/v1/user/account      # Delete user account
 ```
 
 ## 👥 Client Management
@@ -372,14 +409,79 @@ Authorization: Bearer <your-jwt-token>
 
 ---
 
-### 👤 **Gestion utilisateurs**
+### 👤 **Gestion du Profil Utilisateur**
 
-#### GET `/swift-app/userInfo`
-- **Description** : Récupération d'informations utilisateur par ID
-- **Fichier** : `endPoints/userInfo.js`
-- **Paramètres** : `token`, `user_id`
-- **Status** : ⚠️ **En développement** - fonction incomplète
-- **Notes** : Logic de vérification token/user à finaliser
+#### GET `/swift-app/v1/user/profile`
+- **Description** : Récupération du profil utilisateur complet avec statistiques
+- **Headers requis** : `Authorization: Bearer {token}`
+- **Réponse (200)** :
+```json
+{
+  "success": true,
+  "user": {
+    "id": "string",
+    "firstName": "string", 
+    "lastName": "string",
+    "email": "string",
+    "phone": "string",
+    "userType": "employee|worker",
+    "address": "string",
+    "city": "string", 
+    "postalCode": "string",
+    "country": "string",
+    "companyName": "string",
+    "siret": "string",
+    "tva": "string",
+    "level": "number",
+    "experience": "number",
+    "experienceToNextLevel": "number", 
+    "title": "string",
+    "joinDate": "string",
+    "lastLogin": "string"
+  }
+}
+```
+- **Erreurs** : `401` Token invalide, `500` Erreur serveur
+
+#### PUT `/swift-app/v1/user/profile`
+- **Description** : Modification du profil utilisateur
+- **Headers requis** : `Authorization: Bearer {token}`
+- **Body** :
+```json
+{
+  "firstName": "string",
+  "lastName": "string", 
+  "phone": "string",
+  "address": "string",
+  "city": "string",
+  "postalCode": "string", 
+  "country": "string",
+  "companyName": "string",
+  "siret": "string",
+  "tva": "string"
+}
+```
+- **Réponse (200)** : Même format que GET
+- **Erreurs** : `400` Données invalides, `409` Email déjà utilisé, `401` Token invalide
+
+#### GET `/swift-app/v1/user/stats`
+- **Description** : Statistiques détaillées de l'utilisateur
+- **Headers requis** : `Authorization: Bearer {token}`
+- **Réponse (200)** :
+```json
+{
+  "success": true,
+  "stats": {
+    "totalJobs": "number",
+    "completedJobs": "number", 
+    "activeJobs": "number",
+    "level": "number",
+    "experience": "number",
+    "badges": ["array"],
+    "achievements": ["array"]
+  }
+}
+```
 
 #### POST `/swift-app/token`
 - **Description** : Génération de token (ancienne méthode)
