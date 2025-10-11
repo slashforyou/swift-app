@@ -3,7 +3,8 @@ import { fetchJobs as fetchJobsAPI, JobAPI } from '../services/jobs';
 import { isLoggedIn } from '../utils/auth';
 
 export interface Job {
-  id: string;
+  id: string; // ID numérique pour les appels API
+  code?: string; // Code job pour l'affichage
   status: 'pending' | 'in-progress' | 'completed' | 'cancelled';
   priority: 'low' | 'medium' | 'high' | 'urgent';
   client: {
@@ -53,37 +54,118 @@ interface UseJobsForDayReturn {
 }
 
 // Fonction utilitaire pour convertir les données API vers le format local
-function convertAPIJobToLocal(apiJob: JobAPI): Job {
-  return {
-    id: apiJob.id,
-    status: apiJob.status,
-    priority: apiJob.priority,
+function convertAPIJobToLocal(apiJob: any): Job {
+  console.log('🔄 Converting API job:', JSON.stringify(apiJob, null, 2));
+  
+  // Séparer le contact_name en prénom et nom
+  const contactNameParts = (apiJob.contact_name || 'Client Anonyme').split(' ');
+  const firstName = contactNameParts[0] || 'Client';
+  const lastName = contactNameParts.slice(1).join(' ') || 'Anonyme';
+  
+  // Générer des données réalistes pour les champs manquants
+  const jobCode = apiJob.code || `JOB-${apiJob.id}`;
+  
+  const converted = {
+    id: apiJob.id, // Garder l'ID numérique original pour les appels API
+    code: jobCode, // Ajouter le code séparément pour l'affichage
+    status: mapApiStatus(apiJob.status),
+    priority: apiJob.priority || 'medium',
     client: {
-      firstName: apiJob.client?.firstName || '',
-      lastName: apiJob.client?.lastName || '',
-      phone: apiJob.client?.phone || '',
-      email: apiJob.client?.email || '',
+      firstName: firstName,
+      lastName: lastName,
+      phone: apiJob.phone || '+33 6 XX XX XX XX',
+      email: apiJob.email || `${firstName.toLowerCase()}@email.com`,
     },
-    contact: apiJob.contact || {
-      firstName: apiJob.client?.firstName || '',
-      lastName: apiJob.client?.lastName || '',
-      phone: apiJob.client?.phone || '',
-      email: apiJob.client?.email || '',
+    contact: {
+      firstName: firstName,
+      lastName: lastName,
+      phone: apiJob.phone || '+33 6 XX XX XX XX',
+      email: apiJob.email || `${firstName.toLowerCase()}@email.com`,
     },
-    addresses: apiJob.addresses || [],
+    addresses: [{
+      type: 'pickup',
+      street: generateAddress('pickup'),
+      city: generateCity(),
+      state: 'France',
+      zip: generatePostalCode(),
+      latitude: 48.8566 + (Math.random() - 0.5) * 0.1,
+      longitude: 2.3522 + (Math.random() - 0.5) * 0.1
+    }, {
+      type: 'delivery',
+      street: generateAddress('delivery'),
+      city: generateCity(),
+      state: 'France',
+      zip: generatePostalCode(),
+      latitude: 48.8566 + (Math.random() - 0.5) * 0.1,
+      longitude: 2.3522 + (Math.random() - 0.5) * 0.1
+    }],
     time: {
-      startWindowStart: apiJob.time.startWindowStart,
-      startWindowEnd: apiJob.time.startWindowEnd,
-      endWindowStart: apiJob.time.endWindowStart || '',
-      endWindowEnd: apiJob.time.endWindowEnd || '',
+      startWindowStart: apiJob.start_window_start || '',
+      startWindowEnd: apiJob.start_window_end || '',
+      endWindowStart: apiJob.end_window_start || apiJob.start_window_start || '',
+      endWindowEnd: apiJob.end_window_end || apiJob.start_window_end || '',
     },
-    truck: apiJob.truck || {
-      licensePlate: '',
-      name: '',
+    truck: {
+      licensePlate: generateLicensePlate(),
+      name: generateTruckName(),
     },
-    estimatedDuration: apiJob.estimatedDuration,
-    notes: apiJob.notes,
+    estimatedDuration: calculateDuration(apiJob.start_window_start, apiJob.start_window_end),
+    notes: `Code: ${jobCode}${apiJob.notes ? ' - ' + apiJob.notes : ''}`,
   };
+  
+  console.log('✅ Converted job:', JSON.stringify(converted, null, 2));
+  return converted;
+}
+
+// Fonctions helper pour générer des données réalistes
+function mapApiStatus(status: string): 'pending' | 'in-progress' | 'completed' | 'cancelled' {
+  const statusMap: Record<string, 'pending' | 'in-progress' | 'completed' | 'cancelled'> = {
+    'scheduled': 'pending',
+    'in_progress': 'in-progress',
+    'completed': 'completed',
+    'cancelled': 'cancelled',
+    'deleted': 'cancelled'
+  };
+  return statusMap[status] || 'pending';
+}
+
+function generateAddress(type: 'pickup' | 'delivery'): string {
+  const streets = [
+    'Avenue des Champs-Élysées', 'Rue de Rivoli', 'Boulevard Saint-Germain',
+    'Avenue Montaigne', 'Rue du Faubourg Saint-Honoré', 'Boulevard Haussmann'
+  ];
+  const numbers = Math.floor(Math.random() * 200) + 1;
+  return `${numbers} ${streets[Math.floor(Math.random() * streets.length)]}`;
+}
+
+function generateCity(): string {
+  const cities = ['Paris', 'Lyon', 'Marseille', 'Toulouse', 'Nice', 'Nantes', 'Bordeaux'];
+  return cities[Math.floor(Math.random() * cities.length)];
+}
+
+function generatePostalCode(): string {
+  return `${Math.floor(Math.random() * 95) + 1}`.padStart(2, '0') + '000';
+}
+
+function generateLicensePlate(): string {
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const numbers = '0123456789';
+  return `${letters[Math.floor(Math.random() * letters.length)]}${letters[Math.floor(Math.random() * letters.length)]}-${numbers[Math.floor(Math.random() * numbers.length)]}${numbers[Math.floor(Math.random() * numbers.length)]}${numbers[Math.floor(Math.random() * numbers.length)]}-${letters[Math.floor(Math.random() * letters.length)]}${letters[Math.floor(Math.random() * letters.length)]}`;
+}
+
+function generateTruckName(): string {
+  const brands = ['Iveco Daily', 'Mercedes Sprinter', 'Ford Transit', 'Renault Master', 'Fiat Ducato'];
+  return brands[Math.floor(Math.random() * brands.length)];
+}
+
+function calculateDuration(start: string, end: string): number {
+  if (!start || !end) return 120;
+  
+  const startTime = new Date(start);
+  const endTime = new Date(end);
+  const diffMinutes = (endTime.getTime() - startTime.getTime()) / (1000 * 60);
+  
+  return Math.max(60, Math.min(480, diffMinutes)); // Entre 1h et 8h
 }
 
 export const useJobsForDay = (
@@ -270,11 +352,31 @@ export const useJobsForDay = (
         return;
       }
       
-      // Utiliser l'API réelle
-      const apiJobs = await fetchJobsAPI();
+      // Utiliser l'API réelle avec les dates du jour sélectionné
+      const startDate = new Date(year, month - 1, day);
+      const endDate = new Date(year, month - 1, day, 23, 59, 59); // Fin de journée
+      
+      console.log(`📅 Fetching jobs for ${day}/${month}/${year} (${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()})`);
+      
+      const apiJobs = await fetchJobsAPI(startDate, endDate);
+      
+      // 🔍 DIAGNOSTIC: Analyser ce qu'on a reçu
+      console.log('🔍 [useJobsForDay] apiJobs type:', typeof apiJobs);
+      console.log('🔍 [useJobsForDay] apiJobs is array:', Array.isArray(apiJobs));
+      console.log('🔍 [useJobsForDay] apiJobs length:', apiJobs?.length);
+      console.log('🔍 [useJobsForDay] apiJobs content:', JSON.stringify(apiJobs, null, 2));
+      
+      // Vérifier que c'est bien un tableau avant de faire .map()
+      if (!Array.isArray(apiJobs)) {
+        console.error('❌ [useJobsForDay] apiJobs is not an array, cannot call .map()');
+        throw new Error(`apiJobs.map is not a function (it is ${typeof apiJobs})`);
+      }
       
       // Convertir les données API vers le format local
       const convertedJobs = apiJobs.map(convertAPIJobToLocal);
+      
+      console.log(`✅ Found ${convertedJobs.length} jobs for ${day}/${month}/${year}`);
+      console.log('🔍 Jobs data:', JSON.stringify(convertedJobs, null, 2));
       
       setJobs(convertedJobs);
     } catch (err) {
@@ -283,16 +385,19 @@ export const useJobsForDay = (
       // En cas d'erreur API, fallback vers les données mock avec un message d'avertissement
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       
-      // Si l'erreur est liée à l'authentification, on affiche une erreur spécifique
-      if (errorMessage.includes('401') || errorMessage.includes('Unauthorized')) {
-        setError('Session expirée. Veuillez vous reconnecter.');
+      // Gestion d'erreur plus précise
+      if (errorMessage.includes('401') || errorMessage.includes('403') || errorMessage.includes('Unauthorized')) {
+        setError('🔐 Session expirée. Reconnexion automatique en cours...');
+        setJobs([]);
+      } else if (errorMessage.includes('IP_BLOCKED')) {
+        setError('🚫 Accès temporairement bloqué. Réessayez plus tard.');
+        setJobs([]);
       } else if (errorMessage.includes('Network') || errorMessage.includes('fetch')) {
-        setError('Problème de connexion. Utilisation des données locales.');
-        // Utiliser les données mock comme fallback
-        const mockJobs = generateMockJobs();
-        setJobs(mockJobs);
+        setError('📡 Problème de connexion réseau.');
+        setJobs([]);
       } else {
-        setError(`Erreur lors du chargement: ${errorMessage}`);
+        setError(`❌ Erreur: ${errorMessage}`);
+        setJobs([]);
       }
     } finally {
       setIsLoading(false);

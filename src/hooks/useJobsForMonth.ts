@@ -30,6 +30,12 @@ export const useJobsForMonth = (year: number, month: number): UseJobsForMonthRes
       
       const fetchedJobs = await fetchJobs(startDate, endDate);
       
+      // 🔍 DIAGNOSTIC: Analyser ce qu'on a reçu
+      console.log('🔍 [useJobsForMonth] fetchedJobs type:', typeof fetchedJobs);
+      console.log('🔍 [useJobsForMonth] fetchedJobs is array:', Array.isArray(fetchedJobs));
+      console.log('🔍 [useJobsForMonth] fetchedJobs length:', fetchedJobs?.length);
+      console.log('🔍 [useJobsForMonth] fetchedJobs content:', JSON.stringify(fetchedJobs, null, 2));
+      
       if (!fetchedJobs || !Array.isArray(fetchedJobs)) {
         console.warn('⚠️ Jobs API returned invalid data:', fetchedJobs);
         setJobs([]);
@@ -76,7 +82,10 @@ export const useJobsForMonth = (year: number, month: number): UseJobsForMonthRes
   };
 
   useEffect(() => {
+    console.log('🔍 [useJobsForMonth] useEffect triggered with:', { year, month });
+    
     if (year && month && month >= 1 && month <= 12) {
+      console.log('🔍 [useJobsForMonth] Valid parameters, loading jobs...');
       loadJobs();
     } else {
       console.warn('⚠️ Invalid year or month:', { year, month });
