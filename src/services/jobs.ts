@@ -472,33 +472,6 @@ export async function addJobNote(jobId: string, noteData: { type: string; conten
 }
 
 /**
- * Ajoute un item à un job
- */
-export async function addJobItem(jobId: string, itemData: { name: string; quantity: number; description?: string }): Promise<any> {
-  try {
-    console.log('📦 [addJobItem] Adding item to job:', jobId);
-    
-    const res = await authenticatedFetch(`${API}v1/job/${jobId}/item`, {
-      method: 'POST',
-      body: JSON.stringify(itemData),
-    });
-
-    if (!res.ok) {
-      console.error(`❌ [addJobItem] HTTP ${res.status}: ${res.statusText}`);
-      throw new Error(`HTTP ${res.status}: Failed to add item to job`);
-    }
-
-    const data = await res.json();
-    console.log('✅ [addJobItem] Successfully added item');
-    
-    return data;
-  } catch (error) {
-    console.error('❌ [addJobItem] Error adding item:', error);
-    throw error;
-  }
-}
-
-/**
  * Récupère la timeline d'un job
  */
 export async function fetchJobTimeline(jobId: string): Promise<any[]> {
@@ -517,5 +490,32 @@ export async function fetchJobTimeline(jobId: string): Promise<any[]> {
   }
 
   const data = await res.json();
+  return data;
+}
+
+/**
+ * Ajoute un nouvel item à un job
+ */
+export async function addJobItem(jobId: string, item: { name: string; quantity: number; description?: string }) {
+  console.log(`[addJobItem] Adding item to job ${jobId}:`, item);
+  
+  const headers = await getAuthHeaders();
+  const res = await fetch(`${API}/swift-app/v1/job/${jobId}/item`, {
+    method: 'POST',
+    headers: {
+      ...headers,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(item)
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    console.error(`[addJobItem] Failed to add item:`, errorText);
+    throw new Error(`Failed to add item: ${res.status}`);
+  }
+
+  const data = await res.json();
+  console.log(`[addJobItem] Item added successfully:`, data);
   return data;
 }
