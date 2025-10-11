@@ -2,77 +2,135 @@
  * Notes Page - Gestion interactive des notes avec actions CRUD
  * Conforme aux normes mobiles iOS/Android - Touch targets ≥44pt, 8pt grid
  */
-import React, { useState } from 'react';
-import { View, Text, Pressable, Alert } from 'react-native';
+import React, { useState, useCallback, useMemo } from 'react';
+import { View, Text, Pressable, Alert, ActivityIndicator, ScrollView, Animated } from 'react-native';
 import { VStack, HStack } from '../../components/primitives/Stack';
 import { Card } from '../../components/ui/Card';
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
+import { ThemedText } from '../../components/ThemedText';
+import { ThemedView } from '../../components/ThemedView';
 import Ionicons from '@react-native-vector-icons/ionicons';
-import { useJobNotes } from '../../hooks/useJobNotes';
+
+// Types stricts
+export enum NoteType {
+  CLASSIC = 0,
+  INFO = 1,
+  WARNING = 2,
+  ERROR = 3,
+  SUCCESS = 4
+}
+
+export interface Note {
+  id: string;
+  title: string;
+  content: string;
+  type: NoteType;
+  createdAt: string;
+  updatedAt?: string;
+  isRead?: boolean;
+}
+
+export interface Job {
+  id: string;
+  notes?: Note[];
+  [key: string]: any;
+}
 
 interface JobNoteProps {
-    job: any;
-    setJob: React.Dispatch<React.SetStateAction<any>>;
+  job: Job;
+  setJob: React.Dispatch<React.SetStateAction<Job>>;
+  notes?: Note[];
+  onAddNote?: (noteData: { content: string; type: string }) => Promise<void>;
 }
 
 interface NoteItemProps {
-    note: any;
-    onEdit: (note: any) => void;
-    onDelete: (noteId: number) => void;
-    onToggleRead: (noteId: number) => void;
+  note: Note;
+  onEdit: (note: Note) => void;
+  onDelete: (noteId: string) => void;
+  onToggleRead: (noteId: string) => void;
 }
 
-// Types de notes avec couleurs et icônes
-const getNoteTypes = (colors: any) => [
-    { 
-        id: 0, 
-        name: "Classic", 
-        color: colors.backgroundTertiary, 
-        borderColor: colors.border, 
-        textColor: colors.text,
-        icon: "document-text" 
-    },
-    { 
-        id: 1, 
-        name: "Info", 
-        color: colors.backgroundTertiary, 
-        borderColor: colors.tint, 
-        textColor: colors.tint,
-        icon: "information-circle" 
-    },
-    { 
-        id: 2, 
-        name: "Warning", 
-        color: '#FFF3CD', 
-        borderColor: '#F0AD4E', 
-        textColor: '#856404',
-        icon: "warning" 
-    },
-    { 
-        id: 3, 
-        name: "Error", 
-        color: '#F8D7DA', 
-        borderColor: '#DC3545', 
-        textColor: '#721C24',
-        icon: "alert-circle" 
-    },
-    { 
-        id: 4, 
-        name: "Success", 
-        color: '#D4EDDA', 
-        borderColor: '#28A745', 
-        textColor: '#155724',
-        icon: "checkmark-circle" 
-    },
+interface NoteTypeConfig {
+  id: NoteType;
+  name: string;
+  color: string;
+  borderColor: string;
+  textColor: string;
+  icon: string;
+}
+
+// Configuration des types de notes (constante pour éviter les recréations)
+const NOTE_TYPES_CONFIG = [
+  { 
+    id: NoteType.CLASSIC, 
+    name: "Classic", 
+    icon: "document-text" 
+  },
+  { 
+    id: NoteType.INFO, 
+    name: "Info", 
+    icon: "information-circle" 
+  },
+  { 
+    id: NoteType.WARNING, 
+    name: "Warning", 
+    icon: "warning" 
+  },
+  { 
+    id: NoteType.ERROR, 
+    name: "Error", 
+    icon: "alert-circle" 
+  },
+  { 
+    id: NoteType.SUCCESS, 
+    name: "Success", 
+    icon: "checkmark-circle" 
+  },
+] as const;
+
+// Fonction memoizée pour générer les couleurs
+const getNoteTypes = (colors: any): NoteTypeConfig[] => [
+  { 
+    ...NOTE_TYPES_CONFIG[0],
+    color: colors.backgroundTertiary, 
+    borderColor: colors.border, 
+    textColor: colors.text,
+  },
+  { 
+    ...NOTE_TYPES_CONFIG[1],
+    color: colors.backgroundTertiary, 
+    borderColor: colors.tint, 
+    textColor: colors.tint,
+  },
+  { 
+    ...NOTE_TYPES_CONFIG[2],
+    color: '#FFF3CD', 
+    borderColor: '#F0AD4E', 
+    textColor: '#856404',
+  },
+  { 
+    ...NOTE_TYPES_CONFIG[3],
+    color: '#F8D7DA', 
+    borderColor: '#DC3545', 
+    textColor: '#721C24',
+  },
+  { 
+    ...NOTE_TYPES_CONFIG[4],
+    color: '#D4EDDA', 
+    borderColor: '#28A745', 
+    textColor: '#155724',
+  },
 ];
 
-// Composant Note Item moderne avec interactions
-const NoteItem: React.FC<NoteItemProps> = ({ note, onEdit, onDelete, onToggleRead }) => {
+// Composant Note Item moderne avec interactions (memoizé pour performance)
+const NoteItem: React.FC<NoteItemProps> = React.memo(({ note, onEdit, onDelete, onToggleRead }) => {
     const { colors } = useCommonThemedStyles();
-    const NOTE_TYPES = getNoteTypes(colors);
     const [expanded, setExpanded] = useState(false);
-    const noteType = NOTE_TYPES[note.type] || NOTE_TYPES[0];
+    
+    // Memoization des types de notes
+    const NOTE_TYPES = useMemo(() => getNoteTypes(colors), [colors]);
+    const noteType = useMemo(() => NOTE_TYPES[note.type] || NOTE_TYPES[NoteType.CLASSIC], [NOTE_TYPES, note.type]);
 
     const formatDate = (dateString: string) => {
         try {
@@ -239,192 +297,146 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onEdit, onDelete, onToggleRea
             )}
         </Card>
     );
-};
+});
 
-const JobNote: React.FC<JobNoteProps> = ({ job, setJob }) => {
+const JobNote: React.FC<JobNoteProps> = React.memo(({ job, setJob, notes, onAddNote }) => {
     const { colors } = useCommonThemedStyles();
-    const [filter, setFilter] = useState<number | null>(null);
-    const NOTE_TYPES = getNoteTypes(colors);
+    const [filter, setFilter] = useState<NoteType | null>(null);
+    const [isAddingNote, setIsAddingNote] = useState(false);
+    const [isDeletingNote, setIsDeletingNote] = useState<string | null>(null);
     
-    // Utilisation du hook pour les notes API
-    const { 
-        notes: apiNotes, 
-        isLoading: isLoadingNotes, 
-        error: notesError, 
-        addNote 
-    } = useJobNotes(job?.id);
+    // Memoization des types et données
+    const NOTE_TYPES = useMemo(() => getNoteTypes(colors), [colors]);
+    
+    // Utiliser les notes passées en props plutôt que de faire un appel API
+    const effectiveNotes = useMemo(() => {
+        const notesData = notes || job?.notes || [];
 
-    const handleAddNote = async () => {
+        return notesData;
+    }, [notes, job?.notes]);
+
+    // Handler pour changer le filtre avec logging
+    const handleFilterChange = useCallback((newFilter: NoteType | null) => {
+
+        setFilter(newFilter);
+    }, [filter]);
+
+    const handleAddNote = useCallback(async () => {
+
+        setIsAddingNote(true);
         Alert.prompt(
             "Ajouter une note",
             "Saisissez le contenu de votre note :",
             [
-                { text: "Annuler", style: "cancel" },
+                { 
+                    text: "Annuler", 
+                    style: "cancel", 
+                    onPress: () => {
+
+                        setIsAddingNote(false);
+                    }
+                },
                 {
                     text: "Ajouter",
                     onPress: async (text) => {
                         if (text && text.trim()) {
                             try {
-                                await addNote({ 
-                                    content: text.trim(),
-                                    type: 'general' 
-                                });
+
+                                // Utiliser le callback fourni par le parent
+                                if (onAddNote) {
+                                    await onAddNote({ 
+                                        content: text.trim(),
+                                        type: 'general' 
+                                    });
+                                }
+
                                 Alert.alert("Succès", "Note ajoutée avec succès !");
                             } catch (error) {
+
                                 Alert.alert("Erreur", "Impossible d'ajouter la note.");
                             }
+                        } else {
+
                         }
+                        setIsAddingNote(false);
                     }
                 }
             ]
         );
-    };
+    }, [onAddNote]);
 
-    const handleEditNote = (note: any) => {
+    const handleEditNote = useCallback((note: Note) => {
         Alert.alert("Edit Note", `Feature coming soon! You'll be able to edit "${note.title}" here.`);
-    };
+    }, []);
 
-    const handleDeleteNote = (noteId: number) => {
-        const updatedJob = {
-            ...job,
-            notes: job.notes.filter((note: any) => note.id !== noteId)
-        };
-        setJob(updatedJob);
-    };
+    const handleDeleteNote = useCallback(async (noteId: string) => {
 
-    const handleToggleRead = (noteId: number) => {
+        setIsDeletingNote(noteId);
+        try {
+            // Optimistic update
+            const updatedJob = {
+                ...job,
+                notes: job.notes?.filter((note: Note) => note.id !== noteId) || []
+            };
+            setJob(updatedJob);
+
+            
+            // Ici on pourrait ajouter un appel API si nécessaire
+            // await deleteNoteAPI(noteId);
+        } catch (error) {
+
+            // Rollback en cas d'erreur
+        } finally {
+            setIsDeletingNote(null);
+        }
+    }, [job, setJob]);
+
+    const handleToggleRead = useCallback((noteId: string) => {
         // Future feature: mark as read/unread
         console.log("Toggle read status for note:", noteId);
-    };
+    }, []);
 
-    const filteredNotes = filter !== null 
-        ? job.notes?.filter((note: any) => note.type === filter) || []
-        : job.notes || [];
+    // Filtrage optimisé avec memoization
+    const filteredNotes = useMemo(() => {
+        return filter !== null 
+            ? effectiveNotes.filter((note: Note) => note.type === filter)
+            : effectiveNotes;
+    }, [effectiveNotes, filter]);
 
     return (
         <VStack gap="lg">
                 {/* Header avec actions */}
                 <Card style={{ padding: DESIGN_TOKENS.spacing.lg }}>
-                    <HStack gap="md" align="center" justify="space-between">
-                        <VStack gap="xs">
-                            <Text 
-                                style={{
-                                    fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
-                                    fontWeight: DESIGN_TOKENS.typography.subtitle.fontWeight,
-                                    color: colors.text,
-                                }}
-                            >
-                                Job Notes
-                            </Text>
-                            <Text 
-                                style={{
-                                    fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-                                    color: colors.textSecondary,
-                                }}
-                            >
-                                {filteredNotes.length} note{filteredNotes.length !== 1 ? 's' : ''}
-                                {filter !== null && ` (${NOTE_TYPES[filter]?.name})`}
-                            </Text>
-                        </VStack>
-                        
-                        <Pressable
-                            onPress={handleAddNote}
-                            hitSlop={DESIGN_TOKENS.touch.hitSlop}
-                            style={({ pressed }) => ({
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                paddingVertical: DESIGN_TOKENS.spacing.sm,
-                                paddingHorizontal: DESIGN_TOKENS.spacing.md,
-                                backgroundColor: pressed 
-                                    ? colors.backgroundSecondary
-                                    : colors.tint,
-                                borderRadius: DESIGN_TOKENS.radius.md,
-                                minHeight: DESIGN_TOKENS.touch.minSize,
-                            })}
-                            accessibilityRole="button"
-                            accessibilityLabel="Add new note"
-                        >
-                            <Ionicons name="add" size={16} color={colors.background} />
-                            <Text style={{ 
-                                marginLeft: DESIGN_TOKENS.spacing.xs,
-                                fontSize: DESIGN_TOKENS.typography.body.fontSize,
-                                fontWeight: '500',
-                                color: colors.background 
-                            }}>
-                                Add Note
-                            </Text>
-                        </Pressable>
-                    </HStack>
+                    <NoteHeader
+                        filteredNotesLength={filteredNotes.length}
+                        filter={filter}
+                        noteTypes={NOTE_TYPES}
+                        onAddNote={handleAddNote}
+                        isAddingNote={isAddingNote}
+                        colors={colors}
+                    />
                 </Card>
 
-                {/* Filtres par type */}
-                {job.notes && job.notes.length > 1 && (
-                    <Card style={{ padding: DESIGN_TOKENS.spacing.lg }}>
+                {/* Modern Filter System */}
+                {effectiveNotes && effectiveNotes.length > 1 && (
+                    <Card style={{ paddingVertical: DESIGN_TOKENS.spacing.md }}>
                         <Text 
                             style={{
                                 fontSize: DESIGN_TOKENS.typography.caption.fontSize,
                                 fontWeight: '500',
                                 color: colors.textSecondary,
                                 marginBottom: DESIGN_TOKENS.spacing.sm,
+                                paddingHorizontal: DESIGN_TOKENS.spacing.md,
                             }}
                         >
                             Filter by type
                         </Text>
-                        <HStack gap="sm" style={{ flexWrap: 'wrap' }}>
-                            <Pressable
-                                onPress={() => setFilter(null)}
-                                style={({ pressed }) => ({
-                                    paddingVertical: DESIGN_TOKENS.spacing.xs,
-                                    paddingHorizontal: DESIGN_TOKENS.spacing.sm,
-                                    backgroundColor: filter === null 
-                                        ? colors.tint 
-                                        : (pressed ? colors.backgroundSecondary : colors.backgroundTertiary),
-                                    borderRadius: DESIGN_TOKENS.radius.sm,
-                                })}
-                            >
-                                <Text style={{
-                                    fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-                                    color: filter === null ? colors.background : colors.text,
-                                }}>
-                                    All
-                                </Text>
-                            </Pressable>
-                            
-                            {NOTE_TYPES.map(type => {
-                                const count = job.notes?.filter((note: any) => note.type === type.id).length || 0;
-                                if (count === 0) return null;
-                                
-                                return (
-                                    <Pressable
-                                        key={type.id}
-                                        onPress={() => setFilter(filter === type.id ? null : type.id)}
-                                        style={({ pressed }) => ({
-                                            flexDirection: 'row',
-                                            alignItems: 'center',
-                                            paddingVertical: DESIGN_TOKENS.spacing.xs,
-                                            paddingHorizontal: DESIGN_TOKENS.spacing.sm,
-                                            backgroundColor: filter === type.id 
-                                                ? type.borderColor 
-                                                : (pressed ? colors.backgroundSecondary : colors.backgroundTertiary),
-                                            borderRadius: DESIGN_TOKENS.radius.sm,
-                                        })}
-                                    >
-                                        <Ionicons 
-                                            name={type.icon as any} 
-                                            size={12} 
-                                            color={filter === type.id ? colors.background : type.textColor}
-                                            style={{ marginRight: DESIGN_TOKENS.spacing.xs }}
-                                        />
-                                        <Text style={{
-                                            fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-                                            color: filter === type.id ? colors.background : colors.text,
-                                        }}>
-                                            {type.name} ({count})
-                                        </Text>
-                                    </Pressable>
-                                );
-                            })}
-                        </HStack>
+                        <NoteFilter
+                            typeColors={NOTE_TYPES}
+                            filter={filter !== null ? filter.toString() : null}
+                            onFilterChange={(type) => handleFilterChange(type !== null ? parseInt(type) as NoteType : null)}
+                            colors={colors}
+                        />
                     </Card>
                 )}
 
@@ -442,73 +454,323 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob }) => {
                         ))}
                     </VStack>
                 ) : (
-                    /* Empty State */
-                    <Card style={{ 
-                        padding: DESIGN_TOKENS.spacing.xl,
-                        alignItems: 'center'
-                    }}>
-                        <Ionicons 
-                            name="document-text-outline" 
-                            size={48} 
-                            color={colors.textSecondary}
-                            style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}
-                        />
-                        <Text 
-                            style={{
-                                fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
-                                fontWeight: '500',
-                                color: colors.text,
-                                textAlign: 'center',
-                                marginBottom: DESIGN_TOKENS.spacing.sm,
-                            }}
-                        >
-                            {filter !== null ? `No ${NOTE_TYPES[filter]?.name} notes` : 'No notes yet'}
-                        </Text>
-                        <Text 
-                            style={{
-                                fontSize: DESIGN_TOKENS.typography.body.fontSize,
-                                color: colors.textSecondary,
-                                textAlign: 'center',
-                                marginBottom: DESIGN_TOKENS.spacing.lg,
-                            }}
-                        >
-                            {filter !== null 
-                                ? `No notes of type "${NOTE_TYPES[filter]?.name}" found.`
-                                : 'Add your first note to keep track of important job information.'
-                            }
-                        </Text>
-                        <Pressable
-                            onPress={() => filter !== null ? setFilter(null) : handleAddNote()}
-                            style={({ pressed }) => ({
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                paddingVertical: DESIGN_TOKENS.spacing.sm,
-                                paddingHorizontal: DESIGN_TOKENS.spacing.lg,
-                                backgroundColor: pressed 
-                                    ? colors.backgroundSecondary
-                                    : colors.tint,
-                                borderRadius: DESIGN_TOKENS.radius.md,
-                                minHeight: DESIGN_TOKENS.touch.minSize,
-                            })}
-                        >
-                            <Ionicons 
-                                name={filter !== null ? "eye" : "add"} 
-                                size={16} 
-                                color={colors.background} 
-                            />
-                            <Text style={{ 
-                                marginLeft: DESIGN_TOKENS.spacing.xs,
-                                fontSize: DESIGN_TOKENS.typography.body.fontSize,
-                                fontWeight: '500',
-                                color: colors.background 
-                            }}>
-                                {filter !== null ? 'Show All Notes' : 'Add First Note'}
-                            </Text>
-                        </Pressable>
-                    </Card>
+                    <EmptyState 
+                        onAddNote={() => filter !== null ? handleFilterChange(null) : handleAddNote()}
+                        colors={colors}
+                        filter={filter}
+                    />
                 )}
         </VStack>
     );
-};
+});
+
+// Extracted Components
+const NoteFilter = React.memo<{
+    typeColors: any[];
+    filter: string | null;
+    onFilterChange: (type: string | null) => void;
+    colors: any;
+}>(({ typeColors, filter, onFilterChange, colors }) => (
+    <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{
+            paddingHorizontal: DESIGN_TOKENS.spacing.md,
+            gap: DESIGN_TOKENS.spacing.sm,
+        }}
+    >
+        <Pressable
+            onPress={() => onFilterChange(null)}
+            style={({ pressed }) => [
+                {
+                    paddingHorizontal: DESIGN_TOKENS.spacing.md,
+                    paddingVertical: DESIGN_TOKENS.spacing.sm,
+                    borderRadius: DESIGN_TOKENS.radius.lg,
+                    borderWidth: 1,
+                },
+                filter === null
+                    ? { backgroundColor: colors.tint, borderColor: colors.tint }
+                    : { 
+                        backgroundColor: colors.backgroundSecondary, 
+                        borderColor: colors.border 
+                    },
+                pressed && { opacity: 0.7 }
+            ]}
+        >
+            <Text style={{
+                color: filter === null ? colors.background : colors.text,
+                fontWeight: '500'
+            }}>
+                All
+            </Text>
+        </Pressable>
+        {typeColors.map((type, index) => (
+            <Pressable
+                key={index}
+                onPress={() => onFilterChange(index.toString())}
+                style={({ pressed }) => [
+                    {
+                        paddingHorizontal: DESIGN_TOKENS.spacing.md,
+                        paddingVertical: DESIGN_TOKENS.spacing.sm,
+                        borderRadius: DESIGN_TOKENS.radius.lg,
+                        borderWidth: 1,
+                    },
+                    filter === index.toString()
+                        ? { backgroundColor: type.borderColor, borderColor: type.borderColor }
+                        : { 
+                            backgroundColor: type.color, 
+                            borderColor: type.borderColor 
+                        },
+                    pressed && { opacity: 0.7 }
+                ]}
+            >
+                <Text style={{
+                    color: filter === index.toString() ? '#FFFFFF' : type.textColor,
+                    fontWeight: '500'
+                }}>
+                    {type.name}
+                </Text>
+            </Pressable>
+        ))}
+    </ScrollView>
+));
+
+const NoteHeader = React.memo<{ 
+    filteredNotesLength: number; 
+    filter: NoteType | null; 
+    noteTypes: any; 
+    onAddNote: () => void; 
+    isAddingNote: boolean; 
+    colors: any; 
+}>(({ filteredNotesLength, filter, noteTypes, onAddNote, isAddingNote, colors }) => (
+    <HStack gap="md" align="center" justify="space-between">
+        <VStack gap="xs">
+            <Text 
+                style={{
+                    fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
+                    fontWeight: DESIGN_TOKENS.typography.subtitle.fontWeight,
+                    color: colors.text,
+                }}
+            >
+                Job Notes
+            </Text>
+            <Text 
+                style={{
+                    fontSize: DESIGN_TOKENS.typography.caption.fontSize,
+                    color: colors.textSecondary,
+                }}
+            >
+                {filteredNotesLength} note{filteredNotesLength !== 1 ? 's' : ''}
+                {filter !== null && ` (${noteTypes[filter]?.name})`}
+            </Text>
+        </VStack>
+        
+        <Pressable
+            onPress={onAddNote}
+            disabled={isAddingNote}
+            hitSlop={DESIGN_TOKENS.touch.hitSlop}
+            style={({ pressed }) => ({
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingVertical: DESIGN_TOKENS.spacing.sm,
+                paddingHorizontal: DESIGN_TOKENS.spacing.md,
+                backgroundColor: isAddingNote 
+                    ? colors.backgroundSecondary
+                    : (pressed 
+                        ? colors.backgroundSecondary
+                        : colors.tint),
+                borderRadius: DESIGN_TOKENS.radius.md,
+                opacity: isAddingNote ? 0.6 : 1,
+            })}
+        >
+            <Ionicons 
+                name="add" 
+                size={16} 
+                color={isAddingNote ? colors.textSecondary : colors.background} 
+            />
+            <Text style={{
+                marginLeft: DESIGN_TOKENS.spacing.xs,
+                fontSize: DESIGN_TOKENS.typography.caption.fontSize,
+                fontWeight: '600',
+                color: isAddingNote ? colors.textSecondary : colors.background,
+            }}>
+                {isAddingNote ? 'Adding...' : 'Add'}
+            </Text>
+        </Pressable>
+    </HStack>
+));
+
+// Animated Components pour UX améliorée
+const AnimatedCard = React.memo<{
+    children: React.ReactNode;
+    onPress?: () => void;
+    style?: any;
+}>(({ children, onPress, style }) => {
+    const scaleAnim = React.useRef(new Animated.Value(1)).current;
+
+    const handlePressIn = useCallback(() => {
+        Animated.spring(scaleAnim, {
+            toValue: 0.98,
+            useNativeDriver: true,
+        }).start();
+    }, [scaleAnim]);
+
+    const handlePressOut = useCallback(() => {
+        Animated.spring(scaleAnim, {
+            toValue: 1,
+            useNativeDriver: true,
+        }).start();
+    }, [scaleAnim]);
+
+    if (onPress) {
+        return (
+            <Pressable
+                onPress={onPress}
+                onPressIn={handlePressIn}
+                onPressOut={handlePressOut}
+                style={style}
+            >
+                <Animated.View style={{
+                    transform: [{ scale: scaleAnim }],
+                }}>
+                    {children}
+                </Animated.View>
+            </Pressable>
+        );
+    }
+
+    return (
+        <Animated.View style={[style, {
+            transform: [{ scale: scaleAnim }],
+        }]}>
+            {children}
+        </Animated.View>
+    );
+});
+
+// Loading State Component
+const LoadingState = React.memo<{ colors: any }>(({ colors }) => (
+    <VStack
+        align="center"
+        justify="center"
+        gap={DESIGN_TOKENS.spacing.md}
+        style={{ paddingVertical: DESIGN_TOKENS.spacing.xl }}
+    >
+        <ActivityIndicator size="large" color={colors.tint} />
+        <Text style={{
+            fontSize: DESIGN_TOKENS.typography.body.fontSize,
+            color: colors.textSecondary,
+            textAlign: 'center',
+        }}>
+            Loading notes...
+        </Text>
+    </VStack>
+));
+
+// Empty State Component
+const EmptyState = React.memo<{ 
+    onAddNote: () => void; 
+    colors: any; 
+    filter: NoteType | null;
+}>(({ onAddNote, colors, filter }) => (
+    <VStack
+        align="center"
+        justify="center"
+        gap={DESIGN_TOKENS.spacing.lg}
+        style={{ paddingVertical: DESIGN_TOKENS.spacing.xxl }}
+    >
+        <View style={{
+            width: 80,
+            height: 80,
+            borderRadius: 40,
+            backgroundColor: colors.backgroundSecondary,
+            alignItems: 'center',
+            justifyContent: 'center',
+        }}>
+            <Ionicons 
+                name="document-text-outline" 
+                size={32} 
+                color={colors.textSecondary} 
+            />
+        </View>
+        
+        <VStack align="center" gap={DESIGN_TOKENS.spacing.sm}>
+            <Text style={{
+                fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
+                fontWeight: DESIGN_TOKENS.typography.subtitle.fontWeight,
+                color: colors.text,
+                textAlign: 'center',
+            }}>
+                {filter !== null ? 'No filtered notes' : 'No notes yet'}
+            </Text>
+            <Text style={{
+                fontSize: DESIGN_TOKENS.typography.body.fontSize,
+                color: colors.textSecondary,
+                textAlign: 'center',
+                maxWidth: 250,
+            }}>
+                {filter !== null 
+                    ? 'Try changing your filter or add a new note'
+                    : 'Start documenting important information about this job'
+                }
+            </Text>
+        </VStack>
+
+        <Pressable
+            onPress={onAddNote}
+            style={({ pressed }) => ({
+                backgroundColor: pressed ? colors.tintPressed : colors.tint,
+                paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+                paddingVertical: DESIGN_TOKENS.spacing.md,
+                borderRadius: DESIGN_TOKENS.radius.lg,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: DESIGN_TOKENS.spacing.sm,
+            })}
+            accessibilityRole="button"
+            accessibilityLabel={filter !== null ? 'Clear filter or add note' : 'Add first note'}
+        >
+            <Ionicons name="add" size={20} color={colors.background} />
+            <Text style={{
+                fontSize: DESIGN_TOKENS.typography.body.fontSize,
+                fontWeight: '600',
+                color: colors.background,
+            }}>
+                {filter !== null ? 'Add Note' : 'Add First Note'}
+            </Text>
+        </Pressable>
+    </VStack>
+));
+
+// Business Logic Service (séparation des responsabilités)
+class NoteService {
+    static validateNote(content: string): { isValid: boolean; error?: string } {
+        if (!content.trim()) {
+            return { isValid: false, error: 'Note content cannot be empty' };
+        }
+        if (content.length > 1000) {
+            return { isValid: false, error: 'Note is too long (max 1000 characters)' };
+        }
+        return { isValid: true };
+    }
+
+    static formatNoteDate(createdAt: string): string {
+        return new Date(createdAt).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+        });
+    }
+
+    static getTypeConfig(type: string | number, noteTypes: any[]): any {
+        const index = typeof type === 'string' ? parseInt(type) : type;
+        return noteTypes[index] || noteTypes[0];
+    }
+
+    static sortNotesByDate(notes: Note[]): Note[] {
+        return [...notes].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }
+}
 
 export default JobNote;

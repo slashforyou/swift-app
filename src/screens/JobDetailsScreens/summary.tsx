@@ -1,12 +1,10 @@
 /**
- * Summary Page - Architecture modulaire moderne
- * Utilise les nouvelles sections modulaires pour une meilleure maintenabilité
+ * Summary Page - Page de résumé du job
  */
 
 import React from 'react';
 import { View } from 'react-native';
 import SigningBloc from '../../components/signingBloc';
-// Import des sections modulaires
 import JobProgressSection from '../../components/jobDetails/sections/JobProgressSection';
 import SignatureSection from '../../components/jobDetails/sections/SignatureSection';
 import ClientDetailsSection from '../../components/jobDetails/sections/ClientDetailsSection';
