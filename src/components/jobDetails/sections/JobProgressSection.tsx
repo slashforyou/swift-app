@@ -1,7 +1,7 @@
 /**
  * JobProgressSection - Section modulaire pour la progression du job
  */
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Text, View } from 'react-native';
 import { useTheme } from '../../../context/ThemeProvider';
 import { DESIGN_TOKENS } from '../../../constants/Styles';
