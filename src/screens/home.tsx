@@ -1,8 +1,8 @@
 /**
- * Home - Écran d'accueil moderne avec gamification
+ * Home - Écran d'accueil moderne avec gamification et traductions
  * Architecture moderne avec Safe Areas, ProfileHeader et navigation cohérente
  */
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,6 +13,8 @@ import ServerConnectionTest from '@/tests/server/connectionTest';
 import { useAuthCheck } from '../utils/checkAuth';
 import { DESIGN_TOKENS } from '../constants/Styles';
 import { Colors } from '../constants/Colors';
+import { useTranslation } from '../localization';
+import LanguageSelector from '../components/ui/LanguageSelector';
 
 // Types et interfaces
 interface HomeScreenProps {
@@ -101,6 +103,8 @@ const MenuItem: React.FC<MenuItemProps> = ({ title, icon, description, onPress, 
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     const insets = useSafeAreaInsets();
     const { isLoading, LoadingComponent } = useAuthCheck(navigation);
+    const { t } = useTranslation();
+    const [showLanguageSelector, setShowLanguageSelector] = useState(false);
 
     if (isLoading) return LoadingComponent;
 
@@ -121,17 +125,48 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                     <ProfileHeaderComplete navigation={navigation} />
                 </View>
 
-                {/* Section title */}
-                <Text style={{
-                    fontSize: 22,
-                    fontWeight: '700',
-                    color: Colors.light.text,
+                {/* Section title avec bouton langue */}
+                <View style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
                     marginHorizontal: DESIGN_TOKENS.spacing.lg,
                     marginBottom: DESIGN_TOKENS.spacing.sm,
                     marginTop: DESIGN_TOKENS.spacing.lg,
                 }}>
-                    Quick Actions
-                </Text>
+                    <Text style={{
+                        fontSize: 22,
+                        fontWeight: '700',
+                        color: Colors.light.text,
+                    }}>
+                        {t('home.title')}
+                    </Text>
+                    
+                    {/* Bouton sélecteur de langue */}
+                    <Pressable
+                        onPress={() => setShowLanguageSelector(true)}
+                        style={({ pressed }) => ({
+                            padding: DESIGN_TOKENS.spacing.sm,
+                            borderRadius: DESIGN_TOKENS.radius.md,
+                            backgroundColor: pressed ? Colors.light.backgroundSecondary : Colors.light.backgroundTertiary,
+                            borderWidth: 1,
+                            borderColor: Colors.light.border,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: DESIGN_TOKENS.spacing.xs,
+                        })}
+                        hitSlop={DESIGN_TOKENS.touch.hitSlop}
+                    >
+                        <Ionicons name="language" size={18} color={Colors.light.primary} />
+                        <Text style={{
+                            fontSize: 12,
+                            fontWeight: '600',
+                            color: Colors.light.primary,
+                        }}>
+                            {t('common.language')}
+                        </Text>
+                    </Pressable>
+                </View>
 
                 {/* Navigation menu */}
                 <View style={{ 
@@ -140,19 +175,27 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                 }}>
                     <VStack gap="sm">
                         <MenuItem
-                            title="Calendar"
+                            title={t('home.calendar.title')}
                             icon="calendar"
-                            description="View and manage your scheduled tasks"
+                            description={t('home.calendar.description')}
                             onPress={() => navigation.navigate('Calendar')}
                             color={Colors.light.primary}
                         />
                         
                         <MenuItem
-                            title="Settings"
+                            title={t('home.parameters.title')}
                             icon="settings"
-                            description="Configure application preferences"
+                            description={t('home.parameters.description')}
                             onPress={() => navigation.navigate('Parameters')}
                             color={Colors.light.warning}
+                        />
+                        
+                        <MenuItem
+                            title={t('home.connection.title')}
+                            icon="wifi"
+                            description={t('home.connection.description')}
+                            onPress={() => setShowLanguageSelector(true)}
+                            color={Colors.light.success}
                         />
                     </VStack>
                 </View>
@@ -164,6 +207,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                     </View>
                 )}
             </VStack>
+            
+            {/* Modal de sélection de langue */}
+            <LanguageSelector
+                visible={showLanguageSelector}
+                onClose={() => setShowLanguageSelector(false)}
+            />
         </Screen>
     );
 };
