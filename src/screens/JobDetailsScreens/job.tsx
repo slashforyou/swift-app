@@ -10,6 +10,7 @@ import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 import contactLink from '../../services/contactLink';
 import { addJobItem, updateJobItem, getJobWithItems } from '../../services/jobs';
+import JobTimeSection from '../../components/jobDetails/sections/JobTimeSection';
 
 // Fonction pour extraire l'ID numérique depuis un ID job de format JOB-NERD-URGENT-006
 const extractNumericJobId = (jobId: string): string => {
@@ -712,6 +713,9 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
     return (
         <>
             <VStack gap="lg">
+                {/* Section Time - Chronométrage et coûts */}
+                <JobTimeSection job={job} />
+                
                 {/* Job Items Checklist */}
                 <Card style={{ padding: DESIGN_TOKENS.spacing.lg }}>
                     <VStack gap="sm">

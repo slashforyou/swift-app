@@ -16,6 +16,7 @@ import QuickActionsSection from '../../components/jobDetails/sections/QuickActio
 import PhotoSelectionModal from '../../components/jobDetails/modals/PhotoSelectionModal';
 import ImprovedNoteModal from '../../components/jobDetails/modals/ImprovedNoteModal';
 import JobStepAdvanceModal from '../../components/jobDetails/modals/JobStepAdvanceModal';
+import JobClock from '../../components/jobDetails/JobClock';
 import { useJobNotes } from '../../hooks/useJobNotes';
 import { useJobPhotos } from '../../hooks/useJobPhotos';
 import { useToast } from '../../context/ToastProvider';
@@ -158,6 +159,9 @@ const JobSummary = ({ job, setJob } : { job: any, setJob: React.Dispatch<React.S
 
             {/* Sections modulaires */}
             <View>
+                {/* Module Clock - Chronométrage du job */}
+                <JobClock job={job} />
+                
                 {/* Section principale : Progression du job */}
                 <JobProgressSection job={job} onAdvanceStep={handleNextStep} />
                 
