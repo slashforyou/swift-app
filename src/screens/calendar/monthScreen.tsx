@@ -16,6 +16,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 import { JobAPI } from '../../services/jobs';
+import { useTranslation } from '../../localization';
 
 // Design tokens for consistent spacing and styling
 const DESIGN_TOKENS = {
@@ -119,11 +120,18 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
     const screenWidth = Dimensions.get('window').width;
     const buttonWidth = (screenWidth - DESIGN_TOKENS.spacing.lg * 2 - DESIGN_TOKENS.spacing.xs * 6) / 7;
     
+    const { t } = useTranslation();
+    
     const monthList = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
+        t('calendar.months.january'), t('calendar.months.february'), t('calendar.months.march'), 
+        t('calendar.months.april'), t('calendar.months.may'), t('calendar.months.june'),
+        t('calendar.months.july'), t('calendar.months.august'), t('calendar.months.september'), 
+        t('calendar.months.october'), t('calendar.months.november'), t('calendar.months.december')
     ];
-    const daysList = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const daysList = [
+        t('calendar.days.mon'), t('calendar.days.tue'), t('calendar.days.wed'), 
+        t('calendar.days.thu'), t('calendar.days.fri'), t('calendar.days.sat'), t('calendar.days.sun')
+    ];
     const { month, year } = route.params || {};
 
     const selectedYear = year || new Date().getFullYear();
@@ -506,19 +514,19 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
                 <View style={customStyles.statsContainer}>
                     <View style={customStyles.statItem}>
                         <Text style={customStyles.statValue}>{monthStats.totalJobs}</Text>
-                        <Text style={customStyles.statLabel}>Total Jobs</Text>
+                        <Text style={customStyles.statLabel}>{t('calendar.stats.totalJobs')}</Text>
                     </View>
                     <View style={customStyles.statItem}>
                         <Text style={[customStyles.statValue, { color: '#FF6B6B' }]}>
                             {monthStats.urgentJobs}
                         </Text>
-                        <Text style={customStyles.statLabel}>Urgent</Text>
+                        <Text style={customStyles.statLabel}>{t('calendar.stats.urgent')}</Text>
                     </View>
                     <View style={customStyles.statItem}>
                         <Text style={[customStyles.statValue, { color: '#51CF66' }]}>
                             {monthStats.completedJobs}
                         </Text>
-                        <Text style={customStyles.statLabel}>Completed</Text>
+                        <Text style={customStyles.statLabel}>{t('calendar.stats.completed')}</Text>
                     </View>
                 </View>
 
