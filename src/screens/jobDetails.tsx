@@ -10,7 +10,7 @@ import JobSummary from './JobDetailsScreens/summary';
 import JobClient from './JobDetailsScreens/client';
 import JobPage from './JobDetailsScreens/job';
 import JobNote from './JobDetailsScreens/note';
-import JobPayment from './JobDetailsScreens/payment';
+import PaymentScreen from './JobDetailsScreens/payment';
 import JobDetailsHeader from '../components/jobDetails/JobDetailsHeader';
 import Toast from '../components/ui/toastNotification';
 import { useAuthCheck } from '../utils/checkAuth';
@@ -98,6 +98,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
     // États locaux pour l'UI et données adaptées des vraies données API
     const [job, setJob] = useState({
         id: actualJobId || "#LM0000000001",
+        code: actualJobId || "#LM0000000001", // Ajouter le code dans la structure par défaut
         signatureDataUrl: '',
         signatureFileUri: '',
         step : {
@@ -237,6 +238,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
             setJob((prevJob: any) => ({
                 ...prevJob,
                 id: jobDetails.job?.id || actualJobId,
+                code: jobDetails.job?.code || actualJobId, // Ajouter le code du job
                 client: {
                     firstName: jobDetails.client?.firstName || 'Client',
                     lastName: jobDetails.client?.lastName || 'Inconnu', 
@@ -256,12 +258,34 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
                     name: jobDetails.trucks[0].truck_name,
                 } : prevJob.truck,
                 items: jobDetails.items?.map((item: any, index: number) => ({
-                    id: index + 1,
+                    id: item.id, // Garder l'ID API réel !
                     name: item.name,
                     number: item.quantity,
                     checked: item.is_checked === 1,
+                    item_checked: item.is_checked === 1,
                 })) || [],
-                addresses: prevJob.addresses // Garder les adresses par défaut pour l'instant
+                addresses: jobDetails.addresses && jobDetails.addresses.length > 0 
+                    ? jobDetails.addresses.map((address: any) => ({
+                        id: address.id,
+                        type: address.type,
+                        street: address.street,
+                        city: address.city,
+                        state: address.state,
+                        zip: address.zip,
+                        position: address.position,
+                    }))
+                    : prevJob.addresses, // Fallback sur les adresses par défaut si pas d'adresses API
+                time: {
+                    startWindowStart: jobDetails.job?.start_window_start || prevJob.time.startWindowStart,
+                    startWindowEnd: jobDetails.job?.start_window_end || prevJob.time.startWindowEnd,
+                    endWindowStart: jobDetails.job?.end_window_start || prevJob.time.endWindowStart,
+                    endWindowEnd: jobDetails.job?.end_window_end || prevJob.time.endWindowEnd,
+                },
+                // Ajouter aussi les champs directement sur l'objet pour compatibilité
+                start_window_start: jobDetails.job?.start_window_start,
+                start_window_end: jobDetails.job?.start_window_end,
+                end_window_start: jobDetails.job?.end_window_start,
+                end_window_end: jobDetails.job?.end_window_end
             }));
             
             console.log('✅ [JobDetails] Local job data updated with API data');
@@ -326,7 +350,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
             {/* Header moderne avec navigation et RefBookMark */}
             <JobDetailsHeader
                 navigation={navigation}
-                jobRef={job.id}
+                jobRef={job.code || jobDetails?.job?.code || job.id}
                 title={getPanelTitle()}
                 onToast={showToast}
             />
@@ -347,12 +371,10 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
                 {jobPanel === 3 && (
                     <JobNote 
                         job={job} 
-                        setJob={setJob} 
-                        notes={jobDetails?.notes || []}
-                        onAddNote={addNote}
+                        setJob={setJob}
                     />
                 )}
-                {jobPanel === 4 && <JobPayment job={job} setJob={setJob} />}
+                {jobPanel === 4 && <PaymentScreen job={job} setJob={setJob} />}
             </ScrollView>
             
             {/* Job Menu fixé en bas */}

@@ -1,533 +1,354 @@
 /**
- * Payment Page - Gestion moderne des paiements avec sécurité renforcée
- * Conforme aux normes mobiles iOS/Android - Touch targets ≥44pt, 8pt grid
+ * Payment Page - Gestion moderne des paiements conforme au design Summary
  */
 import React, { useState } from 'react';
-import { View, Text, Pressable, Alert } from 'react-native';
-import { VStack, HStack } from '../../components/primitives/Stack';
-import { Card } from '../../components/ui/Card';
+import { View, Text, Pressable, Alert, ScrollView } from 'react-native';
 import { DESIGN_TOKENS } from '../../constants/Styles';
-import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
+import { useTheme } from '../../context/ThemeProvider';
 import Ionicons from '@react-native-vector-icons/ionicons';
 import PaymentWindow from './paymentWindow';
-interface JobPaymentProps {
+
+// Interfaces
+interface PaymentProps {
     job: any;
-    setJob: React.Dispatch<React.SetStateAction<any>>;
+    setJob: (job: any) => void;
 }
 
-interface PaymentInfoProps {
-    label: string;
-    value: string | number;
-    format?: 'currency' | 'date' | 'text';
-    currency?: string;
-}
+const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
+    const { colors } = useTheme();
+    const [paymentWindowVisible, setPaymentWindowVisible] = useState<string | null>(null);
 
-interface CardItemProps {
-    card: any;
-    index: number;
-    onSelect?: (card: any) => void;
-    onEdit?: (card: any) => void;
-    onDelete?: (cardId: number) => void;
-    isSelected?: boolean;
-}
-
-interface StatusBadgeProps {
-    status: string;
-}
-
-// États de paiement avec couleurs sémantiques
-const PAYMENT_STATUSES = {
-    'unsettled': { color: '#FFF3CD', borderColor: '#F0AD4E', textColor: '#856404', icon: 'time', label: 'Pending Payment' },
-    'pending': { color: '#CCE5FF', borderColor: '#007AFF', textColor: '#0056CC', icon: 'hourglass', label: 'Processing' },
-    'accepted': { color: '#D4EDDA', borderColor: '#28A745', textColor: '#155724', icon: 'checkmark-circle', label: 'Accepted' },
-    'rejected': { color: '#F8D7DA', borderColor: '#DC3545', textColor: '#721C24', icon: 'close-circle', label: 'Rejected' },
-    'paid': { color: '#D4EDDA', borderColor: '#28A745', textColor: '#155724', icon: 'checkmark-done', label: 'Paid' },
-};
-
-// Utilitaires de formatage
-const formatCurrency = (amount: string | number, currency: string = 'AUD'): string => {
-    if (amount === 'N/A' || !amount) return 'N/A';
-    const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
-    if (isNaN(numAmount)) return amount.toString();
-    
-    return new Intl.NumberFormat('en-AU', {
-        style: 'currency',
-        currency: currency,
-    }).format(numAmount);
-};
-
-const formatDate = (dateString: string): string => {
-    if (dateString === 'N/A' || !dateString) return 'N/A';
-    try {
-        return new Date(dateString).toLocaleDateString('en-AU');
-    } catch {
-        return dateString;
-    }
-};
-
-const maskCardNumber = (cardNumber: string): string => {
-    if (!cardNumber || cardNumber === 'N/A') return 'N/A';
-    // Masque tout sauf les 4 derniers chiffres
-    return cardNumber.replace(/\d(?=\d{4})/g, '•');
-};
-
-// Composant Badge de statut
-const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
-    const statusInfo = PAYMENT_STATUSES[status as keyof typeof PAYMENT_STATUSES] || PAYMENT_STATUSES.unsettled;
-    
-    return (
-        <HStack gap="xs" align="center" style={{
-            backgroundColor: statusInfo.color,
-            borderWidth: 1,
-            borderColor: statusInfo.borderColor,
-            paddingHorizontal: DESIGN_TOKENS.spacing.md,
-            paddingVertical: DESIGN_TOKENS.spacing.xs,
-            borderRadius: DESIGN_TOKENS.radius.md,
-            alignSelf: 'flex-start',
-        }}>
-            <Ionicons name={statusInfo.icon as any} size={16} color={statusInfo.textColor} />
-            <Text style={{
-                fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-                fontWeight: '600',
-                color: statusInfo.textColor,
-            }}>
-                {statusInfo.label}
-            </Text>
-        </HStack>
-    );
-};
-
-// Composant Info de paiement
-const PaymentInfo: React.FC<PaymentInfoProps> = ({ label, value, format = 'text', currency = 'AUD' }) => {
-    const { colors } = useCommonThemedStyles();
-    
-    const formatValue = (val: string | number) => {
-        switch (format) {
-            case 'currency':
-                return formatCurrency(val, currency);
-            case 'date':
-                return formatDate(val.toString());
-            default:
-                return val?.toString() || 'N/A';
-        }
+    // Extraire les informations de coût depuis les données du job
+    const getPaymentInfo = () => {
+        // Utiliser estimatedCost et actualCost depuis job.job (données API réelles)
+        const jobData = job?.job || job;
+        const estimatedCost = jobData?.estimatedCost || 0;
+        const actualCost = jobData?.actualCost || estimatedCost;
+        
+        return {
+            estimated: estimatedCost,
+            actual: actualCost,
+            currency: 'EUR', // Défaut pour le marché français
+            status: determinePaymentStatus(actualCost, estimatedCost),
+            isPaid: actualCost > 0 && actualCost >= estimatedCost
+        };
     };
 
-    return (
-        <VStack gap="xs" style={{ paddingVertical: DESIGN_TOKENS.spacing.sm }}>
-            <Text style={{
-                fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-                fontWeight: '500',
-                color: colors.textSecondary,
-            }}>
-                {label}
-            </Text>
-            <Text style={{
-                fontSize: DESIGN_TOKENS.typography.body.fontSize,
-                fontWeight: format === 'currency' ? '600' : '400',
-                color: colors.text,
-            }}>
-                {formatValue(value)}
-            </Text>
-        </VStack>
-    );
-};
-
-// Composant Carte de crédit sécurisé
-const CardItem: React.FC<CardItemProps> = ({ card, index, onSelect, onEdit, onDelete, isSelected = false }) => {
-    const { colors } = useCommonThemedStyles();
-    
-    const handleEdit = () => {
-        Alert.alert("Edit Card", "Feature coming soon! You'll be able to edit card details here.");
+    const determinePaymentStatus = (actualCost: number, estimatedCost: number) => {
+        if (actualCost === 0) return 'pending';
+        if (actualCost < estimatedCost) return 'partial';
+        return 'completed';
     };
 
-    const handleDelete = () => {
-        Alert.alert(
-            "Delete Card",
-            "Are you sure you want to delete this card?",
-            [
-                { text: "Cancel", style: "cancel" },
-                { text: "Delete", style: "destructive", onPress: () => onDelete?.(card.id) }
-            ]
-        );
+    const formatCurrency = (amount: number) => {
+        return new Intl.NumberFormat('fr-FR', {
+            style: 'currency',
+            currency: 'EUR',
+        }).format(amount);
     };
 
-    const getCardBrand = (cardNumber: string) => {
-        if (cardNumber.startsWith('4')) return { name: 'Visa', icon: 'card', color: '#1A1F71' };
-        if (cardNumber.startsWith('5')) return { name: 'Mastercard', icon: 'card', color: '#EB001B' };
-        return { name: 'Card', icon: 'card', color: colors.tint };
-    };
-
-    const brand = getCardBrand(card.cardNumber);
-
-    return (
-        <Pressable
-            onPress={() => onSelect?.(card)}
-            hitSlop={DESIGN_TOKENS.touch.hitSlop}
-            style={({ pressed }) => ({
-                backgroundColor: pressed 
-                    ? colors.backgroundSecondary 
-                    : (isSelected ? colors.backgroundTertiary : colors.background),
-                borderWidth: 2,
-                borderColor: isSelected ? colors.tint : colors.border,
-                borderRadius: DESIGN_TOKENS.radius.lg,
-                padding: DESIGN_TOKENS.spacing.lg,
-                minHeight: DESIGN_TOKENS.touch.minSize,
-            })}
-            accessibilityRole="button"
-            accessibilityLabel={`Card ending in ${card.cardNumber.slice(-4)}`}
-            accessibilityState={{ selected: isSelected }}
-        >
-            <VStack gap="md">
-                <HStack gap="md" align="center" justify="space-between">
-                    <HStack gap="sm" align="center">
-                        <View style={{
-                            backgroundColor: brand.color,
-                            padding: DESIGN_TOKENS.spacing.sm,
-                            borderRadius: DESIGN_TOKENS.radius.sm,
-                        }}>
-                            <Ionicons name={brand.icon as any} size={20} color={colors.background} />
-                        </View>
-                        <VStack gap="xs">
-                            <Text style={{
-                                fontSize: DESIGN_TOKENS.typography.body.fontSize,
-                                fontWeight: '600',
-                                color: colors.text,
-                            }}>
-                                {brand.name}
-                            </Text>
-                            <Text style={{
-                                fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-                                color: colors.textSecondary,
-                            }}>
-                                {maskCardNumber(card.cardNumber)}
-                            </Text>
-                        </VStack>
-                    </HStack>
-                    
-                    {isSelected && (
-                        <Ionicons name="checkmark-circle" size={24} color={colors.tint} />
-                    )}
-                </HStack>
-
-                <HStack gap="lg" align="center" justify="space-between">
-                    <VStack gap="xs">
-                        <Text style={{
-                            fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-                            color: colors.textSecondary,
-                        }}>
-                            Card Holder
-                        </Text>
-                        <Text style={{
-                            fontSize: DESIGN_TOKENS.typography.body.fontSize,
-                            color: colors.text,
-                        }}>
-                            {card.cardHolderName}
-                        </Text>
-                    </VStack>
-                    
-                    <VStack gap="xs">
-                        <Text style={{
-                            fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-                            color: colors.textSecondary,
-                        }}>
-                            Expires
-                        </Text>
-                        <Text style={{
-                            fontSize: DESIGN_TOKENS.typography.body.fontSize,
-                            color: colors.text,
-                        }}>
-                            {card.expiryDate}
-                        </Text>
-                    </VStack>
-                    
-                    <HStack gap="sm">
-                        <Pressable
-                            onPress={handleEdit}
-                            hitSlop={DESIGN_TOKENS.touch.hitSlop}
-                            style={({ pressed }) => ({
-                                padding: DESIGN_TOKENS.spacing.xs,
-                                backgroundColor: pressed ? colors.backgroundSecondary : 'transparent',
-                                borderRadius: DESIGN_TOKENS.radius.sm,
-                            })}
-                            accessibilityRole="button"
-                            accessibilityLabel="Edit card"
-                        >
-                            <Ionicons name="create" size={16} color={colors.tint} />
-                        </Pressable>
-                        
-                        <Pressable
-                            onPress={handleDelete}
-                            hitSlop={DESIGN_TOKENS.touch.hitSlop}
-                            style={({ pressed }) => ({
-                                padding: DESIGN_TOKENS.spacing.xs,
-                                backgroundColor: pressed ? 'rgba(220, 53, 69, 0.1)' : 'transparent',
-                                borderRadius: DESIGN_TOKENS.radius.sm,
-                            })}
-                            accessibilityRole="button"
-                            accessibilityLabel="Delete card"
-                        >
-                            <Ionicons name="trash" size={16} color="#DC3545" />
-                        </Pressable>
-                    </HStack>
-                </HStack>
-            </VStack>
-        </Pressable>
-    );
-};
-
-const JobPayment: React.FC<JobPaymentProps> = ({ job, setJob }) => {
-    const { colors } = useCommonThemedStyles();
-    const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
-    const [selectedCard, setSelectedCard] = useState<any>(null);
-
-    const handleMakePayment = () => {
-        if (job.payment?.status === 'unsettled') {
-            setPaymentStatus('paymentWindow');
-        } else {
-            Alert.alert("Payment", "This payment has already been processed.");
-        }
-    };
-
-    const handleAddCard = () => {
-        Alert.alert("Add Card", "Feature coming soon! You'll be able to add a new payment card here.");
-    };
-
-    const handleDeleteCard = (cardId: number) => {
-        const updatedJob = {
-            ...job,
-            payment: {
-                ...job.payment,
-                savedCards: job.payment?.savedCards?.filter((card: any) => card.id !== cardId) || []
+    const getStatusInfo = (status: string) => {
+        const statusMap = {
+            'pending': { 
+                label: 'En attente', 
+                color: '#F59E0B', 
+                bgColor: '#FEF3C7',
+                icon: 'time-outline'
+            },
+            'partial': { 
+                label: 'Partiel', 
+                color: '#3B82F6', 
+                bgColor: '#DBEAFE',
+                icon: 'card-outline'
+            },
+            'completed': { 
+                label: 'Payé', 
+                color: '#10B981', 
+                bgColor: '#D1FAE5',
+                icon: 'checkmark-circle-outline'
             }
         };
-        setJob(updatedJob);
+        return statusMap[status as keyof typeof statusMap] || statusMap.pending;
     };
 
-    const paymentData = job.payment;
-    const hasPayment = paymentData && Object.keys(paymentData).length > 0;
+    const paymentInfo = getPaymentInfo();
+    const statusInfo = getStatusInfo(paymentInfo.status);
 
-    // Render PaymentWindow if payment status is set
-    if (paymentStatus === 'paymentWindow') {
+    const handlePayment = () => {
+        if (paymentInfo.status === 'pending') {
+            setPaymentWindowVisible('paymentWindow');
+        } else {
+            Alert.alert("Information", "Le paiement pour ce job a déjà été traité.");
+        }
+    };
+
+    if (paymentWindowVisible === 'paymentWindow') {
         return (
             <PaymentWindow 
                 job={job}
                 setJob={setJob}
-                visibleCondition={paymentStatus}
-                setVisibleCondition={setPaymentStatus}
+                visibleCondition={paymentWindowVisible}
+                setVisibleCondition={setPaymentWindowVisible}
             />
         );
     }
 
     return (
-        <VStack gap="lg">
-                {/* Header avec status */}
-                <Card style={{ padding: DESIGN_TOKENS.spacing.lg }}>
-                    <VStack gap="lg">
-                        <HStack gap="md" align="center" justify="space-between">
-                            <VStack gap="xs">
-                                <Text style={{
-                                    fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
-                                    fontWeight: DESIGN_TOKENS.typography.subtitle.fontWeight,
-                                    color: colors.text,
-                                }}>
-                                    Payment Information
-                                </Text>
-                                {hasPayment && (
-                                    <StatusBadge status={paymentData.status || 'unsettled'} />
-                                )}
-                            </VStack>
-                            
-                            {paymentData?.status === 'unsettled' && (
-                                <Pressable
-                                    onPress={handleMakePayment}
-                                    hitSlop={DESIGN_TOKENS.touch.hitSlop}
-                                    style={({ pressed }) => ({
-                                        flexDirection: 'row',
-                                        alignItems: 'center',
-                                        paddingVertical: DESIGN_TOKENS.spacing.sm,
-                                        paddingHorizontal: DESIGN_TOKENS.spacing.md,
-                                        backgroundColor: pressed 
-                                            ? colors.backgroundSecondary
-                                            : colors.tint,
-                                        borderRadius: DESIGN_TOKENS.radius.md,
-                                        minHeight: DESIGN_TOKENS.touch.minSize,
-                                    })}
-                                    accessibilityRole="button"
-                                    accessibilityLabel="Make payment"
-                                >
-                                    <Text style={{ 
-                                        fontSize: DESIGN_TOKENS.typography.body.fontSize,
-                                        fontWeight: '600',
-                                        color: colors.background,
-                                        marginRight: DESIGN_TOKENS.spacing.xs,
-                                    }}>
-                                        Pay Now
-                                    </Text>
-                                    <Ionicons name="chevron-forward" size={16} color={colors.background} />
-                                </Pressable>
-                            )}
-                        </HStack>
-
-                        {!hasPayment && (
-                            <VStack gap="sm" style={{ alignItems: 'center', paddingVertical: DESIGN_TOKENS.spacing.lg }}>
-                                <Ionicons name="card-outline" size={48} color={colors.textSecondary} />
-                                <Text style={{
-                                    fontSize: DESIGN_TOKENS.typography.body.fontSize,
-                                    color: colors.textSecondary,
-                                    textAlign: 'center',
-                                }}>
-                                    No payment information available
-                                </Text>
-                            </VStack>
-                        )}
-                    </VStack>
-                </Card>
-
-                {/* Détails de paiement */}
-                {hasPayment && (
-                    <Card style={{ padding: DESIGN_TOKENS.spacing.lg }}>
-                        <VStack gap="sm">
+        <ScrollView 
+            style={{ flex: 1, backgroundColor: colors.background }}
+            contentContainerStyle={{ padding: DESIGN_TOKENS.spacing.md }}
+        >
+            {/* Header avec bouton de paiement */}
+            <View style={{
+                backgroundColor: colors.backgroundSecondary,
+                borderRadius: DESIGN_TOKENS.radius.lg,
+                padding: DESIGN_TOKENS.spacing.lg,
+                marginBottom: DESIGN_TOKENS.spacing.lg,
+            }}>
+                <View style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: DESIGN_TOKENS.spacing.md,
+                }}>
+                    <View>
+                        <Text style={{
+                            fontSize: 22,
+                            fontWeight: '700',
+                            color: colors.text,
+                            marginBottom: DESIGN_TOKENS.spacing.xs,
+                        }}>
+                            Paiement du Job
+                        </Text>
+                        <View style={{
+                            backgroundColor: statusInfo.bgColor,
+                            borderRadius: DESIGN_TOKENS.radius.lg,
+                            paddingHorizontal: DESIGN_TOKENS.spacing.md,
+                            paddingVertical: DESIGN_TOKENS.spacing.xs,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: DESIGN_TOKENS.spacing.xs,
+                            alignSelf: 'flex-start',
+                        }}>
+                            <Ionicons name={statusInfo.icon as any} size={16} color={statusInfo.color} />
                             <Text style={{
-                                fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
-                                fontWeight: DESIGN_TOKENS.typography.subtitle.fontWeight,
-                                color: colors.text,
-                                marginBottom: DESIGN_TOKENS.spacing.sm,
+                                fontSize: 14,
+                                fontWeight: '600',
+                                color: statusInfo.color,
                             }}>
-                                Payment Summary
+                                {statusInfo.label}
                             </Text>
-                            
-                            <PaymentInfo 
-                                label="Total Amount" 
-                                value={paymentData.amount} 
-                                format="currency" 
-                                currency={paymentData.currency}
-                            />
-                            <PaymentInfo 
-                                label="Amount Paid" 
-                                value={paymentData.amountPaid} 
-                                format="currency" 
-                                currency={paymentData.currency}
-                            />
-                            <PaymentInfo 
-                                label="Outstanding Balance" 
-                                value={paymentData.amountToBePaid} 
-                                format="currency" 
-                                currency={paymentData.currency}
-                            />
-                            <PaymentInfo 
-                                label="Due Date" 
-                                value={paymentData.dueDate} 
-                                format="date"
-                            />
-                            {paymentData.paymentMethod && paymentData.paymentMethod !== 'N/A' && (
-                                <PaymentInfo 
-                                    label="Payment Method" 
-                                    value={paymentData.paymentMethod}
-                                />
-                            )}
-                            {paymentData.transactionId && paymentData.transactionId !== 'N/A' && (
-                                <PaymentInfo 
-                                    label="Transaction ID" 
-                                    value={paymentData.transactionId}
-                                />
-                            )}
-                        </VStack>
-                    </Card>
-                )}
+                        </View>
+                    </View>
 
-                {/* Détails fiscaux */}
-                {paymentData?.taxe && (
-                    <Card style={{ padding: DESIGN_TOKENS.spacing.lg }}>
-                        <VStack gap="sm">
-                            <HStack gap="sm" align="center" style={{ marginBottom: DESIGN_TOKENS.spacing.sm }}>
-                                <Ionicons name="receipt" size={20} color={colors.tint} />
+                    {paymentInfo.status === 'pending' && (
+                        <Pressable
+                            onPress={handlePayment}
+                            style={({ pressed }) => ({
+                                backgroundColor: pressed ? colors.tint + 'DD' : colors.tint,
+                                paddingHorizontal: DESIGN_TOKENS.spacing.md,
+                                paddingVertical: DESIGN_TOKENS.spacing.sm,
+                                borderRadius: DESIGN_TOKENS.radius.lg,
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                gap: DESIGN_TOKENS.spacing.xs,
+                            })}
+                        >
+                            <Ionicons name="card" size={18} color={colors.background} />
+                            <Text style={{
+                                color: colors.background,
+                                fontWeight: '600',
+                                fontSize: 14,
+                            }}>
+                                Payer maintenant
+                            </Text>
+                        </Pressable>
+                    )}
+                </View>
+            </View>
+
+            {/* Résumé financier */}
+            <View style={{
+                backgroundColor: colors.backgroundSecondary,
+                borderRadius: DESIGN_TOKENS.radius.lg,
+                padding: DESIGN_TOKENS.spacing.lg,
+                marginBottom: DESIGN_TOKENS.spacing.lg,
+            }}>
+                <Text style={{
+                    fontSize: 18,
+                    fontWeight: '600',
+                    color: colors.text,
+                    marginBottom: DESIGN_TOKENS.spacing.lg,
+                }}>
+                    Résumé Financier
+                </Text>
+
+                <View style={{ gap: DESIGN_TOKENS.spacing.lg }}>
+                    {/* Coût estimé */}
+                    <View style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        paddingBottom: DESIGN_TOKENS.spacing.md,
+                        borderBottomWidth: 1,
+                        borderBottomColor: colors.border,
+                    }}>
+                        <View>
+                            <Text style={{
+                                fontSize: 14,
+                                color: colors.textSecondary,
+                                marginBottom: 4,
+                            }}>
+                                Coût estimé
+                            </Text>
+                            <Text style={{
+                                fontSize: 16,
+                                fontWeight: '500',
+                                color: colors.text,
+                            }}>
+                                {formatCurrency(paymentInfo.estimated)}
+                            </Text>
+                        </View>
+                        <Ionicons name="calculator" size={20} color={colors.textSecondary} />
+                    </View>
+
+                    {/* Coût réel */}
+                    <View style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        paddingBottom: DESIGN_TOKENS.spacing.md,
+                        borderBottomWidth: paymentInfo.actual !== paymentInfo.estimated ? 1 : 0,
+                        borderBottomColor: colors.border,
+                    }}>
+                        <View>
+                            <Text style={{
+                                fontSize: 14,
+                                color: colors.textSecondary,
+                                marginBottom: 4,
+                            }}>
+                                {paymentInfo.status === 'completed' ? 'Coût final' : 'Coût actuel'}
+                            </Text>
+                            <Text style={{
+                                fontSize: 18,
+                                fontWeight: '700',
+                                color: paymentInfo.status === 'completed' ? '#10B981' : colors.text,
+                            }}>
+                                {formatCurrency(paymentInfo.actual)}
+                            </Text>
+                        </View>
+                        <Ionicons 
+                            name={paymentInfo.status === 'completed' ? 'checkmark-circle' : 'time'} 
+                            size={24} 
+                            color={paymentInfo.status === 'completed' ? '#10B981' : colors.textSecondary} 
+                        />
+                    </View>
+
+                    {/* Différence si applicable */}
+                    {paymentInfo.actual !== paymentInfo.estimated && (
+                        <View style={{
+                            backgroundColor: paymentInfo.actual > paymentInfo.estimated ? '#FEF3C7' : '#D1FAE5',
+                            borderRadius: DESIGN_TOKENS.radius.lg,
+                            padding: DESIGN_TOKENS.spacing.md,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: DESIGN_TOKENS.spacing.sm,
+                        }}>
+                            <Ionicons 
+                                name={paymentInfo.actual > paymentInfo.estimated ? 'trending-up' : 'trending-down'} 
+                                size={20} 
+                                color={paymentInfo.actual > paymentInfo.estimated ? '#F59E0B' : '#10B981'} 
+                            />
+                            <View style={{ flex: 1 }}>
                                 <Text style={{
-                                    fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
-                                    fontWeight: DESIGN_TOKENS.typography.subtitle.fontWeight,
-                                    color: colors.text,
+                                    fontSize: 14,
+                                    fontWeight: '600',
+                                    color: paymentInfo.actual > paymentInfo.estimated ? '#92400E' : '#047857',
                                 }}>
-                                    Tax Breakdown
+                                    {paymentInfo.actual > paymentInfo.estimated ? 'Coût supplémentaire' : 'Économie réalisée'}
                                 </Text>
-                            </HStack>
-                            
-                            <PaymentInfo 
-                                label="Subtotal (exc. tax)" 
-                                value={paymentData.taxe.amountWithoutTax} 
-                                format="currency"
-                                currency={paymentData.currency}
-                            />
-                            <PaymentInfo 
-                                label={`GST (${paymentData.taxe.gstRate}%)`} 
-                                value={paymentData.taxe.gst} 
-                                format="currency"
-                                currency={paymentData.currency}
-                            />
-                        </VStack>
-                    </Card>
-                )}
+                                <Text style={{
+                                    fontSize: 16,
+                                    fontWeight: '700',
+                                    color: paymentInfo.actual > paymentInfo.estimated ? '#F59E0B' : '#10B981',
+                                }}>
+                                    {formatCurrency(Math.abs(paymentInfo.actual - paymentInfo.estimated))}
+                                </Text>
+                            </View>
+                        </View>
+                    )}
+                </View>
+            </View>
 
-                {/* Cartes sauvegardées */}
-                {paymentData?.savedCards && paymentData.savedCards.length > 0 && (
-                    <Card style={{ padding: DESIGN_TOKENS.spacing.lg }}>
-                        <VStack gap="lg">
-                            <HStack gap="md" align="center" justify="space-between">
-                                <HStack gap="sm" align="center">
-                                    <Ionicons name="card" size={20} color={colors.tint} />
-                                    <Text style={{
-                                        fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
-                                        fontWeight: DESIGN_TOKENS.typography.subtitle.fontWeight,
-                                        color: colors.text,
-                                    }}>
-                                        Saved Cards
-                                    </Text>
-                                </HStack>
-                                
-                                <Pressable
-                                    onPress={handleAddCard}
-                                    hitSlop={DESIGN_TOKENS.touch.hitSlop}
-                                    style={({ pressed }) => ({
-                                        flexDirection: 'row',
-                                        alignItems: 'center',
-                                        paddingVertical: DESIGN_TOKENS.spacing.xs,
-                                        paddingHorizontal: DESIGN_TOKENS.spacing.sm,
-                                        backgroundColor: pressed 
-                                            ? colors.backgroundSecondary
-                                            : colors.backgroundTertiary,
-                                        borderRadius: DESIGN_TOKENS.radius.sm,
-                                        minHeight: DESIGN_TOKENS.touch.minSize * 0.8,
-                                    })}
-                                    accessibilityRole="button"
-                                    accessibilityLabel="Add new card"
-                                >
-                                    <Ionicons name="add" size={16} color={colors.tint} />
-                                    <Text style={{ 
-                                        marginLeft: DESIGN_TOKENS.spacing.xs,
-                                        fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-                                        fontWeight: '500',
-                                        color: colors.tint 
-                                    }}>
-                                        Add Card
-                                    </Text>
-                                </Pressable>
-                            </HStack>
-                            
-                            <VStack gap="sm">
-                                {paymentData.savedCards.map((card: any, index: number) => (
-                                    <CardItem
-                                        key={card.id || index}
-                                        card={card}
-                                        index={index}
-                                        onSelect={setSelectedCard}
-                                        onDelete={handleDeleteCard}
-                                        isSelected={selectedCard?.id === card.id}
-                                    />
-                                ))}
-                            </VStack>
-                        </VStack>
-                    </Card>
-                )}
-        </VStack>
+            {/* Informations du job */}
+            <View style={{
+                backgroundColor: colors.backgroundSecondary,
+                borderRadius: DESIGN_TOKENS.radius.lg,
+                padding: DESIGN_TOKENS.spacing.lg,
+            }}>
+                <Text style={{
+                    fontSize: 18,
+                    fontWeight: '600',
+                    color: colors.text,
+                    marginBottom: DESIGN_TOKENS.spacing.lg,
+                }}>
+                    Détails du Job
+                </Text>
+
+                <View style={{ gap: DESIGN_TOKENS.spacing.md }}>
+                    <View>
+                        <Text style={{
+                            fontSize: 14,
+                            color: colors.textSecondary,
+                            marginBottom: 4,
+                        }}>
+                            Titre
+                        </Text>
+                        <Text style={{
+                            fontSize: 16,
+                            color: colors.text,
+                        }}>
+                            {job?.job?.title || job?.title || 'Job sans titre'}
+                        </Text>
+                    </View>
+
+                    {job?.client && (
+                        <View>
+                            <Text style={{
+                                fontSize: 14,
+                                color: colors.textSecondary,
+                                marginBottom: 4,
+                            }}>
+                                Client
+                            </Text>
+                            <Text style={{
+                                fontSize: 16,
+                                color: colors.text,
+                            }}>
+                                {job.client.name || `${job.client.firstName} ${job.client.lastName}`}
+                            </Text>
+                        </View>
+                    )}
+
+                    <View>
+                        <Text style={{
+                            fontSize: 14,
+                            color: colors.textSecondary,
+                            marginBottom: 4,
+                        }}>
+                            Durée estimée
+                        </Text>
+                        <Text style={{
+                            fontSize: 16,
+                            color: colors.text,
+                        }}>
+                            {job?.job?.estimatedDuration ? `${Math.round(job.job.estimatedDuration / 60)} heures` : 'Non définie'}
+                        </Text>
+                    </View>
+                </View>
+            </View>
+        </ScrollView>
     );
 };
 
-export default JobPayment;
+export default PaymentScreen;
