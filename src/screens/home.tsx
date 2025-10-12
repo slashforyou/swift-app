@@ -8,12 +8,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { VStack, HStack } from '../components/primitives/Stack';
 import { Screen } from '../components/primitives/Screen';
-import ProfileHeaderComplete from '../components/home/ProfileHeaderComplete';
+// import ProfileHeaderComplete from '../components/home/ProfileHeaderComplete';
 import ServerConnectionTest from '@/tests/server/connectionTest';
 import { useAuthCheck } from '../utils/checkAuth';
 import { DESIGN_TOKENS } from '../constants/Styles';
 import { Colors } from '../constants/Colors';
-import { useTranslation } from '../localization';
+import { useTranslation, useLocalization } from '../localization';
 import LanguageSelector from '../components/ui/LanguageSelector';
 
 // Types et interfaces
@@ -104,7 +104,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     const insets = useSafeAreaInsets();
     const { isLoading, LoadingComponent } = useAuthCheck(navigation);
     const { t } = useTranslation();
+    const { currentLanguage, getSupportedLanguages } = useLocalization();
     const [showLanguageSelector, setShowLanguageSelector] = useState(false);
+    
+    const supportedLanguages = getSupportedLanguages();
+    const currentLangInfo = supportedLanguages[currentLanguage];
 
     if (isLoading) return LoadingComponent;
 
@@ -121,9 +125,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                 }}
             >
                 {/* Profile Header avec gamification - pleine largeur */}
-                <View style={{ marginHorizontal: -DESIGN_TOKENS.spacing.lg }}>
+                {/* <View style={{ marginHorizontal: -DESIGN_TOKENS.spacing.lg }}>
                     <ProfileHeaderComplete navigation={navigation} />
-                </View>
+                </View> */}
 
                 {/* Section title avec bouton langue */}
                 <View style={{
@@ -142,29 +146,67 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                         {t('home.title')}
                     </Text>
                     
-                    {/* Bouton sélecteur de langue */}
+                    {/* Bouton sélecteur de langue moderne */}
                     <Pressable
                         onPress={() => setShowLanguageSelector(true)}
                         style={({ pressed }) => ({
-                            padding: DESIGN_TOKENS.spacing.sm,
-                            borderRadius: DESIGN_TOKENS.radius.md,
-                            backgroundColor: pressed ? Colors.light.backgroundSecondary : Colors.light.backgroundTertiary,
-                            borderWidth: 1,
-                            borderColor: Colors.light.border,
+                            paddingHorizontal: DESIGN_TOKENS.spacing.md,
+                            paddingVertical: DESIGN_TOKENS.spacing.sm,
+                            borderRadius: DESIGN_TOKENS.radius.xl,
+                            backgroundColor: pressed ? Colors.light.primary + '20' : Colors.light.primary + '10',
+                            borderWidth: 1.5,
+                            borderColor: Colors.light.primary + '30',
                             flexDirection: 'row',
                             alignItems: 'center',
-                            gap: DESIGN_TOKENS.spacing.xs,
+                            gap: DESIGN_TOKENS.spacing.sm,
+                            shadowColor: Colors.light.primary,
+                            shadowOffset: { width: 0, height: 2 },
+                            shadowOpacity: 0.15,
+                            shadowRadius: 4,
+                            elevation: 3,
+                            transform: [{ scale: pressed ? 0.96 : 1 }],
                         })}
                         hitSlop={DESIGN_TOKENS.touch.hitSlop}
                     >
-                        <Ionicons name="language" size={18} color={Colors.light.primary} />
-                        <Text style={{
-                            fontSize: 12,
-                            fontWeight: '600',
-                            color: Colors.light.primary,
+                        {/* Drapeau de la langue actuelle */}
+                        <View style={{
+                            width: 26,
+                            height: 26,
+                            borderRadius: 13,
+                            backgroundColor: 'rgba(255,255,255,0.9)',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            borderWidth: 1,
+                            borderColor: Colors.light.primary + '30',
                         }}>
-                            {t('common.language')}
-                        </Text>
+                            <Text style={{ fontSize: 14 }}>
+                                {currentLangInfo.flag}
+                            </Text>
+                        </View>
+                        
+                        <View>
+                            <Text style={{
+                                fontSize: 12,
+                                fontWeight: '700',
+                                color: Colors.light.primary,
+                                letterSpacing: 0.2,
+                            }}>
+                                {currentLangInfo.code.toUpperCase()}
+                            </Text>
+                            <Text style={{
+                                fontSize: 10,
+                                fontWeight: '500',
+                                color: Colors.light.primary + '80',
+                                marginTop: -2,
+                            }}>
+                                {currentLangInfo.nativeName.length > 8 ? 
+                                    currentLangInfo.nativeName.substring(0, 8) + '...' : 
+                                    currentLangInfo.nativeName
+                                }
+                            </Text>
+                        </View>
+                        
+                        <Ionicons name="chevron-down" size={14} color={Colors.light.primary} />
                     </Pressable>
                 </View>
 
