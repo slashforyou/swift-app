@@ -30,11 +30,12 @@ const ProfileHeaderComplete: React.FC<ProfileHeaderProps> = ({
     const [progressAnimation] = useState(new Animated.Value(0));
     const [notificationCount, setNotificationCount] = useState(initialNotifications);
     
-    // Utiliser les données du profil ou des valeurs par défaut
+    // Utiliser les données du profil avec des valeurs par défaut robustes
     const user = profile ? {
-        firstName: profile.firstName,
-        lastName: profile.lastName,
+        firstName: profile.firstName || 'User',
+        lastName: profile.lastName || '',
         title: profile.title || t('profile.defaultTitle'),
+        // Gamification par défaut en attendant l'implémentation API complète
         level: profile.level || 1,
         experience: profile.experience || 0,
         experienceToNextLevel: profile.experienceToNextLevel || 1000,
@@ -47,6 +48,16 @@ const ProfileHeaderComplete: React.FC<ProfileHeaderProps> = ({
         experience: 0,
         experienceToNextLevel: 1000,
         role: 'Driver'
+    };
+
+    // Protection contre les erreurs - éviter les crashes
+    const safeUser = {
+        ...user,
+        firstName: user.firstName || 'User',
+        lastName: user.lastName || '',
+        level: Math.max(user.level || 1, 1),
+        experience: Math.max(user.experience || 0, 0),
+        experienceToNextLevel: Math.max(user.experienceToNextLevel || 1000, 1)
     };
 
     // Si en cours de chargement, afficher un placeholder
@@ -62,9 +73,11 @@ const ProfileHeaderComplete: React.FC<ProfileHeaderProps> = ({
                 justifyContent: 'center',
                 alignItems: 'center',
             }}>
+                <ActivityIndicator size="small" color={Colors.light.primary} />
                 <Text style={{
                     color: Colors.light.textSecondary,
                     fontSize: 14,
+                    marginTop: 8,
                 }}>
                     Loading profile... ⚡
                 </Text>
@@ -72,14 +85,23 @@ const ProfileHeaderComplete: React.FC<ProfileHeaderProps> = ({
         );
     }
 
-    // Calcul du progrès XP
+    // Calcul du progrès XP avec protection contre les erreurs
     const getProgressData = () => {
-        const currentXP = user.experience || 0;
-        const targetXP = user.experienceToNextLevel || 1000;
-        return {
-            progressPercentage: currentXP / targetXP,
-            xpRemaining: targetXP - currentXP
-        };
+        try {
+            const currentXP = safeUser.experience;
+            const targetXP = safeUser.experienceToNextLevel;
+            const percentage = Math.min(currentXP / targetXP, 1); // Max 100%
+            return {
+                progressPercentage: percentage,
+                xpRemaining: Math.max(targetXP - currentXP, 0)
+            };
+        } catch (error) {
+            console.warn('Error calculating progress data:', error);
+            return {
+                progressPercentage: 0,
+                xpRemaining: 1000
+            };
+        }
     };
 
     const { progressPercentage, xpRemaining } = getProgressData();
@@ -91,7 +113,7 @@ const ProfileHeaderComplete: React.FC<ProfileHeaderProps> = ({
             duration: 2000,
             useNativeDriver: false,
         }).start();
-    }, [user.experience, progressPercentage]);
+    }, [safeUser.experience, progressPercentage]);
 
     // Fonction pour obtenir le rang basé sur le niveau
     const getRankInfo = (level: number = 1) => {
@@ -102,7 +124,7 @@ const ProfileHeaderComplete: React.FC<ProfileHeaderProps> = ({
         return { emoji: '🥉', title: 'Rookie Driver', color: '#CD7F32' };
     };
 
-    const rankInfo = getRankInfo(user.level);
+    const rankInfo = getRankInfo(safeUser.level);
 
     // 10 Notifications mockées pour tester le défilement
     const mockNotifications = [
@@ -317,7 +339,7 @@ const ProfileHeaderComplete: React.FC<ProfileHeaderProps> = ({
                             color: Colors.light.text,
                             textAlign: 'center',
                         }}>
-                            {user.firstName} {user.lastName}
+                            {safeUser.firstName} {safeUser.lastName}
                         </Text>
 
                         {/* Level et XP - Proéminents */}
@@ -335,7 +357,7 @@ const ProfileHeaderComplete: React.FC<ProfileHeaderProps> = ({
                                 color: Colors.light.primary,
                                 textAlign: 'center',
                             }}>
-                                {t('profile.level')} {user.level} • {user.experience?.toLocaleString()} XP
+                                {t('profile.level')} {safeUser.level} • {safeUser.experience?.toLocaleString()} XP
                             </Text>
                         </View>
 
@@ -355,7 +377,7 @@ const ProfileHeaderComplete: React.FC<ProfileHeaderProps> = ({
                             color: Colors.light.textMuted,
                             textAlign: 'center',
                         }}>
-                            {Math.round(progressPercentage * 100)}% {t('profile.toNextLevel')} {user.level + 1}
+                            {Math.round(progressPercentage * 100)}% {t('profile.toNextLevel')} {safeUser.level + 1}
                         </Text>
                     </VStack>
                 </Pressable>
