@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { VStack, HStack } from '../components/primitives/Stack';
 import { Screen } from '../components/primitives/Screen';
-import ProfileHeaderComplete from '../components/home/ProfileHeaderComplete';
+import ProfileHeaderComplete from '../components/home/ProfileHeaderSimple';
 import ServerConnectionTest from '@/tests/server/connectionTest';
 import { useAuthCheck } from '../utils/checkAuth';
 import { DESIGN_TOKENS } from '../constants/Styles';
