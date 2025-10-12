@@ -1,15 +1,24 @@
 // Modern Job Timeline with animated progress and beautiful design
 
 import * as React from 'react';
-import { useEffect, useRef } from 'react';
-import { View, Text, Animated, StyleSheet } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { View, Text, Animated, StyleSheet, Pressable } from 'react-native';
 import { useTheme } from '../../../context/ThemeProvider';
 import { DESIGN_TOKENS } from '../../../constants/Styles';
+import Ionicons from '@react-native-vector-icons/ionicons';
+import { generateJobSteps, calculateAnimationProgress, getCurrentStep, calculateProgressPercentage } from '../../../utils/jobStepsUtils';
 
-const JobTimeLine = ({ job }: { job: any }) => {
+interface JobTimeLineProps {
+    job: any;
+    onAdvanceStep?: () => void;
+}
+
+const JobTimeLine = ({ job, onAdvanceStep }: JobTimeLineProps) => {
     const { colors } = useTheme();
     const progressAnimation = useRef(new Animated.Value(0)).current;
     const truckAnimation = useRef(new Animated.Value(0)).current;
+    const [isStepsExpanded, setIsStepsExpanded] = useState(false); // Rétracté par défaut
+    const [stepsRotateAnim] = useState(new Animated.Value(0));
 
     // Protection contre les données manquantes
     if (!job) {
@@ -20,31 +29,18 @@ const JobTimeLine = ({ job }: { job: any }) => {
         );
     }
 
-    // Définir les étapes par défaut basées sur le status du job
-    const getJobSteps = () => {
-        return [
-            { id: 1, title: 'Job Created', description: 'Job has been created and assigned', status: 'completed' },
-            { id: 2, title: 'En Route', description: 'Team is on the way to the location', status: job?.status === 'pending' ? 'pending' : 'completed' },
-            { id: 3, title: 'In Progress', description: 'Work is currently in progress', status: job?.status === 'in-progress' ? 'current' : job?.status === 'completed' ? 'completed' : 'pending' },
-            { id: 4, title: 'Completed', description: 'Job has been completed successfully', status: job?.status === 'completed' ? 'completed' : 'pending' }
-        ];
-    };
-
-    const steps = getJobSteps();
-    const currentStepIndex = steps.findIndex(step => step.status === 'current');
-    const actualStep = currentStepIndex >= 0 ? currentStepIndex : (job?.status === 'completed' ? steps.length - 1 : 0);
-    
-    // Calculate progress percentage basé sur le status réel
-    const progressPercentage = job?.progress 
-        ? (typeof job.progress === 'number' ? job.progress / 100 : parseFloat(job.progress) / 100)
-        : actualStep / Math.max(1, (steps.length - 1));
+    // Utiliser les utilitaires partagés
+    const steps = generateJobSteps(job);
+    const currentStep = getCurrentStep(job);
+    const animationProgress = calculateAnimationProgress(job); // Pour les animations (0-1)
+    const displayPercentage = calculateProgressPercentage(job); // Pour l'affichage (0-100)
     
 
 
     useEffect(() => {
         // Animate progress bar
         Animated.timing(progressAnimation, {
-            toValue: progressPercentage,
+            toValue: animationProgress,
             duration: 1000,
             useNativeDriver: false,
         }).start();
@@ -52,18 +48,33 @@ const JobTimeLine = ({ job }: { job: any }) => {
         // Animate truck position with bounce
         Animated.sequence([
             Animated.timing(truckAnimation, {
-                toValue: progressPercentage,
+                toValue: animationProgress,
                 duration: 800,
                 useNativeDriver: false,
             }),
             Animated.spring(truckAnimation, {
-                toValue: progressPercentage,
+                toValue: animationProgress,
                 tension: 100,
                 friction: 8,
                 useNativeDriver: false,
             }),
         ]).start();
-    }, [actualStep, progressPercentage, job?.status]);
+    }, [currentStep, animationProgress, job?.status]);
+
+    // Toggle pour les étapes
+    const toggleSteps = () => {
+        setIsStepsExpanded(!isStepsExpanded);
+        Animated.timing(stepsRotateAnim, {
+            toValue: isStepsExpanded ? 0 : 1,
+            duration: 200,
+            useNativeDriver: true,
+        }).start();
+    };
+
+    const stepsRotateInterpolate = stepsRotateAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['0deg', '180deg'],
+    });
 
     // Fonctions utilitaires pour les statuts
     const getStatusLabel = (status: string) => {
@@ -187,11 +198,12 @@ const JobTimeLine = ({ job }: { job: any }) => {
         },
         truck: {
             position: 'absolute',
-            top: 5,
-            fontSize: 28,
+            top: -14, // Centré avec les cercles des étapes (28px height / 2 - 14px = centré)
+            fontSize: 24, // Légèrement plus petit pour un meilleur alignement
             textShadowColor: colors.shadow,
             textShadowOffset: { width: 0, height: 2 },
             textShadowRadius: 4,
+            zIndex: 10, // S'assurer qu'il est au-dessus des autres éléments
         },
         currentStepCard: {
             backgroundColor: colors.backgroundSecondary,
@@ -277,6 +289,112 @@ const JobTimeLine = ({ job }: { job: any }) => {
         progressDotInactive: {
             backgroundColor: colors.border,
         },
+        // Nouveaux styles pour les améliorations
+        compactProgressBar: {
+            height: 4,
+            backgroundColor: colors.border,
+            borderRadius: 2,
+            marginBottom: DESIGN_TOKENS.spacing.md,
+            overflow: 'hidden',
+        },
+        compactProgressFill: {
+            height: '100%',
+            backgroundColor: colors.primary,
+            borderRadius: 2,
+        },
+        headerActions: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: DESIGN_TOKENS.spacing.sm,
+        },
+        nextStepButton: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: DESIGN_TOKENS.spacing.sm,
+            paddingVertical: DESIGN_TOKENS.spacing.xs,
+            borderRadius: DESIGN_TOKENS.radius.sm,
+            borderWidth: 1,
+            borderColor: colors.primary,
+            gap: 4,
+        },
+        nextStepText: {
+            fontSize: 12,
+            fontWeight: '600',
+            color: colors.primary,
+        },
+        nextStepTextDisabled: {
+            color: colors.textSecondary,
+        },
+        nextStepButtonDisabled: {
+            borderColor: colors.border,
+            opacity: 0.5,
+        },
+        // Styles pour la liste des étapes
+        stepsListContainer: {
+            marginTop: DESIGN_TOKENS.spacing.md,
+            gap: DESIGN_TOKENS.spacing.sm,
+        },
+        stepListItem: {
+            paddingVertical: DESIGN_TOKENS.spacing.md,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.border + '40', // Plus transparent
+        },
+        stepListHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: DESIGN_TOKENS.spacing.xs,
+        },
+        stepListIcon: {
+            width: 20,
+            height: 20,
+            borderRadius: 10,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginRight: DESIGN_TOKENS.spacing.sm,
+        },
+        stepListIconCompleted: {
+            backgroundColor: colors.primary,
+        },
+        stepListIconCurrent: {
+            backgroundColor: colors.primary,
+            borderWidth: 2,
+            borderColor: colors.primary + '40',
+        },
+        stepListIconPending: {
+            backgroundColor: colors.backgroundSecondary,
+            borderWidth: 1,
+            borderColor: colors.border,
+        },
+        stepListNumber: {
+            fontSize: 10,
+            fontWeight: '600',
+        },
+        stepListNumberCurrent: {
+            color: colors.background,
+        },
+        stepListNumberPending: {
+            color: colors.textSecondary,
+        },
+        stepListTitle: {
+            fontSize: 14,
+            fontWeight: '600',
+            flex: 1,
+        },
+        stepListTitleCurrent: {
+            color: colors.text,
+        },
+        stepListTitleCompleted: {
+            color: colors.textSecondary,
+        },
+        stepListTitlePending: {
+            color: colors.textSecondary,
+        },
+        stepListDescription: {
+            fontSize: 12,
+            color: colors.textSecondary,
+            lineHeight: 16,
+            marginLeft: 32, // Aligné avec le titre (20px icon + 12px margin)
+        },
     });
 
     return (
@@ -284,10 +402,10 @@ const JobTimeLine = ({ job }: { job: any }) => {
             {/* Progress Info */}
             <View style={styles.progressInfo}>
                 <Text style={styles.progressText}>
-                    Step {actualStep + 1} of {steps.length}
+                    Step {currentStep} of {steps.length}
                 </Text>
                 <Text style={styles.progressPercentage}>
-                    {Math.round(progressPercentage * 100)}%
+                    {displayPercentage}%
                 </Text>
             </View>
 
@@ -309,25 +427,31 @@ const JobTimeLine = ({ job }: { job: any }) => {
 
                 {/* Step Circles with Numbers */}
                 <View style={styles.stepsContainer}>
-                    {steps.map((step: any, index: number) => (
-                        <View 
-                            key={step.id} 
-                            style={[
-                                styles.stepCircle,
-                                index <= actualStep 
-                                    ? styles.stepCircleCompleted 
-                                    : styles.stepCirclePending,
-                                index === actualStep && styles.stepCircleCurrent
-                            ]}
-                        >
-                            <Text style={[
-                                styles.stepNumber,
-                                index <= actualStep ? styles.stepNumberCompleted : styles.stepNumberPending
-                            ]}>
-                                {index + 1}
-                            </Text>
-                        </View>
-                    ))}
+                    {steps.map((step: any, index: number) => {
+                        const stepNumber = index + 1;
+                        const isCompleted = stepNumber < currentStep;
+                        const isCurrent = stepNumber === currentStep;
+                        const isPending = stepNumber > currentStep;
+                        
+                        return (
+                            <View 
+                                key={step.id} 
+                                style={[
+                                    styles.stepCircle,
+                                    isCompleted ? styles.stepCircleCompleted : 
+                                    isCurrent ? styles.stepCircleCurrent :
+                                    styles.stepCirclePending
+                                ]}
+                            >
+                                <Text style={[
+                                    styles.stepNumber,
+                                    isCompleted || isCurrent ? styles.stepNumberCompleted : styles.stepNumberPending
+                                ]}>
+                                    {stepNumber}
+                                </Text>
+                            </View>
+                        );
+                    })}
                 </View>
 
                 {/* Animated Truck */}
@@ -347,41 +471,116 @@ const JobTimeLine = ({ job }: { job: any }) => {
                 </Animated.Text>
             </View>
 
-            {/* Current Step Description */}
+            {/* Current Step Description - Rétractable */}
             <View style={styles.currentStepCard}>
-                <View style={styles.stepHeader}>
-                    <Text style={styles.stepTitle}>
-                        Étape {actualStep + 1}/{steps.length}
-                    </Text>
-                    <View style={[styles.statusBadge, getStatusBadgeStyle(job?.status)]}>
-                        <Text style={[styles.statusBadgeText, getStatusTextStyle(job?.status)]}>
-                            {getStatusLabel(job?.status)}
+                {/* Barre de progression compacte */}
+                <View style={styles.compactProgressBar}>
+                    <Animated.View 
+                        style={[
+                            styles.compactProgressFill,
+                            {
+                                width: progressAnimation.interpolate({
+                                    inputRange: [0, 1],
+                                    outputRange: ['0%', '100%'],
+                                }),
+                            },
+                        ]} 
+                    />
+                </View>
+
+                {/* Header cliquable pour les étapes */}
+                <Pressable 
+                    onPress={toggleSteps}
+                    style={styles.stepHeader}
+                >
+                    <View style={{ flex: 1 }}>
+                        <Text style={styles.currentStepTitle}>
+                            {steps[currentStep - 1]?.title || 'Étape en cours'}
                         </Text>
                     </View>
-                </View>
-                
-                <Text style={styles.currentStepTitle}>
-                    {steps[actualStep]?.title || 'Étape en cours'}
-                </Text>
-                
-                <Text style={styles.stepDescription}>
-                    {steps[actualStep]?.description || getStepDescription(job?.status)}
-                </Text>
-
-                {/* Indicateur de progression */}
-                <View style={styles.progressIndicator}>
-                    <View style={styles.progressDots}>
-                        {steps.map((_, index) => (
-                            <View 
-                                key={index}
-                                style={[
-                                    styles.progressDot,
-                                    index <= actualStep ? styles.progressDotActive : styles.progressDotInactive
-                                ]} 
+                    
+                    <View style={styles.headerActions}>
+                        <Pressable
+                            style={[
+                                styles.nextStepButton,
+                                currentStep >= steps.length && styles.nextStepButtonDisabled
+                            ]}
+                            onPress={() => {
+                                if (currentStep < steps.length && onAdvanceStep) {
+                                    onAdvanceStep();
+                                }
+                            }}
+                            disabled={currentStep >= steps.length}
+                        >
+                            <Text style={[
+                                styles.nextStepText,
+                                currentStep >= steps.length && styles.nextStepTextDisabled
+                            ]}>
+                                {currentStep >= steps.length ? 'Terminé' : 'Next Step'}
+                            </Text>
+                            <Ionicons 
+                                name="arrow-forward" 
+                                size={16} 
+                                color={currentStep >= steps.length ? colors.textSecondary : colors.primary}
                             />
-                        ))}
+                        </Pressable>
+
+                        <Animated.View style={{ transform: [{ rotate: stepsRotateInterpolate }] }}>
+                            <Ionicons 
+                                name="chevron-down" 
+                                size={20} 
+                                color={colors.textSecondary} 
+                            />
+                        </Animated.View>
                     </View>
-                </View>
+                </Pressable>
+                
+                {/* Contenu rétractable - Liste de toutes les étapes */}
+                {isStepsExpanded && (
+                    <View style={styles.stepsListContainer}>
+                        {steps.map((step, index) => {
+                            const stepNumber = index + 1;
+                            const isCompleted = stepNumber < currentStep;
+                            const isCurrent = stepNumber === currentStep;
+                            const isPending = stepNumber > currentStep;
+                            
+                            return (
+                                <View key={step.id} style={styles.stepListItem}>
+                                    <View style={styles.stepListHeader}>
+                                        <View style={[
+                                            styles.stepListIcon,
+                                            isCompleted ? styles.stepListIconCompleted :
+                                            isCurrent ? styles.stepListIconCurrent :
+                                            styles.stepListIconPending
+                                        ]}>
+                                            {isCompleted ? (
+                                                <Ionicons name="checkmark" size={12} color={colors.background} />
+                                            ) : (
+                                                <Text style={[
+                                                    styles.stepListNumber,
+                                                    isCurrent ? styles.stepListNumberCurrent : styles.stepListNumberPending
+                                                ]}>
+                                                    {stepNumber}
+                                                </Text>
+                                            )}
+                                        </View>
+                                        <Text style={[
+                                            styles.stepListTitle,
+                                            isCurrent ? styles.stepListTitleCurrent : 
+                                            isCompleted ? styles.stepListTitleCompleted :
+                                            styles.stepListTitlePending
+                                        ]}>
+                                            {step.title}
+                                        </Text>
+                                    </View>
+                                    <Text style={styles.stepListDescription}>
+                                        {step.description}
+                                    </Text>
+                                </View>
+                            );
+                        })}
+                    </View>
+                )}
             </View>
         </View>
     );

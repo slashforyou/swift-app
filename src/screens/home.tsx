@@ -1,6 +1,6 @@
 /**
- * Home - Écran d'accueil moderne avec design system
- * Architecture moderne avec Safe Areas, TopMenu et navigation cohérente
+ * Home - Écran d'accueil moderne avec gamification
+ * Architecture moderne avec Safe Areas, ProfileHeader et navigation cohérente
  */
 import React from 'react';
 import { View, Text, Pressable } from 'react-native';
@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { VStack, HStack } from '../components/primitives/Stack';
 import { Screen } from '../components/primitives/Screen';
+import ProfileHeaderComplete from '../components/home/ProfileHeaderComplete';
 import ServerConnectionTest from '@/tests/server/connectionTest';
 import { useAuthCheck } from '../utils/checkAuth';
 import { DESIGN_TOKENS } from '../constants/Styles';
@@ -115,83 +116,46 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                     paddingBottom: insets.bottom + DESIGN_TOKENS.spacing.lg,
                 }}
             >
-                {/* Header with logo and title */}
-                <VStack gap="md" align="center">
-                    {/* Modern logo */}
-                    <View
-                        style={{
-                            width: 80,
-                            height: 80,
-                            backgroundColor: Colors.light.primary,
-                            borderRadius: DESIGN_TOKENS.radius.lg,
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            shadowColor: Colors.light.shadow,
-                            shadowOffset: {
-                                width: 0,
-                                height: 4,
-                            },
-                            shadowOpacity: 0.15,
-                            shadowRadius: 8,
-                            elevation: 6,
-                        }}
-                    >
-                        <Ionicons name="briefcase" size={36} color="white" />
-                    </View>
-                    
-                    {/* Title and subtitle */}
-                    <VStack gap="xs" align="center">
-                        <Text
-                            style={{
-                                color: Colors.light.text,
-                                fontSize: DESIGN_TOKENS.typography.title.fontSize,
-                                lineHeight: DESIGN_TOKENS.typography.title.lineHeight,
-                                fontWeight: DESIGN_TOKENS.typography.title.fontWeight,
-                                textAlign: 'center',
-                            }}
-                        >
-                            Swift App
-                        </Text>
-                        <Text
-                            style={{
-                                color: Colors.light.textSecondary,
-                                fontSize: DESIGN_TOKENS.typography.body.fontSize,
-                                lineHeight: DESIGN_TOKENS.typography.body.lineHeight,
-                                fontWeight: DESIGN_TOKENS.typography.body.fontWeight,
-                                textAlign: 'center',
-                            }}
-                        >
-                            Professional Task Management
-                        </Text>
-                    </VStack>
-                </VStack>
+                {/* Profile Header avec gamification - pleine largeur */}
+                <View style={{ marginHorizontal: -DESIGN_TOKENS.spacing.lg }}>
+                    <ProfileHeaderComplete navigation={navigation} />
+                </View>
+
+                {/* Section title */}
+                <Text style={{
+                    fontSize: 22,
+                    fontWeight: '700',
+                    color: Colors.light.text,
+                    marginHorizontal: DESIGN_TOKENS.spacing.lg,
+                    marginBottom: DESIGN_TOKENS.spacing.sm,
+                    marginTop: DESIGN_TOKENS.spacing.lg,
+                }}>
+                    Quick Actions
+                </Text>
 
                 {/* Navigation menu */}
-                <VStack gap="sm" style={{ flex: 1 }}>
-                    <MenuItem
-                        title="Calendar"
-                        icon="calendar"
-                        description="View and manage your scheduled tasks"
-                        onPress={() => navigation.navigate('Calendar')}
-                        color={Colors.light.primary}
-                    />
-                    
-                    <MenuItem
-                        title="Profile"
-                        icon="person"
-                        description="Manage your personal information"
-                        onPress={() => navigation.navigate('Profile')}
-                        color={Colors.light.info}
-                    />
-                    
-                    <MenuItem
-                        title="Settings"
-                        icon="settings"
-                        description="Configure application preferences"
-                        onPress={() => navigation.navigate('Parameters')}
-                        color={Colors.light.warning}
-                    />
-                </VStack>
+                <View style={{ 
+                    paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+                    flex: 1,
+                }}>
+                    <VStack gap="sm">
+                        <MenuItem
+                            title="Calendar"
+                            icon="calendar"
+                            description="View and manage your scheduled tasks"
+                            onPress={() => navigation.navigate('Calendar')}
+                            color={Colors.light.primary}
+                        />
+                        
+                        <MenuItem
+                            title="Settings"
+                            icon="settings"
+                            description="Configure application preferences"
+                            onPress={() => navigation.navigate('Parameters')}
+                            color={Colors.light.warning}
+                        />
+                    </VStack>
+                </View>
 
                 {/* Development connection test */}
                 {__DEV__ && (

@@ -14,8 +14,22 @@ interface TimeWindowsSectionProps {
 const TimeWindowsSection: React.FC<TimeWindowsSectionProps> = ({ job }) => {
     const { colors } = useTheme();
 
-    const formatDateTime = (dateString: string) => {
-        return new Date(dateString).toLocaleString();
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+    };
+
+    const formatTime = (dateString: string) => {
+        const date = new Date(dateString);
+        let hours = date.getHours();
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // l'heure '0' doit être '12'
+        return `${hours}:${minutes} ${ampm}`;
     };
 
     return (
@@ -27,14 +41,14 @@ const TimeWindowsSection: React.FC<TimeWindowsSectionProps> = ({ job }) => {
                     color: colors.text,
                     marginBottom: DESIGN_TOKENS.spacing.xs,
                 }}>
-                    Time Windows
+                    ⏰ Créneaux Horaires
                 </Text>
                 <Text style={{
                     fontSize: 14,
                     color: colors.textSecondary,
                     marginBottom: DESIGN_TOKENS.spacing.lg,
                 }}>
-                    Scheduled time slots for this job
+                    Plages horaires planifiées pour ce job
                 </Text>
             </View>
 
@@ -49,15 +63,29 @@ const TimeWindowsSection: React.FC<TimeWindowsSectionProps> = ({ job }) => {
                         textTransform: 'uppercase',
                         letterSpacing: 0.5,
                     }}>
-                        Start Window
+                        📍 Début de Mission
                     </Text>
-                    <Text style={{
-                        fontSize: 16,
-                        color: colors.text,
-                        fontWeight: '500',
+                    <View style={{ 
+                        backgroundColor: colors.backgroundTertiary,
+                        borderRadius: 8,
+                        padding: DESIGN_TOKENS.spacing.md,
+                        marginBottom: DESIGN_TOKENS.spacing.xs,
                     }}>
-                        🕐 {formatDateTime(job.time.startWindowStart)} - {formatDateTime(job.time.startWindowEnd)}
-                    </Text>
+                        <Text style={{
+                            fontSize: 14,
+                            color: colors.textSecondary,
+                            marginBottom: 4,
+                        }}>
+                            📅 {formatDate(job.start_window_start || job.time?.startWindowStart)}
+                        </Text>
+                        <Text style={{
+                            fontSize: 16,
+                            color: colors.text,
+                            fontWeight: '600',
+                        }}>
+                            🕐 {formatTime(job.start_window_start || job.time?.startWindowStart)} - {formatTime(job.start_window_end || job.time?.startWindowEnd)}
+                        </Text>
+                    </View>
                 </View>
 
                 {/* End Window */}
@@ -70,15 +98,28 @@ const TimeWindowsSection: React.FC<TimeWindowsSectionProps> = ({ job }) => {
                         textTransform: 'uppercase',
                         letterSpacing: 0.5,
                     }}>
-                        End Window
+                        🏁 Fin de Mission
                     </Text>
-                    <Text style={{
-                        fontSize: 16,
-                        color: colors.text,
-                        fontWeight: '500',
+                    <View style={{ 
+                        backgroundColor: colors.backgroundTertiary,
+                        borderRadius: 8,
+                        padding: DESIGN_TOKENS.spacing.md,
                     }}>
-                        🕐 {formatDateTime(job.time.endWindowStart)} - {formatDateTime(job.time.endWindowEnd)}
-                    </Text>
+                        <Text style={{
+                            fontSize: 14,
+                            color: colors.textSecondary,
+                            marginBottom: 4,
+                        }}>
+                            📅 {formatDate(job.end_window_start || job.time?.endWindowStart)}
+                        </Text>
+                        <Text style={{
+                            fontSize: 16,
+                            color: colors.text,
+                            fontWeight: '600',
+                        }}>
+                            🕐 {formatTime(job.end_window_start || job.time?.endWindowStart)} - {formatTime(job.end_window_end || job.time?.endWindowEnd)}
+                        </Text>
+                    </View>
                 </View>
             </View>
         </SectionCard>

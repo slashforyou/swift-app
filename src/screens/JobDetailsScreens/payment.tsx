@@ -74,7 +74,19 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
     const paymentInfo = getPaymentInfo();
     const statusInfo = getStatusInfo(paymentInfo.status);
 
+    // Vérifier si le job est terminé (actualStep = nombre total d'étapes)
+    const isJobCompleted = () => {
+        const stepData = job?.step || job?.job?.step;
+        if (!stepData) return false;
+        return stepData.actualStep >= stepData.steps.length;
+    };
+
     const handlePayment = () => {
+        if (!isJobCompleted()) {
+            Alert.alert("Job en cours", "Le paiement ne sera disponible qu'une fois le job terminé.");
+            return;
+        }
+        
         if (paymentInfo.status === 'pending') {
             setPaymentWindowVisible('paymentWindow');
         } else {
@@ -120,24 +132,55 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                         }}>
                             Paiement du Job
                         </Text>
-                        <View style={{
-                            backgroundColor: statusInfo.bgColor,
-                            borderRadius: DESIGN_TOKENS.radius.lg,
-                            paddingHorizontal: DESIGN_TOKENS.spacing.md,
-                            paddingVertical: DESIGN_TOKENS.spacing.xs,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            gap: DESIGN_TOKENS.spacing.xs,
-                            alignSelf: 'flex-start',
+                        
+                        <View style={{ 
+                            flexDirection: 'row', 
+                            gap: DESIGN_TOKENS.spacing.sm, 
+                            flexWrap: 'wrap' 
                         }}>
-                            <Ionicons name={statusInfo.icon as any} size={16} color={statusInfo.color} />
-                            <Text style={{
-                                fontSize: 14,
-                                fontWeight: '600',
-                                color: statusInfo.color,
+                            {/* Badge de statut du job */}
+                            <View style={{
+                                backgroundColor: isJobCompleted() ? '#D1FAE5' : '#FEF3C7',
+                                borderRadius: DESIGN_TOKENS.radius.lg,
+                                paddingHorizontal: DESIGN_TOKENS.spacing.md,
+                                paddingVertical: DESIGN_TOKENS.spacing.xs,
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                gap: DESIGN_TOKENS.spacing.xs,
                             }}>
-                                {statusInfo.label}
-                            </Text>
+                                <Ionicons 
+                                    name={isJobCompleted() ? 'checkmark-circle-outline' : 'time-outline'} 
+                                    size={16} 
+                                    color={isJobCompleted() ? '#10B981' : '#F59E0B'} 
+                                />
+                                <Text style={{
+                                    fontSize: 14,
+                                    fontWeight: '600',
+                                    color: isJobCompleted() ? '#10B981' : '#F59E0B',
+                                }}>
+                                    {isJobCompleted() ? 'Job terminé' : 'Job en cours'}
+                                </Text>
+                            </View>
+                            
+                            {/* Badge de statut de paiement */}
+                            <View style={{
+                                backgroundColor: statusInfo.bgColor,
+                                borderRadius: DESIGN_TOKENS.radius.lg,
+                                paddingHorizontal: DESIGN_TOKENS.spacing.md,
+                                paddingVertical: DESIGN_TOKENS.spacing.xs,
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                gap: DESIGN_TOKENS.spacing.xs,
+                            }}>
+                                <Ionicons name={statusInfo.icon as any} size={16} color={statusInfo.color} />
+                                <Text style={{
+                                    fontSize: 14,
+                                    fontWeight: '600',
+                                    color: statusInfo.color,
+                                }}>
+                                    {statusInfo.label}
+                                </Text>
+                            </View>
                         </View>
                     </View>
 
@@ -145,22 +188,32 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                         <Pressable
                             onPress={handlePayment}
                             style={({ pressed }) => ({
-                                backgroundColor: pressed ? colors.tint + 'DD' : colors.tint,
-                                paddingHorizontal: DESIGN_TOKENS.spacing.md,
-                                paddingVertical: DESIGN_TOKENS.spacing.sm,
+                                backgroundColor: isJobCompleted() 
+                                    ? (pressed ? colors.tint + 'DD' : colors.tint)
+                                    : colors.backgroundTertiary,
+                                paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+                                paddingVertical: DESIGN_TOKENS.spacing.md,
                                 borderRadius: DESIGN_TOKENS.radius.lg,
                                 flexDirection: 'row',
                                 alignItems: 'center',
-                                gap: DESIGN_TOKENS.spacing.xs,
+                                justifyContent: 'center',
+                                gap: DESIGN_TOKENS.spacing.sm,
+                                minHeight: 56, // Plus gros bouton
+                                minWidth: 160,
+                                opacity: isJobCompleted() ? 1 : 0.6,
                             })}
                         >
-                            <Ionicons name="card" size={18} color={colors.background} />
+                            <Ionicons 
+                                name="card" 
+                                size={20} 
+                                color={isJobCompleted() ? colors.background : colors.textSecondary} 
+                            />
                             <Text style={{
-                                color: colors.background,
-                                fontWeight: '600',
-                                fontSize: 14,
+                                color: isJobCompleted() ? colors.background : colors.textSecondary,
+                                fontWeight: '700',
+                                fontSize: 16,
                             }}>
-                                Payer maintenant
+                                {isJobCompleted() ? 'Payer maintenant' : 'Job en cours...'}
                             </Text>
                         </Pressable>
                     )}

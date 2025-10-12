@@ -51,6 +51,7 @@ const DESIGN_TOKENS = {
     sm: 4,
     md: 8,
     lg: 12,
+    xl: 20, // Pour les modales et grandes cartes
   },
   
   // Touch targets - Conformité aux guidelines Apple/Material

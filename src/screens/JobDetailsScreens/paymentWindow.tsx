@@ -1,6 +1,5 @@
 /**
- * PaymentWindow - Modern payment interface with animations
- * Coherent design system, interactive credit card, enhanced security
+ * PaymentWindow - Interface de paiement moderne avec données API réelles
  */
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { 
@@ -16,45 +15,16 @@ import {
   ActivityIndicator 
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@react-native-vector-icons/ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { VStack, HStack } from '../../components/primitives/Stack';
 import { DESIGN_TOKENS } from '../../constants/Styles';
-import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
-import CardForm from '../../../src/components/CardForm';
+import { useTheme } from '../../context/ThemeProvider';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-// Types et interfaces
-interface SavedCard {
-  id: number | string;
-  cardNumber: string;
-  expiryDate: string;
-  cardHolderName: string;
-  cardType?: 'visa' | 'mastercard' | 'amex' | 'discover';
-  cvv?: string;
-}
-
-interface PaymentData {
-  amount: string;
-  currency: string;
-  amountToBePaid: string;
-  taxe: {
-    gst: string;
-    gstRate: string;
-    amountWithoutTax: string;
-  };
-  savedCards?: SavedCard[];
-}
-
-interface Job {
-  id: string;
-  payment: PaymentData;
-}
-
 interface PaymentWindowProps {
-  job: Job;
-  setJob: React.Dispatch<React.SetStateAction<Job>>;
+  job: any;
+  setJob: (job: any) => void;
   visibleCondition: string | null;
   setVisibleCondition: React.Dispatch<React.SetStateAction<string | null>>;
 }
@@ -62,7 +32,6 @@ interface PaymentWindowProps {
 interface PaymentState {
   step: 'method' | 'card' | 'cash' | 'processing' | 'success';
   selectedMethod: 'card' | 'cash' | null;
-  selectedCard: SavedCard | null;
   newCard: {
     number: string;
     expiry: string;
@@ -79,16 +48,29 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
   visibleCondition, 
   setVisibleCondition 
 }) => {
-  console.log('🔄 PaymentWindow render'); // DEBUG
   const insets = useSafeAreaInsets();
-  const { colors } = useCommonThemedStyles();
+  const { colors } = useTheme();
   const isVisible = visibleCondition === 'paymentWindow';
+  
+  // Extraire les informations de coût depuis les données du job (comme dans payment.tsx)
+  const getPaymentAmount = () => {
+    const jobData = job?.job || job;
+    return jobData?.actualCost || jobData?.estimatedCost || 0;
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('fr-FR', {
+      style: 'currency',
+      currency: 'EUR',
+    }).format(amount);
+  };
+
+  const paymentAmount = getPaymentAmount();
   
   // Payment state
   const [state, setState] = useState<PaymentState>({
     step: 'method',
     selectedMethod: null,
-    selectedCard: null,
     newCard: { number: '', expiry: '', cvv: '', name: '' },
     cashAmount: '',
     isProcessing: false,
@@ -97,48 +79,18 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
   // Animations
   const slideAnimation = useRef(new Animated.Value(screenHeight)).current;
   const backdropAnimation = useRef(new Animated.Value(0)).current;
-  const scaleAnimation = useRef(new Animated.Value(0.9)).current;
-  const cardFlipAnimation = useRef(new Animated.Value(0)).current;
 
-  // Update validation when selecting a saved card
-  useEffect(() => {
-    if (state.selectedCard) {
-      const card = state.newCard;
-      const cardType = getCardType(card.number);
-      const numberValidation = validateCardNumber(card.number);
-      const expiryValidation = validateExpiry(card.expiry);
-      const cvvValidation = validateCVV(card.cvv, cardType);
-      
-      setCardValidation({
-        number: numberValidation,
-        expiry: expiryValidation,
-        cvv: cvvValidation,
-        cardType
-      });
-    }
-  }, [state.selectedCard, state.newCard]);
-
-  // Animation effects
   useEffect(() => {
     if (isVisible) {
-      setState(prev => ({ ...prev, step: 'method' }));
-      
       Animated.parallel([
         Animated.timing(backdropAnimation, {
           toValue: 1,
-          duration: 400,
+          duration: 300,
           useNativeDriver: true,
         }),
-        Animated.spring(slideAnimation, {
+        Animated.timing(slideAnimation, {
           toValue: 0,
-          tension: 80,
-          friction: 6,
-          useNativeDriver: true,
-        }),
-        Animated.spring(scaleAnimation, {
-          toValue: 1,
-          tension: 100,
-          friction: 6,
+          duration: 300,
           useNativeDriver: true,
         }),
       ]).start();
@@ -146,1178 +98,666 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
       Animated.parallel([
         Animated.timing(backdropAnimation, {
           toValue: 0,
-          duration: 300,
+          duration: 250,
           useNativeDriver: true,
         }),
         Animated.timing(slideAnimation, {
-          toValue: screenHeight * 0.8,
-          duration: 300,
+          toValue: screenHeight,
+          duration: 250,
           useNativeDriver: true,
         }),
       ]).start();
     }
   }, [isVisible]);
 
-  // Helper functions
   const updateState = (updates: Partial<PaymentState>) => {
     setState(prev => ({ ...prev, ...updates }));
   };
 
-  // Validation state
-  const [cardValidation, setCardValidation] = useState({
-    number: { isValid: false, message: '' },
-    expiry: { isValid: false, message: '' },
-    cvv: { isValid: false, message: '' },
-    cardType: 'unknown' as 'visa' | 'mastercard' | 'amex' | 'discover' | 'unknown'
-  });
-
-  // Debounced setState to avoid frequent re-renders
-  const debouncedStateUpdate = useRef<NodeJS.Timeout | null>(null);
-
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (debouncedStateUpdate.current) {
-        clearTimeout(debouncedStateUpdate.current);
-      }
-    };
-  }, []);
-  
-  const handleCardUpdate = useCallback((card: { number: string; expiry: string; cvv: string; name: string }) => {
-    console.log('📝 Card update (debounced):', card); // DEBUG
-    
-    // SOLUTION: No validation here to avoid re-renders!
-    // Just update the card data
-    setState(prev => ({ 
-      ...prev, 
-      newCard: card
-    }));
-  }, []);
-
-  // Separate callback for validation that doesn't cause re-render
-  const handleValidationUpdate = useCallback((validation: {
-    cardType: string;
-    isNumberValid: boolean;
-    isExpiryValid: boolean;
-    isCvvValid: boolean;
-    numberMessage: string;
-  }) => {
-    console.log('🔍 Validation update:', validation); // DEBUG
-    
-    // Update validation separately
-    setCardValidation({
-      number: { isValid: validation.isNumberValid, message: validation.numberMessage },
-      expiry: { isValid: validation.isExpiryValid, message: '' },
-      cvv: { isValid: validation.isCvvValid, message: '' },
-      cardType: validation.cardType as any
-    });
-  }, []);
-
-  // Advanced card type detection
-  const getCardType = (number: string): 'visa' | 'mastercard' | 'amex' | 'discover' | 'unknown' => {
-    const cleanNumber = number.replace(/\s/g, '');
-    
-    // Visa: starts with 4, 13-19 digits
-    if (/^4[0-9]{12}(?:[0-9]{3})?$/.test(cleanNumber) || cleanNumber.startsWith('4')) {
-      return 'visa';
-    }
-    
-    // Mastercard: 5[1-5] or 2[2-7], 16 digits
-    if (/^5[1-5][0-9]{14}$/.test(cleanNumber) || /^2[2-7][0-9]{14}$/.test(cleanNumber) || 
-        cleanNumber.startsWith('5') || (cleanNumber.startsWith('2') && cleanNumber.length >= 2 && parseInt(cleanNumber.substring(0,2)) >= 22)) {
-      return 'mastercard';
-    }
-    
-    // American Express: 34 or 37, 15 digits
-    if (/^3[47][0-9]{13}$/.test(cleanNumber) || cleanNumber.startsWith('34') || cleanNumber.startsWith('37')) {
-      return 'amex';
-    }
-    
-    // Discover: 6011, 622126-622925, 644-649, 65, 16 digits
-    if (/^6(?:011|5[0-9]{2})[0-9]{12}$/.test(cleanNumber) || cleanNumber.startsWith('6011') || cleanNumber.startsWith('65')) {
-      return 'discover';
-    }
-    
-    return 'unknown';
-  };
-
-  // Card number validation
-  const validateCardNumber = (number: string): { isValid: boolean; message: string } => {
-    const cleanNumber = number.replace(/\s/g, '');
-    const cardType = getCardType(cleanNumber);
-    
-    if (cleanNumber.length === 0) {
-      return { isValid: false, message: 'Number required' };
-    }
-    
-    // Length verification by card type
-    const expectedLengths = {
-      visa: [13, 16, 19],
-      mastercard: [16],
-      amex: [15],
-      discover: [16],
-      unknown: [16]
-    };
-    
-    const validLengths = expectedLengths[cardType];
-    if (!validLengths.includes(cleanNumber.length)) {
-      return { 
-        isValid: false, 
-        message: `${cardType.toUpperCase()} must have ${validLengths.join(' or ')} digits` 
-      };
-    }
-    
-    // Luhn algorithm for validation
-    if (!luhnCheck(cleanNumber)) {
-      return { isValid: false, message: 'Invalid card number' };
-    }
-    
-    return { isValid: true, message: 'Valid' };
-  };
-
-  // Luhn algorithm
-  const luhnCheck = (number: string): boolean => {
-    let sum = 0;
-    let alternate = false;
-    
-    for (let i = number.length - 1; i >= 0; i--) {
-      let n = parseInt(number.charAt(i), 10);
-      
-      if (alternate) {
-        n *= 2;
-        if (n > 9) {
-          n = (n % 10) + 1;
-        }
-      }
-      
-      sum += n;
-      alternate = !alternate;
-    }
-    
-    return (sum % 10) === 0;
-  };
-
-  // Expiry date validation
-  const validateExpiry = (expiry: string): { isValid: boolean; message: string } => {
-    if (expiry.length !== 4) {
-      return { isValid: false, message: 'MM/YY format required' };
-    }
-    
-    const month = parseInt(expiry.substring(0, 2));
-    const year = parseInt(expiry.substring(2, 4)) + 2000;
-    
-    if (month < 1 || month > 12) {
-      return { isValid: false, message: 'Invalid month' };
-    }
-    
-    const currentDate = new Date();
-    const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth() + 1;
-    
-    if (year < currentYear || (year === currentYear && month < currentMonth)) {
-      return { isValid: false, message: 'Expired date' };
-    }
-    
-    return { isValid: true, message: 'Valid' };
-  };
-
-  // CVV validation
-  const validateCVV = (cvv: string, cardType: string): { isValid: boolean; message: string } => {
-    if (cvv.length === 0) {
-      return { isValid: false, message: 'CVV required' };
-    }
-    
-    const expectedLength = cardType === 'amex' ? 4 : 3;
-    
-    if (cvv.length !== expectedLength) {
-      return { 
-        isValid: false, 
-        message: `CVV must have ${expectedLength} digits for ${cardType.toUpperCase()}` 
-      };
-    }
-    
-    return { isValid: true, message: 'Valid' };
-  };
-
-  const formatCardNumber = (number: string): string => {
-    return number.replace(/\D/g, '').replace(/(\d{4})(?=\d)/g, '$1 ').trim();
-  };
-
-  const formatExpiry = (expiry: string): string => {
-    return expiry.replace(/\D/g, '').replace(/(\d{2})(\d{1,2})/, '$1/$2');
-  };
-
-  const maskCardNumber = (number: string): string => {
-    return number.replace(/\d(?=\d{4})/g, '•');
-  };
-
   const handleClose = () => {
-    Animated.parallel([
-      Animated.timing(backdropAnimation, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnimation, {
-        toValue: screenHeight * 0.8,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      setVisibleCondition(null);
-    });
+    setVisibleCondition(null);
   };
 
-  const handlePayment = async () => {
+  const handleMethodSelect = (method: 'card' | 'cash') => {
+    updateState({ selectedMethod: method, step: method });
+  };
+
+  const handleCardPayment = async () => {
+    if (!state.newCard.number || !state.newCard.expiry || !state.newCard.cvv || !state.newCard.name) {
+      Alert.alert("Informations manquantes", "Veuillez remplir tous les champs de la carte.");
+      return;
+    }
+
     updateState({ isProcessing: true, step: 'processing' });
     
-    // Simulation du paiement
-    setTimeout(() => {
-      updateState({ isProcessing: false, step: 'success' });
+    try {
+      // Simuler le traitement du paiement
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Update job
-      setJob(prev => ({
-        ...prev,
-        payment: {
-          ...prev.payment,
-          status: 'paid',
+      // Mettre à jour le job avec le paiement effectué
+      const updatedJob = {
+        ...job,
+        job: {
+          ...job.job,
+          actualCost: paymentAmount, // Marquer comme payé
         }
-      }));
+      };
+      setJob(updatedJob);
       
-      // Close after success
+      updateState({ step: 'success' });
+      
       setTimeout(() => {
         handleClose();
       }, 2000);
-    }, 3000);
+      
+    } catch (error) {
+      Alert.alert("Erreur de paiement", "Une erreur s'est produite lors du traitement du paiement.");
+      updateState({ isProcessing: false, step: 'card' });
+    }
   };
 
-  if (!isVisible) return null;
+  const handleCashPayment = async () => {
+    const cashValue = parseFloat(state.cashAmount);
+    if (!cashValue || cashValue < paymentAmount) {
+      Alert.alert("Montant incorrect", `Le montant doit être au moins ${formatCurrency(paymentAmount)}`);
+      return;
+    }
+
+    updateState({ isProcessing: true, step: 'processing' });
+    
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const updatedJob = {
+        ...job,
+        job: {
+          ...job.job,
+          actualCost: paymentAmount,
+        }
+      };
+      setJob(updatedJob);
+      
+      updateState({ step: 'success' });
+      
+      setTimeout(() => {
+        handleClose();
+      }, 2000);
+      
+    } catch (error) {
+      Alert.alert("Erreur", "Une erreur s'est produite lors de l'enregistrement du paiement.");
+      updateState({ isProcessing: false, step: 'cash' });
+    }
+  };
+
+  const formatCardNumber = (value: string) => {
+    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+    const matches = v.match(/\d{4,16}/g);
+    const match = matches && matches[0] || '';
+    const parts = [];
+    for (let i = 0, len = match.length; i < len; i += 4) {
+      parts.push(match.substring(i, i + 4));
+    }
+    if (parts.length) {
+      return parts.join(' ');
+    } else {
+      return v;
+    }
+  };
+
+  const formatExpiry = (value: string) => {
+    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+    if (v.length >= 2) {
+      return v.substring(0, 2) + '/' + v.substring(2, 4);
+    }
+    return v;
+  };
+
+  const renderMethodSelection = () => (
+    <View style={{ flex: 1, padding: DESIGN_TOKENS.spacing.lg }}>
+      <Text style={{
+        fontSize: 24,
+        fontWeight: '700',
+        color: colors.text,
+        textAlign: 'center',
+        marginBottom: DESIGN_TOKENS.spacing.xs,
+      }}>
+        Choisir le mode de paiement
+      </Text>
+      
+      <Text style={{
+        fontSize: 16,
+        color: colors.textSecondary,
+        textAlign: 'center',
+        marginBottom: DESIGN_TOKENS.spacing.xl,
+      }}>
+        Montant à payer : {formatCurrency(paymentAmount)}
+      </Text>
+
+      <View style={{ gap: DESIGN_TOKENS.spacing.md }}>
+        <Pressable
+          onPress={() => handleMethodSelect('card')}
+          style={({ pressed }) => ({
+            backgroundColor: pressed ? colors.backgroundTertiary : colors.backgroundSecondary,
+            borderRadius: DESIGN_TOKENS.radius.lg,
+            padding: DESIGN_TOKENS.spacing.lg,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: DESIGN_TOKENS.spacing.md,
+            borderWidth: 2,
+            borderColor: colors.border,
+          })}
+        >
+          <View style={{
+            backgroundColor: colors.tint,
+            borderRadius: DESIGN_TOKENS.radius.lg,
+            padding: DESIGN_TOKENS.spacing.md,
+          }}>
+            <Ionicons name="card" size={24} color={colors.background} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{
+              fontSize: 18,
+              fontWeight: '600',
+              color: colors.text,
+              marginBottom: 4,
+            }}>
+              Carte bancaire
+            </Text>
+            <Text style={{
+              fontSize: 14,
+              color: colors.textSecondary,
+            }}>
+              Paiement sécurisé par carte
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={24} color={colors.textSecondary} />
+        </Pressable>
+
+        <Pressable
+          onPress={() => handleMethodSelect('cash')}
+          style={({ pressed }) => ({
+            backgroundColor: pressed ? colors.backgroundTertiary : colors.backgroundSecondary,
+            borderRadius: DESIGN_TOKENS.radius.lg,
+            padding: DESIGN_TOKENS.spacing.lg,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: DESIGN_TOKENS.spacing.md,
+            borderWidth: 2,
+            borderColor: colors.border,
+          })}
+        >
+          <View style={{
+            backgroundColor: '#10B981',
+            borderRadius: DESIGN_TOKENS.radius.lg,
+            padding: DESIGN_TOKENS.spacing.md,
+          }}>
+            <Ionicons name="cash" size={24} color={colors.background} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{
+              fontSize: 18,
+              fontWeight: '600',
+              color: colors.text,
+              marginBottom: 4,
+            }}>
+              Espèces
+            </Text>
+            <Text style={{
+              fontSize: 14,
+              color: colors.textSecondary,
+            }}>
+              Paiement en liquide
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={24} color={colors.textSecondary} />
+        </Pressable>
+      </View>
+    </View>
+  );
+
+  const renderCardForm = () => (
+    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: DESIGN_TOKENS.spacing.lg }}>
+      <Text style={{
+        fontSize: 24,
+        fontWeight: '700',
+        color: colors.text,
+        textAlign: 'center',
+        marginBottom: DESIGN_TOKENS.spacing.xs,
+      }}>
+        Informations de la carte
+      </Text>
+      
+      <Text style={{
+        fontSize: 16,
+        color: colors.textSecondary,
+        textAlign: 'center',
+        marginBottom: DESIGN_TOKENS.spacing.xl,
+      }}>
+        {formatCurrency(paymentAmount)}
+      </Text>
+
+      <View style={{ gap: DESIGN_TOKENS.spacing.lg, marginBottom: DESIGN_TOKENS.spacing.xl }}>
+        <View>
+          <Text style={{
+            fontSize: 14,
+            fontWeight: '600',
+            color: colors.text,
+            marginBottom: DESIGN_TOKENS.spacing.xs,
+          }}>
+            Numéro de carte
+          </Text>
+          <TextInput
+            style={{
+              backgroundColor: colors.backgroundSecondary,
+              borderRadius: DESIGN_TOKENS.radius.lg,
+              padding: DESIGN_TOKENS.spacing.md,
+              fontSize: 16,
+              color: colors.text,
+              borderWidth: 2,
+              borderColor: colors.border,
+            }}
+            placeholder="1234 5678 9012 3456"
+            placeholderTextColor={colors.textSecondary}
+            value={state.newCard.number}
+            onChangeText={(text) => updateState({ 
+              newCard: { ...state.newCard, number: formatCardNumber(text) } 
+            })}
+            maxLength={19}
+            keyboardType="numeric"
+          />
+        </View>
+
+        <View style={{ flexDirection: 'row', gap: DESIGN_TOKENS.spacing.md }}>
+          <View style={{ flex: 1 }}>
+            <Text style={{
+              fontSize: 14,
+              fontWeight: '600',
+              color: colors.text,
+              marginBottom: DESIGN_TOKENS.spacing.xs,
+            }}>
+              Date d'expiration
+            </Text>
+            <TextInput
+              style={{
+                backgroundColor: colors.backgroundSecondary,
+                borderRadius: DESIGN_TOKENS.radius.lg,
+                padding: DESIGN_TOKENS.spacing.md,
+                fontSize: 16,
+                color: colors.text,
+                borderWidth: 2,
+                borderColor: colors.border,
+              }}
+              placeholder="MM/AA"
+              placeholderTextColor={colors.textSecondary}
+              value={state.newCard.expiry}
+              onChangeText={(text) => updateState({ 
+                newCard: { ...state.newCard, expiry: formatExpiry(text) } 
+              })}
+              maxLength={5}
+              keyboardType="numeric"
+            />
+          </View>
+
+          <View style={{ flex: 1 }}>
+            <Text style={{
+              fontSize: 14,
+              fontWeight: '600',
+              color: colors.text,
+              marginBottom: DESIGN_TOKENS.spacing.xs,
+            }}>
+              CVV
+            </Text>
+            <TextInput
+              style={{
+                backgroundColor: colors.backgroundSecondary,
+                borderRadius: DESIGN_TOKENS.radius.lg,
+                padding: DESIGN_TOKENS.spacing.md,
+                fontSize: 16,
+                color: colors.text,
+                borderWidth: 2,
+                borderColor: colors.border,
+              }}
+              placeholder="123"
+              placeholderTextColor={colors.textSecondary}
+              value={state.newCard.cvv}
+              onChangeText={(text) => updateState({ 
+                newCard: { ...state.newCard, cvv: text.replace(/[^0-9]/g, '') } 
+              })}
+              maxLength={4}
+              keyboardType="numeric"
+              secureTextEntry
+            />
+          </View>
+        </View>
+
+        <View>
+          <Text style={{
+            fontSize: 14,
+            fontWeight: '600',
+            color: colors.text,
+            marginBottom: DESIGN_TOKENS.spacing.xs,
+          }}>
+            Nom du porteur
+          </Text>
+          <TextInput
+            style={{
+              backgroundColor: colors.backgroundSecondary,
+              borderRadius: DESIGN_TOKENS.radius.lg,
+              padding: DESIGN_TOKENS.spacing.md,
+              fontSize: 16,
+              color: colors.text,
+              borderWidth: 2,
+              borderColor: colors.border,
+            }}
+            placeholder="Jean Dupont"
+            placeholderTextColor={colors.textSecondary}
+            value={state.newCard.name}
+            onChangeText={(text) => updateState({ 
+              newCard: { ...state.newCard, name: text } 
+            })}
+          />
+        </View>
+      </View>
+
+      <View style={{ flexDirection: 'row', gap: DESIGN_TOKENS.spacing.md }}>
+        <Pressable
+          onPress={() => updateState({ step: 'method' })}
+          style={({ pressed }) => ({
+            flex: 1,
+            backgroundColor: pressed ? colors.backgroundTertiary : colors.backgroundSecondary,
+            borderRadius: DESIGN_TOKENS.radius.lg,
+            padding: DESIGN_TOKENS.spacing.md,
+            alignItems: 'center',
+            borderWidth: 2,
+            borderColor: colors.border,
+          })}
+        >
+          <Text style={{
+            fontSize: 16,
+            fontWeight: '600',
+            color: colors.text,
+          }}>
+            Retour
+          </Text>
+        </Pressable>
+
+        <Pressable
+          onPress={handleCardPayment}
+          disabled={state.isProcessing}
+          style={({ pressed }) => ({
+            flex: 2,
+            backgroundColor: pressed ? colors.tint + 'DD' : colors.tint,
+            borderRadius: DESIGN_TOKENS.radius.lg,
+            padding: DESIGN_TOKENS.spacing.md,
+            alignItems: 'center',
+            flexDirection: 'row',
+            justifyContent: 'center',
+            gap: DESIGN_TOKENS.spacing.xs,
+            opacity: state.isProcessing ? 0.7 : 1,
+          })}
+        >
+          {state.isProcessing && <ActivityIndicator size="small" color={colors.background} />}
+          <Text style={{
+            fontSize: 16,
+            fontWeight: '700',
+            color: colors.background,
+          }}>
+            {state.isProcessing ? 'Traitement...' : `Payer ${formatCurrency(paymentAmount)}`}
+          </Text>
+        </Pressable>
+      </View>
+    </ScrollView>
+  );
+
+  const renderCashForm = () => (
+    <View style={{ flex: 1, padding: DESIGN_TOKENS.spacing.lg }}>
+      <Text style={{
+        fontSize: 24,
+        fontWeight: '700',
+        color: colors.text,
+        textAlign: 'center',
+        marginBottom: DESIGN_TOKENS.spacing.xs,
+      }}>
+        Paiement en espèces
+      </Text>
+      
+      <Text style={{
+        fontSize: 16,
+        color: colors.textSecondary,
+        textAlign: 'center',
+        marginBottom: DESIGN_TOKENS.spacing.xl,
+      }}>
+        Montant à payer : {formatCurrency(paymentAmount)}
+      </Text>
+
+      <View style={{ marginBottom: DESIGN_TOKENS.spacing.xl }}>
+        <Text style={{
+          fontSize: 14,
+          fontWeight: '600',
+          color: colors.text,
+          marginBottom: DESIGN_TOKENS.spacing.xs,
+        }}>
+          Montant reçu
+        </Text>
+        <TextInput
+          style={{
+            backgroundColor: colors.backgroundSecondary,
+            borderRadius: DESIGN_TOKENS.radius.lg,
+            padding: DESIGN_TOKENS.spacing.lg,
+            fontSize: 24,
+            fontWeight: '700',
+            color: colors.text,
+            textAlign: 'center',
+            borderWidth: 2,
+            borderColor: colors.border,
+          }}
+          placeholder={paymentAmount.toString()}
+          placeholderTextColor={colors.textSecondary}
+          value={state.cashAmount}
+          onChangeText={(text) => updateState({ cashAmount: text })}
+          keyboardType="numeric"
+        />
+        
+        {parseFloat(state.cashAmount) > paymentAmount && (
+          <Text style={{
+            fontSize: 16,
+            fontWeight: '600',
+            color: '#10B981',
+            textAlign: 'center',
+            marginTop: DESIGN_TOKENS.spacing.sm,
+          }}>
+            Rendu : {formatCurrency(parseFloat(state.cashAmount) - paymentAmount)}
+          </Text>
+        )}
+      </View>
+
+      <View style={{ flexDirection: 'row', gap: DESIGN_TOKENS.spacing.md }}>
+        <Pressable
+          onPress={() => updateState({ step: 'method' })}
+          style={({ pressed }) => ({
+            flex: 1,
+            backgroundColor: pressed ? colors.backgroundTertiary : colors.backgroundSecondary,
+            borderRadius: DESIGN_TOKENS.radius.lg,
+            padding: DESIGN_TOKENS.spacing.md,
+            alignItems: 'center',
+            borderWidth: 2,
+            borderColor: colors.border,
+          })}
+        >
+          <Text style={{
+            fontSize: 16,
+            fontWeight: '600',
+            color: colors.text,
+          }}>
+            Retour
+          </Text>
+        </Pressable>
+
+        <Pressable
+          onPress={handleCashPayment}
+          disabled={!state.cashAmount || parseFloat(state.cashAmount) < paymentAmount || state.isProcessing}
+          style={({ pressed }) => ({
+            flex: 2,
+            backgroundColor: (!state.cashAmount || parseFloat(state.cashAmount) < paymentAmount)
+              ? colors.backgroundTertiary
+              : (pressed ? '#10B981DD' : '#10B981'),
+            borderRadius: DESIGN_TOKENS.radius.lg,
+            padding: DESIGN_TOKENS.spacing.md,
+            alignItems: 'center',
+            flexDirection: 'row',
+            justifyContent: 'center',
+            gap: DESIGN_TOKENS.spacing.xs,
+            opacity: (!state.cashAmount || parseFloat(state.cashAmount) < paymentAmount || state.isProcessing) ? 0.5 : 1,
+          })}
+        >
+          {state.isProcessing && <ActivityIndicator size="small" color={colors.background} />}
+          <Ionicons name="cash" size={18} color={colors.background} />
+          <Text style={{
+            fontSize: 16,
+            fontWeight: '700',
+            color: colors.background,
+          }}>
+            {state.isProcessing ? 'Enregistrement...' : 'Confirmer le paiement'}
+          </Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+
+  const renderProcessing = () => (
+    <View style={{ 
+      flex: 1, 
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      padding: DESIGN_TOKENS.spacing.lg 
+    }}>
+      <ActivityIndicator size="large" color={colors.tint} />
+      <Text style={{
+        fontSize: 18,
+        fontWeight: '600',
+        color: colors.text,
+        marginTop: DESIGN_TOKENS.spacing.lg,
+        textAlign: 'center',
+      }}>
+        Traitement du paiement...
+      </Text>
+    </View>
+  );
+
+  const renderSuccess = () => (
+    <View style={{ 
+      flex: 1, 
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      padding: DESIGN_TOKENS.spacing.lg 
+    }}>
+      <View style={{
+        backgroundColor: '#D1FAE5',
+        borderRadius: 50,
+        padding: DESIGN_TOKENS.spacing.lg,
+        marginBottom: DESIGN_TOKENS.spacing.lg,
+      }}>
+        <Ionicons name="checkmark" size={48} color="#10B981" />
+      </View>
+      
+      <Text style={{
+        fontSize: 24,
+        fontWeight: '700',
+        color: colors.text,
+        textAlign: 'center',
+        marginBottom: DESIGN_TOKENS.spacing.sm,
+      }}>
+        Paiement réussi !
+      </Text>
+      
+      <Text style={{
+        fontSize: 16,
+        color: colors.textSecondary,
+        textAlign: 'center',
+      }}>
+        Le paiement de {formatCurrency(paymentAmount)} a été traité avec succès.
+      </Text>
+    </View>
+  );
 
   return (
     <Modal
       visible={isVisible}
       transparent
       animationType="none"
-      onRequestClose={handleClose}
-      hardwareAccelerated
       statusBarTranslucent
-      presentationStyle="overFullScreen"
     >
       <View style={{ flex: 1 }}>
-        {/* Animated backdrop */}
-        <Animated.View 
+        <Animated.View
           style={{
             position: 'absolute',
             top: 0,
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
             opacity: backdropAnimation,
           }}
-        />
-        
-        {/* Modal content with animations */}
+        >
+          <Pressable
+            style={{ flex: 1 }}
+            onPress={handleClose}
+          />
+        </Animated.View>
+
         <Animated.View
           style={{
-            flex: 1,
-            justifyContent: 'flex-end',
-            transform: [
-              { translateY: slideAnimation },
-              { scale: scaleAnimation }
-            ]
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: screenHeight * 0.85,
+            backgroundColor: colors.background,
+            borderTopLeftRadius: DESIGN_TOKENS.radius.xl,
+            borderTopRightRadius: DESIGN_TOKENS.radius.xl,
+            transform: [{ translateY: slideAnimation }],
+            paddingTop: insets.top,
           }}
         >
-          <View
-            style={{
-              backgroundColor: colors.background,
-              borderTopLeftRadius: DESIGN_TOKENS.radius.lg,
-              borderTopRightRadius: DESIGN_TOKENS.radius.lg,
-              paddingTop: DESIGN_TOKENS.spacing.md,
-              paddingBottom: insets.bottom || DESIGN_TOKENS.spacing.lg,
-              minHeight: '85%',
-              maxHeight: '95%',
-              shadowColor: colors.shadow,
-              shadowOffset: { width: 0, height: -8 },
-              shadowOpacity: 0.25,
-              shadowRadius: 20,
-              elevation: 12,
-            }}
-          >
-            {/* Drag handle */}
-            <View style={{
-              width: 40,
-              height: 4,
-              backgroundColor: colors.border,
-              borderRadius: 2,
-              alignSelf: 'center',
-              marginVertical: DESIGN_TOKENS.spacing.sm,
-            }} />
-
-            {/* Header */}
-            <View style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              paddingHorizontal: DESIGN_TOKENS.spacing.lg,
-              paddingBottom: DESIGN_TOKENS.spacing.md,
+          {/* Header */}
+          <View style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: DESIGN_TOKENS.spacing.lg,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.border,
+          }}>
+            <Text style={{
+              fontSize: 18,
+              fontWeight: '600',
+              color: colors.text,
             }}>
-              <View style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: DESIGN_TOKENS.spacing.sm,
-              }}>
-                {state.step !== 'method' && (
-                  <Pressable
-                    onPress={() => updateState({ step: 'method' })}
-                    style={{
-                      backgroundColor: colors.backgroundTertiary,
-                      width: 36,
-                      height: 36,
-                      borderRadius: 18,
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      marginRight: DESIGN_TOKENS.spacing.sm,
-                    }}
-                  >
-                    <Ionicons name="chevron-back" size={20} color={colors.text} />
-                  </Pressable>
-                )}
-                
-                <View style={{
-                  backgroundColor: colors.primary + '20',
-                  padding: 8,
-                  borderRadius: 12,
-                }}>
-                  <Ionicons name="card" size={24} color={colors.primary} />
-                </View>
-                
-                <View>
-                  <Text style={{
-                    color: colors.text,
-                    fontSize: DESIGN_TOKENS.typography.title.fontSize,
-                    fontWeight: '700',
-                  }}>
-                    {state.step === 'method' && 'Payment Method'}
-                    {state.step === 'card' && 'Card Details'}
-                    {state.step === 'cash' && 'Cash Payment'}
-                    {state.step === 'processing' && 'Processing...'}
-                    {state.step === 'success' && 'Payment Complete'}
-                  </Text>
-                  <Text style={{
-                    color: colors.textSecondary,
-                    fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-                  }}>
-                    Job #{job.id || 'N/A'} • {job.payment?.currency || 'AUD'} {job.payment?.amountToBePaid || '0.00'}
-                  </Text>
-                </View>
-              </View>
-              
-              <Pressable
-                onPress={handleClose}
-                disabled={state.isProcessing}
-                style={{
-                  backgroundColor: colors.backgroundTertiary,
-                  width: 36,
-                  height: 36,
-                  borderRadius: 18,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  opacity: state.isProcessing ? 0.5 : 1,
-                }}
-              >
-                <Ionicons name="close" size={20} color={colors.textSecondary} />
-              </Pressable>
-            </View>
-
-            {/* Content */}
-            <ScrollView 
-              style={{ flex: 1 }}
-              contentContainerStyle={{ 
-                padding: DESIGN_TOKENS.spacing.lg,
-                gap: DESIGN_TOKENS.spacing.lg,
-              }}
-              showsVerticalScrollIndicator={false}
+              Paiement
+            </Text>
+            
+            <Pressable
+              onPress={handleClose}
+              style={({ pressed }) => ({
+                backgroundColor: pressed ? colors.backgroundSecondary : 'transparent',
+                borderRadius: DESIGN_TOKENS.radius.lg,
+                padding: DESIGN_TOKENS.spacing.xs,
+              })}
             >
-              {state.step === 'method' && <MethodSelection />}
-              {state.step === 'card' && <CardPayment />}
-              {state.step === 'cash' && <CashPayment />}
-              {state.step === 'processing' && <ProcessingView />}
-              {state.step === 'success' && <SuccessView />}
-            </ScrollView>
+              <Ionicons name="close" size={24} color={colors.textSecondary} />
+            </Pressable>
           </View>
+
+          {/* Content */}
+          {state.step === 'method' && renderMethodSelection()}
+          {state.step === 'card' && renderCardForm()}
+          {state.step === 'cash' && renderCashForm()}
+          {state.step === 'processing' && renderProcessing()}
+          {state.step === 'success' && renderSuccess()}
         </Animated.View>
       </View>
     </Modal>
   );
-
-  // Internal components with interactive mock card
-  function MethodSelection() {
-    return (
-      <VStack gap="lg">
-        {/* Summary */}
-        <View style={{
-          backgroundColor: colors.backgroundSecondary,
-          padding: DESIGN_TOKENS.spacing.lg,
-          borderRadius: DESIGN_TOKENS.radius.lg,
-        }}>
-          <Text style={{
-            fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
-            fontWeight: '600',
-            color: colors.text,
-            marginBottom: DESIGN_TOKENS.spacing.md,
-          }}>
-            Payment Summary
-          </Text>
-          
-          <HStack justify="space-between" style={{ marginBottom: DESIGN_TOKENS.spacing.sm }}>
-            <Text style={{ color: colors.textSecondary }}>Subtotal</Text>
-            <Text style={{ fontWeight: '600' }}>{job.payment?.currency || 'AUD'} {job.payment?.taxe?.amountWithoutTax || '0.00'}</Text>
-          </HStack>
-          
-          <HStack justify="space-between" style={{ marginBottom: DESIGN_TOKENS.spacing.sm }}>
-            <Text style={{ color: colors.textSecondary }}>GST ({job.payment?.taxe?.gstRate || 10}%)</Text>
-            <Text style={{ fontWeight: '600' }}>{job.payment?.currency || 'AUD'} {job.payment?.taxe?.gst || '0.00'}</Text>
-          </HStack>
-          
-          <View style={{ height: 1, backgroundColor: colors.border, marginVertical: DESIGN_TOKENS.spacing.sm }} />
-          
-          <HStack justify="space-between">
-            <Text style={{ fontSize: DESIGN_TOKENS.typography.subtitle.fontSize, fontWeight: '600' }}>Total</Text>
-            <Text style={{ 
-              fontSize: DESIGN_TOKENS.typography.subtitle.fontSize, 
-              fontWeight: '700',
-              color: colors.primary,
-            }}>
-              {job.payment?.currency || 'AUD'} {job.payment?.amountToBePaid || '0.00'}
-            </Text>
-          </HStack>
-        </View>
-
-        {/* Payment Methods */}
-        <VStack gap="md">
-          <Text style={{
-            fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
-            fontWeight: '600',
-            color: colors.text,
-          }}>
-            Choose Payment Method
-          </Text>
-          
-          <Pressable
-            onPress={() => updateState({ selectedMethod: 'card', step: 'card' })}
-            style={({ pressed }) => ({
-              backgroundColor: pressed ? colors.backgroundSecondary : colors.background,
-              padding: DESIGN_TOKENS.spacing.lg,
-              borderRadius: DESIGN_TOKENS.radius.lg,
-              borderWidth: 2,
-              borderColor: colors.border,
-              shadowColor: colors.shadow,
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 4,
-              elevation: 2,
-            })}
-          >
-            <HStack gap="md" align="center">
-              <View style={{
-                backgroundColor: colors.primary + '20',
-                padding: DESIGN_TOKENS.spacing.sm,
-                borderRadius: DESIGN_TOKENS.radius.sm,
-              }}>
-                <Ionicons name="card" size={24} color={colors.primary} />
-              </View>
-              <VStack gap="xs" style={{ flex: 1 }}>
-                <Text style={{ 
-                  fontSize: DESIGN_TOKENS.typography.body.fontSize,
-                  fontWeight: '600',
-                  color: colors.text,
-                }}>
-                  Credit/Debit Card
-                </Text>
-                <Text style={{ 
-                  fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-                  color: colors.textSecondary,
-                }}>
-                  Visa, Mastercard, American Express
-                </Text>
-              </VStack>
-              <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
-            </HStack>
-          </Pressable>
-          
-          <Pressable
-            onPress={() => updateState({ selectedMethod: 'cash', step: 'cash' })}
-            style={({ pressed }) => ({
-              backgroundColor: pressed ? colors.backgroundSecondary : colors.background,
-              padding: DESIGN_TOKENS.spacing.lg,
-              borderRadius: DESIGN_TOKENS.radius.lg,
-              borderWidth: 2,
-              borderColor: colors.border,
-              shadowColor: colors.shadow,
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 4,
-              elevation: 2,
-            })}
-          >
-            <HStack gap="md" align="center">
-              <View style={{
-                backgroundColor: colors.success + '20',
-                padding: DESIGN_TOKENS.spacing.sm,
-                borderRadius: DESIGN_TOKENS.radius.sm,
-              }}>
-                <Ionicons name="cash" size={24} color={colors.success} />
-              </View>
-              <VStack gap="xs" style={{ flex: 1 }}>
-                <Text style={{ 
-                  fontSize: DESIGN_TOKENS.typography.body.fontSize,
-                  fontWeight: '600',
-                  color: colors.text,
-                }}>
-                  Cash Payment
-                </Text>
-                <Text style={{ 
-                  fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-                  color: colors.textSecondary,
-                }}>
-                  Pay in person with cash
-                </Text>
-              </VStack>
-              <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
-            </HStack>
-          </Pressable>
-        </VStack>
-      </VStack>
-    );
-  }
-
-  function CardPayment() {
-    return (
-      <VStack gap="lg">
-        {/* Saved Cards */}
-        {job.payment?.savedCards && Array.isArray(job.payment.savedCards) && job.payment.savedCards.length > 0 && (
-          <VStack gap="md">
-            <Text style={{
-              fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
-              fontWeight: '600',
-              color: colors.text,
-            }}>
-              Saved Cards
-            </Text>
-            
-            {job.payment.savedCards.map((card) => (
-              card && card.id && card.cardNumber ? (
-                <SavedCardItem key={card.id} card={card} />
-              ) : null
-            ))}
-          </VStack>
-        )}
-
-        {/* New Card Form with mock card */}
-        <VStack gap="md">
-          <Text style={{
-            fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
-            fontWeight: '600',
-            color: colors.text,
-          }}>
-            {job.payment.savedCards?.length ? 'Or Add New Card' : 'Card Information'}
-          </Text>
-          
-          {/* Interactive mock card */}
-          <CreditCardPreview />
-          
-          {/* Form Fields */}
-          <CardForm 
-            initialCard={state.newCard}
-            onCardChange={handleCardUpdate}
-            onValidationChange={handleValidationUpdate}
-          />
-        </VStack>
-
-        {/* Pay Button - Enhanced visibility - ALWAYS VISIBLE */}
-        <View style={{
-          marginTop: DESIGN_TOKENS.spacing.xl,
-          marginBottom: DESIGN_TOKENS.spacing.lg,
-          backgroundColor: colors.background,
-          borderRadius: 20,
-          padding: DESIGN_TOKENS.spacing.md,
-          shadowColor: colors.shadow,
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.1,
-          shadowRadius: 4,
-          elevation: 3,
-        }}>
-          
-          {/* Informations de validation */}
-          <VStack gap="sm" style={{ marginBottom: DESIGN_TOKENS.spacing.md }}>
-            <Text style={{
-              fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
-              fontWeight: '600',
-              color: colors.text,
-              textAlign: 'center',
-            }}>
-              Payment Validation
-            </Text>
-            
-            {/* Required fields status */}
-            <VStack gap="xs">
-              <HStack gap="sm" align="center" justify="space-between">
-                <Text style={{ color: colors.textSecondary }}>Card Number</Text>
-                <Ionicons 
-                  name={state.newCard.number ? "checkmark-circle" : "ellipse-outline"} 
-                  size={16} 
-                  color={state.newCard.number ? colors.success : colors.textSecondary} 
-                />
-              </HStack>
-              <HStack gap="sm" align="center" justify="space-between">
-                <Text style={{ color: colors.textSecondary }}>Expiry Date</Text>
-                <Ionicons 
-                  name={state.newCard.expiry ? "checkmark-circle" : "ellipse-outline"} 
-                  size={16} 
-                  color={state.newCard.expiry ? colors.success : colors.textSecondary} 
-                />
-              </HStack>
-              <HStack gap="sm" align="center" justify="space-between">
-                <Text style={{ color: colors.textSecondary }}>CVV</Text>
-                <Ionicons 
-                  name={state.newCard.cvv ? "checkmark-circle" : "ellipse-outline"} 
-                  size={16} 
-                  color={state.newCard.cvv ? colors.success : colors.textSecondary} 
-                />
-              </HStack>
-            </VStack>
-          </VStack>
-
-          {/* Bouton de paiement */}
-          <Pressable
-            onPress={handlePayment}
-            disabled={!state.newCard.number || !state.newCard.expiry || !state.newCard.cvv}
-            style={({ pressed }) => {
-              const isComplete = state.newCard.number && state.newCard.expiry && state.newCard.cvv;
-              return {
-                backgroundColor: !isComplete
-                  ? colors.backgroundSecondary
-                  : pressed 
-                  ? colors.primaryHover
-                  : colors.primary,
-                paddingVertical: DESIGN_TOKENS.spacing.lg,
-                paddingHorizontal: DESIGN_TOKENS.spacing.xl,
-                borderRadius: 16,
-                alignItems: 'center',
-                justifyContent: 'center',
-                minHeight: 60,
-                borderWidth: 2,
-                borderColor: !isComplete ? colors.border : colors.primary,
-                shadowColor: isComplete ? colors.primary : 'transparent',
-                shadowOffset: { width: 0, height: 6 },
-                shadowOpacity: 0.4,
-                shadowRadius: 12,
-                elevation: isComplete ? 8 : 0,
-                opacity: !isComplete ? 0.7 : 1,
-                transform: pressed && isComplete ? [{ scale: 0.96 }] : [{ scale: 1 }],
-              };
-            }}
-          >
-            <HStack gap="md" align="center">
-              <View style={{
-                backgroundColor: (state.newCard.number && state.newCard.expiry && state.newCard.cvv) 
-                  ? 'rgba(255,255,255,0.2)' 
-                  : colors.backgroundTertiary,
-                padding: 10,
-                borderRadius: 25,
-              }}>
-                <Ionicons 
-                  name={
-                    (state.newCard.number && state.newCard.expiry && state.newCard.cvv) 
-                      ? "lock-closed" 
-                      : "lock-open"
-                  } 
-                  size={24} 
-                  color={
-                    (state.newCard.number && state.newCard.expiry && state.newCard.cvv) 
-                      ? "white" 
-                      : colors.textSecondary
-                  } 
-                />
-              </View>
-              <VStack gap="xs" align="center">
-                <Text style={{
-                  color: (state.newCard.number && state.newCard.expiry && state.newCard.cvv) 
-                    ? colors.background 
-                    : colors.textSecondary,
-                  fontSize: DESIGN_TOKENS.typography.title.fontSize,
-                  fontWeight: '700',
-                  textAlign: 'center',
-                }}>
-                  {(state.newCard.number && state.newCard.expiry && state.newCard.cvv) 
-                    ? `Pay ${job.payment?.currency || 'AUD'} ${job.payment?.amountToBePaid || '0.00'}`
-                    : 'Complete Card Details'
-                  }
-                </Text>
-                <Text style={{
-                  color: (state.newCard.number && state.newCard.expiry && state.newCard.cvv) 
-                    ? colors.textSecondary 
-                    : colors.textSecondary,
-                  fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-                  fontWeight: '500',
-                  textAlign: 'center',
-                }}>
-                  {(state.newCard.number && state.newCard.expiry && state.newCard.cvv) 
-                    ? 'Secure payment via encrypted connection'
-                    : 'Fill all required fields to continue'
-                  }
-                </Text>
-              </VStack>
-            </HStack>
-          </Pressable>
-        </View>
-      </VStack>
-    );
-  }
-
-  function CashPayment() {
-    return (
-      <VStack gap="lg">
-        {/* Cash Payment Info */}
-        <VStack gap="md">
-          <Text style={{
-            fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
-            fontWeight: '600',
-            color: colors.text,
-          }}>
-            Cash Payment Details
-          </Text>
-          
-          <View style={{
-            backgroundColor: colors.backgroundSecondary,
-            padding: DESIGN_TOKENS.spacing.lg,
-            borderRadius: DESIGN_TOKENS.radius.lg,
-          }}>
-            <VStack gap="sm">
-              <HStack gap="sm" align="center">
-                <Ionicons name="information-circle" size={20} color={colors.primary} />
-                <Text style={{
-                  fontSize: DESIGN_TOKENS.typography.body.fontSize,
-                  fontWeight: '600',
-                  color: colors.text,
-                }}>
-                  Payment Instructions
-                </Text>
-              </HStack>
-              <Text style={{
-                fontSize: DESIGN_TOKENS.typography.body.fontSize,
-                color: colors.textSecondary,
-                lineHeight: 22,
-              }}>
-                Please prepare the exact amount in cash. Payment will be collected upon service completion.
-              </Text>
-            </VStack>
-          </View>
-        </VStack>
-
-        {/* Amount Input */}
-        <VStack gap="md">
-          <Text style={{
-            fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
-            fontWeight: '600',
-            color: colors.text,
-          }}>
-            Confirm Amount
-          </Text>
-          
-          <View>
-            <Text style={{
-              fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-              color: colors.textSecondary,
-              marginBottom: DESIGN_TOKENS.spacing.xs,
-            }}>
-              Cash Amount ({job.payment?.currency || 'AUD'})
-            </Text>
-            <TextInput
-              style={{
-                backgroundColor: colors.background,
-                borderWidth: 2,
-                borderColor: colors.border,
-                borderRadius: DESIGN_TOKENS.radius.md,
-                padding: DESIGN_TOKENS.spacing.md,
-                fontSize: DESIGN_TOKENS.typography.body.fontSize,
-                textAlign: 'right',
-              }}
-              placeholder={job.payment?.amountToBePaid || '0.00'}
-              keyboardType="numeric"
-              value={state.cashAmount}
-              onChangeText={(text) => updateState({ 
-                cashAmount: text
-              })}
-            />
-          </View>
-        </VStack>
-
-        {/* Confirm Button */}
-        <View style={{
-          marginTop: DESIGN_TOKENS.spacing.lg,
-          marginBottom: DESIGN_TOKENS.spacing.md,
-        }}>
-          <Pressable
-            onPress={handlePayment}
-            disabled={!state.cashAmount || parseFloat(state.cashAmount) < parseFloat(job.payment?.amountToBePaid || '0')}
-            style={({ pressed }) => ({
-              backgroundColor: (!state.cashAmount || parseFloat(state.cashAmount) < parseFloat(job.payment?.amountToBePaid || '0'))
-                ? colors.backgroundTertiary
-                : pressed 
-                ? colors.primaryHover
-                : colors.primary,
-              paddingVertical: DESIGN_TOKENS.spacing.lg,
-              paddingHorizontal: DESIGN_TOKENS.spacing.xl,
-              borderRadius: 16,
-              alignItems: 'center',
-              justifyContent: 'center',
-              minHeight: 56,
-              borderWidth: 2,
-              borderColor: (!state.cashAmount || parseFloat(state.cashAmount) < parseFloat(job.payment?.amountToBePaid || '0'))
-                ? colors.border
-                : colors.primary,
-              shadowColor: (!state.cashAmount || parseFloat(state.cashAmount) < parseFloat(job.payment?.amountToBePaid || '0'))
-                ? 'transparent' 
-                : colors.primary,
-              shadowOffset: { width: 0, height: 6 },
-              shadowOpacity: 0.4,
-              shadowRadius: 12,
-              elevation: (!state.cashAmount || parseFloat(state.cashAmount) < parseFloat(job.payment?.amountToBePaid || '0')) ? 0 : 8,
-              opacity: (!state.cashAmount || parseFloat(state.cashAmount) < parseFloat(job.payment?.amountToBePaid || '0')) ? 0.5 : 1,
-              transform: pressed ? [{ scale: 0.96 }] : [{ scale: 1 }],
-            })}
-          >
-            <HStack gap="md" align="center">
-              <View style={{
-                backgroundColor: colors.background,
-                padding: 8,
-                borderRadius: 20,
-              }}>
-                <Ionicons name="cash" size={20} color={colors.primary} />
-              </View>
-              <VStack gap="xs" align="center">
-                <Text style={{
-                  color: colors.background,
-                  fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
-                  fontWeight: '700',
-                  textAlign: 'center',
-                }}>
-                  Confirm Cash Payment
-                </Text>
-                <Text style={{
-                  color: colors.textSecondary,
-                  fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-                  fontWeight: '500',
-                  textAlign: 'center',
-                }}>
-                  Payment collected on completion
-                </Text>
-              </VStack>
-            </HStack>
-          </Pressable>
-        </View>
-        
-        {/* Note */}
-        <View style={{
-          backgroundColor: colors.warning + '20',
-          padding: DESIGN_TOKENS.spacing.md,
-          borderRadius: DESIGN_TOKENS.radius.md,
-          borderLeftWidth: 4,
-          borderLeftColor: colors.warning,
-        }}>
-          <HStack gap="sm" align="flex-start">
-            <Ionicons name="warning" size={16} color={colors.warning} style={{ marginTop: 2 }} />
-            <Text style={{
-              fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-              color: colors.textSecondary,
-              flex: 1,
-              lineHeight: 18,
-            }}>
-              Cash payments are collected in person. Please ensure you have the exact amount ready when the service is completed.
-            </Text>
-          </HStack>
-        </View>
-      </VStack>
-    );
-  }
-
-  function CreditCardPreview() {
-    const cardType = cardValidation.cardType;
-    
-    // Couleurs par type de carte
-    const cardColors: Record<string, [string, string]> = {
-      visa: ['#1e3c72', '#2a5298'],
-      mastercard: ['#eb4d4b', '#6c5ce7'],
-      amex: ['#2d3436', '#636e72'],
-      discover: ['#ff7675', '#fd79a8'],
-      unknown: ['#74b9ff', '#0984e3']
-    };
-    
-    // Logos/noms par type
-    const cardNames = {
-      visa: 'VISA',
-      mastercard: 'Mastercard',
-      amex: 'AMEX',
-      discover: 'Discover',
-      unknown: 'CARD'
-    };
-    
-    // Icons by card type
-    const cardIcons = {
-      visa: 'card',
-      mastercard: 'card',
-      amex: 'card',
-      discover: 'card',
-      unknown: 'card'
-    };
-    
-    return (
-      <>
-      <View style={{
-        height: 200,
-        borderRadius: 16,
-        overflow: 'hidden',
-        marginVertical: DESIGN_TOKENS.spacing.md,
-        shadowColor: cardValidation.number.isValid && state.newCard.number.length > 0
-          ? 'colors.success' 
-          : cardValidation.number.message !== 'Number required' && !cardValidation.number.isValid
-            ? 'colors.error'
-            : 'colors.text',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: cardValidation.number.isValid && state.newCard.number.length > 0
-          ? 0.4
-          : cardValidation.number.message !== 'Number required' && !cardValidation.number.isValid
-            ? 0.3
-            : 0.15,
-        shadowRadius: 12,
-        elevation: 8,
-      }}>
-        <LinearGradient
-          colors={cardColors[cardType]}
-          style={{
-            flex: 1,
-            padding: 20,
-            justifyContent: 'space-between',
-          }}
-        >
-          {/* Card Top */}
-          <HStack justify="space-between" align="center">
-            <Text style={{
-              color: colors.background,
-              fontSize: 16,
-              fontWeight: '600',
-              opacity: 0.9,
-            }}>
-              {cardNames[cardType as keyof typeof cardNames]}
-            </Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              {state.newCard.number.length > 0 && (
-                <Ionicons 
-                  name={cardValidation.number.isValid ? "checkmark-circle" : "close-circle"} 
-                  size={20} 
-                  color={cardValidation.number.isValid ? colors.success : colors.error} 
-                  style={{ marginRight: 8 }} 
-                />
-              )}
-              <Ionicons name="card" size={20} color={colors.background} style={{ opacity: 0.7 }} />
-            </View>
-          </HStack>
-
-          {/* Card Number */}
-          <Text style={{
-            color: colors.background,
-            fontSize: 22,
-            fontWeight: '600',
-            letterSpacing: 2,
-          }}>
-            {formatCardNumber(state.newCard.number) || '•••• •••• •••• ••••'}
-          </Text>
-
-          {/* Card Bottom */}
-          <HStack justify="space-between">
-            <VStack>
-              <Text style={{ color: colors.textSecondary, fontSize: 10 }}>CARDHOLDER</Text>
-              <Text style={{ color: colors.background, fontSize: 14, fontWeight: '600' }}>
-                {state.newCard.name || 'YOUR NAME'}
-              </Text>
-            </VStack>
-            <VStack>
-              <Text style={{ color: colors.textSecondary, fontSize: 10 }}>EXPIRES</Text>
-              <Text style={{ color: colors.background, fontSize: 14, fontWeight: '600' }}>
-                {state.newCard.expiry || 'MM/YY'}
-              </Text>
-            </VStack>
-          </HStack>
-        </LinearGradient>
-      </View>
-      
-      {/* Modern validation bubble with animation */}
-      {state.newCard.number.length > 0 && (
-        <Animated.View style={{
-          alignSelf: 'center',
-          marginTop: 12,
-          paddingHorizontal: 16,
-          paddingVertical: 8,
-          backgroundColor: cardValidation.number.isValid ? 'colors.success' : 'colors.error',
-          borderRadius: 20,
-          shadowColor: cardValidation.number.isValid ? 'colors.success' : 'colors.error',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.3,
-          shadowRadius: 8,
-          elevation: 5,
-          transform: [{ scale: 1 }],
-          opacity: 1,
-        }}>
-          <Text style={{
-            color: 'white',
-            fontSize: 13,
-            fontWeight: '600',
-            textAlign: 'center',
-          }}>
-            {cardValidation.number.isValid ? 
-              `✓ ${cardNames[cardType as keyof typeof cardNames]} Valide` : 
-              `${cardValidation.number.message}`
-            }
-          </Text>
-        </Animated.View>
-      )}
-    </>
-    );
-  }
-
-  function SavedCardItem({ card }: { card: SavedCard }) {
-    if (!card || !card.cardNumber || !card.cardHolderName || !card.expiryDate) {
-      return null;
-    }
-
-    return (
-      <Pressable
-        onPress={() => {
-          // If the card is already selected, deselect it
-          if (state.selectedCard?.id === card.id) {
-            updateState({ 
-              selectedCard: null,
-              newCard: { number: '', expiry: '', cvv: '', name: '' }
-            });
-          } else {
-            // Otherwise select it and prefill the fields
-            updateState({ 
-              selectedCard: card,
-              newCard: {
-                number: card.cardNumber.replace(/\s/g, ''),
-                expiry: card.expiryDate,
-                cvv: '',  // Never prefill CVV for security reasons
-                name: card.cardHolderName
-              }
-            });
-          }
-        }}
-        style={({ pressed }) => ({
-          backgroundColor: state.selectedCard?.id === card.id 
-            ? colors.primary + '10' 
-            : pressed 
-            ? colors.backgroundSecondary 
-            : 'white',
-          padding: DESIGN_TOKENS.spacing.lg,
-          borderRadius: DESIGN_TOKENS.radius.lg,
-          borderWidth: 2,
-          borderColor: state.selectedCard?.id === card.id ? colors.primary : colors.border,
-        })}
-      >
-        <HStack gap="md" align="center">
-          <View style={{
-            backgroundColor: (card.cardType || getCardType(card.cardNumber)) === 'visa' ? '#1e3c72' : '#ff6b6b',
-            padding: DESIGN_TOKENS.spacing.sm,
-            borderRadius: DESIGN_TOKENS.radius.sm,
-          }}>
-            <Ionicons name="card" size={20} color="white" />
-          </View>
-          <VStack gap="xs" style={{ flex: 1 }}>
-            <Text style={{ fontWeight: '600' }}>
-              {(card.cardType || getCardType(card.cardNumber || '')).toUpperCase()} ••{card.cardNumber?.slice(-4) || '****'}
-            </Text>
-            <Text style={{ 
-              fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-              color: colors.textSecondary,
-            }}>
-              {card.cardHolderName} • Expires {card.expiryDate}
-            </Text>
-          </VStack>
-          {state.selectedCard?.id === card.id ? (
-            <VStack align="center" gap="xs">
-              <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
-              <Text style={{ 
-                fontSize: 10, 
-                color: colors.textSecondary,
-                textAlign: 'center' 
-              }}>
-                Tap to deselect
-              </Text>
-            </VStack>
-          ) : (
-            <Ionicons name="radio-button-off" size={24} color={colors.border} />
-          )}
-        </HStack>
-      </Pressable>
-    );
-  }
-
-  function ProcessingView() {
-    return (
-      <VStack gap="lg" align="center" style={{ paddingVertical: DESIGN_TOKENS.spacing.xl }}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <VStack gap="sm" align="center">
-          <Text style={{
-            fontSize: DESIGN_TOKENS.typography.title.fontSize,
-            fontWeight: '600',
-            color: colors.text,
-          }}>
-            Processing Payment...
-          </Text>
-          <Text style={{
-            fontSize: DESIGN_TOKENS.typography.body.fontSize,
-            color: colors.textSecondary,
-            textAlign: 'center',
-          }}>
-            Please don't close this window while we process your payment.
-          </Text>
-        </VStack>
-      </VStack>
-    );
-  }
-
-  function SuccessView() {
-    return (
-      <VStack gap="lg" align="center" style={{ paddingVertical: DESIGN_TOKENS.spacing.xl }}>
-        <View style={{
-          backgroundColor: colors.success + '20',
-          padding: DESIGN_TOKENS.spacing.lg,
-          borderRadius: 50,
-        }}>
-          <Ionicons name="checkmark" size={48} color={colors.success} />
-        </View>
-        
-        <VStack gap="sm" align="center">
-          <Text style={{
-            fontSize: DESIGN_TOKENS.typography.title.fontSize,
-            fontWeight: '700',
-            color: colors.text,
-          }}>
-            Payment Successful!
-          </Text>
-          <Text style={{
-            fontSize: DESIGN_TOKENS.typography.body.fontSize,
-            color: colors.textSecondary,
-            textAlign: 'center',
-          }}>
-            Your payment has been processed successfully. You will receive a confirmation email shortly.
-          </Text>
-        </VStack>
-      </VStack>
-    );
-  }
 };
 
 export default PaymentWindow;

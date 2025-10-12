@@ -23,58 +23,87 @@ const TruckDetailsSection: React.FC<TruckDetailsSectionProps> = ({ job }) => {
                     color: colors.text,
                     marginBottom: DESIGN_TOKENS.spacing.xs,
                 }}>
-                    Truck Information
+                    🚛 Informations Véhicule
                 </Text>
                 <Text style={{
                     fontSize: 14,
                     color: colors.textSecondary,
                     marginBottom: DESIGN_TOKENS.spacing.lg,
                 }}>
-                    Vehicle assigned to this job
+                    Véhicule assigné à cette mission
                 </Text>
             </View>
 
-            <View>
-                {/* License Plate */}
-                <View style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
-                    <Text style={{
-                        fontSize: 12,
-                        color: colors.textSecondary,
-                        fontWeight: '500',
-                        marginBottom: DESIGN_TOKENS.spacing.xs,
-                        textTransform: 'uppercase',
-                        letterSpacing: 0.5,
+            <View style={{
+                backgroundColor: colors.backgroundTertiary,
+                borderRadius: 12,
+                padding: DESIGN_TOKENS.spacing.lg,
+                borderWidth: 1,
+                borderColor: colors.border,
+            }}>
+                {/* Header avec icône camion */}
+                <View style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    marginBottom: DESIGN_TOKENS.spacing.md,
+                    paddingBottom: DESIGN_TOKENS.spacing.md,
+                    borderBottomWidth: 1,
+                    borderBottomColor: colors.border,
+                }}>
+                    <View style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 20,
+                        backgroundColor: colors.primary + '20',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginRight: DESIGN_TOKENS.spacing.md,
                     }}>
-                        License Plate
-                    </Text>
-                    <Text style={{
-                        fontSize: 16,
-                        color: colors.text,
-                        fontWeight: '500',
-                    }}>
-                        🚚 {job.truck.licensePlate}
-                    </Text>
+                        <Text style={{ fontSize: 20 }}>🚚</Text>
+                    </View>
+                    <View>
+                        <Text style={{
+                            fontSize: 16,
+                            fontWeight: '600',
+                            color: colors.text,
+                        }}>
+                            {job.truck.name}
+                        </Text>
+                        <Text style={{
+                            fontSize: 14,
+                            color: colors.textSecondary,
+                        }}>
+                            Véhicule principal
+                        </Text>
+                    </View>
                 </View>
 
-                {/* Truck Name */}
-                <View>
-                    <Text style={{
-                        fontSize: 12,
-                        color: colors.textSecondary,
-                        fontWeight: '500',
-                        marginBottom: DESIGN_TOKENS.spacing.xs,
-                        textTransform: 'uppercase',
-                        letterSpacing: 0.5,
-                    }}>
-                        Truck Name
-                    </Text>
-                    <Text style={{
-                        fontSize: 16,
-                        color: colors.text,
-                        fontWeight: '500',
-                    }}>
-                        🚛 {job.truck.name}
-                    </Text>
+                {/* Informations détaillées */}
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <View style={{ flex: 1 }}>
+                        <Text style={{
+                            fontSize: 12,
+                            color: colors.textSecondary,
+                            fontWeight: '500',
+                            marginBottom: 4,
+                            textTransform: 'uppercase',
+                            letterSpacing: 0.5,
+                        }}>
+                            🏷️ Plaque d'immatriculation
+                        </Text>
+                        <Text style={{
+                            fontSize: 16,
+                            color: colors.text,
+                            fontWeight: '600',
+                            backgroundColor: colors.background,
+                            paddingHorizontal: 8,
+                            paddingVertical: 4,
+                            borderRadius: 6,
+                            textAlign: 'center',
+                        }}>
+                            {job.truck.licensePlate}
+                        </Text>
+                    </View>
                 </View>
             </View>
         </SectionCard>

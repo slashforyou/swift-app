@@ -33,6 +33,23 @@ export interface JobDetailsComplete {
   
   // Photos et médias
   media: JobMedia[];
+  
+  // Adresses du job
+  addresses: JobAddress[];
+}
+
+// Interface pour les adresses
+export interface JobAddress {
+  id: string;
+  type: 'pickup' | 'dropoff' | 'stop';
+  street: string;
+  city: string;
+  state: string;
+  zip: string;
+  position?: {
+    latitude: number;
+    longitude: number;
+  };
 }
 
 export interface JobInfo {
@@ -325,6 +342,7 @@ export async function fetchJobDetails(jobId: string): Promise<JobDetailsComplete
     }
     
     console.log('🎯 [JOB DETAILS] Target job found in calendar response:', targetJob.title || targetJob.name);
+    console.log('🎯 [JOB DETAILS] Full targetJob structure:', JSON.stringify(targetJob, null, 2));
     
     // Normaliser les données complètes reçues de calendar-days
     const completeJobDetails: JobDetailsComplete = {
@@ -335,7 +353,8 @@ export async function fetchJobDetails(jobId: string): Promise<JobDetailsComplete
       items: (targetJob.items || []).map(normalizeJobItem),
       notes: (targetJob.notes || []).map(normalizeJobNote),
       timeline: (targetJob.timeline || []).map(normalizeTimelineEvent),
-      media: (targetJob.media || []).map(normalizeJobMedia)
+      media: (targetJob.media || []).map(normalizeJobMedia),
+      addresses: (targetJob.addresses || []).map(normalizeJobAddress) // Ajouter le support des adresses
     };
     
     console.log('🔍 [JOB DETAILS] ✅ Complete job details assembled from calendar-days successfully');
@@ -547,6 +566,21 @@ function normalizeJobMedia(apiData: any): JobMedia {
   };
 }
 
+function normalizeJobAddress(apiData: any): JobAddress {
+  return {
+    id: apiData.id?.toString() || '',
+    type: apiData.type || 'pickup',
+    street: apiData.street || apiData.address || '',
+    city: apiData.city || '',
+    state: apiData.state || '',
+    zip: apiData.zip || apiData.zipCode || apiData.postal_code || '',
+    position: apiData.position || (apiData.latitude && apiData.longitude ? {
+      latitude: apiData.latitude,
+      longitude: apiData.longitude
+    } : undefined)
+  };
+}
+
 /**
  * Met à jour les informations de base d'un job
  */
@@ -699,7 +733,8 @@ async function fetchJobDetailsClassic(jobId: string): Promise<JobDetailsComplete
       items: (itemsData.items || []).map(normalizeJobItem),
       notes: (notesData.notes || []).map(normalizeJobNote),
       timeline: (timelineData.timeline || []).map(normalizeTimelineEvent),
-      media: (mediaData.media || []).map(normalizeJobMedia)
+      media: (mediaData.media || []).map(normalizeJobMedia),
+      addresses: jobData.addresses ? jobData.addresses.map(normalizeJobAddress) : []
     };
     
     console.log('🔍 [JOB DETAILS] ✅ Complete job details assembled successfully (classic method)');

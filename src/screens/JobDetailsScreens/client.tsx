@@ -12,6 +12,8 @@ import contactLink from '../../services/contactLink';
 import Ionicons from '@react-native-vector-icons/ionicons';
 import { fetchClientById, ClientAPI } from '../../services/clients';
 import { isLoggedIn } from '../../utils/auth';
+import SigningBloc from '../../components/signingBloc';
+import SignatureSection from '../../components/jobDetails/sections/SignatureSection';
 
 interface JobClientProps {
     job: any;
@@ -53,6 +55,12 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
     const { colors } = useCommonThemedStyles();
     const [extendedClientData, setExtendedClientData] = useState<ClientAPI | null>(null);
     const [isLoadingClient, setIsLoadingClient] = useState(false);
+    const [isSigningVisible, setIsSigningVisible] = useState(false);
+
+    const handleSignContract = () => {
+        console.log('🖋️ [JobClient] handleSignContract called - Opening signature modal');
+        setIsSigningVisible(true);
+    };
     
     // Fonction pour charger les données client étendues depuis l'API
     const loadExtendedClientData = async () => {
@@ -94,6 +102,7 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
     ].filter(item => item.value); // Ne montre que les champs renseignés
 
     return (
+        <>
         <VStack gap="lg">
                 {/* Informations Client */}
                 <Card style={{ padding: DESIGN_TOKENS.spacing.lg }}>
@@ -265,7 +274,22 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
                         </VStack>
                     </VStack>
                 </Card>
+                
+                {/* Section signature plus moderne */}
+                <SignatureSection job={job} onSignContract={handleSignContract} />
         </VStack>
+        
+        {/* Modal de signature */}
+        {isSigningVisible && (
+            <SigningBloc 
+                isVisible={isSigningVisible} 
+                setIsVisible={setIsSigningVisible} 
+                onSave={(signature: any) => console.log('Signature saved:', signature)} 
+                job={job} 
+                setJob={setJob}
+            />
+        )}
+        </>
     );
 };
 

@@ -20,78 +20,120 @@ const SignatureSection: React.FC<SignatureSectionProps> = ({ job, onSignContract
 
     return (
         <SectionCard level="secondary">
-            <View style={{ marginBottom: DESIGN_TOKENS.spacing.md }}>
+            <View style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
                 <Text style={{
-                    fontSize: 18,
-                    fontWeight: '600',
+                    fontSize: 20,
+                    fontWeight: '700',
                     color: colors.text,
                     marginBottom: DESIGN_TOKENS.spacing.xs,
                 }}>
-                    Contract Signature
+                    ✍️ Signature Contrat
                 </Text>
                 <Text style={{
-                    fontSize: 14,
+                    fontSize: 15,
                     color: colors.textSecondary,
-                    marginBottom: DESIGN_TOKENS.spacing.md,
+                    marginBottom: DESIGN_TOKENS.spacing.lg,
                 }}>
-                    Client signature status for this job
+                    Validation et signature du contrat client
                 </Text>
             </View>
 
             {isContractSigned ? (
                 <View style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    padding: DESIGN_TOKENS.spacing.md,
-                    backgroundColor: colors.success + '15', // Success avec transparence
-                    borderRadius: DESIGN_TOKENS.radius.md,
-                    borderWidth: 1,
+                    padding: DESIGN_TOKENS.spacing.lg,
+                    backgroundColor: colors.success + '15',
+                    borderRadius: 16,
+                    borderWidth: 2,
                     borderColor: colors.success,
+                    alignItems: 'center',
                 }}>
-                    <Text style={{
-                        fontSize: 24,
-                        marginRight: DESIGN_TOKENS.spacing.sm,
-                    }}>✅</Text>
-                    <Text style={{
-                        fontSize: 16,
-                        color: colors.success,
-                        fontWeight: '600',
-                        flex: 1,
+                    <View style={{
+                        width: 60,
+                        height: 60,
+                        borderRadius: 30,
+                        backgroundColor: colors.success,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: DESIGN_TOKENS.spacing.md,
                     }}>
-                        Contract has been signed by the client
+                        <Text style={{ fontSize: 30, color: 'white' }}>✓</Text>
+                    </View>
+                    <Text style={{
+                        fontSize: 18,
+                        color: colors.success,
+                        fontWeight: '700',
+                        textAlign: 'center',
+                        marginBottom: 4,
+                    }}>
+                        Contrat Signé !
+                    </Text>
+                    <Text style={{
+                        fontSize: 14,
+                        color: colors.textSecondary,
+                        textAlign: 'center',
+                    }}>
+                        Le client a validé et signé le contrat
                     </Text>
                 </View>
             ) : (
                 <View>
+                    {/* État en attente avec design moderne */}
                     <View style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        padding: DESIGN_TOKENS.spacing.md,
-                        backgroundColor: colors.warning + '15', // Warning avec transparence
-                        borderRadius: DESIGN_TOKENS.radius.md,
+                        padding: DESIGN_TOKENS.spacing.lg,
+                        backgroundColor: colors.backgroundTertiary,
+                        borderRadius: 16,
                         borderWidth: 1,
-                        borderColor: colors.warning,
-                        marginBottom: DESIGN_TOKENS.spacing.md,
+                        borderColor: colors.border,
+                        marginBottom: DESIGN_TOKENS.spacing.lg,
+                        alignItems: 'center',
                     }}>
-                        <Text style={{
-                            fontSize: 24,
-                            marginRight: DESIGN_TOKENS.spacing.sm,
-                        }}>⚠️</Text>
-                        <Text style={{
-                            fontSize: 14,
-                            color: colors.warning,
-                            flex: 1,
+                        <View style={{
+                            width: 60,
+                            height: 60,
+                            borderRadius: 30,
+                            backgroundColor: colors.warning + '30',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginBottom: DESIGN_TOKENS.spacing.md,
                         }}>
-                            Contract signature is pending from the client
+                            <Text style={{ fontSize: 28 }}>📝</Text>
+                        </View>
+                        <Text style={{
+                            fontSize: 16,
+                            color: colors.text,
+                            fontWeight: '600',
+                            textAlign: 'center',
+                            marginBottom: 4,
+                        }}>
+                            Signature En Attente
+                        </Text>
+                        <Text style={{
+                            fontSize: 13,
+                            color: colors.textSecondary,
+                            textAlign: 'center',
+                            marginBottom: DESIGN_TOKENS.spacing.md,
+                        }}>
+                            Le contrat doit être signé par le client
                         </Text>
                     </View>
                     
-                    <Button 
-                        title="Sign Contract" 
-                        variant="secondary"
-                        onPress={onSignContract}
-                        style={{ width: '100%' }}
-                    />
+                    {/* Bouton call-to-action stylé */}
+                    <View style={{
+                        backgroundColor: colors.primary + '10',
+                        borderRadius: 12,
+                        padding: 4,
+                    }}>
+                        <Button 
+                            title="🖋️ Faire Signer le Contrat" 
+                            variant="primary"
+                            onPress={onSignContract}
+                            style={{ 
+                                width: '100%',
+                                paddingVertical: 16,
+                                borderRadius: 8,
+                            }}
+                        />
+                    </View>
                 </View>
             )}
         </SectionCard>

@@ -1,15 +1,34 @@
-/**
- * Job Page - Affichage des détails du travail, items à checker, contacts
- * Conforme aux normes mobiles iOS/Android - Touch targets ≥44pt, 8pt grid
+﻿/**
+ * Job Page - Affichage des dÃ©tails du travail, items Ã  checker, contacts
+ * Conforme aux normes mobiles iOS/Android - Touch targets â‰¥44pt, 8pt grid
  */
-import React, { useState } from 'react';
-import { View, Text, Switch, Pressable, TextInput, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Switch, Pressable, TextInput, Alert, Modal, ActivityIndicator } from 'react-native';
 import { VStack, HStack } from '../../components/primitives/Stack';
 import { Card } from '../../components/ui/Card';
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 import contactLink from '../../services/contactLink';
-import { addJobItem } from '../../services/jobs';
+import { addJobItem, updateJobItem, getJobWithItems } from '../../services/jobs';
+
+// Fonction pour extraire l'ID numérique depuis un ID job de format JOB-NERD-URGENT-006
+const extractNumericJobId = (jobId: string): string => {
+    if (!jobId) return '';
+    
+    // Si c'est déjà numérique, retourner tel quel
+    if (/^\d+$/.test(jobId)) {
+        return jobId;
+    }
+    
+    // Extraire les chiffres à la fin (ex: JOB-NERD-URGENT-006 -> 006 -> 6)
+    const match = jobId.match(/(\d+)$/);
+    if (match) {
+        return parseInt(match[1], 10).toString(); // Convertir 006 -> 6
+    }
+    
+    console.warn(`[extractNumericJobId] Could not extract numeric ID from: ${jobId}`);
+    return jobId; // Fallback
+};
 import Ionicons from '@react-native-vector-icons/ionicons';
 
 
@@ -29,14 +48,15 @@ interface ContactRowProps {
     value: string;
     contactType: 'tel' | 'mailto';
     icon: string;
-    buttonLabel: string;
-    description?: string;
 }
 
 interface ItemRowProps {
     item: any;
     index: number;
     onToggle: (index: number, checked: boolean) => void;
+    onQuantityChange: (index: number, completedQuantity: number) => void;
+    onQuantityBlur: (index: number, completedQuantity: number) => void;
+    isSyncing?: boolean;
 }
 
 interface SectionHeaderProps {
@@ -45,7 +65,7 @@ interface SectionHeaderProps {
     badge?: string;
 }
 
-// Composant pour les headers de section avec icônes
+// Composant pour les headers de section avec icÃ´nes
 const SectionHeader: React.FC<SectionHeaderProps> = ({ icon, title, badge }) => {
     const { colors } = useCommonThemedStyles();
     return (
@@ -101,62 +121,67 @@ const AddItemModal: React.FC<{
 
     const handleAdd = async () => {
         if (!name.trim()) {
-            Alert.alert('Erreur', 'Veuillez saisir un nom pour l\'item');
+            Alert.alert('Error', 'Please enter an item name');
             return;
         }
 
         const qty = parseInt(quantity);
         if (isNaN(qty) || qty < 1) {
-            Alert.alert('Erreur', 'Veuillez saisir une quantité valide');
+            Alert.alert('Error', 'Please enter a valid quantity');
             return;
         }
 
         setIsLoading(true);
         try {
-            await onAdd(name.trim(), qty);
+            // Petit délai minimum pour voir le chargement
+            const [result] = await Promise.all([
+                onAdd(name.trim(), qty),
+                new Promise(resolve => setTimeout(resolve, 800)) // 800ms minimum
+            ]);
+            
             setName('');
             setQuantity('1');
             onClose();
         } catch (error) {
-            Alert.alert('Erreur', 'Impossible d\'ajouter l\'item. Veuillez réessayer.');
+            Alert.alert('Error', 'Unable to add item. Please try again.');
         } finally {
             setIsLoading(false);
         }
     };
 
-    if (!visible) return null;
-
     return (
-        <View style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 1000
-        }}>
+        <Modal
+            visible={visible}
+            transparent={true}
+            animationType="fade"
+            statusBarTranslucent={true}
+        >
             <View style={{
-                backgroundColor: colors.background,
-                margin: 20,
-                borderRadius: DESIGN_TOKENS.radius.lg,
-                padding: DESIGN_TOKENS.spacing.lg,
-                minWidth: 300,
-                shadowColor: colors.shadow,
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.25,
-                shadowRadius: 12,
-                elevation: 8
+                flex: 1,
+                backgroundColor: 'rgba(0,0,0,0.5)',
+                justifyContent: 'center',
+                alignItems: 'center',
+                padding: 20
             }}>
+                <View style={{
+                    backgroundColor: colors.background,
+                    borderRadius: DESIGN_TOKENS.radius.lg,
+                    padding: DESIGN_TOKENS.spacing.lg,
+                    width: '100%',
+                    maxWidth: 400,
+                    shadowColor: colors.shadow,
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.25,
+                    shadowRadius: 12,
+                    elevation: 8
+                }}>
                 <HStack align="center" justify="space-between" style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
                     <Text style={{
                         fontSize: 18,
                         fontWeight: '600',
                         color: colors.text
                     }}>
-                        Ajouter un item
+                        Add Item
                     </Text>
                     <Pressable onPress={onClose} hitSlop={8}>
                         <Ionicons name="close" size={24} color={colors.textSecondary} />
@@ -170,12 +195,12 @@ const AddItemModal: React.FC<{
                             fontWeight: '500',
                             color: colors.text
                         }}>
-                            Nom de l'item *
+                            Item Name *
                         </Text>
                         <TextInput
                             value={name}
                             onChangeText={setName}
-                            placeholder="Ex: Canapé 3 places"
+                            placeholder="Ex: 3-seat sofa"
                             placeholderTextColor={colors.textSecondary}
                             style={{
                                 borderWidth: 1,
@@ -195,7 +220,7 @@ const AddItemModal: React.FC<{
                             fontWeight: '500',
                             color: colors.text
                         }}>
-                            Quantité *
+                            Quantity *
                         </Text>
                         <TextInput
                             value={quantity}
@@ -232,7 +257,7 @@ const AddItemModal: React.FC<{
                                 fontWeight: '500',
                                 color: colors.textSecondary
                             }}>
-                                Annuler
+                                Cancel
                             </Text>
                         </Pressable>
 
@@ -244,21 +269,31 @@ const AddItemModal: React.FC<{
                                 padding: DESIGN_TOKENS.spacing.md,
                                 borderRadius: DESIGN_TOKENS.radius.md,
                                 backgroundColor: isLoading ? colors.backgroundSecondary : colors.primary,
-                                alignItems: 'center'
+                                alignItems: 'center',
+                                flexDirection: 'row',
+                                justifyContent: 'center'
                             }}
                         >
+                            {isLoading && (
+                                <ActivityIndicator 
+                                    size="small" 
+                                    color={colors.background} 
+                                    style={{ marginRight: 8 }}
+                                />
+                            )}
                             <Text style={{
                                 fontSize: 16,
                                 fontWeight: '600',
                                 color: colors.background
                             }}>
-                                {isLoading ? 'Ajout...' : 'Ajouter'}
+                                {isLoading ? 'Adding...' : 'Add Item'}
                             </Text>
                         </Pressable>
                     </HStack>
                 </VStack>
+                </View>
             </View>
-        </View>
+        </Modal>
     );
 };
 
@@ -314,7 +349,7 @@ const InfoRow: React.FC<InfoRowProps> = ({ label, value, badge }) => {
 };
 
 // Composant pour afficher une ligne de contact avec bouton d'action
-const ContactRow: React.FC<ContactRowProps> = ({ label, value, contactType, icon, buttonLabel, description }) => {
+const ContactRow: React.FC<ContactRowProps> = ({ label, value, contactType, icon }) => {
     const { colors } = useCommonThemedStyles();
     return (
     <VStack gap="xs" style={{ paddingVertical: DESIGN_TOKENS.spacing.sm }}>
@@ -328,146 +363,304 @@ const ContactRow: React.FC<ContactRowProps> = ({ label, value, contactType, icon
         >
             {label}
         </Text>
-        <HStack gap="md" align="center" justify="space-between">
+        
+        <Pressable
+            onPress={() => contactLink(value, contactType)}
+            hitSlop={DESIGN_TOKENS.touch.hitSlop}
+            style={({ pressed }) => ([
+                {
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    paddingVertical: DESIGN_TOKENS.spacing.md,
+                    paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+                    backgroundColor: pressed 
+                        ? colors.backgroundSecondary
+                        : colors.tint,
+                    borderRadius: DESIGN_TOKENS.radius.lg,
+                    minHeight: 56, // Bouton plus grand
+                    shadowColor: colors.shadow,
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 4,
+                    elevation: 3,
+                }
+            ])}
+            accessibilityRole="button"
+            accessibilityLabel={`Contact ${value}`}
+        >
+            <View style={{
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                backgroundColor: colors.background + '20',
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginRight: DESIGN_TOKENS.spacing.md
+            }}>
+                <Ionicons 
+                    name={icon as any} 
+                    size={18} 
+                    color={colors.background} 
+                />
+            </View>
+            <Text 
+                style={{
+                    fontSize: DESIGN_TOKENS.typography.body.fontSize,
+                    fontWeight: '600',
+                    color: colors.background,
+                    flex: 1
+                }}
+            >
+                {value}
+            </Text>
+        </Pressable>
+    </VStack>
+    );
+};
+
+// Composant pour un item avec toggle
+const ItemRow: React.FC<ItemRowProps> = ({ item, index, onToggle, onQuantityChange, onQuantityBlur, isSyncing }) => {
+    const { colors } = useCommonThemedStyles();
+    const [completedQuantity, setCompletedQuantity] = useState(item.completedQuantity?.toString() || '0');
+
+    const handleQuantityChangeText = (text: string) => {
+        setCompletedQuantity(text);
+        // Mise à jour locale immédiate
+        const qty = parseInt(text) || 0;
+        onQuantityChange(index, qty);
+    };
+
+    const handleQuantityBlur = () => {
+        // Synchronisation API au blur
+        const qty = parseInt(completedQuantity) || 0;
+        onQuantityBlur(index, qty);
+    };
+
+    return (
+    <VStack gap="sm" style={{ paddingVertical: DESIGN_TOKENS.spacing.md }}>
+        <HStack gap="md" align="center">
             <VStack gap="xs" style={{ flex: 1 }}>
-                <Text 
-                    style={{
-                        fontSize: DESIGN_TOKENS.typography.body.fontSize,
-                        lineHeight: DESIGN_TOKENS.typography.body.lineHeight,
-                        fontWeight: DESIGN_TOKENS.typography.body.fontWeight,
-                        color: colors.text,
-                    }}
-                >
-                    {value}
-                </Text>
-                {description && (
+                <HStack gap="sm" align="center">
+                    <Text 
+                        style={{
+                            fontSize: DESIGN_TOKENS.typography.body.fontSize,
+                            lineHeight: DESIGN_TOKENS.typography.body.lineHeight,
+                            fontWeight: '500',
+                            color: colors.text,
+                            flex: 1
+                        }}
+                    >
+                        {item.name}
+                    </Text>
+                    {item.isTemp && (
+                        <View style={{
+                            backgroundColor: colors.textSecondary + '20',
+                            paddingHorizontal: 6,
+                            paddingVertical: 2,
+                            borderRadius: 4
+                        }}>
+                            <Text style={{
+                                fontSize: 10,
+                                fontWeight: '600',
+                                color: colors.textSecondary
+                            }}>
+                                LOCAL
+                            </Text>
+                        </View>
+                    )}
+                    {isSyncing && (
+                        <View style={{
+                            backgroundColor: colors.primary + '20',
+                            paddingHorizontal: 6,
+                            paddingVertical: 2,
+                            borderRadius: 4,
+                            flexDirection: 'row',
+                            alignItems: 'center'
+                        }}>
+                            <ActivityIndicator size="small" color={colors.primary} style={{ marginRight: 4 }} />
+                            <Text style={{
+                                fontSize: 10,
+                                fontWeight: '600',
+                                color: colors.primary
+                            }}>
+                                SYNC
+                            </Text>
+                        </View>
+                    )}
+                </HStack>
+                {item.number && (
                     <Text 
                         style={{
                             fontSize: DESIGN_TOKENS.typography.caption.fontSize,
                             color: colors.textSecondary,
                         }}
                     >
-                        {description}
+                        Expected: {item.number}
                     </Text>
                 )}
             </VStack>
             <Pressable
-                onPress={() => contactLink(value, contactType)}
+                onPress={() => onToggle(index, !(item.item_checked || item.checked))}
                 hitSlop={DESIGN_TOKENS.touch.hitSlop}
-                style={({ pressed }) => ([
-                    {
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        paddingVertical: DESIGN_TOKENS.spacing.sm,
-                        paddingHorizontal: DESIGN_TOKENS.spacing.md,
-                        backgroundColor: pressed 
-                            ? colors.backgroundSecondary
-                            : colors.tint,
-                        borderRadius: DESIGN_TOKENS.radius.md,
-                        minHeight: DESIGN_TOKENS.touch.minSize,
-                        minWidth: DESIGN_TOKENS.touch.minSize,
-                    }
-                ])}
-                accessibilityRole="button"
-                accessibilityLabel={`${buttonLabel} ${value}`}
+                style={{
+                    padding: DESIGN_TOKENS.spacing.xs,
+                }}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: item.item_checked || item.checked || false }}
+                accessibilityLabel={`${(item.item_checked || item.checked) ? 'Uncheck' : 'Check'} ${item.name}`}
             >
-                <Ionicons 
-                    name={icon as any} 
-                    size={16} 
-                    color={colors.background} 
-                />
-                <Text 
-                    style={{
-                        fontSize: DESIGN_TOKENS.typography.body.fontSize,
-                        fontWeight: '500',
-                        color: colors.background,
-                        marginLeft: DESIGN_TOKENS.spacing.xs,
+                <Switch
+                    value={item.item_checked || item.checked || false}
+                    onValueChange={(v) => onToggle(index, v)}
+                    thumbColor={(item.item_checked || item.checked) ? colors.tint : colors.backgroundTertiary}
+                    trackColor={{ 
+                        false: colors.backgroundTertiary, 
+                        true: colors.tint + '50' // 50% opacity
                     }}
-                >
-                    {buttonLabel}
-                </Text>
+                    ios_backgroundColor={colors.backgroundTertiary}
+                />
             </Pressable>
         </HStack>
-    </VStack>
-    );
-};
-
-// Composant pour un item avec toggle
-const ItemRow: React.FC<ItemRowProps> = ({ item, index, onToggle }) => {
-    const { colors } = useCommonThemedStyles();
-    return (
-    <HStack 
-        gap="md" 
-        align="center" 
-        style={{ 
-            paddingVertical: DESIGN_TOKENS.spacing.md,
-            minHeight: DESIGN_TOKENS.touch.minSize,
-        }}
-    >
-        <VStack gap="xs" style={{ flex: 1 }}>
-            <Text 
-                style={{
-                    fontSize: DESIGN_TOKENS.typography.body.fontSize,
-                    lineHeight: DESIGN_TOKENS.typography.body.lineHeight,
-                    fontWeight: '500',
-                    color: colors.text,
-                }}
-            >
-                {item.name}
+        
+        {/* Champ pour la quantité complétée */}
+        <HStack gap="sm" align="center">
+            <Text style={{
+                fontSize: DESIGN_TOKENS.typography.caption.fontSize,
+                color: colors.textSecondary,
+                minWidth: 80
+            }}>
+                Completed:
             </Text>
-            {item.number && (
-                <Text 
-                    style={{
-                        fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-                        color: colors.textSecondary,
-                    }}
-                >
-                    Quantity: {item.number}
-                </Text>
-            )}
-        </VStack>
-        <Pressable
-            onPress={() => onToggle(index, !item.checked)}
-            hitSlop={DESIGN_TOKENS.touch.hitSlop}
-            style={{
-                padding: DESIGN_TOKENS.spacing.xs,
-            }}
-            accessibilityRole="checkbox"
-            accessibilityState={{ checked: item.checked || false }}
-            accessibilityLabel={`${item.checked ? 'Uncheck' : 'Check'} ${item.name}`}
-        >
-            <Switch
-                value={item.checked || false}
-                onValueChange={(v) => onToggle(index, v)}
-                thumbColor={item.checked ? colors.tint : colors.backgroundTertiary}
-                trackColor={{ 
-                    false: colors.backgroundTertiary, 
-                    true: colors.tint + '50' // 50% opacity
+            <TextInput
+                value={completedQuantity}
+                onChangeText={handleQuantityChangeText}
+                onBlur={handleQuantityBlur}
+                keyboardType="numeric"
+                placeholder="0"
+                placeholderTextColor={colors.textSecondary}
+                style={{
+                    flex: 1,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                    borderRadius: DESIGN_TOKENS.radius.sm,
+                    paddingHorizontal: DESIGN_TOKENS.spacing.sm,
+                    paddingVertical: DESIGN_TOKENS.spacing.xs,
+                    fontSize: 14,
+                    color: colors.text,
+                    backgroundColor: colors.backgroundSecondary,
+                    minHeight: 36
                 }}
-                ios_backgroundColor={colors.backgroundTertiary}
             />
-        </Pressable>
-    </HStack>
+        </HStack>
+    </VStack>
     );
 };
 
 const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
     const { colors } = useCommonThemedStyles();
     const [showAddItemModal, setShowAddItemModal] = useState(false);
+    const [syncingItems, setSyncingItems] = useState<Set<string>>(new Set());
     
-    const handleItemToggle = (itemIndex: number, checked: boolean) => {
+    const handleItemToggle = async (itemIndex: number, checked: boolean) => {
         const updatedJob = { ...job };
-        if (updatedJob.items && updatedJob.items[itemIndex]) {
-            updatedJob.items[itemIndex].checked = checked;
-            setJob(updatedJob);
+        if (!updatedJob.items || !updatedJob.items[itemIndex]) {
+            return;
         }
+
+        const item = updatedJob.items[itemIndex];
+        
+        // Mettre à jour localement d'abord pour un feedback immédiat
+        updatedJob.items[itemIndex].item_checked = checked;
+        updatedJob.items[itemIndex].checked = checked;
+        setJob(updatedJob);
+
+        // Synchroniser avec l'API si l'item a un ID et n'est pas temporaire
+        if (item.id && !item.isTemp) {
+            const numericJobId = extractNumericJobId(job.id);
+            
+            console.log(`[handleItemToggle] DEBUG - Item structure:`, JSON.stringify(item, null, 2));
+            console.log(`[handleItemToggle] DEBUG - itemIndex: ${itemIndex}, item.id: "${item.id}" (type: ${typeof item.id})`);
+            console.log(`[handleItemToggle] Job ID: ${numericJobId}, Item ID: ${item.id}`);
+            
+            const itemKey = `${itemIndex}-${item.id}`;
+            setSyncingItems(prev => new Set(prev).add(itemKey));
+            
+            try {
+                await updateJobItem(numericJobId, item.id, { 
+                    is_checked: checked,
+                    completedQuantity: item.completedQuantity || 0
+                });
+                console.log(`[handleItemToggle] Successfully updated item ${item.id} in API`);
+            } catch (error) {
+                console.error(`[handleItemToggle] Failed to update item ${item.id} in API:`, error);
+            } finally {
+                setSyncingItems(prev => {
+                    const newSet = new Set(prev);
+                    newSet.delete(itemKey);
+                    return newSet;
+                });
+            }
+        } else {
+            console.log(`[handleItemToggle] Item has no ID or is temporary, skipping API sync`);
+        }
+    };
+
+    // Fonction pour synchroniser la quantité avec l'API (appelée sur onBlur)
+    const handleQuantitySync = async (itemIndex: number, completedQuantity: number) => {
+        const item = job.items?.[itemIndex];
+        if (!item) return;
+
+        // Synchroniser avec l'API si l'item a un ID et n'est pas temporaire
+        if (item.id && !item.isTemp) {
+            const numericJobId = extractNumericJobId(job.id);
+            
+            console.log(`[handleQuantitySync] DEBUG - Item structure:`, JSON.stringify(item, null, 2));
+            console.log(`[handleQuantitySync] DEBUG - itemIndex: ${itemIndex}, item.id: "${item.id}" (type: ${typeof item.id})`);
+            console.log(`[handleQuantitySync] Job ID: ${numericJobId}, Item ID: ${item.id}, Quantity: ${completedQuantity}`);
+            
+            const itemKey = `${itemIndex}-${item.id}`;
+            setSyncingItems(prev => new Set(prev).add(itemKey));
+            
+            try {
+                await updateJobItem(numericJobId, item.id, { 
+                    completedQuantity,
+                    is_checked: item.item_checked || item.checked || false
+                });
+                console.log(`[handleQuantitySync] Successfully updated quantity for item ${item.id} in API`);
+            } catch (error) {
+                console.error(`[handleQuantitySync] Failed to update quantity for item ${item.id} in API:`, error);
+            } finally {
+                setSyncingItems(prev => {
+                    const newSet = new Set(prev);
+                    newSet.delete(itemKey);
+                    return newSet;
+                });
+            }
+        } else {
+            console.log(`[handleQuantitySync] Item has no ID or is temporary, skipping API sync`);
+        }
+    };
+
+    // Fonction pour mettre à jour localement la quantité (changement immédiat)
+    const handleQuantityChange = (itemIndex: number, completedQuantity: number) => {
+        const updatedJob = { ...job };
+        if (!updatedJob.items || !updatedJob.items[itemIndex]) {
+            return;
+        }
+        
+        // Mettre à jour localement seulement
+        updatedJob.items[itemIndex].completedQuantity = completedQuantity;
+        setJob(updatedJob);
     };
 
     const handleAddItem = async (name: string, quantity: number) => {
         try {
-            await addJobItem(job.id, { name, quantity });
+            const numericJobId = extractNumericJobId(job.id);
+            console.log(`[handleAddItem] Using numeric job ID: ${numericJobId} (from ${job.id})`);
             
-            // Mettre à jour la liste des items localement
+            await addJobItem(numericJobId, { name, quantity });
+            
+            // Mettre Ã  jour la liste des items localement
             const updatedJob = { ...job };
             if (!updatedJob.items) {
                 updatedJob.items = [];
@@ -475,19 +668,46 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
             updatedJob.items.push({
                 name,
                 number: quantity,
-                checked: false
+                checked: false,
+                item_checked: false,
+                completedQuantity: 0
             });
             setJob(updatedJob);
             
-            Alert.alert('Succès', 'Item ajouté avec succès');
+            Alert.alert('Success', 'Item added successfully');
         } catch (error) {
-            console.error('Erreur lors de l\'ajout de l\'item:', error);
-            throw error;
+            console.error('Error adding item via API:', error);
+            
+            // Fallback: ajouter localement même si l'API échoue
+            console.log('Falling back to local addition');
+            const updatedJob = { ...job };
+            if (!updatedJob.items) {
+                updatedJob.items = [];
+            }
+            
+            // Générer un ID temporaire
+            const tempId = `temp_${Date.now()}`;
+            updatedJob.items.push({
+                id: tempId,
+                name,
+                number: quantity,
+                checked: false,
+                item_checked: false,
+                completedQuantity: 0,
+                isTemp: true // Marquer comme temporaire
+            });
+            setJob(updatedJob);
+            
+            Alert.alert(
+                'Item Added Locally', 
+                'Item added to local list. It will be synced when the API connection is available.',
+                [{ text: 'OK', style: 'default' }]
+            );
         }
     };
 
     const itemsCount = job.items?.length || 0;
-    const checkedItems = job.items?.filter((item: any) => item.checked).length || 0;
+    const checkedItems = job.items?.filter((item: any) => item.item_checked || item.checked).length || 0;
 
     return (
         <>
@@ -502,14 +722,22 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
                         />
                         
                         {job.items && job.items.length > 0 ? (
-                            job.items.map((item: any, index: number) => (
-                                <ItemRow
-                                    key={index}
-                                    item={item}
-                                    index={index}
-                                    onToggle={handleItemToggle}
-                                />
-                            ))
+                            job.items.map((item: any, index: number) => {
+                                const itemKey = `${index}-${item.id}`;
+                                const isSyncing = syncingItems.has(itemKey);
+                                
+                                return (
+                                    <ItemRow
+                                        key={index}
+                                        item={item}
+                                        index={index}
+                                        onToggle={handleItemToggle}
+                                        onQuantityChange={handleQuantityChange}
+                                        onQuantityBlur={handleQuantitySync}
+                                        isSyncing={isSyncing}
+                                    />
+                                );
+                            })
                         ) : (
                             <Text style={{
                                 fontSize: 14,
@@ -545,7 +773,7 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
                                 color: colors.primary,
                                 marginLeft: DESIGN_TOKENS.spacing.xs
                             }}>
-                                Ajouter un item
+                                Add Item
                             </Text>
                         </Pressable>
                     </VStack>
@@ -597,7 +825,6 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
                                     value={job.contractor.Phone}
                                     contactType="tel"
                                     icon="call"
-                                    buttonLabel="Call"
                                 />
                             )}
                             
@@ -607,7 +834,6 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
                                     value={job.contractor.Email}
                                     contactType="mailto"
                                     icon="mail"
-                                    buttonLabel="Email"
                                 />
                             )}
                         </VStack>
@@ -637,7 +863,6 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
                                     value={job.contractee.Phone}
                                     contactType="tel"
                                     icon="call"
-                                    buttonLabel="Call"
                                 />
                             )}
                             
@@ -647,7 +872,6 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
                                     value={job.contractee.Email}
                                     contactType="mailto"
                                     icon="mail"
-                                    buttonLabel="Email"
                                 />
                             )}
                         </VStack>
@@ -666,5 +890,3 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
 };
 
 export default JobPage;
-/ /   F o r c e   c o m m i t  
- 

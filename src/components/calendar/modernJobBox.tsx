@@ -109,10 +109,19 @@ const JobBox: React.FC<JobBoxProps> = ({ job, onPress, navigation, day, month, y
             paddingTop: DESIGN_TOKENS.spacing.lg,
             paddingBottom: DESIGN_TOKENS.spacing.md,
         },
-        jobId: {
-            fontSize: DESIGN_TOKENS.typography.title.fontSize,
-            fontWeight: '700',
-            color: colors.text,
+        refBadge: {
+            backgroundColor: colors.backgroundTertiary,
+            paddingHorizontal: DESIGN_TOKENS.spacing.sm,
+            paddingVertical: 4,
+            borderRadius: DESIGN_TOKENS.radius.sm,
+            borderWidth: 1,
+            borderColor: colors.border,
+        },
+        refText: {
+            fontSize: 11,
+            fontWeight: '600',
+            color: colors.textSecondary,
+            textTransform: 'uppercase',
         },
         statusBadge: {
             flexDirection: 'row',
@@ -135,6 +144,18 @@ const JobBox: React.FC<JobBoxProps> = ({ job, onPress, navigation, day, month, y
             alignItems: 'center',
             marginBottom: DESIGN_TOKENS.spacing.sm,
             gap: DESIGN_TOKENS.spacing.sm,
+        },
+        clientTitleRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: DESIGN_TOKENS.spacing.md,
+        },
+        clientTitle: {
+            fontSize: 20,
+            fontWeight: '700',
+            color: colors.text,
+            flex: 1,
         },
         clientName: {
             fontSize: DESIGN_TOKENS.typography.body.fontSize,
@@ -229,6 +250,71 @@ const JobBox: React.FC<JobBoxProps> = ({ job, onPress, navigation, day, month, y
             fontSize: DESIGN_TOKENS.typography.caption.fontSize,
             fontWeight: '600',
         },
+        // Styles modernes pour la section truck
+        modernTruckSection: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+            paddingBottom: DESIGN_TOKENS.spacing.lg,
+            paddingTop: DESIGN_TOKENS.spacing.md,
+            borderTopWidth: 1,
+            borderTopColor: colors.border,
+        },
+        modernTruckCard: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: colors.backgroundTertiary,
+            borderRadius: DESIGN_TOKENS.radius.md,
+            padding: DESIGN_TOKENS.spacing.md,
+            flex: 1,
+            marginRight: DESIGN_TOKENS.spacing.md,
+        },
+        truckIconContainer: {
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            backgroundColor: colors.primary + '15',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginRight: DESIGN_TOKENS.spacing.md,
+        },
+        truckDetails: {
+            flex: 1,
+        },
+        truckName: {
+            fontSize: 14,
+            fontWeight: '600',
+            color: colors.text,
+            marginBottom: 4,
+        },
+        licensePlateModern: {
+            alignSelf: 'flex-start',
+            backgroundColor: colors.primary,
+            paddingHorizontal: 8,
+            paddingVertical: 2,
+            borderRadius: 4,
+        },
+        licensePlateModernText: {
+            fontSize: 11,
+            color: colors.buttonPrimaryText,
+            fontWeight: '700',
+            letterSpacing: 1,
+        },
+        modernActionButton: {
+            backgroundColor: colors.primary,
+            borderRadius: DESIGN_TOKENS.radius.md,
+            paddingHorizontal: DESIGN_TOKENS.spacing.md,
+            paddingVertical: DESIGN_TOKENS.spacing.sm,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 4,
+        },
+        modernActionText: {
+            color: colors.buttonPrimaryText,
+            fontSize: 14,
+            fontWeight: '600',
+        },
     });
 
     return (
@@ -240,9 +326,11 @@ const JobBox: React.FC<JobBoxProps> = ({ job, onPress, navigation, day, month, y
             })}
             onPress={onPress}
         >
-            {/* Header */}
+            {/* Header avec référence */}
             <View style={styles.cardHeader}>
-                <Text style={styles.jobId}>{job.id}</Text>
+                <View style={styles.refBadge}>
+                    <Text style={styles.refText}>Ref: {job.code || job.id}</Text>
+                </View>
                 <View style={[styles.statusBadge, { backgroundColor: statusConfig.backgroundColor }]}>
                     <Ionicons name={statusConfig.icon} size={12} color={statusConfig.color} />
                     <Text style={[styles.statusText, { color: statusConfig.color }]}>
@@ -253,14 +341,13 @@ const JobBox: React.FC<JobBoxProps> = ({ job, onPress, navigation, day, month, y
 
             {/* Content */}
             <View style={styles.cardContent}>
-                {/* Client and Priority */}
-                <View style={styles.clientRow}>
-                    <Ionicons name="person" size={16} color={colors.textSecondary} />
-                    <Text style={styles.clientName}>
+                {/* Titre Client et Priorité */}
+                <View style={styles.clientTitleRow}>
+                    <Text style={styles.clientTitle}>
                         {job.client.firstName} {job.client.lastName}
                     </Text>
                     <View style={[styles.priorityBadge, { backgroundColor: priorityConfig.color + '20' }]}>
-                        <Ionicons name={priorityConfig.icon} size={8} color={priorityConfig.color} />
+                        <Ionicons name={priorityConfig.icon} size={10} color={priorityConfig.color} />
                         <Text style={[styles.priorityText, { color: priorityConfig.color }]}>
                             {priorityConfig.text}
                         </Text>
@@ -287,33 +374,31 @@ const JobBox: React.FC<JobBoxProps> = ({ job, onPress, navigation, day, month, y
                 {/* Time Section */}
                 <View style={styles.timeSection}>
                     <View style={styles.timeRow}>
-                        <Text style={styles.timeLabel}>Start Window</Text>
+                        <Text style={styles.timeLabel}>🕐 Créneau horaire</Text>
                         <Text style={styles.timeValue}>
                             {formatTime(job.time.startWindowStart)} - {formatTime(job.time.startWindowEnd)}
                         </Text>
                     </View>
-                    {job.estimatedDuration && (
-                        <View style={[styles.timeRow, { marginTop: 4 }]}>
-                            <Text style={styles.timeLabel}>Duration</Text>
-                            <Text style={styles.timeValue}>{job.estimatedDuration} min</Text>
-                        </View>
-                    )}
                 </View>
             </View>
 
-            {/* Footer - Truck Info */}
-            <View style={styles.truckSection}>
-                <View style={styles.truckInfo}>
-                    <Ionicons name="car" size={16} color={colors.textSecondary} />
-                    <Text style={styles.truckText}>{job.truck.name}</Text>
-                </View>
-                <View style={styles.licensePlate}>
-                    <Text style={styles.licensePlateText}>{job.truck.licensePlate}</Text>
+            {/* Footer - Truck Info Moderne */}
+            <View style={styles.modernTruckSection}>
+                <View style={styles.modernTruckCard}>
+                    <View style={styles.truckIconContainer}>
+                        <Ionicons name="car-sport" size={20} color={colors.primary} />
+                    </View>
+                    <View style={styles.truckDetails}>
+                        <Text style={styles.truckName}>{job.truck.name}</Text>
+                        <View style={styles.licensePlateModern}>
+                            <Text style={styles.licensePlateModernText}>{job.truck.licensePlate}</Text>
+                        </View>
+                    </View>
                 </View>
                 <Pressable
                     style={({ pressed }) => ({
-                        ...styles.actionButton,
-                        opacity: pressed ? 0.8 : 1,
+                        ...styles.modernActionButton,
+                        transform: [{ scale: pressed ? 0.95 : 1 }],
                     })}
                     onPress={() => navigation.navigate('JobDetails', { 
                         jobId: job.id, 
@@ -322,7 +407,8 @@ const JobBox: React.FC<JobBoxProps> = ({ job, onPress, navigation, day, month, y
                         year 
                     })}
                 >
-                    <Text style={styles.actionButtonText}>View</Text>
+                    <Ionicons name="arrow-forward" size={16} color={colors.buttonPrimaryText} />
+                    <Text style={styles.modernActionText}>Détails</Text>
                 </Pressable>
             </View>
         </Pressable>

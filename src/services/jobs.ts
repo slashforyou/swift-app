@@ -423,9 +423,19 @@ export async function getJobDetails(jobId: string): Promise<any> {
       company: data.company,
       trucks: data.trucks || [],
       workers: data.crew || [], // Transformer 'crew' en 'workers'
-      items: data.items || [],
+      items: (data.items || []).map((item: any, index: number) => {
+        const transformedItem = {
+          ...item,
+          id: item.id || item.item_id || `item_${index + 1}`, // Assurer qu'il y a un ID
+          checked: item.checked || item.item_checked || false,
+          item_checked: item.item_checked || item.checked || false,
+        };
+        console.log(`[getJobDetails] Item ${index}: Original ID=${item.id}, Final ID=${transformedItem.id}, Name="${item.name}"`);
+        return transformedItem;
+      }),
       notes: data.notes || [],
-      timeline: data.timeline || []
+      timeline: data.timeline || [],
+      addresses: data.addresses || [] // Ajouter les vraies adresses de l'API
     };
 
     console.log('🔄 [getJobDetails] Data transformed for useJobDetails:', {
@@ -437,8 +447,11 @@ export async function getJobDetails(jobId: string): Promise<any> {
       trucksCount: transformedData.trucks.length,
       workersCount: transformedData.workers.length,
       itemsCount: transformedData.items.length,
-      notesCount: transformedData.notes.length
+      notesCount: transformedData.notes.length,
+      addressesCount: transformedData.addresses.length
     });
+    
+    console.log('🏠 [getJobDetails] Addresses data:', JSON.stringify(transformedData.addresses, null, 2));
 
     return transformedData;
 
@@ -500,22 +513,142 @@ export async function addJobItem(jobId: string, item: { name: string; quantity: 
   console.log(`[addJobItem] Adding item to job ${jobId}:`, item);
   
   const headers = await getAuthHeaders();
-  const res = await fetch(`${API}/swift-app/v1/job/${jobId}/item`, {
-    method: 'POST',
-    headers: {
-      ...headers,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(item)
-  });
+  
+  // Essayer plusieurs formats d'URL pour diagnostiquer le problème
+  const urlsToTry = [
+    `${API}swift-app/v1/job/${jobId}/item`,         // Format de la doc
+    `${API}/swift-app/v1/job/${jobId}/item`,        // Avec slash
+    `${API}v1/job/${jobId}/item`,                   // Sans swift-app
+    `${API}/v1/job/${jobId}/item`,                  // Sans swift-app avec slash
+    `${API}job/${jobId}/item`,                      // Format minimal
+    `${API}/job/${jobId}/item`,                     // Format minimal avec slash
+  ];
 
-  if (!res.ok) {
-    const errorText = await res.text();
-    console.error(`[addJobItem] Failed to add item:`, errorText);
-    throw new Error(`Failed to add item: ${res.status}`);
+  console.log(`[addJobItem] API base URL: ${API}`);
+  console.log(`[addJobItem] Auth headers:`, headers);
+
+  for (const url of urlsToTry) {
+    console.log(`[addJobItem] Trying URL: ${url}`);
+    
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          ...headers,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(item)
+      });
+
+      console.log(`[addJobItem] Response for ${url}: ${res.status} ${res.statusText}`);
+      
+      if (res.ok) {
+        const data = await res.json();
+        console.log(`[addJobItem] Success with URL: ${url}`, data);
+        return data;
+      } else if (res.status !== 404) {
+        // Si ce n'est pas une 404, c'est peut-être le bon endpoint mais avec une autre erreur
+        const errorText = await res.text();
+        console.error(`[addJobItem] Non-404 error for ${url}:`, errorText);
+      }
+    } catch (error) {
+      console.error(`[addJobItem] Network error for ${url}:`, error);
+    }
   }
 
-  const data = await res.json();
-  console.log(`[addJobItem] Item added successfully:`, data);
-  return data;
+  // Si aucune URL n'a fonctionné
+  throw new Error('Failed to add item: No working endpoint found');
+}
+
+/**
+ * Met à jour un item d'un job
+ */
+/**
+ * Récupère les items d'un job pour voir leur format exact
+ */
+
+// Fonction pour récupérer les détails du job avec ses items réels
+export async function getJobWithItems(jobId: string) {
+  console.log(`[getJobWithItems] Fetching job ${jobId} to see real item IDs`);
+  
+  const headers = await getAuthHeaders();
+  
+  try {
+    const res = await fetch(`${API}v1/job/${jobId}`, {
+      method: 'GET',
+      headers
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      console.log(`[getJobWithItems] Job data:`, JSON.stringify(data, null, 2));
+      
+      if (data.items) {
+        console.log(`[getJobWithItems] Items found:`, data.items.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          quantity: item.quantity,
+          is_checked: item.is_checked
+        })));
+      }
+      
+      return data;
+    } else {
+      const errorText = await res.text();
+      console.error(`[getJobWithItems] API Error:`, errorText);
+      return null;
+    }
+  } catch (error) {
+    console.error(`[getJobWithItems] Network error:`, error);
+    return null;
+  }
+}
+
+export async function updateJobItem(jobId: string, itemId: string, updates: { 
+  name?: string; 
+  quantity?: number; 
+  is_checked?: boolean;
+  completedQuantity?: number;
+}) {
+  console.log(`[updateJobItem] Updating item ${itemId} in job ${jobId} with:`, updates);
+  
+  const headers = await getAuthHeaders();
+  
+  // URL selon la spécification API fournie
+  // API contient déjà /swift-app/, donc on ajoute juste v1/job/...
+  const url = `${API}v1/job/${jobId}/item/${itemId}`;
+  
+  // Préparer le payload selon la spécification API
+  const apiPayload: any = {};
+  if (updates.name !== undefined) apiPayload.name = updates.name;
+  if (updates.quantity !== undefined) apiPayload.quantity = updates.quantity;
+  if (updates.is_checked !== undefined) apiPayload.is_checked = updates.is_checked;
+  
+  console.log(`[updateJobItem] PATCH ${url}`, apiPayload);
+  
+  try {
+    const res = await fetch(url, {
+      method: 'PATCH',
+      headers: {
+        ...headers,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(apiPayload)
+    });
+
+    console.log(`[updateJobItem] Response: ${res.status} ${res.statusText}`);
+    
+    if (res.ok) {
+      const data = await res.json();
+      console.log(`[updateJobItem] Success:`, data);
+      return data;
+    } else {
+      const errorText = await res.text();
+      console.error(`[updateJobItem] API Error:`, errorText);
+      throw new Error(`API Error ${res.status}: ${errorText}`);
+    }
+  } catch (error) {
+    console.error(`[updateJobItem] Network/API error:`, error);
+    throw error;
+  }
 }
