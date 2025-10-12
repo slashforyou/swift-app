@@ -122,6 +122,47 @@ export interface TranslationKeys {
         };
     };
 
+    // Calendar
+    calendar: {
+        title: string;
+        // Days of the week
+        days: {
+            mon: string;
+            tue: string;
+            wed: string;
+            thu: string;
+            fri: string;
+            sat: string;
+            sun: string;
+        };
+        // Months
+        months: {
+            january: string;
+            february: string;
+            march: string;
+            april: string;
+            may: string;
+            june: string;
+            july: string;
+            august: string;
+            september: string;
+            october: string;
+            november: string;
+            december: string;
+        };
+        // Stats
+        stats: {
+            totalJobs: string;
+            urgent: string;
+            completed: string;
+        };
+        // Actions
+        refresh: string;
+        goToDay: string;
+        previousMonth: string;
+        nextMonth: string;
+    };
+
     // Profile
     profile: {
         title: string;
