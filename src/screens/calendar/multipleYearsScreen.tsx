@@ -14,6 +14,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
+import { useTranslation } from '../../localization';
+import LanguageButton from '../../components/calendar/LanguageButton';
 
 // Design tokens
 const DESIGN_TOKENS = {
@@ -50,6 +52,7 @@ const DESIGN_TOKENS = {
 
 const MultipleYearsScreen = ({ navigation }: any) => {
     const { colors, styles: commonStyles } = useCommonThemedStyles();
+    const { t } = useTranslation();
 
     // States for modern UX
     const [isLoading, setIsLoading] = useState(false);
@@ -218,15 +221,18 @@ const MultipleYearsScreen = ({ navigation }: any) => {
 
                     <View style={customStyles.titleArea}>
                         <Text style={[commonStyles.h2, { color: colors.text }]}>
-                            Years
+                            {t('calendar.years')}
                         </Text>
                     </View>
+
+                    {/* Bouton de traduction */}
+                    <LanguageButton />
                 </View>
 
                 {/* Informations sur la plage d'années */}
                 <View style={customStyles.infoContainer}>
                     <Text style={customStyles.yearRangeText}>
-                        Select from {startYear} - {endYear}
+                        {t('calendar.selectFromRange')} {startYear} - {endYear}
                     </Text>
                 </View>
             </Animated.View>

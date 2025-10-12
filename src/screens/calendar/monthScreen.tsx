@@ -17,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 import { JobAPI } from '../../services/jobs';
 import { useTranslation } from '../../localization';
+import LanguageButton from '../../components/calendar/LanguageButton';
 
 // Design tokens for consistent spacing and styling
 const DESIGN_TOKENS = {
@@ -508,6 +509,9 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
                             {selectedYear}
                         </Text>
                     </Pressable>
+
+                    {/* Bouton de traduction */}
+                    <LanguageButton />
                 </View>
 
                 {/* Statistiques du mois */}

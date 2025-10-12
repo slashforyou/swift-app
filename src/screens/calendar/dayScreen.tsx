@@ -17,6 +17,8 @@ import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 import { useJobsForDay, Job } from '../../hooks/useJobsForDay';
 import { JobsLoadingSkeleton, EmptyDayState, ErrorState } from '../../components/calendar/DayScreenComponents';
 import { DESIGN_TOKENS } from '../../constants/Styles';
+import { useTranslation } from '../../localization';
+import LanguageButton from '../../components/calendar/LanguageButton';
 
 interface DayScreenProps {
     route: {
@@ -42,6 +44,7 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
 
     // Get themed colors and styles
     const { colors, styles: commonStyles } = useCommonThemedStyles();
+    const { t } = useTranslation();
 
     // Custom hook for jobs data
     const {
@@ -103,16 +106,16 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
 
     // Filter buttons data
     const filterOptions = [
-        { key: '', label: 'All', count: totalJobs },
-        { key: 'pending', label: 'Pending', count: jobs.filter(j => j.status === 'pending').length },
-        { key: 'in-progress', label: 'Active', count: jobs.filter(j => j.status === 'in-progress').length },
-        { key: 'completed', label: 'Done', count: jobs.filter(j => j.status === 'completed').length },
+        { key: '', label: t('calendar.filters.all'), count: totalJobs },
+        { key: 'pending', label: t('calendar.filters.pending'), count: jobs.filter(j => j.status === 'pending').length },
+        { key: 'in-progress', label: t('calendar.filters.active'), count: jobs.filter(j => j.status === 'in-progress').length },
+        { key: 'completed', label: t('calendar.filters.done'), count: jobs.filter(j => j.status === 'completed').length },
     ];
 
     const sortOptions = [
-        { key: 'time' as const, label: 'Time', icon: 'time' as const },
-        { key: 'priority' as const, label: 'Priority', icon: 'flag' as const },
-        { key: 'status' as const, label: 'Status', icon: 'checkmark-circle' as const },
+        { key: 'time' as const, label: t('calendar.sorting.time'), icon: 'time' as const },
+        { key: 'priority' as const, label: t('calendar.sorting.priority'), icon: 'flag' as const },
+        { key: 'status' as const, label: t('calendar.sorting.status'), icon: 'checkmark-circle' as const },
     ];
 
     // Custom styles
@@ -329,6 +332,9 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
                     <View style={styles.dateContainer}>
                         <Text style={styles.dateText}>{formattedDate}</Text>
                     </View>
+
+                    {/* Bouton de traduction */}
+                    <LanguageButton />
 
                     <View style={styles.dayNavigation}>
                         <Pressable

@@ -14,6 +14,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
+import { useTranslation } from '../../localization';
+import LanguageButton from '../../components/calendar/LanguageButton';
 
 // Design tokens for consistent styling
 const DESIGN_TOKENS = {
@@ -71,6 +73,7 @@ const getMonthJobsStats = (month: number, year: string) => {
 
 const YearCalendarScreen = ({ navigation, route }: any) => {
     const { colors, styles: commonStyles } = useCommonThemedStyles();
+    const { t } = useTranslation();
 
     // States for modern UX
     const [isLoading, setIsLoading] = useState(false);
@@ -81,8 +84,10 @@ const YearCalendarScreen = ({ navigation, route }: any) => {
     const currentYear = new Date().getFullYear();
 
     const monthList = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
+        t('calendar.months.january'), t('calendar.months.february'), t('calendar.months.march'), 
+        t('calendar.months.april'), t('calendar.months.may'), t('calendar.months.june'),
+        t('calendar.months.july'), t('calendar.months.august'), t('calendar.months.september'), 
+        t('calendar.months.october'), t('calendar.months.november'), t('calendar.months.december')
     ];
 
     // Responsive dimensions
@@ -355,23 +360,26 @@ const YearCalendarScreen = ({ navigation, route }: any) => {
                         </Text>
                         {selectedYear === currentYear && (
                             <Text style={[commonStyles.bodySmall, { color: colors.textSecondary }]}>
-                                Current Year
+                                {t('calendar.currentYear')}
                             </Text>
                         )}
                     </View>
+
+                    {/* Bouton de traduction */}
+                    <LanguageButton />
                 </View>
 
                 {/* Statistiques de l'année */}
                 <View style={customStyles.statsContainer}>
                     <View style={customStyles.statItem}>
                         <Text style={customStyles.statValue}>{yearStats.totalJobs}</Text>
-                        <Text style={customStyles.statLabel}>Total Jobs</Text>
+                        <Text style={customStyles.statLabel}>{t('calendar.stats.totalJobs')}</Text>
                     </View>
                     <View style={customStyles.statItem}>
                         <Text style={[customStyles.statValue, { color: '#FF6B6B' }]}>
                             {yearStats.urgentJobs}
                         </Text>
-                        <Text style={customStyles.statLabel}>Urgent</Text>
+                        <Text style={customStyles.statLabel}>{t('calendar.stats.urgent')}</Text>
                     </View>
                     <View style={customStyles.statItem}>
                         <Text style={[customStyles.statValue, { color: '#51CF66' }]}>
