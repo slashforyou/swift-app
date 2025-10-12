@@ -14,13 +14,22 @@ export interface JobStepTime {
     duration?: number; // en millisecondes
 }
 
+export interface JobBreakTime {
+    startTime: number;
+    endTime?: number;
+    duration?: number; // en millisecondes
+}
+
 export interface JobTimerData {
     jobId: string;
     startTime: number; // Timestamp du début du job (step 0 -> 1)
     currentStep: number;
     stepTimes: JobStepTime[];
+    breakTimes: JobBreakTime[]; // Périodes de pause
     isRunning: boolean;
+    isOnBreak: boolean; // État de pause actuel
     totalElapsed: number; // Temps total en millisecondes
+    totalBreakTime: number; // Temps total de pause en millisecondes
 }
 
 const TIMER_STORAGE_KEY = 'jobTimers';
@@ -67,8 +76,11 @@ export const useJobTimer = (jobId: string, currentStep: number = 0) => {
                         startTime: 0,
                         currentStep: currentStep,
                         stepTimes: [],
+                        breakTimes: [],
                         isRunning: false,
-                        totalElapsed: 0
+                        isOnBreak: false,
+                        totalElapsed: 0,
+                        totalBreakTime: 0
                     };
                     setTimerData(newTimer);
                 }
@@ -79,8 +91,11 @@ export const useJobTimer = (jobId: string, currentStep: number = 0) => {
                     startTime: 0,
                     currentStep: currentStep,
                     stepTimes: [],
+                    breakTimes: [],
                     isRunning: false,
-                    totalElapsed: 0
+                    isOnBreak: false,
+                    totalElapsed: 0,
+                    totalBreakTime: 0
                 };
                 setTimerData(newTimer);
             }
@@ -169,11 +184,16 @@ export const useJobTimer = (jobId: string, currentStep: number = 0) => {
         return currentTime - timerData.startTime;
     }, [timerData, currentTime]);
 
-    // Formater le temps en HH:mm
-    const formatTime = useCallback((milliseconds: number) => {
+    // Formater le temps en HH:mm:ss
+    const formatTime = useCallback((milliseconds: number, includeSeconds: boolean = true) => {
         const totalSeconds = Math.floor(milliseconds / 1000);
         const hours = Math.floor(totalSeconds / 3600);
         const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        
+        if (includeSeconds) {
+            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
         return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
     }, []);
 
@@ -212,7 +232,98 @@ export const useJobTimer = (jobId: string, currentStep: number = 0) => {
         loadTimerData();
     }, [loadTimerData]);
 
-    // Démarrer automatiquement si on passe de 0 à 1+
+    // Démarrer une pause
+    const startBreak = useCallback(() => {
+        if (!timerData || !timerData.isRunning || timerData.isOnBreak) return;
+
+        const now = Date.now();
+        const updatedData: JobTimerData = {
+            ...timerData,
+            isOnBreak: true,
+            breakTimes: [
+                ...timerData.breakTimes,
+                { startTime: now }
+            ]
+        };
+
+        setTimerData(updatedData);
+        saveTimerData(updatedData);
+    }, [timerData, saveTimerData]);
+
+    // Arrêter une pause
+    const stopBreak = useCallback(() => {
+        if (!timerData || !timerData.isOnBreak) return;
+
+        const now = Date.now();
+        const updatedBreakTimes = [...timerData.breakTimes];
+        const currentBreakIndex = updatedBreakTimes.length - 1;
+        
+        if (currentBreakIndex >= 0) {
+            const currentBreak = updatedBreakTimes[currentBreakIndex];
+            updatedBreakTimes[currentBreakIndex] = {
+                ...currentBreak,
+                endTime: now,
+                duration: now - currentBreak.startTime
+            };
+        }
+
+        const updatedData: JobTimerData = {
+            ...timerData,
+            isOnBreak: false,
+            breakTimes: updatedBreakTimes,
+            totalBreakTime: updatedBreakTimes.reduce((total, breakTime) => 
+                total + (breakTime.duration || 0), 0
+            )
+        };
+
+        setTimerData(updatedData);
+        saveTimerData(updatedData);
+    }, [timerData, saveTimerData]);
+
+    // Calculer le temps facturable (sans les pauses)
+    const getBillableTime = useCallback(() => {
+        const totalElapsed = getTotalElapsed();
+        const totalBreakTime = timerData?.totalBreakTime || 0;
+        const currentBreakTime = timerData?.isOnBreak && timerData.breakTimes.length > 0 
+            ? currentTime - timerData.breakTimes[timerData.breakTimes.length - 1].startTime
+            : 0;
+        
+        return Math.max(0, totalElapsed - totalBreakTime - currentBreakTime);
+    }, [getTotalElapsed, timerData, currentTime]);
+
+    // Démarrer automatiquement si le job a déjà commencé
+    const startTimerWithJobData = useCallback((job: any) => {
+        if (!timerData || timerData.isRunning || timerData.startTime > 0) return;
+
+        // Calculer le temps de début basé sur les données du job
+        let calculatedStartTime = Date.now();
+        
+        if (job?.job?.created_at) {
+            calculatedStartTime = new Date(job.job.created_at).getTime();
+        } else if (job?.created_at) {
+            calculatedStartTime = new Date(job.created_at).getTime();
+        }
+
+        console.log('🕐 [JobTimer] Auto-starting timer for job:', jobId, 'calculated start:', new Date(calculatedStartTime));
+
+        const now = Date.now();
+        const updatedData: JobTimerData = {
+            ...timerData,
+            startTime: calculatedStartTime,
+            isRunning: true,
+            currentStep: Math.max(1, currentStep),
+            stepTimes: [{
+                step: Math.max(1, currentStep),
+                stepName: JOB_STEPS[Math.max(1, currentStep) as keyof typeof JOB_STEPS] || `Étape ${currentStep}`,
+                startTime: calculatedStartTime
+            }]
+        };
+
+        setTimerData(updatedData);
+        saveTimerData(updatedData);
+    }, [timerData, jobId, currentStep, saveTimerData]);
+
+    // Démarrer automatiquement si on passe de 0 à 1+ ou si le job a déjà commencé
     useEffect(() => {
         if (timerData && currentStep >= 1 && !timerData.isRunning && timerData.startTime === 0) {
             console.log('🕐 [JobTimer] Starting timer for job:', jobId, 'step:', currentStep);
@@ -226,11 +337,16 @@ export const useJobTimer = (jobId: string, currentStep: number = 0) => {
     return {
         timerData,
         totalElapsed: getTotalElapsed(),
+        billableTime: getBillableTime(),
         formatTime,
         calculateCost,
         startTimer,
+        startTimerWithJobData,
         advanceStep,
+        startBreak,
+        stopBreak,
         isRunning: timerData?.isRunning || false,
+        isOnBreak: timerData?.isOnBreak || false,
         currentStep: timerData?.currentStep || 0,
         HOURLY_RATE_AUD
     };

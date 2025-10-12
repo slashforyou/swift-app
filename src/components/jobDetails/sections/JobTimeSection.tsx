@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useCommonThemedStyles } from '../../../hooks/useCommonStyles';
 import { DESIGN_TOKENS } from '../../../constants/Styles';
@@ -22,13 +22,25 @@ const JobTimeSection: React.FC<JobTimeSectionProps> = ({ job }) => {
     const { 
         timerData,
         totalElapsed, 
+        billableTime,
         formatTime, 
-        isRunning, 
+        isRunning,
+        isOnBreak,
+        startBreak,
+        stopBreak,
+        startTimerWithJobData,
         calculateCost,
         HOURLY_RATE_AUD 
     } = useJobTimer(jobId, currentStep);
 
-    const costData = calculateCost(totalElapsed);
+    // Auto-démarrer si le job a déjà commencé
+    React.useEffect(() => {
+        if (currentStep >= 1 && !isRunning) {
+            startTimerWithJobData(job);
+        }
+    }, [currentStep, isRunning, job, startTimerWithJobData]);
+
+    const costData = calculateCost(billableTime);
 
     // Ne pas afficher si le job n'a pas commencé
     if (currentStep === 0 || !timerData) {
@@ -138,14 +150,28 @@ const JobTimeSection: React.FC<JobTimeSectionProps> = ({ job }) => {
                     justifyContent: 'space-between',
                     marginBottom: DESIGN_TOKENS.spacing.sm,
                 }}>
-                    <Text style={{
-                        fontSize: 32,
-                        fontWeight: '700',
-                        color: isRunning ? colors.primary : colors.text,
-                        fontFamily: 'monospace',
+                    <View style={{
+                        flexDirection: 'row',
+                        alignItems: 'baseline',
                     }}>
-                        {formatTime(totalElapsed)}
-                    </Text>
+                        <Text style={{
+                            fontSize: 28,
+                            fontWeight: '700',
+                            color: isRunning && !isOnBreak ? colors.primary : colors.text,
+                            fontFamily: 'monospace',
+                        }}>
+                            {formatTime(totalElapsed, false)}
+                        </Text>
+                        <Text style={{
+                            fontSize: 18,
+                            fontWeight: '600',
+                            color: isRunning && !isOnBreak ? colors.primary : colors.textSecondary,
+                            fontFamily: 'monospace',
+                            marginLeft: 2,
+                        }}>
+                            :{String(Math.floor((totalElapsed / 1000) % 60)).padStart(2, '0')}
+                        </Text>
+                    </View>
                     <View style={{
                         alignItems: 'flex-end',
                     }}>
@@ -165,13 +191,74 @@ const JobTimeSection: React.FC<JobTimeSectionProps> = ({ job }) => {
                         </Text>
                     </View>
                 </View>
-                <Text style={{
-                    fontSize: 14,
-                    color: colors.textSecondary,
+                <View style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    marginTop: DESIGN_TOKENS.spacing.xs,
                 }}>
-                    Temps total écoulé depuis le début du job
-                </Text>
+                    <Text style={{
+                        fontSize: 12,
+                        color: colors.textSecondary,
+                    }}>
+                        Total: {formatTime(totalElapsed)}
+                    </Text>
+                    <Text style={{
+                        fontSize: 12,
+                        color: colors.textSecondary,
+                    }}>
+                        Facturable: {formatTime(billableTime)}
+                    </Text>
+                </View>
+                {isOnBreak && (
+                    <Text style={{
+                        fontSize: 12,
+                        color: colors.warning,
+                        textAlign: 'center',
+                        marginTop: DESIGN_TOKENS.spacing.xs,
+                        fontWeight: '600',
+                    }}>
+                        ⏸️ En pause (non facturable)
+                    </Text>
+                )}
             </View>
+
+            {/* Bouton Break */}
+            {isRunning && (
+                <View style={{
+                    alignItems: 'center',
+                    marginBottom: DESIGN_TOKENS.spacing.lg,
+                }}>
+                    <Pressable
+                        onPress={isOnBreak ? stopBreak : startBreak}
+                        style={({ pressed }: { pressed: boolean }) => ({
+                            backgroundColor: isOnBreak 
+                                ? (pressed ? '#10B981DD' : '#10B981') 
+                                : (pressed ? colors.warning + 'DD' : colors.warning),
+                            paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+                            paddingVertical: DESIGN_TOKENS.spacing.md,
+                            borderRadius: DESIGN_TOKENS.radius.lg,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: DESIGN_TOKENS.spacing.sm,
+                            minWidth: 140,
+                            justifyContent: 'center',
+                        })}
+                    >
+                        <Ionicons 
+                            name={isOnBreak ? 'play' : 'pause'} 
+                            size={20} 
+                            color={colors.background} 
+                        />
+                        <Text style={{
+                            color: colors.background,
+                            fontWeight: '700',
+                            fontSize: 16,
+                        }}>
+                            {isOnBreak ? 'Reprendre travail' : 'Prendre une pause'}
+                        </Text>
+                    </Pressable>
+                </View>
+            )}
 
             {/* Détail par étapes */}
             <View style={{
@@ -283,10 +370,36 @@ const JobTimeSection: React.FC<JobTimeSectionProps> = ({ job }) => {
                         alignItems: 'center',
                     }}>
                         <Text style={{ fontSize: 14, color: colors.textSecondary }}>
-                            Temps brut
+                            Temps total
                         </Text>
                         <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
-                            {costData.rawHours.toFixed(2)}h
+                            {(totalElapsed / (1000 * 60 * 60)).toFixed(2)}h
+                        </Text>
+                    </View>
+
+                    <View style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                    }}>
+                        <Text style={{ fontSize: 14, color: colors.textSecondary }}>
+                            Temps pauses
+                        </Text>
+                        <Text style={{ fontSize: 14, fontWeight: '600', color: colors.textSecondary }}>
+                            -{((totalElapsed - billableTime) / (1000 * 60 * 60)).toFixed(2)}h
+                        </Text>
+                    </View>
+
+                    <View style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                    }}>
+                        <Text style={{ fontSize: 14, color: colors.textSecondary }}>
+                            Temps facturable
+                        </Text>
+                        <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
+                            {(billableTime / (1000 * 60 * 60)).toFixed(2)}h
                         </Text>
                     </View>
 

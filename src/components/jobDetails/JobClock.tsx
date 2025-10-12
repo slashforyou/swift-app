@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 import { DESIGN_TOKENS } from '../../constants/Styles';
@@ -21,13 +21,25 @@ const JobClock: React.FC<JobClockProps> = ({ job }) => {
     
     const { 
         totalElapsed, 
+        billableTime,
         formatTime, 
-        isRunning, 
+        isRunning,
+        isOnBreak,
+        startBreak,
+        stopBreak,
+        startTimerWithJobData,
         calculateCost,
         HOURLY_RATE_AUD 
     } = useJobTimer(jobId, currentStep);
 
-    const costData = calculateCost(totalElapsed);
+    // Auto-démarrer si le job a déjà commencé
+    React.useEffect(() => {
+        if (currentStep >= 1 && !isRunning) {
+            startTimerWithJobData(job);
+        }
+    }, [currentStep, isRunning, job, startTimerWithJobData]);
+
+    const costData = calculateCost(billableTime);
 
     // Ne pas afficher si le job n'a pas commencé
     if (currentStep === 0) {
@@ -92,27 +104,80 @@ const JobClock: React.FC<JobClockProps> = ({ job }) => {
                 </View>
             </View>
 
-            {/* Temps principal */}
+            {/* Temps principal avec secondes */}
             <View style={{
                 alignItems: 'center',
-                marginBottom: DESIGN_TOKENS.spacing.lg,
+                marginBottom: DESIGN_TOKENS.spacing.md,
             }}>
-                <Text style={{
-                    fontSize: 36,
-                    fontWeight: '700',
-                    color: isRunning ? colors.tint : colors.text,
-                    fontFamily: 'monospace',
+                <View style={{
+                    flexDirection: 'row',
+                    alignItems: 'baseline',
+                    justifyContent: 'center',
                 }}>
-                    {formatTime(totalElapsed)}
-                </Text>
+                    <Text style={{
+                        fontSize: 32,
+                        fontWeight: '700',
+                        color: isRunning && !isOnBreak ? colors.tint : colors.text,
+                        fontFamily: 'monospace',
+                    }}>
+                        {formatTime(totalElapsed, false)}
+                    </Text>
+                    <Text style={{
+                        fontSize: 20,
+                        fontWeight: '600',
+                        color: isRunning && !isOnBreak ? colors.tint : colors.textSecondary,
+                        fontFamily: 'monospace',
+                        marginLeft: 4,
+                    }}>
+                        :{String(Math.floor((totalElapsed / 1000) % 60)).padStart(2, '0')}
+                    </Text>
+                </View>
                 <Text style={{
-                    fontSize: 14,
+                    fontSize: 12,
                     color: colors.textSecondary,
-                    marginTop: DESIGN_TOKENS.spacing.xs,
+                    marginTop: 4,
                 }}>
-                    Temps écoulé
+                    {isOnBreak ? '⏸️ En pause' : 'Temps total écoulé'}
                 </Text>
             </View>
+
+            {/* Bouton Break */}
+            {isRunning && (
+                <View style={{
+                    alignItems: 'center',
+                    marginBottom: DESIGN_TOKENS.spacing.lg,
+                }}>
+                    <Pressable
+                        onPress={isOnBreak ? stopBreak : startBreak}
+                        style={({ pressed }: { pressed: boolean }) => ({
+                            backgroundColor: isOnBreak 
+                                ? (pressed ? '#10B981DD' : '#10B981') 
+                                : (pressed ? colors.warning + 'DD' : colors.warning),
+                            paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+                            paddingVertical: DESIGN_TOKENS.spacing.sm,
+                            borderRadius: DESIGN_TOKENS.radius.lg,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: DESIGN_TOKENS.spacing.xs,
+                            minWidth: 120,
+                            justifyContent: 'center',
+                        })}
+                    >
+                        <Ionicons 
+                            name={isOnBreak ? 'play' : 'pause'} 
+                            size={16} 
+                            color={colors.background} 
+                        />
+                        <Text style={{
+                            color: colors.background,
+                            fontWeight: '600',
+                            fontSize: 14,
+                        }}>
+                            {isOnBreak ? 'Reprendre' : 'Pause'}
+                        </Text>
+                    </Pressable>
+                </View>
+            )}
 
             {/* Informations de coût */}
             <View style={{
