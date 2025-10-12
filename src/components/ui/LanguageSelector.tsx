@@ -1,16 +1,14 @@
 /**
- * Composant de sélection de langue avec modal moderne
- * Design cohérent avec l'app Swift et drapeaux stylisés
+ * Composant de sélection de langue simplifié et moderne
+ * Design épuré avec animations subtiles
  */
 
 import React, { useState } from 'react';
-import { View, Text, Pressable, Modal, ScrollView, SafeAreaView, Animated, Dimensions } from 'react-native';
+import { View, Text, Pressable, Modal, ScrollView, SafeAreaView, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalization, SupportedLanguage } from '../../localization';
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
-
-const { width: screenWidth } = Dimensions.get('window');
 
 interface LanguageSelectorProps {
     visible: boolean;
@@ -26,31 +24,7 @@ interface LanguageItemProps {
     colors: any;
 }
 
-// Composant pour afficher un drapeau stylisé
-const FlagIcon: React.FC<{ flag: string; size?: number }> = ({ flag, size = 32 }) => (
-    <View style={{
-        width: size,
-        height: size,
-        borderRadius: size / 2,
-        backgroundColor: 'rgba(0,0,0,0.05)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
-    }}>
-        <Text style={{ 
-            fontSize: size * 0.6,
-            lineHeight: size * 0.7,
-        }}>
-            {flag}
-        </Text>
-    </View>
-);
-
-// Composant pour un item de langue
+// Composant simple pour un item de langue
 const LanguageItem: React.FC<LanguageItemProps> = ({ 
     language, 
     isSelected, 
@@ -67,106 +41,63 @@ const LanguageItem: React.FC<LanguageItemProps> = ({
             padding: DESIGN_TOKENS.spacing.lg,
             marginHorizontal: DESIGN_TOKENS.spacing.md,
             marginBottom: DESIGN_TOKENS.spacing.sm,
-            borderRadius: DESIGN_TOKENS.radius.xl,
+            borderRadius: DESIGN_TOKENS.radius.lg,
             backgroundColor: pressed 
                 ? colors.backgroundSecondary + '80'
                 : isSelected 
-                ? colors.primary + '15' 
+                ? colors.primary + '10' 
                 : colors.backgroundSecondary,
             borderWidth: isSelected ? 2 : 1,
-            borderColor: isSelected ? colors.primary : colors.border + '30',
-            minHeight: 80,
-            transform: [{ scale: pressed ? 0.98 : 1 }],
-            shadowColor: isSelected ? colors.primary : colors.shadow,
-            shadowOffset: { width: 0, height: isSelected ? 4 : 2 },
-            shadowOpacity: isSelected ? 0.3 : 0.1,
-            shadowRadius: isSelected ? 8 : 4,
-            elevation: isSelected ? 8 : 3,
+            borderColor: isSelected ? colors.primary : colors.border,
+            minHeight: 64,
         })}
     >
-        {/* Flag avec effet de brillance */}
-        <View style={{ marginRight: DESIGN_TOKENS.spacing.lg }}>
-            <FlagIcon flag={language.flag} size={48} />
-            {isSelected && (
-                <View style={{
-                    position: 'absolute',
-                    top: -2,
-                    right: -2,
-                    width: 20,
-                    height: 20,
-                    borderRadius: 10,
-                    backgroundColor: colors.primary,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                }}>
-                    <Ionicons name="checkmark" size={12} color="white" />
-                </View>
-            )}
+        {/* Drapeau */}
+        <View style={{
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            backgroundColor: 'white',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginRight: DESIGN_TOKENS.spacing.md,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 4,
+            elevation: 2,
+        }}>
+            <Text style={{ fontSize: 20 }}>
+                {language.flag}
+            </Text>
         </View>
 
-        {/* Language info */}
+        {/* Informations langue */}
         <View style={{ flex: 1 }}>
             <Text style={{
-                fontSize: 18,
-                fontWeight: '700',
+                fontSize: 16,
+                fontWeight: isSelected ? '700' : '500',
                 color: isSelected ? colors.primary : colors.text,
-                marginBottom: 4,
+                marginBottom: 2,
             }}>
                 {language.nativeName}
             </Text>
             <Text style={{
-                fontSize: 14,
+                fontSize: 13,
                 color: colors.textSecondary,
-                fontWeight: '500',
             }}>
                 {language.name}
             </Text>
-            {isSelected && (
-                <View style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    marginTop: 4,
-                }}>
-                    <View style={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: 4,
-                        backgroundColor: colors.primary,
-                        marginRight: 6,
-                    }} />
-                    <Text style={{
-                        fontSize: 12,
-                        color: colors.primary,
-                        fontWeight: '600',
-                    }}>
-                        Actuelle
-                    </Text>
-                </View>
-            )}
         </View>
 
-        {/* Status indicator */}
-        <View style={{ 
-            width: 24, 
-            height: 24,
-            justifyContent: 'center',
-            alignItems: 'center',
-        }}>
+        {/* Indicateur de statut */}
+        <View style={{ width: 24, alignItems: 'center' }}>
             {isLoading ? (
-                <Animated.View style={{
-                    width: 18,
-                    height: 18,
-                    borderRadius: 9,
-                    borderWidth: 2,
-                    borderColor: colors.primary + '30',
-                    borderTopColor: colors.primary,
-                }} />
+                <ActivityIndicator size="small" color={colors.primary} />
+            ) : isSelected ? (
+                <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
             ) : (
-                <Ionicons 
-                    name="chevron-forward" 
-                    size={20} 
-                    color={isSelected ? colors.primary : colors.textSecondary} 
-                />
+                <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
             )}
         </View>
     </Pressable>
@@ -178,29 +109,11 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
     showHeader = true,
 }) => {
     const { colors } = useCommonThemedStyles();
-    const { currentLanguage, setLanguage, t, getSupportedLanguages } = useLocalization();
+    const { currentLanguage, setLanguage, getSupportedLanguages } = useLocalization();
     const [isChanging, setIsChanging] = useState<string | null>(null);
-    const [slideAnim] = useState(new Animated.Value(300));
 
     const supportedLanguages = getSupportedLanguages();
-
-    // Animation d'entrée/sortie
-    React.useEffect(() => {
-        if (visible) {
-            Animated.spring(slideAnim, {
-                toValue: 0,
-                useNativeDriver: true,
-                tension: 100,
-                friction: 8,
-            }).start();
-        } else {
-            Animated.timing(slideAnim, {
-                toValue: 300,
-                duration: 250,
-                useNativeDriver: true,
-            }).start();
-        }
-    }, [visible]);
+    const languageList = Object.values(supportedLanguages);
 
     const handleLanguageChange = async (languageCode: SupportedLanguage) => {
         if (languageCode === currentLanguage) {
@@ -211,10 +124,13 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
         setIsChanging(languageCode);
         try {
             await setLanguage(languageCode);
-            onClose();
+            // Petit délai pour montrer le feedback visuel
+            setTimeout(() => {
+                onClose();
+                setIsChanging(null);
+            }, 500);
         } catch (error) {
             console.error('Error changing language:', error);
-        } finally {
             setIsChanging(null);
         }
     };
@@ -223,47 +139,45 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
         <Modal
             visible={visible}
             transparent={true}
-            animationType="fade"
+            animationType="slide"
             statusBarTranslucent={true}
             onRequestClose={onClose}
         >
-            {/* Background overlay avec blur effect */}
-            <Pressable 
-                style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' }}
-                onPress={onClose}
-            >
-                <SafeAreaView style={{ flex: 1, justifyContent: 'flex-end' }}>
-                    <Pressable onPress={() => {}} style={{ flex: 1, justifyContent: 'flex-end' }}>
-                        <Animated.View style={{
-                            transform: [{ translateY: slideAnim }],
+            {/* Background overlay */}
+            <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                <SafeAreaView style={{ flex: 1 }}>
+                    {/* Header spacer pour pouvoir fermer en tapant en haut */}
+                    <Pressable 
+                        style={{ flex: 0.2, minHeight: 60 }} 
+                        onPress={onClose} 
+                    />
+                    
+                    {/* Modal content */}
+                    <Pressable onPress={() => {}} style={{ flex: 1 }}>
+                        <View style={{
                             backgroundColor: colors.background,
-                            borderTopLeftRadius: DESIGN_TOKENS.radius.xl * 1.5,
-                            borderTopRightRadius: DESIGN_TOKENS.radius.xl * 1.5,
-                            maxHeight: '85%',
-                            minHeight: '60%',
-                            shadowColor: '#000',
-                            shadowOffset: { width: 0, height: -4 },
-                            shadowOpacity: 0.25,
-                            shadowRadius: 20,
-                            elevation: 20,
+                            borderTopLeftRadius: DESIGN_TOKENS.radius.xl,
+                            borderTopRightRadius: DESIGN_TOKENS.radius.xl,
+                            flex: 1,
+                            width: '100%',
                         }}>
-                            {/* Header moderne avec dégradé */}
+                            {/* Header */}
                             {showHeader && (
                                 <View style={{
-                                    paddingHorizontal: DESIGN_TOKENS.spacing.xl,
+                                    paddingHorizontal: DESIGN_TOKENS.spacing.lg,
                                     paddingTop: DESIGN_TOKENS.spacing.lg,
-                                    paddingBottom: DESIGN_TOKENS.spacing.xl,
+                                    paddingBottom: DESIGN_TOKENS.spacing.md,
                                     borderBottomWidth: 1,
-                                    borderBottomColor: colors.border + '40',
+                                    borderBottomColor: colors.border,
                                 }}>
                                     {/* Handle bar */}
                                     <View style={{
-                                        width: 40,
+                                        width: 36,
                                         height: 4,
                                         borderRadius: 2,
-                                        backgroundColor: colors.textSecondary + '40',
+                                        backgroundColor: colors.textMuted,
                                         alignSelf: 'center',
-                                        marginBottom: DESIGN_TOKENS.spacing.lg,
+                                        marginBottom: DESIGN_TOKENS.spacing.md,
                                     }} />
                                     
                                     <View style={{
@@ -271,111 +185,56 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
                                         alignItems: 'center',
                                         justifyContent: 'space-between',
                                     }}>
-                                        <View style={{ flex: 1 }}>
-                                            <View style={{
-                                                flexDirection: 'row',
-                                                alignItems: 'center',
-                                                marginBottom: 8,
-                                            }}>
-                                                <View style={{
-                                                    width: 32,
-                                                    height: 32,
-                                                    borderRadius: 16,
-                                                    backgroundColor: colors.primary + '20',
-                                                    justifyContent: 'center',
-                                                    alignItems: 'center',
-                                                    marginRight: DESIGN_TOKENS.spacing.md,
-                                                }}>
-                                                    <Ionicons name="language" size={18} color={colors.primary} />
-                                                </View>
-                                                <Text style={{
-                                                    fontSize: 24,
-                                                    fontWeight: '800',
-                                                    color: colors.text,
-                                                }}>
-                                                    {t('settings.language.title')}
-                                                </Text>
-                                            </View>
-                                            <Text style={{
-                                                fontSize: 16,
-                                                color: colors.textSecondary,
-                                                lineHeight: 22,
-                                            }}>
-                                                {t('settings.language.description')}
-                                            </Text>
-                                        </View>
+                                        <Text style={{
+                                            fontSize: 20,
+                                            fontWeight: '700',
+                                            color: colors.text,
+                                        }}>
+                                            Select Language
+                                        </Text>
                                         
                                         <Pressable
                                             onPress={onClose}
-                                            style={({ pressed }) => ({
-                                                width: 44,
-                                                height: 44,
-                                                borderRadius: 22,
-                                                backgroundColor: pressed ? colors.backgroundSecondary : colors.backgroundTertiary,
+                                            style={{
+                                                width: 32,
+                                                height: 32,
+                                                borderRadius: 16,
+                                                backgroundColor: colors.backgroundSecondary,
                                                 justifyContent: 'center',
                                                 alignItems: 'center',
-                                                marginLeft: DESIGN_TOKENS.spacing.md,
-                                            })}
-                                            hitSlop={DESIGN_TOKENS.touch.hitSlop}
+                                            }}
                                         >
-                                            <Ionicons name="close" size={24} color={colors.textSecondary} />
+                                            <Ionicons name="close" size={18} color={colors.text} />
                                         </Pressable>
                                     </View>
                                 </View>
                             )}
 
-                            {/* Liste des langues avec scroll */}
-                            <ScrollView 
+                            {/* Liste des langues */}
+                            <ScrollView
                                 style={{ flex: 1 }}
-                                contentContainerStyle={{ 
-                                    paddingVertical: DESIGN_TOKENS.spacing.lg,
-                                    paddingBottom: DESIGN_TOKENS.spacing.xl * 2,
+                                contentContainerStyle={{
+                                    paddingTop: DESIGN_TOKENS.spacing.md,
+                                    paddingBottom: DESIGN_TOKENS.spacing.xl,
+                                    flexGrow: 1,
                                 }}
                                 showsVerticalScrollIndicator={false}
-                                bounces={true}
                             >
-                                {Object.values(supportedLanguages).map((language: any) => {
-                                    const isSelected = language.code === currentLanguage;
-                                    const isLoading = isChanging === language.code;
-
-                                    return (
-                                        <LanguageItem
-                                            key={language.code}
-                                            language={language}
-                                            isSelected={isSelected}
-                                            isLoading={isLoading}
-                                            onPress={() => handleLanguageChange(language.code)}
-                                            colors={colors}
-                                        />
-                                    );
-                                })}
+                                {languageList.map((language) => (
+                                    <LanguageItem
+                                        key={language.code}
+                                        language={language}
+                                        isSelected={language.code === currentLanguage}
+                                        isLoading={isChanging === language.code}
+                                        onPress={() => handleLanguageChange(language.code)}
+                                        colors={colors}
+                                    />
+                                ))}
                             </ScrollView>
-
-                            {/* Footer avec info langue actuelle */}
-                            <View style={{
-                                paddingHorizontal: DESIGN_TOKENS.spacing.xl,
-                                paddingVertical: DESIGN_TOKENS.spacing.lg,
-                                borderTopWidth: 1,
-                                borderTopColor: colors.border + '40',
-                                backgroundColor: colors.backgroundSecondary + '50',
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                            }}>
-                                <FlagIcon flag={supportedLanguages[currentLanguage].flag} size={24} />
-                                <Text style={{
-                                    fontSize: 14,
-                                    color: colors.textSecondary,
-                                    marginLeft: DESIGN_TOKENS.spacing.sm,
-                                    fontWeight: '600',
-                                }}>
-                                    {t('settings.language.current')}: {supportedLanguages[currentLanguage].nativeName}
-                                </Text>
-                            </View>
-                        </Animated.View>
+                        </View>
                     </Pressable>
                 </SafeAreaView>
-            </Pressable>
+            </View>
         </Modal>
     );
 };

@@ -8,14 +8,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { VStack, HStack } from '../components/primitives/Stack';
 import { Screen } from '../components/primitives/Screen';
-// import ProfileHeaderComplete from '../components/home/ProfileHeaderComplete';
+import ProfileHeaderComplete from '../components/home/ProfileHeaderComplete';
 import ServerConnectionTest from '@/tests/server/connectionTest';
 import { useAuthCheck } from '../utils/checkAuth';
 import { DESIGN_TOKENS } from '../constants/Styles';
 import { Colors } from '../constants/Colors';
 import { useTranslation, useLocalization } from '../localization';
 import LanguageSelector from '../components/ui/LanguageSelector';
-import TranslationTest from '../components/ui/TranslationTest';
 
 // Types et interfaces
 interface HomeScreenProps {
@@ -126,16 +125,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                 }}
             >
                 {/* Profile Header avec gamification - pleine largeur */}
-                {/* <View style={{ marginHorizontal: -DESIGN_TOKENS.spacing.lg }}>
+                <View style={{ marginHorizontal: -DESIGN_TOKENS.spacing.lg }}>
                     <ProfileHeaderComplete navigation={navigation} />
-                </View> */}
+                </View>
 
-                {/* Section title avec bouton langue */}
-                <View style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginHorizontal: DESIGN_TOKENS.spacing.lg,
+                {/* Header avec titre et bouton langue */}
+                <HStack gap="md" justify="space-between" align="center" style={{
+                    paddingHorizontal: DESIGN_TOKENS.spacing.lg,
                     marginBottom: DESIGN_TOKENS.spacing.sm,
                     marginTop: DESIGN_TOKENS.spacing.lg,
                 }}>
@@ -147,69 +143,27 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                         {t('home.title')}
                     </Text>
                     
-                    {/* Bouton sélecteur de langue moderne */}
+                    {/* Bouton langue simplifié */}
                     <Pressable
                         onPress={() => setShowLanguageSelector(true)}
                         style={({ pressed }) => ({
-                            paddingHorizontal: DESIGN_TOKENS.spacing.md,
-                            paddingVertical: DESIGN_TOKENS.spacing.sm,
-                            borderRadius: DESIGN_TOKENS.radius.xl,
-                            backgroundColor: pressed ? Colors.light.primary + '20' : Colors.light.primary + '10',
-                            borderWidth: 1.5,
-                            borderColor: Colors.light.primary + '30',
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            gap: DESIGN_TOKENS.spacing.sm,
-                            shadowColor: Colors.light.primary,
-                            shadowOffset: { width: 0, height: 2 },
-                            shadowOpacity: 0.15,
-                            shadowRadius: 4,
-                            elevation: 3,
-                            transform: [{ scale: pressed ? 0.96 : 1 }],
-                        })}
-                        hitSlop={DESIGN_TOKENS.touch.hitSlop}
-                    >
-                        {/* Drapeau de la langue actuelle */}
-                        <View style={{
-                            width: 26,
-                            height: 26,
-                            borderRadius: 13,
-                            backgroundColor: 'rgba(255,255,255,0.9)',
+                            width: 44,
+                            height: 44,
+                            borderRadius: 22,
+                            backgroundColor: Colors.light.backgroundSecondary,
                             justifyContent: 'center',
                             alignItems: 'center',
                             borderWidth: 1,
-                            borderColor: Colors.light.primary + '30',
-                        }}>
-                            <Text style={{ fontSize: 14 }}>
-                                {currentLangInfo.flag}
-                            </Text>
-                        </View>
-                        
-                        <View>
-                            <Text style={{
-                                fontSize: 12,
-                                fontWeight: '700',
-                                color: Colors.light.primary,
-                                letterSpacing: 0.2,
-                            }}>
-                                {currentLangInfo.code.toUpperCase()}
-                            </Text>
-                            <Text style={{
-                                fontSize: 10,
-                                fontWeight: '500',
-                                color: Colors.light.primary + '80',
-                                marginTop: -2,
-                            }}>
-                                {currentLangInfo.nativeName.length > 8 ? 
-                                    currentLangInfo.nativeName.substring(0, 8) + '...' : 
-                                    currentLangInfo.nativeName
-                                }
-                            </Text>
-                        </View>
-                        
-                        <Ionicons name="chevron-down" size={14} color={Colors.light.primary} />
+                            borderColor: Colors.light.border,
+                            transform: [{ scale: pressed ? 0.95 : 1 }],
+                        })}
+                        hitSlop={DESIGN_TOKENS.touch.hitSlop}
+                    >
+                        <Text style={{ fontSize: 18 }}>
+                            {currentLangInfo.flag}
+                        </Text>
                     </Pressable>
-                </View>
+                </HStack>
 
                 {/* Navigation menu */}
                 <View style={{ 
@@ -232,21 +186,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                             onPress={() => navigation.navigate('Parameters')}
                             color={Colors.light.warning}
                         />
-                        
-                        <MenuItem
-                            title={t('home.connection.title')}
-                            icon="wifi"
-                            description={t('home.connection.description')}
-                            onPress={() => setShowLanguageSelector(true)}
-                            color={Colors.light.success}
-                        />
                     </VStack>
                 </View>
 
                 {/* Development connection test */}
                 {__DEV__ && (
                     <View style={{ marginTop: DESIGN_TOKENS.spacing.md }}>
-                        <TranslationTest />
                         <ServerConnectionTest />
                     </View>
                 )}
