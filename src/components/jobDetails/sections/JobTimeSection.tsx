@@ -28,9 +28,7 @@ const JobTimeSection: React.FC<JobTimeSectionProps> = ({ job }) => {
         isOnBreak,
         startBreak,
         stopBreak,
-        startTimerWithJobData,
-        calculateCost,
-        HOURLY_RATE_AUD 
+        startTimerWithJobData
     } = useJobTimer(jobId, currentStep);
 
     // Auto-démarrer si le job a déjà commencé
@@ -39,8 +37,6 @@ const JobTimeSection: React.FC<JobTimeSectionProps> = ({ job }) => {
             startTimerWithJobData(job);
         }
     }, [currentStep, isRunning, job, startTimerWithJobData]);
-
-    const costData = calculateCost(billableTime);
 
     // Ne pas afficher si le job n'a pas commencé
     if (currentStep === 0 || !timerData) {
@@ -402,70 +398,7 @@ const JobTimeSection: React.FC<JobTimeSectionProps> = ({ job }) => {
                             {(billableTime / (1000 * 60 * 60)).toFixed(2)}h
                         </Text>
                     </View>
-
-                    <View style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                    }}>
-                        <Text style={{ fontSize: 14, color: colors.textSecondary }}>
-                            Heures facturables
-                        </Text>
-                        <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
-                            {costData.hours.toFixed(1)}h
-                        </Text>
-                    </View>
-
-                    <View style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                    }}>
-                        <Text style={{ fontSize: 14, color: colors.textSecondary }}>
-                            Taux horaire
-                        </Text>
-                        <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
-                            ${HOURLY_RATE_AUD}/h AUD
-                        </Text>
-                    </View>
-
-                    <View style={{
-                        height: 1,
-                        backgroundColor: colors.border,
-                        marginVertical: DESIGN_TOKENS.spacing.xs,
-                    }} />
-
-                    <View style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                    }}>
-                        <Text style={{ 
-                            fontSize: 16, 
-                            fontWeight: '700', 
-                            color: colors.text 
-                        }}>
-                            Coût total
-                        </Text>
-                        <Text style={{ 
-                            fontSize: 20, 
-                            fontWeight: '700', 
-                            color: colors.primary 
-                        }}>
-                            ${costData.cost.toFixed(0)} AUD
-                        </Text>
-                    </View>
                 </View>
-
-                <Text style={{
-                    fontSize: 11,
-                    color: colors.textSecondary,
-                    textAlign: 'center',
-                    marginTop: DESIGN_TOKENS.spacing.md,
-                    fontStyle: 'italic',
-                }}>
-                    Inclut minimum 2h + call-out 30min • Arrondi demi-heure (7min+)
-                </Text>
             </View>
         </View>
     );

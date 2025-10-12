@@ -1,5 +1,6 @@
 /**
  * Payment Page - Gestion moderne des paiements conforme au design Summary
+ * Utilise le timer en temps réel pour calculer les coûts
  */
 import React, { useState } from 'react';
 import { View, Text, Pressable, Alert, ScrollView } from 'react-native';
@@ -7,6 +8,7 @@ import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useTheme } from '../../context/ThemeProvider';
 import Ionicons from '@react-native-vector-icons/ionicons';
 import PaymentWindow from './paymentWindow';
+import { useJobTimer } from '../../hooks/useJobTimer';
 
 // Interfaces
 interface PaymentProps {
@@ -18,19 +20,36 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
     const { colors } = useTheme();
     const [paymentWindowVisible, setPaymentWindowVisible] = useState<string | null>(null);
 
-    // Extraire les informations de coût depuis les données du job
-    const getPaymentInfo = () => {
-        // Utiliser estimatedCost et actualCost depuis job.job (données API réelles)
-        const jobData = job?.job || job;
-        const estimatedCost = jobData?.estimatedCost || 0;
-        const actualCost = jobData?.actualCost || estimatedCost;
+    // Utiliser le hook timer pour les calculs en temps réel
+    const jobId = job?.job?.code || job?.code || 'unknown';
+    const currentStep = job?.job?.current_step || job?.current_step || 0;
+    
+    const { 
+        timerData,
+        totalElapsed,
+        billableTime,
+        formatTime,
+        calculateCost,
+        HOURLY_RATE_AUD,
+        isRunning
+    } = useJobTimer(jobId, currentStep);
+
+    // Calculer le coût en temps réel
+    const getRealTimePaymentInfo = () => {
+        const costData = calculateCost(billableTime);
+        const estimatedCost = job?.job?.estimatedCost || job?.estimatedCost || 0;
+        const currentCost = costData.cost;
         
         return {
             estimated: estimatedCost,
-            actual: actualCost,
-            currency: 'EUR', // Défaut pour le marché français
-            status: determinePaymentStatus(actualCost, estimatedCost),
-            isPaid: actualCost > 0 && actualCost >= estimatedCost
+            current: currentCost,
+            billableHours: costData.hours,
+            actualTime: billableTime,
+            totalTime: totalElapsed,
+            currency: 'AUD',
+            status: determinePaymentStatus(currentCost, estimatedCost),
+            isPaid: job?.job?.isPaid || job?.isPaid || false,
+            isRunning
         };
     };
 
@@ -41,9 +60,9 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
     };
 
     const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('fr-FR', {
+        return new Intl.NumberFormat('en-AU', {
             style: 'currency',
-            currency: 'EUR',
+            currency: 'AUD',
         }).format(amount);
     };
 
@@ -71,7 +90,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
         return statusMap[status as keyof typeof statusMap] || statusMap.pending;
     };
 
-    const paymentInfo = getPaymentInfo();
+    const paymentInfo = getRealTimePaymentInfo();
     const statusInfo = getStatusInfo(paymentInfo.status);
 
     // Vérifier si le job est terminé (actualStep = nombre total d'étapes)
@@ -215,6 +234,112 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                 )}
             </View>
 
+            {/* Suivi du temps en temps réel */}
+            {paymentInfo.isRunning && (
+                <View style={{
+                    backgroundColor: colors.backgroundSecondary,
+                    borderRadius: DESIGN_TOKENS.radius.lg,
+                    padding: DESIGN_TOKENS.spacing.lg,
+                    marginBottom: DESIGN_TOKENS.spacing.lg,
+                    borderWidth: 2,
+                    borderColor: colors.primary + '30',
+                }}>
+                    <View style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: DESIGN_TOKENS.spacing.sm,
+                        marginBottom: DESIGN_TOKENS.spacing.lg,
+                    }}>
+                        <View style={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: 16,
+                            backgroundColor: colors.primary + '20',
+                            justifyContent: 'center',
+                            alignItems: 'center'
+                        }}>
+                            <Ionicons name="time" size={18} color={colors.primary} />
+                        </View>
+                        <Text style={{
+                            fontSize: 18,
+                            fontWeight: '600',
+                            color: colors.text,
+                            flex: 1
+                        }}>
+                            Temps en cours
+                        </Text>
+                        <View style={{
+                            backgroundColor: '#10B981',
+                            borderRadius: 8,
+                            paddingHorizontal: 8,
+                            paddingVertical: 4,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: 4,
+                        }}>
+                            <View style={{
+                                width: 8,
+                                height: 8,
+                                borderRadius: 4,
+                                backgroundColor: '#FFFFFF',
+                            }} />
+                            <Text style={{
+                                fontSize: 12,
+                                fontWeight: '600',
+                                color: '#FFFFFF',
+                            }}>
+                                LIVE
+                            </Text>
+                        </View>
+                    </View>
+
+                    <View style={{ gap: DESIGN_TOKENS.spacing.md }}>
+                        <View style={{
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                        }}>
+                            <Text style={{ fontSize: 14, color: colors.textSecondary }}>
+                                Temps total écoulé
+                            </Text>
+                            <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text }}>
+                                {formatTime(paymentInfo.totalTime)}
+                            </Text>
+                        </View>
+
+                        <View style={{
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                        }}>
+                            <Text style={{ fontSize: 14, color: colors.textSecondary }}>
+                                Temps facturable
+                            </Text>
+                            <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text }}>
+                                {formatTime(paymentInfo.actualTime)}
+                            </Text>
+                        </View>
+
+                        <View style={{
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                        }}>
+                            <Text style={{ fontSize: 14, color: colors.textSecondary }}>
+                                Coût en cours
+                            </Text>
+                            <Text style={{ 
+                                fontSize: 18, 
+                                fontWeight: '700', 
+                                color: colors.primary 
+                            }}>
+                                {formatCurrency(paymentInfo.current)}
+                            </Text>
+                        </View>
+                    </View>
+                </View>
+            )}
+
             {/* Résumé financier */}
             <View style={{
                 backgroundColor: colors.backgroundSecondary,
@@ -266,7 +391,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                         justifyContent: 'space-between',
                         alignItems: 'center',
                         paddingBottom: DESIGN_TOKENS.spacing.md,
-                        borderBottomWidth: paymentInfo.actual !== paymentInfo.estimated ? 1 : 0,
+                        borderBottomWidth: paymentInfo.current !== paymentInfo.estimated ? 1 : 0,
                         borderBottomColor: colors.border,
                     }}>
                         <View>
@@ -282,7 +407,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                                 fontWeight: '700',
                                 color: paymentInfo.status === 'completed' ? '#10B981' : colors.text,
                             }}>
-                                {formatCurrency(paymentInfo.actual)}
+                                {formatCurrency(paymentInfo.current)}
                             </Text>
                         </View>
                         <Ionicons 
@@ -293,9 +418,9 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                     </View>
 
                     {/* Différence si applicable */}
-                    {paymentInfo.actual !== paymentInfo.estimated && (
+                    {paymentInfo.current !== paymentInfo.estimated && (
                         <View style={{
-                            backgroundColor: paymentInfo.actual > paymentInfo.estimated ? '#FEF3C7' : '#D1FAE5',
+                            backgroundColor: paymentInfo.current > paymentInfo.estimated ? '#FEF3C7' : '#D1FAE5',
                             borderRadius: DESIGN_TOKENS.radius.lg,
                             padding: DESIGN_TOKENS.spacing.md,
                             flexDirection: 'row',
@@ -303,28 +428,78 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                             gap: DESIGN_TOKENS.spacing.sm,
                         }}>
                             <Ionicons 
-                                name={paymentInfo.actual > paymentInfo.estimated ? 'trending-up' : 'trending-down'} 
+                                name={paymentInfo.current > paymentInfo.estimated ? 'trending-up' : 'trending-down'} 
                                 size={20} 
-                                color={paymentInfo.actual > paymentInfo.estimated ? '#F59E0B' : '#10B981'} 
+                                color={paymentInfo.current > paymentInfo.estimated ? '#F59E0B' : '#10B981'} 
                             />
                             <View style={{ flex: 1 }}>
                                 <Text style={{
                                     fontSize: 14,
                                     fontWeight: '600',
-                                    color: paymentInfo.actual > paymentInfo.estimated ? '#92400E' : '#047857',
+                                    color: paymentInfo.current > paymentInfo.estimated ? '#92400E' : '#047857',
                                 }}>
-                                    {paymentInfo.actual > paymentInfo.estimated ? 'Coût supplémentaire' : 'Économie réalisée'}
+                                    {paymentInfo.current > paymentInfo.estimated ? 'Coût supplémentaire' : 'Économie réalisée'}
                                 </Text>
                                 <Text style={{
                                     fontSize: 16,
                                     fontWeight: '700',
-                                    color: paymentInfo.actual > paymentInfo.estimated ? '#F59E0B' : '#10B981',
+                                    color: paymentInfo.current > paymentInfo.estimated ? '#F59E0B' : '#10B981',
                                 }}>
-                                    {formatCurrency(Math.abs(paymentInfo.actual - paymentInfo.estimated))}
+                                    {formatCurrency(Math.abs(paymentInfo.current - paymentInfo.estimated))}
                                 </Text>
                             </View>
                         </View>
                     )}
+                </View>
+
+                {/* Détails de facturation */}
+                <View style={{
+                    backgroundColor: colors.backgroundTertiary + '50',
+                    borderRadius: DESIGN_TOKENS.radius.lg,
+                    padding: DESIGN_TOKENS.spacing.md,
+                    marginTop: DESIGN_TOKENS.spacing.md,
+                }}>
+                    <View style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: DESIGN_TOKENS.spacing.sm,
+                        marginBottom: DESIGN_TOKENS.spacing.sm,
+                    }}>
+                        <Ionicons name="calculator" size={16} color={colors.textSecondary} />
+                        <Text style={{
+                            fontSize: 14,
+                            fontWeight: '600',
+                            color: colors.textSecondary,
+                        }}>
+                            Détails de facturation
+                        </Text>
+                    </View>
+                    
+                    <View style={{ gap: DESIGN_TOKENS.spacing.xs }}>
+                        <View style={{
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                        }}>
+                            <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+                                Heures facturables:
+                            </Text>
+                            <Text style={{ fontSize: 12, fontWeight: '500', color: colors.text }}>
+                                {paymentInfo.billableHours.toFixed(1)}h
+                            </Text>
+                        </View>
+                        
+                        <View style={{
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                        }}>
+                            <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+                                Taux horaire:
+                            </Text>
+                            <Text style={{ fontSize: 12, fontWeight: '500', color: colors.text }}>
+                                {formatCurrency(HOURLY_RATE_AUD)}/h
+                            </Text>
+                        </View>
+                    </View>
                 </View>
             </View>
 

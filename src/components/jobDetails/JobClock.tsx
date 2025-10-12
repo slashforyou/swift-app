@@ -27,9 +27,7 @@ const JobClock: React.FC<JobClockProps> = ({ job }) => {
         isOnBreak,
         startBreak,
         stopBreak,
-        startTimerWithJobData,
-        calculateCost,
-        HOURLY_RATE_AUD 
+        startTimerWithJobData
     } = useJobTimer(jobId, currentStep);
 
     // Auto-démarrer si le job a déjà commencé
@@ -38,8 +36,6 @@ const JobClock: React.FC<JobClockProps> = ({ job }) => {
             startTimerWithJobData(job);
         }
     }, [currentStep, isRunning, job, startTimerWithJobData]);
-
-    const costData = calculateCost(billableTime);
 
     // Ne pas afficher si le job n'a pas commencé
     if (currentStep === 0) {
@@ -194,14 +190,14 @@ const JobClock: React.FC<JobClockProps> = ({ job }) => {
                         color: colors.textSecondary,
                         marginBottom: 2,
                     }}>
-                        Coût estimé actuel
+                        Temps facturable
                     </Text>
                     <Text style={{
                         fontSize: 18,
                         fontWeight: '700',
                         color: colors.text,
                     }}>
-                        ${costData.cost.toFixed(0)} AUD
+                        {formatTime(billableTime)}
                     </Text>
                 </View>
                 
@@ -211,36 +207,19 @@ const JobClock: React.FC<JobClockProps> = ({ job }) => {
                         color: colors.textSecondary,
                         marginBottom: 2,
                     }}>
-                        Heures facturables
+                        Temps total
                     </Text>
                     <Text style={{
                         fontSize: 14,
                         fontWeight: '600',
                         color: colors.text,
                     }}>
-                        {costData.hours.toFixed(1)}h
-                    </Text>
-                    <Text style={{
-                        fontSize: 11,
-                        color: colors.textSecondary,
-                    }}>
-                        @ ${HOURLY_RATE_AUD}/h
+                        {formatTime(totalElapsed)}
                     </Text>
                 </View>
             </View>
 
-            {/* Note sur la facturation */}
-            {isRunning && (
-                <Text style={{
-                    fontSize: 11,
-                    color: colors.textSecondary,
-                    textAlign: 'center',
-                    marginTop: DESIGN_TOKENS.spacing.sm,
-                    fontStyle: 'italic',
-                }}>
-                    Inclut minimum 2h + call-out 30min • Arrondi demi-heure
-                </Text>
-            )}
+
         </View>
     );
 };
