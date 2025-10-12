@@ -98,6 +98,46 @@ export const frTranslations: TranslationKeys = {
         },
     },
 
+    calendar: {
+        title: 'Calendrier',
+        // Jours de la semaine (abréviations)
+        days: {
+            mon: 'Lun',
+            tue: 'Mar',
+            wed: 'Mer',
+            thu: 'Jeu',
+            fri: 'Ven',
+            sat: 'Sam',
+            sun: 'Dim',
+        },
+        // Mois complets
+        months: {
+            january: 'Janvier',
+            february: 'Février',
+            march: 'Mars',
+            april: 'Avril',
+            may: 'Mai',
+            june: 'Juin',
+            july: 'Juillet',
+            august: 'Août',
+            september: 'Septembre',
+            october: 'Octobre',
+            november: 'Novembre',
+            december: 'Décembre',
+        },
+        // Statistiques
+        stats: {
+            totalJobs: 'Total Jobs',
+            urgent: 'Urgent',
+            completed: 'Terminé',
+        },
+        // Actions
+        refresh: 'Actualiser',
+        goToDay: 'Aller au jour',
+        previousMonth: 'Mois précédent',
+        nextMonth: 'Mois suivant',
+    },
+
     profile: {
         title: 'Profil',
         personalInfo: 'Informations personnelles',

@@ -98,6 +98,46 @@ export const enTranslations: TranslationKeys = {
         },
     },
 
+    calendar: {
+        title: 'Calendar',
+        // Days of the week (abbreviations)
+        days: {
+            mon: 'Mon',
+            tue: 'Tue',
+            wed: 'Wed',
+            thu: 'Thu',
+            fri: 'Fri',
+            sat: 'Sat',
+            sun: 'Sun',
+        },
+        // Full months
+        months: {
+            january: 'January',
+            february: 'February',
+            march: 'March',
+            april: 'April',
+            may: 'May',
+            june: 'June',
+            july: 'July',
+            august: 'August',
+            september: 'September',
+            october: 'October',
+            november: 'November',
+            december: 'December',
+        },
+        // Statistics
+        stats: {
+            totalJobs: 'Total Jobs',
+            urgent: 'Urgent',
+            completed: 'Completed',
+        },
+        // Actions
+        refresh: 'Refresh',
+        goToDay: 'Go to day',
+        previousMonth: 'Previous month',
+        nextMonth: 'Next month',
+    },
+
     profile: {
         title: 'Profile',
         personalInfo: 'Personal Information',
