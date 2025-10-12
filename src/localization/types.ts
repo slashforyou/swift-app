@@ -161,6 +161,25 @@ export interface TranslationKeys {
         goToDay: string;
         previousMonth: string;
         nextMonth: string;
+        // Filters and sorting
+        filters: {
+            all: string;
+            pending: string;
+            active: string;
+            done: string;
+        };
+        sorting: {
+            time: string;
+            priority: string;
+            status: string;
+        };
+        // Navigation
+        previousDay: string;
+        nextDay: string;
+        // Year view
+        currentYear: string;
+        years: string;
+        selectFromRange: string;
     };
 
     // Profile

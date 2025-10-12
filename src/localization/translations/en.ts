@@ -136,6 +136,25 @@ export const enTranslations: TranslationKeys = {
         goToDay: 'Go to day',
         previousMonth: 'Previous month',
         nextMonth: 'Next month',
+        // Filters and sorting
+        filters: {
+            all: 'All',
+            pending: 'Pending',
+            active: 'Active',
+            done: 'Done',
+        },
+        sorting: {
+            time: 'Time',
+            priority: 'Priority',
+            status: 'Status',
+        },
+        // Navigation
+        previousDay: 'Previous day',
+        nextDay: 'Next day',
+        // Year view
+        currentYear: 'Current Year',
+        years: 'Years',
+        selectFromRange: 'Select from',
     },
 
     profile: {

@@ -136,6 +136,25 @@ export const frTranslations: TranslationKeys = {
         goToDay: 'Aller au jour',
         previousMonth: 'Mois précédent',
         nextMonth: 'Mois suivant',
+        // Filtres et tri
+        filters: {
+            all: 'Tous',
+            pending: 'En attente',
+            active: 'En cours',
+            done: 'Terminé',
+        },
+        sorting: {
+            time: 'Heure',
+            priority: 'Priorité',
+            status: 'État',
+        },
+        // Navigation
+        previousDay: 'Jour précédent',
+        nextDay: 'Jour suivant',
+        // Vue annuelle
+        currentYear: 'Année actuelle',
+        years: 'Années',
+        selectFromRange: 'Sélectionner entre',
     },
 
     profile: {
