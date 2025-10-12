@@ -1,13 +1,15 @@
 /**
  * ProfileHeaderComplete - Header avec gamification pour la page d'accueil (version complète)
+ * Utilise les vraies données du profil utilisateur via useUserProfile
  */
 import React, { useState } from 'react';
-import { View, Text, Pressable, Animated } from 'react-native';
+import { View, Text, Pressable, Animated, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { HStack, VStack } from '../primitives/Stack';
-import { useGamificationFixed } from '../../hooks/useGamificationFixed';
+import { useUserProfile } from '../../hooks/useUserProfile';
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { Colors } from '../../constants/Colors';
+import { useTranslation } from '../../localization';
 import NotificationsPanel from './NotificationsPanel';
 
 interface ProfileHeaderProps {
@@ -22,19 +24,29 @@ const ProfileHeaderComplete: React.FC<ProfileHeaderProps> = ({
     navigation, 
     notifications: initialNotifications = 10 
 }) => {
-    const { data: gamificationData, isLoading, addXP } = useGamificationFixed();
+    const { profile, isLoading } = useUserProfile();
+    const { t } = useTranslation();
     const [showNotifications, setShowNotifications] = useState(false);
     const [progressAnimation] = useState(new Animated.Value(0));
     const [notificationCount, setNotificationCount] = useState(initialNotifications);
     
-    // Utiliser les données de gamification ou des valeurs par défaut
-    const user = gamificationData || {
-        firstName: 'Marie',
-        role: 'Senior Driver',
-        level: 8,
-        xp: 1247,
-        xpToNextLevel: 353,
-        totalXpForNextLevel: 500
+    // Utiliser les données du profil ou des valeurs par défaut
+    const user = profile ? {
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        title: profile.title || t('profile.defaultTitle'),
+        level: profile.level || 1,
+        experience: profile.experience || 0,
+        experienceToNextLevel: profile.experienceToNextLevel || 1000,
+        role: profile.role || 'Driver'
+    } : {
+        firstName: 'User',
+        lastName: '',
+        title: t('profile.defaultTitle'),
+        level: 1,
+        experience: 0,
+        experienceToNextLevel: 1000,
+        role: 'Driver'
     };
 
     // Si en cours de chargement, afficher un placeholder
@@ -60,17 +72,26 @@ const ProfileHeaderComplete: React.FC<ProfileHeaderProps> = ({
         );
     }
 
+    // Calcul du progrès XP
+    const getProgressData = () => {
+        const currentXP = user.experience || 0;
+        const targetXP = user.experienceToNextLevel || 1000;
+        return {
+            progressPercentage: currentXP / targetXP,
+            xpRemaining: targetXP - currentXP
+        };
+    };
+
+    const { progressPercentage, xpRemaining } = getProgressData();
+
     // Animation de la barre de progression
     React.useEffect(() => {
-        const progressPercentage = user.xpToNextLevel ? 
-            ((user.totalXpForNextLevel || 500) - (user.xpToNextLevel || 0)) / (user.totalXpForNextLevel || 500) : 0;
-        
         Animated.timing(progressAnimation, {
             toValue: progressPercentage,
             duration: 2000,
             useNativeDriver: false,
         }).start();
-    }, [user.xp]);
+    }, [user.experience, progressPercentage]);
 
     // Fonction pour obtenir le rang basé sur le niveau
     const getRankInfo = (level: number = 1) => {
@@ -193,9 +214,8 @@ const ProfileHeaderComplete: React.FC<ProfileHeaderProps> = ({
                         const now = Date.now();
                         
                         if (now - lastTapTime < 500) {
-                            // Double tap détecté - bonus XP !
-                            addXP(5, '🎯 Easter egg bonus!');
-                            console.log('🎉 +5 XP Easter egg!');
+                            // Double tap détecté - Easter egg !
+                            console.log('🎉 Easter egg bonus detected!');
                         } else {
                             // Simple tap - aller au profil
                             setTimeout(() => {
@@ -290,19 +310,38 @@ const ProfileHeaderComplete: React.FC<ProfileHeaderProps> = ({
                     
                     {/* Infos utilisateur centrées */}
                     <VStack gap="xs" align="center">
-                        {/* Salutation */}
+                        {/* Nom complet */}
                         <Text style={{
-                            fontSize: 18,
+                            fontSize: 20,
                             fontWeight: '700',
                             color: Colors.light.text,
                             textAlign: 'center',
                         }}>
-                            Bonjour, {user.firstName} 👋
+                            {user.firstName} {user.lastName}
                         </Text>
+
+                        {/* Level et XP - Proéminents */}
+                        <View style={{
+                            backgroundColor: Colors.light.primary + '15',
+                            paddingHorizontal: DESIGN_TOKENS.spacing.md,
+                            paddingVertical: DESIGN_TOKENS.spacing.xs,
+                            borderRadius: DESIGN_TOKENS.radius.md,
+                            borderWidth: 1,
+                            borderColor: Colors.light.primary + '30',
+                        }}>
+                            <Text style={{
+                                fontSize: 16,
+                                fontWeight: '700',
+                                color: Colors.light.primary,
+                                textAlign: 'center',
+                            }}>
+                                {t('profile.level')} {user.level} • {user.experience?.toLocaleString()} XP
+                            </Text>
+                        </View>
 
                         {/* Rang */}
                         <Text style={{
-                            fontSize: 16,
+                            fontSize: 14,
                             fontWeight: '600',
                             color: rankInfo.color,
                             textAlign: 'center',
@@ -310,24 +349,13 @@ const ProfileHeaderComplete: React.FC<ProfileHeaderProps> = ({
                             {rankInfo.emoji} {rankInfo.title}
                         </Text>
 
-                        {/* XP et Level */}
-                        <Text style={{
-                            fontSize: 14,
-                            fontWeight: '500',
-                            color: Colors.light.textSecondary,
-                            textAlign: 'center',
-                        }}>
-                            {user.xp?.toLocaleString()} XP • Level {user.level}
-                        </Text>
-
                         {/* Progression vers le prochain niveau */}
                         <Text style={{
-                            fontSize: 13,
+                            fontSize: 12,
                             color: Colors.light.textMuted,
                             textAlign: 'center',
-                            marginTop: 4,
                         }}>
-                            {Math.round(((user.totalXpForNextLevel || 500) - (user.xpToNextLevel || 0)) / (user.totalXpForNextLevel || 500) * 100)}% vers Level {(user.level || 1) + 1}
+                            {Math.round(progressPercentage * 100)}% {t('profile.toNextLevel')} {user.level + 1}
                         </Text>
                     </VStack>
                 </Pressable>

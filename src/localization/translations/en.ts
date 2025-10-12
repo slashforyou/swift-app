@@ -104,6 +104,10 @@ export const enTranslations: TranslationKeys = {
         preferences: 'Preferences',
         logout: 'Logout',
         version: 'Version',
+        level: 'Level',
+        experience: 'Experience',
+        toNextLevel: 'to Level',
+        defaultTitle: 'Driver',
     },
 
     settings: {

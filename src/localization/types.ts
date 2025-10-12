@@ -129,6 +129,10 @@ export interface TranslationKeys {
         preferences: string;
         logout: string;
         version: string;
+        level: string;
+        experience: string;
+        toNextLevel: string;
+        defaultTitle: string;
     };
 
     // Settings

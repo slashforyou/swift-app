@@ -104,6 +104,10 @@ export const frTranslations: TranslationKeys = {
         preferences: 'Préférences',
         logout: 'Déconnexion',
         version: 'Version',
+        level: 'Niveau',
+        experience: 'Expérience',
+        toNextLevel: 'vers le Niveau',
+        defaultTitle: 'Chauffeur',
     },
 
     settings: {
