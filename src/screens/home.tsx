@@ -15,6 +15,7 @@ import { DESIGN_TOKENS } from '../constants/Styles';
 import { Colors } from '../constants/Colors';
 import { useTranslation, useLocalization } from '../localization';
 import LanguageSelector from '../components/ui/LanguageSelector';
+import TranslationTest from '../components/ui/TranslationTest';
 
 // Types et interfaces
 interface HomeScreenProps {
@@ -245,6 +246,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                 {/* Development connection test */}
                 {__DEV__ && (
                     <View style={{ marginTop: DESIGN_TOKENS.spacing.md }}>
+                        <TranslationTest />
                         <ServerConnectionTest />
                     </View>
                 )}

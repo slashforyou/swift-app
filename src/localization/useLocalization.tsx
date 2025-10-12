@@ -14,6 +14,8 @@ import { frTranslations } from './translations/fr';
 import { ptTranslations } from './translations/pt';
 import { esTranslations } from './translations/es';
 import { itTranslations } from './translations/it';
+import { zhTranslations } from './translations/zh';
+import { hiTranslations } from './translations/hi';
 
 const LANGUAGE_STORAGE_KEY = 'app_language';
 
@@ -24,9 +26,8 @@ const TRANSLATIONS: Record<SupportedLanguage, TranslationKeys> = {
     pt: ptTranslations,
     es: esTranslations,
     it: itTranslations,
-    // Fallback pour les langues pas encore traduites
-    zh: enTranslations, // TODO: Ajouter traduction chinoise
-    hi: enTranslations, // TODO: Ajouter traduction hindi
+    zh: zhTranslations,
+    hi: hiTranslations,
 };
 
 interface LocalizationContextType {
