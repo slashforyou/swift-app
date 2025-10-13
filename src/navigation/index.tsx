@@ -5,6 +5,7 @@ import { View, Text, Button } from 'react-native'
 // Make sure the file exists at ../../screens/home.tsx or ../../screens/home/index.tsx
 import HomeScreen from '../screens/home'
 import CalendarNavigation from './calendar'
+import BusinessNavigation from './business'
 import JobDetails from '../screens/jobDetails'
 import Profile from '../screens/profile'
 import Parameters from '../screens/parameters'
@@ -25,6 +26,7 @@ export default function Navigation() {
         <Stack.Screen name="SubscribeMailVerification" component={SubscribeMailVerification} />
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Calendar" component={CalendarNavigation} />
+        <Stack.Screen name="Business" component={BusinessNavigation} />
         <Stack.Screen name="JobDetails" component={JobDetails} />
         <Stack.Screen name="Profile" component={Profile} />
         <Stack.Screen name="Parameters" component={Parameters} />
