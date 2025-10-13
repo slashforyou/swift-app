@@ -36,6 +36,10 @@ export const enTranslations: TranslationKeys = {
             title: 'Calendar',
             description: 'View and manage your schedule',
         },
+        business: {
+            title: 'Business',
+            description: 'Billing, configuration and management',
+        },
         jobs: {
             title: 'Jobs',
             description: 'Manage your work assignments',
@@ -155,6 +159,51 @@ export const enTranslations: TranslationKeys = {
         currentYear: 'Current Year',
         years: 'Years',
         selectFromRange: 'Select from',
+        // States
+        loading: 'Loading...',
+        noJobsScheduled: 'No jobs scheduled',
+        freeDay: 'You have a free day on',
+        enjoyTimeOff: 'Enjoy your time off!',
+        somethingWentWrong: 'Something went wrong',
+        tryAgain: 'Try Again',
+        // Job status and priority
+        jobStatus: {
+            pending: 'Pending',
+            inProgress: 'In Progress',
+            completed: 'Completed',
+            cancelled: 'Cancelled',
+            unknown: 'Unknown',
+        },
+        priority: {
+            urgent: 'URGENT',
+            high: 'HIGH',
+            medium: 'MED',
+            low: 'LOW',
+            normal: 'NORM',
+        },
+        // Client
+        unknownClient: 'Unknown client',
+        // Navigation
+        navigation: {
+            monthlyView: 'Monthly View',
+            yearlyView: 'Yearly View',
+            multiYearView: 'Multi-Year View',
+            dailyView: 'Daily View',
+            loadingCalendar: 'Loading calendar',
+            authenticationError: 'Authentication Error',
+            goToLogin: 'Go to Login',
+            loading: 'Loading',
+        },
+        // Day Screen specific
+        dayScreen: {
+            stats: {
+                total: 'Total',
+                pending: 'Pending',
+                completed: 'Completed',
+            },
+            filtersTitle: 'Jobs & Filters',
+            sortBy: 'Sort by:',
+        },
     },
 
     profile: {
@@ -167,6 +216,46 @@ export const enTranslations: TranslationKeys = {
         experience: 'Experience',
         toNextLevel: 'to Level',
         defaultTitle: 'Driver',
+    },
+
+    jobDetails: {
+        panels: {
+            summary: 'Job Summary',
+            jobDetails: 'Job Details',
+            clientInfo: 'Client Information',
+            notes: 'Notes',
+            payment: 'Payment',
+        },
+        errors: {
+            invalidJobId: 'Invalid job ID',
+            cannotLoadDetails: 'Cannot load job details',
+            loadingError: 'Loading Error',
+        },
+        steps: {
+            pickup: 'Pickup',
+            intermediate: 'Intermediate',
+            dropoff: 'Dropoff',
+            pickupDescription: 'Pickup from the client location',
+            intermediateDescription: 'Dropoff at the intermediate location',
+            dropoffDescription: 'Dropoff at the final location',
+        },
+        client: {
+            firstTimeClient: 'First Time Client',
+        },
+        defaultNote: 'Note',
+        messages: {
+            noteAdded: 'Note Added',
+            noteAddedSuccess: 'The note has been saved successfully',
+            noteAddError: 'Error',
+            noteAddErrorMessage: 'Unable to add the note. Please try again.',
+            photoAdded: 'Photo Added',
+            photoAddedSuccess: 'The photo has been uploaded successfully',
+            photoAddError: 'Error',
+            photoAddErrorMessage: 'Unable to add the photo. Please try again.',
+            photoDescription: 'Job photo',
+            nextStep: 'Next Step',
+            advancedToStep: 'Advanced to step',
+        },
     },
 
     settings: {
@@ -187,6 +276,34 @@ export const enTranslations: TranslationKeys = {
             title: 'Notifications',
             enabled: 'Enabled',
             disabled: 'Disabled',
+        },
+    },
+
+    business: {
+        navigation: {
+            loadingBusiness: 'Loading business section...',
+            authenticationError: 'Authentication error',
+            goToLogin: 'Go to login',
+            businessInfo: 'Business Info',
+            staffCrew: 'Staff/Crew',
+            trucks: 'Vehicles',
+            jobsBilling: 'Jobs/Billing',
+        },
+        info: {
+            title: 'Business Information',
+            placeholder: 'This section will contain your business information: contact details, configuration, general settings.',
+        },
+        staff: {
+            title: 'Staff & Team',
+            placeholder: 'Manage your team here: add members, assign roles, track skills and availability.',
+        },
+        trucks: {
+            title: 'Vehicles & Equipment',
+            placeholder: 'Manage your fleet and equipment: add trucks, track maintenance, schedule repairs.',
+        },
+        jobs: {
+            title: 'Jobs & Billing',
+            placeholder: 'Create new jobs, generate invoices and track profitability of your projects.',
         },
     },
 

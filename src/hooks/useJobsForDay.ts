@@ -8,6 +8,7 @@ export interface Job {
   status: 'pending' | 'in-progress' | 'completed' | 'cancelled';
   priority: 'low' | 'medium' | 'high' | 'urgent';
   client: {
+    name?: string; // Nom complet du client (prioritaire sur firstName/lastName)
     firstName: string;
     lastName: string;
     phone: string;
@@ -57,10 +58,28 @@ interface UseJobsForDayReturn {
 function convertAPIJobToLocal(apiJob: any): Job {
   console.log('🔄 Converting API job:', JSON.stringify(apiJob, null, 2));
   
-  // Séparer le contact_name en prénom et nom
-  const contactNameParts = (apiJob.contact_name || 'Client Anonyme').split(' ');
-  const firstName = contactNameParts[0] || 'Client';
-  const lastName = contactNameParts.slice(1).join(' ') || 'Anonyme';
+  // Utiliser les vraies données client de l'API ou fallback sur contact_name
+  let firstName = 'Client';
+  let lastName = 'Anonyme';
+  let fullName = 'Client Anonyme';
+  
+  if (apiJob.client?.firstName && apiJob.client?.lastName) {
+    // Utiliser les données client de l'API
+    firstName = apiJob.client.firstName;
+    lastName = apiJob.client.lastName;
+    fullName = apiJob.client.fullName || `${firstName} ${lastName}`;
+  } else if (apiJob.contact?.firstName && apiJob.contact?.lastName) {
+    // Fallback sur les données contact
+    firstName = apiJob.contact.firstName;
+    lastName = apiJob.contact.lastName;
+    fullName = `${firstName} ${lastName}`;
+  } else if (apiJob.contact_name) {
+    // Fallback sur contact_name (ancien format)
+    const contactNameParts = apiJob.contact_name.split(' ');
+    firstName = contactNameParts[0] || 'Client';
+    lastName = contactNameParts.slice(1).join(' ') || 'Anonyme';
+    fullName = apiJob.contact_name;
+  }
   
   // Générer des données réalistes pour les champs manquants
   const jobCode = apiJob.code || `JOB-${apiJob.id}`;
@@ -71,10 +90,11 @@ function convertAPIJobToLocal(apiJob: any): Job {
     status: mapApiStatus(apiJob.status),
     priority: apiJob.priority || 'medium',
     client: {
+      name: fullName, // Utiliser le nom complet (prioritaire)
       firstName: firstName,
       lastName: lastName,
-      phone: apiJob.phone || '+33 6 XX XX XX XX',
-      email: apiJob.email || `${firstName.toLowerCase()}@email.com`,
+      phone: apiJob.client?.phone || apiJob.contact?.phone || apiJob.phone || '+33 6 XX XX XX XX',
+      email: apiJob.client?.email || apiJob.contact?.email || apiJob.email || `${firstName.toLowerCase()}@email.com`,
     },
     contact: {
       firstName: firstName,

@@ -58,6 +58,10 @@ export interface TranslationKeys {
             title: string;
             description: string;
         };
+        business: {
+            title: string;
+            description: string;
+        };
         jobs: {
             title: string;
             description: string;
@@ -180,6 +184,51 @@ export interface TranslationKeys {
         currentYear: string;
         years: string;
         selectFromRange: string;
+        // States
+        loading: string;
+        noJobsScheduled: string;
+        freeDay: string;
+        enjoyTimeOff: string;
+        somethingWentWrong: string;
+        tryAgain: string;
+        // Job status and priority
+        jobStatus: {
+            pending: string;
+            inProgress: string;
+            completed: string;
+            cancelled: string;
+            unknown: string;
+        };
+        priority: {
+            urgent: string;
+            high: string;
+            medium: string;
+            low: string;
+            normal: string;
+        };
+        // Client
+        unknownClient: string;
+        // Navigation
+        navigation: {
+            monthlyView: string;
+            yearlyView: string;
+            multiYearView: string;
+            dailyView: string;
+            loadingCalendar: string;
+            authenticationError: string;
+            goToLogin: string;
+            loading: string;
+        };
+        // Day Screen specific
+        dayScreen: {
+            stats: {
+                total: string;
+                pending: string;
+                completed: string;
+            };
+            filtersTitle: string;
+            sortBy: string;
+        };
     };
 
     // Profile
@@ -193,6 +242,47 @@ export interface TranslationKeys {
         experience: string;
         toNextLevel: string;
         defaultTitle: string;
+    };
+
+    // Job Details
+    jobDetails: {
+        panels: {
+            summary: string;
+            jobDetails: string;
+            clientInfo: string;
+            notes: string;
+            payment: string;
+        };
+        errors: {
+            invalidJobId: string;
+            cannotLoadDetails: string;
+            loadingError: string;
+        };
+        steps: {
+            pickup: string;
+            intermediate: string;
+            dropoff: string;
+            pickupDescription: string;
+            intermediateDescription: string;
+            dropoffDescription: string;
+        };
+        client: {
+            firstTimeClient: string;
+        };
+        defaultNote: string;
+        messages: {
+            noteAdded: string;
+            noteAddedSuccess: string;
+            noteAddError: string;
+            noteAddErrorMessage: string;
+            photoAdded: string;
+            photoAddedSuccess: string;
+            photoAddError: string;
+            photoAddErrorMessage: string;
+            photoDescription: string;
+            nextStep: string;
+            advancedToStep: string;
+        };
     };
 
     // Settings
@@ -214,6 +304,35 @@ export interface TranslationKeys {
             title: string;
             enabled: string;
             disabled: string;
+        };
+    };
+
+    // Business Management
+    business: {
+        navigation: {
+            loadingBusiness: string;
+            authenticationError: string;
+            goToLogin: string;
+            businessInfo: string;
+            staffCrew: string;
+            trucks: string;
+            jobsBilling: string;
+        };
+        info: {
+            title: string;
+            placeholder: string;
+        };
+        staff: {
+            title: string;
+            placeholder: string;
+        };
+        trucks: {
+            title: string;
+            placeholder: string;
+        };
+        jobs: {
+            title: string;
+            placeholder: string;
         };
     };
 

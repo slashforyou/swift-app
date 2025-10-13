@@ -4,7 +4,15 @@ export const frTranslations: TranslationKeys = {
     common: {
         save: 'Enregistrer',
         cancel: 'Annuler',
-        delete: 'Supprimer',
+              priority: {
+            urgent: 'URG',
+            high: 'HAUT',
+            medium: 'MOY',
+            low: 'FAIBLE',
+            normal: 'NORM',
+        },
+        // Client
+        unknownClient: 'Client inconnu',e: 'Supprimer',
         edit: 'Modifier',
         add: 'Ajouter',
         search: 'Rechercher',
@@ -35,6 +43,10 @@ export const frTranslations: TranslationKeys = {
         calendar: {
             title: 'Calendrier',
             description: 'Consultez et gérez votre planning',
+        },
+        business: {
+            title: 'Entreprise',
+            description: 'Facturation, configuration et gestion',
         },
         jobs: {
             title: 'Travaux',
@@ -155,6 +167,49 @@ export const frTranslations: TranslationKeys = {
         currentYear: 'Année actuelle',
         years: 'Années',
         selectFromRange: 'Sélectionner entre',
+        // États
+        loading: 'Chargement...',
+        noJobsScheduled: 'Aucun travail programmé',
+        freeDay: 'Vous avez une journée libre le',
+        enjoyTimeOff: 'Profitez de votre temps libre !',
+        somethingWentWrong: 'Une erreur s\'est produite',
+        tryAgain: 'Réessayer',
+        // Statut et priorité des jobs
+        jobStatus: {
+            pending: 'En attente',
+            inProgress: 'En cours',
+            completed: 'Terminé',
+            cancelled: 'Annulé',
+            unknown: 'Inconnu',
+        },
+        priority: {
+            urgent: 'URGENT',
+            high: 'HAUTE',
+            medium: 'MOY',
+            low: 'FAIBLE',
+            normal: 'NORM',
+        },
+        // Navigation
+        navigation: {
+            monthlyView: 'Vue Mensuelle',
+            yearlyView: 'Vue Annuelle',
+            multiYearView: 'Vue Multi-Années',
+            dailyView: 'Vue Quotidienne',
+            loadingCalendar: 'Chargement du calendrier',
+            authenticationError: 'Erreur d\'authentification',
+            goToLogin: 'Aller à la connexion',
+            loading: 'Chargement',
+        },
+        // Day Screen specific
+        dayScreen: {
+            stats: {
+                total: 'Total',
+                pending: 'En attente',
+                completed: 'Terminés',
+            },
+            filtersTitle: 'Jobs et Filtres',
+            sortBy: 'Trier par :',
+        },
     },
 
     profile: {
@@ -167,6 +222,46 @@ export const frTranslations: TranslationKeys = {
         experience: 'Expérience',
         toNextLevel: 'vers le Niveau',
         defaultTitle: 'Chauffeur',
+    },
+
+    jobDetails: {
+        panels: {
+            summary: 'Résumé du travail',
+            jobDetails: 'Détails du travail',
+            clientInfo: 'Informations client',
+            notes: 'Notes',
+            payment: 'Paiement',
+        },
+        errors: {
+            invalidJobId: 'ID de job invalide',
+            cannotLoadDetails: 'Impossible de charger les détails du job',
+            loadingError: 'Erreur de chargement',
+        },
+        steps: {
+            pickup: 'Enlèvement',
+            intermediate: 'Intermédiaire',
+            dropoff: 'Livraison',
+            pickupDescription: 'Enlèvement chez le client',
+            intermediateDescription: 'Dépôt à l\'emplacement intermédiaire',
+            dropoffDescription: 'Dépôt à l\'emplacement final',
+        },
+        client: {
+            firstTimeClient: 'Nouveau client',
+        },
+        defaultNote: 'Note',
+        messages: {
+            noteAdded: 'Note ajoutée',
+            noteAddedSuccess: 'La note a été enregistrée avec succès',
+            noteAddError: 'Erreur',
+            noteAddErrorMessage: 'Impossible d\'ajouter la note. Veuillez réessayer.',
+            photoAdded: 'Photo ajoutée',
+            photoAddedSuccess: 'La photo a été uploadée avec succès',
+            photoAddError: 'Erreur',
+            photoAddErrorMessage: 'Impossible d\'ajouter la photo. Veuillez réessayer.',
+            photoDescription: 'Photo du job',
+            nextStep: 'Étape suivante',
+            advancedToStep: 'Passé à l\'étape',
+        },
     },
 
     settings: {
@@ -187,6 +282,34 @@ export const frTranslations: TranslationKeys = {
             title: 'Notifications',
             enabled: 'Activées',
             disabled: 'Désactivées',
+        },
+    },
+
+    business: {
+        navigation: {
+            loadingBusiness: 'Chargement de la section entreprise...',
+            authenticationError: 'Erreur d\'authentification',
+            goToLogin: 'Aller à la connexion',
+            businessInfo: 'Infos Entreprise',
+            staffCrew: 'Personnel/Équipe',
+            trucks: 'Véhicules',
+            jobsBilling: 'Travaux/Facturation',
+        },
+        info: {
+            title: 'Informations Entreprise',
+            placeholder: 'Cette section contiendra les informations de votre entreprise : coordonnées, configuration, paramètres généraux.',
+        },
+        staff: {
+            title: 'Personnel & Équipe',
+            placeholder: 'Gérez ici votre équipe : ajoutez des membres, assignez des rôles, suivez les compétences et disponibilités.',
+        },
+        trucks: {
+            title: 'Véhicules & Matériel',
+            placeholder: 'Gérez votre flotte de véhicules et matériel : ajoutez des camions, suivez l\'entretien, planifiez les réparations.',
+        },
+        jobs: {
+            title: 'Travaux & Facturation',
+            placeholder: 'Créez de nouveaux travaux, générez des factures et suivez la rentabilité de vos projets.',
         },
     },
 

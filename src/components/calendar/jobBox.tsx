@@ -4,6 +4,7 @@ import { View, Text, Pressable, StyleSheet, Animated } from 'react-native';
 import { useThemedStyles, useThemeColors } from '../../../hooks/useThemeColor';
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { Job } from '../../hooks/useJobsForDay';
+import { useLocalization } from '../../localization/useLocalization';
 // Modern job box component with enhanced UI and animations
 
 interface JobBoxProps {
@@ -17,6 +18,7 @@ interface JobBoxProps {
 
 const JobBox: React.FC<JobBoxProps> = ({ job, onPress, navigation, day, month, year }) => {
     const colors = useThemeColors();
+    const { t } = useLocalization();
 
     // Status configuration
     const getStatusConfig = (status: string) => {
@@ -26,35 +28,35 @@ const JobBox: React.FC<JobBoxProps> = ({ job, onPress, navigation, day, month, y
                     color: colors.warning,
                     backgroundColor: colors.backgroundTertiary,
                     icon: 'time-outline' as const,
-                    text: 'Pending'
+                    text: t('calendar.jobStatus.pending')
                 };
             case 'in-progress':
                 return {
                     color: colors.info,
                     backgroundColor: colors.backgroundTertiary,
                     icon: 'play-circle-outline' as const,
-                    text: 'In Progress'
+                    text: t('calendar.jobStatus.inProgress')
                 };
             case 'completed':
                 return {
                     color: colors.success,
                     backgroundColor: colors.backgroundTertiary,
                     icon: 'checkmark-circle-outline' as const,
-                    text: 'Completed'
+                    text: t('calendar.jobStatus.completed')
                 };
             case 'cancelled':
                 return {
                     color: colors.error,
                     backgroundColor: colors.backgroundTertiary,
                     icon: 'close-circle-outline' as const,
-                    text: 'Cancelled'
+                    text: t('calendar.jobStatus.cancelled')
                 };
             default:
                 return {
                     color: colors.textSecondary,
                     backgroundColor: colors.backgroundTertiary,
                     icon: 'help-circle-outline' as const,
-                    text: 'Unknown'
+                    text: t('calendar.jobStatus.unknown')
                 };
         }
     };
@@ -63,15 +65,15 @@ const JobBox: React.FC<JobBoxProps> = ({ job, onPress, navigation, day, month, y
     const getPriorityConfig = (priority: string) => {
         switch (priority) {
             case 'urgent':
-                return { color: colors.error, text: 'URGENT', icon: 'flash' as const };
+                return { color: colors.error, text: t('calendar.priority.urgent'), icon: 'flash' as const };
             case 'high':
-                return { color: colors.warning, text: 'HIGH', icon: 'alert-circle' as const };
+                return { color: colors.warning, text: t('calendar.priority.high'), icon: 'alert-circle' as const };
             case 'medium':
-                return { color: colors.info, text: 'MED', icon: 'information-circle' as const };
+                return { color: colors.info, text: t('calendar.priority.medium'), icon: 'information-circle' as const };
             case 'low':
-                return { color: colors.success, text: 'LOW', icon: 'checkmark-circle' as const };
+                return { color: colors.success, text: t('calendar.priority.low'), icon: 'checkmark-circle' as const };
             default:
-                return { color: colors.textSecondary, text: 'NORM', icon: 'remove-circle' as const };
+                return { color: colors.textSecondary, text: t('calendar.priority.normal'), icon: 'remove-circle' as const };
         }
     };
 
@@ -257,7 +259,7 @@ const JobBox: React.FC<JobBoxProps> = ({ job, onPress, navigation, day, month, y
                 <View style={styles.clientRow}>
                     <Ionicons name="person" size={16} color={colors.textSecondary} />
                     <Text style={styles.clientName}>
-                        {job.client.firstName} {job.client.lastName}
+                        {job.client?.name || `${job.client.firstName} ${job.client.lastName}`.trim() || t('calendar.unknownClient')}
                     </Text>
                     <View style={[styles.priorityBadge, { backgroundColor: priorityConfig.color + '20' }]}>
                         <Ionicons name={priorityConfig.icon} size={8} color={priorityConfig.color} />
