@@ -36,8 +36,8 @@ const MenuItem: React.FC<MenuItemProps> = ({ title, icon, description, onPress, 
         style={({ pressed }) => ({
             backgroundColor: pressed ? Colors.light.backgroundTertiary : Colors.light.backgroundSecondary,
             borderRadius: DESIGN_TOKENS.radius.lg,
-            padding: DESIGN_TOKENS.spacing.lg,
-            marginBottom: DESIGN_TOKENS.spacing.md,
+            padding: DESIGN_TOKENS.spacing.md,
+            marginBottom: DESIGN_TOKENS.spacing.xs,
             shadowColor: Colors.light.shadow,
             shadowOffset: {
                 width: 0,
@@ -170,13 +170,21 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                     paddingHorizontal: DESIGN_TOKENS.spacing.lg,
                     flex: 1,
                 }}>
-                    <VStack gap="sm">
+                    <VStack gap="xs">
                         <MenuItem
                             title={t('home.calendar.title')}
                             icon="calendar"
                             description={t('home.calendar.description')}
                             onPress={() => navigation.navigate('Calendar')}
                             color={Colors.light.primary}
+                        />
+                        
+                        <MenuItem
+                            title={t('home.business.title')}
+                            icon="business"
+                            description={t('home.business.description')}
+                            onPress={() => navigation.navigate('Business')}
+                            color={Colors.light.success}
                         />
                         
                         <MenuItem
@@ -189,13 +197,40 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                     </VStack>
                 </View>
 
-                {/* Development connection test */}
-                {__DEV__ && (
-                    <View style={{ marginTop: DESIGN_TOKENS.spacing.md }}>
-                        <ServerConnectionTest />
-                    </View>
-                )}
             </VStack>
+            
+            {/* Bouton DevTools flottant en bas à droite */}
+            {__DEV__ && (
+                <Pressable
+                    onPress={() => {/* TODO: Ouvrir modal DevTools */}}
+                    style={({ pressed }) => ({
+                        position: 'absolute',
+                        bottom: insets.bottom + DESIGN_TOKENS.spacing.lg,
+                        right: DESIGN_TOKENS.spacing.lg,
+                        width: 56,
+                        height: 56,
+                        borderRadius: 28,
+                        backgroundColor: Colors.light.backgroundSecondary,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        shadowColor: Colors.light.shadow,
+                        shadowOffset: { width: 0, height: 4 },
+                        shadowOpacity: 0.2,
+                        shadowRadius: 8,
+                        elevation: 8,
+                        borderWidth: 1,
+                        borderColor: Colors.light.border,
+                        transform: [{ scale: pressed ? 0.95 : 1 }],
+                    })}
+                    hitSlop={DESIGN_TOKENS.touch.hitSlop}
+                >
+                    <Ionicons 
+                        name="terminal" 
+                        size={24} 
+                        color={Colors.light.textSecondary} 
+                    />
+                </Pressable>
+            )}
             
             {/* Modal de sélection de langue */}
             <LanguageSelector
