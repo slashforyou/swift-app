@@ -18,6 +18,7 @@ import { getCalendarDateRange } from '../utils/dateUtils'
 import { useCommonThemedStyles } from '../hooks/useCommonStyles'
 import { useAuthCheck } from '../utils/checkAuth'
 import { Colors } from '../constants/Colors'
+import { useLocalization } from '../localization/useLocalization'
 
 // Types
 type RootStackParamList = {
@@ -43,8 +44,10 @@ const CalendarStack = createNativeStackNavigator<CalendarStackParamList>()
  * Manages calendar stack navigation with authentication and data loading
  */
 export default function CalendarNavigation({ navigation }: CalendarNavigationProps) {
+  const { t } = useLocalization();
+  
   // Authentication check with loading UI
-  const authCheck = useAuthCheck(navigation, "Loading calendar")
+  const authCheck = useAuthCheck(navigation, t('calendar.navigation.loadingCalendar'))
   
   // Calendar data management with auto-loading - calculer les dates une seule fois
   const [dateRange] = React.useState(() => getCalendarDateRange())
@@ -110,9 +113,9 @@ export default function CalendarNavigation({ navigation }: CalendarNavigationPro
   if (authCheck.error) {
     return (
       <View style={commonStyles.containerCentered}>
-        <Text style={[commonStyles.h3, { color: colors.error, textAlign: 'center' }]}>Authentication Error: {authCheck.error}</Text>
+        <Text style={[commonStyles.h3, { color: colors.error, textAlign: 'center' }]}>{t('calendar.navigation.authenticationError')}: {authCheck.error}</Text>
         <TouchableOpacity style={[commonStyles.buttonPrimary, commonStyles.marginTop]} onPress={() => navigation.navigate('Connection' as any)}>
-          <Text style={commonStyles.buttonPrimaryText}>Go to Login</Text>
+          <Text style={commonStyles.buttonPrimaryText}>{t('calendar.navigation.goToLogin')}</Text>
         </TouchableOpacity>
       </View>
     )
@@ -130,7 +133,7 @@ export default function CalendarNavigation({ navigation }: CalendarNavigationPro
         <View style={customStyles.loadingOverlay}>
           <ActivityIndicator size="small" color={colors.primary} />
           <LoadingDots 
-            text="Loading" 
+            text={t('calendar.navigation.loading')} 
             style={{ 
               fontSize: 14,
               color: colors.text,
@@ -175,28 +178,28 @@ export default function CalendarNavigation({ navigation }: CalendarNavigationPro
             name="Month" 
             component={MonthCalendarScreen}
             options={{
-              title: 'Monthly View',
+              title: t('calendar.navigation.monthlyView'),
             }}
           />
           <CalendarStack.Screen 
             name="Year" 
             component={YearCalendarScreen}
             options={{
-              title: 'Yearly View',
+              title: t('calendar.navigation.yearlyView'),
             }}
           />
           <CalendarStack.Screen 
             name="MultipleYears" 
             component={MultipleYearsScreen}
             options={{
-              title: 'Multi-Year View',
+              title: t('calendar.navigation.multiYearView'),
             }}
           />
           <CalendarStack.Screen 
             name="Day" 
             component={DayScreen}
             options={{
-              title: 'Daily View',
+              title: t('calendar.navigation.dailyView'),
             }}
           />
         </CalendarStack.Navigator>

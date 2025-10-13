@@ -3,7 +3,9 @@
  */
 
 import React, { useState } from 'react';
-import { View, Alert } from 'react-native';
+import { View, Alert, StyleSheet, Text } from 'react-native';
+import { useTheme } from '../../context/ThemeProvider';
+import { DESIGN_TOKENS } from '../../constants/Styles';
 import SigningBloc from '../../components/signingBloc';
 import JobProgressSection from '../../components/jobDetails/sections/JobProgressSection';
 import SignatureSection from '../../components/jobDetails/sections/SignatureSection';
@@ -18,15 +20,20 @@ import ImprovedNoteModal from '../../components/jobDetails/modals/ImprovedNoteMo
 import JobStepAdvanceModal from '../../components/jobDetails/modals/JobStepAdvanceModal';
 import JobClock from '../../components/jobDetails/JobClock';
 import { useJobNotes } from '../../hooks/useJobNotes';
+import { useLocalization } from '../../localization/useLocalization';
 import { useJobPhotos } from '../../hooks/useJobPhotos';
 import { useToast } from '../../context/ToastProvider';
 import { updateJobStep } from '../../services/jobSteps';
+import LanguageButton from '../../components/calendar/LanguageButton';
 
 const JobSummary = ({ job, setJob } : { job: any, setJob: React.Dispatch<React.SetStateAction<any>> }) => {
     const [isSigningVisible, setIsSigningVisible] = useState(false);
     const [isPhotoModalVisible, setIsPhotoModalVisible] = useState(false);
     const [isNoteModalVisible, setIsNoteModalVisible] = useState(false);
     const [isStepAdvanceModalVisible, setIsStepAdvanceModalVisible] = useState(false);
+    
+    const { t } = useLocalization();
+    const { colors } = useTheme();
 
     // Hooks pour la gestion des notes et photos
     const { addNote } = useJobNotes(job?.id);
@@ -42,14 +49,14 @@ const JobSummary = ({ job, setJob } : { job: any, setJob: React.Dispatch<React.S
         try {
             const result = await addNote({ content, type });
             if (result) {
-                showSuccess('Note ajoutée', 'La note a été enregistrée avec succès');
+                showSuccess(t('jobDetails.messages.noteAdded'), t('jobDetails.messages.noteAddedSuccess'));
                 return Promise.resolve();
             } else {
-                throw new Error('Échec de l\'ajout de la note');
+                throw new Error(t('jobDetails.messages.noteAddErrorMessage'));
             }
         } catch (error) {
             console.error('Error adding note:', error);
-            showError('Erreur', 'Impossible d\'ajouter la note. Veuillez réessayer.');
+            showError(t('jobDetails.messages.noteAddError'), t('jobDetails.messages.noteAddErrorMessage'));
             throw error;
         }
     };
@@ -57,15 +64,15 @@ const JobSummary = ({ job, setJob } : { job: any, setJob: React.Dispatch<React.S
     // Gestion des photos avec API
     const handlePhotoSelected = async (photoUri: string) => {
         try {
-            const result = await uploadPhoto(photoUri, `Photo du job ${job?.id || 'N/A'}`);
+            const result = await uploadPhoto(photoUri, `${t('jobDetails.messages.photoDescription')} ${job?.id || 'N/A'}`);
             if (result) {
-                showSuccess('Photo ajoutée', 'La photo a été uploadée avec succès');
+                showSuccess(t('jobDetails.messages.photoAdded'), t('jobDetails.messages.photoAddedSuccess'));
             } else {
-                throw new Error('Échec de l\'upload de la photo');
+                throw new Error(t('jobDetails.messages.photoAddErrorMessage'));
             }
         } catch (error) {
             console.error('Error uploading photo:', error);
-            showError('Erreur', 'Impossible d\'ajouter la photo. Veuillez réessayer.');
+            showError(t('jobDetails.messages.photoAddError'), t('jobDetails.messages.photoAddErrorMessage'));
         }
     };
 
@@ -116,9 +123,26 @@ const JobSummary = ({ job, setJob } : { job: any, setJob: React.Dispatch<React.S
         
         if (nextStep <= 5) { // Maximum 5 étapes
             await handleAdvanceStep(nextStep);
-            showSuccess('Étape suivante', `Passé à l'étape ${nextStep}`);
+            showSuccess(t('jobDetails.messages.nextStep'), `${t('jobDetails.messages.advancedToStep')} ${nextStep}`);
         }
     };
+
+    // Styles pour le bouton de langue
+    const styles = StyleSheet.create({
+        languageButtonContainer: {
+            position: 'absolute',
+            top: DESIGN_TOKENS.spacing.sm,
+            right: DESIGN_TOKENS.spacing.lg,
+            zIndex: 10,
+            backgroundColor: colors.background,
+            borderRadius: DESIGN_TOKENS.radius.md,
+            shadowColor: colors.shadow,
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 4,
+            elevation: 3,
+        },
+    });
 
     return (
         <>
@@ -159,6 +183,11 @@ const JobSummary = ({ job, setJob } : { job: any, setJob: React.Dispatch<React.S
 
             {/* Sections modulaires */}
             <View>
+                {/* Bouton de langue discret */}
+                <View style={styles.languageButtonContainer}>
+                    <LanguageButton />
+                </View>
+
                 {/* Module Clock - Chronométrage du job */}
                 <JobClock job={job} />
                 

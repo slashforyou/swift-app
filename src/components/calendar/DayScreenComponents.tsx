@@ -3,6 +3,7 @@ import { View, Text, ActivityIndicator, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 import { DESIGN_TOKENS } from '../../constants/Styles';
+import { useTranslation } from '../../localization';
 
 // Loading skeleton for jobs
 export const JobsLoadingSkeleton: React.FC = () => {
@@ -91,6 +92,7 @@ interface EmptyDayStateProps {
 
 export const EmptyDayState: React.FC<EmptyDayStateProps> = ({ date, onRefresh }) => {
   const { colors, styles } = useCommonThemedStyles();
+  const { t } = useTranslation();
   
   return (
     <View style={{
@@ -123,7 +125,7 @@ export const EmptyDayState: React.FC<EmptyDayStateProps> = ({ date, onRefresh })
           marginBottom: DESIGN_TOKENS.spacing.sm 
         }
       ]}>
-        No jobs scheduled
+        {t('calendar.noJobsScheduled')}
       </Text>
       
       <Text style={[
@@ -135,8 +137,8 @@ export const EmptyDayState: React.FC<EmptyDayStateProps> = ({ date, onRefresh })
           lineHeight: 22
         }
       ]}>
-        You have a free day on {date}.{'\n'}
-        Enjoy your time off!
+        {t('calendar.freeDay')} {date}.{'\n'}
+        {t('calendar.enjoyTimeOff')}
       </Text>
       
       <Pressable
@@ -161,7 +163,7 @@ export const EmptyDayState: React.FC<EmptyDayStateProps> = ({ date, onRefresh })
           styles.buttonText,
           { color: colors.buttonPrimaryText }
         ]}>
-          Refresh
+          {t('calendar.refresh')}
         </Text>
       </Pressable>
     </View>
@@ -176,6 +178,7 @@ interface ErrorStateProps {
 
 export const ErrorState: React.FC<ErrorStateProps> = ({ error, onRetry }) => {
   const { colors, styles } = useCommonThemedStyles();
+  const { t } = useTranslation();
   
   return (
     <View style={{
@@ -208,7 +211,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({ error, onRetry }) => {
           marginBottom: DESIGN_TOKENS.spacing.sm 
         }
       ]}>
-        Something went wrong
+        {t('calendar.somethingWentWrong')}
       </Text>
       
       <Text style={[
@@ -245,7 +248,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({ error, onRetry }) => {
           styles.buttonText,
           { color: colors.buttonPrimaryText }
         ]}>
-          Try Again
+          {t('calendar.tryAgain')}
         </Text>
       </Pressable>
     </View>

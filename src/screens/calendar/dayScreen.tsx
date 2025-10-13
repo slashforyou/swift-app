@@ -362,15 +362,15 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
                 <View style={styles.statsContainer}>
                     <View style={styles.statItem}>
                         <Text style={styles.statNumber}>{totalJobs}</Text>
-                        <Text style={styles.statLabel}>Total</Text>
+                        <Text style={styles.statLabel}>{t('calendar.dayScreen.stats.total')}</Text>
                     </View>
                     <View style={styles.statItem}>
                         <Text style={styles.statNumber}>{pendingJobs}</Text>
-                        <Text style={styles.statLabel}>Pending</Text>
+                        <Text style={styles.statLabel}>{t('calendar.dayScreen.stats.pending')}</Text>
                     </View>
                     <View style={styles.statItem}>
                         <Text style={styles.statNumber}>{completedJobs}</Text>
-                        <Text style={styles.statLabel}>Completed</Text>
+                        <Text style={styles.statLabel}>{t('calendar.dayScreen.stats.completed')}</Text>
                     </View>
                 </View>
             </View>
@@ -379,7 +379,7 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
             <View style={styles.filtersContainer}>
                 <View style={styles.filtersRow}>
                     <Text style={[commonStyles.subtitle, { color: colors.text }]}>
-                        Jobs & Filters
+                        {t('calendar.dayScreen.filtersTitle')}
                     </Text>
                     <Pressable onPress={() => setShowFilters(!showFilters)}>
                         <Ionicons 
@@ -396,7 +396,7 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
                             {filterOptions.map(renderFilterButton)}
                         </View>
                         <View style={styles.sortContainer}>
-                            <Text style={[styles.statLabel, { marginRight: 8 }]}>Sort by:</Text>
+                            <Text style={[styles.statLabel, { marginRight: 8 }]}>{t('calendar.dayScreen.sortBy')}</Text>
                             {sortOptions.map(renderSortButton)}
                         </View>
                     </>
