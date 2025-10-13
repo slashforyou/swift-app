@@ -17,6 +17,7 @@ import { useAuthCheck } from '../utils/checkAuth';
 import { useTheme } from '../context/ThemeProvider';
 import { DESIGN_TOKENS } from '../constants/Styles';
 import { useJobDetails } from '../hooks/useJobDetails';
+import { useLocalization } from '../localization/useLocalization';
 
 // Types et interfaces
 interface JobDetailsProps {
@@ -57,6 +58,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
     const { toastDetails, showToast } = useToast();
     const { isLoading: authLoading, LoadingComponent } = useAuthCheck(navigation);
     const { colors } = useTheme();
+    const { t } = useLocalization();
     
     // Récupération de l'ID du job depuis les paramètres de route ou props
     const actualJobId = route?.params?.jobId || jobId || route?.params?.id;
@@ -104,9 +106,9 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
         step : {
             actualStep: 1,
             steps : [
-                { id: 1, name: "Pickup", description: "Pickup from the client location"},
-                { id: 2, name: "Intermediate", description: "Dropoff at the intermediate location"},
-                { id: 3, name: "Dropoff", description: "Dropoff at the final location"},
+                { id: 1, name: t('jobDetails.steps.pickup'), description: t('jobDetails.steps.pickupDescription')},
+                { id: 2, name: t('jobDetails.steps.intermediate'), description: t('jobDetails.steps.intermediateDescription')},
+                { id: 3, name: t('jobDetails.steps.dropoff'), description: t('jobDetails.steps.dropoffDescription')},
             ],
         },
         client: {
@@ -114,7 +116,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
             lastName: "Last Name", 
             phone: "+1234567890",
             email: "mail@mail.com",
-            type: "First Time Client",
+            type: t('jobDetails.client.firstTimeClient'),
         },
         contact: {
             firstName: "Contact A",
@@ -248,7 +250,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
                 },
                 notes: jobDetails.notes?.map((note: any) => ({
                     id: parseInt(note.id),
-                    title: note.title || 'Note',
+                    title: note.title || t('jobDetails.defaultNote'),
                     content: note.content,
                     createdAt: note.created_at,
                     type: note.note_type || 0
@@ -298,12 +300,12 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
     // Titres des panneaux
     const getPanelTitle = () => {
         switch (jobPanel) {
-            case 0: return 'Job Summary';
-            case 1: return 'Job Details';
-            case 2: return 'Client Information';
-            case 3: return 'Notes';
-            case 4: return 'Payment';
-            default: return 'Job Details';
+            case 0: return t('jobDetails.panels.summary');
+            case 1: return t('jobDetails.panels.jobDetails');
+            case 2: return t('jobDetails.panels.clientInfo');
+            case 3: return t('jobDetails.panels.notes');
+            case 4: return t('jobDetails.panels.payment');
+            default: return t('jobDetails.panels.jobDetails');
         }
     };
 
@@ -317,10 +319,10 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
                 <Text style={{ color: colors.text, fontSize: 18, fontWeight: '600' }}>
-                    ❌ ID de job invalide
+                    ❌ {t('jobDetails.errors.invalidJobId')}
                 </Text>
                 <Text style={{ color: colors.textSecondary, fontSize: 14, marginTop: 8 }}>
-                    Impossible de charger les détails du job
+                    {t('jobDetails.errors.cannotLoadDetails')}
                 </Text>
             </View>
         );
@@ -331,7 +333,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background, padding: 20 }}>
                 <Text style={{ color: colors.error, fontSize: 18, fontWeight: '600', textAlign: 'center' }}>
-                    ❌ Erreur de chargement
+                    ❌ {t('jobDetails.errors.loadingError')}
                 </Text>
                 <Text style={{ color: colors.textSecondary, fontSize: 14, marginTop: 8, textAlign: 'center' }}>
                     {error}

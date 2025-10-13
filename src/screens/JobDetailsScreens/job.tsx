@@ -808,6 +808,11 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
 
                 {/* Contractor Details */}
                 {job.contractor && (
+                    job.contractor.Name || 
+                    job.contractor.ContactName || 
+                    job.contractor.Phone || 
+                    job.contractor.Email
+                ) && (
                     <Card style={{ padding: DESIGN_TOKENS.spacing.lg }}>
                         <VStack gap="sm">
                             <SectionHeader 
@@ -846,6 +851,11 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
 
                 {/* Contractee Details */}
                 {job.contractee && (
+                    job.contractee.Name || 
+                    job.contractee.ContactName || 
+                    job.contractee.Phone || 
+                    job.contractee.Email
+                ) && (
                     <Card style={{ padding: DESIGN_TOKENS.spacing.lg }}>
                         <VStack gap="sm">
                             <SectionHeader 
