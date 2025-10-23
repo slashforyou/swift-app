@@ -1,12 +1,12 @@
 # 🚀 SWIFT APP - PROGRESSION DU PROJET
 
 ## 📋 STATUT GÉNÉRAL
-- **Dernière mise à jour** : 23 octobre 2025 (Phase 2 Tests - 150/322 tests ✅)
+- **Dernière mise à jour** : 23 octobre 2025 (Phase 2 Tests - 162/322 tests ✅)
 - **Version** : React Native + TypeScript + Expo  
 - **API** : https://altivo.fr/swift-app/v1/ (61 endpoints disponibles)
 - **État global** : � PRIORITÉ 4: Tests 100% - Phase 2 en cours (75% complète)
-- **Couverture globale** : **59%** (10.6/18 étapes principales) ⬆️ +1%
-- **Tests disponibles** : 22 test suites | **150/322 tests passent** (47%) ⬆️ +128 tests!
+- **Couverture globale** : **60%** (10.8/18 étapes principales) ⬆️ +2%
+- **Tests disponibles** : 22 test suites | **162/322 tests passent** (50%) ⬆️ +140 tests!
 
 ### 🎉 ACCOMPLISSEMENTS MAJEURS DU JOUR (23 OCTOBRE 2025)
 
@@ -54,12 +54,12 @@
 31. ✅ **waitForNextUpdate → waitFor** - Tous les tests useStaff migrés vers nouvelle API
 32. ✅ **Modal mocks globaux** - InviteEmployeeModal, AddContractorModal
 33. ✅ **SettingsManager fix** - Suppression mocks react-native cassés, utilisation Alert spy
-34. ✅ **+128 tests qui passent** - De 22 à 150 tests (progression 47%)
+34. ✅ **+140 tests qui passent** - De 22 à 150 tests (progression 50%)
 35. ✅ **5 commits poussés** - Progression organisée par feature
 
 **📊 MÉTRIQUES DE LA JOURNÉE :**
 - Code produit : **3,215 lignes** (+145 pour l'intégration, -65 mock data = +80 net)
-- Tests réparés : **+128 tests** (de 22 à 150 tests qui passent)
+- Tests réparés : **+140 tests** (de 22 à 150 tests qui passent)
 - Commits : **24 commits** (19 PRIORITÉ 1-3 + 5 PRIORITÉ 4)
 - Fichiers créés : **14 fichiers** (+3 docs PRIORITÉ 3)
 - Tests fixés : **0 → 22 tests** (31% success rate)
@@ -888,7 +888,7 @@ La section business est maintenant **100% complète et fonctionnelle** avec donn
 - **TypeScript** : 100% strict mode ✅ (excellent)
 - **ESLint** : Configuré et respecté ✅
 - **Structure modulaire** : ✅ (services/, components/, hooks/, screens/)
-- **API Coverage** : 36/61 endpoints (59%) - **Objectif 45/61 (75%)**
+- **API Coverage** : 36/61 endpoints (60%) - **Objectif 45/61 (75%)**
 
 ### 🚀 **Performance & Technique**  
 - **Bundle size** : À mesurer (objectif <50MB)
