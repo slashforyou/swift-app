@@ -10,47 +10,11 @@ import { Contractor, Employee } from '../../../src/types/staff';
 // Simple wrapper to replace ThemeProvider in tests
 const ThemeProvider = ({ children }: { children: React.ReactNode }) => <>{children}</>;
 
-// Mock des dépendances
-jest.mock('react-native', () => {
-  const RN = jest.requireActual('react-native');
-  return {
-    ...RN,
-    Alert: {
-      alert: jest.fn(),
-    },
-  };
-});
+// Mock Alert
+jest.spyOn(Alert, 'alert');
 
-jest.mock('../../../src/constants/Styles', () => ({
-  DESIGN_TOKENS: {
-    spacing: {
-      xs: 4,
-      sm: 8,
-      md: 16,
-      lg: 24,
-      xl: 32,
-    },
-    radius: {
-      sm: 4,
-      md: 8,
-      lg: 12,
-      full: 9999,
-    },
-    typography: {
-      subtitle: {
-        fontSize: 18,
-      },
-    },
-  },
-  useCommonThemedStyles: () => ({
-    container: {
-      flex: 1,
-    },
-  }),
-}));
-
-// Mock du hook useStaff
-const mockUseStaff = {
+// Mock du hook useStaff - exported for test manipulation
+export const mockUseStaff = {
   employees: [] as Employee[],
   contractors: [] as Contractor[],
   inviteEmployee: jest.fn(),
@@ -59,46 +23,6 @@ const mockUseStaff = {
   isLoading: false,
   error: null,
 };
-
-jest.mock('../../../src/hooks/useStaff', () => ({
-  useStaff: () => mockUseStaff,
-}));
-
-// Mock des modales
-jest.mock('../../../src/components/business/modals/InviteEmployeeModal', () => {
-  return function MockInviteEmployeeModal({ visible, onClose, onSubmit }: any) {
-    if (!visible) return null;
-    return (
-      <div>
-        <div>InviteEmployeeModal</div>
-        <button onClick={onClose}>Close Modal</button>
-        <button onClick={() => onSubmit({
-          firstName: 'Test',
-          lastName: 'Employee',
-          email: 'test@example.com',
-          phone: '+61 400 000 000',
-          role: 'Mover',
-          team: 'Team A',
-          hourlyRate: 30,
-        })}>Submit Employee</button>
-      </div>
-    );
-  };
-});
-
-jest.mock('../../../src/components/business/modals/AddContractorModal', () => {
-  return function MockAddContractorModal({ visible, onClose, onSearch, onAdd }: any) {
-    if (!visible) return null;
-    return (
-      <div>
-        <div>AddContractorModal</div>
-        <button onClick={onClose}>Close Modal</button>
-        <button onClick={() => onSearch('test')}>Search Contractor</button>
-        <button onClick={() => onAdd('con_1', 'preferred')}>Add Contractor</button>
-      </div>
-    );
-  };
-});
 
 const mockEmployees: Employee[] = [
   {

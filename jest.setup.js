@@ -93,6 +93,23 @@ jest.mock('./src/hooks/useStaff', () => ({
   }),
 }), { virtual: true });
 
+// Mock modal components
+jest.mock('./src/components/business/modals/InviteEmployeeModal', () => ({
+  __esModule: true,
+  default: ({ visible, onClose, onSubmit }) => {
+    if (!visible) return null;
+    return null; // Simple mock that returns null
+  },
+}), { virtual: true });
+
+jest.mock('./src/components/business/modals/AddContractorModal', () => ({
+  __esModule: true,
+  default: ({ visible, onClose, onSubmit }) => {
+    if (!visible) return null;
+    return null;
+  },
+}), { virtual: true });
+
 // Mock console methods for cleaner test output
 const originalConsole = { ...console };
 global.console = {

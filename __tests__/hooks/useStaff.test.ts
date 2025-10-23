@@ -1,7 +1,7 @@
 /**
  * Tests unitaires pour le hook useStaff
  */
-import { act, renderHook } from '@testing-library/react-hooks';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { useStaff } from '../../src/hooks/useStaff';
 
 // Mock des dépendances
@@ -24,10 +24,10 @@ describe('useStaff Hook', () => {
   });
 
   it('should load mock employees on mount', async () => {
-    const { result, waitForNextUpdate } = renderHook(() => useStaff());
+    const { result } = renderHook(() => useStaff());
 
     // Attendre que les données mockées soient chargées
-    await waitForNextUpdate();
+    await waitFor(() => { expect(result.current).toBeDefined(); });
 
     expect(result.current.employees.length).toBeGreaterThan(0);
     expect(result.current.employees[0]).toEqual(
@@ -42,9 +42,9 @@ describe('useStaff Hook', () => {
   });
 
   it('should load mock contractors on mount', async () => {
-    const { result, waitForNextUpdate } = renderHook(() => useStaff());
+    const { result } = renderHook(() => useStaff());
 
-    await waitForNextUpdate();
+    await waitFor(() => { expect(result.current).toBeDefined(); });
 
     expect(result.current.contractors.length).toBeGreaterThan(0);
     expect(result.current.contractors[0]).toEqual(
@@ -60,8 +60,8 @@ describe('useStaff Hook', () => {
 
   describe('inviteEmployee', () => {
     it('should successfully invite an employee', async () => {
-      const { result, waitForNextUpdate } = renderHook(() => useStaff());
-      await waitForNextUpdate(); // Attendre le chargement initial
+      const { result } = renderHook(() => useStaff());
+      await waitFor(() => { expect(result.current).toBeDefined(); });
 
       const newEmployeeData = {
         firstName: 'Test',
@@ -93,8 +93,8 @@ describe('useStaff Hook', () => {
     });
 
     it('should handle invitation errors gracefully', async () => {
-      const { result, waitForNextUpdate } = renderHook(() => useStaff());
-      await waitForNextUpdate();
+      const { result } = renderHook(() => useStaff());
+      await waitFor(() => { expect(result.current).toBeDefined(); });
 
       const invalidEmployeeData = {
         firstName: '',
@@ -116,8 +116,8 @@ describe('useStaff Hook', () => {
 
   describe('searchContractor', () => {
     it('should search contractors by name', async () => {
-      const { result, waitForNextUpdate } = renderHook(() => useStaff());
-      await waitForNextUpdate();
+      const { result } = renderHook(() => useStaff());
+      await waitFor(() => { expect(result.current).toBeDefined(); });
 
       const searchResults = await act(async () => {
         return await result.current.searchContractor('John');
@@ -135,8 +135,8 @@ describe('useStaff Hook', () => {
     });
 
     it('should search contractors by ABN', async () => {
-      const { result, waitForNextUpdate } = renderHook(() => useStaff());
-      await waitForNextUpdate();
+      const { result } = renderHook(() => useStaff());
+      await waitFor(() => { expect(result.current).toBeDefined(); });
 
       const searchResults = await act(async () => {
         return await result.current.searchContractor('12345678901');
@@ -154,8 +154,8 @@ describe('useStaff Hook', () => {
     });
 
     it('should return empty array for no matches', async () => {
-      const { result, waitForNextUpdate } = renderHook(() => useStaff());
-      await waitForNextUpdate();
+      const { result } = renderHook(() => useStaff());
+      await waitFor(() => { expect(result.current).toBeDefined(); });
 
       const searchResults = await act(async () => {
         return await result.current.searchContractor('NonexistentContractor');
@@ -167,8 +167,8 @@ describe('useStaff Hook', () => {
 
   describe('addContractor', () => {
     it('should successfully add a contractor', async () => {
-      const { result, waitForNextUpdate } = renderHook(() => useStaff());
-      await waitForNextUpdate();
+      const { result } = renderHook(() => useStaff());
+      await waitFor(() => { expect(result.current).toBeDefined(); });
 
       // D'abord rechercher un contractor
       const searchResults = await act(async () => {
@@ -195,8 +195,8 @@ describe('useStaff Hook', () => {
     });
 
     it('should handle adding duplicate contractors', async () => {
-      const { result, waitForNextUpdate } = renderHook(() => useStaff());
-      await waitForNextUpdate();
+      const { result } = renderHook(() => useStaff());
+      await waitFor(() => { expect(result.current).toBeDefined(); });
 
       const existingContractor = result.current.contractors[0];
       if (existingContractor) {
@@ -211,8 +211,8 @@ describe('useStaff Hook', () => {
 
   describe('data filtering and statistics', () => {
     it('should correctly separate employees and contractors', async () => {
-      const { result, waitForNextUpdate } = renderHook(() => useStaff());
-      await waitForNextUpdate();
+      const { result } = renderHook(() => useStaff());
+      await waitFor(() => { expect(result.current).toBeDefined(); });
 
       const { employees, contractors } = result.current;
 
@@ -230,8 +230,8 @@ describe('useStaff Hook', () => {
     });
 
     it('should provide accurate statistics', async () => {
-      const { result, waitForNextUpdate } = renderHook(() => useStaff());
-      await waitForNextUpdate();
+      const { result } = renderHook(() => useStaff());
+      await waitFor(() => { expect(result.current).toBeDefined(); });
 
       const activeEmployees = result.current.employees.filter(
         (emp) => emp.invitationStatus === 'completed' && emp.status === 'active'
@@ -248,8 +248,8 @@ describe('useStaff Hook', () => {
 
   describe('error handling', () => {
     it('should handle API errors in employee invitation', async () => {
-      const { result, waitForNextUpdate } = renderHook(() => useStaff());
-      await waitForNextUpdate();
+      const { result } = renderHook(() => useStaff());
+      await waitFor(() => { expect(result.current).toBeDefined(); });
 
       // Simuler une erreur réseau
       const mockError = new Error('Network error');
@@ -273,8 +273,8 @@ describe('useStaff Hook', () => {
     });
 
     it('should handle API errors in contractor search', async () => {
-      const { result, waitForNextUpdate } = renderHook(() => useStaff());
-      await waitForNextUpdate();
+      const { result } = renderHook(() => useStaff());
+      await waitFor(() => { expect(result.current).toBeDefined(); });
 
       // Test avec une chaîne vide qui pourrait causer une erreur
       await expect(
@@ -287,8 +287,8 @@ describe('useStaff Hook', () => {
 
   describe('loading states', () => {
     it('should manage loading state during employee invitation', async () => {
-      const { result, waitForNextUpdate } = renderHook(() => useStaff());
-      await waitForNextUpdate();
+      const { result } = renderHook(() => useStaff());
+      await waitFor(() => { expect(result.current).toBeDefined(); });
 
       const employeeData = {
         firstName: 'Test',
