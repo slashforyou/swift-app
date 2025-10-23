@@ -1,14 +1,14 @@
 /**
  * Notes Page - Gestion des notes avec interface moderne
  */
+import Ionicons from '@react-native-vector-icons/ionicons';
 import React, { useState } from 'react';
-import { View, Text, Pressable, ScrollView } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
+import ImprovedNoteModal from '../../components/jobDetails/modals/ImprovedNoteModal';
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useTheme } from '../../context/ThemeProvider';
-import { useJobNotes } from '../../hooks/useJobNotes';
 import { useToast } from '../../context/ToastProvider';
-import ImprovedNoteModal from '../../components/jobDetails/modals/ImprovedNoteModal';
-import Ionicons from '@react-native-vector-icons/ionicons';
+import { useJobNotes } from '../../hooks/useJobNotes';
 
 interface JobNoteProps {
   job: any;
@@ -23,10 +23,14 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob }) => {
     const { notes, isLoading, addNote, refetch } = useJobNotes(job?.id);
     const { showSuccess, showError } = useToast();
 
-    // Gestion des notes avec API (identique au summary)
-    const handleAddNote = async (content: string, type: 'general' | 'important' | 'client' | 'internal' = 'general') => {
+    // Gestion des notes avec API - nouvelle structure
+    const handleAddNote = async (content: string, note_type: 'general' | 'important' | 'client' | 'internal' = 'general', title?: string) => {
         try {
-            const result = await addNote({ content, type });
+            const result = await addNote({ 
+                title: title || `Note du ${new Date().toLocaleDateString()}`,
+                content, 
+                note_type 
+            });
             if (result) {
                 showSuccess('Note ajoutée', 'La note a été enregistrée avec succès');
                 await refetch(); // Actualiser la liste des notes
@@ -178,7 +182,7 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob }) => {
                 {notes.length > 0 ? (
                     <View style={{ gap: DESIGN_TOKENS.spacing.md }}>
                         {notes.map((note) => {
-                            const typeInfo = getNoteTypeInfo(note.type || 'general');
+                            const typeInfo = getNoteTypeInfo(note.note_type || 'general');
                             const isLocalNote = note.id.startsWith('local-');
                             
                             return (
@@ -250,7 +254,7 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob }) => {
                                                     fontSize: 12,
                                                     color: colors.textSecondary,
                                                 }}>
-                                                    {formatDate(note.createdAt)}
+                                                    {formatDate(note.created_at)}
                                                 </Text>
                                             </View>
                                             <Text style={{

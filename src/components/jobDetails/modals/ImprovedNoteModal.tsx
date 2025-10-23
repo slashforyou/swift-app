@@ -1,20 +1,20 @@
 /**
  * ImprovedNoteModal - Modal amélioré pour l'ajout de notes avec types de problème
  */
-import React, { useState } from 'react';
-import { 
-    View, 
-    Text, 
-    Modal, 
-    Pressable, 
-    TextInput,
-    Alert,
-    StyleSheet,
-    ScrollView 
-} from 'react-native';
-import { useTheme } from '../../../context/ThemeProvider';
-import { DESIGN_TOKENS } from '../../../constants/Styles';
 import Ionicons from '@react-native-vector-icons/ionicons';
+import React, { useState } from 'react';
+import {
+    Alert,
+    Modal,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    View
+} from 'react-native';
+import { DESIGN_TOKENS } from '../../../constants/Styles';
+import { useTheme } from '../../../context/ThemeProvider';
 
 interface NoteType {
     id: 'general' | 'important' | 'client' | 'internal';
@@ -27,7 +27,7 @@ interface NoteType {
 interface ImprovedNoteModalProps {
     isVisible: boolean;
     onClose: () => void;
-    onAddNote: (content: string, type: 'general' | 'important' | 'client' | 'internal') => Promise<void>;
+    onAddNote: (content: string, note_type: 'general' | 'important' | 'client' | 'internal', title?: string) => Promise<void>;
     jobId: string;
 }
 
@@ -38,6 +38,7 @@ const ImprovedNoteModal: React.FC<ImprovedNoteModalProps> = ({
     jobId
 }) => {
     const { colors } = useTheme();
+    const [noteTitle, setNoteTitle] = useState('');
     const [noteContent, setNoteContent] = useState('');
     const [selectedType, setSelectedType] = useState<'general' | 'important' | 'client' | 'internal'>('general');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -82,9 +83,11 @@ const ImprovedNoteModal: React.FC<ImprovedNoteModalProps> = ({
 
         setIsSubmitting(true);
         try {
-            await onAddNote(noteContent.trim(), selectedType);
+            const title = noteTitle.trim() || `Note du ${new Date().toLocaleDateString()}`;
+            await onAddNote(noteContent.trim(), selectedType, title);
             
             // Reset form
+            setNoteTitle('');
             setNoteContent('');
             setSelectedType('general');
             onClose();
@@ -366,6 +369,19 @@ const ImprovedNoteModal: React.FC<ImprovedNoteModalProps> = ({
                                 </View>
                             )}
 
+                            {/* Note Title */}
+                            <View style={styles.section}>
+                                <Text style={styles.sectionTitle}>Titre de la note (optionnel)</Text>
+                                <TextInput
+                                    style={[styles.textInput, { height: 50 }]}
+                                    value={noteTitle}
+                                    onChangeText={setNoteTitle}
+                                    placeholder="Titre de la note..."
+                                    placeholderTextColor={colors.textSecondary}
+                                    autoFocus
+                                />
+                            </View>
+
                             {/* Note Content */}
                             <View style={styles.section}>
                                 <Text style={styles.sectionTitle}>Contenu de la note</Text>
@@ -376,7 +392,6 @@ const ImprovedNoteModal: React.FC<ImprovedNoteModalProps> = ({
                                     placeholder="Décrivez la situation, le problème ou l'information à noter..."
                                     placeholderTextColor={colors.textSecondary}
                                     multiline
-                                    autoFocus
                                 />
                             </View>
 

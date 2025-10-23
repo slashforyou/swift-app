@@ -3,21 +3,21 @@
  * Architecture moderne avec gestion correcte des Safe Areas et marges
  */
 import React, { useState } from 'react';
-import { View, ScrollView, Text } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import JobMenu from '../components/jobMenu';
-import JobSummary from './JobDetailsScreens/summary';
+import JobDetailsHeader from '../components/jobDetails/JobDetailsHeader';
+import TabMenu from '../components/ui/TabMenu';
+import Toast from '../components/ui/toastNotification';
+import { DESIGN_TOKENS } from '../constants/Styles';
+import { useTheme } from '../context/ThemeProvider';
+import { useJobDetails } from '../hooks/useJobDetails';
+import { useLocalization } from '../localization/useLocalization';
+import { useAuthCheck } from '../utils/checkAuth';
 import JobClient from './JobDetailsScreens/client';
 import JobPage from './JobDetailsScreens/job';
 import JobNote from './JobDetailsScreens/note';
 import PaymentScreen from './JobDetailsScreens/payment';
-import JobDetailsHeader from '../components/jobDetails/JobDetailsHeader';
-import Toast from '../components/ui/toastNotification';
-import { useAuthCheck } from '../utils/checkAuth';
-import { useTheme } from '../context/ThemeProvider';
-import { DESIGN_TOKENS } from '../constants/Styles';
-import { useJobDetails } from '../hooks/useJobDetails';
-import { useLocalization } from '../localization/useLocalization';
+import JobSummary from './JobDetailsScreens/summary';
 
 // Types et interfaces
 interface JobDetailsProps {
@@ -294,17 +294,22 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
         }
     }, [jobDetails]);
     
-    const [jobPanel, setJobPanel] = useState(0);
-    // jobPanel: 0 - Summary, 1 - Job Details, 2 - Client, 3 - Notes, 4 - Payment
+    const [jobPanel, setJobPanel] = useState('summary');
+    // jobPanel: 'summary', 'job', 'client', 'notes', 'payment'
+
+    // Handler pour TabMenu
+    const handleTabPress = (tabId: string) => {
+        setJobPanel(tabId);
+    };
 
     // Titres des panneaux
     const getPanelTitle = () => {
         switch (jobPanel) {
-            case 0: return t('jobDetails.panels.summary');
-            case 1: return t('jobDetails.panels.jobDetails');
-            case 2: return t('jobDetails.panels.clientInfo');
-            case 3: return t('jobDetails.panels.notes');
-            case 4: return t('jobDetails.panels.payment');
+            case 'summary': return t('jobDetails.panels.summary');
+            case 'job': return t('jobDetails.panels.jobDetails');
+            case 'client': return t('jobDetails.panels.clientInfo');
+            case 'notes': return t('jobDetails.panels.notes');
+            case 'payment': return t('jobDetails.panels.payment');
             default: return t('jobDetails.panels.jobDetails');
         }
     };
@@ -367,16 +372,16 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
                     paddingHorizontal: DESIGN_TOKENS.spacing.lg,
                 }}
             >
-                {jobPanel === 0 && <JobSummary job={job} setJob={setJob} />}
-                {jobPanel === 1 && <JobPage job={job} setJob={setJob} />}
-                {jobPanel === 2 && <JobClient job={job} setJob={setJob} />}
-                {jobPanel === 3 && (
+                {jobPanel === 'summary' && <JobSummary job={job} setJob={setJob} />}
+                {jobPanel === 'job' && <JobPage job={job} setJob={setJob} />}
+                {jobPanel === 'client' && <JobClient job={job} setJob={setJob} />}
+                {jobPanel === 'notes' && (
                     <JobNote 
                         job={job} 
                         setJob={setJob}
                     />
                 )}
-                {jobPanel === 4 && <PaymentScreen job={job} setJob={setJob} />}
+                {jobPanel === 'payment' && <PaymentScreen job={job} setJob={setJob} />}
             </ScrollView>
             
             {/* Job Menu fixé en bas */}
@@ -385,13 +390,16 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
                 bottom: 0,
                 left: 0,
                 right: 0,
-                paddingBottom: insets.bottom,
                 backgroundColor: colors.backgroundSecondary,
                 borderTopWidth: 1,
                 borderTopColor: colors.border,
                 zIndex: 10,
             }}>
-                <JobMenu jobPanel={jobPanel} setJobPanel={setJobPanel} />
+                <TabMenu
+                    activeTab={jobPanel}
+                    onTabPress={handleTabPress}
+                    page="jobDetails"
+                />
             </View>
             
             {/* Toast au-dessus de tout */}

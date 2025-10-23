@@ -3,28 +3,27 @@
  */
 
 import React, { useState } from 'react';
-import { View, Alert, StyleSheet, Text } from 'react-native';
-import { useTheme } from '../../context/ThemeProvider';
-import { DESIGN_TOKENS } from '../../constants/Styles';
-import SigningBloc from '../../components/signingBloc';
-import JobProgressSection from '../../components/jobDetails/sections/JobProgressSection';
-import SignatureSection from '../../components/jobDetails/sections/SignatureSection';
-import ClientDetailsSection from '../../components/jobDetails/sections/ClientDetailsSection';
-import ContactDetailsSection from '../../components/jobDetails/sections/ContactDetailsSection';
-import AddressesSection from '../../components/jobDetails/sections/AddressesSection';
-import TimeWindowsSection from '../../components/jobDetails/sections/TimeWindowsSection';
-import TruckDetailsSection from '../../components/jobDetails/sections/TruckDetailsSection';
-import QuickActionsSection from '../../components/jobDetails/sections/QuickActionsSection';
-import PhotoSelectionModal from '../../components/jobDetails/modals/PhotoSelectionModal';
+import { StyleSheet, View } from 'react-native';
+import LanguageButton from '../../components/calendar/LanguageButton';
+import JobClock from '../../components/jobDetails/JobClock';
 import ImprovedNoteModal from '../../components/jobDetails/modals/ImprovedNoteModal';
 import JobStepAdvanceModal from '../../components/jobDetails/modals/JobStepAdvanceModal';
-import JobClock from '../../components/jobDetails/JobClock';
-import { useJobNotes } from '../../hooks/useJobNotes';
-import { useLocalization } from '../../localization/useLocalization';
-import { useJobPhotos } from '../../hooks/useJobPhotos';
+import PhotoSelectionModal from '../../components/jobDetails/modals/PhotoSelectionModal';
+import AddressesSection from '../../components/jobDetails/sections/AddressesSection';
+import ClientDetailsSection from '../../components/jobDetails/sections/ClientDetailsSection';
+import ContactDetailsSection from '../../components/jobDetails/sections/ContactDetailsSection';
+import JobProgressSection from '../../components/jobDetails/sections/JobProgressSection';
+import QuickActionsSection from '../../components/jobDetails/sections/QuickActionsSection';
+import TimeWindowsSection from '../../components/jobDetails/sections/TimeWindowsSection';
+import TruckDetailsSection from '../../components/jobDetails/sections/TruckDetailsSection';
+import SigningBloc from '../../components/signingBloc';
+import { DESIGN_TOKENS } from '../../constants/Styles';
+import { useTheme } from '../../context/ThemeProvider';
 import { useToast } from '../../context/ToastProvider';
+import { useJobNotes } from '../../hooks/useJobNotes';
+import { useJobPhotos } from '../../hooks/useJobPhotos';
+import { useLocalization } from '../../localization/useLocalization';
 import { updateJobStep } from '../../services/jobSteps';
-import LanguageButton from '../../components/calendar/LanguageButton';
 
 const JobSummary = ({ job, setJob } : { job: any, setJob: React.Dispatch<React.SetStateAction<any>> }) => {
     const [isSigningVisible, setIsSigningVisible] = useState(false);
@@ -44,10 +43,14 @@ const JobSummary = ({ job, setJob } : { job: any, setJob: React.Dispatch<React.S
         setIsSigningVisible(true);
     };
 
-    // Gestion des notes avec API
-    const handleAddNote = async (content: string, type: 'general' | 'important' | 'client' | 'internal' = 'general') => {
+    // Gestion des notes avec API - nouvelle structure
+    const handleAddNote = async (content: string, note_type: 'general' | 'important' | 'client' | 'internal' = 'general', title?: string) => {
         try {
-            const result = await addNote({ content, type });
+            const result = await addNote({ 
+                title: title || `Note du ${new Date().toLocaleDateString()}`,
+                content, 
+                note_type 
+            });
             if (result) {
                 showSuccess(t('jobDetails.messages.noteAdded'), t('jobDetails.messages.noteAddedSuccess'));
                 return Promise.resolve();

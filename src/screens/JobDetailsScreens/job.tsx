@@ -2,15 +2,17 @@
  * Job Page - Affichage des dÃ©tails du travail, items Ã  checker, contacts
  * Conforme aux normes mobiles iOS/Android - Touch targets â‰¥44pt, 8pt grid
  */
-import React, { useState, useEffect } from 'react';
-import { View, Text, Switch, Pressable, TextInput, Alert, Modal, ActivityIndicator } from 'react-native';
-import { VStack, HStack } from '../../components/primitives/Stack';
+import Ionicons from '@react-native-vector-icons/ionicons';
+import React, { useState } from 'react';
+import { ActivityIndicator, Alert, Modal, Pressable, Switch, Text, TextInput, View } from 'react-native';
+import { JobPhotosSection } from '../../components/jobDetails/sections/JobPhotosSection';
+import JobTimeSection from '../../components/jobDetails/sections/JobTimeSection';
+import { HStack, VStack } from '../../components/primitives/Stack';
 import { Card } from '../../components/ui/Card';
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 import contactLink from '../../services/contactLink';
-import { addJobItem, updateJobItem, getJobWithItems } from '../../services/jobs';
-import JobTimeSection from '../../components/jobDetails/sections/JobTimeSection';
+import { addJobItem, updateJobItem } from '../../services/jobs';
 
 // Fonction pour extraire l'ID numérique depuis un ID job de format JOB-NERD-URGENT-006
 const extractNumericJobId = (jobId: string): string => {
@@ -30,7 +32,6 @@ const extractNumericJobId = (jobId: string): string => {
     console.warn(`[extractNumericJobId] Could not extract numeric ID from: ${jobId}`);
     return jobId; // Fallback
 };
-import Ionicons from '@react-native-vector-icons/ionicons';
 
 
 interface JobPageProps {
@@ -782,6 +783,9 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
                         </Pressable>
                     </VStack>
                 </Card>
+
+                {/* Photos Section */}
+                <JobPhotosSection jobId={extractNumericJobId(job.id)} />
 
                 {/* Job Information */}
                 <Card style={{ padding: DESIGN_TOKENS.spacing.lg }}>
