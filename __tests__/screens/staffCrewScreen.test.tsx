@@ -4,9 +4,11 @@
 import { act, fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
 import { Alert } from 'react-native';
-import { ThemeProvider } from '../../../src/context/ThemeProvider';
 import StaffCrewScreen from '../../../src/screens/business/staffCrewScreen';
 import { Contractor, Employee } from '../../../src/types/staff';
+
+// Simple wrapper to replace ThemeProvider in tests
+const ThemeProvider = ({ children }: { children: React.ReactNode }) => <>{children}</>;
 
 // Mock des dépendances
 jest.mock('react-native', () => {
@@ -18,26 +20,6 @@ jest.mock('react-native', () => {
     },
   };
 });
-
-jest.mock('../../../src/context/ThemeProvider', () => ({
-  useTheme: () => ({
-    colors: {
-      background: '#FFFFFF',
-      text: '#000000',
-      textSecondary: '#666666',
-      primary: '#007AFF',
-      backgroundSecondary: '#F2F2F7',
-      border: '#E5E5EA',
-    },
-  }),
-  ThemeProvider: ({ children }: { children: React.ReactNode }) => children,
-}));
-
-jest.mock('../../../src/localization/useLocalization', () => ({
-  useLocalization: () => ({
-    t: (key: string) => key,
-  }),
-}));
 
 jest.mock('../../../src/constants/Styles', () => ({
   DESIGN_TOKENS: {

@@ -15,6 +15,7 @@ module.exports = {
     '^@utils/(.*)$': '<rootDir>/src/utils/$1',
     'expo-secure-store': '<rootDir>/__mocks__/expo-secure-store.js',
   },
+  moduleDirectories: ['node_modules', 'src'],
   transformIgnorePatterns: [
     'node_modules/(?!(expo|expo-.*|@expo|@expo-.*|react-native|@react-native|@react-native-.*|@unimodules|unimodules|sentry-expo|native-base|react-native-svg)/)',
   ],
