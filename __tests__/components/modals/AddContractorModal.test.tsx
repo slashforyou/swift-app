@@ -8,16 +8,8 @@ import AddContractorModal from '../../../src/components/business/modals/AddContr
 import { ThemeProvider } from '../../../src/context/ThemeProvider';
 import { Contractor } from '../../../src/types/staff';
 
-// Mock des dépendances
-jest.mock('react-native', () => {
-  const RN = jest.requireActual('react-native');
-  return {
-    ...RN,
-    Alert: {
-      alert: jest.fn(),
-    },
-  };
-});
+// Mock Alert
+jest.spyOn(Alert, 'alert');
 
 jest.mock('../../../src/context/ThemeProvider', () => ({
   useTheme: () => ({

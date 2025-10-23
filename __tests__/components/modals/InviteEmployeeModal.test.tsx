@@ -7,16 +7,8 @@ import { Alert } from 'react-native';
 import InviteEmployeeModal from '../../../src/components/business/modals/InviteEmployeeModal';
 import { ThemeProvider } from '../../../src/context/ThemeProvider';
 
-// Mock des dépendances
-jest.mock('react-native', () => {
-  const RN = jest.requireActual('react-native');
-  return {
-    ...RN,
-    Alert: {
-      alert: jest.fn(),
-    },
-  };
-});
+// Mock Alert
+jest.spyOn(Alert, 'alert');
 
 jest.mock('../../../src/context/ThemeProvider', () => ({
   useTheme: () => ({
