@@ -59,6 +59,40 @@ jest.mock('./src/localization/useLocalization', () => ({
   }),
 }), { virtual: true });
 
+// Mock Styles constants
+jest.mock('./src/constants/Styles', () => ({
+  commonStyles: {
+    container: { flex: 1 },
+    centered: { alignItems: 'center', justifyContent: 'center' },
+  },
+  DESIGN_TOKENS: {
+    spacing: { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32, xxxl: 40 },
+    typography: {
+      title: { fontSize: 20, lineHeight: 26, fontWeight: '600' },
+      subtitle: { fontSize: 17, lineHeight: 22, fontWeight: '500' },
+      body: { fontSize: 15, lineHeight: 20, fontWeight: '400' },
+      caption: { fontSize: 13, lineHeight: 18, fontWeight: '400' },
+    },
+    radius: { sm: 8, md: 12, lg: 16 },
+  },
+  useCommonThemedStyles: () => ({
+    container: { flex: 1 },
+  }),
+}), { virtual: true });
+
+// Mock useStaff hook
+jest.mock('./src/hooks/useStaff', () => ({
+  useStaff: () => ({
+    employees: [],
+    contractors: [],
+    inviteEmployee: jest.fn(),
+    searchContractor: jest.fn(),
+    addContractor: jest.fn(),
+    isLoading: false,
+    error: null,
+  }),
+}), { virtual: true });
+
 // Mock console methods for cleaner test output
 const originalConsole = { ...console };
 global.console = {
