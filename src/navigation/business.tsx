@@ -1,165 +1,146 @@
-import React from 'react'
-import { NavigationIndependentTree } from '@react-navigation/native'
-import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import { View, ActivityIndicator, Text, TouchableOpacity, StyleSheet } from 'react-native'
-import { NativeStackNavigationProp } from '@react-navigation/native-stack'
-
-// Components
-import { BusinessInfoScreen, StaffCrewScreen, TrucksScreen, JobsBillingScreen } from '../screens/business'
-import LoadingDots from '../components/ui/LoadingDots'
-
-// Hooks & Utils
-import { useAuthGuard } from '../hooks/useSession'
-import { useCommonThemedStyles } from '../constants/Styles'
-import { useTheme } from '../context/ThemeProvider'
-import { useAuthCheck } from '../utils/checkAuth'
-import { Colors } from '../constants/Colors'
-import { useLocalization } from '../localization/useLocalization'
-
-// Types
-type RootStackParamList = {
-  Connection: undefined;
-  Business: undefined;
-}
-
-type BusinessStackParamList = {
-  BusinessInfo: undefined;
-  StaffCrew: undefined;
-  Trucks: undefined;
-  JobsBilling: undefined;
-}
-
-interface BusinessNavigationProps {
-  navigation: NativeStackNavigationProp<RootStackParamList>;
-}
-
-const BusinessStack = createNativeStackNavigator<BusinessStackParamList>()
-
 /**
- * Business Navigation Component
- * Manages business stack navigation with authentication and data loading
+ * Business - Écran principal de gestion business
+ * Architecture identique à JobDetails avec système de tabs internes
  */
-export default function BusinessNavigation({ navigation }: BusinessNavigationProps) {
-  const { t } = useLocalization();
-  
-  // Authentication check with loading UI
-  const authCheck = useAuthCheck(navigation, t('business.navigation.loadingBusiness'))
+import React, { useState } from 'react';
+import { ScrollView, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BusinessTabMenu } from '../components/business';
+import BusinessHeader from '../components/business/BusinessHeader';
+import LanguageButton from '../components/calendar/LanguageButton';
+import Toast from '../components/ui/toastNotification';
+import { DESIGN_TOKENS } from '../constants/Styles';
+import { useTheme } from '../context/ThemeProvider';
+import { useLocalization } from '../localization/useLocalization';
+import { JobsBillingScreen, StaffCrewScreen, TrucksScreen } from '../screens/business';
+import BusinessInfoPage from '../screens/business/BusinessInfoPage';
+import { useAuthCheck } from '../utils/checkAuth';
 
-  // Get themed styles and colors
-  const commonStyles = useCommonThemedStyles()
-  const { colors } = useTheme()
-  
-  // Combine common styles with custom navigation styles
-  const customStyles = StyleSheet.create({
-    loadingOverlay: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      backgroundColor: colors.overlayDark,
-      padding: 12,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 1000,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border,
-    },
-    errorBanner: {
-      ...commonStyles.statusError,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      borderLeftWidth: 4,
-      borderLeftColor: colors.error,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border,
-      borderRadius: 0, // Override border radius for banner
-    },
-    bannerContent: {
-      flex: 1,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-    },
-    bannerButton: {
-      ...commonStyles.buttonSecondary,
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      marginRight: 8,
-    },
-    dismissButton: {
-      ...commonStyles.buttonIcon,
-      backgroundColor: colors.errorLight,
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-    },
-  })
-
-  // Show loading screen while checking authentication
-  if (authCheck.isLoading) {
-    return authCheck.LoadingComponent;
-  }
-
-  // Show authentication error
-  if (authCheck.error) {
-    return (
-      <View style={commonStyles.containerCentered}>
-        <Text style={[commonStyles.h3, { color: colors.error, textAlign: 'center' }]}>{t('business.navigation.authenticationError')}: {authCheck.error}</Text>
-        <TouchableOpacity style={[commonStyles.buttonPrimary, commonStyles.marginTop]} onPress={() => navigation.navigate('Connection' as any)}>
-          <Text style={commonStyles.buttonPrimaryText}>{t('business.navigation.goToLogin')}</Text>
-        </TouchableOpacity>
-      </View>
-    )
-  }
-
-  // Don't render if not authenticated (useAuthGuard will handle redirect)
-  if (!authCheck.isAuthenticated) {
-    return null
-  }
-
-  return (
-    <View style={commonStyles.container}>
-      <NavigationIndependentTree>
-        <BusinessStack.Navigator 
-          initialRouteName="BusinessInfo" 
-          screenOptions={{ 
-            headerShown: false,
-            animation: 'slide_from_right',
-            gestureEnabled: true,
-          }}
-        >
-          <BusinessStack.Screen 
-            name="BusinessInfo" 
-            component={BusinessInfoScreen}
-            options={{
-              title: t('business.navigation.businessInfo'),
-            }}
-          />
-          <BusinessStack.Screen 
-            name="StaffCrew" 
-            component={StaffCrewScreen}
-            options={{
-              title: t('business.navigation.staffCrew'),
-            }}
-          />
-          <BusinessStack.Screen 
-            name="Trucks" 
-            component={TrucksScreen}
-            options={{
-              title: t('business.navigation.trucks'),
-            }}
-          />
-          <BusinessStack.Screen 
-            name="JobsBilling" 
-            component={JobsBillingScreen}
-            options={{
-              title: t('business.navigation.jobsBilling'),
-            }}
-          />
-        </BusinessStack.Navigator>
-      </NavigationIndependentTree>
-    </View>
-  )
+// Types et interfaces
+interface BusinessProps {
+    route?: any;
+    navigation: any;
 }
+
+interface ToastState {
+    message: string;
+    type: 'info' | 'success' | 'error';
+    status: boolean;
+}
+
+// Hook personnalisé pour les toasts
+const useToast = () => {
+    const [toastDetails, setToastDetails] = useState<ToastState>({
+        message: '',
+        type: 'info',
+        status: false,
+    });
+
+    const showToast = (message: string, type: 'info' | 'success' | 'error') => {
+        setToastDetails({ message, type, status: true });
+        setTimeout(() => {
+            setToastDetails({ message: '', type: 'info', status: false });
+        }, 3000);
+    };
+
+    return { toastDetails, showToast };
+};
+
+const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
+    const insets = useSafeAreaInsets();
+    const { toastDetails, showToast } = useToast();
+    const { isLoading: authLoading, LoadingComponent } = useAuthCheck(navigation);
+    const { colors } = useTheme();
+    const { t } = useLocalization();
+    
+    const [businessPanel, setBusinessPanel] = useState('BusinessInfo');
+    // businessPanel: 'BusinessInfo', 'StaffCrew', 'Trucks', 'JobsBilling'
+
+    // Handler pour TabMenu
+    const handleTabPress = (tabId: string) => {
+        setBusinessPanel(tabId);
+    };
+
+    // Titres des panneaux
+    const getPanelTitle = () => {
+        switch (businessPanel) {
+            case 'BusinessInfo': return t('business.navigation.businessInfo');
+            case 'StaffCrew': return t('business.navigation.staffCrew');
+            case 'Trucks': return t('business.navigation.trucks');
+            case 'JobsBilling': return t('business.navigation.jobsBilling');
+            default: return t('business.navigation.businessInfo');
+        }
+    };
+
+    // Gestion des états de chargement
+    if (authLoading) {
+        return LoadingComponent;
+    }
+
+    return (
+        <View style={{
+            backgroundColor: colors.background,
+            width: '100%',
+            height: '100%',
+            flex: 1,
+        }}>
+            {/* Header Business avec navigation et langue */}
+            <BusinessHeader
+                title={getPanelTitle()}
+                rightComponent={<LanguageButton />}
+                navigation={navigation}
+            />
+            
+            {/* ScrollView principal */}
+            <ScrollView
+                style={{ flex: 1 }}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{
+                    paddingTop: DESIGN_TOKENS.spacing.lg,
+                    paddingBottom: 60 + insets.bottom + DESIGN_TOKENS.spacing.lg, // BusinessTabMenu + Safe area + espacement
+                    paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+                }}
+            >
+                {businessPanel === 'BusinessInfo' && <BusinessInfoPage />}
+                {businessPanel === 'StaffCrew' && <StaffCrewScreen />}
+                {businessPanel === 'Trucks' && <TrucksScreen />}
+                {businessPanel === 'JobsBilling' && <JobsBillingScreen />}
+            </ScrollView>
+            
+            {/* Business Tab Menu fixé en bas */}
+            <View style={{ 
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                backgroundColor: colors.backgroundSecondary,
+                borderTopWidth: 1,
+                borderTopColor: colors.border,
+                zIndex: 10,
+            }}>
+                <BusinessTabMenu
+                    activeTab={businessPanel}
+                    onTabPress={handleTabPress}
+                />
+            </View>
+            
+            {/* Toast au-dessus de tout */}
+            <View style={{
+                position: 'absolute',
+                top: 100, // Position fixe sous le header
+                left: DESIGN_TOKENS.spacing.lg,
+                right: DESIGN_TOKENS.spacing.lg,
+                zIndex: 20,
+                pointerEvents: 'none',
+            }}>
+                <Toast 
+                    message={toastDetails.message} 
+                    type={toastDetails.type} 
+                    status={toastDetails.status} 
+                />
+            </View>
+        </View>
+    );
+};
+
+export default Business;

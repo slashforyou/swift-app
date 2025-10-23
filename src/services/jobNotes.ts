@@ -1,39 +1,46 @@
 // services/jobNotes.ts
-import { getAuthHeaders } from '../utils/auth';
 import { ServerData } from '../constants/ServerData';
+import { getAuthHeaders } from '../utils/auth';
 
 const API = ServerData.serverUrl;
 
 export interface JobNoteAPI {
   id: string;
-  jobId: string;
+  job_id: string;
+  title: string;
   content: string;
-  type?: 'general' | 'important' | 'client' | 'internal';
-  author?: {
-    id: string;
-    name: string;
-  };
-  createdAt: string;
-  updatedAt: string;
+  note_type: 'general' | 'important' | 'client' | 'internal';
+  created_by: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface CreateJobNoteRequest {
+  title: string;
   content: string;
-  type?: JobNoteAPI['type'];
+  note_type?: JobNoteAPI['note_type'];
+  created_by?: string;
 }
 
 export interface UpdateJobNoteRequest {
+  title?: string;
   content?: string;
-  type?: JobNoteAPI['type'];
 }
 
 /**
  * Récupère toutes les notes d'un job
+ * Route: GET /swift-app/v1/job/:jobId/notes
  */
-export async function fetchJobNotes(jobId: string): Promise<JobNoteAPI[]> {
+export async function fetchJobNotes(jobId: string, limit?: number, offset?: number): Promise<JobNoteAPI[]> {
   const headers = await getAuthHeaders();
   
-  const res = await fetch(`${API}v1/job/${jobId}/notes`, {
+  // Construire les query params si fournis
+  const queryParams = new URLSearchParams();
+  if (limit !== undefined) queryParams.append('limit', limit.toString());
+  if (offset !== undefined) queryParams.append('offset', offset.toString());
+  const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
+  
+  const res = await fetch(`${API}v1/job/${jobId}/notes${queryString}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -51,12 +58,13 @@ export async function fetchJobNotes(jobId: string): Promise<JobNoteAPI[]> {
 }
 
 /**
- * Récupère une note spécifique d'un job
+ * Récupère une note spécifique par son ID
+ * Route: GET /swift-app/v1/notes/:id
  */
-export async function fetchJobNoteById(jobId: string, noteId: string): Promise<JobNoteAPI> {
+export async function fetchJobNoteById(noteId: string): Promise<JobNoteAPI> {
   const headers = await getAuthHeaders();
   
-  const res = await fetch(`${API}v1/job/${jobId}/notes/${noteId}`, {
+  const res = await fetch(`${API}v1/notes/${noteId}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -75,9 +83,19 @@ export async function fetchJobNoteById(jobId: string, noteId: string): Promise<J
 
 /**
  * Ajoute une note à un job
+ * Route: POST /swift-app/v1/job/:jobId/notes
+ * Payload: { title, content, note_type, created_by }
  */
 export async function addJobNote(jobId: string, noteData: CreateJobNoteRequest): Promise<JobNoteAPI> {
   const headers = await getAuthHeaders();
+  
+  // Préparer le payload selon l'API
+  const payload = {
+    title: noteData.title,
+    content: noteData.content,
+    note_type: noteData.note_type || 'general',
+    created_by: noteData.created_by // Sera fourni par l'app
+  };
   
   const res = await fetch(`${API}v1/job/${jobId}/notes`, {
     method: 'POST',
@@ -85,7 +103,7 @@ export async function addJobNote(jobId: string, noteData: CreateJobNoteRequest):
       'Content-Type': 'application/json',
       ...headers,
     },
-    body: JSON.stringify(noteData),
+    body: JSON.stringify(payload),
   });
 
   if (!res.ok) {
@@ -99,11 +117,13 @@ export async function addJobNote(jobId: string, noteData: CreateJobNoteRequest):
 
 /**
  * Met à jour une note de job
+ * Route: PATCH /swift-app/v1/notes/:id
+ * Payload: { title, content }
  */
-export async function updateJobNote(jobId: string, noteId: string, noteData: UpdateJobNoteRequest): Promise<JobNoteAPI> {
+export async function updateJobNote(noteId: string, noteData: UpdateJobNoteRequest): Promise<JobNoteAPI> {
   const headers = await getAuthHeaders();
   
-  const res = await fetch(`${API}v1/job/${jobId}/notes/${noteId}`, {
+  const res = await fetch(`${API}v1/notes/${noteId}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
@@ -123,6 +143,7 @@ export async function updateJobNote(jobId: string, noteId: string, noteData: Upd
 
 /**
  * Supprime une note de job
+ * Route: DELETE /swift-app/v1/job/:jobId/notes/:noteId
  */
 export async function deleteJobNote(jobId: string, noteId: string): Promise<void> {
   const headers = await getAuthHeaders();
@@ -141,26 +162,3 @@ export async function deleteJobNote(jobId: string, noteId: string): Promise<void
   }
 }
 
-/**
- * Crée une note autonome (pas liée à un job spécifique)
- */
-export async function createStandaloneNote(noteData: CreateJobNoteRequest): Promise<JobNoteAPI> {
-  const headers = await getAuthHeaders();
-  
-  const res = await fetch(`${API}v1/note`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...headers,
-    },
-    body: JSON.stringify(noteData),
-  });
-
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({ message: 'Failed to create note' }));
-    throw new Error(error.message || `HTTP ${res.status}: Failed to create note`);
-  }
-
-  const data = await res.json();
-  return data.note || data;
-}

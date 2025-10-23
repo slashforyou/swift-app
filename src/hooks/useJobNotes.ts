@@ -1,8 +1,9 @@
 // hooks/useJobNotes.ts
-import { useState, useEffect, useCallback } from 'react';
-import { fetchJobNotes, JobNoteAPI, addJobNote, CreateJobNoteRequest } from '../services/jobNotes';
-import { isLoggedIn } from '../utils/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useCallback, useEffect, useState } from 'react';
+import { addJobNote, CreateJobNoteRequest, deleteJobNote, fetchJobNotes, JobNoteAPI, updateJobNote, UpdateJobNoteRequest } from '../services/jobNotes';
+import { isLoggedIn } from '../utils/auth';
+import { useUserProfile } from './useUserProfile';
 
 // Fonctions utilitaires pour le stockage local temporaire
 const getLocalNotesKey = (jobId: string) => `notes_${jobId}`;
@@ -33,6 +34,8 @@ interface UseJobNotesReturn {
   error: string | null;
   refetch: () => Promise<void>;
   addNote: (noteData: CreateJobNoteRequest) => Promise<JobNoteAPI | null>;
+  updateNote: (noteId: string, noteData: UpdateJobNoteRequest) => Promise<JobNoteAPI | null>;
+  deleteNote: (noteId: string) => Promise<boolean>;
   totalNotes: number;
 }
 
@@ -40,6 +43,7 @@ export const useJobNotes = (jobId: string): UseJobNotesReturn => {
   const [notes, setNotes] = useState<JobNoteAPI[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { profile } = useUserProfile();
 
   const fetchNotes = useCallback(async () => {
     if (!jobId) {
@@ -99,11 +103,17 @@ export const useJobNotes = (jobId: string): UseJobNotesReturn => {
   }, [fetchNotes]);
 
   const addNote = useCallback(async (noteData: CreateJobNoteRequest): Promise<JobNoteAPI | null> => {
-    if (!jobId) return null;
+    if (!jobId || !profile) return null;
 
     try {
+      // Préparer les données avec l'utilisateur actuel
+      const noteWithUser: CreateJobNoteRequest = {
+        ...noteData,
+        created_by: profile.id
+      };
+
       // Essayer d'abord l'API
-      const newNote = await addJobNote(jobId, noteData);
+      const newNote = await addJobNote(jobId, noteWithUser);
       
       // Ajouter la nouvelle note à la liste locale
       setNotes(prevNotes => [newNote, ...prevNotes]);
@@ -120,15 +130,13 @@ export const useJobNotes = (jobId: string): UseJobNotesReturn => {
         // Créer une note locale temporaire
         const localNote: JobNoteAPI = {
           id: `local-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          jobId,
+          job_id: jobId,
+          title: noteData.title,
           content: noteData.content,
-          type: noteData.type || 'general',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          author: {
-            id: 'current-user',
-            name: 'Vous'
-          }
+          note_type: noteData.note_type || 'general',
+          created_by: profile.id,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         };
         
         // Ajouter à la liste locale
@@ -144,7 +152,43 @@ export const useJobNotes = (jobId: string): UseJobNotesReturn => {
         return null;
       }
     }
-  }, [jobId, notes]);
+  }, [jobId, notes, profile]);
+
+  const updateNote = useCallback(async (noteId: string, noteData: UpdateJobNoteRequest): Promise<JobNoteAPI | null> => {
+    try {
+      const updatedNote = await updateJobNote(noteId, noteData);
+      
+      // Mettre à jour la note dans la liste locale
+      setNotes(prevNotes => 
+        prevNotes.map(note => note.id === noteId ? updatedNote : note)
+      );
+      
+      return updatedNote;
+    } catch (err) {
+      console.error('Error updating job note:', err);
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      setError(`Erreur lors de la mise à jour de la note: ${errorMessage}`);
+      return null;
+    }
+  }, []);
+
+  const deleteNote = useCallback(async (noteId: string): Promise<boolean> => {
+    if (!jobId) return false;
+
+    try {
+      await deleteJobNote(jobId, noteId);
+      
+      // Supprimer la note de la liste locale
+      setNotes(prevNotes => prevNotes.filter(note => note.id !== noteId));
+      
+      return true;
+    } catch (err) {
+      console.error('Error deleting job note:', err);
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      setError(`Erreur lors de la suppression de la note: ${errorMessage}`);
+      return false;
+    }
+  }, [jobId]);
 
   useEffect(() => {
     fetchNotes();
@@ -159,6 +203,8 @@ export const useJobNotes = (jobId: string): UseJobNotesReturn => {
     error,
     refetch,
     addNote,
+    updateNote,
+    deleteNote,
     totalNotes,
   };
 };
