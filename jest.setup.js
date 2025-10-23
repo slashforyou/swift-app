@@ -83,13 +83,24 @@ jest.mock('./src/constants/Styles', () => ({
 // Mock useStaff hook
 jest.mock('./src/hooks/useStaff', () => ({
   useStaff: () => ({
+    staff: [],
     employees: [],
     contractors: [],
     inviteEmployee: jest.fn(),
     searchContractor: jest.fn(),
     addContractor: jest.fn(),
+    updateEmployee: jest.fn(),
+    updateContractor: jest.fn(),
+    deleteEmployee: jest.fn(),
+    deleteContractor: jest.fn(),
+    refreshStaff: jest.fn(),
     isLoading: false,
     error: null,
+    totalActive: 0,
+    totalEmployees: 0,
+    totalContractors: 0,
+    totalTeams: 0,
+    averageEmployeeRate: 0,
   }),
 }), { virtual: true });
 
@@ -103,6 +114,14 @@ jest.mock('./src/components/business/modals/InviteEmployeeModal', () => ({
 }), { virtual: true });
 
 jest.mock('./src/components/business/modals/AddContractorModal', () => ({
+  __esModule: true,
+  default: ({ visible, onClose, onSubmit }) => {
+    if (!visible) return null;
+    return null;
+  },
+}), { virtual: true });
+
+jest.mock('./src/components/modals/AddStaffModal', () => ({
   __esModule: true,
   default: ({ visible, onClose, onSubmit }) => {
     if (!visible) return null;
