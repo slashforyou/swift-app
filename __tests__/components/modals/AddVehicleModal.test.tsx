@@ -431,14 +431,14 @@ describe('AddVehicleModal', () => {
       fireEvent.changeText(getByPlaceholderText('Ex: NPR 200'), 'NPR 200')
       fireEvent.changeText(getByPlaceholderText('2024'), '2022')
       fireEvent.changeText(getByPlaceholderText('ABC-123'), 'ABC-123')
-      fireEvent.changeText(getByPlaceholderText('e.g., 3.5 tonnes'), '3.5 tonnes')
+      fireEvent.changeText(getByPlaceholderText('Ex: 3.5 tonnes ou 8 cubic meters'), '3.5 tonnes')
       fireEvent.changeText(getByPlaceholderText('YYYY-MM-DD'), '2026-12-15')
 
       // Sélectionner location
       fireEvent.press(getByText('Sydney Depot'))
 
       // Soumettre
-      const addButton = getByText('Add Vehicle')
+      const addButton = getByText('Ajouter un véhicule')
       fireEvent.press(addButton)
 
       await waitFor(() => {
@@ -606,9 +606,10 @@ describe('AddVehicleModal', () => {
         />
       )
 
-      expect(getByText(/Large moving trucks/i)).toBeTruthy()
-      expect(getByText(/Medium-sized vans/i)).toBeTruthy()
-      expect(getByText(/Trailers and attachments/i)).toBeTruthy()
+      // Test with actual descriptions from the modal
+      expect(getByText(/Large capacity truck for residential moves/i)).toBeTruthy()
+      expect(getByText(/Medium size for smaller jobs and deliveries/i)).toBeTruthy()
+      expect(getByText(/Additional capacity for large moves/i)).toBeTruthy()
     })
 
     it('should display step indicator showing current step', () => {

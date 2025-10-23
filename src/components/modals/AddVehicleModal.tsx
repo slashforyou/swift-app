@@ -242,6 +242,7 @@ export default function AddVehicleModal({
   const renderStepDetails = () => (
     <View style={styles.stepContainer}>
       <Pressable
+        testID="back-button"
         style={styles.backButton}
         onPress={() => setStep('type')}
       >
@@ -422,7 +423,7 @@ export default function AddVehicleModal({
           <Text style={[styles.modalTitle, { color: colors.text }]}>
             Ajouter un véhicule
           </Text>
-          <Pressable onPress={handleClose}>
+          <Pressable testID="close-button" onPress={handleClose}>
             <Ionicons name="close" size={28} color={colors.text} />
           </Pressable>
         </View>
