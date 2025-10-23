@@ -28,15 +28,93 @@ Cette documentation présente l'ensemble des endpoints API du serveur Swift App 
 - **TypeScript** : Interfaces complètes pour toutes les entités
 - **Status** : 🟢 **DÉPLOYÉ** - Services prêts, intégration en cours
 
-### 🔄 **PHASE 3 - INTÉGRATION COMPLÈTE** (EN COURS)
-- **Écrans à connecter** : `jobDetails.tsx`, `timeline.tsx`, écrans calendrier
-- **Médias** : Photos, signatures (endpoints disponibles)
-- **Status** : 🟡 **EN DÉVELOPPEMENT** - Foundation posée
+### ✅ **PHASE 3 - SYSTÈME PHOTOS** (COMPLÈTE)
+- **Service API** : `src/services/jobPhotos.ts` - 10 endpoints photos/images
+- **Hook React** : `src/hooks/useJobPhotos.ts` - Upload, CRUD, cache local
+- **Interface UI** : `JobPhotosSection.tsx` - Affichage, édition, suppression
+- **Intégration** : `job.tsx` - Section photos dans JobDetailsScreen
+- **Status** : 🟢 **FONCTIONNEL** - Système photos complet avec fallback local
+
+### 🔄 **PHASE 4 - INTÉGRATION COMPLÈTE** (EN COURS)
+- **Écrans à connecter** : `timeline.tsx`, écrans calendrier avancés
+- **Médias restants** : Signatures (endpoints disponibles)
+- **Status** : 🟡 **EN DÉVELOPPEMENT** - Photos terminées, reste signatures
 
 ### 📋 **COUVERTURE ACTUELLE**
-- **Implémentés** : 26/61 endpoints (43% - Core Business)
-- **Testés** : Authentification + Services base
-- **Prêts** : 35 endpoints supplémentaires disponibles
+- **Implémentés** : 36/61 endpoints (59% - Core Business + Photos)
+- **Testés** : Authentification, Services base, Photos
+- **Prêts** : 25 endpoints supplémentaires disponibles
+
+### 📸 **SYSTÈME PHOTOS - IMPLÉMENTATION COMPLÈTE**
+
+**Architecture complète pour la gestion des photos de jobs :**
+
+#### **1. Service API (`src/services/jobPhotos.ts`)**
+```typescript
+// Interface principale
+interface JobPhotoAPI {
+  id: string;
+  job_id: string; 
+  user_id: string;
+  filename: string;
+  original_name: string;
+  description: string;
+  file_size: number;
+  mime_type: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Fonctions disponibles
+fetchJobPhotos(jobId: string): Promise<JobPhotoAPI[]>
+uploadJobPhoto(jobId: string, photoUri: string, description?: string): Promise<JobPhotoAPI>
+uploadJobPhotos(jobId: string, photoUris: string[], descriptions?: string[]): Promise<JobPhotoAPI[]>
+updatePhotoDescription(photoId: string, description: string): Promise<JobPhotoAPI>
+deletePhoto(photoId: string): Promise<void>
+getPhotoServeUrl(photoId: string): Promise<string>
+```
+
+#### **2. Hook React (`src/hooks/useJobPhotos.ts`)**
+```typescript
+const {
+  photos,           // JobPhotoAPI[] - Liste des photos
+  isLoading,        // boolean - État de chargement
+  error,            // string | null - Gestion d'erreurs
+  refetch,          // () => Promise<void> - Recharger
+  uploadPhoto,      // (uri, desc) => Promise<JobPhotoAPI | null>
+  uploadMultiplePhotos,
+  updatePhotoDescription,
+  deletePhoto,
+  getPhotoUrl,
+  totalPhotos       // number - Nombre total de photos
+} = useJobPhotos(jobId);
+```
+
+**✨ Fonctionnalités avancées :**
+- **Fallback local** : AsyncStorage si API indisponible
+- **Gestion d'erreurs** : Messages français, retry logic
+- **Cache intelligent** : Optimisation des requêtes
+
+#### **3. Interface utilisateur (`JobPhotosSection.tsx`)**
+- **Grille de photos** : Affichage 2 colonnes avec thumbnails
+- **Modal de visualisation** : Zoom, navigation
+- **Édition descriptions** : In-place editing
+- **Actions** : Upload (caméra/galerie), suppression, édition
+- **États visuels** : Loading, erreurs, vide
+
+#### **4. Intégration (`job.tsx`)**
+```tsx
+import { JobPhotosSection } from '../../components/jobDetails/sections/JobPhotosSection';
+
+// Dans JobPage après Job Items
+<JobPhotosSection jobId={extractNumericJobId(job.id)} />
+```
+
+#### **5. Tests unitaires (`__tests__/hooks/useJobPhotos.test.ts`)**
+- Tests de tous les scénarios : API disponible/indisponible
+- Gestion fallback AsyncStorage
+- Upload et gestion d'erreurs
+- Authentification et permissions
 
 ---
 
@@ -178,9 +256,22 @@ POST   /swift-app/v1/note               # Create standalone note
 
 ## 📸 Job Photos Management
 ```http
-POST   /swift-app/v1/job/:jobId/photos  # Upload photo to job
-GET    /swift-app/v1/job/:jobId/photos  # Get job photos
-DELETE /swift-app/v1/job/:jobId/photos/:photoId # Delete photo
+# Upload d'images
+POST   /swift-app/v1/job/{jobId}/image        # Upload 1 seule image
+POST   /swift-app/v1/job/{jobId}/images       # Upload plusieurs images (max 10)
+
+# Consultation d'images
+GET    /swift-app/v1/job/{jobId}/images       # Lister images d'un job
+GET    /swift-app/v1/image/{id}               # Info d'une image
+GET    /swift-app/v1/image/{id}/serve         # URL d'affichage sécurisée
+GET    /swift-app/v1/user/{userId}/images     # Images d'un utilisateur
+
+# Modification d'images
+PATCH  /swift-app/v1/image/{id}              # Modifier description
+PATCH  /swift-app/v1/image/{id}/restore      # Restaurer image supprimée
+
+# Suppression d'images
+DELETE /swift-app/v1/image/{id}              # Supprimer (soft delete)
 ```
 
 ## ✍️ Job Signatures Management
@@ -590,7 +681,7 @@ Authorization: Bearer <your-jwt-token>
 #### 📸📝 **Médias & Messages** (8 endpoints disponibles)
 | Fonctionnalité | Endpoint API | Écran App correspondant | Priorité |
 |----------------|-------------|------------------------|----------|
-| Photos job | `/v1/job/:id/photos/*` | - | 📍 **Future** |
+| Photos job | `/v1/job/:id/image*` | `src/screens/JobDetailsScreens/job.tsx` | ✅ **IMPLÉMENTÉ** |
 | Signatures job | `/v1/job/:id/signature*` | - | 📍 **Future** |
 | Messages job | `/v1/job/:id/message*` | - | 📍 **Future** |
 
