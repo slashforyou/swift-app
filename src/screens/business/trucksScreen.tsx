@@ -1,64 +1,564 @@
-import React from 'react'
-import { View, Text, StyleSheet } from 'react-native'
+/**
+ * TrucksScreen - Gestion complète de la flotte de véhicules
+ * Interface moderne avec statistiques, filtres et actions
+ */
+import React, { useState } from 'react'
+import {
+    ActivityIndicator,
+    Alert,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
+} from 'react-native'
 
 // Components
-import LanguageButton from '../../components/calendar/LanguageButton'
+import AddVehicleModal from '../../components/modals/AddVehicleModal'
+import { HStack, VStack } from '../../components/primitives/Stack'
+import { Card } from '../../components/ui/Card'
 
 // Hooks & Utils
-import { useCommonThemedStyles } from '../../constants/Styles'
+import { DESIGN_TOKENS } from '../../constants/Styles'
 import { useTheme } from '../../context/ThemeProvider'
-import { useLocalization } from '../../localization/useLocalization'
+import { useVehicles } from '../../hooks/useVehicles'
+import { VehicleAPI } from '../../services/vehiclesService'
+
+// Types
+interface Vehicle {
+  id: string;
+  name: string;
+  type: 'moving-truck' | 'van' | 'trailer' | 'ute' | 'dolly' | 'tools';
+  registration: string;
+  make: string;
+  model: string;
+  year: number;
+  status: 'available' | 'in-use' | 'maintenance' | 'out-of-service';
+  nextService: string;
+  location: string;
+  capacity?: string;
+  assignedTo?: string;
+}
+
+interface SectionHeaderProps {
+  icon: string;
+  title: string;
+  description?: string;
+  onActionPress?: () => void;
+  actionText?: string;
+}
+
+// =====================================
+// HELPER FUNCTIONS - Type Mapping
+// =====================================
 
 /**
- * Trucks Screen
- * Manages vehicles and equipment
+ * Convert API vehicle type to UI type
+ */
+const apiToUIType = (apiType: VehicleAPI['type']): Vehicle['type'] => {
+  const mapping: Record<VehicleAPI['type'], Vehicle['type']> = {
+    'truck': 'moving-truck',
+    'van': 'van',
+    'trailer': 'trailer',
+    'ute': 'ute',
+    'dolly': 'dolly',
+    'tool': 'tools',
+  }
+  return mapping[apiType] || 'moving-truck'
+}
+
+/**
+ * Convert UI vehicle type to API type
+ */
+const uiToAPIType = (uiType: Vehicle['type']): VehicleAPI['type'] => {
+  const mapping: Record<Vehicle['type'], VehicleAPI['type']> = {
+    'moving-truck': 'truck',
+    'van': 'van',
+    'trailer': 'trailer',
+    'ute': 'ute',
+    'dolly': 'dolly',
+    'tools': 'tool',
+  }
+  return mapping[uiType] || 'truck'
+}
+
+/**
+ * Convert API vehicle to UI vehicle format
+ */
+const apiToVehicle = (api: VehicleAPI): Vehicle => ({
+  id: api.id,
+  name: `${api.make} ${api.model}`,
+  type: apiToUIType(api.type),
+  registration: api.registration,
+  make: api.make,
+  model: api.model,
+  year: api.year,
+  status: api.status,
+  nextService: api.nextService,
+  location: api.location,
+  capacity: api.capacity || '',
+  assignedTo: api.assignedStaff || '',
+})
+
+// Composant pour les headers de section
+const SectionHeader: React.FC<SectionHeaderProps> = ({ 
+  icon, 
+  title, 
+  description, 
+  onActionPress, 
+  actionText 
+}) => {
+  const { colors } = useTheme();
+  return (
+    <VStack gap="xs" style={{ marginBottom: DESIGN_TOKENS.spacing.md }}>
+      <HStack gap="sm" align="center" justify="space-between">
+        <HStack gap="sm" align="center" style={{ flex: 1 }}>
+          <View style={{
+            width: 32,
+            height: 32,
+            borderRadius: 16,
+            backgroundColor: colors.primary + '20',
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}>
+            <Text style={{ fontSize: 18, color: colors.primary }}>
+              {icon}
+            </Text>
+          </View>
+          <Text style={{
+            fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
+            fontWeight: '600',
+            color: colors.text,
+            flex: 1
+          }}>
+            {title}
+          </Text>
+        </HStack>
+        {onActionPress && actionText && (
+          <TouchableOpacity
+            onPress={onActionPress}
+            style={{
+              backgroundColor: colors.primary,
+              paddingHorizontal: DESIGN_TOKENS.spacing.md,
+              paddingVertical: DESIGN_TOKENS.spacing.sm,
+              borderRadius: DESIGN_TOKENS.radius.sm,
+            }}
+          >
+            <Text style={{ 
+              color: 'white', 
+              fontSize: 14, 
+              fontWeight: '600' 
+            }}>
+              {actionText}
+            </Text>
+          </TouchableOpacity>
+        )}
+      </HStack>
+      {description && (
+        <Text style={{
+          fontSize: 14,
+          color: colors.textSecondary,
+          lineHeight: 20,
+          marginLeft: 44, // Aligné avec le texte du titre
+        }}>
+          {description}
+        </Text>
+      )}
+    </VStack>
+  );
+};
+
+// Fonction pour obtenir l'emoji selon le type de véhicule de déménagement
+const getVehicleEmoji = (type: Vehicle['type']): string => {
+  const emojis = {
+    'moving-truck': '🚛',
+    'van': '🚐',
+    'trailer': '🚜',
+    'ute': '🛻',
+    'dolly': '🛒',
+    'tools': '🔧'
+  };
+  return emojis[type] || '🚛';
+};
+
+// Fonction pour obtenir le label du type
+const getTypeLabel = (type: Vehicle['type']): string => {
+  const labels = {
+    'moving-truck': 'Moving Truck',
+    'van': 'Van',
+    'trailer': 'Trailer',
+    'ute': 'Ute',
+    'dolly': 'Dolly',
+    'tools': 'Tools'
+  };
+  return labels[type] || 'Vehicle';
+};
+
+// Fonction pour obtenir la couleur selon le statut
+const getStatusColor = (status: Vehicle['status']): { bg: string; text: string } => {
+  const colors = {
+    available: { bg: '#10B981', text: '#10B981' },
+    'in-use': { bg: '#F59E0B', text: '#F59E0B' },
+    maintenance: { bg: '#EF4444', text: '#EF4444' },
+    'out-of-service': { bg: '#6B7280', text: '#6B7280' }
+  };
+  return colors[status] || colors['out-of-service'];
+};
+
+// Fonction pour obtenir le label du statut
+const getStatusLabel = (status: Vehicle['status']): string => {
+  const labels = {
+    available: 'Available',
+    'in-use': 'In Use',
+    maintenance: 'Maintenance',
+    'out-of-service': 'Out of Service'
+  };
+  return labels[status] || 'Unknown';
+};
+
+// Composant pour une carte véhicule
+const VehicleCard: React.FC<{ vehicle: Vehicle; onPress: () => void }> = ({ 
+  vehicle, 
+  onPress 
+}) => {
+  const { colors } = useTheme();
+  const statusColors = getStatusColor(vehicle.status);
+  
+  return (
+    <TouchableOpacity onPress={onPress}>
+      <Card style={{ marginBottom: DESIGN_TOKENS.spacing.md }}>
+        <VStack gap="sm">
+          <HStack gap="md" align="center" justify="space-between">
+            <HStack gap="md" align="center" style={{ flex: 1 }}>
+              <View style={{
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                backgroundColor: colors.primary + '10',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}>
+                <Text style={{ fontSize: 20 }}>
+                  {getVehicleEmoji(vehicle.type)}
+                </Text>
+              </View>
+              <VStack gap="xs" style={{ flex: 1 }}>
+                <Text style={{
+                  fontSize: 16,
+                  fontWeight: '600',
+                  color: colors.text,
+                }}>
+                  {vehicle.name}
+                </Text>
+                <Text style={{
+                  fontSize: 14,
+                  color: colors.textSecondary,
+                }}>
+                  {vehicle.make} {vehicle.model} ({vehicle.year})
+                </Text>
+              </VStack>
+            </HStack>
+            <View style={{
+              backgroundColor: statusColors.bg + '20',
+              paddingHorizontal: DESIGN_TOKENS.spacing.sm,
+              paddingVertical: DESIGN_TOKENS.spacing.xs,
+              borderRadius: DESIGN_TOKENS.radius.sm,
+            }}>
+              <Text style={{
+                fontSize: 12,
+                fontWeight: '600',
+                color: statusColors.text,
+                textTransform: 'capitalize',
+              }}>
+                {vehicle.status.replace('-', ' ')}
+              </Text>
+            </View>
+          </HStack>
+          
+          <HStack gap="lg" style={{ marginTop: DESIGN_TOKENS.spacing.xs }}>
+            <VStack gap="xs" style={{ flex: 1 }}>
+              <Text style={{
+                fontSize: 12,
+                color: colors.textSecondary,
+                fontWeight: '500',
+              }}>
+                Registration
+              </Text>
+              <Text style={{
+                fontSize: 14,
+                color: colors.text,
+              }}>
+                {vehicle.registration}
+              </Text>
+            </VStack>
+            <VStack gap="xs" style={{ flex: 1 }}>
+              <Text style={{
+                fontSize: 12,
+                color: colors.textSecondary,
+                fontWeight: '500',
+              }}>
+                Next Service
+              </Text>
+              <Text style={{
+                fontSize: 14,
+                color: colors.text,
+              }}>
+                {vehicle.nextService}
+              </Text>
+            </VStack>
+          </HStack>
+          
+          {vehicle.assignedTo && (
+            <HStack gap="md" style={{ marginTop: DESIGN_TOKENS.spacing.xs }}>
+              <Text style={{
+                fontSize: 12,
+                color: colors.textSecondary,
+                fontWeight: '500',
+              }}>
+                Assigned to:
+              </Text>
+              <Text style={{
+                fontSize: 14,
+                color: colors.primary,
+                fontWeight: '600',
+              }}>
+                {vehicle.assignedTo}
+              </Text>
+            </HStack>
+          )}
+        </VStack>
+      </Card>
+    </TouchableOpacity>
+  );
+};
+
+/**
+ * Vehicles & Equipment Management Screen
+ * Displays and manages company vehicles, equipment and maintenance
  */
 export default function TrucksScreen() {
-  const { t } = useLocalization()
-  const commonStyles = useCommonThemedStyles()
   const { colors } = useTheme()
 
+  // Hook pour la gestion des véhicules via API
+  const {
+    vehicles: apiVehicles,
+    isLoading: isLoadingVehicles,
+    error: vehiclesError,
+    totalVehicles,
+    availableCount,
+    inUseCount,
+    maintenanceCount,
+    refetch,
+    addVehicle: addVehicleApi,
+    editVehicle: editVehicleApi,
+    removeVehicle: removeVehicleApi,
+  } = useVehicles()
+
+  // Convert API vehicles to UI format
+  const mockVehicles = apiVehicles.map(apiToVehicle)
+
+  // État local pour la gestion
+  const [selectedType, setSelectedType] = useState<string>('all');
+  const [isAddModalVisible, setIsAddModalVisible] = useState(false);
+
   const styles = StyleSheet.create({
-    container: {
-      ...commonStyles.container,
-      paddingHorizontal: 20,
-      paddingTop: 20,
-      position: 'relative',
+    scrollContent: {
+      flexGrow: 1,
+      paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+      paddingVertical: DESIGN_TOKENS.spacing.md,
     },
-    header: {
+    quickStats: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingBottom: 20,
+      marginBottom: DESIGN_TOKENS.spacing.lg,
     },
-    title: {
-      ...commonStyles.title,
-      color: colors.text,
-    },
-    content: {
+    statCard: {
       flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
+      marginHorizontal: DESIGN_TOKENS.spacing.xs,
     },
-    placeholder: {
-      ...commonStyles.bodyText,
+    statNumber: {
+      fontSize: 24,
+      fontWeight: '700',
+      color: colors.primary,
+      textAlign: 'center',
+    },
+    statLabel: {
+      fontSize: 12,
       color: colors.textSecondary,
       textAlign: 'center',
+      marginTop: DESIGN_TOKENS.spacing.xs,
+    },
+    typeFilterContainer: {
+      flexDirection: 'row',
+      marginBottom: DESIGN_TOKENS.spacing.lg,
+    },
+    typeFilter: {
+      paddingHorizontal: DESIGN_TOKENS.spacing.md,
+      paddingVertical: DESIGN_TOKENS.spacing.sm,
+      borderRadius: DESIGN_TOKENS.radius.sm,
+      marginRight: DESIGN_TOKENS.spacing.sm,
+      borderWidth: 1,
     }
   })
 
+  // Filtres et données
+  const vehicleTypes = ['all', 'moving-truck', 'van', 'trailer', 'ute', 'dolly', 'tools'];
+  const filteredVehicles = selectedType === 'all' 
+    ? mockVehicles 
+    : mockVehicles.filter(vehicle => vehicle.type === selectedType);
+
+  // Utiliser les statistiques du hook API
+  const availableVehicles = availableCount;
+  const inUseVehicles = inUseCount;
+  const maintenanceVehicles = maintenanceCount;
+
+  const handleAddVehicle = () => {
+    setIsAddModalVisible(true);
+  };
+
+  const handleSubmitVehicle = async (vehicleData: any) => {
+    try {
+      // Convert UI type to API type before sending
+      const apiType = uiToAPIType(vehicleData.type)
+      
+      const result = await addVehicleApi({
+        ...vehicleData,
+        type: apiType,
+      })
+      
+      if (result) {
+        setIsAddModalVisible(false);
+        Alert.alert('Success', 'Vehicle added successfully! 🎉')
+        await refetch() // Refresh the list
+      } else {
+        Alert.alert('Error', vehiclesError || 'Unable to add vehicle')
+      }
+    } catch (error) {
+      console.error('Error creating vehicle:', error);
+      Alert.alert('Error', 'An error occurred while adding the vehicle')
+    }
+  };
+
+  const handleVehiclePress = (vehicle: Vehicle) => {
+    // TODO: Ouvrir détails du véhicule
+    console.log('View vehicle details:', vehicle.id);
+  };
+
+  const handleTypeFilter = (type: string) => {
+    setSelectedType(type);
+  };
+
+  // Loading state
+  if (isLoadingVehicles) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={{ marginTop: 16, color: colors.textSecondary }}>Loading vehicles...</Text>
+      </View>
+    )
+  }
+
+  // Error state
+  if (vehiclesError && mockVehicles.length === 0) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background, padding: 20 }}>
+        <Text style={{ fontSize: 48, marginBottom: 16 }}>⚠️</Text>
+        <Text style={{ fontSize: 18, fontWeight: '600', color: colors.text, marginBottom: 8 }}>Error loading vehicles</Text>
+        <Text style={{ color: colors.textSecondary, textAlign: 'center', marginBottom: 20 }}>{vehiclesError}</Text>
+        <TouchableOpacity
+          onPress={refetch}
+          style={{
+            backgroundColor: colors.primary,
+            paddingHorizontal: 24,
+            paddingVertical: 12,
+            borderRadius: 8,
+          }}
+        >
+          <Text style={{ color: '#FFFFFF', fontWeight: '600' }}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    )
+  }
+
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{t('business.trucks.title')}</Text>
-        <LanguageButton />
+    <ScrollView 
+      style={{ flex: 1 }}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Statistiques rapides */}
+      <View style={styles.quickStats}>
+        <Card style={styles.statCard}>
+          <Text style={styles.statNumber}>{availableVehicles}</Text>
+          <Text style={styles.statLabel}>Available</Text>
+        </Card>
+        <Card style={styles.statCard}>
+          <Text style={styles.statNumber}>{inUseVehicles}</Text>
+          <Text style={styles.statLabel}>In Use</Text>
+        </Card>
+        <Card style={styles.statCard}>
+          <Text style={styles.statNumber}>{maintenanceVehicles}</Text>
+          <Text style={styles.statLabel}>Maintenance</Text>
+        </Card>
       </View>
 
-      <View style={styles.content}>
-        <Text style={styles.placeholder}>
-          {t('business.trucks.placeholder')}
-        </Text>
-      </View>
-    </View>
+      {/* Filtres par type */}
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+        style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}
+      >
+        <View style={styles.typeFilterContainer}>
+          {vehicleTypes.map((type) => (
+            <TouchableOpacity
+              key={type}
+              style={[
+                styles.typeFilter,
+                {
+                  backgroundColor: selectedType === type ? colors.primary + '20' : 'transparent',
+                  borderColor: selectedType === type ? colors.primary : colors.border,
+                }
+              ]}
+              onPress={() => handleTypeFilter(type)}
+            >
+              <Text style={{
+                color: selectedType === type ? colors.primary : colors.textSecondary,
+                fontWeight: selectedType === type ? '600' : '400',
+                fontSize: 14,
+              }}>
+                {type === 'all' ? 'All Vehicles' : `${getVehicleEmoji(type as Vehicle['type'])} ${type.charAt(0).toUpperCase() + type.slice(1)}`}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </ScrollView>
+
+      {/* Liste des véhicules */}
+      <Card style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
+        <VStack gap="sm">
+          <SectionHeader 
+            icon="🚛" 
+            title="Vehicles & Equipment"
+            description="Manage your fleet, equipment and maintenance schedules"
+            actionText="Add Vehicle"
+            onActionPress={handleAddVehicle}
+          />
+          
+          {filteredVehicles.map((vehicle) => (
+            <VehicleCard
+              key={vehicle.id}
+              vehicle={vehicle}
+              onPress={() => handleVehiclePress(vehicle)}
+            />
+          ))}
+        </VStack>
+      </Card>
+
+      {/* Modal d'ajout de véhicule */}
+      <AddVehicleModal
+        visible={isAddModalVisible}
+        onClose={() => setIsAddModalVisible(false)}
+        onAddVehicle={handleSubmitVehicle}
+      />
+    </ScrollView>
   )
 }
