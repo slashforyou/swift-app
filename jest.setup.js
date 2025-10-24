@@ -64,6 +64,26 @@ jest.mock('./src/constants/Styles', () => {
   const useCommonThemedStylesMock = () => ({
     container: { flex: 1 },
     centered: { alignItems: 'center', justifyContent: 'center' },
+    card: { 
+      backgroundColor: '#FFFFFF',
+      borderRadius: 12,
+      padding: 16,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    panel: {
+      backgroundColor: '#FFFFFF',
+      borderRadius: 12,
+      padding: 16,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.15,
+      shadowRadius: 8,
+      elevation: 4,
+    },
   });
   
   return {
@@ -83,6 +103,23 @@ jest.mock('./src/constants/Styles', () => {
     },
     useCommonThemedStyles: useCommonThemedStylesMock,
     useCommonStyles: useCommonThemedStylesMock,
+  };
+}, { virtual: true });
+
+// Mock Card component (uses useCommonThemedStyles)
+jest.mock('./src/components/ui/Card', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  
+  return {
+    Card: ({ children, style }) => {
+      const mockCardStyle = {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 12,
+        padding: 16,
+      };
+      return React.createElement(View, { style: [mockCardStyle, style] }, children);
+    },
   };
 }, { virtual: true });
 

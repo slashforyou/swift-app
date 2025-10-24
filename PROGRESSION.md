@@ -1,6 +1,12 @@
 # 🚀 SWIFT APP - PROGRESSION DU PROJET
 
-## 📋 STATUT GÉNÉRAL
+## � ÉTAT ACTUEL (24 OCT 2025)
+- **Tests** : **168/322 (52.2%)** ✅ | 12/22 suites passent
+- **Progression jour** : +4 tests (+1.3%)
+- **Objectif** : 60% (193 tests) = 25 tests restants
+- **Quick wins effectués** : AddVehicleModal (+3), Localisation (0), useVehicles (+1)
+
+## �📋 STATUT GÉNÉRAL
 - **Dernière mise à jour** : 23 octobre 2025 (Phase 2 Tests - 162/322 tests ✅)
 - **Version** : React Native + TypeScript + Expo  
 - **API** : https://altivo.fr/swift-app/v1/ (61 endpoints disponibles)
