@@ -51,9 +51,11 @@ export interface UseStaffResult {
   totalTeams: number;
   averageEmployeeRate: number;
   refreshStaff: () => Promise<void>;
+  refreshData: () => Promise<void>; // Alias pour refreshStaff
   inviteEmployee: (employeeData: InviteEmployeeData) => Promise<void>;
   searchContractor: (searchTerm: string) => Promise<Contractor[]>;
   addContractor: (contractorId: string, contractStatus: Contractor['contractStatus']) => Promise<void>;
+  filterStaff: (filters: StaffFilters) => StaffMember[];
 }
 
 export interface InviteEmployeeData {

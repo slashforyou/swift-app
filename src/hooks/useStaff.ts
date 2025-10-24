@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Contractor, Employee, InviteEmployeeData, StaffMember, UseStaffResult } from '../types/staff';
+import { Contractor, Employee, InviteEmployeeData, StaffFilters, StaffMember, UseStaffResult } from '../types/staff';
 
 export const useStaff = (): UseStaffResult => {
   const [staff, setStaff] = useState<StaffMember[]>([]);
@@ -115,9 +115,35 @@ export const useStaff = (): UseStaffResult => {
     }
   }, []);
 
-  const refreshStaff = async () => {
+  const refreshStaff = useCallback(async () => {
     await loadStaff();
-  };
+  }, [loadStaff]);
+
+  // Alias pour compatibilité avec les tests
+  const refreshData = useCallback(async () => {
+    await loadStaff();
+  }, [loadStaff]);
+
+  const filterStaff = useCallback((filters: StaffFilters): StaffMember[] => {
+    let filtered = [...staff];
+
+    // Filtrer par type
+    if (filters.type !== 'all') {
+      filtered = filtered.filter(member => member.type === filters.type);
+    }
+
+    // Filtrer par équipe
+    if (filters.team && filters.team !== '') {
+      filtered = filtered.filter(member => member.team === filters.team);
+    }
+
+    // Filtrer par statut
+    if (filters.status !== 'all') {
+      filtered = filtered.filter(member => member.status === filters.status);
+    }
+
+    return filtered;
+  }, [staff]);
 
   const inviteEmployee = useCallback(async (employeeData: InviteEmployeeData) => {
     try {
@@ -290,8 +316,10 @@ export const useStaff = (): UseStaffResult => {
     totalTeams,
     averageEmployeeRate,
     refreshStaff,
+    refreshData,
     inviteEmployee,
     searchContractor,
     addContractor,
+    filterStaff,
   };
 };
