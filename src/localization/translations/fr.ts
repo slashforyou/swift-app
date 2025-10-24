@@ -4,15 +4,7 @@ export const frTranslations: TranslationKeys = {
     common: {
         save: 'Enregistrer',
         cancel: 'Annuler',
-              priority: {
-            urgent: 'URG',
-            high: 'HAUT',
-            medium: 'MOY',
-            low: 'FAIBLE',
-            normal: 'NORM',
-        },
-        // Client
-        unknownClient: 'Client inconnu',e: 'Supprimer',
+        delete: 'Supprimer',
         edit: 'Modifier',
         add: 'Ajouter',
         search: 'Rechercher',
@@ -189,6 +181,8 @@ export const frTranslations: TranslationKeys = {
             low: 'FAIBLE',
             normal: 'NORM',
         },
+        // Client
+        unknownClient: 'Client inconnu',
         // Navigation
         navigation: {
             monthlyView: 'Vue Mensuelle',
