@@ -245,26 +245,27 @@ describe('TrucksScreen', () => {
       const { getByText } = renderWithTheme(<TrucksScreen />)
       
       expect(getByText('ABC-123')).toBeTruthy()
-      expect(getByText('XYZ-789')).toBeTruthy()
-      expect(getByText('TRL-456')).toBeTruthy()
-      expect(getByText('HIL-321')).toBeTruthy()
+      expect(getByText('XYZ-456')).toBeTruthy()
+      expect(getByText('TRL-789')).toBeTruthy()
+      expect(getByText('UTE-101')).toBeTruthy()
     })
 
     it('should display vehicle make and year', () => {
       const { getByText } = renderWithTheme(<TrucksScreen />)
       
-      expect(getByText('2022 Isuzu')).toBeTruthy()
-      expect(getByText('2023 Ford')).toBeTruthy()
-      expect(getByText('2021 Custom')).toBeTruthy()
-      expect(getByText('2024 Toyota')).toBeTruthy()
+      // Le composant affiche "Make Model (Year)"
+      expect(getByText('Isuzu NPR 200')).toBeTruthy()
+      expect(getByText('Ford Transit')).toBeTruthy()
+      expect(getByText('Custom Box Trailer')).toBeTruthy()
+      expect(getByText('Toyota HiLux')).toBeTruthy()
     })
 
     it('should display vehicle capacity when available', () => {
       const { getByText } = renderWithTheme(<TrucksScreen />)
       
-      expect(getByText('3.5 tonnes')).toBeTruthy()
-      expect(getByText('2.5 cubic meters')).toBeTruthy()
-      expect(getByText('4 cubic meters')).toBeTruthy()
+      expect(getByText('4.5 tonnes')).toBeTruthy()
+      expect(getByText('1.5 tonnes')).toBeTruthy()
+      expect(getByText('2 tonnes')).toBeTruthy()
       expect(getByText('1 tonne')).toBeTruthy()
     })
 
@@ -272,7 +273,9 @@ describe('TrucksScreen', () => {
       const { getByText } = renderWithTheme(<TrucksScreen />)
       
       expect(getByText('Sydney Depot')).toBeTruthy()
-      expect(getByText('Melbourne Branch')).toBeTruthy()
+      expect(getByText('Melbourne Depot')).toBeTruthy()
+      expect(getByText('Brisbane Depot')).toBeTruthy()
+      expect(getByText('Adelaide Depot')).toBeTruthy()
     })
 
     it('should display next service date', () => {

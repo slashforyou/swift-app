@@ -3,13 +3,12 @@
  * Vérifier la cohérence et la fonctionnalité des traductions
  */
 
-import { enTranslations } from '../localization/translations/en';
-import { frTranslations } from '../localization/translations/fr';
-import { ptTranslations } from '../localization/translations/pt';
-import { esTranslations } from '../localization/translations/es';
-import { itTranslations } from '../localization/translations/it';
 import { SUPPORTED_LANGUAGES } from '../localization/config';
-import { TranslationKeys } from '../localization/types';
+import { enTranslations } from '../localization/translations/en';
+import { esTranslations } from '../localization/translations/es';
+import { frTranslations } from '../localization/translations/fr';
+import { itTranslations } from '../localization/translations/it';
+import { ptTranslations } from '../localization/translations/pt';
 
 describe('Translation System', () => {
     const translations = {
