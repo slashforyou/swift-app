@@ -4,8 +4,8 @@
 import { act, fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
 import { Alert } from 'react-native';
-import StaffCrewScreen from '../../../src/screens/business/staffCrewScreen';
-import { Contractor, Employee } from '../../../src/types/staff';
+import StaffCrewScreen from '../../src/screens/business/staffCrewScreen';
+import { Contractor, Employee } from '../../src/types/staff';
 
 // Simple wrapper to replace ThemeProvider in tests
 const ThemeProvider = ({ children }: { children: React.ReactNode }) => <>{children}</>;
