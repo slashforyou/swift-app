@@ -223,22 +223,23 @@ jest.mock('./src/hooks/useVehicles', () => ({
   }),
 }), { virtual: true });
 
-// Mock modal components
-jest.mock('./src/components/business/modals/InviteEmployeeModal', () => ({
-  __esModule: true,
-  default: ({ visible, onClose, onSubmit }) => {
-    if (!visible) return null;
-    return null; // Simple mock that returns null
-  },
-}), { virtual: true });
+// Mock modal components - Commented out to allow testing the real components
+// jest.mock('./src/components/business/modals/InviteEmployeeModal', () => ({
+//   __esModule: true,
+//   default: ({ visible, onClose, onSubmit }) => {
+//     if (!visible) return null;
+//     return null; // Simple mock that returns null
+//   },
+// }), { virtual: true });
 
-jest.mock('./src/components/business/modals/AddContractorModal', () => ({
-  __esModule: true,
-  default: ({ visible, onClose, onSubmit }) => {
-    if (!visible) return null;
-    return null;
-  },
-}), { virtual: true });
+// Commented out to allow AddContractorModal.test.tsx to test the real component
+// jest.mock('./src/components/business/modals/AddContractorModal', () => ({
+//   __esModule: true,
+//   default: ({ visible, onClose, onSubmit }) => {
+//     if (!visible) return null;
+//     return null;
+//   },
+// }), { virtual: true });
 
 jest.mock('./src/components/modals/AddStaffModal', () => ({
   __esModule: true,
