@@ -3,7 +3,7 @@
  * Spécialisé pour les entreprises de déménagement australiennes
  */
 import { Ionicons } from '@expo/vector-icons'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
     ActivityIndicator,
     Alert,
@@ -122,6 +122,13 @@ export default function AddVehicleModal({
     })
   }
 
+  // Réinitialiser le modal quand il est fermé
+  useEffect(() => {
+    if (!visible) {
+      resetModal()
+    }
+  }, [visible])
+
   const handleClose = () => {
     resetModal()
     onClose()
@@ -160,16 +167,21 @@ export default function AddVehicleModal({
       Alert.alert('Erreur', 'Format d\'immatriculation invalide (ex: ABC-123 ou AB-12-CD)')
       return false
     }
-    if (!vehicleData.capacity.trim()) {
-      Alert.alert('Erreur', 'Veuillez renseigner la capacité')
-      return false
-    }
+    // Capacity est optionnel, donc pas de validation
     if (!vehicleData.location.trim()) {
       Alert.alert('Erreur', 'Veuillez sélectionner un emplacement')
       return false
     }
     if (!vehicleData.nextService.trim()) {
       Alert.alert('Erreur', 'Veuillez renseigner la date du prochain service')
+      return false
+    }
+    // Valider que la date de service est dans le futur
+    const serviceDate = new Date(vehicleData.nextService)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0) // Ignorer l'heure pour comparer seulement les dates
+    if (serviceDate < today) {
+      Alert.alert('Erreur', 'La date de service ne peut pas être passée')
       return false
     }
     return true
