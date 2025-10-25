@@ -153,7 +153,7 @@ describe('useJobsBilling Hook', () => {
       expect(updatedJob?.billing.paymentStatus).toBe('unpaid');
     });
 
-    it.skip('devrait traiter un remboursement', async () => {
+    it('devrait traiter un remboursement', async () => {
       fetchJobs.mockResolvedValueOnce(mockApiJobs);
 
       const { result } = renderHook(() => useJobsBilling());
@@ -164,9 +164,11 @@ describe('useJobsBilling Hook', () => {
 
       await result.current.processRefund('job1', 100);
 
-      // Le coût actuel devrait être réduit de 100
-      const refundedJob = result.current.jobs.find((job: JobBilling) => job.id === 'job1');
-      expect(refundedJob?.billing.actualCost).toBe(450);
+      // Attendre que la mise à jour du state soit terminée
+      await waitFor(() => {
+        const refundedJob = result.current.jobs.find((job: JobBilling) => job.id === 'job1');
+        expect(refundedJob?.billing.actualCost).toBe(450);
+      });
     });
   });
 
@@ -200,7 +202,7 @@ describe('useJobsBilling Hook', () => {
   });
 
   describe('Actualisation des données', () => {
-    it.skip('devrait permettre de rafraîchir les jobs', async () => {
+    it('devrait permettre de rafraîchir les jobs', async () => {
       fetchJobs.mockResolvedValueOnce(mockApiJobs);
 
       const { result } = renderHook(() => useJobsBilling());
@@ -209,11 +211,18 @@ describe('useJobsBilling Hook', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      fetchJobs.mockResolvedValueOnce([mockApiJobs[0]]); // Moins de jobs
+      // Vérifier qu'on a bien les 2 jobs initiaux
+      expect(result.current.jobs).toHaveLength(2);
+
+      // Mocker la réponse pour le refresh avec moins de jobs
+      fetchJobs.mockResolvedValueOnce([mockApiJobs[0]]);
 
       await result.current.refreshJobs();
 
-      expect(result.current.jobs).toHaveLength(1);
+      // Attendre que le refresh soit terminé
+      await waitFor(() => {
+        expect(result.current.jobs).toHaveLength(1);
+      });
     });
   });
 
