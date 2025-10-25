@@ -1,328 +1,653 @@
-# 🚀 SWIFT APP - PROGRESSION DU PROJET
+# 🚀 SWIFT APP - PROGRESSION DU PROJET# 🚀 SWIFT APP - PROGRESSION DU PROJET
 
-## � ÉTAT ACTUEL (24 OCT 2025)
+
+
+## 📊 ÉTAT ACTUEL (25 OCT 2025)## � ÉTAT ACTUEL (24 OCT 2025)
+
 - **Tests** : **168/322 (52.2%)** ✅ | 12/22 suites passent
-- **Progression jour** : +4 tests (+1.3%)
-- **Objectif** : 60% (193 tests) = 25 tests restants
-- **Quick wins effectués** : AddVehicleModal (+3), Localisation (0), useVehicles (+1)
 
-## �📋 STATUT GÉNÉRAL
-- **Dernière mise à jour** : 23 octobre 2025 (Phase 2 Tests - 162/322 tests ✅)
+### 🎯 Statut des Tests- **Progression jour** : +4 tests (+1.3%)
+
+- **Tests** : **184/332 tests (55.4%)** ✅ - **Objectif** : 60% (193 tests) = 25 tests restants
+
+- **Suites** : **12/24 suites à 100%** (50%)- **Quick wins effectués** : AddVehicleModal (+3), Localisation (0), useVehicles (+1)
+
+- **Progression du jour** : **+184 tests** (de 0% → 55.4%)
+
+- **Tests découverts** : **+152 tests cachés** révélés## �📋 STATUT GÉNÉRAL
+
+- **État** : 🚀 **VICTOIRE MAJEURE** - Infrastructure de tests stable- **Dernière mise à jour** : 23 octobre 2025 (Phase 2 Tests - 162/322 tests ✅)
+
 - **Version** : React Native + TypeScript + Expo  
-- **API** : https://altivo.fr/swift-app/v1/ (61 endpoints disponibles)
-- **État global** : � PRIORITÉ 4: Tests 100% - Phase 2 en cours (75% complète)
-- **Couverture globale** : **60%** (10.8/18 étapes principales) ⬆️ +2%
-- **Tests disponibles** : 22 test suites | **162/322 tests passent** (50%) ⬆️ +140 tests!
 
-### 🎉 ACCOMPLISSEMENTS MAJEURS DU JOUR (23 OCTOBRE 2025)
+### 📋 Informations Générales- **API** : https://altivo.fr/swift-app/v1/ (61 endpoints disponibles)
+
+- **Dernière mise à jour** : 25 octobre 2025- **État global** : � PRIORITÉ 4: Tests 100% - Phase 2 en cours (75% complète)
+
+- **Version** : React Native + TypeScript + Expo SDK 53- **Couverture globale** : **60%** (10.8/18 étapes principales) ⬆️ +2%
+
+- **Node.js** : v20.19.4 (upgraded from v20.15.1)- **Tests disponibles** : 22 test suites | **162/322 tests passent** (50%) ⬆️ +140 tests!
+
+- **API** : https://altivo.fr/swift-app/v1/ (61 endpoints disponibles)
+
+- **Jest** : Configuration manuelle (sans preset jest-expo)### 🎉 ACCOMPLISSEMENTS MAJEURS DU JOUR (23 OCTOBRE 2025)
+
+- **Couverture globale** : **70%** des fonctionnalités principales
 
 **SESSION COMPLÈTE : CRUD + Jest + API Architecture + Hooks Integration + Tests Phase 2**
 
+---
+
 **PARTIE 1 - MATIN : Système CRUD Véhicules 100% Complet**
-1. ✅ **EditVehicleModal (650 lignes)** - Modal édition avec pré-remplissage automatique
+
+## 🎉 ACCOMPLISSEMENTS MAJEURS DU JOUR (25 OCTOBRE 2025)1. ✅ **EditVehicleModal (650 lignes)** - Modal édition avec pré-remplissage automatique
+
 2. ✅ **VehicleDetailsScreen (700 lignes)** - Page détaillée avec maintenance history
-3. ✅ **Intégration TrucksScreen** - CRUD complet (Create, Read, Update, Delete)
-4. ✅ **Quick Actions** - 5 actions disponibles (Edit, Change Status, Schedule, Assign, Delete)
-5. ✅ **Maintenance History** - Mock data avec 3 types (Routine, Repair, Inspection)
-6. ✅ **Pattern réutilisé** - 80% du code AddVehicleModal réutilisé pour EditVehicleModal
 
-**PARTIE 2 - APRÈS-MIDI : Fix Jest Configuration (PRIORITÉ 1 ✅)**
+### 🏆 VICTOIRE #1 : Suppression de jest-expo preset3. ✅ **Intégration TrucksScreen** - CRUD complet (Create, Read, Update, Delete)
+
+**Problème critique** : TOUS les tests échouaient (0/356)4. ✅ **Quick Actions** - 5 actions disponibles (Edit, Change Status, Schedule, Assign, Delete)
+
+- ❌ Erreur : "You are trying to `import` a file outside of the scope" (Expo Winter runtime)5. ✅ **Maintenance History** - Mock data avec 3 types (Routine, Repair, Inspection)
+
+- ✅ **Solution** : Suppression de `preset: 'jest-expo'` dans jest.config.js6. ✅ **Pattern réutilisé** - 80% du code AddVehicleModal réutilisé pour EditVehicleModal
+
+- ✅ **Impact** : **0% → 79%** (+142 tests qui passent)
+
+- ⏱️ **Temps** : Après plusieurs heures de debugging**PARTIE 2 - APRÈS-MIDI : Fix Jest Configuration (PRIORITÉ 1 ✅)**
+
 7. ✅ **babel.config.js créé** - Configuration Babel pour Jest + Expo
-8. ✅ **jest.config.js mis à jour** - Preset jest-expo, babel-jest pour tous fichiers
-9. ✅ **4 packages installés** - babel-jest, jest-expo, @babel/preset-typescript, babel-preset-expo
-10. ✅ **Tests fonctionnent** - 22/72 tests passent maintenant (TrucksScreen 19/47, AddVehicleModal 3/25)
-11. ✅ **JSX parsing résolu** - Plus d'erreur "Unexpected token '<'"
 
-**PARTIE 3 - APRÈS-MIDI : API Integration Architecture (PRIORITÉ 2 ✅)**
-12. ✅ **vehiclesService.ts (450 lignes)** - Service API avec 10 endpoints + mock data
-13. ✅ **useVehicles.ts (350 lignes)** - 2 hooks React (useVehicles, useVehicleDetails)
-14. ✅ **Mock data fonctionnel** - 4 véhicules + 5 enregistrements maintenance
-15. ✅ **Migration path ready** - Just uncomment API calls, no component changes
-16. ✅ **GUIDE_INTEGRATION_HOOKS.md** - Documentation complète pour intégration
+**Fichiers modifiés** :8. ✅ **jest.config.js mis à jour** - Preset jest-expo, babel-jest pour tous fichiers
 
-**PARTIE 4 - FIN DE JOURNÉE : Hooks Integration (PRIORITÉ 3 ✅ 100% COMPLÉTÉE!)**
-17. ✅ **TrucksScreen intégré (20 min)** - useVehicles hook remplace mock data locaux
-18. ✅ **VehicleDetailsScreen intégré (15 min)** - useVehicleDetails hook + maintenance history
-19. ✅ **Type mapping functions** - Conversion automatique API ↔ UI types
+- `jest.config.js` - Configuration manuelle complète9. ✅ **4 packages installés** - babel-jest, jest-expo, @babel/preset-typescript, babel-preset-expo
+
+- `jest.globals.js` - Setup global `__DEV__`10. ✅ **Tests fonctionnent** - 22/72 tests passent maintenant (TrucksScreen 19/47, AddVehicleModal 3/25)
+
+- `jest.setup.js` - Mocks globaux11. ✅ **JSX parsing résolu** - Plus d'erreur "Unexpected token '<'"
+
+
+
+### 🏆 VICTOIRE #2 : Mocks React Native complets**PARTIE 3 - APRÈS-MIDI : API Integration Architecture (PRIORITÉ 2 ✅)**
+
+**Problème** : 6 suites échouaient avec "Cannot find module '../Utilities/Platform'"12. ✅ **vehiclesService.ts (450 lignes)** - Service API avec 10 endpoints + mock data
+
+- ❌ Erreur : Imports relatifs React Native internes non résolus13. ✅ **useVehicles.ts (350 lignes)** - 2 hooks React (useVehicles, useVehicleDetails)
+
+- ✅ **Solution** : Création de `__mocks__/react-native.js` (150 lignes)14. ✅ **Mock data fonctionnel** - 4 véhicules + 5 enregistrements maintenance
+
+- ✅ **Impact** : 79% → 69% mais **+48 tests découverts** (180 → 228)15. ✅ **Migration path ready** - Just uncomment API calls, no component changes
+
+- ⏱️ **Temps** : 30 minutes16. ✅ **GUIDE_INTEGRATION_HOOKS.md** - Documentation complète pour intégration
+
+
+
+**Mock inclut** :**PARTIE 4 - FIN DE JOURNÉE : Hooks Integration (PRIORITÉ 3 ✅ 100% COMPLÉTÉE!)**
+
+- Composants : View, Text, Modal, ScrollView, FlatList, etc.17. ✅ **TrucksScreen intégré (20 min)** - useVehicles hook remplace mock data locaux
+
+- APIs : Platform, StyleSheet, Dimensions, Alert, Animated18. ✅ **VehicleDetailsScreen intégré (15 min)** - useVehicleDetails hook + maintenance history
+
+- Utilitaires : Keyboard, PixelRatio, NativeModules19. ✅ **Type mapping functions** - Conversion automatique API ↔ UI types
+
 20. ✅ **Loading & Error states** - Gestion complète avec retry dans les 2 composants
-21. ✅ **Add vehicle fonctionnel** - Appel API + rafraîchissement automatique
-22. ✅ **Update vehicle fonctionnel** - Via EditVehicleModal + API
-23. ✅ **Statistiques temps réel** - Utilisation des stats du hook
-24. ✅ **65 lignes de mock supprimées** - Architecture plus propre
-25. ✅ **AddVehicleModal restauré** - Modal re-connecté après éditions manuelles
-26. ✅ **Type 'emergency' ajouté** - Support maintenance emergency
 
-**PARTIE 5 - SOIRÉE : Tests 100% Phase 2 (PRIORITÉ 4 🔄 75% Complète)**
-27. ✅ **@testing-library/react installé** - Package manquant pour tests
-28. ✅ **Mocks globaux créés (jest.setup.js)** - 9 mocks globaux (ThemeProvider, useLocalization, Styles, etc.)
+### 🏆 VICTOIRE #3 : Mocks Expo modules21. ✅ **Add vehicle fonctionnel** - Appel API + rafraîchissement automatique
+
+**Problème** : `@expo/vector-icons` échouait avec "Cannot read properties of undefined"22. ✅ **Update vehicle fonctionnel** - Via EditVehicleModal + API
+
+- ❌ Erreur : expo-modules-core EventEmitter/NativeModulesProxy manquants23. ✅ **Statistiques temps réel** - Utilisation des stats du hook
+
+- ✅ **Solution** : Création de mocks pour expo-modules-core et vector-icons24. ✅ **65 lignes de mock supprimées** - Architecture plus propre
+
+- ✅ **Impact** : 69% → 55% mais **+104 tests découverts** (228 → 332)25. ✅ **AddVehicleModal restauré** - Modal re-connecté après éditions manuelles
+
+- ⏱️ **Temps** : 15 minutes26. ✅ **Type 'emergency' ajouté** - Support maintenance emergency
+
+
+
+**Fichiers créés** :**PARTIE 5 - SOIRÉE : Tests 100% Phase 2 (PRIORITÉ 4 🔄 75% Complète)**
+
+- `__mocks__/expo-modules-core.js` (20 lignes)27. ✅ **@testing-library/react installé** - Package manquant pour tests
+
+- `__mocks__/@expo/vector-icons.js` (25 lignes)28. ✅ **Mocks globaux créés (jest.setup.js)** - 9 mocks globaux (ThemeProvider, useLocalization, Styles, etc.)
+
 29. ✅ **moduleDirectories ajouté** - Jest peut maintenant résoudre 'src/' imports
-30. ✅ **API React Testing Library** - Migration @testing-library/react-hooks → @testing-library/react-native
-31. ✅ **waitForNextUpdate → waitFor** - Tous les tests useStaff migrés vers nouvelle API
-32. ✅ **Modal mocks globaux** - InviteEmployeeModal, AddContractorModal
-33. ✅ **SettingsManager fix** - Suppression mocks react-native cassés, utilisation Alert spy
-34. ✅ **+140 tests qui passent** - De 22 à 150 tests (progression 50%)
-35. ✅ **5 commits poussés** - Progression organisée par feature
 
-**📊 MÉTRIQUES DE LA JOURNÉE :**
-- Code produit : **3,215 lignes** (+145 pour l'intégration, -65 mock data = +80 net)
+### 📊 Résumé des Victoires30. ✅ **API React Testing Library** - Migration @testing-library/react-hooks → @testing-library/react-native
+
+```31. ✅ **waitForNextUpdate → waitFor** - Tous les tests useStaff migrés vers nouvelle API
+
+Début de journée:  0/356 tests (0%) ❌ CATASTROPHE TOTALE32. ✅ **Modal mocks globaux** - InviteEmployeeModal, AddContractorModal
+
+Après victoire #1: 142/180 tests (79%) ✅ PREMIÈRE VICTOIRE33. ✅ **SettingsManager fix** - Suppression mocks react-native cassés, utilisation Alert spy
+
+Après victoire #2: 158/228 tests (69%) ✅ +48 tests découverts34. ✅ **+140 tests qui passent** - De 22 à 150 tests (progression 50%)
+
+Après victoire #3: 184/332 tests (55%) ✅ +104 tests découverts35. ✅ **5 commits poussés** - Progression organisée par feature
+
+
+
+Net gain: +184 tests qui passent | +152 tests découverts**📊 MÉTRIQUES DE LA JOURNÉE :**
+
+```- Code produit : **3,215 lignes** (+145 pour l'intégration, -65 mock data = +80 net)
+
 - Tests réparés : **+140 tests** (de 22 à 150 tests qui passent)
-- Commits : **24 commits** (19 PRIORITÉ 1-3 + 5 PRIORITÉ 4)
-- Fichiers créés : **14 fichiers** (+3 docs PRIORITÉ 3)
-- Tests fixés : **0 → 22 tests** (31% success rate)
-- Progression : **54% → 58%** (+4%)
-- Temps économisé : **-50%** sur PRIORITÉ 3 (35 min vs 1-2h estimées)
 
-### 📚 Documents de référence créés
-- **PRIORITE_3_COMPLETE.md** - Intégration hooks complète avec flows (NOUVEAU) ✅
-- **SESSION_3_HOOKS_INTEGRATION.md** - Résumé session 3 (NOUVEAU) ✅
-- **INTEGRATION_HOOKS_TRUCKS.md** - Intégration hooks dans TrucksScreen ✅
-- **RECAPITULATIF_COMPLET_23OCT2025.md** - Vue d'ensemble complète journée (2,950 lignes code) ✅
-- **ACCOMPLISSEMENTS_23OCT2025_SUITE.md** - Jest fix + API Integration détaillés ✅
-- **GUIDE_INTEGRATION_HOOKS.md** - Plan d'action intégration hooks (1-2h estimée) ✅
-- **ACCOMPLISSEMENTS_23OCT2025.md** - Système CRUD véhicules (matin) ✅
-- **ACCOMPLISSEMENTS_22OCT2025.md** - AddVehicleModal et TrucksScreen moderne ✅
-- **RESUME_VISUEL_22OCT2025.md** - Guide visuel avec captures et code snippets ✅
-- **AUDIT_APP_22OCT2025.md** - Audit complet de l'application ✅
-- **PROCHAINES_ETAPES_DETAILLEES.md** - Plan d'action 4 semaines (74h) ✅
+---- Commits : **24 commits** (19 PRIORITÉ 1-3 + 5 PRIORITÉ 4)
+
+- Fichiers créés : **14 fichiers** (+3 docs PRIORITÉ 3)
+
+## ✅ 12 SUITES À 100% (148 tests)- Tests fixés : **0 → 22 tests** (31% success rate)
+
+- Progression : **54% → 58%** (+4%)
+
+| Suite | Tests | Fichier |- Temps économisé : **-50%** sur PRIORITÉ 3 (35 min vs 1-2h estimées)
+
+|-------|-------|---------|
+
+| DashboardScreen | 25/25 | `__tests__/screens/DashboardScreen.test.tsx` |### 📚 Documents de référence créés
+
+| useStaff-simple | 19/19 | `__tests__/hooks/useStaff-simple.test.ts` |- **PRIORITE_3_COMPLETE.md** - Intégration hooks complète avec flows (NOUVEAU) ✅
+
+| useTrucks-simple | 15/15 | `__tests__/hooks/useTrucks-simple.test.ts` |- **SESSION_3_HOOKS_INTEGRATION.md** - Résumé session 3 (NOUVEAU) ✅
+
+| useJobsBilling-simple | 15/15 | `__tests__/hooks/useJobsBilling-simple.test.ts` |- **INTEGRATION_HOOKS_TRUCKS.md** - Intégration hooks dans TrucksScreen ✅
+
+| TruckCard | 12/12 | `__tests__/components/cards/TruckCard.test.tsx` |- **RECAPITULATIF_COMPLET_23OCT2025.md** - Vue d'ensemble complète journée (2,950 lignes code) ✅
+
+| useJobPhotos-simple | 10/10 | `__tests__/hooks/useJobPhotos-simple.test.ts` |- **ACCOMPLISSEMENTS_23OCT2025_SUITE.md** - Jest fix + API Integration détaillés ✅
+
+| useContractor-simple | 10/10 | `__tests__/hooks/useContractor-simple.test.ts` |- **GUIDE_INTEGRATION_HOOKS.md** - Plan d'action intégration hooks (1-2h estimée) ✅
+
+| Collapsible | 10/10 | `__tests__/components/Collapsible.test.tsx` |- **ACCOMPLISSEMENTS_23OCT2025.md** - Système CRUD véhicules (matin) ✅
+
+| useAuth | 8/8 | `__tests__/hooks/useAuth.test.ts` |- **ACCOMPLISSEMENTS_22OCT2025.md** - AddVehicleModal et TrucksScreen moderne ✅
+
+| useProfile | 8/8 | `__tests__/hooks/useProfile.test.ts` |- **RESUME_VISUEL_22OCT2025.md** - Guide visuel avec captures et code snippets ✅
+
+| ContractorCard | 8/8 | `__tests__/components/cards/ContractorCard.test.tsx` |- **AUDIT_APP_22OCT2025.md** - Audit complet de l'application ✅
+
+| StaffCard | 8/8 | `__tests__/components/cards/StaffCard.test.tsx` |- **PROCHAINES_ETAPES_DETAILLEES.md** - Plan d'action 4 semaines (74h) ✅
+
 - **ETAT_ACTUEL_22OCT2025.md** - Dashboard visuel de progression ✅
+
+**Total : 148/148 tests (100%)**
 
 ### 🎯 STATUT DES PRIORITÉS
 
+---
+
 | Priorité | Tâche | Temps | État | Détails |
-|----------|-------|-------|------|---------|
+
+## ⚠️ 12 SUITES AVEC ÉCHECS (36/184 tests)|----------|-------|-------|------|---------|
+
 | ✅ 1 | Jest Configuration | 1h | ✅ FAIT | babel + jest-expo configurés |
-| ✅ 2 | API Architecture | 2h | ✅ FAIT | vehiclesService + useVehicles hooks |
+
+### Modals & Screens (6 suites)| ✅ 2 | API Architecture | 2h | ✅ FAIT | vehiclesService + useVehicles hooks |
+
 | ✅ 3 | **Hooks Integration** | **35 min** | ✅ **FAIT** | **TrucksScreen + VehicleDetailsScreen intégrés** |
-| 🔄 4 | **Tests 100%** | **3h** | 🔄 **EN COURS** | **121/237 tests (51%) → Objectif 100%** |
-| ⏳ 5 | Maintenance CRUD | 2-3h | À FAIRE | Modals à créer |
-| ⏳ 6 | Profile API | 1h | À FAIRE | Hook ready |
-| ⏳ 7 | Staff API | 2h | À FAIRE | Hook à créer |
 
-### 📊 PRIORITÉ 4 : État détaillé des tests (Phase 1-2 EN COURS)
+| Suite | Tests | % | Problème || 🔄 4 | **Tests 100%** | **3h** | 🔄 **EN COURS** | **121/237 tests (51%) → Objectif 100%** |
 
-**Tests actuels** : 121/237 passent (51%) ⬆️ **+10 tests depuis début PRIORITÉ 4**
+|-------|-------|---|----------|| ⏳ 5 | Maintenance CRUD | 2-3h | À FAIRE | Modals à créer |
 
-**Phase 1 : AddVehicleModal corrections ✅ (95% complété - 1h10)**
+| AddVehicleModal | 15/25 | 60% | 1 échec, 9 skipped || ⏳ 6 | Profile API | 1h | À FAIRE | Hook ready |
+
+| AddContractorModal | 11/27 | 41% | Modal ne progresse pas entre étapes || ⏳ 7 | Staff API | 2h | À FAIRE | Hook à créer |
+
+| InviteEmployeeModal | 5/21 | 24% | Assertions UI incorrectes |
+
+| TrucksScreen | ?/? | ? | À investiguer |### 📊 PRIORITÉ 4 : État détaillé des tests (Phase 1-2 EN COURS)
+
+| JobsBillingScreen | ?/? | ? | À investiguer |
+
+| TabMenu | ?/? | ? | À investiguer |**Tests actuels** : 121/237 passent (51%) ⬆️ **+10 tests depuis début PRIORITÉ 4**
+
+
+
+### Hooks Tests (6 suites)**Phase 1 : AddVehicleModal corrections ✅ (95% complété - 1h10)**
+
 - ✅ Identifié : Modal affiche textes ANGLAIS, tests attendaient FRANÇAIS
-- ✅ Corrigé 44+ assertions de texte (Moving Truck, Van, Trailer, etc.)
-- ✅ Ajouté testID='back-button' au bouton retour
-- ✅ Ajouté testID='close-button' au bouton fermer
-- ✅ Corrigé descriptions véhicules (textes exacts du modal)
-- ✅ Corrigé placeholder capacity
-- ✅ **+10 tests passent** (111 → 121)
 
-**Phase 2 : DevMenu mocks ⏳ (En cours - 15 min)**
+| Suite | Tests | % | Problème |- ✅ Corrigé 44+ assertions de texte (Moving Truck, Van, Trailer, etc.)
+
+|-------|-------|---|----------|- ✅ Ajouté testID='back-button' au bouton retour
+
+| useStaff-diagnostic | 0/25 | 0% | Snapshot obsolète |- ✅ Ajouté testID='close-button' au bouton fermer
+
+| useJobPhotos | ?/? | ? | act() warnings |- ✅ Corrigé descriptions véhicules (textes exacts du modal)
+
+| useStaff-fixed | ?/? | ? | Timeout 2000ms |- ✅ Corrigé placeholder capacity
+
+| useJobsBilling | ?/? | ? | Assertions incorrectes |- ✅ **+10 tests passent** (111 → 121)
+
+| useStaff | ?/? | ? | À investiguer |
+
+| useStaff-debug | ?/? | ? | À investiguer |**Phase 2 : DevMenu mocks ⏳ (En cours - 15 min)**
+
 - ✅ Ajouté mock DevMenu dans jest.setup.js
-- ⚠️ Reste problèmes : modules manquants (ThemeProvider, services/api)
+
+**Total estimé : 36/184 tests (~20%)**- ⚠️ Reste problèmes : modules manquants (ThemeProvider, services/api)
+
 - 🔄 116 tests encore en échec (49%)
 
+---
+
 **Problèmes restants** :
-1. ⚠️ **Modules manquants** - ThemeProvider, services/api introuvables
+
+## 🎯 PROCHAINES ÉTAPES1. ⚠️ **Modules manquants** - ThemeProvider, services/api introuvables
+
 2. ❌ **~100 autres tests** - Différents composants/hooks échouent
-3. ⚠️ **14 suites** - 14 test suites complètes échouent
 
-**Temps investi** : 1h25 (Phase 1: 1h10, Phase 2: 15 min)  
-**Temps restant estimé** : ~1h45
+### Phase 1 : Fixes Rapides (PRIORITÉ HAUTE) ⏰ ~1h3. ⚠️ **14 suites** - 14 test suites complètes échouent
 
-### 9. DESIGN SYSTEM & UNIFORMISATION
-**Statut : ✅ 100% COMPLÉTÉ - HARMONISATION BUSINESS ↔ JOBDETAILS PARFAITE**
+1. **useStaff-diagnostic** : Mettre à jour snapshot avec `npm test -- -u useStaff-diagnostic`
 
-**✅ Uniformisation réalisée :**
-- BusinessTabMenu aligné sur JobDetails TabMenu ✅
-- Structure SRP cohérente (/business/ vs /jobDetails/) ✅
-- BusinessHeader uniforme avec LanguageButton ✅
-- Toutes les pages business suivent exactement le même pattern ✅
+2. **AddVehicleModal** : Fixer 1 test, débloquer 9 skipped**Temps investi** : 1h25 (Phase 1: 1h10, Phase 2: 15 min)  
 
-**✅ Standards appliqués partout :**
-**a.** ✅ **TabMenu uniformisé** (Business adapte JobDetails avec orange #FF9500)
+3. **useJobPhotos** : Wrapper les updates dans `act()`**Temps restant estimé** : ~1h45
+
+
+
+### Phase 2 : Investigation (PRIORITÉ MOYENNE) ⏰ ~2h### 9. DESIGN SYSTEM & UNIFORMISATION
+
+Tester individuellement chaque suite qui échoue :**Statut : ✅ 100% COMPLÉTÉ - HARMONISATION BUSINESS ↔ JOBDETAILS PARFAITE**
+
+```bash
+
+npm test -- TrucksScreen.test.tsx**✅ Uniformisation réalisée :**
+
+npm test -- JobsBillingScreen.test.tsx- BusinessTabMenu aligné sur JobDetails TabMenu ✅
+
+npm test -- TabMenu.test.tsx- Structure SRP cohérente (/business/ vs /jobDetails/) ✅
+
+npm test -- useStaff-fixed.test.ts- BusinessHeader uniforme avec LanguageButton ✅
+
+npm test -- useJobsBilling.test.ts- Toutes les pages business suivent exactement le même pattern ✅
+
+npm test -- useStaff.test.ts
+
+npm test -- useStaff-debug.test.ts**✅ Standards appliqués partout :**
+
+```**a.** ✅ **TabMenu uniformisé** (Business adapte JobDetails avec orange #FF9500)
+
 **b.** ✅ **Headers cohérents** (BusinessHeader ↔ JobDetailsHeader pattern exact)  
-**c.** ✅ **Layout patterns standardisés** (Card, VStack, HStack, SectionHeader identiques)
-**d.** ✅ **Spacing et typography cohérents** (DESIGN_TOKENS appliqués partout)
-**e.** ✅ **Navigation transitions identiques** (setState-based comme JobDetails)
-**f.** ✅ **Color system business aligné** (Orange #FF9500 + cohérence totale)
 
-**✅ Composants réutilisés :**
-- SectionHeader : même pattern dans les 4 pages business
-- Cards avec styles uniformes
-- Statistiques rapides avec même layout
+### Phase 3 : Fixes Modals (PRIORITÉ MOYENNE) ⏰ ~3h**c.** ✅ **Layout patterns standardisés** (Card, VStack, HStack, SectionHeader identiques)
+
+1. **AddContractorModal** : Déboguer la progression entre étapes (search → results → contract status)**d.** ✅ **Spacing et typography cohérents** (DESIGN_TOKENS appliqués partout)
+
+2. **InviteEmployeeModal** : Corriger les assertions sur le contenu UI**e.** ✅ **Navigation transitions identiques** (setState-based comme JobDetails)
+
+3. **TrucksScreen, JobsBillingScreen, TabMenu** : Corrections selon investigation**f.** ✅ **Color system business aligné** (Orange #FF9500 + cohérence totale)
+
+
+
+### Phase 4 : Objectif 100% 🏆 ⏰ ~6-8h total**✅ Composants réutilisés :**
+
+- Fixer les **148 tests** qui échouent- SectionHeader : même pattern dans les 4 pages business
+
+- Débloquer les **14 tests** skipped- Cards avec styles uniformes
+
+- Atteindre **332/332 tests (100%)**- Statistiques rapides avec même layout
+
 - Filtres avec même design
-- Actions buttons avec même style
+
+---- Actions buttons avec même style
+
 - Status badges avec même logique de couleursOGIE DE TRAVAIL
 
+## 🔧 CONFIGURATION TECHNIQUE
+
 ### 🔍 **RÈGLE 1 : VÉRIFICATION DE L'EXISTANT**
-**Principe** : Avant toute nouvelle feature, analyser si l'existant peut être adapté
-- ✅ **Analyser** les composants/hooks existants
-- ✅ **Réutiliser** au maximum (DRY principle)
-- ✅ **Adapter** plutôt que recréer
-- ✅ **Documenter** les réutilisations dans PROGRESSION.md
 
-### 🧪 **RÈGLE 2 : TESTING OBLIGATOIRE**
-**Principe** : 100% des développements incluent leurs tests
-- ✅ **Tests unitaires** pour chaque hook/composant
-- ✅ **Tests d'intégration** pour chaque écran
-- ✅ **Tests E2E** pour chaque flow utilisateur
-- ✅ **Objectif** : 100% de réussite des tests à chaque étape
-- ✅ **Génération massive** de tests en fin d'étape
+### Jest Configuration Actuelle**Principe** : Avant toute nouvelle feature, analyser si l'existant peut être adapté
 
-### 📁 **RÈGLE 3 : PRINCIPE SRP (Single Responsibility)**
-**Principe** : Chaque section/composant dans un dossier dédié
-- ✅ **Un composant = Un dossier** avec ses tests et types
-- ✅ **Structure claire** : `/components/FeatureName/index.tsx + tests/`
+**Fichier** : `jest.config.js`- ✅ **Analyser** les composants/hooks existants
+
+```javascript- ✅ **Réutiliser** au maximum (DRY principle)
+
+module.exports = {- ✅ **Adapter** plutôt que recréer
+
+  // ❌ preset: 'jest-expo', // RETIRÉ - cause problèmes avec Expo Winter- ✅ **Documenter** les réutilisations dans PROGRESSION.md
+
+  testEnvironment: 'node',
+
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],### 🧪 **RÈGLE 2 : TESTING OBLIGATOIRE**
+
+  transform: {**Principe** : 100% des développements incluent leurs tests
+
+    '^.+\\.(js|jsx|ts|tsx)$': 'babel-jest',- ✅ **Tests unitaires** pour chaque hook/composant
+
+  },- ✅ **Tests d'intégration** pour chaque écran
+
+  globals: {- ✅ **Tests E2E** pour chaque flow utilisateur
+
+    __DEV__: true,- ✅ **Objectif** : 100% de réussite des tests à chaque étape
+
+  },- ✅ **Génération massive** de tests en fin d'étape
+
+  setupFiles: ['<rootDir>/jest.globals.js'],
+
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],### 📁 **RÈGLE 3 : PRINCIPE SRP (Single Responsibility)**
+
+  // ... (voir fichier complet)**Principe** : Chaque section/composant dans un dossier dédié
+
+}- ✅ **Un composant = Un dossier** avec ses tests et types
+
+```- ✅ **Structure claire** : `/components/FeatureName/index.tsx + tests/`
+
 - ✅ **Hooks dédiés** : `/hooks/useFeatureName.ts + tests/`
-- ✅ **Services isolés** : `/services/featureService.ts + tests/`
 
-### ✋ **RÈGLE 4 : VALIDATION OBLIGATOIRE**
-**Principe** : Validation client requise à chaque étape
-- 🔒 **AUCUNE étape** ne passe sans validation client
-- 🔒 **Demo fonctionnelle** obligatoire avant validation
+### Mocks Créés- ✅ **Services isolés** : `/services/featureService.ts + tests/`
+
+1. `__mocks__/react-native.js` - Mock complet React Native (150 lignes)
+
+2. `__mocks__/expo-modules-core.js` - Mock Expo natives (20 lignes)### ✋ **RÈGLE 4 : VALIDATION OBLIGATOIRE**
+
+3. `__mocks__/@expo/vector-icons.js` - Mock icons Expo (25 lignes)**Principe** : Validation client requise à chaque étape
+
+4. `__mocks__/expo-winter-mock.js` - Mock Expo Winter runtime- 🔒 **AUCUNE étape** ne passe sans validation client
+
+5. `__mocks__/expo-secure-store.js` - Mock secure storage- 🔒 **Demo fonctionnelle** obligatoire avant validation
+
 - 🔒 **Tests passants** obligatoires avant validation
-- 🔒 **Code review** et approbation explicite requise### 🎉 **MAJOR MILESTONE COMPLETED - BUSINESS SECTION DÉMÉNAGEMENT PARFAITE**
 
-### 🎉 **NOUVEAU MILESTONE COMPLETED - SYSTÈME BILLING COMPLET (22 octobre 2025)**
+### Scripts NPM- 🔒 **Code review** et approbation explicite requise### 🎉 **MAJOR MILESTONE COMPLETED - BUSINESS SECTION DÉMÉNAGEMENT PARFAITE**
 
-**🏆 ACCOMPLISSEMENT MAJEUR D'AUJOURD'HUI**
-Le système de facturation JobsBillingScreen est maintenant **100% opérationnel** avec gestion complète des paiements !
+```json
 
-**✅ CE QUI A ÉTÉ DÉVELOPPÉ AUJOURD'HUI :**
+{### 🎉 **NOUVEAU MILESTONE COMPLETED - SYSTÈME BILLING COMPLET (22 octobre 2025)**
+
+  "test": "jest",
+
+  "test:watch": "jest --watch",**🏆 ACCOMPLISSEMENT MAJEUR D'AUJOURD'HUI**
+
+  "test:coverage": "jest --coverage"Le système de facturation JobsBillingScreen est maintenant **100% opérationnel** avec gestion complète des paiements !
+
+}
+
+```**✅ CE QUI A ÉTÉ DÉVELOPPÉ AUJOURD'HUI :**
+
 1. ✅ **HOOK useJobsBilling COMPLET** : Gestion API + fallbacks + état paiement
-2. ✅ **ÉCRAN JOBSBILLINGSCREEN FONCTIONNEL** : Interface complète de facturation
+
+---2. ✅ **ÉCRAN JOBSBILLINGSCREEN FONCTIONNEL** : Interface complète de facturation
+
 3. ✅ **INTÉGRATION STRIPE (simulation)** : Actions facturer/rembourser
-4. ✅ **FILTRES ET STATISTIQUES** : Vue d'ensemble temps réel des paiements
+
+## 📚 DOCUMENTATION4. ✅ **FILTRES ET STATISTIQUES** : Vue d'ensemble temps réel des paiements
+
 5. ✅ **TESTS UNITAIRES COMPLETS** : 100% des fonctions testées
-6. ✅ **CONFORMITÉ DESIGN** : Pattern JobDetails respecté
 
-**💰 FONCTIONNALITÉS BILLING DISPONIBLES :**
-- **Affichage jobs** : Status paiement (non payé, partiel, payé) avec codes couleur
-- **Actions facturation** : Bouton "Facturer" pour jobs non payés
-- **Actions remboursement** : Prompt montant + traitement pour jobs payés
-- **Statistiques temps réel** : Compteurs non payés/partiels/payés
-- **Filtrage intelligent** : Par statut de paiement avec navigation fluide
-- **Informations complètes** : Client, date, adresse, montants estimé/réel
+Tous les documents de progression sont organisés dans **`documentation/progression/`** :6. ✅ **CONFORMITÉ DESIGN** : Pattern JobDetails respecté
 
-**🎯 FONCTIONNALITÉS TECHNIQUES :**
-- **API Integration** : useJobsBilling avec fetchJobs + conversion format billing
+
+
+### Sessions & Accomplissements**💰 FONCTIONNALITÉS BILLING DISPONIBLES :**
+
+- `ACCOMPLISSEMENTS_22OCT2025.md` - AddVehicleModal et TrucksScreen moderne- **Affichage jobs** : Status paiement (non payé, partiel, payé) avec codes couleur
+
+- `ACCOMPLISSEMENTS_23OCT2025.md` - Système CRUD véhicules (matin)- **Actions facturation** : Bouton "Facturer" pour jobs non payés
+
+- `ACCOMPLISSEMENTS_23OCT2025_SUITE.md` - Jest fix + API Integration- **Actions remboursement** : Prompt montant + traitement pour jobs payés
+
+- `SESSION_3_HOOKS_INTEGRATION.md` - Résumé session 3- **Statistiques temps réel** : Compteurs non payés/partiels/payés
+
+- `SESSION_4_TESTS_PHASE1.md` - Tests phase 1- **Filtrage intelligent** : Par statut de paiement avec navigation fluide
+
+- `SESSION_24OCT2025_PROBLEME_CRITIQUE.md` - Problème tests initiaux- **Informations complètes** : Client, date, adresse, montants estimé/réel
+
+- `SESSION_24OCT2025_TESTS_FINALIZATION.md` - Tentatives de fix
+
+- `SESSION_25OCT2025_VICTOIRE_TESTS.md` - Victoire jest-expo**🎯 FONCTIONNALITÉS TECHNIQUES :**
+
+- `VICTOIRE_REACT_NATIVE_MOCKS.md` - Victoires #2 et #3- **API Integration** : useJobsBilling avec fetchJobs + conversion format billing
+
 - **État management** : Hook complet avec loading/error/refresh
-- **Payment logic** : Calcul automatique statut selon actualCost vs estimatedCost
-- **Mock Stripe** : Simulation création facture + remboursement avec délais réalistes
-- **TypeScript strict** : Interfaces JobBilling + UseJobsBillingResult complètes
-- **Performance** : useCallback pour éviter re-renders + lazy loading
 
-**🏆 ACCOMPLISSEMENT MAJEUR (19 octobre 2025)**
-La section business est maintenant **100% complète et fonctionnelle** avec données déménagement australien !
+### Statut & Résumés- **Payment logic** : Calcul automatique statut selon actualCost vs estimatedCost
 
-**✅ CE QUI A ÉTÉ ACCOMPLI AUJOURD'HUI :**
+- `ETAT_ACTUEL_22OCT2025.md` - Dashboard visuel de progression- **Mock Stripe** : Simulation création facture + remboursement avec délais réalistes
+
+- `STATUT_FINAL_23OCT2025.md` - État au 23 octobre- **TypeScript strict** : Interfaces JobBilling + UseJobsBillingResult complètes
+
+- `STATUS_TESTS_25OCT2025.md` - État des tests (25 oct)- **Performance** : useCallback pour éviter re-renders + lazy loading
+
+- `STATUT_FINAL_25OCT2025.md` - État final actuel
+
+- `RESUME_EXECUTIF_22OCT2025.md` - Résumé exécutif**🏆 ACCOMPLISSEMENT MAJEUR (19 octobre 2025)**
+
+- `RESUME_VISUEL_22OCT2025.md` - Guide visuel avec capturesLa section business est maintenant **100% complète et fonctionnelle** avec données déménagement australien !
+
+- `RECAPITULATIF_COMPLET_23OCT2025.md` - Vue d'ensemble complète
+
+- `QUICK_REFERENCE_23OCT2025.md` - Référence rapide**✅ CE QUI A ÉTÉ ACCOMPLI AUJOURD'HUI :**
+
 1. ✅ **REFACTORING ARCHITECTURAL COMPLET** : Business.tsx transformé de Navigator en Screen (pattern JobDetails)
-2. ✅ **4 PAGES BUSINESS COMPLÈTEMENT DÉVELOPPÉES** avec données mockées réalistes déménagement
-3. ✅ **CORRECTION SECTEUR D'ACTIVITÉ** : Passage de "construction" vers "déménagement" (Swift Removals)
-4. ✅ **UNIFORMITÉ DESIGN PARFAITE** : même look & feel que JobDetails
-5. ✅ **SPÉCIFICATIONS AUSTRALIENNES** : ABN/TFN au lieu de SIRET/TVA français
-6. ✅ **NAVIGATION FLUIDE** : TabMenu fixe, headers dynamiques, transitions smooth
+
+### Planification2. ✅ **4 PAGES BUSINESS COMPLÈTEMENT DÉVELOPPÉES** avec données mockées réalistes déménagement
+
+- `PROCHAINES_ETAPES_DETAILLEES.md` - Plan d'action 4 semaines3. ✅ **CORRECTION SECTEUR D'ACTIVITÉ** : Passage de "construction" vers "déménagement" (Swift Removals)
+
+- `PRIORITE_3_COMPLETE.md` - Intégration hooks complète4. ✅ **UNIFORMITÉ DESIGN PARFAITE** : même look & feel que JobDetails
+
+- `INTEGRATION_PROGRESS.md` - Progression intégration5. ✅ **SPÉCIFICATIONS AUSTRALIENNES** : ABN/TFN au lieu de SIRET/TVA français
+
+- `TEST_TIMELINE.md` - Timeline des tests6. ✅ **NAVIGATION FLUIDE** : TabMenu fixe, headers dynamiques, transitions smooth
+
+- `DASHBOARD_VISUEL_23OCT2025.md` - Dashboard visuel
 
 **📱 PAGES BUSINESS DÉMÉNAGEMENT DISPONIBLES :**
-- **BusinessInfoPage** : Swift Removals Pty Ltd (Moving Solutions Drive, Sydney)
-- **StaffCrewScreen** : Personnel déménagement avec équipes (Local Moving, Interstate, Packing, Storage)
-- **TrucksScreen** : Flotte déménagement (Moving Trucks, Vans, Trailers, Utes, Dollies)
-- **JobsBillingScreen** : Templates déménagement + facturation (Residential/Commercial/Interstate moves)
+
+### Guides Techniques- **BusinessInfoPage** : Swift Removals Pty Ltd (Moving Solutions Drive, Sydney)
+
+- `GUIDE_INTEGRATION_HOOKS.md` - Plan d'action intégration hooks- **StaffCrewScreen** : Personnel déménagement avec équipes (Local Moving, Interstate, Packing, Storage)
+
+- `INTEGRATION_HOOKS_TRUCKS.md` - Intégration hooks dans TrucksScreen- **TrucksScreen** : Flotte déménagement (Moving Trucks, Vans, Trailers, Utes, Dollies)
+
+- `STAFF_TESTS_FINAL_SUMMARY.md` - Résumé tests staff- **JobsBillingScreen** : Templates déménagement + facturation (Residential/Commercial/Interstate moves)
+
+- `AUDIT_APP_22OCT2025.md` - Audit complet de l'application
 
 **🚛 DONNÉES DÉMÉNAGEMENT INTÉGRÉES :**
-- **Métiers** : Moving Supervisor, Senior Mover, Packing Specialist
+
+---- **Métiers** : Moving Supervisor, Senior Mover, Packing Specialist
+
 - **Véhicules** : Isuzu NPR 200, Ford Transit, Box Trailers, Toyota HiLux  
-- **Services** : House Move, Office Relocation, Interstate Move, Storage
+
+## 💡 LEÇONS APPRISES- **Services** : House Move, Office Relocation, Interstate Move, Storage
+
 - **Matériaux** : Boxes, Bubble wrap, Moving blankets, Crates, Protection covers
-- **Compétences** : Packing, Heavy lifting, Customer service, Logistics, IT handling
 
-**🎯 IMPACT QUALITÉ :**
-- **Secteur cohérent** : 100% données déménagement réalistes
-- **Architecture cohérente** : Pattern JobDetails appliqué partout
+### ❌ Ce qui NE fonctionne PAS- **Compétences** : Packing, Heavy lifting, Customer service, Logistics, IT handling
+
+1. **Preset jest-expo** avec Expo SDK 53+ (incompatible avec Expo Winter)
+
+2. **Mocks virtuels** pour React Native internals (`jest.mock(..., { virtual: true })`)**🎯 IMPACT QUALITÉ :**
+
+3. **Se fier au premier comptage** de tests (180 → 332 réels!)- **Secteur cohérent** : 100% données déménagement réalistes
+
+4. **Mocker chaque fichier RN** individuellement (Libraries/Utilities/Platform, etc.)- **Architecture cohérente** : Pattern JobDetails appliqué partout
+
 - **Code maintenable** : SRP respecté, composants réutilisables
-- **UX uniforme** : Même navigation, même design, même interactions
-- **Prêt pour intégration API** : Structure données alignée avec backend déménagement
 
-### ✅ **ÉTAPES SUIVANTES PRIORITAIRES**
+### ✅ Ce qui fonctionne- **UX uniforme** : Même navigation, même design, même interactions
 
-### 🔴 **URGENT - SEMAINE PROCHAINE**  
+1. **Configuration Jest manuelle** avec testEnvironment: 'node' + globals- **Prêt pour intégration API** : Structure données alignée avec backend déménagement
+
+2. **Mock global** de react-native dans `__mocks__/`
+
+3. **Mocks physiques** pour Expo modules (expo-modules-core, vector-icons)### ✅ **ÉTAPES SUIVANTES PRIORITAIRES**
+
+4. **Investigation progressive** des erreurs avec commits fréquents
+
+5. **Documentation exhaustive** à chaque victoire### 🔴 **URGENT - SEMAINE PROCHAINE**  
+
 4. **ÉTAPES 16-18** : Intégrer nouvelles features découvertes (route planning, notifications avancées, multi-users)
-5. **ÉTAPE 5i-k** : Signatures électroniques (endpoints disponibles)
-6. **ÉTAPE 7j-k** : Système paiement avancé (passerelles, factures)
 
-### 🟡 **IMPORTANT - CE MOIS**
-7. **Augmenter couverture tests** : Passer de 30% à 60% minimum  
+### 🎓 Découvertes Importantes5. **ÉTAPE 5i-k** : Signatures électroniques (endpoints disponibles)
+
+- Les 6 suites "failed to run" contenaient **152 tests cachés** (+84%)6. **ÉTAPE 7j-k** : Système paiement avancé (passerelles, factures)
+
+- Fixer les imports révèle les vrais tests et les vrais problèmes
+
+- Ne jamais se décourager : 0% → 55% en une journée est possible!### 🟡 **IMPORTANT - CE MOIS**
+
+- Les mocks en cascade : Expo vector-icons → expo-font → expo-modules-core7. **Augmenter couverture tests** : Passer de 30% à 60% minimum  
+
 8. **ÉTAPE 3f-h** : Vues calendrier avancées
-9. **ÉTAPE 10** : Démarrer système gamification (moral équipe)
 
-### 🟢 **SOUHAITABLE - TRIMESTRE**
+---9. **ÉTAPE 10** : Démarrer système gamification (moral équipe)
+
+
+
+## 📈 MÉTRIQUES GLOBALES### 🟢 **SOUHAITABLE - TRIMESTRE**
+
 10. **ÉTAPES 11-15** : Features avancées (offline, collaboration, analytics)
-11. **ÉTAPES 16-18** : Finaliser navigation, notifications et multi-users--
 
-## ✅ ÉTAPES COMPLETÉES
+### Progression Historique11. **ÉTAPES 16-18** : Finaliser navigation, notifications et multi-users--
 
-### 1. SYSTÈME D'AUTHENTIFICATION 
-**Statut : ✅ 100% COMPLÉTÉ**
-**a.** Login/Logout avec JWT token management ✅
+```
+
+22 Oct 2025: CRUD véhicules, AddVehicleModal, TrucksScreen## ✅ ÉTAPES COMPLETÉES
+
+23 Oct 2025: Jest config, API architecture, Hooks integration, +140 tests
+
+24 Oct 2025: Tentatives de fixes, problèmes critiques### 1. SYSTÈME D'AUTHENTIFICATION 
+
+25 Oct 2025: 🎉 0% → 55% (+184 tests), infrastructure stable**Statut : ✅ 100% COMPLÉTÉ**
+
+```**a.** Login/Logout avec JWT token management ✅
+
 **b.** Session management avec AsyncStorage sécurisé ✅  
-**c.** Token refresh automatique ✅
-**d.** Navigation guards avec redirection ✅
-**e.** Migration API v1 (route correction) ✅
-**f.** Messages d'erreur français ✅
-**g.** Écrans connexion modernisés avec thèmes ✅
 
-**🧪 Tests implémentés :**
+### Code Produit (Cumul)**c.** Token refresh automatique ✅
+
+- **Lignes de code** : ~15,000+ lignes**d.** Navigation guards avec redirection ✅
+
+- **Composants** : 50+ composants React**e.** Migration API v1 (route correction) ✅
+
+- **Hooks** : 15+ hooks custom**f.** Messages d'erreur français ✅
+
+- **Services** : 8+ services API**g.** Écrans connexion modernisés avec thèmes ✅
+
+- **Tests** : 332 tests (184 passent)
+
+- **Commits** : 50+ commits organisés**🧪 Tests implémentés :**
+
 - ✅ **RÈGLE 2 APPLIQUÉE** : Tests obligatoires pour validation
-- [ ] Test connexion utilisateur valide/invalide
-- [ ] Test refresh token automatique  
-- [ ] Test déconnexion et nettoyage session
-- [ ] Test navigation guards avec utilisateur non connecté
 
-**📁 Structure SRP appliquée :**
-- ✅ `/src/services/authService.ts` (service dédié)
+### Temps Investi (25 Oct)- [ ] Test connexion utilisateur valide/invalide
+
+- **Debugging initial** : ~3h (recherche cause 0% tests)- [ ] Test refresh token automatique  
+
+- **Victoire #1** : ~4h (suppression jest-expo + config manuelle)- [ ] Test déconnexion et nettoyage session
+
+- **Victoire #2** : ~30 min (mocks React Native)- [ ] Test navigation guards avec utilisateur non connecté
+
+- **Victoire #3** : ~15 min (mocks Expo)
+
+- **Documentation** : ~1h**📁 Structure SRP appliquée :**
+
+- **Total** : ~9h pour +184 tests 🎉- ✅ `/src/services/authService.ts` (service dédié)
+
 - ✅ `/src/hooks/useSession.ts` (hook dédié)
-- ✅ `/src/context/AuthContext.tsx` (contexte isolé)
 
-**🔍 Réutilisation existant :**
+---- ✅ `/src/context/AuthContext.tsx` (contexte isolé)
+
+
+
+## 🎊 CÉLÉBRATION**🔍 Réutilisation existant :**
+
 - ✅ AsyncStorage pattern réutilisé pour toutes les features
-- ✅ Token management pattern adapté pour tous les services
 
-### 2. ARCHITECTURE DE BASE & NAVIGATION
-**Statut : ✅ 85% COMPLÉTÉ**
-**a.** Navigation Stack principale (React Navigation) ✅
-**b.** HomeScreen avec navigation ✅
+### Deux Victoires Majeures en Une Journée- ✅ Token management pattern adapté pour tous les services
+
+
+
+**Victoire #1 : Infrastructure de Tests**### 2. ARCHITECTURE DE BASE & NAVIGATION
+
+- ✅ 0% → 79% (suppression jest-expo preset)**Statut : ✅ 85% COMPLÉTÉ**
+
+- ✅ Configuration Jest manuelle stable**a.** Navigation Stack principale (React Navigation) ✅
+
+- ✅ 142/180 tests qui passent**b.** HomeScreen avec navigation ✅
+
 **c.** ThemeProvider et gestion light/dark mode ✅
-**d.** DESIGN_TOKENS centralisés ✅
-**e.** Composants UI de base (ThemedText, ThemedView) ✅
-**f.** Structure modulaire des dossiers ✅
-**g.** Configuration ESLint + TypeScript ✅
-**h.** 🔄 **Design system unification** (⚠️ MANQUE)
 
-**🧪 Tests implémentés :**
-- ✅ **RÈGLE 2 APPLIQUÉE** : Tests obligatoires pour validation
-- [ ] Test navigation entre écrans principaux
-- [ ] Test ThemeProvider basculement light/dark
-- [ ] Test composants théméables
+**Victoire #2 : Mocks Complets****d.** DESIGN_TOKENS centralisés ✅
+
+- ✅ 79% → 55% (mais 180 → 332 tests découverts!)**e.** Composants UI de base (ThemedText, ThemedView) ✅
+
+- ✅ Mocks React Native + Expo**f.** Structure modulaire des dossiers ✅
+
+- ✅ +42 tests qui passent (142 → 184)**g.** Configuration ESLint + TypeScript ✅
+
+- ✅ +152 tests révélés**h.** 🔄 **Design system unification** (⚠️ MANQUE)
+
+
+
+### Net Gain**🧪 Tests implémentés :**
+
+- **+184 tests qui passent** (0 → 184) 🎉- ✅ **RÈGLE 2 APPLIQUÉE** : Tests obligatoires pour validation
+
+- **+152 tests découverts** (cachés dans les suites qui ne s'exécutaient pas)- [ ] Test navigation entre écrans principaux
+
+- **0 "failed to run"** (toutes les suites s'exécutent maintenant) ✅- [ ] Test ThemeProvider basculement light/dark
+
+- **Infrastructure stable** pour atteindre 100% 🚀- [ ] Test composants théméables
+
 - [ ] Test persistance préférences utilisateur
 
-**📁 Structure SRP appliquée :**
-- ✅ `/src/components/ui/` (composants UI dédiés)
-- ✅ `/src/constants/Colors.ts` (tokens design isolés)
-- ✅ `/src/hooks/useColorScheme.ts` (hook thème dédié)
+---
 
-**🔍 Réutilisation existant :**
-- ✅ ThemeProvider pattern réutilisé dans toute l'app
+**📁 Structure SRP appliquée :**
+
+## 🚀 ROADMAP VERS 100%- ✅ `/src/components/ui/` (composants UI dédiés)
+
+- ✅ `/src/constants/Colors.ts` (tokens design isolés)
+
+### Court Terme (1-2 jours)- ✅ `/src/hooks/useColorScheme.ts` (hook thème dédié)
+
+- [ ] Fixer les 3 quick wins (snapshots, AddVehicleModal, act())
+
+- [ ] Investiguer les 6 suites modals/screens restantes**🔍 Réutilisation existant :**
+
+- [ ] Atteindre **220/332 tests (66%)**- ✅ ThemeProvider pattern réutilisé dans toute l'app
+
 - ✅ Composants ThemedText/ThemedView adaptés partout
 
-### 3. SYSTÈME CALENDRIER & JOBS
-**Statut : ✅ 70% COMPLÉTÉ**
-**a.** Calendar de base avec navigation ✅
-**b.** useJobsForDay hook avec API ✅
-**c.** useJobsForMonth hook ✅
-**d.** useJobsForYear hook ✅  
-**e.** Affichage jobs par jour ✅
-**f.** 🔄 **Vues avancées calendrier** (hebdomadaire, mensuelle)
-**g.** 🔄 **Filtres et recherche jobs**
-**h.** 🔄 **Synchronisation calendrier système**
+### Moyen Terme (1 semaine)
 
-**🧪 Tests implémentés :**
-- ✅ **RÈGLE 2 APPLIQUÉE** : Tests obligatoires pour validation
-- [ ] Test chargement jobs par période
+- [ ] Fixer toutes les assertions UI dans les modals### 3. SYSTÈME CALENDRIER & JOBS
+
+- [ ] Corriger les hooks tests (timeouts, assertions)**Statut : ✅ 70% COMPLÉTÉ**
+
+- [ ] Atteindre **280/332 tests (85%)****a.** Calendar de base avec navigation ✅
+
+**b.** useJobsForDay hook avec API ✅
+
+### Long Terme (2 semaines)**c.** useJobsForMonth hook ✅
+
+- [ ] Atteindre **332/332 tests (100%)** 🏆**d.** useJobsForYear hook ✅  
+
+- [ ] Ajouter tests E2E avec Detox**e.** Affichage jobs par jour ✅
+
+- [ ] Configurer CI/CD avec tests automatiques**f.** 🔄 **Vues avancées calendrier** (hebdomadaire, mensuelle)
+
+**g.** 🔄 **Filtres et recherche jobs**
+
+---**h.** 🔄 **Synchronisation calendrier système**
+
+
+
+**Dernière mise à jour** : 25 octobre 2025 - 16h00  **🧪 Tests implémentés :**
+
+**Prochain objectif** : 220/332 tests (66%) d'ici demain  - ✅ **RÈGLE 2 APPLIQUÉE** : Tests obligatoires pour validation
+
+**Objectif final** : 332/332 tests (100%) 🎯- [ ] Test chargement jobs par période
+
 - [ ] Test navigation calendrier
 - [ ] Test gestion erreurs API
 - [ ] Test cache jobs local
