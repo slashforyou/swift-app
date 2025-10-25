@@ -8,7 +8,12 @@ const Image = 'Image';
 const TextInput = 'TextInput';
 const ScrollView = 'ScrollView';
 const FlatList = 'FlatList';
-const Modal = 'Modal';
+
+// Modal component qui respecte la prop visible
+const Modal = ({ children, visible }) => {
+  return visible ? children : null;
+};
+
 const ActivityIndicator = 'ActivityIndicator';
 const SafeAreaView = 'SafeAreaView';
 const KeyboardAvoidingView = 'KeyboardAvoidingView';

@@ -2,6 +2,10 @@
  * Test de diagnostic pour useStaff
  */
 import { act, renderHook, waitFor } from '@testing-library/react-native';
+
+// Démock useStaff pour tester le vrai hook
+jest.unmock('../../src/hooks/useStaff');
+
 import { useStaff } from '../../src/hooks/useStaff';
 
 describe('useStaff Diagnostic', () => {

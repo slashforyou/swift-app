@@ -2,21 +2,13 @@
 
 exports[`useStaff Diagnostic should load data after refreshStaff 1`] = `
 {
-  "afterContractorsLength": 0,
-  "afterEmployeesLength": 0,
-  "afterStaffLength": 0,
+  "afterContractorsLength": 2,
+  "afterEmployeesLength": 3,
+  "afterStaffLength": 5,
   "beforeKeys": [
     "staff",
     "employees",
     "contractors",
-    "inviteEmployee",
-    "searchContractor",
-    "addContractor",
-    "updateEmployee",
-    "updateContractor",
-    "deleteEmployee",
-    "deleteContractor",
-    "refreshStaff",
     "isLoading",
     "error",
     "totalActive",
@@ -24,9 +16,15 @@ exports[`useStaff Diagnostic should load data after refreshStaff 1`] = `
     "totalContractors",
     "totalTeams",
     "averageEmployeeRate",
+    "refreshStaff",
+    "refreshData",
+    "inviteEmployee",
+    "searchContractor",
+    "addContractor",
+    "filterStaff",
   ],
   "beforeStaffLength": 0,
-  "hasRefreshData": "undefined",
+  "hasRefreshData": "function",
   "hasRefreshStaff": "function",
 }
 `;
