@@ -122,25 +122,30 @@ describe('JobsBillingScreen', () => {
   });
 
   describe('Rendu de base', () => {
-    it.skip('devrait afficher le titre et les statistiques', () => {
-      const { getByText } = render(<JobsBillingScreen />);
+    it('devrait afficher le titre et les statistiques', () => {
+      const { getByTestId, getByText } = render(<JobsBillingScreen />);
       
+      expect(getByTestId('billing-screen-title')).toBeTruthy();
       expect(getByText('Facturation des Jobs')).toBeTruthy();
-      expect(getByText('1')).toBeTruthy(); // totalUnpaid
-      expect(getByText('0')).toBeTruthy(); // totalPartial
-      expect(getByText('1')).toBeTruthy(); // totalPaid
-      expect(getByText('Non payés')).toBeTruthy();
-      expect(getByText('Partiels')).toBeTruthy();
-      expect(getByText('Payés')).toBeTruthy();
+      
+      // Vérifier les valeurs des statistiques via testID
+      expect(getByTestId('stats-unpaid-value')).toHaveTextContent('1');
+      expect(getByTestId('stats-partial-value')).toHaveTextContent('0');
+      expect(getByTestId('stats-paid-value')).toHaveTextContent('1');
+      
+      // Vérifier les labels
+      expect(getByTestId('stats-unpaid-label')).toHaveTextContent('Non payés');
+      expect(getByTestId('stats-partial-label')).toHaveTextContent('Partiels');
+      expect(getByTestId('stats-paid-label')).toHaveTextContent('Payés');
     });
 
-    it.skip('devrait afficher les filtres de statut', () => {
-      const { getByText } = render(<JobsBillingScreen />);
+    it('devrait afficher les filtres de statut', () => {
+      const { getByTestId } = render(<JobsBillingScreen />);
       
-      expect(getByText('Tous')).toBeTruthy();
-      expect(getByText('Non payés')).toBeTruthy();
-      expect(getByText('Partiels')).toBeTruthy();
-      expect(getByText('Payés')).toBeTruthy();
+      expect(getByTestId('filter-all')).toBeTruthy();
+      expect(getByTestId('filter-unpaid')).toBeTruthy();
+      expect(getByTestId('filter-partial')).toBeTruthy();
+      expect(getByTestId('filter-paid')).toBeTruthy();
     });
 
     it('devrait afficher la liste des jobs', () => {
@@ -154,36 +159,36 @@ describe('JobsBillingScreen', () => {
   });
 
   describe('Filtrage des jobs', () => {
-    it.skip('devrait filtrer les jobs par statut non payé', () => {
-      const { getByText, queryByText } = render(<JobsBillingScreen />);
+    it('devrait filtrer les jobs par statut non payé', () => {
+      const { getByTestId, getByText, queryByText } = render(<JobsBillingScreen />);
       
       // Cliquer sur le filtre "Non payés"
-      fireEvent.press(getByText('Non payés'));
+      fireEvent.press(getByTestId('filter-unpaid'));
       
       // Seul JOB002 (unpaid) devrait être visible
       expect(getByText('JOB002')).toBeTruthy();
       expect(queryByText('JOB001')).toBeNull();
     });
 
-    it.skip('devrait filtrer les jobs par statut payé', () => {
-      const { getByText, queryByText } = render(<JobsBillingScreen />);
+    it('devrait filtrer les jobs par statut payé', () => {
+      const { getByTestId, getByText, queryByText } = render(<JobsBillingScreen />);
       
       // Cliquer sur le filtre "Payés"
-      fireEvent.press(getByText('Payés'));
+      fireEvent.press(getByTestId('filter-paid'));
       
       // Seul JOB001 (paid) devrait être visible
       expect(getByText('JOB001')).toBeTruthy();
       expect(queryByText('JOB002')).toBeNull();
     });
 
-    it.skip('devrait afficher tous les jobs avec le filtre "Tous"', () => {
-      const { getByText } = render(<JobsBillingScreen />);
+    it('devrait afficher tous les jobs avec le filtre "Tous"', () => {
+      const { getByTestId, getByText } = render(<JobsBillingScreen />);
       
       // Cliquer sur "Non payés" d'abord
-      fireEvent.press(getByText('Non payés'));
+      fireEvent.press(getByTestId('filter-unpaid'));
       
       // Puis cliquer sur "Tous"
-      fireEvent.press(getByText('Tous'));
+      fireEvent.press(getByTestId('filter-all'));
       
       // Les deux jobs devraient être visibles
       expect(getByText('JOB001')).toBeTruthy();
@@ -255,53 +260,110 @@ describe('JobsBillingScreen', () => {
   });
 
   describe('États de chargement et erreurs', () => {
-    it.skip('devrait afficher un indicateur de chargement', () => {
-      const loadingMock = {
-        ...mockUseJobsBilling,
-        isLoading: true,
-        jobs: []
-      };
+    it('devrait afficher un indicateur de chargement', () => {
+      // Modifier le mock temporairement
+      mockUseJobsBilling.isLoading = true;
+      mockUseJobsBilling.jobs = [];
       
-      jest.doMock('../../src/hooks/useJobsBilling', () => ({
-        useJobsBilling: () => loadingMock
-      }));
-
-      const { getByText } = render(<JobsBillingScreen />);
+      const { getByTestId, getByText } = render(<JobsBillingScreen />);
       
+      expect(getByTestId('loading-indicator')).toBeTruthy();
       expect(getByText('Chargement de la facturation...')).toBeTruthy();
+      
+      // Remettre les valeurs par défaut
+      mockUseJobsBilling.isLoading = false;
+      mockUseJobsBilling.jobs = [
+        {
+          id: 'job1',
+          code: 'JOB001',
+          status: 'completed' as const,
+          client: {
+            firstName: 'John',
+            lastName: 'Doe',
+            phone: '+61400000001',
+            email: 'john@test.com'
+          },
+          time: {
+            startWindowStart: '2025-10-20T08:00:00Z',
+            endWindowStart: '2025-10-20T12:00:00Z'
+          },
+          addresses: [{
+            type: 'pickup',
+            street: '123 Collins Street',
+            city: 'Sydney'
+          }],
+          billing: {
+            estimatedCost: 500,
+            actualCost: 550,
+            paymentStatus: 'paid' as const,
+            currency: 'AUD'
+          }
+        },
+        {
+          id: 'job2',
+          code: 'JOB002',
+          status: 'completed' as const,
+          client: {
+            firstName: 'Jane',
+            lastName: 'Smith',
+            phone: '+61400000002',
+            email: 'jane@test.com'
+          },
+          time: {
+            startWindowStart: '2025-10-21T09:00:00Z',
+            endWindowStart: '2025-10-21T13:00:00Z'
+          },
+          addresses: [{
+            type: 'pickup',
+            street: '456 George Street',
+            city: 'Sydney'
+          }],
+          billing: {
+            estimatedCost: 300,
+            actualCost: 0,
+            paymentStatus: 'unpaid' as const,
+            currency: 'AUD'
+          }
+        }
+      ];
     });
 
-    it.skip('devrait afficher un message d\'erreur', () => {
-      const errorMock = {
-        ...mockUseJobsBilling,
-        error: 'Erreur réseau'
-      };
+    it('devrait afficher un message d\'erreur', () => {
+      // Modifier le mock temporairement
+      const originalError = mockUseJobsBilling.error;
+      (mockUseJobsBilling as any).error = 'Erreur réseau';
       
-      jest.doMock('../../src/hooks/useJobsBilling', () => ({
-        useJobsBilling: () => errorMock
-      }));
-
-      const { getByText } = render(<JobsBillingScreen />);
+      const { getByTestId, getByText } = render(<JobsBillingScreen />);
       
+      expect(getByTestId('error-message')).toBeTruthy();
       expect(getByText('Erreur réseau')).toBeTruthy();
+      
+      // Remettre null
+      mockUseJobsBilling.error = originalError;
     });
 
-    it.skip('devrait afficher un message quand aucun job n\'est trouvé', () => {
-      const emptyMock = {
-        ...mockUseJobsBilling,
-        jobs: [],
-        totalUnpaid: 0,
-        totalPartial: 0,
-        totalPaid: 0
-      };
+    it('devrait afficher un message quand aucun job n\'est trouvé', () => {
+      // Modifier le mock temporairement
+      const originalJobs = [...mockUseJobsBilling.jobs];
+      const originalUnpaid = mockUseJobsBilling.totalUnpaid;
+      const originalPartial = mockUseJobsBilling.totalPartial;
+      const originalPaid = mockUseJobsBilling.totalPaid;
       
-      jest.doMock('../../src/hooks/useJobsBilling', () => ({
-        useJobsBilling: () => emptyMock
-      }));
-
-      const { getByText } = render(<JobsBillingScreen />);
+      mockUseJobsBilling.jobs = [];
+      mockUseJobsBilling.totalUnpaid = 0;
+      mockUseJobsBilling.totalPartial = 0;
+      mockUseJobsBilling.totalPaid = 0;
       
+      const { getByTestId, getByText } = render(<JobsBillingScreen />);
+      
+      expect(getByTestId('empty-state')).toBeTruthy();
       expect(getByText('Aucun job facturé trouvé')).toBeTruthy();
+      
+      // Remettre les valeurs par défaut
+      mockUseJobsBilling.jobs = originalJobs;
+      mockUseJobsBilling.totalUnpaid = originalUnpaid;
+      mockUseJobsBilling.totalPartial = originalPartial;
+      mockUseJobsBilling.totalPaid = originalPaid;
     });
   });
 
@@ -324,24 +386,21 @@ describe('JobsBillingScreen', () => {
       expect(getByText('456 George Street')).toBeTruthy();
     });
 
-    it.skip('devrait gérer les adresses manquantes', () => {
-      const jobsWithMissingAddress = [{
+    it('devrait gérer les adresses manquantes', () => {
+      const originalJobs = [...mockUseJobsBilling.jobs];
+      
+      // Créer un job sans adresse
+      mockUseJobsBilling.jobs = [{
         ...mockUseJobsBilling.jobs[0],
         addresses: []
       }];
 
-      const modifiedMock = {
-        ...mockUseJobsBilling,
-        jobs: jobsWithMissingAddress
-      };
-
-      jest.doMock('../../src/hooks/useJobsBilling', () => ({
-        useJobsBilling: () => modifiedMock
-      }));
-
       const { getByText } = render(<JobsBillingScreen />);
       
       expect(getByText('Non définie')).toBeTruthy();
+      
+      // Remettre les jobs originaux
+      mockUseJobsBilling.jobs = originalJobs;
     });
   });
 });

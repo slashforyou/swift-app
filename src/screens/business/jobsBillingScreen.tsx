@@ -127,7 +127,7 @@ export default function JobsBillingScreen() {
 
   if (isLoading && jobs.length === 0) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 16 }}>
+      <View testID="loading-indicator" style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 16 }}>
         <ActivityIndicator size="large" color={colors.primary} />
         <Text style={{ marginTop: 16, color: colors.textSecondary }}>
           Chargement de la facturation...
@@ -145,45 +145,47 @@ export default function JobsBillingScreen() {
     >
       {/* Header avec statistiques */}
       <View style={{ padding: DESIGN_TOKENS.spacing.lg }}>
-        <Text style={{
-          fontSize: 24,
-          fontWeight: '700',
-          color: colors.text,
-          marginBottom: DESIGN_TOKENS.spacing.lg,
-        }}>
+        <Text 
+          testID="billing-screen-title"
+          style={{
+            fontSize: 24,
+            fontWeight: '700',
+            color: colors.text,
+            marginBottom: DESIGN_TOKENS.spacing.lg,
+          }}>
           Facturation des Jobs
         </Text>
 
         {/* Statistiques rapides */}
         <HStack gap="sm" style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
-          <Card style={{ flex: 1, padding: DESIGN_TOKENS.spacing.md }}>
+          <Card style={{ flex: 1, padding: DESIGN_TOKENS.spacing.md }} testID="stats-unpaid-card">
             <VStack gap="xs" align="center">
-              <Text style={{ fontSize: 18, fontWeight: '700', color: '#F59E0B' }}>
+              <Text testID="stats-unpaid-value" style={{ fontSize: 18, fontWeight: '700', color: '#F59E0B' }}>
                 {totalUnpaid}
               </Text>
-              <Text style={{ fontSize: 12, color: colors.textSecondary, textAlign: 'center' }}>
+              <Text testID="stats-unpaid-label" style={{ fontSize: 12, color: colors.textSecondary, textAlign: 'center' }}>
                 Non payés
               </Text>
             </VStack>
           </Card>
 
-          <Card style={{ flex: 1, padding: DESIGN_TOKENS.spacing.md }}>
+          <Card style={{ flex: 1, padding: DESIGN_TOKENS.spacing.md }} testID="stats-partial-card">
             <VStack gap="xs" align="center">
-              <Text style={{ fontSize: 18, fontWeight: '700', color: '#3B82F6' }}>
+              <Text testID="stats-partial-value" style={{ fontSize: 18, fontWeight: '700', color: '#3B82F6' }}>
                 {totalPartial}
               </Text>
-              <Text style={{ fontSize: 12, color: colors.textSecondary, textAlign: 'center' }}>
+              <Text testID="stats-partial-label" style={{ fontSize: 12, color: colors.textSecondary, textAlign: 'center' }}>
                 Partiels
               </Text>
             </VStack>
           </Card>
 
-          <Card style={{ flex: 1, padding: DESIGN_TOKENS.spacing.md }}>
+          <Card style={{ flex: 1, padding: DESIGN_TOKENS.spacing.md }} testID="stats-paid-card">
             <VStack gap="xs" align="center">
-              <Text style={{ fontSize: 18, fontWeight: '700', color: '#10B981' }}>
+              <Text testID="stats-paid-value" style={{ fontSize: 18, fontWeight: '700', color: '#10B981' }}>
                 {totalPaid}
               </Text>
-              <Text style={{ fontSize: 12, color: colors.textSecondary, textAlign: 'center' }}>
+              <Text testID="stats-paid-label" style={{ fontSize: 12, color: colors.textSecondary, textAlign: 'center' }}>
                 Payés
               </Text>
             </VStack>
@@ -196,6 +198,7 @@ export default function JobsBillingScreen() {
             {(['all', 'unpaid', 'partial', 'paid'] as PaymentStatusFilter[]).map((filter) => (
               <Pressable
                 key={filter}
+                testID={`filter-${filter}`}
                 onPress={() => setStatusFilter(filter)}
                 style={{
                   backgroundColor: statusFilter === filter ? colors.primary : colors.backgroundSecondary,
@@ -223,7 +226,7 @@ export default function JobsBillingScreen() {
 
       {/* Messages d'erreur */}
       {error && (
-        <View style={{ padding: DESIGN_TOKENS.spacing.lg }}>
+        <View testID="error-message" style={{ padding: DESIGN_TOKENS.spacing.lg }}>
           <Card style={{ backgroundColor: '#FEF2F2', borderColor: '#F87171', borderWidth: 1 }}>
             <HStack gap="md" align="center">
               <Ionicons name="alert-circle" size={20} color="#EF4444" />
@@ -238,19 +241,21 @@ export default function JobsBillingScreen() {
       {/* Liste des jobs */}
       <View style={{ paddingHorizontal: DESIGN_TOKENS.spacing.lg, paddingBottom: DESIGN_TOKENS.spacing.xl }}>
         {filteredJobs.length === 0 ? (
-          <Card style={{ padding: DESIGN_TOKENS.spacing.xl, alignItems: 'center' }}>
-            <Ionicons name="receipt-outline" size={48} color={colors.textSecondary} />
-            <Text style={{ 
-              color: colors.textSecondary, 
-              fontSize: 16, 
-              marginTop: DESIGN_TOKENS.spacing.md,
-              textAlign: 'center'
-            }}>
-              {statusFilter === 'all' 
-                ? 'Aucun job facturé trouvé'
-                : `Aucun job ${statusFilter === 'unpaid' ? 'non payé' : statusFilter === 'partial' ? 'partiellement payé' : 'payé'} trouvé`}
-            </Text>
-          </Card>
+          <View testID="empty-state">
+            <Card style={{ padding: DESIGN_TOKENS.spacing.xl, alignItems: 'center' }}>
+              <Ionicons name="receipt-outline" size={48} color={colors.textSecondary} />
+              <Text style={{ 
+                color: colors.textSecondary, 
+                fontSize: 16, 
+                marginTop: DESIGN_TOKENS.spacing.md,
+                textAlign: 'center'
+              }}>
+                {statusFilter === 'all' 
+                  ? 'Aucun job facturé trouvé'
+                  : `Aucun job ${statusFilter === 'unpaid' ? 'non payé' : statusFilter === 'partial' ? 'partiellement payé' : 'payé'} trouvé`}
+              </Text>
+            </Card>
+          </View>
         ) : (
           <VStack gap="md">
             {filteredJobs.map((job) => {
