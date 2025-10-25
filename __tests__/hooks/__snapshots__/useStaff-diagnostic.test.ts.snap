@@ -1,0 +1,32 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`useStaff Diagnostic should load data after refreshStaff 1`] = `
+{
+  "afterContractorsLength": 0,
+  "afterEmployeesLength": 0,
+  "afterStaffLength": 0,
+  "beforeKeys": [
+    "staff",
+    "employees",
+    "contractors",
+    "inviteEmployee",
+    "searchContractor",
+    "addContractor",
+    "updateEmployee",
+    "updateContractor",
+    "deleteEmployee",
+    "deleteContractor",
+    "refreshStaff",
+    "isLoading",
+    "error",
+    "totalActive",
+    "totalEmployees",
+    "totalContractors",
+    "totalTeams",
+    "averageEmployeeRate",
+  ],
+  "beforeStaffLength": 0,
+  "hasRefreshData": "undefined",
+  "hasRefreshStaff": "function",
+}
+`;
