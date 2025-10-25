@@ -2,7 +2,7 @@
  * Tests unitaires pour useJobPhotos Hook
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { useJobPhotos } from '../../src/hooks/useJobPhotos';
 
 // Mock des services
@@ -136,12 +136,19 @@ describe('useJobPhotos Hook', () => {
       const photoUri = 'file://test.jpg';
       const description = 'Test description';
 
-      const uploadedPhoto = await result.current.uploadPhoto(photoUri, description);
+      let uploadedPhoto;
+      await act(async () => {
+        uploadedPhoto = await result.current.uploadPhoto(photoUri, description);
+      });
 
       expect(uploadedPhoto).toBeTruthy();
       expect(uploadedPhoto?.id).toContain('local-');
       expect(uploadedPhoto?.description).toBe(description);
-      expect(result.current.photos).toHaveLength(1);
+      
+      // Attendre que le state soit mis à jour
+      await waitFor(() => {
+        expect(result.current.photos).toHaveLength(1);
+      });
     });
   });
 });
