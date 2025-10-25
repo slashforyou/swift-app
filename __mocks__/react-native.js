@@ -20,6 +20,7 @@ const KeyboardAvoidingView = 'KeyboardAvoidingView';
 const Pressable = 'Pressable';
 const Button = 'Button';
 const Switch = 'Switch';
+const RefreshControl = 'RefreshControl';
 
 const Platform = {
   OS: 'ios',
@@ -128,6 +129,7 @@ module.exports = {
   Pressable,
   Button,
   Switch,
+  RefreshControl,
   
   // APIs
   Platform,
