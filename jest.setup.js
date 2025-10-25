@@ -1,6 +1,13 @@
 // Basic setup for Jest
 // This file is referenced in jest.config.js setupFilesAfterEnv
 
+// Define React Native globals
+global.__DEV__ = true;
+
+// Mock Expo Winter Runtime (fix for import errors after npm install)
+jest.mock('expo/src/winter/runtime.native', () => ({}), { virtual: true });
+jest.mock('expo/src/winter/installGlobal', () => ({}), { virtual: true });
+
 // Global fetch mock
 global.fetch = jest.fn();
 
