@@ -1,5 +1,6 @@
 /**
  * Tests pour le hook useStaff
+ * @jest-environment jsdom
  */
 
 import { act, renderHook } from '@testing-library/react';
