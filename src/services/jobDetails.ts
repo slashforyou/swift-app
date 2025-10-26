@@ -1,6 +1,6 @@
 // services/jobDetails.ts
-import { authenticatedFetch } from '../utils/auth';
 import { ServerData } from '../constants/ServerData';
+import { authenticatedFetch } from '../utils/auth';
 import { getMockJobDetails } from './jobDetailsMockData';
 
 const API = ServerData.serverUrl;

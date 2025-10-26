@@ -1,7 +1,7 @@
 // services/session.ts
 import * as SecureStore from "expo-secure-store";
-import { refreshToken as refreshAuthToken, getAuthHeaders, clearSession } from "./auth";
 import { ServerData } from "../constants/ServerData";
+import { getAuthHeaders, refreshToken as refreshAuthToken } from "./auth";
 
 const API = ServerData.serverUrl;
 

@@ -4,7 +4,7 @@
  * Grille de 8pt, Safe Areas, Touch targets ≥44pt, Typography optimisée
  */
 
-import { StyleSheet, Dimensions } from 'react-native';
+import { Dimensions, StyleSheet } from 'react-native';
 import { Colors } from './Colors';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -199,7 +199,7 @@ const INPUT_PRIMITIVES = {
 };
 
 // Export des primitives pour utilisation directe
-export { DESIGN_TOKENS, LAYOUT_PRIMITIVES, STACK_PRIMITIVES, CARD_PRIMITIVES, TEXT_PRIMITIVES, BUTTON_PRIMITIVES, INPUT_PRIMITIVES };
+export { BUTTON_PRIMITIVES, CARD_PRIMITIVES, DESIGN_TOKENS, INPUT_PRIMITIVES, LAYOUT_PRIMITIVES, STACK_PRIMITIVES, TEXT_PRIMITIVES };
 
 export const createCommonStyles = (colors: typeof Colors.light) => StyleSheet.create({
   // ===================

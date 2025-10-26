@@ -1,12 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
-import { 
-  getJobDetails, 
-  updateJob as updateJobService, 
-  addJobNote as addJobNoteService, 
-  startJob as startJobService, 
-  pauseJob as pauseJobService, 
-  resumeJob as resumeJobService, 
-  completeJob as completeJobService 
+import { useCallback, useEffect, useState } from 'react';
+import {
+    addJobNote as addJobNoteService,
+    completeJob as completeJobService,
+    getJobDetails,
+    pauseJob as pauseJobService,
+    resumeJob as resumeJobService,
+    startJob as startJobService,
+    updateJob as updateJobService
 } from '../services/jobs';
 
 export const useJobDetails = (jobId: string) => {
