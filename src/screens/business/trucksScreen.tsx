@@ -125,7 +125,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
               {icon}
             </Text>
           </View>
-          <Text style={{
+          <Text testID="section-title" style={{
             fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
             fontWeight: '600',
             color: colors.text,
@@ -136,6 +136,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
         </HStack>
         {onActionPress && actionText && (
           <TouchableOpacity
+            testID="add-vehicle-button"
             onPress={onActionPress}
             style={{
               backgroundColor: colors.primary,
@@ -155,7 +156,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
         )}
       </HStack>
       {description && (
-        <Text style={{
+        <Text testID="section-description" style={{
           fontSize: 14,
           color: colors.textSecondary,
           lineHeight: 20,
@@ -225,7 +226,7 @@ const VehicleCard: React.FC<{ vehicle: Vehicle; onPress: () => void }> = ({
   const statusColors = getStatusColor(vehicle.status);
   
   return (
-    <TouchableOpacity onPress={onPress}>
+    <TouchableOpacity testID={`vehicle-card-${vehicle.id}`} onPress={onPress}>
       <Card style={{ marginBottom: DESIGN_TOKENS.spacing.md }}>
         <VStack gap="sm">
           <HStack gap="md" align="center" justify="space-between">
@@ -238,19 +239,19 @@ const VehicleCard: React.FC<{ vehicle: Vehicle; onPress: () => void }> = ({
                 justifyContent: 'center',
                 alignItems: 'center'
               }}>
-                <Text style={{ fontSize: 20 }}>
+                <Text testID={`vehicle-emoji-${vehicle.id}`} style={{ fontSize: 20 }}>
                   {getVehicleEmoji(vehicle.type)}
                 </Text>
               </View>
               <VStack gap="xs" style={{ flex: 1 }}>
-                <Text style={{
+                <Text testID={`vehicle-name-${vehicle.id}`} style={{
                   fontSize: 16,
                   fontWeight: '600',
                   color: colors.text,
                 }}>
                   {vehicle.name}
                 </Text>
-                <Text style={{
+                <Text testID={`vehicle-details-${vehicle.id}`} style={{
                   fontSize: 14,
                   color: colors.textSecondary,
                 }}>
@@ -258,7 +259,7 @@ const VehicleCard: React.FC<{ vehicle: Vehicle; onPress: () => void }> = ({
                 </Text>
               </VStack>
             </HStack>
-            <View style={{
+            <View testID={`vehicle-status-${vehicle.id}`} style={{
               backgroundColor: statusColors.bg + '20',
               paddingHorizontal: DESIGN_TOKENS.spacing.sm,
               paddingVertical: DESIGN_TOKENS.spacing.xs,
@@ -284,7 +285,7 @@ const VehicleCard: React.FC<{ vehicle: Vehicle; onPress: () => void }> = ({
               }}>
                 Registration
               </Text>
-              <Text style={{
+              <Text testID={`vehicle-registration-${vehicle.id}`} style={{
                 fontSize: 14,
                 color: colors.text,
               }}>
@@ -299,7 +300,7 @@ const VehicleCard: React.FC<{ vehicle: Vehicle; onPress: () => void }> = ({
               }}>
                 Next Service
               </Text>
-              <Text style={{
+              <Text testID={`vehicle-service-${vehicle.id}`} style={{
                 fontSize: 14,
                 color: colors.text,
               }}>
@@ -317,7 +318,7 @@ const VehicleCard: React.FC<{ vehicle: Vehicle; onPress: () => void }> = ({
               }}>
                 Assigned to:
               </Text>
-              <Text style={{
+              <Text testID={`vehicle-assigned-${vehicle.id}`} style={{
                 fontSize: 14,
                 color: colors.primary,
                 fontWeight: '600',
@@ -450,9 +451,9 @@ export default function TrucksScreen() {
   // Loading state
   if (isLoadingVehicles) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+      <View testID="loading-state" style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={{ marginTop: 16, color: colors.textSecondary }}>Loading vehicles...</Text>
+        <Text testID="loading-text" style={{ marginTop: 16, color: colors.textSecondary }}>Loading vehicles...</Text>
       </View>
     )
   }
@@ -460,11 +461,12 @@ export default function TrucksScreen() {
   // Error state
   if (vehiclesError && mockVehicles.length === 0) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background, padding: 20 }}>
+      <View testID="error-state" style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background, padding: 20 }}>
         <Text style={{ fontSize: 48, marginBottom: 16 }}>⚠️</Text>
-        <Text style={{ fontSize: 18, fontWeight: '600', color: colors.text, marginBottom: 8 }}>Error loading vehicles</Text>
-        <Text style={{ color: colors.textSecondary, textAlign: 'center', marginBottom: 20 }}>{vehiclesError}</Text>
+        <Text testID="error-title" style={{ fontSize: 18, fontWeight: '600', color: colors.text, marginBottom: 8 }}>Error loading vehicles</Text>
+        <Text testID="error-message" style={{ color: colors.textSecondary, textAlign: 'center', marginBottom: 20 }}>{vehiclesError}</Text>
         <TouchableOpacity
+          testID="retry-button"
           onPress={refetch}
           style={{
             backgroundColor: colors.primary,
@@ -488,16 +490,16 @@ export default function TrucksScreen() {
       {/* Statistiques rapides */}
       <View style={styles.quickStats}>
         <Card style={styles.statCard}>
-          <Text style={styles.statNumber}>{availableVehicles}</Text>
-          <Text style={styles.statLabel}>Available</Text>
+          <Text testID="stat-available-value" style={styles.statNumber}>{availableVehicles}</Text>
+          <Text testID="stat-available-label" style={styles.statLabel}>Available</Text>
         </Card>
         <Card style={styles.statCard}>
-          <Text style={styles.statNumber}>{inUseVehicles}</Text>
-          <Text style={styles.statLabel}>In Use</Text>
+          <Text testID="stat-inuse-value" style={styles.statNumber}>{inUseVehicles}</Text>
+          <Text testID="stat-inuse-label" style={styles.statLabel}>In Use</Text>
         </Card>
         <Card style={styles.statCard}>
-          <Text style={styles.statNumber}>{maintenanceVehicles}</Text>
-          <Text style={styles.statLabel}>Maintenance</Text>
+          <Text testID="stat-maintenance-value" style={styles.statNumber}>{maintenanceVehicles}</Text>
+          <Text testID="stat-maintenance-label" style={styles.statLabel}>Maintenance</Text>
         </Card>
       </View>
 
@@ -511,6 +513,7 @@ export default function TrucksScreen() {
           {vehicleTypes.map((type) => (
             <TouchableOpacity
               key={type}
+              testID={`filter-type-${type}`}
               style={[
                 styles.typeFilter,
                 {
