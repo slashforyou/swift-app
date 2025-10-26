@@ -189,26 +189,17 @@ describe('AddContractorModal', () => {
   });
 
   describe('Search Results Step', () => {
-    beforeEach(async () => {
-      // Naviguer vers l'étape des résultats
-      const { getByPlaceholderText, getByTestId } = renderModal();
+    it('should display search results', async () => {
+      const { getByTestId, getByPlaceholderText } = renderModal();
       
+      // First perform search to navigate to results step
       const searchInput = getByPlaceholderText('John Smith ou 12 345 678 901');
       fireEvent.changeText(searchInput, 'John');
       
       const searchButton = getByTestId('search-button');
-      
       await act(async () => {
         fireEvent.press(searchButton);
       });
-      
-      await waitFor(() => {
-        expect(mockOnSearch).toHaveBeenCalled();
-      });
-    });
-
-    it('should display search results', async () => {
-      const { getByTestId } = renderModal();
       
       await waitFor(() => {
         expect(getByTestId('results-title')).toBeTruthy();
@@ -218,7 +209,14 @@ describe('AddContractorModal', () => {
     });
 
     it('should show contractor details in results', async () => {
-      const { getByTestId } = renderModal();
+      const { getByTestId, getByPlaceholderText } = renderModal();
+      
+      // Perform search first
+      const searchInput = getByPlaceholderText('John Smith ou 12 345 678 901');
+      fireEvent.changeText(searchInput, 'John');
+      await act(async () => {
+        fireEvent.press(getByTestId('search-button'));
+      });
       
       await waitFor(() => {
         expect(getByTestId('contractor-role-con_1')).toBeTruthy();
@@ -229,7 +227,14 @@ describe('AddContractorModal', () => {
     });
 
     it('should show verified badge for verified contractors', async () => {
-      const { getByTestId } = renderModal();
+      const { getByTestId, getByPlaceholderText } = renderModal();
+      
+      // Perform search first
+      const searchInput = getByPlaceholderText('John Smith ou 12 345 678 901');
+      fireEvent.changeText(searchInput, 'John');
+      await act(async () => {
+        fireEvent.press(getByTestId('search-button'));
+      });
       
       await waitFor(() => {
         expect(getByTestId('contractor-verified-con_1')).toBeTruthy();
@@ -237,51 +242,61 @@ describe('AddContractorModal', () => {
     });
 
     it('should allow selecting a contractor', async () => {
-      const { getByTestId } = renderModal();
+      const { getByTestId, getByPlaceholderText } = renderModal();
+      
+      // Perform search first
+      const searchInput = getByPlaceholderText('John Smith ou 12 345 678 901');
+      fireEvent.changeText(searchInput, 'John');
+      await act(async () => {
+        fireEvent.press(getByTestId('search-button'));
+      });
       
       await waitFor(() => {
         const contractorCard = getByTestId('contractor-card-con_1');
         fireEvent.press(contractorCard);
-        
-        // Devrait naviguer vers l'étape du contrat
+      });
+      
+      // Should navigate to contract step
+      await waitFor(() => {
         expect(getByTestId('contract-title')).toBeTruthy();
       });
     });
 
     it('should allow going back to search', async () => {
-      const { getByTestId } = renderModal();
+      const { getByTestId, getByPlaceholderText } = renderModal();
+      
+      // Perform search first
+      const searchInput = getByPlaceholderText('John Smith ou 12 345 678 901');
+      fireEvent.changeText(searchInput, 'John');
+      await act(async () => {
+        fireEvent.press(getByTestId('search-button'));
+      });
       
       await waitFor(() => {
         const backButton = getByTestId('back-button');
         fireEvent.press(backButton);
-        
-        // Devrait retourner à la recherche
+      });
+      
+      // Should return to search step
+      await waitFor(() => {
         expect(getByTestId('modal-title')).toBeTruthy();
       });
     });
   });
 
   describe('Contract Status Step', () => {
-    beforeEach(async () => {
-      // Naviguer vers l'étape du contrat
-      const { getByPlaceholderText, getByTestId } = renderModal();
+    it('should display contract status options', async () => {
+      const { getByTestId, getByPlaceholderText } = renderModal();
       
+      // Navigate to contract step
       const searchInput = getByPlaceholderText('John Smith ou 12 345 678 901');
       fireEvent.changeText(searchInput, 'John');
-      
-      const searchButton = getByTestId('search-button');
       await act(async () => {
-        fireEvent.press(searchButton);
+        fireEvent.press(getByTestId('search-button'));
       });
-      
       await waitFor(() => {
-        const contractorCard = getByTestId('contractor-card-con_1');
-        fireEvent.press(contractorCard);
+        fireEvent.press(getByTestId('contractor-card-con_1'));
       });
-    });
-
-    it('should display contract status options', async () => {
-      const { getByTestId } = renderModal();
       
       await waitFor(() => {
         expect(getByTestId('contract-title')).toBeTruthy();
@@ -293,7 +308,17 @@ describe('AddContractorModal', () => {
     });
 
     it('should show contract status descriptions', async () => {
-      const { getByTestId } = renderModal();
+      const { getByTestId, getByPlaceholderText } = renderModal();
+      
+      // Navigate to contract step
+      const searchInput = getByPlaceholderText('John Smith ou 12 345 678 901');
+      fireEvent.changeText(searchInput, 'John');
+      await act(async () => {
+        fireEvent.press(getByTestId('search-button'));
+      });
+      await waitFor(() => {
+        fireEvent.press(getByTestId('contractor-card-con_1'));
+      });
       
       await waitFor(() => {
         expect(getByTestId('contract-description-exclusive')).toBeTruthy();
@@ -304,19 +329,41 @@ describe('AddContractorModal', () => {
     });
 
     it('should allow selecting a contract status', async () => {
-      const { getByTestId } = renderModal();
+      const { getByTestId, getByPlaceholderText } = renderModal();
+      
+      // Navigate to contract step
+      const searchInput = getByPlaceholderText('John Smith ou 12 345 678 901');
+      fireEvent.changeText(searchInput, 'John');
+      await act(async () => {
+        fireEvent.press(getByTestId('search-button'));
+      });
+      await waitFor(() => {
+        fireEvent.press(getByTestId('contractor-card-con_1'));
+      });
       
       await waitFor(() => {
         const exclusiveOption = getByTestId('contract-option-exclusive');
         fireEvent.press(exclusiveOption);
-        
-        // Vérifier que l'option est sélectionnée visuellement
+      });
+      
+      // Verify option is visually selected
+      await waitFor(() => {
         expect(getByTestId('selected-checkmark')).toBeTruthy();
       });
     });
 
     it('should display selected contractor info', async () => {
-      const { getByTestId } = renderModal();
+      const { getByTestId, getByPlaceholderText } = renderModal();
+      
+      // Navigate to contract step
+      const searchInput = getByPlaceholderText('John Smith ou 12 345 678 901');
+      fireEvent.changeText(searchInput, 'John');
+      await act(async () => {
+        fireEvent.press(getByTestId('search-button'));
+      });
+      await waitFor(() => {
+        fireEvent.press(getByTestId('contractor-card-con_1'));
+      });
       
       await waitFor(() => {
         expect(getByTestId('summary-name')).toBeTruthy();
@@ -326,32 +373,23 @@ describe('AddContractorModal', () => {
   });
 
   describe('Contractor Addition', () => {
-    beforeEach(async () => {
-      // Naviguer vers l'étape du contrat et sélectionner un statut
-      const { getByPlaceholderText, getByTestId } = renderModal();
+    it('should add contractor with selected status', async () => {
+      const { getByTestId, getByPlaceholderText } = renderModal();
       
+      // Navigate through all steps
       const searchInput = getByPlaceholderText('John Smith ou 12 345 678 901');
       fireEvent.changeText(searchInput, 'John');
-      
-      const searchButton = getByTestId('search-button');
       await act(async () => {
-        fireEvent.press(searchButton);
+        fireEvent.press(getByTestId('search-button'));
       });
-      
       await waitFor(() => {
-        const contractorCard = getByTestId('contractor-card-con_1');
-        fireEvent.press(contractorCard);
+        fireEvent.press(getByTestId('contractor-card-con_1'));
       });
-      
       await waitFor(() => {
-        const exclusiveOption = getByTestId('contract-option-exclusive');
-        fireEvent.press(exclusiveOption);
+        fireEvent.press(getByTestId('contract-option-exclusive'));
       });
-    });
-
-    it('should add contractor with selected status', async () => {
-      const { getByTestId } = renderModal();
       
+      // Click add button
       await waitFor(() => {
         const addButton = getByTestId('add-button');
         fireEvent.press(addButton);
@@ -363,8 +401,19 @@ describe('AddContractorModal', () => {
     });
 
     it('should show success message after adding contractor', async () => {
-      const { getByTestId } = renderModal();
+      const { getByTestId, getByPlaceholderText } = renderModal();
       
+      // Navigate through all steps
+      const searchInput = getByPlaceholderText('John Smith ou 12 345 678 901');
+      fireEvent.changeText(searchInput, 'John');
+      await act(async () => {
+        fireEvent.press(getByTestId('search-button'));
+      });
+      await waitFor(() => {
+        fireEvent.press(getByTestId('contractor-card-con_1'));
+      });
+      
+      // Click add button
       await waitFor(() => {
         const addButton = getByTestId('add-button');
         fireEvent.press(addButton);
@@ -382,7 +431,17 @@ describe('AddContractorModal', () => {
     it('should show loading state during addition', async () => {
       mockOnAdd.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)));
       
-      const { getByTestId, queryByTestId } = renderModal();
+      const { getByTestId, getByPlaceholderText } = renderModal();
+      
+      // Navigate through all steps
+      const searchInput = getByPlaceholderText('John Smith ou 12 345 678 901');
+      fireEvent.changeText(searchInput, 'John');
+      await act(async () => {
+        fireEvent.press(getByTestId('search-button'));
+      });
+      await waitFor(() => {
+        fireEvent.press(getByTestId('contractor-card-con_1'));
+      });
       
       await waitFor(() => {
         const addButton = getByTestId('add-button');
@@ -391,8 +450,7 @@ describe('AddContractorModal', () => {
           fireEvent.press(addButton);
         });
         
-        // Vérifier que le bouton montre le loading (ActivityIndicator visible)
-        // Le testID reste présent mais le texte disparaît
+        // Verify button still exists (loading state)
         expect(getByTestId('add-button')).toBeTruthy();
       });
     });
@@ -400,7 +458,17 @@ describe('AddContractorModal', () => {
     it('should handle addition errors', async () => {
       mockOnAdd.mockRejectedValue(new Error('Addition failed'));
       
-      const { getByTestId } = renderModal();
+      const { getByTestId, getByPlaceholderText } = renderModal();
+      
+      // Navigate through all steps
+      const searchInput = getByPlaceholderText('John Smith ou 12 345 678 901');
+      fireEvent.changeText(searchInput, 'John');
+      await act(async () => {
+        fireEvent.press(getByTestId('search-button'));
+      });
+      await waitFor(() => {
+        fireEvent.press(getByTestId('contractor-card-con_1'));
+      });
       
       await waitFor(() => {
         const addButton = getByTestId('add-button');
@@ -411,10 +479,7 @@ describe('AddContractorModal', () => {
       });
       
       await waitFor(() => {
-        expect(Alert.alert).toHaveBeenCalledWith(
-          'Erreur',
-          'Impossible d\'ajouter le prestataire'
-        );
+        expect(Alert.alert).toHaveBeenCalledWith('Erreur', 'Impossible d\'ajouter le prestataire');
       });
     });
   });
@@ -432,29 +497,33 @@ describe('AddContractorModal', () => {
     it('should reset modal state when closed', async () => {
       const { getByPlaceholderText, getByTestId, rerender } = renderModal();
       
-      // Faire une recherche
+      // Perform a search
       const searchInput = getByPlaceholderText('John Smith ou 12 345 678 901');
       fireEvent.changeText(searchInput, 'John');
       
-      const searchButton = getByTestId('search-button');
       await act(async () => {
-        fireEvent.press(searchButton);
+        fireEvent.press(getByTestId('search-button'));
       });
       
-      // Fermer et rouvrir la modal
-      rerender(
-        <ThemeProvider>
-          <AddContractorModal {...defaultProps} visible={false} />
-        </ThemeProvider>
-      );
+      // Wait for results to be displayed
+      await waitFor(() => {
+        expect(getByTestId('results-title')).toBeTruthy();
+      });
       
+      // Click close button
+      fireEvent.press(getByTestId('close-button'));
+      
+      // Verify onClose was called
+      expect(mockOnClose).toHaveBeenCalled();
+      
+      // Reopen modal (simulating parent component reopening it)
       rerender(
         <ThemeProvider>
           <AddContractorModal {...defaultProps} visible={true} />
         </ThemeProvider>
       );
       
-      // Devrait être retourné à l'étape de recherche
+      // Should be back to search step with cleared form
       expect(getByTestId('modal-title')).toBeTruthy();
       expect(getByPlaceholderText('John Smith ou 12 345 678 901').props.value).toBe('');
     });
