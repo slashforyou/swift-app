@@ -1,19 +1,19 @@
 /**
  * PhotoSelectionModal - Modal de sélection de photo avec caméra et galerie
  */
-import React from 'react';
-import { 
-    View, 
-    Text, 
-    Modal, 
-    Pressable, 
-    Alert,
-    StyleSheet 
-} from 'react-native';
-import { useTheme } from '../../../context/ThemeProvider';
-import { DESIGN_TOKENS } from '../../../constants/Styles';
 import Ionicons from '@react-native-vector-icons/ionicons';
 import * as ImagePicker from 'expo-image-picker';
+import React from 'react';
+import {
+    Alert,
+    Modal,
+    Pressable,
+    StyleSheet,
+    Text,
+    View
+} from 'react-native';
+import { DESIGN_TOKENS } from '../../../constants/Styles';
+import { useTheme } from '../../../context/ThemeProvider';
 import { compressImage } from '../../../utils/imageCompression';
 
 interface PhotoSelectionModalProps {

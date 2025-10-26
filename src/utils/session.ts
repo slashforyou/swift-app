@@ -1,6 +1,6 @@
 // services/session.ts
 import * as SecureStore from "expo-secure-store";
-import { refresh, getAuthHeaders, logout } from "./auth";
+import { refreshToken as refreshAuthToken, getAuthHeaders, clearSession } from "./auth";
 import { ServerData } from "../constants/ServerData";
 
 const API = ServerData.serverUrl;
@@ -60,7 +60,7 @@ export async function ensureSession() {
   // 3) If we have deviceId + refreshToken, try refresh
   if (deviceId && refreshToken) {
     try {
-      await refresh(); // updates session_token (+ possibly refresh_token)
+      await refreshAuthToken(); // updates session_token (+ possibly refresh_token)
       const res2 = await fetchMe();
       if (res2.ok) {
         const data2 = await res2.json().catch(() => ({}));
@@ -104,7 +104,7 @@ export async function fetchWithAuth(input: RequestInfo | URL, init: RequestInit 
 
   // 401 Unauthorized - try to refresh the token
   try {
-    await refresh();
+    await refreshAuthToken();
   } catch {
     // refresh failed
     await clearLocalSession();
@@ -112,6 +112,6 @@ export async function fetchWithAuth(input: RequestInfo | URL, init: RequestInit 
   }
 
   // Retry the request with the new token
-  headers = { ...(init.headers || {}), ...(await getAuthHeaders()) };
-  return fetch(input, { ...init, headers });
+  const newHeaders = { ...(init.headers || {}), ...(await getAuthHeaders()) };
+  return fetch(input, { ...init, headers: newHeaders });
 }

@@ -3,8 +3,8 @@
  * Persiste les données entre les sessions et calcule les temps par étape
  */
 
-import { useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useCallback, useEffect, useState } from 'react';
 
 export interface JobStepTime {
     step: number;

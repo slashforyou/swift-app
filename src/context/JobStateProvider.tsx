@@ -9,8 +9,8 @@
  */
 
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { JobState, JobStateAction, JobStateContextType, JobProgress } from '../types/jobState';
-import { loadJobState, saveJobState, deleteJobState } from '../utils/jobStateStorage';
+import { JobProgress, JobState, JobStateAction, JobStateContextType } from '../types/jobState';
+import { loadJobState, saveJobState } from '../utils/jobStateStorage';
 
 const JobStateContext = createContext<JobStateContextType | undefined>(undefined);
 

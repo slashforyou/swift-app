@@ -18,7 +18,7 @@ export default function StaffCrewScreen() {
       }}
     >
       <View style={{
-        backgroundColor: colors.surface,
+        backgroundColor: colors.backgroundSecondary,
         padding: DESIGN_TOKENS.spacing.md,
         borderRadius: DESIGN_TOKENS.radius.md,
         marginBottom: DESIGN_TOKENS.spacing.md,
@@ -40,7 +40,7 @@ export default function StaffCrewScreen() {
       </View>
 
       <View style={{
-        backgroundColor: colors.surface,
+        backgroundColor: colors.backgroundSecondary,
         padding: DESIGN_TOKENS.spacing.md,
         borderRadius: DESIGN_TOKENS.radius.md,
       }}>

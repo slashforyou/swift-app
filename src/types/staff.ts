@@ -7,7 +7,7 @@ export interface BaseStaffMember {
   email: string;
   phone: string;
   role: string;
-  team: string;
+  team?: string; // ✅ Optional pour flexibilité
   startDate: string;
   status: 'active' | 'inactive' | 'pending';
 }
@@ -17,7 +17,7 @@ export interface Employee extends BaseStaffMember {
   type: 'employee';
   tfn?: string; // Optionnel car peut être rempli après invitation
   hourlyRate: number;
-  invitationStatus: 'sent' | 'accepted' | 'completed';
+  invitationStatus: 'sent' | 'accepted' | 'completed' | 'pending' | 'expired'; // ✅ Ajout pending & expired
   accountLinked: boolean;
 }
 

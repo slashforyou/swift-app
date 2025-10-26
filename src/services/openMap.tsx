@@ -11,7 +11,7 @@ const openMap = async (address: string, latitude?: number, longitude?: number): 
       android: `geo:0,0?q=${latitude},${longitude}(${label})`, // Google Maps
     });
 
-    if (latitude && longitude) {
+    if (latitude && longitude && scheme) {
         url = scheme;
     } else {
         url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;

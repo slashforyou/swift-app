@@ -245,6 +245,7 @@ export interface TimelineEvent {
     oldValue?: any;
     newValue?: any;
     changes?: string[];
+    [key: string]: any; // ✅ Allow flexible properties
   };
 }
 
