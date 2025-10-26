@@ -218,9 +218,16 @@ const getStatusLabel = (status: Vehicle['status']): string => {
 };
 
 // Composant pour une carte véhicule
-const VehicleCard: React.FC<{ vehicle: Vehicle; onPress: () => void }> = ({ 
+const VehicleCard: React.FC<{ 
+  vehicle: Vehicle; 
+  onPress: () => void;
+  onEdit: (vehicle: Vehicle, event?: any) => void;
+  onDelete: (vehicle: Vehicle, event?: any) => void;
+}> = ({ 
   vehicle, 
-  onPress 
+  onPress,
+  onEdit,
+  onDelete
 }) => {
   const { colors } = useTheme();
   const statusColors = getStatusColor(vehicle.status);
@@ -327,6 +334,50 @@ const VehicleCard: React.FC<{ vehicle: Vehicle; onPress: () => void }> = ({
               </Text>
             </HStack>
           )}
+
+          {/* Actions buttons */}
+          <HStack gap="sm" style={{ marginTop: DESIGN_TOKENS.spacing.md }}>
+            <TouchableOpacity
+              testID={`vehicle-edit-button-${vehicle.id}`}
+              onPress={(e) => onEdit(vehicle, e)}
+              style={{
+                flex: 1,
+                backgroundColor: colors.primary + '10',
+                paddingVertical: DESIGN_TOKENS.spacing.sm,
+                paddingHorizontal: DESIGN_TOKENS.spacing.md,
+                borderRadius: DESIGN_TOKENS.radius.sm,
+                alignItems: 'center',
+              }}
+            >
+              <Text style={{
+                color: colors.primary,
+                fontWeight: '600',
+                fontSize: 14,
+              }}>
+                Edit
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              testID={`vehicle-delete-button-${vehicle.id}`}
+              onPress={(e) => onDelete(vehicle, e)}
+              style={{
+                flex: 1,
+                backgroundColor: '#FF3B3020',
+                paddingVertical: DESIGN_TOKENS.spacing.sm,
+                paddingHorizontal: DESIGN_TOKENS.spacing.md,
+                borderRadius: DESIGN_TOKENS.radius.sm,
+                alignItems: 'center',
+              }}
+            >
+              <Text style={{
+                color: '#FF3B30',
+                fontWeight: '600',
+                fontSize: 14,
+              }}>
+                Delete
+              </Text>
+            </TouchableOpacity>
+          </HStack>
         </VStack>
       </Card>
     </TouchableOpacity>
@@ -465,6 +516,42 @@ export default function TrucksScreen() {
     console.log('View vehicle details:', vehicle.id);
   };
 
+  const handleEditVehicle = (vehicle: Vehicle, event?: any) => {
+    // Empêcher la propagation au parent TouchableOpacity
+    event?.stopPropagation?.();
+    
+    Alert.alert(
+      'Modifier le véhicule',
+      `Modification de ${vehicle.name}`,
+      [{ text: 'OK' }]
+    );
+  };
+
+  const handleDeleteVehicle = (vehicle: Vehicle, event?: any) => {
+    // Empêcher la propagation au parent TouchableOpacity
+    event?.stopPropagation?.();
+    
+    Alert.alert(
+      'Supprimer le véhicule',
+      `Êtes-vous sûr de vouloir supprimer ${vehicle.name} ?`,
+      [
+        { text: 'Annuler', style: 'cancel' },
+        { 
+          text: 'Supprimer', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await removeVehicleApi(vehicle.id);
+              // Le hook useVehicles mettra automatiquement à jour la liste
+            } catch (error) {
+              Alert.alert('Erreur', 'Impossible de supprimer le véhicule');
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const handleTypeFilter = (type: string) => {
     setSelectedType(type);
   };
@@ -573,6 +660,8 @@ export default function TrucksScreen() {
                 key={vehicle.id}
                 vehicle={vehicle}
                 onPress={() => handleVehiclePress(vehicle)}
+                onEdit={handleEditVehicle}
+                onDelete={handleDeleteVehicle}
               />
             ))
           ) : (
