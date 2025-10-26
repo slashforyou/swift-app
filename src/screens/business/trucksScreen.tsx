@@ -398,7 +398,28 @@ export default function TrucksScreen() {
       borderRadius: DESIGN_TOKENS.radius.sm,
       marginRight: DESIGN_TOKENS.spacing.sm,
       borderWidth: 1,
-    }
+    },
+    emptyState: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: DESIGN_TOKENS.spacing.xl * 2,
+      paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+    },
+    emptyIcon: {
+      fontSize: 64,
+      marginBottom: DESIGN_TOKENS.spacing.lg,
+    },
+    emptyTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      marginBottom: DESIGN_TOKENS.spacing.sm,
+      textAlign: 'center',
+    },
+    emptyMessage: {
+      fontSize: 14,
+      textAlign: 'center',
+      lineHeight: 20,
+    },
   })
 
   // Filtres et données
@@ -546,13 +567,25 @@ export default function TrucksScreen() {
             onActionPress={handleAddVehicle}
           />
           
-          {filteredVehicles.map((vehicle) => (
-            <VehicleCard
-              key={vehicle.id}
-              vehicle={vehicle}
-              onPress={() => handleVehiclePress(vehicle)}
-            />
-          ))}
+          {filteredVehicles.length > 0 ? (
+            filteredVehicles.map((vehicle) => (
+              <VehicleCard
+                key={vehicle.id}
+                vehicle={vehicle}
+                onPress={() => handleVehiclePress(vehicle)}
+              />
+            ))
+          ) : (
+            <View testID="empty-state" style={styles.emptyState}>
+              <Text testID="empty-state-icon" style={styles.emptyIcon}>🚗</Text>
+              <Text testID="empty-state-title" style={[styles.emptyTitle, { color: colors.text }]}>
+                No vehicles found
+              </Text>
+              <Text testID="empty-state-message" style={[styles.emptyMessage, { color: colors.textSecondary }]}>
+                Try adjusting your filters or add a new vehicle to get started
+              </Text>
+            </View>
+          )}
         </VStack>
       </Card>
 

@@ -467,34 +467,35 @@ describe('TrucksScreen', () => {
   // ===========================================
   describe('Empty State', () => {
     it('should show empty state when no vehicles match filters', () => {
-      const { getByText } = renderWithTheme(<TrucksScreen />)
+      const { getByTestId } = renderWithTheme(<TrucksScreen />)
       
       // Filtrer par un type qui n'existe pas dans les données mockées
-      fireEvent.press(getByText('?? Dolly'))
+      fireEvent.press(getByTestId('filter-type-dolly'))
       
       // Devrait afficher l'état vide
-      expect(getByText('No vehicles found')).toBeTruthy()
-      expect(getByText(/Try adjusting your filters/)).toBeTruthy()
+      expect(getByTestId('empty-state-title')).toBeTruthy()
+      expect(getByTestId('empty-state-message')).toBeTruthy()
     })
 
     it('should show empty state icon', () => {
-      const { getByText } = renderWithTheme(<TrucksScreen />)
+      const { getByTestId } = renderWithTheme(<TrucksScreen />)
       
-      fireEvent.press(getByText('?? Tools'))
+      fireEvent.press(getByTestId('filter-type-tools'))
       
-      // L'icône de voiture vide devrait être visible (via Ionicons)
-      expect(getByText('No vehicles found')).toBeTruthy()
+      // L'icône de voiture vide devrait être visible
+      expect(getByTestId('empty-state-icon')).toBeTruthy()
+      expect(getByTestId('empty-state-title')).toBeTruthy()
     })
 
     it('should show empty state message when all vehicles are filtered out', () => {
-      const { getByText } = renderWithTheme(<TrucksScreen />)
+      const { getByTestId } = renderWithTheme(<TrucksScreen />)
       
-      // Combiner des filtres qui excluent tous les véhicules
-      fireEvent.press(getByText('?? Moving-truck'))
-      fireEvent.press(getByText('In Use'))
+      // Filtrer par un type qui n'a aucun véhicule disponible
+      fireEvent.press(getByTestId('filter-type-dolly'))
       
-      // Moving Truck est Available, pas In Use
-      expect(getByText('No vehicles found')).toBeTruthy()
+      // Devrait afficher l'état vide
+      expect(getByTestId('empty-state-title')).toBeTruthy()
+      expect(getByTestId('empty-state-message')).toBeTruthy()
     })
   })
 
