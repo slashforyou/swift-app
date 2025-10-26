@@ -21,6 +21,7 @@ import { Card } from '../../components/ui/Card'
 // Hooks & Utils
 import { DESIGN_TOKENS } from '../../constants/Styles'
 import { useTheme } from '../../context/ThemeProvider'
+import { useVehicles as useVehiclesContext } from '../../context/VehiclesProvider'
 import { useVehicles } from '../../hooks/useVehicles'
 import { VehicleAPI } from '../../services/vehiclesService'
 
@@ -390,6 +391,14 @@ const VehicleCard: React.FC<{
  */
 export default function TrucksScreen() {
   const { colors } = useTheme()
+  
+  // Context pour la gestion d'état des véhicules
+  const {
+    vehicles: contextVehicles,
+    addVehicle: addVehicleToContext,
+    updateVehicle: updateVehicleInContext,
+    deleteVehicle: deleteVehicleFromContext,
+  } = useVehiclesContext()
 
   // Hook pour la gestion des véhicules via API
   const {
@@ -406,8 +415,20 @@ export default function TrucksScreen() {
     removeVehicle: removeVehicleApi,
   } = useVehicles()
 
-  // Convert API vehicles to UI format
-  const mockVehicles = apiVehicles.map(apiToVehicle)
+  // Utiliser les véhicules du context pour le state local
+  const mockVehicles = contextVehicles.map(v => ({
+    id: v.id,
+    name: `${v.make} ${v.model}`,
+    type: v.type,
+    registration: v.registration,
+    make: v.make,
+    model: v.model,
+    year: v.year,
+    status: v.status,
+    nextService: v.nextService || '',
+    location: v.location || '',
+    capacity: v.capacity,
+  }))
 
   // État local pour la gestion
   const [selectedType, setSelectedType] = useState<string>('all');
@@ -491,10 +512,10 @@ export default function TrucksScreen() {
     return typeMatch && statusMatch;
   });
 
-  // Utiliser les statistiques du hook API
-  const availableVehicles = availableCount;
-  const inUseVehicles = inUseCount;
-  const maintenanceVehicles = maintenanceCount;
+  // Calculer les statistiques directement depuis mockVehicles (context)
+  const availableVehicles = mockVehicles.filter(v => v.status === 'available').length;
+  const inUseVehicles = mockVehicles.filter(v => v.status === 'in-use').length;
+  const maintenanceVehicles = mockVehicles.filter(v => v.status === 'maintenance').length;
 
   const handleAddVehicle = () => {
     setIsAddModalVisible(true);
@@ -502,26 +523,26 @@ export default function TrucksScreen() {
 
   const handleSubmitVehicle = async (vehicleData: any) => {
     try {
-      // Convert UI type to API type before sending
-      const apiType = uiToAPIType(vehicleData.type)
-      
-      const result = await addVehicleApi({
-        ...vehicleData,
-        type: apiType,
+      // Ajouter au context (state local)
+      await addVehicleToContext({
+        type: vehicleData.type,
+        make: vehicleData.make,
+        model: vehicleData.model,
+        year: parseInt(vehicleData.year) || new Date().getFullYear(),
+        registration: vehicleData.registration,
+        status: 'available', // Par défaut les nouveaux véhicules sont disponibles
+        capacity: vehicleData.capacity,
+        location: vehicleData.location,
+        nextService: vehicleData.nextService,
       })
       
-      if (result) {
-        setIsAddModalVisible(false);
-        Alert.alert('Success', 'Vehicle added successfully! 🎉')
-        await refetch() // Refresh the list
-      } else {
-        Alert.alert('Error', vehiclesError || 'Unable to add vehicle')
-      }
+      setIsAddModalVisible(false)
+      Alert.alert('Success', 'Vehicle added successfully! 🎉')
     } catch (error) {
-      console.error('Error creating vehicle:', error);
+      console.error('Error creating vehicle:', error)
       Alert.alert('Error', 'An error occurred while adding the vehicle')
     }
-  };
+  }
 
   const handleVehiclePress = (vehicle: Vehicle) => {
     // TODO: Ouvrir détails du véhicule
@@ -541,7 +562,7 @@ export default function TrucksScreen() {
 
   const handleDeleteVehicle = (vehicle: Vehicle, event?: any) => {
     // Empêcher la propagation au parent TouchableOpacity
-    event?.stopPropagation?.();
+    event?.stopPropagation?.()
     
     Alert.alert(
       'Supprimer le véhicule',
@@ -553,16 +574,16 @@ export default function TrucksScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              await removeVehicleApi(vehicle.id);
-              // Le hook useVehicles mettra automatiquement à jour la liste
+              await deleteVehicleFromContext(vehicle.id)
+              Alert.alert('Succès', 'Véhicule supprimé')
             } catch (error) {
-              Alert.alert('Erreur', 'Impossible de supprimer le véhicule');
+              Alert.alert('Erreur', 'Impossible de supprimer le véhicule')
             }
           }
         }
       ]
-    );
-  };
+    )
+  }
 
   const handleTypeFilter = (type: string) => {
     setSelectedType(type);

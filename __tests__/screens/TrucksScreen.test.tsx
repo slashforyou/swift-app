@@ -6,14 +6,21 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native'
 import React from 'react'
 import { Alert } from 'react-native'
 import { ThemeProvider } from '../../src/context/ThemeProvider'
+import { VehiclesProvider } from '../../src/context/VehiclesProvider'
 import TrucksScreen from '../../src/screens/business/trucksScreen'
 
 // Mock Alert
 jest.spyOn(Alert, 'alert')
 
-// Wrapper avec ThemeProvider
+// Wrapper avec ThemeProvider et VehiclesProvider
 const renderWithTheme = (component: React.ReactElement) => {
-  return render(<ThemeProvider>{component}</ThemeProvider>)
+  return render(
+    <ThemeProvider>
+      <VehiclesProvider>
+        {component}
+      </VehiclesProvider>
+    </ThemeProvider>
+  )
 }
 
 describe('TrucksScreen', () => {
@@ -363,37 +370,34 @@ describe('TrucksScreen', () => {
       expect(getByText('Add Vehicle')).toBeTruthy()
     })
 
-    it.skip('should open AddVehicleModal when Add Vehicle button is pressed', () => {
-      // SKIPPED: Test expects English text but modal shows French
+    it('should open AddVehicleModal when Add Vehicle button is pressed', () => {
       const { getByText } = renderWithTheme(<TrucksScreen />)
       
       const addButton = getByText('Add Vehicle')
       fireEvent.press(addButton)
       
-      // Le modal devrait s'ouvrir
-      expect(getByText('Select vehicle type')).toBeTruthy()
+      // Le modal devrait s'ouvrir - cherchons le texte français
+      expect(getByText('Sélectionnez le type de véhicule à ajouter')).toBeTruthy()
     })
 
-    it.skip('should add new vehicle to list when form is submitted', async () => {
-      // SKIPPED: Dynamic vehicle addition not implemented
-      const { getByText, getByPlaceholderText, queryByText } = renderWithTheme(<TrucksScreen />)
+    it('should add new vehicle to list when form is submitted', async () => {
+      const { getByText, getByPlaceholderText } = renderWithTheme(<TrucksScreen />)
       
       // Ouvrir le modal
       fireEvent.press(getByText('Add Vehicle'))
       
-      // Remplir le formulaire
-      fireEvent.press(getByText('?? Moving-truck'))
+      // Remplir le formulaire avec les bons placeholders
+      fireEvent.press(getByText('Moving Truck'))
       fireEvent.press(getByText('Mercedes-Benz'))
-      fireEvent.changeText(getByPlaceholderText('Enter model'), 'Atego')
-      fireEvent.changeText(getByPlaceholderText('YYYY'), '2023')
-      fireEvent.changeText(getByPlaceholderText('Enter registration number'), 'NEW-999')
-      fireEvent.changeText(getByPlaceholderText('e.g., 3.5 tonnes'), '5 tonnes')
+      fireEvent.changeText(getByPlaceholderText('Ex: NPR 200'), 'Atego')
+      fireEvent.changeText(getByPlaceholderText('2024'), '2023')
+      fireEvent.changeText(getByPlaceholderText('ABC-123'), 'NEW-999')
+      fireEvent.changeText(getByPlaceholderText('Ex: 3.5 tonnes ou 8 cubic meters'), '5 tonnes')
       fireEvent.changeText(getByPlaceholderText('YYYY-MM-DD'), '2026-06-15')
-      fireEvent.press(getByText('Adelaide Center'))
+      fireEvent.press(getByText('Adelaide Hub'))
       
       // Soumettre
-      const submitButton = getByText('Add Vehicle')
-      fireEvent.press(submitButton)
+      fireEvent.press(getByText('Ajouter le véhicule'))
       
       // Le nouveau véhicule devrait apparaître
       await waitFor(() => {
@@ -402,49 +406,59 @@ describe('TrucksScreen', () => {
       })
     })
 
-    it.skip('should update statistics after adding a vehicle', async () => {
-      // SKIPPED: Dynamic vehicle addition not implemented
-      const { getByText, getByPlaceholderText, queryAllByText } = renderWithTheme(<TrucksScreen />)
+    it('should update statistics after adding a vehicle', async () => {
+      const { getByText, getByPlaceholderText } = renderWithTheme(<TrucksScreen />)
       
       // Total initial = 4
-      expect(getByText('4')).toBeTruthy()
+      expect(getByText('All (4)')).toBeTruthy()
       
       // Ajouter un véhicule
       fireEvent.press(getByText('Add Vehicle'))
-      fireEvent.press(getByText('?? Van'))
-      fireEvent.press(getByText('Toyota'))
-      fireEvent.changeText(getByPlaceholderText('Enter model'), 'HiAce')
-      fireEvent.changeText(getByPlaceholderText('YYYY'), '2024')
-      fireEvent.changeText(getByPlaceholderText('Enter registration number'), 'VAN-555')
+      
+      // Sélectionner le type Van
+      fireEvent.press(getByText('Van'))
+      
+      // Maintenant on est dans l'étape détails - sélectionner Toyota
+      await waitFor(() => {
+        fireEvent.press(getByText('Toyota'))
+      })
+      
+      fireEvent.changeText(getByPlaceholderText('Ex: NPR 200'), 'HiAce')
+      fireEvent.changeText(getByPlaceholderText('2024'), '2024')
+      fireEvent.changeText(getByPlaceholderText('ABC-123'), 'VAN-555')
       fireEvent.changeText(getByPlaceholderText('YYYY-MM-DD'), '2026-08-20')
-      fireEvent.press(getByText('Gold Coast Hub'))
-      fireEvent.press(getByText('Add Vehicle'))
+      fireEvent.press(getByText('Gold Coast Base'))
+      fireEvent.press(getByText('Ajouter le véhicule'))
       
       // Total devrait passer à 5
       await waitFor(() => {
-        expect(getByText('5')).toBeTruthy()
+        expect(getByText('All (5)')).toBeTruthy()
       })
     })
 
-    it.skip('should close modal after adding vehicle', async () => {
-      // SKIPPED: Dynamic vehicle addition not implemented
+    it('should close modal after adding vehicle', async () => {
       const { getByText, getByPlaceholderText, queryByText } = renderWithTheme(<TrucksScreen />)
       
       fireEvent.press(getByText('Add Vehicle'))
       
-      // Remplir et soumettre
-      fireEvent.press(getByText('?? Ute'))
-      fireEvent.press(getByText('Nissan'))
-      fireEvent.changeText(getByPlaceholderText('Enter model'), 'Navara')
-      fireEvent.changeText(getByPlaceholderText('YYYY'), '2024')
-      fireEvent.changeText(getByPlaceholderText('Enter registration number'), 'UTE-777')
+      // Sélectionner le type Ute
+      fireEvent.press(getByText('Ute'))
+      
+      // Attendre l'étape détails et sélectionner Nissan
+      await waitFor(() => {
+        fireEvent.press(getByText('Nissan'))
+      })
+      
+      fireEvent.changeText(getByPlaceholderText('Ex: NPR 200'), 'Navara')
+      fireEvent.changeText(getByPlaceholderText('2024'), '2024')
+      fireEvent.changeText(getByPlaceholderText('ABC-123'), 'UTE-777')
       fireEvent.changeText(getByPlaceholderText('YYYY-MM-DD'), '2026-09-10')
       fireEvent.press(getByText('Perth Warehouse'))
-      fireEvent.press(getByText('Add Vehicle'))
+      fireEvent.press(getByText('Ajouter le véhicule'))
       
       // Le modal devrait se fermer
       await waitFor(() => {
-        expect(queryByText('Select vehicle type')).toBeNull()
+        expect(queryByText('Sélectionnez le type de véhicule à ajouter')).toBeNull()
       })
     })
   })
@@ -536,23 +550,29 @@ describe('TrucksScreen', () => {
   // Tests d'intégration
   // ===========================================
   describe('Integration', () => {
-    it.skip('should maintain filter state when adding a vehicle', async () => {
-      // SKIPPED: Dynamic vehicle addition not implemented
+    it('should maintain filter state when adding a vehicle', async () => {
       const { getByText, getByPlaceholderText, queryByText } = renderWithTheme(<TrucksScreen />)
       
-      // Appliquer un filtre
-      fireEvent.press(getByText('?? Van'))
+      // Appliquer un filtre Van
+      fireEvent.press(getByText('🚐 Van'))
       
-      // Ajouter un véhicule (pas un Van)
+      // Ajouter un véhicule type Ute (pas un Van)
       fireEvent.press(getByText('Add Vehicle'))
-      fireEvent.press(getByText('?? Ute'))
-      fireEvent.press(getByText('Ford'))
-      fireEvent.changeText(getByPlaceholderText('Enter model'), 'Ranger')
-      fireEvent.changeText(getByPlaceholderText('YYYY'), '2024')
-      fireEvent.changeText(getByPlaceholderText('Enter registration number'), 'RNG-888')
+      
+      // Sélectionner le type Ute
+      fireEvent.press(getByText('Ute'))
+      
+      // Attendre l'étape détails et sélectionner Ford
+      await waitFor(() => {
+        fireEvent.press(getByText('Ford'))
+      })
+      
+      fireEvent.changeText(getByPlaceholderText('Ex: NPR 200'), 'Ranger')
+      fireEvent.changeText(getByPlaceholderText('2024'), '2024')
+      fireEvent.changeText(getByPlaceholderText('ABC-123'), 'RNG-888')
       fireEvent.changeText(getByPlaceholderText('YYYY-MM-DD'), '2026-07-15')
       fireEvent.press(getByText('Brisbane Office'))
-      fireEvent.press(getByText('Add Vehicle'))
+      fireEvent.press(getByText('Ajouter le véhicule'))
       
       // Le filtre Van devrait toujours être actif
       await waitFor(() => {
@@ -561,8 +581,7 @@ describe('TrucksScreen', () => {
       })
     })
 
-    it.skip('should update Available count when adding an available vehicle', async () => {
-      // SKIPPED: Dynamic vehicle addition not implemented
+    it('should update Available count when adding an available vehicle', async () => {
       const { getByText, getByPlaceholderText, getAllByText } = renderWithTheme(<TrucksScreen />)
       
       // Available initial = 2
@@ -571,14 +590,21 @@ describe('TrucksScreen', () => {
       
       // Ajouter un véhicule (nouveau véhicule = available par défaut)
       fireEvent.press(getByText('Add Vehicle'))
-      fireEvent.press(getByText('?? Trailer'))
-      fireEvent.press(getByText('Other'))
-      fireEvent.changeText(getByPlaceholderText('Enter model'), 'Flatbed')
-      fireEvent.changeText(getByPlaceholderText('YYYY'), '2023')
-      fireEvent.changeText(getByPlaceholderText('Enter registration number'), 'FLT-333')
+      
+      // Sélectionner le type Trailer
+      fireEvent.press(getByText('Trailer'))
+      
+      // Attendre l'étape détails et sélectionner Other
+      await waitFor(() => {
+        fireEvent.press(getByText('Other'))
+      })
+      
+      fireEvent.changeText(getByPlaceholderText('Ex: NPR 200'), 'Flatbed')
+      fireEvent.changeText(getByPlaceholderText('2024'), '2023')
+      fireEvent.changeText(getByPlaceholderText('ABC-123'), 'FLT-333')
       fireEvent.changeText(getByPlaceholderText('YYYY-MM-DD'), '2026-05-20')
       fireEvent.press(getByText('Sydney Depot'))
-      fireEvent.press(getByText('Add Vehicle'))
+      fireEvent.press(getByText('Ajouter le véhicule'))
       
       // Available devrait passer à 3
       await waitFor(() => {
