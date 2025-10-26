@@ -2,7 +2,7 @@
  * Modal pour inviter un employé (TFN)
  * L'employé recevra un email et devra compléter ses informations
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     ActivityIndicator,
     Alert,
@@ -24,18 +24,27 @@ interface InviteEmployeeModalProps {
   onSubmit: (data: InviteEmployeeData) => Promise<void>;
 }
 
+const initialFormData: InviteEmployeeData = {
+  firstName: '',
+  lastName: '',
+  email: '',
+  phone: '',
+  role: '',
+  team: '',
+  hourlyRate: 0,
+};
+
 export default function InviteEmployeeModal({ visible, onClose, onSubmit }: InviteEmployeeModalProps) {
   const { colors } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState<InviteEmployeeData>({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    role: '',
-    team: '',
-    hourlyRate: 0,
-  });
+  const [formData, setFormData] = useState<InviteEmployeeData>(initialFormData);
+
+  // Reset form when modal is closed
+  useEffect(() => {
+    if (!visible) {
+      setFormData(initialFormData);
+    }
+  }, [visible]);
 
   const roles = [
     'Moving Supervisor',
@@ -101,16 +110,8 @@ export default function InviteEmployeeModal({ visible, onClose, onSubmit }: Invi
         [{ text: 'OK', onPress: onClose }]
       );
       
-      // Reset form
-      setFormData({
-        firstName: '',
-        lastName: '',
-        email: '',
-        phone: '',
-        role: '',
-        team: '',
-        hourlyRate: 0,
-      });
+      // Reset form (will also be done by useEffect when modal closes)
+      setFormData(initialFormData);
     } catch (error) {
       Alert.alert('Erreur', 'Impossible d\'envoyer l\'invitation');
     } finally {
