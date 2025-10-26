@@ -15,6 +15,7 @@ jest.spyOn(Alert, 'alert');
 
 // Mock du hook useStaff - exported for test manipulation
 export const mockUseStaff = {
+  staff: [] as (Employee | Contractor)[],
   employees: [] as Employee[],
   contractors: [] as Contractor[],
   inviteEmployee: jest.fn(),
@@ -22,7 +23,18 @@ export const mockUseStaff = {
   addContractor: jest.fn(),
   isLoading: false,
   error: null,
+  totalActive: 0,
+  totalEmployees: 0,
+  totalContractors: 0,
+  totalTeams: 0,
+  averageEmployeeRate: 0,
+  refreshStaff: jest.fn(),
 };
+
+// Mock the useStaff hook
+jest.mock('../../src/hooks/useStaff', () => ({
+  useStaff: () => mockUseStaff,
+}));
 
 const mockEmployees: Employee[] = [
   {
@@ -107,8 +119,13 @@ const renderScreen = () => {
 describe('StaffCrewScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseStaff.staff = [];
     mockUseStaff.employees = [];
     mockUseStaff.contractors = [];
+    mockUseStaff.totalActive = 0;
+    mockUseStaff.totalEmployees = 0;
+    mockUseStaff.totalContractors = 0;
+    mockUseStaff.averageEmployeeRate = 0;
     mockUseStaff.isLoading = false;
     mockUseStaff.error = null;
     mockUseStaff.inviteEmployee.mockResolvedValue(undefined);
@@ -176,6 +193,8 @@ describe('StaffCrewScreen', () => {
   describe('Employee Display', () => {
     beforeEach(() => {
       mockUseStaff.employees = mockEmployees;
+      mockUseStaff.staff = [...mockEmployees];
+      mockUseStaff.totalEmployees = mockEmployees.length;
     });
 
     it('should display employee cards when employees exist', () => {
@@ -224,6 +243,8 @@ describe('StaffCrewScreen', () => {
   describe('Contractor Display', () => {
     beforeEach(() => {
       mockUseStaff.contractors = mockContractors;
+      mockUseStaff.staff = [...mockContractors];
+      mockUseStaff.totalContractors = mockContractors.length;
     });
 
     it('should display contractor cards when contractors exist', () => {
@@ -271,6 +292,8 @@ describe('StaffCrewScreen', () => {
   describe('Statistics Display', () => {
     it('should show correct employee count', () => {
       mockUseStaff.employees = mockEmployees;
+      mockUseStaff.staff = [...mockEmployees];
+      mockUseStaff.totalEmployees = mockEmployees.length;
       
       const { getByTestId } = renderScreen();
       
@@ -279,6 +302,8 @@ describe('StaffCrewScreen', () => {
 
     it('should show correct contractor count', () => {
       mockUseStaff.contractors = mockContractors;
+      mockUseStaff.staff = [...mockContractors];
+      mockUseStaff.totalContractors = mockContractors.length;
       
       const { getByTestId } = renderScreen();
       
@@ -287,6 +312,9 @@ describe('StaffCrewScreen', () => {
 
     it('should show active count', () => {
       mockUseStaff.employees = mockEmployees;
+      mockUseStaff.staff = [...mockEmployees];
+      mockUseStaff.totalEmployees = mockEmployees.length;
+      mockUseStaff.totalActive = mockEmployees.filter(e => e.status === 'active').length;
       
       const { getByTestId } = renderScreen();
       
@@ -301,6 +329,8 @@ describe('StaffCrewScreen', () => {
       
       // Add employees
       mockUseStaff.employees = mockEmployees;
+      mockUseStaff.staff = [...mockEmployees];
+      mockUseStaff.totalEmployees = mockEmployees.length;
       
       rerender(
         <ThemeProvider>
@@ -405,6 +435,9 @@ describe('StaffCrewScreen', () => {
     it('should properly integrate with useStaff hook', () => {
       mockUseStaff.employees = mockEmployees;
       mockUseStaff.contractors = mockContractors;
+      mockUseStaff.staff = [...mockEmployees, ...mockContractors];
+      mockUseStaff.totalEmployees = mockEmployees.length;
+      mockUseStaff.totalContractors = mockContractors.length;
       
       const { getByTestId } = renderScreen();
       
@@ -422,6 +455,8 @@ describe('StaffCrewScreen', () => {
       
       // Add data
       mockUseStaff.employees = [mockEmployees[0]];
+      mockUseStaff.staff = [mockEmployees[0]];
+      mockUseStaff.totalEmployees = 1;
       
       rerender(
         <ThemeProvider>
