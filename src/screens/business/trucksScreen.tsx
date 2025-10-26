@@ -478,6 +478,12 @@ export default function TrucksScreen() {
   const vehicleTypes = ['all', 'moving-truck', 'van', 'trailer', 'ute', 'dolly', 'tools'];
   const vehicleStatuses = ['all', 'available', 'in-use', 'maintenance', 'out-of-service'];
   
+  // Fonction helper pour compter les véhicules par type
+  const getVehicleCountByType = (type: string) => {
+    if (type === 'all') return mockVehicles.length;
+    return mockVehicles.filter(v => v.type === type).length;
+  };
+  
   // Filtrage combiné (type + status)
   const filteredVehicles = mockVehicles.filter(vehicle => {
     const typeMatch = selectedType === 'all' || vehicle.type === selectedType;
@@ -646,7 +652,9 @@ export default function TrucksScreen() {
                 fontWeight: selectedType === type ? '600' : '400',
                 fontSize: 14,
               }}>
-                {type === 'all' ? 'All Vehicles' : `${getVehicleEmoji(type as Vehicle['type'])} ${type.charAt(0).toUpperCase() + type.slice(1)}`}
+                {type === 'all' 
+                  ? `All (${getVehicleCountByType(type)})` 
+                  : `${getVehicleEmoji(type as Vehicle['type'])} ${type.charAt(0).toUpperCase() + type.slice(1)}`}
               </Text>
             </TouchableOpacity>
           ))}
