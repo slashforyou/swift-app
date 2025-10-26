@@ -1,6 +1,22 @@
 // Basic setup for Jest
 // This file is referenced in jest.config.js setupFilesAfterEnv
 
+// Force UTF-8 encoding for Jest test environment
+// This ensures French characters (é, à, ê, etc.) render correctly
+if (typeof TextEncoder === 'undefined') {
+  const { TextEncoder, TextDecoder } = require('util');
+  global.TextEncoder = TextEncoder;
+  global.TextDecoder = TextDecoder;
+}
+
+// Set process encoding to UTF-8
+if (process.stdout && process.stdout.setEncoding) {
+  process.stdout.setEncoding('utf8');
+}
+if (process.stderr && process.stderr.setEncoding) {
+  process.stderr.setEncoding('utf8');
+}
+
 // Define React Native globals
 global.__DEV__ = true;
 

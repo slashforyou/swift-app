@@ -88,25 +88,25 @@ describe('AddContractorModal', () => {
 
   describe('Rendering - Search Step', () => {
     it('should render search interface initially', () => {
-      const { getByText } = renderModal();
+      const { getByTestId } = renderModal();
       
-      expect(getByText('Rechercher un Prestataire')).toBeTruthy();
-      expect(getByText('Nom et prénom ou ABN')).toBeTruthy();
-      expect(getByText('Rechercher')).toBeTruthy();
-      expect(getByText('Annuler')).toBeTruthy();
+      expect(getByTestId('modal-title')).toBeTruthy();
+      expect(getByTestId('name-label')).toBeTruthy();
+      expect(getByTestId('search-button')).toBeTruthy();
+      expect(getByTestId('cancel-button')).toBeTruthy();
     });
 
     it('should render search instructions', () => {
-      const { getByText } = renderModal();
+      const { getByTestId } = renderModal();
       
-      expect(getByText(/Recherchez un prestataire par son nom complet ou son ABN/)).toBeTruthy();
-      expect(getByText(/💡 Conseils de recherche/)).toBeTruthy();
+      expect(getByTestId('search-instructions')).toBeTruthy();
+      expect(getByTestId('search-tips-title')).toBeTruthy();
     });
 
     it('should not render when not visible', () => {
-      const { queryByText } = renderModal({ visible: false });
+      const { queryByTestId } = renderModal({ visible: false });
       
-      expect(queryByText('Rechercher un Prestataire')).toBeFalsy();
+      expect(queryByTestId('modal-title')).toBeFalsy();
     });
 
     it('should render search input with placeholder', () => {
@@ -118,10 +118,10 @@ describe('AddContractorModal', () => {
 
   describe('Search Functionality', () => {
     it('should perform search when search button is pressed', async () => {
-      const { getByPlaceholderText, getByText } = renderModal();
+      const { getByPlaceholderText, getByTestId } = renderModal();
       
       const searchInput = getByPlaceholderText('John Smith ou 12 345 678 901');
-      const searchButton = getByText('Rechercher');
+      const searchButton = getByTestId('search-button');
       
       fireEvent.changeText(searchInput, 'John');
       fireEvent.press(searchButton);
