@@ -18,6 +18,8 @@
     "test:clean": "jest --config=jest.skip-encoding.config.js",
     "test:clean:watch": "jest --config=jest.skip-encoding.config.js --watch",
     "test:clean:coverage": "jest --config=jest.skip-encoding.config.js --coverage",
+    "test:utf8": "jest --config=jest.utf8-only.config.js",
+    "test:utf8:verbose": "jest --config=jest.utf8-only.config.js --verbose",
     "test:staff": "node ./scripts/test-staff.js",
     "test:staff:coverage": "node ./scripts/test-staff.js --coverage",
     "test:staff:watch": "node ./scripts/test-staff.js --watch",
