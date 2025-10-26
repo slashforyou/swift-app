@@ -1,0 +1,84 @@
+# 🧪 Swift App - Tests Automatiques (CI/CD)
+# 
+# Ce workflow lance automatiquement tous les tests sur Ubuntu Linux
+# à chaque push ou pull request vers la branche main
+#
+# Objectif: Valider 324/324 tests (100% absolu avec support UTF-8)
+
+name: Tests
+
+# Déclencheurs
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  # Permet de lancer manuellement depuis l'interface GitHub
+  workflow_dispatch:
+
+# Environnement et tâches
+jobs:
+  test:
+    name: Tests sur Ubuntu
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [20.x]
+    
+    steps:
+      # 1. Récupérer le code
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+      
+      # 2. Setup Node.js
+      - name: 🔧 Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      
+      # 3. Afficher versions pour debug
+      - name: 📊 Display versions
+        run: |
+          node --version
+          npm --version
+          echo "OS: $(uname -a)"
+          echo "Locale: $LANG"
+      
+      # 4. Installer dépendances
+      - name: 📦 Install dependencies
+        run: npm ci
+      
+      # 5. Lancer TOUS les tests (configuration standard)
+      - name: 🧪 Run all tests
+        run: npm test
+        env:
+          # Force UTF-8 encoding
+          LC_ALL: en_US.UTF-8
+          LANG: en_US.UTF-8
+      
+      # 6. Générer coverage (optionnel)
+      - name: 📈 Generate coverage report
+        if: success()
+        run: npm run test:coverage
+      
+      # 7. Upload coverage (pour badges futurs)
+      - name: 📤 Upload coverage to Codecov
+        if: success()
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage/lcov.info
+          flags: unittests
+          fail_ci_if_error: false
+        continue-on-error: true
+      
+      # 8. Résumé des résultats
+      - name: ✅ Test Summary
+        if: always()
+        run: |
+          echo "🎯 Phase 3 - CI/CD GitHub Actions"
+          echo "🐧 Environment: Ubuntu Linux"
+          echo "📦 Node.js: $(node --version)"
+          echo "🧪 Expected: 324/324 tests passing"
+          echo "✨ UTF-8 Support: Native"

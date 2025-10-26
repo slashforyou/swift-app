@@ -1,5 +1,10 @@
 # 🚚 Swift App
 
+[![Tests](https://github.com/slashforyou/swift-app/workflows/Tests/badge.svg)](https://github.com/slashforyou/swift-app/actions)
+[![Node.js](https://img.shields.io/badge/node-20.x-brightgreen.svg)](https://nodejs.org/)
+[![React Native](https://img.shields.io/badge/react--native-0.76.5-blue.svg)](https://reactnative.dev/)
+[![TypeScript](https://img.shields.io/badge/typescript-5.3.3-blue.svg)](https://www.typescriptlang.org/)
+
 A mobile application for moving companies, offering smooth management of jobs, clients, notes, items, and routes.
 
 ## Project Description
