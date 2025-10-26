@@ -411,6 +411,7 @@ export default function TrucksScreen() {
 
   // État local pour la gestion
   const [selectedType, setSelectedType] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
 
   const styles = StyleSheet.create({
@@ -475,9 +476,14 @@ export default function TrucksScreen() {
 
   // Filtres et données
   const vehicleTypes = ['all', 'moving-truck', 'van', 'trailer', 'ute', 'dolly', 'tools'];
-  const filteredVehicles = selectedType === 'all' 
-    ? mockVehicles 
-    : mockVehicles.filter(vehicle => vehicle.type === selectedType);
+  const vehicleStatuses = ['all', 'available', 'in-use', 'maintenance', 'out-of-service'];
+  
+  // Filtrage combiné (type + status)
+  const filteredVehicles = mockVehicles.filter(vehicle => {
+    const typeMatch = selectedType === 'all' || vehicle.type === selectedType;
+    const statusMatch = selectedStatus === 'all' || vehicle.status === selectedStatus;
+    return typeMatch && statusMatch;
+  });
 
   // Utiliser les statistiques du hook API
   const availableVehicles = availableCount;
@@ -556,6 +562,10 @@ export default function TrucksScreen() {
     setSelectedType(type);
   };
 
+  const handleStatusFilter = (status: string) => {
+    setSelectedStatus(status);
+  };
+
   // Loading state
   if (isLoadingVehicles) {
     return (
@@ -615,7 +625,7 @@ export default function TrucksScreen() {
       <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={false}
-        style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}
+        style={{ marginBottom: DESIGN_TOKENS.spacing.md }}
       >
         <View style={styles.typeFilterContainer}>
           {vehicleTypes.map((type) => (
@@ -642,6 +652,55 @@ export default function TrucksScreen() {
           ))}
         </View>
       </ScrollView>
+
+      {/* Filtres par status */}
+      <View style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
+        <Text style={{ 
+          fontSize: 14, 
+          fontWeight: '600', 
+          color: colors.text,
+          marginBottom: DESIGN_TOKENS.spacing.sm,
+          paddingHorizontal: DESIGN_TOKENS.spacing.xs,
+        }}>
+          Filter by Status
+        </Text>
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+        >
+          <View style={styles.typeFilterContainer}>
+            {vehicleStatuses.map((status) => {
+              const displayName = status === 'all' ? 'All' : 
+                                 status === 'in-use' ? 'In Use' :
+                                 status === 'out-of-service' ? 'Out of Service' :
+                                 status.charAt(0).toUpperCase() + status.slice(1);
+              
+              return (
+                <TouchableOpacity
+                  key={status}
+                  testID={`filter-status-${status}`}
+                  style={[
+                    styles.typeFilter,
+                    {
+                      backgroundColor: selectedStatus === status ? colors.primary + '20' : 'transparent',
+                      borderColor: selectedStatus === status ? colors.primary : colors.border,
+                    }
+                  ]}
+                  onPress={() => handleStatusFilter(status)}
+                >
+                  <Text style={{
+                    color: selectedStatus === status ? colors.primary : colors.textSecondary,
+                    fontWeight: selectedStatus === status ? '600' : '400',
+                    fontSize: 14,
+                  }}>
+                    {displayName}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </ScrollView>
+      </View>
 
       {/* Liste des véhicules */}
       <Card style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>

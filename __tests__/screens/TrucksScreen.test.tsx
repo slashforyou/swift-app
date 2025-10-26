@@ -168,61 +168,58 @@ describe('TrucksScreen', () => {
     })
 
     it('should display all status filters', () => {
-      const { getByText } = renderWithTheme(<TrucksScreen />)
+      const { getByTestId } = renderWithTheme(<TrucksScreen />)
       
-      expect(getByText('Available')).toBeTruthy()
-      expect(getByText('In Use')).toBeTruthy()
-      expect(getByText('Maintenance')).toBeTruthy()
-      expect(getByText('Out of Service')).toBeTruthy()
+      expect(getByTestId('filter-status-available')).toBeTruthy()
+      expect(getByTestId('filter-status-in-use')).toBeTruthy()
+      expect(getByTestId('filter-status-maintenance')).toBeTruthy()
+      expect(getByTestId('filter-status-out-of-service')).toBeTruthy()
     })
 
     it('should filter vehicles by Available status', () => {
-      const { getByText, queryByText } = renderWithTheme(<TrucksScreen />)
+      const { getByTestId, queryByText } = renderWithTheme(<TrucksScreen />)
       
       // Cliquer sur Available
-      const availableFilters = getByText('Available')
-      fireEvent.press(availableFilters)
+      fireEvent.press(getByTestId('filter-status-available'))
       
       // Devrait afficher Isuzu et Box Trailer
-      expect(getByText('Isuzu NPR 200')).toBeTruthy()
-      expect(getByText('Custom Box Trailer')).toBeTruthy()
+      expect(getByTestId('vehicle-card-v1')).toBeTruthy() // Isuzu - available
+      expect(getByTestId('vehicle-card-v3')).toBeTruthy() // Box Trailer - available
       expect(queryByText('Ford Transit')).toBeNull() // In Use
       expect(queryByText('Toyota HiLux')).toBeNull() // Maintenance
     })
 
     it('should filter vehicles by In Use status', () => {
-      const { getByText, queryByText } = renderWithTheme(<TrucksScreen />)
+      const { getByTestId, queryByText } = renderWithTheme(<TrucksScreen />)
       
-      const inUseFilter = getByText('In Use')
-      fireEvent.press(inUseFilter)
+      fireEvent.press(getByTestId('filter-status-in-use'))
       
-      expect(getByText('Ford Transit')).toBeTruthy()
+      expect(getByTestId('vehicle-card-v2')).toBeTruthy()
       expect(queryByText('Isuzu NPR 200')).toBeNull()
       expect(queryByText('Custom Box Trailer')).toBeNull()
       expect(queryByText('Toyota HiLux')).toBeNull()
     })
 
     it('should filter vehicles by Maintenance status', () => {
-      const { getByText, queryByText } = renderWithTheme(<TrucksScreen />)
+      const { getByTestId, queryByText } = renderWithTheme(<TrucksScreen />)
       
-      const maintenanceFilter = getByText('Maintenance')
-      fireEvent.press(maintenanceFilter)
+      fireEvent.press(getByTestId('filter-status-maintenance'))
       
-      expect(getByText('Toyota HiLux')).toBeTruthy()
+      expect(getByTestId('vehicle-card-v4')).toBeTruthy()
       expect(queryByText('Isuzu NPR 200')).toBeNull()
       expect(queryByText('Ford Transit')).toBeNull()
       expect(queryByText('Custom Box Trailer')).toBeNull()
     })
 
     it('should combine type and status filters', () => {
-      const { getByText, queryByText } = renderWithTheme(<TrucksScreen />)
+      const { getByTestId, queryByText } = renderWithTheme(<TrucksScreen />)
       
       // Filtrer par Moving Truck + Available
-      fireEvent.press(getByText('?? Moving-truck'))
-      fireEvent.press(getByText('Available'))
+      fireEvent.press(getByTestId('filter-type-moving-truck'))
+      fireEvent.press(getByTestId('filter-status-available'))
       
       // Devrait afficher seulement Isuzu (moving-truck + available)
-      expect(getByText('Isuzu NPR 200')).toBeTruthy()
+      expect(getByTestId('vehicle-card-v1')).toBeTruthy()
       expect(queryByText('Ford Transit')).toBeNull()
       expect(queryByText('Custom Box Trailer')).toBeNull()
       expect(queryByText('Toyota HiLux')).toBeNull()
