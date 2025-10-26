@@ -2,7 +2,7 @@
  * Modal pour inviter un employé (TFN)
  * L'employé recevra un email et devra compléter ses informations
  */
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,

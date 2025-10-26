@@ -1,7 +1,7 @@
 /**
  * Tests d'intégration pour StaffCrewScreen
  */
-import { act, fireEvent, render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
 import { Alert } from 'react-native';
 import StaffCrewScreen from '../../src/screens/business/staffCrewScreen';
