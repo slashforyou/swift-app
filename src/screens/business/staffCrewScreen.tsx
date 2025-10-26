@@ -123,7 +123,7 @@ export default function StaffCrewScreen() {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+        <Text testID="loading-text" style={[styles.loadingText, { color: colors.textSecondary }]}>
           Chargement du personnel...
         </Text>
       </View>
@@ -145,10 +145,10 @@ export default function StaffCrewScreen() {
       >
         {/* Header avec stats */}
         <View style={[styles.header, { backgroundColor: colors.backgroundSecondary }]}>
-          <Text style={[styles.title, { color: colors.text }]}>
+          <Text testID="screen-title" style={[styles.title, { color: colors.text }]}>
             Gestion du Personnel
           </Text>
-          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+          <Text testID="screen-subtitle" style={[styles.subtitle, { color: colors.textSecondary }]}>
             Gérez vos employés et prestataires
           </Text>
 
@@ -156,37 +156,37 @@ export default function StaffCrewScreen() {
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
               <Ionicons name="people" size={24} color={colors.primary} />
-              <Text style={[styles.statValue, { color: colors.text }]}>
+              <Text testID="stat-active-value" style={[styles.statValue, { color: colors.text }]}>
                 {totalActive}
               </Text>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+              <Text testID="stat-active-label" style={[styles.statLabel, { color: colors.textSecondary }]}>
                 Actifs
               </Text>
             </View>
             <View style={styles.statItem}>
               <Ionicons name="person" size={24} color="#10B981" />
-              <Text style={[styles.statValue, { color: colors.text }]}>
+              <Text testID="stat-employees-value" style={[styles.statValue, { color: colors.text }]}>
                 {totalEmployees}
               </Text>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+              <Text testID="stat-employees-label" style={[styles.statLabel, { color: colors.textSecondary }]}>
                 Employés
               </Text>
             </View>
             <View style={styles.statItem}>
               <Ionicons name="briefcase" size={24} color="#8B5CF6" />
-              <Text style={[styles.statValue, { color: colors.text }]}>
+              <Text testID="stat-contractors-value" style={[styles.statValue, { color: colors.text }]}>
                 {totalContractors}
               </Text>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+              <Text testID="stat-contractors-label" style={[styles.statLabel, { color: colors.textSecondary }]}>
                 Prestataires
               </Text>
             </View>
             <View style={styles.statItem}>
               <Ionicons name="cash" size={24} color="#F59E0B" />
-              <Text style={[styles.statValue, { color: colors.text }]}>
+              <Text testID="stat-avgrate-value" style={[styles.statValue, { color: colors.text }]}>
                 ${averageEmployeeRate.toFixed(0)}
               </Text>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+              <Text testID="stat-avgrate-label" style={[styles.statLabel, { color: colors.textSecondary }]}>
                 Taux moyen
               </Text>
             </View>
@@ -195,6 +195,7 @@ export default function StaffCrewScreen() {
 
         {/* Bouton Ajouter un membre */}
         <Pressable
+          testID="add-staff-button"
           style={[styles.addButton, { backgroundColor: colors.primary }]}
           onPress={handleAddStaff}
         >
@@ -205,6 +206,7 @@ export default function StaffCrewScreen() {
         {/* Filtres */}
         <View style={styles.filterContainer}>
           <Pressable
+            testID="filter-all"
             style={[
               styles.filterButton,
               { backgroundColor: colors.backgroundSecondary },
@@ -223,6 +225,7 @@ export default function StaffCrewScreen() {
             </Text>
           </Pressable>
           <Pressable
+            testID="filter-employee"
             style={[
               styles.filterButton,
               { backgroundColor: colors.backgroundSecondary },
@@ -241,6 +244,7 @@ export default function StaffCrewScreen() {
             </Text>
           </Pressable>
           <Pressable
+            testID="filter-contractor"
             style={[
               styles.filterButton,
               { backgroundColor: colors.backgroundSecondary },
@@ -262,7 +266,7 @@ export default function StaffCrewScreen() {
 
         {/* Message d'erreur */}
         {error && (
-          <View style={[styles.errorContainer, { backgroundColor: '#FEE2E2' }]}>
+          <View testID="error-message" style={[styles.errorContainer, { backgroundColor: '#FEE2E2' }]}>
             <Ionicons name="alert-circle" size={20} color="#DC2626" />
             <Text style={styles.errorText}>{error}</Text>
           </View>
@@ -270,12 +274,12 @@ export default function StaffCrewScreen() {
 
         {/* Liste du personnel */}
         {filteredStaff.length === 0 ? (
-          <View style={[styles.emptyContainer, { backgroundColor: colors.backgroundSecondary }]}>
+          <View testID="empty-state" style={[styles.emptyContainer, { backgroundColor: colors.backgroundSecondary }]}>
             <Ionicons name="people-outline" size={64} color={colors.textSecondary} />
-            <Text style={[styles.emptyText, { color: colors.text }]}>
+            <Text testID="empty-text" style={[styles.emptyText, { color: colors.text }]}>
               Aucun membre du personnel
             </Text>
-            <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>
+            <Text testID="empty-subtext" style={[styles.emptySubtext, { color: colors.textSecondary }]}>
               Ajoutez votre premier employé ou prestataire
             </Text>
           </View>
@@ -284,6 +288,7 @@ export default function StaffCrewScreen() {
             {filteredStaff.map((member) => (
               <View
                 key={member.id}
+                testID={`staff-card-${member.id}`}
                 style={[styles.staffCard, { backgroundColor: colors.backgroundSecondary }]}
               >
                 {/* En-tête de la carte */}
@@ -305,15 +310,16 @@ export default function StaffCrewScreen() {
                       />
                     </View>
                     <View>
-                      <Text style={[styles.staffName, { color: colors.text }]}>
+                      <Text testID={`staff-name-${member.id}`} style={[styles.staffName, { color: colors.text }]}>
                         {member.firstName} {member.lastName}
                       </Text>
-                      <Text style={[styles.staffType, { color: colors.textSecondary }]}>
+                      <Text testID={`staff-type-${member.id}`} style={[styles.staffType, { color: colors.textSecondary }]}>
                         {getTypeLabel(member.type)}
                       </Text>
                     </View>
                   </View>
                   <View
+                    testID={`staff-status-${member.id}`}
                     style={[
                       styles.statusBadge,
                       { backgroundColor: `${getStatusColor(member.status)}20` },
@@ -398,6 +404,7 @@ export default function StaffCrewScreen() {
                 {/* Actions */}
                 <View style={styles.staffActions}>
                   <Pressable
+                    testID={`edit-button-${member.id}`}
                     style={[styles.actionButton, { backgroundColor: colors.primary + '20' }]}
                     onPress={() => handleEditStaff(member)}
                   >
@@ -407,6 +414,7 @@ export default function StaffCrewScreen() {
                     </Text>
                   </Pressable>
                   <Pressable
+                    testID={`remove-button-${member.id}`}
                     style={[styles.actionButton, { backgroundColor: '#DC262620' }]}
                     onPress={() => handleRemoveStaff(member)}
                   >
