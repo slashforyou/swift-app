@@ -138,19 +138,19 @@ export default function InviteEmployeeModal({ visible, onClose, onSubmit }: Invi
             <VStack gap="lg">
               {/* Header */}
               <HStack justify="space-between" align="center">
-                <Text style={{
+                <Text testID="modal-title" style={{
                   fontSize: 20,
                   fontWeight: '600',
                   color: colors.text,
                 }}>
                   Inviter un Employé
                 </Text>
-                <TouchableOpacity onPress={onClose}>
+                <TouchableOpacity testID="close-button" onPress={onClose}>
                   <Text style={{ fontSize: 24, color: colors.textSecondary }}>×</Text>
                 </TouchableOpacity>
               </HStack>
 
-              <Text style={{
+              <Text testID="modal-description" style={{
                 fontSize: 14,
                 color: colors.textSecondary,
                 lineHeight: 20,
@@ -162,10 +162,11 @@ export default function InviteEmployeeModal({ visible, onClose, onSubmit }: Invi
               <VStack gap="md">
                 <HStack gap="md">
                   <VStack gap="xs" style={{ flex: 1 }}>
-                    <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
+                    <Text testID="firstname-label" style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
                       Prénom *
                     </Text>
                     <TextInput
+                      testID="firstname-input"
                       style={{
                         backgroundColor: colors.backgroundSecondary,
                         borderRadius: DESIGN_TOKENS.radius.md,
@@ -181,10 +182,11 @@ export default function InviteEmployeeModal({ visible, onClose, onSubmit }: Invi
                   </VStack>
 
                   <VStack gap="xs" style={{ flex: 1 }}>
-                    <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
+                    <Text testID="lastname-label" style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
                       Nom *
                     </Text>
                     <TextInput
+                      testID="lastname-input"
                       style={{
                         backgroundColor: colors.backgroundSecondary,
                         borderRadius: DESIGN_TOKENS.radius.md,
@@ -201,10 +203,11 @@ export default function InviteEmployeeModal({ visible, onClose, onSubmit }: Invi
                 </HStack>
 
                 <VStack gap="xs">
-                  <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
+                  <Text testID="email-label" style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
                     Email *
                   </Text>
                   <TextInput
+                    testID="email-input"
                     style={{
                       backgroundColor: colors.backgroundSecondary,
                       borderRadius: DESIGN_TOKENS.radius.md,
@@ -222,10 +225,11 @@ export default function InviteEmployeeModal({ visible, onClose, onSubmit }: Invi
                 </VStack>
 
                 <VStack gap="xs">
-                  <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
+                  <Text testID="phone-label" style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
                     Téléphone *
                   </Text>
                   <TextInput
+                    testID="phone-input"
                     style={{
                       backgroundColor: colors.backgroundSecondary,
                       borderRadius: DESIGN_TOKENS.radius.md,
@@ -242,7 +246,7 @@ export default function InviteEmployeeModal({ visible, onClose, onSubmit }: Invi
                 </VStack>
 
                 <VStack gap="xs">
-                  <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
+                  <Text testID="role-label" style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
                     Rôle *
                   </Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -250,6 +254,7 @@ export default function InviteEmployeeModal({ visible, onClose, onSubmit }: Invi
                       {roles.map((role) => (
                         <TouchableOpacity
                           key={role}
+                          testID={`role-option-${role.toLowerCase().replace(/\s+/g, '-')}`}
                           onPress={() => setFormData(prev => ({ ...prev, role }))}
                           style={{
                             backgroundColor: formData.role === role ? colors.primary : colors.backgroundSecondary,
@@ -272,7 +277,7 @@ export default function InviteEmployeeModal({ visible, onClose, onSubmit }: Invi
                 </VStack>
 
                 <VStack gap="xs">
-                  <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
+                  <Text testID="team-label" style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
                     Équipe *
                   </Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -280,6 +285,7 @@ export default function InviteEmployeeModal({ visible, onClose, onSubmit }: Invi
                       {teams.map((team) => (
                         <TouchableOpacity
                           key={team}
+                          testID={`team-option-${team.toLowerCase().replace(/\s+/g, '-')}`}
                           onPress={() => setFormData(prev => ({ ...prev, team }))}
                           style={{
                             backgroundColor: formData.team === team ? colors.primary : colors.backgroundSecondary,
@@ -302,10 +308,11 @@ export default function InviteEmployeeModal({ visible, onClose, onSubmit }: Invi
                 </VStack>
 
                 <VStack gap="xs">
-                  <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
+                  <Text testID="hourlyrate-label" style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
                     Taux horaire (AUD) *
                   </Text>
                   <TextInput
+                    testID="hourlyrate-input"
                     style={{
                       backgroundColor: colors.backgroundSecondary,
                       borderRadius: DESIGN_TOKENS.radius.md,
@@ -325,6 +332,7 @@ export default function InviteEmployeeModal({ visible, onClose, onSubmit }: Invi
               {/* Actions */}
               <HStack gap="md" style={{ marginTop: DESIGN_TOKENS.spacing.md }}>
                 <TouchableOpacity
+                  testID="cancel-button"
                   onPress={onClose}
                   style={{
                     flex: 1,
@@ -340,6 +348,7 @@ export default function InviteEmployeeModal({ visible, onClose, onSubmit }: Invi
                 </TouchableOpacity>
 
                 <TouchableOpacity
+                  testID="submit-button"
                   onPress={handleSubmit}
                   disabled={isLoading}
                   style={{
@@ -352,7 +361,7 @@ export default function InviteEmployeeModal({ visible, onClose, onSubmit }: Invi
                   }}
                 >
                   {isLoading ? (
-                    <ActivityIndicator size="small" color={colors.background} />
+                    <ActivityIndicator testID="loading-indicator" size="small" color={colors.background} />
                   ) : (
                     <Text style={{ color: colors.background, fontSize: 16, fontWeight: '600' }}>
                       Envoyer l'invitation
