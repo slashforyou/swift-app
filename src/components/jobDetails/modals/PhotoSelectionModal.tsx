@@ -14,6 +14,7 @@ import { useTheme } from '../../../context/ThemeProvider';
 import { DESIGN_TOKENS } from '../../../constants/Styles';
 import Ionicons from '@react-native-vector-icons/ionicons';
 import * as ImagePicker from 'expo-image-picker';
+import { compressImage } from '../../../utils/imageCompression';
 
 interface PhotoSelectionModalProps {
     isVisible: boolean;
@@ -55,15 +56,22 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
                 return;
             }
 
+            // Lancer la caméra SANS crop (allowsEditing: false)
             const result = await ImagePicker.launchCameraAsync({
                 mediaTypes: ImagePicker.MediaTypeOptions.Images,
-                allowsEditing: true,
-                aspect: [4, 3],
-                quality: 0.8,
+                allowsEditing: false, // ✅ DÉSACTIVÉ - Pas de crop forcé
+                quality: 0.6, // ✅ Qualité optimale (~400KB)
             });
 
             if (!result.canceled && result.assets[0]) {
-                onPhotoSelected(result.assets[0].uri);
+                // Compresser l'image avant de la passer au parent
+                const compressed = await compressImage(result.assets[0].uri, {
+                    maxWidth: 1920,
+                    maxHeight: 1080,
+                    quality: 0.6,
+                });
+                
+                onPhotoSelected(compressed.uri);
                 onClose();
             }
         } catch (error) {
@@ -86,15 +94,22 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
                 return;
             }
 
+            // Lancer la galerie SANS crop (allowsEditing: false)
             const result = await ImagePicker.launchImageLibraryAsync({
                 mediaTypes: ImagePicker.MediaTypeOptions.Images,
-                allowsEditing: true,
-                aspect: [4, 3],
-                quality: 0.8,
+                allowsEditing: false, // ✅ DÉSACTIVÉ - Pas de crop forcé
+                quality: 0.6, // ✅ Qualité optimale (~400KB)
             });
 
             if (!result.canceled && result.assets[0]) {
-                onPhotoSelected(result.assets[0].uri);
+                // Compresser l'image avant de la passer au parent
+                const compressed = await compressImage(result.assets[0].uri, {
+                    maxWidth: 1920,
+                    maxHeight: 1080,
+                    quality: 0.6,
+                });
+                
+                onPhotoSelected(compressed.uri);
                 onClose();
             }
         } catch (error) {

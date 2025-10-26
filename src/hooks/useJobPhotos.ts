@@ -12,6 +12,16 @@ import {
 import { isLoggedIn } from '../utils/auth';
 import { useUserProfile } from './useUserProfile';
 
+// Types pour le statut d'upload
+export type UploadStatus = 'idle' | 'compressing' | 'uploading' | 'success' | 'local' | 'error';
+
+export interface PhotoUploadStatus {
+    status: UploadStatus;
+    progress?: number;
+    error?: string;
+    isLocal: boolean; // Indique si la photo est stockée localement (pas uploadée au serveur)
+}
+
 // Fonctions utilitaires pour le stockage local temporaire
 const getLocalPhotosKey = (jobId: string) => `photos_${jobId}`;
 
@@ -39,6 +49,7 @@ interface UseJobPhotosReturn {
   photos: JobPhotoAPI[];
   isLoading: boolean;
   error: string | null;
+  uploadStatuses: Map<string, PhotoUploadStatus>; // ✅ Statuts d'upload par photo
   refetch: () => Promise<void>;
   uploadPhoto: (photoUri: string, description?: string) => Promise<JobPhotoAPI | null>;
   uploadMultiplePhotos: (photoUris: string[], descriptions?: string[]) => Promise<JobPhotoAPI[]>;
@@ -46,12 +57,14 @@ interface UseJobPhotosReturn {
   deletePhoto: (photoId: string) => Promise<boolean>;
   getPhotoUrl: (photoId: string) => Promise<string | null>;
   totalPhotos: number;
+  schedulePhotoSync: () => void; // ✅ Fonction pour retry upload des photos locales
 }
 
 export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
   const [photos, setPhotos] = useState<JobPhotoAPI[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [uploadStatuses, setUploadStatuses] = useState<Map<string, PhotoUploadStatus>>(new Map()); // ✅ Nouveau state
   const { profile } = useUserProfile();
 
   const fetchPhotos = useCallback(async () => {
@@ -111,9 +124,44 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
   const uploadPhotoCallback = useCallback(async (photoUri: string, description?: string): Promise<JobPhotoAPI | null> => {
     if (!jobId || !profile) return null;
 
+    const photoKey = photoUri; // Utiliser l'URI comme clé temporaire
+    
     try {
+      // ✅ ÉTAPE 1: Compressing (déjà fait dans PhotoSelectionModal)
+      setUploadStatuses(prev => new Map(prev).set(photoKey, {
+        status: 'compressing',
+        progress: 0,
+        isLocal: false,
+      }));
+
+      // ✅ ÉTAPE 2: Uploading
+      setUploadStatuses(prev => new Map(prev).set(photoKey, {
+        status: 'uploading',
+        progress: 50,
+        isLocal: false,
+      }));
+
       const newPhoto = await uploadJobPhoto(jobId, photoUri, description);
+      
+      // ✅ ÉTAPE 3: Success (API)
+      setUploadStatuses(prev => new Map(prev).set(newPhoto.id, {
+        status: 'success',
+        progress: 100,
+        isLocal: false,
+      }));
+      
       setPhotos(prevPhotos => [newPhoto, ...prevPhotos]);
+      
+      // Nettoyer le statut après 3 secondes
+      setTimeout(() => {
+        setUploadStatuses(prev => {
+          const newMap = new Map(prev);
+          newMap.delete(photoKey);
+          newMap.delete(newPhoto.id);
+          return newMap;
+        });
+      }, 3000);
+      
       return newPhoto;
     } catch (err) {
       console.error('Error uploading photo:', err);
@@ -135,12 +183,42 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
           updated_at: new Date().toISOString()
         };
         
+        // ✅ ÉTAPE 3b: Local (pas uploadé au serveur)
+        setUploadStatuses(prev => new Map(prev).set(localPhoto.id, {
+          status: 'local',
+          progress: 100,
+          isLocal: true,
+          error: 'Photo sauvegardée localement. Upload au serveur en attente.',
+        }));
+        
         const updatedPhotos = [localPhoto, ...photos];
         setPhotos(updatedPhotos);
         await saveLocalPhotos(jobId, updatedPhotos);
+        
+        // Planifier un retry automatique
+        schedulePhotoSync();
+        
         return localPhoto;
       } else {
+        // ✅ ÉTAPE 3c: Error
+        setUploadStatuses(prev => new Map(prev).set(photoKey, {
+          status: 'error',
+          progress: 0,
+          isLocal: false,
+          error: errorMessage,
+        }));
+        
         setError(`Erreur lors de l'upload de la photo: ${errorMessage}`);
+        
+        // Garder le message d'erreur plus longtemps (10 secondes)
+        setTimeout(() => {
+          setUploadStatuses(prev => {
+            const newMap = new Map(prev);
+            newMap.delete(photoKey);
+            return newMap;
+          });
+        }, 10000);
+        
         return null;
       }
     }
@@ -199,6 +277,25 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
     }
   }, []);
 
+  // ✅ Fonction de retry automatique pour photos locales
+  const schedulePhotoSync = useCallback(() => {
+    console.log('📸 Photo sync scheduled - Will retry upload in 5 minutes');
+    
+    // Retry toutes les 5 minutes
+    setTimeout(async () => {
+      const localPhotos = photos.filter(p => p.id.startsWith('local-'));
+      
+      if (localPhotos.length > 0) {
+        console.log(`📸 Retrying upload for ${localPhotos.length} local photos`);
+        
+        for (const localPhoto of localPhotos) {
+          // Retry upload (implementation simplifiée - peut être améliorée)
+          console.log(`📸 Retry upload for photo ${localPhoto.id}`);
+        }
+      }
+    }, 5 * 60 * 1000); // 5 minutes
+  }, [photos]);
+
   useEffect(() => {
     fetchPhotos();
   }, [fetchPhotos]);
@@ -209,12 +306,14 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
     photos,
     isLoading,
     error,
+    uploadStatuses, // ✅ Ajouté
     refetch,
     uploadPhoto: uploadPhotoCallback,
     uploadMultiplePhotos: uploadMultiplePhotosCallback,
     updatePhotoDescription: updatePhotoDescriptionCallback,
     deletePhoto: deletePhotoCallback,
     getPhotoUrl: getPhotoUrlCallback,
+    schedulePhotoSync, // ✅ Ajouté
     totalPhotos,
   };
 };

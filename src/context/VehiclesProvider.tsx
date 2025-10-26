@@ -2,7 +2,7 @@
  * VehiclesProvider - Context pour la gestion des véhicules
  * Fournit state management pour l'ajout, modification et suppression de véhicules
  */
-import React, { createContext, useContext, useState, ReactNode } from 'react'
+import React, { createContext, ReactNode, useContext, useState } from 'react'
 
 // Types pour les véhicules
 export type VehicleType = 'moving-truck' | 'van' | 'trailer' | 'ute' | 'dolly' | 'tools'
