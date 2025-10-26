@@ -215,7 +215,7 @@ export const useJobDetails = (jobId: string) => {
     setError(null);
 
     try {
-      await completeJobService(jobId, data);
+      await completeJobService(jobId);
       console.log('✅ [useJobDetails] Job completed successfully');
       await refreshJobDetails();
       return true;

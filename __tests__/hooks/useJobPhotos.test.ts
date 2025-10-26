@@ -136,7 +136,7 @@ describe('useJobPhotos Hook', () => {
       const photoUri = 'file://test.jpg';
       const description = 'Test description';
 
-      let uploadedPhoto;
+      let uploadedPhoto: any = null;
       await act(async () => {
         uploadedPhoto = await result.current.uploadPhoto(photoUri, description);
       });

@@ -44,6 +44,17 @@ const DESIGN_TOKENS = {
       lineHeight: 18, // ratio ~1.38
       fontWeight: '400' as const 
     },
+    // Aliases pour compatibilité
+    h4: { 
+      fontSize: 17, 
+      lineHeight: 22,
+      fontWeight: '500' as const 
+    },
+    bodySmall: { 
+      fontSize: 13, 
+      lineHeight: 18,
+      fontWeight: '400' as const 
+    },
   },
   
   // Border radius scale
@@ -419,6 +430,40 @@ export const createCommonStyles = (colors: typeof Colors.light) => StyleSheet.cr
     color: colors.buttonSecondaryText,
     fontWeight: '600',
     fontSize: 15,
+  },
+  
+  // Outline button styles
+  buttonOutline: {
+    paddingHorizontal: DESIGN_TOKENS.spacing.md,
+    paddingVertical: DESIGN_TOKENS.spacing.sm,
+    borderRadius: DESIGN_TOKENS.radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: 'transparent',
+  },
+  
+  buttonOutlineText: {
+    color: colors.text,
+    fontWeight: '600',
+    fontSize: 15,
+  },
+  
+  // Large button styles
+  buttonPrimaryLarge: {
+    paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+    paddingVertical: DESIGN_TOKENS.spacing.md,
+    borderRadius: DESIGN_TOKENS.radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.buttonPrimary,
+  },
+  
+  buttonPrimaryTextLarge: {
+    color: colors.buttonPrimaryText,
+    fontWeight: '600',
+    fontSize: 17,
   },
   
   // List items legacy

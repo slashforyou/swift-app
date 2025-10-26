@@ -326,6 +326,33 @@ export const mockJobDetailsData: JobDetailsComplete = {
       description: "Signature client pour enlèvement mobilier",
       location: "pickup"
     }
+  ],
+
+  addresses: [
+    {
+      id: "addr_001",
+      type: "pickup",
+      street: "123 Rue de la Paix",
+      city: "Paris",
+      state: "Île-de-France",
+      zip: "75001",
+      position: {
+        latitude: 48.8566,
+        longitude: 2.3522
+      }
+    },
+    {
+      id: "addr_002",
+      type: "dropoff",
+      street: "456 Avenue des Champs-Élysées",
+      city: "Paris",
+      state: "Île-de-France",
+      zip: "75008",
+      position: {
+        latitude: 48.8738,
+        longitude: 2.2950
+      }
+    }
   ]
 };
 

@@ -4,11 +4,11 @@
  */
 
 import { useThemeColors } from '../../hooks/useThemeColor';
-import { useCommonStyles } from '../constants/Styles';
+import { useCommonThemedStyles as useCommonStylesFunction } from '../constants/Styles';
 
 export const useCommonThemedStyles = () => {
   const colors = useThemeColors();
-  const commonStyles = useCommonStyles(colors);
+  const commonStyles = useCommonStylesFunction();
   
   return {
     colors,

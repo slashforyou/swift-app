@@ -158,38 +158,44 @@ export default function JobsBillingScreen() {
 
         {/* Statistiques rapides */}
         <HStack gap="sm" style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
-          <Card style={{ flex: 1, padding: DESIGN_TOKENS.spacing.md }} testID="stats-unpaid-card">
-            <VStack gap="xs" align="center">
-              <Text testID="stats-unpaid-value" style={{ fontSize: 18, fontWeight: '700', color: '#F59E0B' }}>
-                {totalUnpaid}
-              </Text>
-              <Text testID="stats-unpaid-label" style={{ fontSize: 12, color: colors.textSecondary, textAlign: 'center' }}>
-                Non payés
-              </Text>
-            </VStack>
-          </Card>
+          <View testID="stats-unpaid-card" style={{ flex: 1 }}>
+            <Card style={{ padding: DESIGN_TOKENS.spacing.md }}>
+              <VStack gap="xs" align="center">
+                <Text testID="stats-unpaid-value" style={{ fontSize: 18, fontWeight: '700', color: '#F59E0B' }}>
+                  {totalUnpaid}
+                </Text>
+                <Text testID="stats-unpaid-label" style={{ fontSize: 12, color: colors.textSecondary, textAlign: 'center' }}>
+                  Non payés
+                </Text>
+              </VStack>
+            </Card>
+          </View>
 
-          <Card style={{ flex: 1, padding: DESIGN_TOKENS.spacing.md }} testID="stats-partial-card">
-            <VStack gap="xs" align="center">
-              <Text testID="stats-partial-value" style={{ fontSize: 18, fontWeight: '700', color: '#3B82F6' }}>
-                {totalPartial}
-              </Text>
-              <Text testID="stats-partial-label" style={{ fontSize: 12, color: colors.textSecondary, textAlign: 'center' }}>
-                Partiels
-              </Text>
-            </VStack>
-          </Card>
+          <View testID="stats-partial-card" style={{ flex: 1 }}>
+            <Card style={{ padding: DESIGN_TOKENS.spacing.md }}>
+              <VStack gap="xs" align="center">
+                <Text testID="stats-partial-value" style={{ fontSize: 18, fontWeight: '700', color: '#3B82F6' }}>
+                  {totalPartial}
+                </Text>
+                <Text testID="stats-partial-label" style={{ fontSize: 12, color: colors.textSecondary, textAlign: 'center' }}>
+                  Partiels
+                </Text>
+              </VStack>
+            </Card>
+          </View>
 
-          <Card style={{ flex: 1, padding: DESIGN_TOKENS.spacing.md }} testID="stats-paid-card">
-            <VStack gap="xs" align="center">
-              <Text testID="stats-paid-value" style={{ fontSize: 18, fontWeight: '700', color: '#10B981' }}>
-                {totalPaid}
-              </Text>
-              <Text testID="stats-paid-label" style={{ fontSize: 12, color: colors.textSecondary, textAlign: 'center' }}>
-                Payés
-              </Text>
-            </VStack>
-          </Card>
+          <View testID="stats-paid-card" style={{ flex: 1 }}>
+            <Card style={{ padding: DESIGN_TOKENS.spacing.md }}>
+              <VStack gap="xs" align="center">
+                <Text testID="stats-paid-value" style={{ fontSize: 18, fontWeight: '700', color: '#10B981' }}>
+                  {totalPaid}
+                </Text>
+                <Text testID="stats-paid-label" style={{ fontSize: 12, color: colors.textSecondary, textAlign: 'center' }}>
+                  Payés
+                </Text>
+              </VStack>
+            </Card>
+          </View>
         </HStack>
 
         {/* Filtres de statut */}

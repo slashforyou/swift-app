@@ -84,24 +84,9 @@ describe('useStaff Hook - Simple Tests', () => {
 
     it('should have addContractor function with correct signature', () => {
       const hook = createMockHook();
-      const contractorData = {
-        type: 'contractor' as const,
-        firstName: 'Test',
-        lastName: 'Contractor',
-        email: 'contractor@example.com',
-        phone: '+61 400 000 003',
-        role: 'Specialist',
-        team: 'Operations',
-        abn: '11 111 111 111',
-        rate: 55,
-        rateType: 'hourly' as const,
-        contractStatus: 'standard' as const,
-        isVerified: false,
-        startDate: '2024-01-01',
-        status: 'active' as const,
-      };
 
-      expect(() => hook.addContractor(contractorData)).not.toThrow();
+      // addContractor prend un ID de contractor et un contract status
+      expect(() => hook.addContractor('contractor_123', 'standard')).not.toThrow();
     });
 
     it('should validate contractor data structure', () => {
