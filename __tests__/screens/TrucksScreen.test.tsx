@@ -26,35 +26,35 @@ describe('TrucksScreen', () => {
   // ===========================================
   describe('Initial Rendering', () => {
     it('should render the screen without crashing', () => {
-      const { getByText } = renderWithTheme(<TrucksScreen />)
-      expect(getByText('Add Vehicle')).toBeTruthy()
+      const { getByTestId } = renderWithTheme(<TrucksScreen />)
+      expect(getByTestId('add-vehicle-button')).toBeTruthy()
     })
 
     it('should display statistics cards', () => {
-      const { getByText } = renderWithTheme(<TrucksScreen />)
+      const { getByTestId } = renderWithTheme(<TrucksScreen />)
       
       // Le composant affiche seulement 3 cartes (pas de Total)
-      expect(getByText('Available')).toBeTruthy()
-      expect(getByText('In Use')).toBeTruthy()
-      expect(getByText('Maintenance')).toBeTruthy()
+      expect(getByTestId('stat-available-label')).toBeTruthy()
+      expect(getByTestId('stat-inuse-label')).toBeTruthy()
+      expect(getByTestId('stat-maintenance-label')).toBeTruthy()
     })
 
     it('should display correct vehicle counts in statistics', () => {
-      const { getByText } = renderWithTheme(<TrucksScreen />)
+      const { getByTestId } = renderWithTheme(<TrucksScreen />)
       
       // Avec les 4 véhicules mockés
-      expect(getByText('2')).toBeTruthy() // Available (v1, v3)
-      expect(getByText('1')).toBeTruthy() // In Use (v2)
-      // Maintenance a aussi 1 mais on ne peut pas tester deux fois le même texte
+      expect(getByTestId('stat-available-value').props.children).toBe(2) // Available (v1, v3)
+      expect(getByTestId('stat-inuse-value').props.children).toBe(1) // In Use (v2)
+      expect(getByTestId('stat-maintenance-value').props.children).toBe(1) // Maintenance (v4)
     })
 
     it('should display mock vehicles', () => {
-      const { getByText } = renderWithTheme(<TrucksScreen />)
+      const { getByTestId } = renderWithTheme(<TrucksScreen />)
       
-      expect(getByText('Isuzu NPR 200')).toBeTruthy()
-      expect(getByText('Ford Transit')).toBeTruthy()
-      expect(getByText('Custom Box Trailer')).toBeTruthy()
-      expect(getByText('Toyota HiLux')).toBeTruthy()
+      expect(getByTestId('vehicle-card-v1')).toBeTruthy()
+      expect(getByTestId('vehicle-card-v2')).toBeTruthy()
+      expect(getByTestId('vehicle-card-v3')).toBeTruthy()
+      expect(getByTestId('vehicle-card-v4')).toBeTruthy()
     })
   })
 
@@ -63,90 +63,90 @@ describe('TrucksScreen', () => {
   // ===========================================
   describe('Type Filters', () => {
     it('should display type filter section', () => {
-      const { getByText } = renderWithTheme(<TrucksScreen />)
+      const { getByTestId } = renderWithTheme(<TrucksScreen />)
       
       // Vérifier qu'au moins un filtre est présent (All Vehicles)
-      expect(getByText('All Vehicles')).toBeTruthy()
+      expect(getByTestId('filter-type-all')).toBeTruthy()
     })
 
     it('should display all vehicle type filters', () => {
-      const { getByText } = renderWithTheme(<TrucksScreen />)
+      const { getByTestId } = renderWithTheme(<TrucksScreen />)
       
-      expect(getByText('All Vehicles')).toBeTruthy()
-      expect(getByText(/Moving-truck/)).toBeTruthy()
-      expect(getByText(/Van/)).toBeTruthy()
-      expect(getByText(/Trailer/)).toBeTruthy()
-      expect(getByText(/Ute/)).toBeTruthy()
-      expect(getByText(/Dolly/)).toBeTruthy()
-      expect(getByText(/Tools/)).toBeTruthy()
+      expect(getByTestId('filter-type-all')).toBeTruthy()
+      expect(getByTestId('filter-type-moving-truck')).toBeTruthy()
+      expect(getByTestId('filter-type-van')).toBeTruthy()
+      expect(getByTestId('filter-type-trailer')).toBeTruthy()
+      expect(getByTestId('filter-type-ute')).toBeTruthy()
+      expect(getByTestId('filter-type-dolly')).toBeTruthy()
+      expect(getByTestId('filter-type-tools')).toBeTruthy()
     })
 
     it('should filter vehicles by Moving Truck type', () => {
-      const { getByText, queryByText } = renderWithTheme(<TrucksScreen />)
+      const { getByTestId, queryByTestId } = renderWithTheme(<TrucksScreen />)
       
       // Cliquer sur le filtre Moving Truck
-      const truckFilter = getByText('?? Moving-truck')
+      const truckFilter = getByTestId('filter-type-moving-truck')
       fireEvent.press(truckFilter)
       
       // Devrait afficher seulement Isuzu NPR 200
-      expect(getByText('Isuzu NPR 200')).toBeTruthy()
-      expect(queryByText('Ford Transit')).toBeNull()
-      expect(queryByText('Custom Box Trailer')).toBeNull()
-      expect(queryByText('Toyota HiLux')).toBeNull()
+      expect(getByTestId('vehicle-card-v1')).toBeTruthy()
+      expect(queryByTestId('vehicle-card-v2')).toBeNull()
+      expect(queryByTestId('vehicle-card-v3')).toBeNull()
+      expect(queryByTestId('vehicle-card-v4')).toBeNull()
     })
 
     it('should filter vehicles by Van type', () => {
-      const { getByText, queryByText } = renderWithTheme(<TrucksScreen />)
+      const { getByTestId, queryByTestId } = renderWithTheme(<TrucksScreen />)
       
-      const vanFilter = getByText('?? Van')
+      const vanFilter = getByTestId('filter-type-van')
       fireEvent.press(vanFilter)
       
       // Devrait afficher seulement Ford Transit
-      expect(getByText('Ford Transit')).toBeTruthy()
-      expect(queryByText('Isuzu NPR 200')).toBeNull()
-      expect(queryByText('Custom Box Trailer')).toBeNull()
-      expect(queryByText('Toyota HiLux')).toBeNull()
+      expect(getByTestId('vehicle-card-v2')).toBeTruthy()
+      expect(queryByTestId('vehicle-card-v1')).toBeNull()
+      expect(queryByTestId('vehicle-card-v3')).toBeNull()
+      expect(queryByTestId('vehicle-card-v4')).toBeNull()
     })
 
     it('should filter vehicles by Trailer type', () => {
-      const { getByText, queryByText } = renderWithTheme(<TrucksScreen />)
+      const { getByTestId, queryByTestId } = renderWithTheme(<TrucksScreen />)
       
-      const trailerFilter = getByText('?? Trailer')
+      const trailerFilter = getByTestId('filter-type-trailer')
       fireEvent.press(trailerFilter)
       
-      expect(getByText('Custom Box Trailer')).toBeTruthy()
-      expect(queryByText('Isuzu NPR 200')).toBeNull()
-      expect(queryByText('Ford Transit')).toBeNull()
-      expect(queryByText('Toyota HiLux')).toBeNull()
+      expect(getByTestId('vehicle-card-v3')).toBeTruthy()
+      expect(queryByTestId('vehicle-card-v1')).toBeNull()
+      expect(queryByTestId('vehicle-card-v2')).toBeNull()
+      expect(queryByTestId('vehicle-card-v4')).toBeNull()
     })
 
     it('should filter vehicles by Ute type', () => {
-      const { getByText, queryByText } = renderWithTheme(<TrucksScreen />)
+      const { getByTestId, queryByTestId } = renderWithTheme(<TrucksScreen />)
       
-      const uteFilter = getByText('?? Ute')
+      const uteFilter = getByTestId('filter-type-ute')
       fireEvent.press(uteFilter)
       
-      expect(getByText('Toyota HiLux')).toBeTruthy()
-      expect(queryByText('Isuzu NPR 200')).toBeNull()
-      expect(queryByText('Ford Transit')).toBeNull()
-      expect(queryByText('Custom Box Trailer')).toBeNull()
+      expect(getByTestId('vehicle-card-v4')).toBeTruthy()
+      expect(queryByTestId('vehicle-card-v1')).toBeNull()
+      expect(queryByTestId('vehicle-card-v2')).toBeNull()
+      expect(queryByTestId('vehicle-card-v3')).toBeNull()
     })
 
     it('should show all vehicles when "All" filter is selected', () => {
-      const { getByText } = renderWithTheme(<TrucksScreen />)
+      const { getByTestId } = renderWithTheme(<TrucksScreen />)
       
       // Filtrer d'abord par un type
-      fireEvent.press(getByText('?? Van'))
+      fireEvent.press(getByTestId('filter-type-van'))
       
       // Puis cliquer sur "All"
-      const allFilter = getByText(/All \(4\)/)
+      const allFilter = getByTestId('filter-type-all')
       fireEvent.press(allFilter)
       
       // Tous les véhicules devraient être visibles
-      expect(getByText('Isuzu NPR 200')).toBeTruthy()
-      expect(getByText('Ford Transit')).toBeTruthy()
-      expect(getByText('Custom Box Trailer')).toBeTruthy()
-      expect(getByText('Toyota HiLux')).toBeTruthy()
+      expect(getByTestId('vehicle-card-v1')).toBeTruthy()
+      expect(getByTestId('vehicle-card-v2')).toBeTruthy()
+      expect(getByTestId('vehicle-card-v3')).toBeTruthy()
+      expect(getByTestId('vehicle-card-v4')).toBeTruthy()
     })
 
     it('should display vehicle count for each type filter', () => {
