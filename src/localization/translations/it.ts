@@ -1,108 +1,65 @@
-import { TranslationKeys } from '../types';import { TranslationKeys } from '../types';
+import { TranslationKeys } from '../types';
 
+export const itTranslations: TranslationKeys = {
+    common: {
+        save: 'Salva',
+        cancel: 'Annulla',
+        delete: 'Elimina',
+        edit: 'Modifica',
+        add: 'Aggiungi',
+        search: 'Cerca',
+        loading: 'Caricamento...',
+        error: 'Errore',
+        success: 'Succès',
+        warning: 'Attenzione',
+        info: 'Info',
+        yes: 'S�',
+        no: 'No',
+        ok: 'OK',
+        close: 'Chiudi',
+        back: 'Indietro',
+        next: 'Avanti',
+        previous: 'Précédent',
+        done: 'Terminé',
+        continue: 'Continua',
+        skip: 'Salta',
+        retry: 'Réessayer',
+        refresh: 'Aggiorna',
+        settings: 'Paramètres',
+        language: 'Lingua',
+    },
 
-
-export const itTranslations: TranslationKeys = {export const itTranslations: TranslationKeys = {
-
-    common: {    common: {
-
-        save: 'Salva',        save: 'Salva', cancel: 'Annulla', delete: 'Elimina', edit: 'Modifica', add: 'Aggiungi',
-
-        cancel: 'Annulla',        search: 'Cerca', loading: 'Caricamento...', error: 'Errore', success: 'Successo', 
-
-        delete: 'Elimina',        warning: 'Attenzione', info: 'Info', yes: 'Sì', no: 'No', ok: 'OK', close: 'Chiudi',
-
-        edit: 'Modifica',        back: 'Indietro', next: 'Avanti', previous: 'Precedente', done: 'Fatto', continue: 'Continua',
-
-        add: 'Aggiungi',        skip: 'Salta', retry: 'Riprova', refresh: 'Aggiorna', settings: 'Impostazioni', language: 'Lingua',
-
-        search: 'Cerca',    },
-
-        loading: 'Caricamento...',    home: {
-
-        error: 'Errore',        title: 'Home', welcome: 'Bentornato!',
-
-        success: 'Successo',        calendar: { title: 'Calendario', description: 'Visualizza e gestisci la tua agenda' },
-
-        warning: 'Avviso',        jobs: { title: 'Lavori', description: 'Gestisci i tuoi incarichi di lavoro' },
-
-        info: 'Info',        profile: { title: 'Profilo', description: 'Visualizza e modifica il tuo profilo' },
-
-        yes: 'Sì',        parameters: { title: 'Impostazioni', description: 'Configura le preferenze dell\'app' },
-
-        no: 'No',        connection: {
-
-        ok: 'OK',            title: 'Connessione', description: 'Testa la connettività del server', testConnection: 'Testa Connessione',
-
-        close: 'Chiudi',            status: { connected: 'Connesso', disconnected: 'Disconnesso', testing: 'Test in corso...' },
-
-        back: 'Indietro',        },
-
-        next: 'Avanti',    },
-
-        previous: 'Precedente',    navigation: { home: 'Home', calendar: 'Calendario', jobs: 'Lavori', profile: 'Profilo', settings: 'Impostazioni' },
-
-        done: 'Fatto',    jobs: {
-
-        continue: 'Continua',        title: 'Lavori',
-
-        skip: 'Salta',        status: { pending: 'In attesa', inProgress: 'In corso', completed: 'Completato', cancelled: 'Annullato' },
-
-        retry: 'Riprova',        timer: {
-
-        refresh: 'Aggiorna',            start: 'Avvia Timer', stop: 'Ferma Timer', pause: 'Pausa', resume: 'Riprendi',
-
-        settings: 'Impostazioni',            break: 'Fai una Pausa', endBreak: 'Termina Pausa', totalTime: 'Tempo Totale',
-
-        language: 'Lingua',            billableTime: 'Tempo Fatturabile', breakTime: 'Tempo di Pausa', currentStep: 'Passo Corrente',
-
-    },        },
-
-        details: { information: 'Informazioni', items: 'Elementi', contacts: 'Contatti', timeline: 'Timeline', payment: 'Pagamento', summary: 'Riassunto' },
-
-    home: {    },
-
-        title: 'Home',    profile: { title: 'Profilo', personalInfo: 'Informazioni Personali', preferences: 'Preferenze', logout: 'Esci', version: 'Versione' },
-
-        welcome: 'Bentornato!',    settings: {
-
-        calendar: {        title: 'Impostazioni',
-
-            title: 'Calendario',        language: { title: 'Lingua', description: 'Scegli la tua lingua preferita', current: 'Lingua attuale', select: 'Seleziona lingua' },
-
-            description: 'Visualizza e gestisci il tuo programma',        theme: { title: 'Tema', light: 'Chiaro', dark: 'Scuro', auto: 'Automatico' },
-
-        },        notifications: { title: 'Notifiche', enabled: 'Attivate', disabled: 'Disattivate' },
-
-        business: {    },
-
-            title: 'Business',    messages: {
-
-            description: 'Fatturazione, configurazione e gestione',        errors: { network: 'Errore di connessione di rete', generic: 'Qualcosa è andato storto', notFound: 'Risorsa non trovata', unauthorized: 'Accesso non autorizzato', serverError: 'Errore del server', validation: 'Input non valido' },
-
-        },        success: { saved: 'Salvato con successo', deleted: 'Eliminato con successo', updated: 'Aggiornato con successo', created: 'Creato con successo' },
-
-        jobs: {    },
-
-            title: 'Lavori',};
-            description: 'Gestisci le tue assegnazioni di lavoro',
+    home: {
+        title: 'Pagina Iniziale',
+        welcome: 'Bentornato!',
+        calendar: {
+            title: 'Calendario',
+            description: 'Consultez et gérez votre planning',
+        },
+        business: {
+            title: 'Business',
+            description: 'Facturation, configuration et gestion',
+        },
+        jobs: {
+            title: 'Lavori',
+            description: 'Gérez vos missions de travail',
         },
         profile: {
             title: 'Profilo',
-            description: 'Visualizza e modifica il tuo profilo',
+            description: 'Consultez et modifiez votre profil',
         },
         parameters: {
-            title: 'Impostazioni',
-            description: 'Configura le preferenze dell\'app',
+            title: 'Paramètres',
+            description: 'Configurez les préférences de l\'application',
         },
         connection: {
-            title: 'Connessione',
-            description: 'Testa la connettività del server',
-            testConnection: 'Testa Connessione',
+            title: 'Connexion',
+            description: 'Testez la connectivité du serveur',
+            testConnection: 'Tester la connexion',
             status: {
-                connected: 'Connesso',
-                disconnected: 'Disconnesso',
-                testing: 'Test in corso...',
+                connected: 'Connecté',
+                disconnected: 'Déconnecté',
+                testing: 'Test en cours...',
             },
         },
     },
@@ -112,246 +69,258 @@ export const itTranslations: TranslationKeys = {export const itTranslations: Tra
         calendar: 'Calendario',
         jobs: 'Lavori',
         profile: 'Profilo',
-        settings: 'Impostazioni',
+        settings: 'Paramètres',
     },
 
     jobs: {
         title: 'Lavori',
         status: {
-            pending: 'In attesa',
-            inProgress: 'In corso',
-            completed: 'Completato',
-            cancelled: 'Annullato',
+            pending: 'En attente',
+            inProgress: 'En cours',
+            completed: 'Terminé',
+            cancelled: 'Annulé',
         },
         timer: {
-            start: 'Avvia Timer',
-            stop: 'Ferma Timer',
-            pause: 'Pausa',
-            resume: 'Riprendi',
-            break: 'Fai una pausa',
-            endBreak: 'Termina pausa',
-            totalTime: 'Tempo totale',
-            billableTime: 'Tempo fatturabile',
-            breakTime: 'Tempo di pausa',
-            currentStep: 'Passo corrente',
+            start: 'Démarrer le chrono',
+            stop: 'Arrêter le chrono',
+            pause: 'Pause',
+            resume: 'Reprendre',
+            break: 'Prendre une pause',
+            endBreak: 'Fin de pause',
+            totalTime: 'Temps total',
+            billableTime: 'Temps facturable',
+            breakTime: 'Temps de pause',
+            currentStep: 'Étape actuelle',
         },
         details: {
-            information: 'Informazioni',
-            items: 'Elementi',
-            contacts: 'Contatti',
-            timeline: 'Cronologia',
-            payment: 'Pagamento',
-            summary: 'Riepilogo',
+            information: 'Informations',
+            items: 'Éléments',
+            contacts: 'Contacts',
+            timeline: 'Chronologie',
+            payment: 'Paiement',
+            summary: 'Résumé',
         },
     },
 
     calendar: {
         title: 'Calendario',
+        // Jours de la semaine (abréviations)
         days: {
             mon: 'Lun',
             tue: 'Mar',
             wed: 'Mer',
-            thu: 'Gio',
+            thu: 'Jeu',
             fri: 'Ven',
-            sat: 'Sab',
-            sun: 'Dom',
+            sat: 'Sam',
+            sun: 'Dim',
         },
+        // Mois complets
         months: {
             january: 'Gennaio',
-            february: 'Febbraio',
+            february: 'Février',
             march: 'Marzo',
             april: 'Aprile',
             may: 'Maggio',
             june: 'Giugno',
             july: 'Luglio',
-            august: 'Agosto',
+            august: 'Août',
             september: 'Settembre',
             october: 'Ottobre',
             november: 'Novembre',
-            december: 'Dicembre',
+            december: 'Décembre',
         },
+        // Statistiques
         stats: {
-            totalJobs: 'Totale lavori',
-            urgent: 'Urgente',
-            completed: 'Completato',
+            totalJobs: 'Total Jobs',
+            urgent: 'Urgent',
+            completed: 'Terminé',
         },
+        // Actions
         refresh: 'Aggiorna',
-        goToDay: 'Vai al giorno',
-        previousMonth: 'Mese precedente',
-        nextMonth: 'Mese successivo',
+        goToDay: 'Aller au jour',
+        previousMonth: 'Mois précédent',
+        nextMonth: 'Mois suivant',
+        // Filtres et tri
         filters: {
-            all: 'Tutti',
-            pending: 'In attesa',
-            active: 'Attivo',
-            done: 'Fatto',
+            all: 'Tous',
+            pending: 'En attente',
+            active: 'En cours',
+            done: 'Terminé',
         },
         sorting: {
-            time: 'Ora',
-            priority: 'Priorità',
-            status: 'Stato',
+            time: 'Heure',
+            priority: 'Priorité',
+            status: 'État',
         },
-        previousDay: 'Giorno precedente',
-        nextDay: 'Giorno successivo',
-        currentYear: 'Anno corrente',
-        years: 'Anni',
-        selectFromRange: 'Seleziona da',
+        // Navigation
+        previousDay: 'Jour précédent',
+        nextDay: 'Jour suivant',
+        // Vue annuelle
+        currentYear: 'Année actuelle',
+        years: 'Années',
+        selectFromRange: 'Sélectionner entre',
+        // États
         loading: 'Caricamento...',
-        noJobsScheduled: 'Nessun lavoro programmato',
-        freeDay: 'Hai un giorno libero il',
-        enjoyTimeOff: 'Goditi il tuo tempo libero!',
-        somethingWentWrong: 'Qualcosa è andato storto',
-        tryAgain: 'Riprova',
+        noJobsScheduled: 'Aucun travail programmé',
+        freeDay: 'Vous avez une journée libre le',
+        enjoyTimeOff: 'Profitez de votre temps libre !',
+        somethingWentWrong: 'Une erreur s\'est produite',
+        tryAgain: 'Réessayer',
+        // Statut et priorité des jobs
         jobStatus: {
-            pending: 'In attesa',
-            inProgress: 'In corso',
-            completed: 'Completato',
-            cancelled: 'Annullato',
-            unknown: 'Sconosciuto',
+            pending: 'En attente',
+            inProgress: 'En cours',
+            completed: 'Terminé',
+            cancelled: 'Annulé',
+            unknown: 'Inconnu',
         },
         priority: {
-            urgent: 'URGENTE',
-            high: 'ALTA',
-            medium: 'MEDIA',
-            low: 'BASSA',
-            normal: 'NORMALE',
+            urgent: 'URGENT',
+            high: 'HAUTE',
+            medium: 'MOY',
+            low: 'FAIBLE',
+            normal: 'NORM',
         },
-        unknownClient: 'Cliente sconosciuto',
+        // Client
+        unknownClient: 'Client inconnu',
+        // Navigation
         navigation: {
-            monthlyView: 'Vista mensile',
-            yearlyView: 'Vista annuale',
-            multiYearView: 'Vista multi-anno',
-            dailyView: 'Vista giornaliera',
-            loadingCalendar: 'Caricamento calendario',
-            authenticationError: 'Errore di autenticazione',
-            goToLogin: 'Vai al login',
-            loading: 'Caricamento',
+            monthlyView: 'Vue Mensuelle',
+            yearlyView: 'Vue Annuelle',
+            multiYearView: 'Vue Multi-Années',
+            dailyView: 'Vue Quotidienne',
+            loadingCalendar: 'Chargement du calendrier',
+            authenticationError: 'Erreur d\'authentification',
+            goToLogin: 'Aller à la connexion',
+            loading: 'Chargement',
         },
+        // Day Screen specific
         dayScreen: {
             stats: {
-                total: 'Totale',
-                pending: 'In attesa',
-                completed: 'Completati',
+                total: 'Total',
+                pending: 'En attente',
+                completed: 'Terminés',
             },
-            filtersTitle: 'Lavori e filtri',
-            sortBy: 'Ordina per:',
+            filtersTitle: 'Jobs et Filtres',
+            sortBy: 'Trier par :',
         },
     },
 
     profile: {
         title: 'Profilo',
-        personalInfo: 'Informazioni personali',
-        preferences: 'Preferenze',
-        logout: 'Esci',
-        version: 'Versione',
-        level: 'Livello',
-        experience: 'Esperienza',
-        toNextLevel: 'al Livello',
-        defaultTitle: 'Autista',
+        personalInfo: 'Informations personnelles',
+        preferences: 'Préférences',
+        logout: 'Déconnexion',
+        version: 'Version',
+        level: 'Niveau',
+        experience: 'Expérience',
+        toNextLevel: 'vers le Niveau',
+        defaultTitle: 'Chauffeur',
     },
 
     jobDetails: {
         panels: {
-            summary: 'Riepilogo lavoro',
-            jobDetails: 'Dettagli lavoro',
-            clientInfo: 'Informazioni cliente',
-            notes: 'Note',
-            payment: 'Pagamento',
+            summary: 'Résumé du travail',
+            jobDetails: 'Détails du travail',
+            clientInfo: 'Informations client',
+            notes: 'Notes',
+            payment: 'Paiement',
         },
         errors: {
-            invalidJobId: 'ID lavoro non valido',
-            cannotLoadDetails: 'Impossibile caricare i dettagli del lavoro',
-            loadingError: 'Errore di caricamento',
+            invalidJobId: 'ID de job invalide',
+            cannotLoadDetails: 'Impossible de charger les détails du job',
+            loadingError: 'Erreur de chargement',
         },
         steps: {
-            pickup: 'Ritiro',
-            intermediate: 'Intermedio',
-            dropoff: 'Consegna',
-            pickupDescription: 'Ritiro dalla posizione del cliente',
-            intermediateDescription: 'Consegna alla posizione intermedia',
-            dropoffDescription: 'Consegna alla posizione finale',
+            pickup: 'Enlèvement',
+            intermediate: 'Intermédiaire',
+            dropoff: 'Livraison',
+            pickupDescription: 'Enlèvement chez le client',
+            intermediateDescription: 'Dépôt à l\'emplacement intermédiaire',
+            dropoffDescription: 'Dépôt à l\'emplacement final',
         },
         client: {
-            firstTimeClient: 'Cliente nuovo',
+            firstTimeClient: 'Nouveau client',
         },
-        defaultNote: 'Nota',
+        defaultNote: 'Note',
         messages: {
-            noteAdded: 'Nota aggiunta',
-            noteAddedSuccess: 'La nota è stata salvata con successo',
+            noteAdded: 'Note ajoutée',
+            noteAddedSuccess: 'La note a été enregistrée avec succès',
             noteAddError: 'Errore',
-            noteAddErrorMessage: 'Impossibile aggiungere la nota. Riprova.',
-            photoAdded: 'Foto aggiunta',
-            photoAddedSuccess: 'La foto è stata caricata con successo',
+            noteAddErrorMessage: 'Impossible d\'ajouter la note. Veuillez réessayer.',
+            photoAdded: 'Photo ajoutée',
+            photoAddedSuccess: 'La photo a été uploadée avec succès',
             photoAddError: 'Errore',
-            photoAddErrorMessage: 'Impossibile aggiungere la foto. Riprova.',
-            photoDescription: 'Foto del lavoro',
-            nextStep: 'Prossimo passo',
-            advancedToStep: 'Avanzato al passo',
+            photoAddErrorMessage: 'Impossible d\'ajouter la photo. Veuillez réessayer.',
+            photoDescription: 'Photo du job',
+            nextStep: 'Étape suivante',
+            advancedToStep: 'Passé à l\'étape',
         },
     },
 
     settings: {
-        title: 'Impostazioni',
+        title: 'Paramètres',
         language: {
             title: 'Lingua',
-            description: 'Scegli la tua lingua preferita',
-            current: 'Lingua corrente',
-            select: 'Seleziona lingua',
+            description: 'Choisissez votre langue préférée',
+            current: 'Langue actuelle',
+            select: 'Sélectionner la langue',
         },
         theme: {
-            title: 'Tema',
-            light: 'Chiaro',
-            dark: 'Scuro',
-            auto: 'Automatico',
+            title: 'Thème',
+            light: 'Clair',
+            dark: 'Sombre',
+            auto: 'Automatique',
         },
         notifications: {
-            title: 'Notifiche',
-            enabled: 'Attivate',
-            disabled: 'Disattivate',
+            title: 'Notifications',
+            enabled: 'Activées',
+            disabled: 'Désactivées',
         },
     },
 
     business: {
         navigation: {
-            loadingBusiness: 'Caricamento sezione business...',
-            authenticationError: 'Errore di autenticazione',
-            goToLogin: 'Vai al login',
-            businessInfo: 'Info business',
-            staffCrew: 'Personale/Squadra',
-            trucks: 'Veicoli',
-            jobsBilling: 'Lavori/Fatturazione',
+            loadingBusiness: 'Chargement de la section entreprise...',
+            authenticationError: 'Erreur d\'authentification',
+            goToLogin: 'Aller à la connexion',
+            businessInfo: 'Infos Entreprise',
+            staffCrew: 'Personnel/Équipe',
+            trucks: 'Véhicules',
+            jobsBilling: 'Travaux/Facturation',
         },
         info: {
-            title: 'Informazioni business',
-            placeholder: 'Questa sezione conterrà le informazioni della tua attività: dettagli di contatto, configurazione, impostazioni generali.',
+            title: 'Informations Entreprise',
+            placeholder: 'Cette section contiendra les informations de votre entreprise : coordonnées, configuration, paramètres généraux.',
         },
         staff: {
-            title: 'Personale e squadra',
-            placeholder: 'Gestisci qui il tuo team: aggiungi membri, assegna ruoli, traccia competenze e disponibilità.',
+            title: 'Personnel & Équipe',
+            placeholder: 'Gérez ici votre équipe : ajoutez des membres, assignez des rôles, suivez les compétences et disponibilités.',
         },
         trucks: {
-            title: 'Veicoli e attrezzature',
-            placeholder: 'Gestisci la tua flotta e attrezzature: aggiungi camion, traccia manutenzione, programma riparazioni.',
+            title: 'Véhicules & Matériel',
+            placeholder: 'Gérez votre flotte de véhicules et matériel : ajoutez des camions, suivez l\'entretien, planifiez les réparations.',
         },
         jobs: {
-            title: 'Lavori e fatturazione',
-            placeholder: 'Crea nuovi lavori, genera fatture e traccia la redditività dei tuoi progetti.',
+            title: 'Travaux & Facturation',
+            placeholder: 'Créez de nouveaux travaux, générez des factures et suivez la rentabilité de vos projets.',
         },
     },
 
     messages: {
         errors: {
-            network: 'Errore di connessione di rete',
-            generic: 'Qualcosa è andato storto',
-            notFound: 'Risorsa non trovata',
-            unauthorized: 'Accesso non autorizzato',
-            serverError: 'Errore del server',
-            validation: 'Input non valido',
+            network: 'Erreur de connexion réseau',
+            generic: 'Une erreur s\'est produite',
+            notFound: 'Ressource introuvable',
+            unauthorized: 'Accès non autorisé',
+            serverError: 'Erreur du serveur',
+            validation: 'Saisie invalide',
         },
         success: {
-            saved: 'Salvato con successo',
-            deleted: 'Eliminato con successo',
-            updated: 'Aggiornato con successo',
-            created: 'Creato con successo',
+            saved: 'Enregistré avec succès',
+            deleted: 'Supprimé avec succès',
+            updated: 'Mis à jour avec succès',
+            created: 'Créé avec succès',
         },
     },
 };

@@ -7,8 +7,10 @@ import { SUPPORTED_LANGUAGES } from '../localization/config';
 import { enTranslations } from '../localization/translations/en';
 import { esTranslations } from '../localization/translations/es';
 import { frTranslations } from '../localization/translations/fr';
+import { hiTranslations } from '../localization/translations/hi';
 import { itTranslations } from '../localization/translations/it';
 import { ptTranslations } from '../localization/translations/pt';
+import { zhTranslations } from '../localization/translations/zh';
 
 describe('Translation System', () => {
     const translations = {
@@ -17,6 +19,8 @@ describe('Translation System', () => {
         pt: ptTranslations,
         es: esTranslations,
         it: itTranslations,
+        hi: hiTranslations,
+        zh: zhTranslations,
     };
 
     describe('Translation Completeness', () => {
@@ -35,7 +39,7 @@ describe('Translation System', () => {
 
         const englishKeys = getTranslationKeys(enTranslations);
 
-        test.skip('All translations should have the same structure as English', () => {
+        test('All translations should have the same structure as English', () => {
             Object.entries(translations).forEach(([langCode, translation]) => {
                 if (langCode === 'en') return;
                 
@@ -51,7 +55,7 @@ describe('Translation System', () => {
             });
         });
 
-        test.skip('No translation should be empty or missing', () => {
+        test('No translation should be empty or missing', () => {
             Object.entries(translations).forEach(([langCode, translation]) => {
                 englishKeys.forEach(key => {
                     const value = key.split('.').reduce((obj: any, k) => obj?.[k], translation);
@@ -95,7 +99,7 @@ describe('Translation System', () => {
     });
 
     describe('Translation Quality', () => {
-        test.skip('Home screen translations should be appropriate', () => {
+        test('Home screen translations should be appropriate', () => {
             Object.entries(translations).forEach(([langCode, translation]) => {
                 expect(translation.home.title).toBeDefined();
                 expect(translation.home.welcome).toBeDefined();
