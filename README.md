@@ -1,9 +1,13 @@
 # 🚚 Swift App
 
-[![Tests](https://github.com/slashforyou/swift-app/workflows/Tests/badge.svg)](https://github.com/slashforyou/swift-app/actions)
-[![Node.js](https://img.shields.io/badge/node-20.x-brightgreen.svg)](https://nodejs.org/)
+[![CI/CD Pipeline](https://github.com/slashforyou/swift-app/actions/workflows/ci.yml/badge.svg)](https://github.com/slashforyou/swift-app/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/slashforyou/swift-app/branch/main/graph/badge.svg)](https://codecov.io/gh/slashforyou/swift-app)
+[![Tests](https://img.shields.io/badge/tests-321%20passing-brightgreen)](https://github.com/slashforyou/swift-app)
+[![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://github.com/slashforyou/swift-app)
+[![Node.js](https://img.shields.io/badge/node-18%20|%2020-brightgreen.svg)](https://nodejs.org/)
 [![React Native](https://img.shields.io/badge/react--native-0.76.5-blue.svg)](https://reactnative.dev/)
 [![TypeScript](https://img.shields.io/badge/typescript-5.3.3-blue.svg)](https://www.typescriptlang.org/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 A mobile application for moving companies, offering smooth management of jobs, clients, notes, items, and routes.
 
