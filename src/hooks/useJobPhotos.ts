@@ -1,6 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useEffect, useState } from 'react';
-import { Alert } from 'react-native';
 import { useJobState } from '../context/JobStateProvider';
 import {
     deletePhoto,
@@ -162,7 +161,7 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
     
     if (!jobId || !profile) {
       console.error('❌ [DEBUG] Manque jobId ou profile');
-      Alert.alert('DEBUG ERREUR', `❌ Données manquantes:\njobId: ${jobId}\nprofile: ${profile ? 'OK' : 'NULL'}`);
+      // Alert removed
       return null;
     }
 
@@ -191,7 +190,7 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
       console.log('🌐 [DEBUG] Appel uploadJobPhoto API...');
       const newPhoto = await uploadJobPhoto(jobId, photoUri, description);
       console.log('✅ [DEBUG] API uploadJobPhoto réussi:', newPhoto);
-      Alert.alert('DEBUG API', `✅ Photo uploadée:\nID: ${newPhoto.id}\nFilename: ${newPhoto.filename}`);
+      // Alert removed
       
       console.log('✅ [DEBUG] ÉTAPE 3: Success (API)');
       // ✅ ÉTAPE 3: Success (API)
@@ -225,17 +224,14 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
       return newPhoto;
     } catch (err) {
       console.error('❌ [DEBUG] ERREUR dans uploadPhotoCallback:', err);
-      Alert.alert(
-        'DEBUG ERREUR uploadPhotoCallback',
-        `❌ Erreur: ${err instanceof Error ? err.message : String(err)}`
-      );
+      console.error('❌ [DEBUG] Stack trace:', err instanceof Error ? err.stack : 'N/A');
       
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       console.log('📝 [DEBUG] errorMessage:', errorMessage);
       
       if (errorMessage.includes('404') || errorMessage.includes('400')) {
         console.log('� [DEBUG] API non disponible, sauvegarde locale...');
-        Alert.alert('DEBUG', '💾 API non disponible, sauvegarde locale');
+        // Alert removed
         
         const localPhoto: JobPhotoAPI = {
           id: `local-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,

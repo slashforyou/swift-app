@@ -371,27 +371,21 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId }) => 
   const handlePhotoSelection = async (photoUri: string) => {
     console.log('🎯 [DEBUG] handlePhotoSelection - REÇU du modal');
     console.log('🎯 [DEBUG] photoUri reçu:', photoUri);
-    Alert.alert('DEBUG Parent', `🎯 Photo reçue du modal:\n${photoUri}`);
     
     setShowPhotoModal(false);
     console.log('✅ [DEBUG] Modal fermé');
     
     try {
       console.log('📤 [DEBUG] Appel uploadPhoto...');
-      Alert.alert('DEBUG', '📤 Début upload vers API...');
       
       const result = await uploadPhoto(photoUri, '');
       
       console.log('✅ [DEBUG] uploadPhoto terminé:', result);
-      Alert.alert('DEBUG', `✅ Upload terminé:\n${JSON.stringify(result, null, 2)}`);
       
       Alert.alert('Succès', 'Photo ajoutée avec succès !');
     } catch (err) {
       console.error('❌ [DEBUG] Erreur dans uploadPhoto:', err);
-      Alert.alert(
-        'DEBUG ERREUR Upload',
-        `❌ Erreur: ${err instanceof Error ? err.message : String(err)}\n\nStack: ${err instanceof Error ? err.stack : 'N/A'}`
-      );
+      console.error('❌ [DEBUG] Stack trace:', err instanceof Error ? err.stack : 'N/A');
       Alert.alert('Erreur', 'Erreur lors de l\'ajout de la photo');
     }
   };
