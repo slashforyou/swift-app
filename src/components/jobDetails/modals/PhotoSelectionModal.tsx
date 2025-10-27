@@ -33,8 +33,19 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
 
     // Vérifier et demander les permissions
     const requestPermissions = async () => {
+        console.log('🔐 [DEBUG] Demande des permissions...');
+        Alert.alert('DEBUG', '🔐 Demande des permissions caméra et galerie');
+        
         const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
+        console.log('📷 [DEBUG] Permission caméra:', cameraStatus);
+        
         const { status: mediaLibraryStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        console.log('🖼️ [DEBUG] Permission galerie:', mediaLibraryStatus);
+        
+        Alert.alert(
+            'DEBUG Permissions',
+            `Caméra: ${cameraStatus}\nGalerie: ${mediaLibraryStatus}`
+        );
         
         return {
             camera: cameraStatus === 'granted',
@@ -44,10 +55,17 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
 
     // Prendre une photo avec la caméra
     const handleTakePhoto = async () => {
+        console.log('📸 [DEBUG] handleTakePhoto - DÉBUT');
+        Alert.alert('DEBUG', '📸 Début de la prise de photo');
+        
         try {
+            console.log('🔐 [DEBUG] Vérification des permissions...');
             const permissions = await requestPermissions();
             
+            console.log('🔐 [DEBUG] Permissions reçues:', permissions);
+            
             if (!permissions.camera) {
+                console.log('❌ [DEBUG] Permission caméra refusée');
                 Alert.alert(
                     'Permission requise',
                     'L\'accès à la caméra est nécessaire pour prendre des photos.',
@@ -56,6 +74,9 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
                 return;
             }
 
+            console.log('✅ [DEBUG] Permission caméra OK, lancement...');
+            Alert.alert('DEBUG', '✅ Lancement de la caméra...');
+            
             // Lancer la caméra SANS crop (allowsEditing: false)
             const result = await ImagePicker.launchCameraAsync({
                 mediaTypes: 'images',
@@ -63,7 +84,20 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
                 quality: 0.6, // ✅ Qualité optimale (~400KB)
             });
 
+            console.log('📸 [DEBUG] Résultat caméra:', result);
+            Alert.alert(
+                'DEBUG Résultat Caméra',
+                `Canceled: ${result.canceled}\nAssets: ${result.assets?.length || 0}`
+            );
+
             if (!result.canceled && result.assets[0]) {
+                const originalUri = result.assets[0].uri;
+                console.log('✅ [DEBUG] Photo prise, URI:', originalUri);
+                Alert.alert('DEBUG', `✅ Photo capturée:\n${originalUri}`);
+                
+                console.log('🗜️ [DEBUG] Début compression...');
+                Alert.alert('DEBUG', '🗜️ Début de la compression...');
+                
                 // Compresser l'image avant de la passer au parent
                 const compressed = await compressImage(result.assets[0].uri, {
                     maxWidth: 1920,
@@ -71,21 +105,50 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
                     quality: 0.6,
                 });
                 
+                console.log('✅ [DEBUG] Image compressée:', compressed);
+                Alert.alert(
+                    'DEBUG Compression',
+                    `Original: ${originalUri}\n\nCompressé: ${compressed.uri}`
+                );
+                
+                console.log('📤 [DEBUG] Envoi au parent via onPhotoSelected...');
+                Alert.alert('DEBUG', '📤 Envoi de la photo au parent...');
+                
                 onPhotoSelected(compressed.uri);
+                
+                console.log('✅ [DEBUG] Photo envoyée, fermeture modal...');
+                Alert.alert('DEBUG', '✅ Photo envoyée, fermeture du modal');
+                
                 onClose();
+                
+                console.log('✅ [DEBUG] handleTakePhoto - FIN SUCCÈS');
+            } else {
+                console.log('❌ [DEBUG] Prise de photo annulée par l\'utilisateur');
+                Alert.alert('DEBUG', '❌ Prise de photo annulée');
             }
         } catch (error) {
-            console.error('Error taking photo:', error);
+            console.error('❌ [DEBUG] ERREUR dans handleTakePhoto:', error);
+            Alert.alert(
+                'DEBUG ERREUR',
+                `❌ Erreur: ${error instanceof Error ? error.message : String(error)}\n\nStack: ${error instanceof Error ? error.stack : 'N/A'}`
+            );
             Alert.alert('Erreur', 'Impossible de prendre la photo.');
         }
     };
 
     // Sélectionner une photo dans la galerie
     const handleSelectFromGallery = async () => {
+        console.log('🖼️ [DEBUG] handleSelectFromGallery - DÉBUT');
+        Alert.alert('DEBUG', '🖼️ Début de sélection galerie');
+        
         try {
+            console.log('🔐 [DEBUG] Vérification des permissions...');
             const permissions = await requestPermissions();
             
+            console.log('🔐 [DEBUG] Permissions reçues:', permissions);
+            
             if (!permissions.mediaLibrary) {
+                console.log('❌ [DEBUG] Permission galerie refusée');
                 Alert.alert(
                     'Permission requise',
                     'L\'accès à la galerie est nécessaire pour sélectionner des photos.',
@@ -94,6 +157,9 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
                 return;
             }
 
+            console.log('✅ [DEBUG] Permission galerie OK, lancement...');
+            Alert.alert('DEBUG', '✅ Ouverture de la galerie...');
+            
             // Lancer la galerie SANS crop (allowsEditing: false)
             const result = await ImagePicker.launchImageLibraryAsync({
                 mediaTypes: 'images',
@@ -101,7 +167,20 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
                 quality: 0.6, // ✅ Qualité optimale (~400KB)
             });
 
+            console.log('🖼️ [DEBUG] Résultat galerie:', result);
+            Alert.alert(
+                'DEBUG Résultat Galerie',
+                `Canceled: ${result.canceled}\nAssets: ${result.assets?.length || 0}`
+            );
+
             if (!result.canceled && result.assets[0]) {
+                const originalUri = result.assets[0].uri;
+                console.log('✅ [DEBUG] Photo sélectionnée, URI:', originalUri);
+                Alert.alert('DEBUG', `✅ Photo sélectionnée:\n${originalUri}`);
+                
+                console.log('🗜️ [DEBUG] Début compression...');
+                Alert.alert('DEBUG', '🗜️ Début de la compression...');
+                
                 // Compresser l'image avant de la passer au parent
                 const compressed = await compressImage(result.assets[0].uri, {
                     maxWidth: 1920,
@@ -109,11 +188,33 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
                     quality: 0.6,
                 });
                 
+                console.log('✅ [DEBUG] Image compressée:', compressed);
+                Alert.alert(
+                    'DEBUG Compression',
+                    `Original: ${originalUri}\n\nCompressé: ${compressed.uri}`
+                );
+                
+                console.log('📤 [DEBUG] Envoi au parent via onPhotoSelected...');
+                Alert.alert('DEBUG', '📤 Envoi de la photo au parent...');
+                
                 onPhotoSelected(compressed.uri);
+                
+                console.log('✅ [DEBUG] Photo envoyée, fermeture modal...');
+                Alert.alert('DEBUG', '✅ Photo envoyée, fermeture du modal');
+                
                 onClose();
+                
+                console.log('✅ [DEBUG] handleSelectFromGallery - FIN SUCCÈS');
+            } else {
+                console.log('❌ [DEBUG] Sélection annulée par l\'utilisateur');
+                Alert.alert('DEBUG', '❌ Sélection annulée');
             }
         } catch (error) {
-            console.error('Error selecting photo:', error);
+            console.error('❌ [DEBUG] ERREUR dans handleSelectFromGallery:', error);
+            Alert.alert(
+                'DEBUG ERREUR',
+                `❌ Erreur: ${error instanceof Error ? error.message : String(error)}\n\nStack: ${error instanceof Error ? error.stack : 'N/A'}`
+            );
             Alert.alert('Erreur', 'Impossible de sélectionner la photo.');
         }
     };

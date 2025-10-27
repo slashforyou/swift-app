@@ -2,9 +2,9 @@
  * Tests pour useJobTimer - Hook de gestion du timer de job
  * Vérifie notamment le callback onJobCompleted à la dernière étape
  */
-import { renderHook, act, waitFor } from '@testing-library/react-native';
-import { useJobTimer } from '../../src/hooks/useJobTimer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
+import { useJobTimer } from '../../src/hooks/useJobTimer';
 
 // Mock AsyncStorage
 jest.mock('@react-native-async-storage/async-storage', () => ({

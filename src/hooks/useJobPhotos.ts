@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useEffect, useState } from 'react';
+import { Alert } from 'react-native';
 import { useJobState } from '../context/JobStateProvider';
 import {
     deletePhoto,
@@ -15,8 +16,7 @@ import { isLoggedIn } from '../utils/auth';
 import { useUserProfile } from './useUserProfile';
 
 // Types pour le statut d'upload (re-export depuis jobState)
-export type { PhotoUploadStatus } from '../types/jobState';
-export type { UploadStatus } from '../types/jobState';
+export type { PhotoUploadStatus, UploadStatus } from '../types/jobState';
 
 // Fonctions utilitaires pour le stockage local temporaire
 const getLocalPhotosKey = (jobId: string) => `photos_${jobId}`;
@@ -154,11 +154,23 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
   }, [fetchPhotos]);
 
   const uploadPhotoCallback = useCallback(async (photoUri: string, description?: string): Promise<JobPhotoAPI | null> => {
-    if (!jobId || !profile) return null;
+    console.log('📤 [DEBUG useJobPhotos] uploadPhotoCallback - DÉBUT');
+    console.log('📤 [DEBUG] jobId:', jobId);
+    console.log('📤 [DEBUG] photoUri:', photoUri);
+    console.log('📤 [DEBUG] description:', description);
+    console.log('📤 [DEBUG] profile:', profile);
+    
+    if (!jobId || !profile) {
+      console.error('❌ [DEBUG] Manque jobId ou profile');
+      Alert.alert('DEBUG ERREUR', `❌ Données manquantes:\njobId: ${jobId}\nprofile: ${profile ? 'OK' : 'NULL'}`);
+      return null;
+    }
 
     const photoKey = photoUri; // Utiliser l'URI comme clé temporaire
+    console.log('🔑 [DEBUG] photoKey:', photoKey);
     
     try {
+      console.log('🗜️ [DEBUG] ÉTAPE 1: Compressing (déjà fait)');
       // ✅ ÉTAPE 1: Compressing (déjà fait dans PhotoSelectionModal)
       setUploadStatus(photoKey, {
         status: 'compressing',
@@ -167,6 +179,7 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
         timestamp: new Date().toISOString(),
       });
 
+      console.log('📤 [DEBUG] ÉTAPE 2: Uploading vers API...');
       // ✅ ÉTAPE 2: Uploading
       setUploadStatus(photoKey, {
         status: 'uploading',
@@ -175,8 +188,12 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
         timestamp: new Date().toISOString(),
       });
 
+      console.log('🌐 [DEBUG] Appel uploadJobPhoto API...');
       const newPhoto = await uploadJobPhoto(jobId, photoUri, description);
+      console.log('✅ [DEBUG] API uploadJobPhoto réussi:', newPhoto);
+      Alert.alert('DEBUG API', `✅ Photo uploadée:\nID: ${newPhoto.id}\nFilename: ${newPhoto.filename}`);
       
+      console.log('✅ [DEBUG] ÉTAPE 3: Success (API)');
       // ✅ ÉTAPE 3: Success (API)
       setUploadStatus(newPhoto.id, {
         status: 'success',
@@ -185,8 +202,10 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
         timestamp: new Date().toISOString(),
       });
       
+      console.log('📝 [DEBUG] Ajout de la photo à la liste...');
       setPhotos(prevPhotos => [newPhoto, ...prevPhotos]);
       
+      console.log('🧹 [DEBUG] Nettoyage des statuts dans 3s...');
       // Nettoyer le statut après 3 secondes
       setTimeout(() => {
         if (jobStateContext) {
@@ -202,13 +221,21 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
         }
       }, 3000);
       
+      console.log('✅ [DEBUG] uploadPhotoCallback - FIN SUCCÈS');
       return newPhoto;
     } catch (err) {
-      console.error('Error uploading photo:', err);
+      console.error('❌ [DEBUG] ERREUR dans uploadPhotoCallback:', err);
+      Alert.alert(
+        'DEBUG ERREUR uploadPhotoCallback',
+        `❌ Erreur: ${err instanceof Error ? err.message : String(err)}`
+      );
+      
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      console.log('📝 [DEBUG] errorMessage:', errorMessage);
       
       if (errorMessage.includes('404') || errorMessage.includes('400')) {
-        console.log('📸 API photo upload not available, saving locally');
+        console.log('� [DEBUG] API non disponible, sauvegarde locale...');
+        Alert.alert('DEBUG', '💾 API non disponible, sauvegarde locale');
         
         const localPhoto: JobPhotoAPI = {
           id: `local-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -223,6 +250,9 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
           updated_at: new Date().toISOString()
         };
         
+        console.log('💾 [DEBUG] Photo locale créée:', localPhoto);
+        
+        console.log('💾 [DEBUG] ÉTAPE 3b: Local (pas uploadé au serveur)');
         // ✅ ÉTAPE 3b: Local (pas uploadé au serveur)
         setUploadStatus(localPhoto.id, {
           status: 'local',
