@@ -9,6 +9,7 @@ import JobDetailsHeader from '../components/jobDetails/JobDetailsHeader';
 import TabMenu from '../components/ui/TabMenu';
 import Toast from '../components/ui/toastNotification';
 import { DESIGN_TOKENS } from '../constants/Styles';
+import { JobStateProvider } from '../context/JobStateProvider';
 import { useTheme } from '../context/ThemeProvider';
 import { useJobDetails } from '../hooks/useJobDetails';
 import { useLocalization } from '../localization/useLocalization';
@@ -421,5 +422,21 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
     );
 };
 
-export default JobDetails;
+// Wrapper avec JobStateProvider pour persistence et state management
+const JobDetailsWithProvider: React.FC<JobDetailsProps> = (props) => {
+    const actualJobId = props.route?.params?.jobId || props.jobId || props.route?.params?.id;
+    
+    // Si pas de jobId, afficher le composant sans provider (fallback)
+    if (!actualJobId) {
+        return <JobDetails {...props} />;
+    }
+    
+    return (
+        <JobStateProvider jobId={actualJobId}>
+            <JobDetails {...props} />
+        </JobStateProvider>
+    );
+};
+
+export default JobDetailsWithProvider;
     
