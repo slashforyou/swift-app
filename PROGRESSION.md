@@ -1,6 +1,6 @@
 # 🚀 SWIFT APP - PROGRESSION GÉNÉRALE DU PROJET
 
-**Dernière mise à jour : 26 Octobre 2025 - TypeScript Errors Fixed ✅** 🎉
+**Dernière mise à jour : 27 Octobre 2025 - Payment Automation Complete ✅** 🎉
 
 ---
 
@@ -10,10 +10,10 @@
 
 | Métrique | Valeur | Status |
 |----------|--------|--------|
-| **Tests (Standard)** | 321/321 (100%) | 🎉 **PARFAIT** ⭐⭐⭐ |
-| **Suites (Standard)** | 22/22 (100%) | ✅ **Parfait** |
-| **Tests (Clean)** | **197/197 (100%)** | 🎯 **PARFAIT** ⭐⭐⭐ |
-| **Suites (Clean)** | **18/18 (100%)** | 🎉 **Parfait** |
+| **Tests (Standard)** | 328/328 (100%) | 🎉 **PARFAIT** ⭐⭐⭐ |
+| **Suites (Standard)** | 23/23 (100%) | ✅ **Parfait** |
+| **Tests (Clean)** | **204/204 (100%)** | 🎯 **PARFAIT** ⭐⭐⭐ |
+| **Suites (Clean)** | **19/19 (100%)** | 🎉 **Parfait** |
 | **TypeScript Errors** | **0/68 (0%)** | ✅ **PARFAIT** ⭐⭐⭐ |
 | **CI/CD Pipeline** | ✅ GitHub Actions | 🚀 **Opérationnel** |
 | **Coverage Tracking** | ✅ Codecov Ready | 📊 **Configuré** |
@@ -103,11 +103,15 @@
   - PaymentWindow (modal paiement)
   - Calcul coûts automatique (billableTime)
   - Support carte/cash
+  - 🆕 **Automatisation complète** (27 Oct) - Affichage auto fin de job
+  - 🆕 **useJobTimer callback** - onJobCompleted avec finalCost
+  - 🆕 **Toast success** - Montant final + heures facturables
 - ✅ **Modals** - 3 modals réutilisables
   - ImprovedNoteModal (notes)
   - PhotoSelectionModal (photos)
   - JobStepAdvanceModal (étapes)
-- ✅ Tests : 4 suites (48 tests) - 100%
+- ✅ Tests : 5 suites (55 tests) - 100%
+  - 🆕 useJobTimer.test.ts (7 tests) - Callback validation
 
 **Architecture** :
 ```
@@ -150,13 +154,42 @@ JobDetails/
    - Files: useJobTimer.ts
    - Impact: Auto-stop + payment modal trigger + final values freezés
 
+**🎉 SESSION 27 OCT - AUTOMATISATION PAYMENT** (2h15):
+
+1. ✅ **CI/CD Pipeline Fixed** (15 min)
+   - Fix: App.tsx import casing (./src/app → ./src/App)
+   - Fix: GitHub Actions artifact upload v3 → v4
+   - Doc: CI_CD_FIXES_27OCT2025.md (375 lignes)
+
+2. ✅ **JobStateProvider Integration** (30 min)
+   - Wrapper: JobDetailsWithProvider
+   - Features: AsyncStorage, auto-save, API sync
+   - Files: jobDetails.tsx (+18 lignes)
+
+3. ✅ **Automatic Payment Panel** (45 min)
+   - Implementation: onJobCompleted callback in jobDetails.tsx
+   - Trigger: Dernière étape → auto switch jobPanel='payment'
+   - UX: Toast success avec montant final
+   - Files: jobDetails.tsx (+21 lignes)
+
+4. ✅ **Test Coverage** (30 min)
+   - Suite: useJobTimer.test.ts (7 tests)
+   - Coverage: callback, timer stop, edge cases
+   - Results: 7/7 passing ✅
+
+**Workflow Final**:
+```
+User valide dernière étape
+→ Timer s'arrête
+→ Calcul finalCost/billableHours
+→ onJobCompleted déclenché
+→ Auto switch vers payment panel
+→ Toast: "Job terminé! Montant: $X.XX AUD (Xh facturables)"
+```
+
 **À faire** :
-- ⏳ Intégration Provider dans jobDetails.tsx (30 min)
-- ⏳ Tests validation 4 fixes (1h)
-- ⏳ Tests unitaires JobDetails sections (0/10)
-- ⏳ Tests e2e workflow complet
-- ⏳ Création nouveau job
-- ⏳ Assignation véhicule/crew automatique
+- ⏳ Connecter useJobPhotos à Provider (30 min)
+- ⏳ Tests e2e workflow complet (1h)
 
 ### 4. 💰 Billing & Invoicing (60% ✅)
 
