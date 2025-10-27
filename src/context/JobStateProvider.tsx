@@ -9,7 +9,7 @@
  */
 
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { JobProgress, JobState, JobStateAction, JobStateContextType } from '../types/jobState';
+import { JobProgress, JobState, JobStateAction, JobStateContextType, PhotoUploadStatus } from '../types/jobState';
 import { loadJobState, saveJobState } from '../utils/jobStateStorage';
 
 const JobStateContext = createContext<JobStateContextType | undefined>(undefined);
@@ -53,6 +53,7 @@ export const JobStateProvider: React.FC<JobStateProviderProps> = ({
                 const newState: JobState = {
                     jobId,
                     progress: initialProgress,
+                    photoUploadStatuses: {}, // ✅ Initialiser vide
                     lastSyncedAt: new Date().toISOString(),
                     lastModifiedAt: new Date().toISOString(),
                     isDirty: false,
@@ -192,6 +193,40 @@ export const JobStateProvider: React.FC<JobStateProviderProps> = ({
                             completedAt: undefined,
                         })),
                     },
+                    photoUploadStatuses: {}, // ✅ Reset upload statuses aussi
+                    lastModifiedAt: new Date().toISOString(),
+                    isDirty: true,
+                };
+            }
+
+            case 'SET_UPLOAD_STATUS': {
+                const { photoId, status } = action.payload;
+                return {
+                    ...state,
+                    photoUploadStatuses: {
+                        ...state.photoUploadStatuses,
+                        [photoId]: status,
+                    },
+                    lastModifiedAt: new Date().toISOString(),
+                    isDirty: true,
+                };
+            }
+
+            case 'REMOVE_UPLOAD_STATUS': {
+                const photoId = action.payload;
+                const { [photoId]: removed, ...rest } = state.photoUploadStatuses;
+                return {
+                    ...state,
+                    photoUploadStatuses: rest,
+                    lastModifiedAt: new Date().toISOString(),
+                    isDirty: true,
+                };
+            }
+
+            case 'CLEAR_UPLOAD_STATUSES': {
+                return {
+                    ...state,
+                    photoUploadStatuses: {},
                     lastModifiedAt: new Date().toISOString(),
                     isDirty: true,
                 };
@@ -258,6 +293,23 @@ export const JobStateProvider: React.FC<JobStateProviderProps> = ({
         await dispatch({ type: 'RESET_JOB' });
     }, [jobState]);
 
+    // ✅ Actions pour photos
+    const setUploadStatus = useCallback(async (photoId: string, status: PhotoUploadStatus) => {
+        await dispatch({ type: 'SET_UPLOAD_STATUS', payload: { photoId, status } });
+    }, [jobState]);
+
+    const removeUploadStatus = useCallback(async (photoId: string) => {
+        await dispatch({ type: 'REMOVE_UPLOAD_STATUS', payload: photoId });
+    }, [jobState]);
+
+    const clearUploadStatuses = useCallback(async () => {
+        await dispatch({ type: 'CLEAR_UPLOAD_STATUSES' });
+    }, [jobState]);
+
+    const getUploadStatus = useCallback((photoId: string): PhotoUploadStatus | undefined => {
+        return jobState?.photoUploadStatuses[photoId];
+    }, [jobState]);
+
     // Helpers
     const canGoNext = jobState ? jobState.progress.actualStep < jobState.progress.totalSteps : false;
     const canGoPrevious = jobState ? jobState.progress.actualStep > 1 : false;
@@ -276,6 +328,10 @@ export const JobStateProvider: React.FC<JobStateProviderProps> = ({
         completeJob,
         syncWithAPI,
         resetJob,
+        setUploadStatus, // ✅
+        removeUploadStatus, // ✅
+        clearUploadStatuses, // ✅
+        getUploadStatus, // ✅
         canGoNext,
         canGoPrevious,
         isJobCompleted,

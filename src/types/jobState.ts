@@ -27,11 +27,26 @@ export interface JobProgress {
 }
 
 /**
+ * Types pour le statut d'upload de photos
+ */
+export type UploadStatus = 'idle' | 'compressing' | 'uploading' | 'success' | 'local' | 'error';
+
+export interface PhotoUploadStatus {
+    status: UploadStatus;
+    progress?: number;
+    error?: string;
+    isLocal: boolean; // Indique si la photo est stockée localement (pas uploadée au serveur)
+    photoUri?: string; // URI de la photo (pour retry)
+    timestamp: string; // Timestamp de l'upload
+}
+
+/**
  * État complet du job (persisté dans AsyncStorage)
  */
 export interface JobState {
     jobId: string; // ID du job
     progress: JobProgress; // État de progression
+    photoUploadStatuses: Record<string, PhotoUploadStatus>; // ✅ Statuts d'upload par photoId
     lastSyncedAt: string; // Dernière synchronisation avec l'API
     lastModifiedAt: string; // Dernière modification locale
     isDirty: boolean; // Si des modifications locales n'ont pas été sync avec l'API
@@ -47,7 +62,10 @@ export type JobStateAction =
     | { type: 'COMPLETE_STEP'; payload: number }
     | { type: 'COMPLETE_JOB' }
     | { type: 'SYNC_WITH_API'; payload: JobProgress }
-    | { type: 'RESET_JOB' };
+    | { type: 'RESET_JOB' }
+    | { type: 'SET_UPLOAD_STATUS'; payload: { photoId: string; status: PhotoUploadStatus } } // ✅ Nouveau
+    | { type: 'REMOVE_UPLOAD_STATUS'; payload: string } // ✅ Nouveau (photoId)
+    | { type: 'CLEAR_UPLOAD_STATUSES' }; // ✅ Nouveau
 
 /**
  * Contexte du job state
@@ -65,6 +83,12 @@ export interface JobStateContextType {
     completeJob: () => Promise<void>;
     syncWithAPI: () => Promise<void>;
     resetJob: () => Promise<void>;
+    
+    // ✅ Actions pour photos
+    setUploadStatus: (photoId: string, status: PhotoUploadStatus) => Promise<void>;
+    removeUploadStatus: (photoId: string) => Promise<void>;
+    clearUploadStatuses: () => Promise<void>;
+    getUploadStatus: (photoId: string) => PhotoUploadStatus | undefined;
     
     // Helpers
     canGoNext: boolean;
