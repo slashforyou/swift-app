@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useEffect, useState } from 'react';
+import { useJobState } from '../context/JobStateProvider';
 import {
     deletePhoto,
     fetchJobPhotos,
@@ -9,18 +10,13 @@ import {
     uploadJobPhoto,
     uploadJobPhotos
 } from '../services/jobPhotos';
+import { PhotoUploadStatus } from '../types/jobState';
 import { isLoggedIn } from '../utils/auth';
 import { useUserProfile } from './useUserProfile';
 
-// Types pour le statut d'upload
-export type UploadStatus = 'idle' | 'compressing' | 'uploading' | 'success' | 'local' | 'error';
-
-export interface PhotoUploadStatus {
-    status: UploadStatus;
-    progress?: number;
-    error?: string;
-    isLocal: boolean; // Indique si la photo est stockée localement (pas uploadée au serveur)
-}
+// Types pour le statut d'upload (re-export depuis jobState)
+export type { PhotoUploadStatus } from '../types/jobState';
+export type { UploadStatus } from '../types/jobState';
 
 // Fonctions utilitaires pour le stockage local temporaire
 const getLocalPhotosKey = (jobId: string) => `photos_${jobId}`;
@@ -64,8 +60,44 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
   const [photos, setPhotos] = useState<JobPhotoAPI[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [uploadStatuses, setUploadStatuses] = useState<Map<string, PhotoUploadStatus>>(new Map()); // ✅ Nouveau state
+  const [localUploadStatuses, setLocalUploadStatuses] = useState<Map<string, PhotoUploadStatus>>(new Map());
   const { profile } = useUserProfile();
+
+  // ✅ Essayer d'obtenir le JobStateProvider (optionnel, peut être undefined si hors provider)
+  let jobStateContext: ReturnType<typeof useJobState> | undefined;
+  try {
+    jobStateContext = useJobState();
+  } catch (e) {
+    // Provider not available, use local state
+    console.log('📸 JobStateProvider not available, using local upload statuses');
+  }
+
+  // ✅ Helper pour set upload status (provider si disponible, sinon local)
+  const setUploadStatus = useCallback((photoId: string, status: PhotoUploadStatus) => {
+    if (jobStateContext) {
+      // Utiliser le provider pour persistence
+      jobStateContext.setUploadStatus(photoId, status);
+    } else {
+      // Fallback vers state local
+      setLocalUploadStatuses(prev => new Map(prev).set(photoId, status));
+    }
+  }, [jobStateContext]);
+
+  // ✅ Helper pour get upload status
+  const getUploadStatusHelper = useCallback((photoId: string): PhotoUploadStatus | undefined => {
+    if (jobStateContext) {
+      return jobStateContext.getUploadStatus(photoId);
+    } else {
+      return localUploadStatuses.get(photoId);
+    }
+  }, [jobStateContext, localUploadStatuses]);
+
+  // ✅ Convertir en Map pour retour (backward compatibility)
+  const uploadStatuses = new Map<string, PhotoUploadStatus>(
+    jobStateContext?.jobState?.photoUploadStatuses
+      ? Object.entries(jobStateContext.jobState.photoUploadStatuses)
+      : Array.from(localUploadStatuses.entries())
+  );
 
   const fetchPhotos = useCallback(async () => {
     if (!jobId) {
@@ -128,38 +160,46 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
     
     try {
       // ✅ ÉTAPE 1: Compressing (déjà fait dans PhotoSelectionModal)
-      setUploadStatuses(prev => new Map(prev).set(photoKey, {
+      setUploadStatus(photoKey, {
         status: 'compressing',
         progress: 0,
         isLocal: false,
-      }));
+        timestamp: new Date().toISOString(),
+      });
 
       // ✅ ÉTAPE 2: Uploading
-      setUploadStatuses(prev => new Map(prev).set(photoKey, {
+      setUploadStatus(photoKey, {
         status: 'uploading',
         progress: 50,
         isLocal: false,
-      }));
+        timestamp: new Date().toISOString(),
+      });
 
       const newPhoto = await uploadJobPhoto(jobId, photoUri, description);
       
       // ✅ ÉTAPE 3: Success (API)
-      setUploadStatuses(prev => new Map(prev).set(newPhoto.id, {
+      setUploadStatus(newPhoto.id, {
         status: 'success',
         progress: 100,
         isLocal: false,
-      }));
+        timestamp: new Date().toISOString(),
+      });
       
       setPhotos(prevPhotos => [newPhoto, ...prevPhotos]);
       
       // Nettoyer le statut après 3 secondes
       setTimeout(() => {
-        setUploadStatuses(prev => {
-          const newMap = new Map(prev);
-          newMap.delete(photoKey);
-          newMap.delete(newPhoto.id);
-          return newMap;
-        });
+        if (jobStateContext) {
+          jobStateContext.removeUploadStatus(photoKey);
+          jobStateContext.removeUploadStatus(newPhoto.id);
+        } else {
+          setLocalUploadStatuses(prev => {
+            const newMap = new Map(prev);
+            newMap.delete(photoKey);
+            newMap.delete(newPhoto.id);
+            return newMap;
+          });
+        }
       }, 3000);
       
       return newPhoto;
@@ -184,12 +224,14 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
         };
         
         // ✅ ÉTAPE 3b: Local (pas uploadé au serveur)
-        setUploadStatuses(prev => new Map(prev).set(localPhoto.id, {
+        setUploadStatus(localPhoto.id, {
           status: 'local',
           progress: 100,
           isLocal: true,
           error: 'Photo sauvegardée localement. Upload au serveur en attente.',
-        }));
+          photoUri,
+          timestamp: new Date().toISOString(),
+        });
         
         const updatedPhotos = [localPhoto, ...photos];
         setPhotos(updatedPhotos);
@@ -201,28 +243,34 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
         return localPhoto;
       } else {
         // ✅ ÉTAPE 3c: Error
-        setUploadStatuses(prev => new Map(prev).set(photoKey, {
+        setUploadStatus(photoKey, {
           status: 'error',
           progress: 0,
           isLocal: false,
           error: errorMessage,
-        }));
+          photoUri,
+          timestamp: new Date().toISOString(),
+        });
         
         setError(`Erreur lors de l'upload de la photo: ${errorMessage}`);
         
         // Garder le message d'erreur plus longtemps (10 secondes)
         setTimeout(() => {
-          setUploadStatuses(prev => {
-            const newMap = new Map(prev);
-            newMap.delete(photoKey);
-            return newMap;
-          });
+          if (jobStateContext) {
+            jobStateContext.removeUploadStatus(photoKey);
+          } else {
+            setLocalUploadStatuses(prev => {
+              const newMap = new Map(prev);
+              newMap.delete(photoKey);
+              return newMap;
+            });
+          }
         }, 10000);
         
         return null;
       }
     }
-  }, [jobId, photos, profile]);
+  }, [jobId, photos, profile, jobStateContext, setUploadStatus]);
 
   const uploadMultiplePhotosCallback = useCallback(async (photoUris: string[], descriptions?: string[]): Promise<JobPhotoAPI[]> => {
     if (!jobId || !profile) return [];
