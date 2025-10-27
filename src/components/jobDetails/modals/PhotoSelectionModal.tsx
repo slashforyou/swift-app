@@ -58,7 +58,7 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
 
             // Lancer la caméra SANS crop (allowsEditing: false)
             const result = await ImagePicker.launchCameraAsync({
-                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                mediaTypes: 'images',
                 allowsEditing: false, // ✅ DÉSACTIVÉ - Pas de crop forcé
                 quality: 0.6, // ✅ Qualité optimale (~400KB)
             });
@@ -96,7 +96,7 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
 
             // Lancer la galerie SANS crop (allowsEditing: false)
             const result = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                mediaTypes: 'images',
                 allowsEditing: false, // ✅ DÉSACTIVÉ - Pas de crop forcé
                 quality: 0.6, // ✅ Qualité optimale (~400KB)
             });
