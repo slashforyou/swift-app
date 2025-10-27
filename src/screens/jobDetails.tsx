@@ -65,13 +65,6 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
     // Récupération de l'ID du job depuis les paramètres de route ou props
     const actualJobId = route?.params?.jobId || jobId || route?.params?.id;
     
-    console.log('🔍 [JobDetails] Component props:', {
-        routeParams: route?.params,
-        propJobId: jobId,
-        actualJobId,
-        day, month, year
-    });
-    
     // Hook principal pour les données du job
     const { 
         jobDetails, 
@@ -89,15 +82,6 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
         isPerformingAction,
         isSessionExpired
     } = useJobDetails(actualJobId);
-    
-    console.log('🔍 [JobDetails] Hook state:', {
-        hasJobDetails: !!jobDetails,
-        jobTitle: jobDetails?.job?.title,
-        clientName: jobDetails?.client?.name,
-        isLoading: jobLoading,
-        hasError: !!error,
-        errorMessage: error
-    });
     
     // États locaux pour l'UI et données adaptées des vraies données API
     const [job, setJob] = useState({

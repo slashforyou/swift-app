@@ -259,9 +259,13 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
           timestamp: new Date().toISOString(),
         });
         
-        const updatedPhotos = [localPhoto, ...photos];
-        setPhotos(updatedPhotos);
-        await saveLocalPhotos(jobId, updatedPhotos);
+        // ✅ Utiliser la forme fonctionnelle pour éviter les problèmes de closure
+        setPhotos(prevPhotos => {
+          const updatedPhotos = [localPhoto, ...prevPhotos];
+          // Sauvegarder dans AsyncStorage
+          saveLocalPhotos(jobId, updatedPhotos);
+          return updatedPhotos;
+        });
         
         // Planifier un retry automatique
         schedulePhotoSync();
@@ -303,8 +307,12 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
 
     try {
       const newPhotos = await uploadJobPhotos(jobId, photoUris, descriptions);
-      setPhotos(prevPhotos => [...newPhotos, ...prevPhotos]);
-      return newPhotos;
+      // ✅ Protection: vérifier que newPhotos est un array
+      if (Array.isArray(newPhotos) && newPhotos.length > 0) {
+        setPhotos(prevPhotos => [...newPhotos, ...prevPhotos]);
+        return newPhotos;
+      }
+      return [];
     } catch (err) {
       console.error('Error uploading multiple photos:', err);
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
@@ -355,17 +363,27 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
   const schedulePhotoSync = useCallback(() => {
     console.log('📸 Photo sync scheduled - Will retry upload in 5 minutes');
     
-    // Retry toutes les 5 minutes
+    // ✅ Retry toutes les 5 minutes avec protection complète
     setTimeout(async () => {
-      const localPhotos = photos.filter(p => p.id.startsWith('local-'));
-      
-      if (localPhotos.length > 0) {
-        console.log(`📸 Retrying upload for ${localPhotos.length} local photos`);
-        
-        for (const localPhoto of localPhotos) {
-          // Retry upload (implementation simplifiée - peut être améliorée)
-          console.log(`📸 Retry upload for photo ${localPhoto.id}`);
+      try {
+        // ✅ Protection: Vérifier que photos est bien un array
+        if (!Array.isArray(photos)) {
+          console.error('❌ [schedulePhotoSync] photos is not an array:', typeof photos);
+          return;
         }
+        
+        const localPhotos = photos.filter(p => p?.id?.startsWith('local-'));
+        
+        if (localPhotos.length > 0) {
+          console.log(`📸 Retrying upload for ${localPhotos.length} local photos`);
+          
+          for (const localPhoto of localPhotos) {
+            // Retry upload (implementation simplifiée - peut être améliorée)
+            console.log(`📸 Retry upload for photo ${localPhoto.id}`);
+          }
+        }
+      } catch (error) {
+        console.error('❌ [schedulePhotoSync] Error during photo sync:', error);
       }
     }, 5 * 60 * 1000); // 5 minutes
   }, [photos]);

@@ -63,7 +63,24 @@ export const JobStateProvider: React.FC<JobStateProviderProps> = ({
                 setJobState(newState);
                 await saveJobState(newState);
             } else {
-                throw new Error('No stored state and no initial progress provided');
+                // ✅ Créer un état par défaut au lieu de throw error
+                const defaultState: JobState = {
+                    jobId,
+                    progress: {
+                        actualStep: 1,
+                        totalSteps: 5,
+                        steps: [],
+                        isCompleted: false,
+                    },
+                    photoUploadStatuses: {},
+                    lastSyncedAt: new Date().toISOString(),
+                    lastModifiedAt: new Date().toISOString(),
+                    isDirty: false,
+                };
+                
+                console.log(`📦 Created default job state (no stored/initial progress)`);
+                setJobState(defaultState);
+                await saveJobState(defaultState);
             }
         } catch (err) {
             console.error('Error loading job state:', err);
@@ -242,7 +259,7 @@ export const JobStateProvider: React.FC<JobStateProviderProps> = ({
      */
     const dispatch = async (action: JobStateAction) => {
         if (!jobState) {
-            console.warn('Cannot dispatch: jobState is null');
+            // ✅ Fallback silencieux - pas besoin de warning car c'est géré
             return;
         }
 
