@@ -12,6 +12,7 @@ import { DESIGN_TOKENS } from '../constants/Styles';
 import { JobStateProvider } from '../context/JobStateProvider';
 import { useTheme } from '../context/ThemeProvider';
 import { useJobDetails } from '../hooks/useJobDetails';
+import { useJobTimer } from '../hooks/useJobTimer';
 import { useLocalization } from '../localization/useLocalization';
 import { useAuthCheck } from '../utils/checkAuth';
 import JobClient from './JobDetailsScreens/client';
@@ -297,6 +298,26 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
     
     const [jobPanel, setJobPanel] = useState('summary');
     // jobPanel: 'summary', 'job', 'client', 'notes', 'payment'
+
+    // 🎯 Timer avec callback de complétion automatique
+    const currentStep = job.step.actualStep || 0;
+    const totalSteps = job.step.steps.length || 0;
+    
+    useJobTimer(actualJobId, currentStep, {
+        totalSteps,
+        onJobCompleted: (finalCost, billableHours) => {
+            console.log('🎉 [JobDetails] Job completed!', { finalCost, billableHours });
+            
+            // Basculer automatiquement vers le panel de paiement
+            setJobPanel('payment');
+            
+            // Afficher un toast de succès
+            showToast(
+                `Job terminé ! Montant: $${finalCost.toFixed(2)} AUD (${billableHours.toFixed(2)}h facturables)`,
+                'success'
+            );
+        }
+    });
 
     // Handler pour TabMenu
     const handleTabPress = (tabId: string) => {
