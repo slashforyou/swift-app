@@ -2,11 +2,11 @@
  * AddressesSection - Section modulaire pour les adresses
  */
 import React from 'react';
-import { Text, View, Pressable } from 'react-native';
-import { useTheme } from '../../../context/ThemeProvider';
+import { Pressable, Text, View } from 'react-native';
 import { DESIGN_TOKENS } from '../../../constants/Styles';
-import SectionCard from '../SectionCard';
+import { useTheme } from '../../../context/ThemeProvider';
 import openMap from '../../../services/openMap';
+import SectionCard from '../SectionCard';
 
 interface AddressesSectionProps {
     job: any;
@@ -53,7 +53,7 @@ const AddressesSection: React.FC<AddressesSectionProps> = ({ job }) => {
                 </Text>
             </View>
 
-            {job.addresses && job.addresses.length > 0 ? (
+            {Array.isArray(job.addresses) && job.addresses.length > 0 ? (
                 <View>
                     {job.addresses.map((address: any, index: number) => (
                         <Pressable 

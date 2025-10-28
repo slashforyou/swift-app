@@ -3,11 +3,11 @@
  * Affiche le temps écoulé, les détails par étape et le calcul de coût
  */
 
-import React from 'react';
-import { View, Text, ScrollView, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useCommonThemedStyles } from '../../../hooks/useCommonStyles';
+import React from 'react';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { DESIGN_TOKENS } from '../../../constants/Styles';
+import { useCommonThemedStyles } from '../../../hooks/useCommonStyles';
 import { useJobTimer } from '../../../hooks/useJobTimer';
 
 interface JobTimeSectionProps {
@@ -276,7 +276,7 @@ const JobTimeSection: React.FC<JobTimeSectionProps> = ({ job }) => {
                     style={{ maxHeight: 200 }}
                     showsVerticalScrollIndicator={false}
                 >
-                    {timerData.stepTimes.map((stepTime: any, index: number) => (
+                    {Array.isArray(timerData.stepTimes) && timerData.stepTimes.map((stepTime: any, index: number) => (
                         <View 
                             key={`step-${stepTime.step}`}
                             style={{

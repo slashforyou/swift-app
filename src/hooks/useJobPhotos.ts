@@ -202,7 +202,10 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
       });
       
       console.log('📝 [DEBUG] Ajout de la photo à la liste...');
-      setPhotos(prevPhotos => [newPhoto, ...prevPhotos]);
+      setPhotos(prevPhotos => {
+        const safePhotos = Array.isArray(prevPhotos) ? prevPhotos : [];
+        return [newPhoto, ...safePhotos];
+      });
       
       console.log('🧹 [DEBUG] Nettoyage des statuts dans 3s...');
       // Nettoyer le statut après 3 secondes
@@ -223,14 +226,11 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
       console.log('✅ [DEBUG] uploadPhotoCallback - FIN SUCCÈS');
       return newPhoto;
     } catch (err) {
-      console.error('❌ [DEBUG] ERREUR dans uploadPhotoCallback:', err);
-      console.error('❌ [DEBUG] Stack trace:', err instanceof Error ? err.stack : 'N/A');
-      
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
-      console.log('📝 [DEBUG] errorMessage:', errorMessage);
       
       if (errorMessage.includes('404') || errorMessage.includes('400')) {
-        console.log('� [DEBUG] API non disponible, sauvegarde locale...');
+        console.log('ℹ️ [INFO] API non disponible (attendu), sauvegarde locale en cours...');
+        console.log('📝 [INFO] Détails:', errorMessage);
         // Alert removed
         
         const localPhoto: JobPhotoAPI = {
@@ -261,7 +261,9 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
         
         // ✅ Utiliser la forme fonctionnelle pour éviter les problèmes de closure
         setPhotos(prevPhotos => {
-          const updatedPhotos = [localPhoto, ...prevPhotos];
+          // ✅ Protection: Assurer que prevPhotos est bien un array
+          const safePhotos = Array.isArray(prevPhotos) ? prevPhotos : [];
+          const updatedPhotos = [localPhoto, ...safePhotos];
           // Sauvegarder dans AsyncStorage
           saveLocalPhotos(jobId, updatedPhotos);
           return updatedPhotos;
@@ -309,7 +311,10 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
       const newPhotos = await uploadJobPhotos(jobId, photoUris, descriptions);
       // ✅ Protection: vérifier que newPhotos est un array
       if (Array.isArray(newPhotos) && newPhotos.length > 0) {
-        setPhotos(prevPhotos => [...newPhotos, ...prevPhotos]);
+        setPhotos(prevPhotos => {
+          const safePhotos = Array.isArray(prevPhotos) ? prevPhotos : [];
+          return [...newPhotos, ...safePhotos];
+        });
         return newPhotos;
       }
       return [];
@@ -324,9 +329,10 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
   const updatePhotoDescriptionCallback = useCallback(async (photoId: string, description: string): Promise<JobPhotoAPI | null> => {
     try {
       const updatedPhoto = await updatePhotoDescription(photoId, description);
-      setPhotos(prevPhotos => 
-        prevPhotos.map(photo => photo.id === photoId ? updatedPhoto : photo)
-      );
+      setPhotos(prevPhotos => {
+        const safePhotos = Array.isArray(prevPhotos) ? prevPhotos : [];
+        return safePhotos.map(photo => photo.id === photoId ? updatedPhoto : photo);
+      });
       return updatedPhoto;
     } catch (err) {
       console.error('Error updating photo description:', err);
@@ -339,7 +345,10 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
   const deletePhotoCallback = useCallback(async (photoId: string): Promise<boolean> => {
     try {
       await deletePhoto(photoId);
-      setPhotos(prevPhotos => prevPhotos.filter(photo => photo.id !== photoId));
+      setPhotos(prevPhotos => {
+        const safePhotos = Array.isArray(prevPhotos) ? prevPhotos : [];
+        return safePhotos.filter(photo => photo.id !== photoId);
+      });
       return true;
     } catch (err) {
       console.error('Error deleting photo:', err);

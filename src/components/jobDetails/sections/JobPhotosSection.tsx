@@ -413,7 +413,7 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId }) => 
     }
   };
 
-  if (error && photos.length === 0) {
+  if (error && (!Array.isArray(photos) || photos.length === 0)) {
     return null; // Ne pas afficher la section s'il y a une erreur et aucune photo
   }
 
@@ -427,7 +427,7 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId }) => 
             badge={totalPhotos > 0 ? totalPhotos.toString() : undefined}
           />
           
-          {isLoading && photos.length === 0 ? (
+          {isLoading && (!Array.isArray(photos) || photos.length === 0) ? (
             <View style={{
               padding: DESIGN_TOKENS.spacing.lg,
               alignItems: 'center'
@@ -441,7 +441,7 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId }) => 
                 Chargement des photos...
               </Text>
             </View>
-          ) : photos.length > 0 ? (
+          ) : Array.isArray(photos) && photos.length > 0 ? (
             <View style={{
               flexDirection: 'row',
               flexWrap: 'wrap',
