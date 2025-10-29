@@ -57,29 +57,33 @@ const Toast: React.FC<ToastProps> = ({
 
             // Auto-hide après la durée spécifiée
             const timer = setTimeout(() => {
-                hideToast();
+                // Utiliser requestAnimationFrame pour éviter useInsertionEffect warning
+                requestAnimationFrame(() => {
+                    hideToast();
+                });
             }, duration);
 
             return () => clearTimeout(timer);
-        } else {
-            hideToast();
         }
     }, [visible, duration]);
 
     const hideToast = () => {
-        Animated.parallel([
-            Animated.timing(translateY, {
-                toValue: -100,
-                duration: 250,
-                useNativeDriver: true,
-            }),
-            Animated.timing(opacity, {
-                toValue: 0,
-                duration: 250,
-                useNativeDriver: true,
-            }),
-        ]).start(() => {
-            onHide();
+        // Utiliser requestAnimationFrame pour éviter useInsertionEffect warning
+        requestAnimationFrame(() => {
+            Animated.parallel([
+                Animated.timing(translateY, {
+                    toValue: -100,
+                    duration: 250,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(opacity, {
+                    toValue: 0,
+                    duration: 250,
+                    useNativeDriver: true,
+                }),
+            ]).start(() => {
+                onHide();
+            });
         });
     };
 

@@ -365,7 +365,8 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId }) => 
     uploadPhoto,
     updatePhotoDescription,
     deletePhoto,
-    totalPhotos
+    totalPhotos,
+    refetch
   } = useJobPhotos(jobId);
 
   const handlePhotoSelection = async (photoUri: string) => {
@@ -382,7 +383,14 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId }) => 
       
       console.log('✅ [DEBUG] uploadPhoto terminé:', result);
       
-      Alert.alert('Succès', 'Photo ajoutée avec succès !');
+      if (result) {
+        // ✅ Recharger toutes les photos depuis le serveur
+        console.log('🔄 [DEBUG] Rechargement des photos depuis le serveur...');
+        await refetch();
+        console.log('✅ [DEBUG] Photos rechargées');
+        
+        Alert.alert('Succès', 'Photo ajoutée avec succès !');
+      }
     } catch (err) {
       console.error('❌ [DEBUG] Erreur dans uploadPhoto:', err);
       console.error('❌ [DEBUG] Stack trace:', err instanceof Error ? err.stack : 'N/A');
