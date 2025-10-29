@@ -77,18 +77,40 @@ export async function uploadJobPhoto(
     throw new Error(error.message || `HTTP ${res.status}: Failed to upload photo`);
   }
 
-  const data: UploadPhotoResponse = await res.json();
-  console.log('🔍 [DEBUG] Server response:', JSON.stringify(data));
-  console.log('🔍 [DEBUG] Response keys:', Object.keys(data));
+  const response = await res.json();
+  console.log('🔍 [DEBUG] Server response:', JSON.stringify(response));
+  console.log('🔍 [DEBUG] Response keys:', Object.keys(response));
   
-  if (!data.photo) {
-    console.error('❌ [ERROR] Missing photo object in response');
-    console.error('🔍 [DEBUG] Full response:', JSON.stringify(data, null, 2));
-    throw new Error('No photo returned from server');
+  // Le serveur retourne la photo dans response.data au lieu de response.photo
+  // On transforme pour correspondre à l'interface JobPhotoAPI
+  const serverData = response.data || response.photo;
+  
+  if (!serverData) {
+    console.error('❌ [ERROR] Missing photo/data object in response');
+    console.error('🔍 [DEBUG] Full response:', JSON.stringify(response, null, 2));
+    throw new Error('No photo data returned from server');
   }
   
-  console.log('✅ [DEBUG] Photo object received:', data.photo);
-  return data.photo;
+  console.log('✅ [DEBUG] Photo data received:', serverData);
+  
+  // Transformer la réponse serveur en format JobPhotoAPI
+  const photo: JobPhotoAPI = {
+    id: String(serverData.id),
+    job_id: String(jobId), // On utilise le jobId de la requête
+    user_id: serverData.user_id || serverData.userId || '', // À adapter selon le serveur
+    filename: serverData.filename || '',
+    original_name: serverData.originalFilename || serverData.original_name || '',
+    description: serverData.description || '',
+    file_size: serverData.fileSize || serverData.file_size || 0,
+    mime_type: serverData.mimeType || serverData.mime_type || 'image/jpeg',
+    width: serverData.width,
+    height: serverData.height,
+    created_at: serverData.created_at || serverData.createdAt || new Date().toISOString(),
+    updated_at: serverData.updated_at || serverData.updatedAt || new Date().toISOString(),
+  };
+  
+  console.log('✅ [DEBUG] Photo normalized:', photo);
+  return photo;
 }
 
 /**
