@@ -16,20 +16,28 @@ import { addJobItem, updateJobItem } from '../../services/jobs';
 
 // Fonction pour extraire l'ID numérique depuis un ID job de format JOB-NERD-URGENT-006
 const extractNumericJobId = (jobId: string): string => {
-    if (!jobId) return '';
+    console.log('🔍 [extractNumericJobId] Input:', jobId);
+    
+    if (!jobId) {
+        console.log('❌ [extractNumericJobId] Empty jobId, returning empty string');
+        return '';
+    }
     
     // Si c'est déjà numérique, retourner tel quel
     if (/^\d+$/.test(jobId)) {
+        console.log('✅ [extractNumericJobId] Already numeric:', jobId);
         return jobId;
     }
     
     // Extraire les chiffres à la fin (ex: JOB-NERD-URGENT-006 -> 006 -> 6)
     const match = jobId.match(/(\d+)$/);
     if (match) {
-        return parseInt(match[1], 10).toString(); // Convertir 006 -> 6
+        const result = parseInt(match[1], 10).toString(); // Convertir 006 -> 6
+        console.log('✅ [extractNumericJobId] Extracted:', result, 'from', jobId);
+        return result;
     }
     
-    console.warn(`[extractNumericJobId] Could not extract numeric ID from: ${jobId}`);
+    console.warn(`❌ [extractNumericJobId] Could not extract numeric ID from: ${jobId}`);
     return jobId; // Fallback
 };
 

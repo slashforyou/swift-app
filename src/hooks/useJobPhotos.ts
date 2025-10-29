@@ -407,6 +407,7 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
   }, [photos]);
 
   useEffect(() => {
+    console.log('📸 [useJobPhotos] useEffect triggered - jobId:', jobId);
     fetchPhotos();
   }, [fetchPhotos]);
 
