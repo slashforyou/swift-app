@@ -5,16 +5,16 @@
 import Ionicons from '@react-native-vector-icons/ionicons';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Dimensions,
-    Image,
-    Modal,
-    Pressable,
-    ScrollView,
-    Text,
-    TextInput,
-    View
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  Image,
+  Modal,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View
 } from 'react-native';
 import { DESIGN_TOKENS } from '../../../constants/Styles';
 import { useCommonThemedStyles } from '../../../hooks/useCommonStyles';

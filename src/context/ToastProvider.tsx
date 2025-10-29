@@ -1,7 +1,7 @@
 /**
  * ToastContext - Context et hook pour gérer les notifications toast globalement
  */
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useCallback, useMemo } from 'react';
 import Toast, { ToastType } from '../components/ui/Toast';
 
 interface ToastData {
@@ -34,7 +34,11 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
         return `toast_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     };
 
-    const showToast = (type: ToastType, title: string, message?: string, duration?: number) => {
+    const hideToast = useCallback((id: string) => {
+        setToasts(prev => prev.filter(toast => toast.id !== id));
+    }, []); // ✅ Pas de dépendances, stable
+
+    const showToast = useCallback((type: ToastType, title: string, message?: string, duration?: number) => {
         const id = generateId();
         const newToast: ToastData = {
             id,
@@ -50,36 +54,32 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
         setTimeout(() => {
             hideToast(id);
         }, (duration || 3000) + 300);
-    };
+    }, [hideToast]); // ✅ Dépend de hideToast (stable)
 
-    const showSuccess = (title: string, message?: string, duration?: number) => {
+    const showSuccess = useCallback((title: string, message?: string, duration?: number) => {
         showToast('success', title, message, duration);
-    };
+    }, [showToast]); // ✅ Dépend de showToast (stable)
 
-    const showError = (title: string, message?: string, duration?: number) => {
+    const showError = useCallback((title: string, message?: string, duration?: number) => {
         showToast('error', title, message, duration);
-    };
+    }, [showToast]);
 
-    const showWarning = (title: string, message?: string, duration?: number) => {
+    const showWarning = useCallback((title: string, message?: string, duration?: number) => {
         showToast('warning', title, message, duration);
-    };
+    }, [showToast]);
 
-    const showInfo = (title: string, message?: string, duration?: number) => {
+    const showInfo = useCallback((title: string, message?: string, duration?: number) => {
         showToast('info', title, message, duration);
-    };
+    }, [showToast]);
 
-    const hideToast = (id: string) => {
-        setToasts(prev => prev.filter(toast => toast.id !== id));
-    };
-
-    const contextValue: ToastContextType = {
+    const contextValue: ToastContextType = useMemo(() => ({
         showToast,
         showSuccess,
         showError,
         showWarning,
         showInfo,
         hideToast,
-    };
+    }), [showToast, showSuccess, showError, showWarning, showInfo, hideToast]); // ✅ Mémorisé, stable
 
     return (
         <ToastContext.Provider value={contextValue}>
