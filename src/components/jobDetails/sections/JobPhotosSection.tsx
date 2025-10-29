@@ -358,6 +358,8 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId }) => 
   const [selectedPhoto, setSelectedPhoto] = useState<JobPhotoAPI | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
   
+  console.log('📸 [JobPhotosSection] INIT - jobId:', jobId);
+  
   const {
     photos,
     isLoading,
@@ -368,6 +370,8 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId }) => 
     totalPhotos,
     refetch
   } = useJobPhotos(jobId);
+  
+  console.log('📸 [JobPhotosSection] STATE - photos:', photos?.length || 0, 'isLoading:', isLoading, 'error:', error);
 
   const handlePhotoSelection = async (photoUri: string) => {
     console.log('🎯 [DEBUG] handlePhotoSelection - REÇU du modal');

@@ -1,18 +1,18 @@
 /**
  * Toast - Composant de notification toast pour feedbacks utilisateur
  */
-import React, { useEffect, useRef } from 'react';
-import { 
-    View, 
-    Text, 
-    Animated, 
-    StyleSheet,
-    Dimensions,
-    Pressable 
-} from 'react-native';
-import { useTheme } from '../../context/ThemeProvider';
-import { DESIGN_TOKENS } from '../../constants/Styles';
 import Ionicons from '@react-native-vector-icons/ionicons';
+import React, { useEffect, useRef } from 'react';
+import {
+    Animated,
+    Dimensions,
+    Pressable,
+    StyleSheet,
+    Text,
+    View
+} from 'react-native';
+import { DESIGN_TOKENS } from '../../constants/Styles';
+import { useTheme } from '../../context/ThemeProvider';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 

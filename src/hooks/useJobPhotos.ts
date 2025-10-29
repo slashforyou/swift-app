@@ -99,7 +99,10 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
   );
 
   const fetchPhotos = useCallback(async () => {
+    console.log('📸 [useJobPhotos] fetchPhotos - DÉBUT - jobId:', jobId);
+    
     if (!jobId) {
+      console.log('📸 [useJobPhotos] Pas de jobId, retour');
       setPhotos([]);
       setIsLoading(false);
       return;
@@ -109,21 +112,26 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
       setIsLoading(true);
       setError(null);
       
+      console.log('📸 [useJobPhotos] Vérification connexion...');
       // Vérifier si l'utilisateur est connecté
       const loggedIn = await isLoggedIn();
       if (!loggedIn) {
+        console.log('❌ [useJobPhotos] Non connecté');
         setError('Vous devez être connecté pour voir les photos.');
         setPhotos([]);
         return;
       }
       
+      console.log('✅ [useJobPhotos] Connecté, fetch API...');
       // Essayer l'API réelle
       try {
         const apiPhotos = await fetchJobPhotos(jobId);
+        console.log('✅ [useJobPhotos] API photos reçues:', apiPhotos?.length || 0);
         setPhotos(apiPhotos);
       } catch (fetchError) {
-        console.log('📸 API photos endpoint not available, loading from local storage');
+        console.log('📸 [useJobPhotos] API photos endpoint not available, loading from local storage');
         const localPhotos = await getLocalPhotos(jobId);
+        console.log('📸 [useJobPhotos] Photos locales:', localPhotos?.length || 0);
         setPhotos(localPhotos);
         
         if (localPhotos.length === 0) {
@@ -132,7 +140,7 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
       }
       
     } catch (err) {
-      console.error('Error fetching job photos:', err);
+      console.error('❌ [useJobPhotos] Error fetching job photos:', err);
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       
       if (errorMessage.includes('404')) {
@@ -145,6 +153,7 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
       setPhotos([]);
     } finally {
       setIsLoading(false);
+      console.log('📸 [useJobPhotos] fetchPhotos - FIN');
     }
   }, [jobId]);
 
