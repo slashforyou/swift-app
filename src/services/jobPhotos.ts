@@ -171,6 +171,9 @@ export async function uploadJobPhotos(
 export async function fetchJobPhotos(jobId: string): Promise<JobPhotoAPI[]> {
   const headers = await getAuthHeaders();
   
+  console.log('🔍 [fetchJobPhotos] Fetching photos for jobId:', jobId);
+  console.log('🔍 [fetchJobPhotos] URL:', `${API}v1/job/${jobId}/images`);
+  
   const res = await fetch(`${API}v1/job/${jobId}/images`, {
     method: 'GET',
     headers: {
@@ -179,13 +182,23 @@ export async function fetchJobPhotos(jobId: string): Promise<JobPhotoAPI[]> {
     },
   });
 
+  console.log('🔍 [fetchJobPhotos] Response status:', res.status, res.ok ? 'OK' : 'ERROR');
+
   if (!res.ok) {
     const error = await res.json().catch(() => ({ message: 'Failed to fetch job photos' }));
+    console.error('❌ [fetchJobPhotos] Error response:', error);
     throw new Error(error.message || `HTTP ${res.status}: Failed to fetch job photos`);
   }
 
   const data = await res.json();
-  return data.images || data.photos || data || [];
+  console.log('🔍 [fetchJobPhotos] Raw API response:', JSON.stringify(data, null, 2));
+  console.log('🔍 [fetchJobPhotos] data.images:', data.images?.length || 0);
+  console.log('🔍 [fetchJobPhotos] data.photos:', data.photos?.length || 0);
+  console.log('🔍 [fetchJobPhotos] data (fallback):', Array.isArray(data) ? data.length : 'not array');
+  
+  const photos = data.images || data.photos || data || [];
+  console.log('✅ [fetchJobPhotos] Returning photos:', photos.length);
+  return photos;
 }
 
 /**
