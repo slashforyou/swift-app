@@ -12,12 +12,11 @@
  */
 
 import {
-  deletePhoto,
-  fetchJobPhotos,
-  getPhotoServeUrl,
-  JobPhotoAPI,
-  updatePhotoDescription,
-  uploadJobPhoto
+    deletePhoto,
+    fetchJobPhotos,
+    getPhotoServeUrl,
+    updatePhotoDescription,
+    uploadJobPhoto
 } from '../../src/services/jobPhotos';
 import { getAuthHeaders, isLoggedIn } from '../../src/utils/auth';
 

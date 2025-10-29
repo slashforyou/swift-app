@@ -73,14 +73,21 @@ export async function uploadJobPhoto(
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({ message: 'Failed to upload photo' }));
+    console.error('❌ [ERROR] Upload failed:', res.status, error);
     throw new Error(error.message || `HTTP ${res.status}: Failed to upload photo`);
   }
 
   const data: UploadPhotoResponse = await res.json();
+  console.log('🔍 [DEBUG] Server response:', JSON.stringify(data));
+  console.log('🔍 [DEBUG] Response keys:', Object.keys(data));
+  
   if (!data.photo) {
+    console.error('❌ [ERROR] Missing photo object in response');
+    console.error('🔍 [DEBUG] Full response:', JSON.stringify(data, null, 2));
     throw new Error('No photo returned from server');
   }
   
+  console.log('✅ [DEBUG] Photo object received:', data.photo);
   return data.photo;
 }
 

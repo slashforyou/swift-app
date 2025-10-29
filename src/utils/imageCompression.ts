@@ -2,27 +2,28 @@
  * Image Compression Utility
  * 
  * Compresse les images pour optimiser le stockage et l'upload
- * - Limite la résolution max à 1920x1080
- * - Optimise la qualité pour ~400KB par image
+ * - Limite la résolution max à 1200x800 (standard mobile)
+ * - Optimise la qualité pour ~200KB par image (quality 50%)
  * - Préserve le ratio aspect original
+ * - Upload 2x plus rapide qu'avant
  */
 
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 
 export interface CompressionOptions {
     /**
-     * Largeur maximale de l'image (défaut: 1920px)
+     * Largeur maximale de l'image (défaut: 1200px - optimisé mobile)
      */
     maxWidth?: number;
     
     /**
-     * Hauteur maximale de l'image (défaut: 1080px)
+     * Hauteur maximale de l'image (défaut: 800px - ratio 3:2)
      */
     maxHeight?: number;
     
     /**
-     * Qualité de compression (0-1, défaut: 0.6)
-     * 0.6 = ~400KB pour image moyenne
+     * Qualité de compression (0-1, défaut: 0.5)
+     * 0.5 = ~200KB pour image moyenne (2x plus léger)
      */
     quality?: number;
     
@@ -72,9 +73,9 @@ export async function compressImage(
     options: CompressionOptions = {}
 ): Promise<CompressionResult> {
     const {
-        maxWidth = 1920,
-        maxHeight = 1080,
-        quality = 0.6,
+        maxWidth = 1200,     // Optimisé: 1920 → 1200 (standard mobile)
+        maxHeight = 800,     // Optimisé: 1080 → 800 (ratio 3:2)
+        quality = 0.5,       // Optimisé: 0.6 → 0.5 (taille ~200KB vs 400KB)
         format = SaveFormat.JPEG
     } = options;
 
@@ -119,8 +120,8 @@ export async function compressImage(
 export function isImageWithinLimits(
     width: number,
     height: number,
-    maxWidth: number = 1920,
-    maxHeight: number = 1080
+    maxWidth: number = 1200,    // Mise à jour: 1920 → 1200
+    maxHeight: number = 800      // Mise à jour: 1080 → 800
 ): boolean {
     return width <= maxWidth && height <= maxHeight;
 }
@@ -137,8 +138,8 @@ export function isImageWithinLimits(
 export function calculateOptimalDimensions(
     originalWidth: number,
     originalHeight: number,
-    maxWidth: number = 1920,
-    maxHeight: number = 1080
+    maxWidth: number = 1200,   // Mise à jour: 1920 → 1200
+    maxHeight: number = 800     // Mise à jour: 1080 → 800
 ): { width: number; height: number } {
     // Si l'image est déjà dans les limites, pas besoin de resize
     if (isImageWithinLimits(originalWidth, originalHeight, maxWidth, maxHeight)) {
@@ -170,7 +171,7 @@ export function calculateOptimalDimensions(
 export function estimateCompressedSize(
     width: number,
     height: number,
-    quality: number = 0.6
+    quality: number = 0.5    // Mise à jour: 0.6 → 0.5
 ): number {
     // Formule approximative: pixels * quality * facteur compression JPEG (~0.1)
     const pixels = width * height;
