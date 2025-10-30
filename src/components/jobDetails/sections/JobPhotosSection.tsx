@@ -29,6 +29,61 @@ interface JobPhotosSectionProps {
   jobId: string;
 }
 
+// Helper pour formater la date en français
+const formatPhotoDate = (dateString?: string): string => {
+  if (!dateString) return '';
+  
+  try {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    // Si moins d'1 heure : "Il y a X min"
+    if (diffMins < 60) {
+      return `Il y a ${diffMins} min`;
+    }
+    
+    // Si moins de 24h : "Il y a X h"
+    if (diffHours < 24) {
+      return `Il y a ${diffHours}h`;
+    }
+    
+    // Si moins de 7 jours : "Il y a X jours"
+    if (diffDays < 7) {
+      return `Il y a ${diffDays}j`;
+    }
+    
+    // Sinon format complet : "30/10/2025 14:30"
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
+  } catch (e) {
+    return '';
+  }
+};
+
+// Helper pour formater le stage en français
+const formatStage = (stage?: string): string => {
+  if (!stage) return '';
+  
+  const stageLabels: Record<string, string> = {
+    'pickup': '📍 Ramassage',
+    'delivery': '🚚 Livraison',
+    'other': '📸 Autre',
+    'before': '⏪ Avant',
+    'after': '⏩ Après',
+  };
+  
+  return stageLabels[stage.toLowerCase()] || stage;
+};
+
 interface PhotoViewModalProps {
   visible: boolean;
   photo: JobPhotoAPI | null;
@@ -308,6 +363,8 @@ const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
 const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete }) => {
   const { colors } = useCommonThemedStyles();
   const [imageError, setImageError] = React.useState(false);
+  const [showEditModal, setShowEditModal] = React.useState(false);
+  const [editDescription, setEditDescription] = React.useState(photo.description || '');
   
   // Convertir l'ID en string pour vérifier si c'est une photo locale
   const photoId = String(photo.id);
@@ -347,46 +404,182 @@ const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete 
     }
   }, [imageError, photo.id, photoUrl, photo.url, photo.filename]);
   
+  const handleSaveDescription = () => {
+    onEdit(photoId, editDescription);
+    setShowEditModal(false);
+  };
+  
+  const photoDate = formatPhotoDate(photo.capturedAt || photo.createdAt || photo.created_at);
+  const stageLabel = formatStage(photo.stage);
+  
   return (
-    <Pressable
-      onPress={onPress}
-      style={{
-        width: '48%',
-        aspectRatio: 1,
-        borderRadius: DESIGN_TOKENS.radius.md,
-        overflow: 'hidden',
-        backgroundColor: colors.background,
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.22,
-        shadowRadius: 2.22,
-      }}
-    >
-      <Image
-        source={{ uri: photoUrl }}
-        style={{ width: '100%', height: '70%' }}
-        resizeMode="cover"
-        onError={handleImageError}
-      />
+    <>
+      <Pressable
+        onPress={onPress}
+        style={{
+          width: '48%',
+          borderRadius: DESIGN_TOKENS.radius.md,
+          overflow: 'hidden',
+          backgroundColor: colors.background,
+          elevation: 2,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.22,
+          shadowRadius: 2.22,
+          marginBottom: DESIGN_TOKENS.spacing.sm,
+        }}
+      >
+        {/* Image */}
+        <Image
+          source={{ uri: photoUrl }}
+          style={{ width: '100%', height: 140 }}
+          resizeMode="cover"
+          onError={handleImageError}
+        />
+        
+        {/* Info section */}
+        <View style={{
+          padding: DESIGN_TOKENS.spacing.xs,
+          backgroundColor: colors.background,
+        }}>
+          {/* Date et Stage */}
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+            {photoDate ? (
+              <Text style={{ fontSize: 10, color: colors.textSecondary }}>
+                {photoDate}
+              </Text>
+            ) : null}
+            {stageLabel ? (
+              <Text style={{ fontSize: 10, color: colors.primary, fontWeight: '500' }}>
+                {stageLabel}
+              </Text>
+            ) : null}
+          </View>
+          
+          {/* Description avec bouton edit */}
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 4 }}>
+            <Text 
+              numberOfLines={2}
+              style={{
+                flex: 1,
+                fontSize: 11,
+                color: colors.text,
+                lineHeight: 14
+              }}
+            >
+              {photo.description || 'Sans description'}
+            </Text>
+            <Pressable 
+              onPress={(e) => {
+                e.stopPropagation();
+                setEditDescription(photo.description || '');
+                setShowEditModal(true);
+              }}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons name="create-outline" size={14} color={colors.primary} />
+            </Pressable>
+          </View>
+        </View>
+      </Pressable>
       
-      <View style={{
-        height: '30%',
-        padding: DESIGN_TOKENS.spacing.xs,
-        justifyContent: 'center'
-      }}>
-        <Text 
-          numberOfLines={2}
+      {/* Modal d'édition de description */}
+      <Modal
+        visible={showEditModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowEditModal(false)}
+      >
+        <Pressable 
           style={{
-            fontSize: 12,
-            color: colors.text,
-            lineHeight: 16
+            flex: 1,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            justifyContent: 'center',
+            alignItems: 'center',
           }}
+          onPress={() => setShowEditModal(false)}
         >
-          {photo.description || 'Sans description'}
-        </Text>
-      </View>
-    </Pressable>
+          <Pressable 
+            style={{
+              width: '85%',
+              backgroundColor: colors.background,
+              borderRadius: DESIGN_TOKENS.radius.lg,
+              padding: DESIGN_TOKENS.spacing.lg,
+              elevation: 5,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.25,
+              shadowRadius: 3.84,
+            }}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <Text style={{
+              fontSize: 18,
+              fontWeight: '600',
+              color: colors.text,
+              marginBottom: DESIGN_TOKENS.spacing.md
+            }}>
+              Modifier la description
+            </Text>
+            
+            <TextInput
+              value={editDescription}
+              onChangeText={setEditDescription}
+              placeholder="Ajoutez une description..."
+              placeholderTextColor={colors.textSecondary}
+              multiline
+              numberOfLines={4}
+              style={{
+                borderWidth: 1,
+                borderColor: colors.border,
+                borderRadius: DESIGN_TOKENS.radius.md,
+                padding: DESIGN_TOKENS.spacing.sm,
+                fontSize: 14,
+                color: colors.text,
+                minHeight: 80,
+                textAlignVertical: 'top',
+                backgroundColor: colors.backgroundSecondary,
+                marginBottom: DESIGN_TOKENS.spacing.md
+              }}
+            />
+            
+            <View style={{ flexDirection: 'row', gap: DESIGN_TOKENS.spacing.sm }}>
+              <Pressable
+                onPress={() => setShowEditModal(false)}
+                style={{
+                  flex: 1,
+                  padding: DESIGN_TOKENS.spacing.sm,
+                  borderRadius: DESIGN_TOKENS.radius.md,
+                  backgroundColor: colors.backgroundSecondary,
+                  alignItems: 'center',
+                  borderWidth: 1,
+                  borderColor: colors.border
+                }}
+              >
+                <Text style={{ color: colors.text, fontSize: 14, fontWeight: '500' }}>
+                  Annuler
+                </Text>
+              </Pressable>
+              
+              <Pressable
+                onPress={handleSaveDescription}
+                style={{
+                  flex: 1,
+                  padding: DESIGN_TOKENS.spacing.sm,
+                  borderRadius: DESIGN_TOKENS.radius.md,
+                  backgroundColor: colors.primary,
+                  alignItems: 'center'
+                }}
+              >
+                <Text style={{ color: 'white', fontSize: 14, fontWeight: '600' }}>
+                  Sauvegarder
+                </Text>
+              </Pressable>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+    </>
   );
 };
 
