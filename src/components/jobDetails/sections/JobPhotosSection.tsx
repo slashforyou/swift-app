@@ -489,8 +489,8 @@ const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete 
         ) : (
           <Image
             source={{ uri: photoUrl }}
-            style={{ width: '100%', height: 140 }}
-            resizeMode="cover"
+            style={{ width: '100%', height: 140, backgroundColor: colors.border }}
+            resizeMode="contain"
             onError={handleImageError}
           />
         )}
