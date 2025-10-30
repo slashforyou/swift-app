@@ -1,7 +1,7 @@
 /**
  * ToastContext - Context et hook pour gérer les notifications toast globalement
  */
-import React, { createContext, useContext, useState, ReactNode, useCallback, useMemo } from 'react';
+import React, { createContext, ReactNode, useCallback, useContext, useMemo, useState } from 'react';
 import Toast, { ToastType } from '../components/ui/Toast';
 
 interface ToastData {
