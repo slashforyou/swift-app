@@ -275,9 +275,11 @@ const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
           {/* Image */}
           <Image
             source={{ 
-              uri: String(photo.id).startsWith('local-') 
-                ? photo.filename 
-                : `https://storage.googleapis.com/swift-images/${photo.filename || photo.filePath || photo.file_path || ''}`
+              uri: photo.url 
+                ? photo.url  // ✅ PRIORITÉ 1: Signed URL from backend
+                : String(photo.id).startsWith('local-') 
+                  ? photo.filename  // ✅ PRIORITÉ 2: Photo locale
+                  : `https://storage.googleapis.com/swift-images/${photo.filename || photo.filePath || photo.file_path || ''}`  // ⚠️ Fallback
             }}
             style={{
               width: screenWidth - 40,
@@ -345,13 +347,30 @@ const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
                 </HStack>
               </VStack>
             ) : (
-              <Text style={{
-                color: 'white',
-                fontSize: 16,
-                lineHeight: 24
-              }}>
-                {photo.description || 'Aucune description'}
-              </Text>
+              <VStack gap="sm">
+                {/* Date et Stage */}
+                <HStack gap="md" align="center" style={{ marginBottom: 4 }}>
+                  {formatPhotoDate(photo.capturedAt || photo.createdAt || photo.created_at) ? (
+                    <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 14 }}>
+                      📅 {formatPhotoDate(photo.capturedAt || photo.createdAt || photo.created_at)}
+                    </Text>
+                  ) : null}
+                  {formatStage(photo.stage) ? (
+                    <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 14, fontWeight: '500' }}>
+                      {formatStage(photo.stage)}
+                    </Text>
+                  ) : null}
+                </HStack>
+                
+                {/* Description */}
+                <Text style={{
+                  color: 'white',
+                  fontSize: 16,
+                  lineHeight: 24
+                }}>
+                  {photo.description || 'Aucune description'}
+                </Text>
+              </VStack>
             )}
           </View>
         </ScrollView>
