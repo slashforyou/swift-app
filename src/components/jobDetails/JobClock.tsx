@@ -1,14 +1,15 @@
 /**
  * Composant Clock - Affiche le chronométrage en cours du job
  * Utilisé sur la page Summary au-dessus de la timeline
+ * ✅ Utilise maintenant JobTimerContext pour un état centralisé
  */
 
 import React from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View, Text, Pressable, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 import { DESIGN_TOKENS } from '../../constants/Styles';
-import { useJobTimer } from '../../hooks/useJobTimer';
+import { useJobTimerContext } from '../../context/JobTimerProvider';
 
 interface JobClockProps {
     job: any;
@@ -16,26 +17,22 @@ interface JobClockProps {
 
 const JobClock: React.FC<JobClockProps> = ({ job }) => {
     const { colors } = useCommonThemedStyles();
-    const jobId = job?.job?.code || job?.code || 'unknown';
-    const currentStep = job?.job?.current_step || job?.current_step || 0;
     
+    // ✅ Utiliser le context au lieu du hook direct
     const { 
         totalElapsed, 
         billableTime,
         formatTime, 
         isRunning,
         isOnBreak,
+        isCompleted,
+        currentStep,
+        totalSteps,
         startBreak,
         stopBreak,
-        startTimerWithJobData
-    } = useJobTimer(jobId, currentStep);
-
-    // Auto-démarrer si le job a déjà commencé
-    React.useEffect(() => {
-        if (currentStep >= 1 && !isRunning) {
-            startTimerWithJobData(job);
-        }
-    }, [currentStep, isRunning, job, startTimerWithJobData]);
+        nextStep,
+        stopTimer,
+    } = useJobTimerContext();
 
     // Ne pas afficher si le job n'a pas commencé
     if (currentStep === 0) {
@@ -141,7 +138,7 @@ const JobClock: React.FC<JobClockProps> = ({ job }) => {
             {isRunning && (
                 <View style={{
                     alignItems: 'center',
-                    marginBottom: DESIGN_TOKENS.spacing.lg,
+                    marginBottom: DESIGN_TOKENS.spacing.sm,
                 }}>
                     <Pressable
                         onPress={isOnBreak ? stopBreak : startBreak}
@@ -172,6 +169,103 @@ const JobClock: React.FC<JobClockProps> = ({ job }) => {
                             {isOnBreak ? 'Reprendre' : 'Pause'}
                         </Text>
                     </Pressable>
+                </View>
+            )}
+
+            {/* ✅ Nouveaux boutons d'action */}
+            {isRunning && !isOnBreak && (
+                <View style={{
+                    flexDirection: 'row',
+                    gap: DESIGN_TOKENS.spacing.sm,
+                    marginBottom: DESIGN_TOKENS.spacing.lg,
+                }}>
+                    {/* Bouton Étape suivante (sauf si dernière étape) */}
+                    {currentStep < totalSteps && (
+                        <Pressable
+                            onPress={() => {
+                                Alert.alert(
+                                    'Étape suivante',
+                                    `Passer à l'étape ${currentStep + 1}/${totalSteps} ?`,
+                                    [
+                                        { text: 'Annuler', style: 'cancel' },
+                                        { 
+                                            text: 'Confirmer', 
+                                            onPress: nextStep,
+                                            style: 'default'
+                                        }
+                                    ]
+                                );
+                            }}
+                            style={({ pressed }: { pressed: boolean }) => ({
+                                flex: 1,
+                                backgroundColor: pressed ? colors.tint + 'DD' : colors.tint,
+                                paddingHorizontal: DESIGN_TOKENS.spacing.md,
+                                paddingVertical: DESIGN_TOKENS.spacing.sm,
+                                borderRadius: DESIGN_TOKENS.radius.lg,
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                gap: DESIGN_TOKENS.spacing.xs,
+                                justifyContent: 'center',
+                            })}
+                        >
+                            <Ionicons 
+                                name="arrow-forward" 
+                                size={16} 
+                                color={colors.background} 
+                            />
+                            <Text style={{
+                                color: colors.background,
+                                fontWeight: '600',
+                                fontSize: 14,
+                            }}>
+                                Étape suivante
+                            </Text>
+                        </Pressable>
+                    )}
+
+                    {/* Bouton Arrêter (dernière étape) */}
+                    {currentStep === totalSteps - 1 && (
+                        <Pressable
+                            onPress={() => {
+                                Alert.alert(
+                                    'Terminer le job',
+                                    'Êtes-vous sûr de vouloir terminer ce job ? Le timer sera arrêté et le paiement sera calculé.',
+                                    [
+                                        { text: 'Annuler', style: 'cancel' },
+                                        { 
+                                            text: 'Terminer', 
+                                            onPress: stopTimer,
+                                            style: 'destructive'
+                                        }
+                                    ]
+                                );
+                            }}
+                            style={({ pressed }: { pressed: boolean }) => ({
+                                flex: currentStep < totalSteps ? 1 : undefined,
+                                backgroundColor: pressed ? '#EF4444DD' : '#EF4444',
+                                paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+                                paddingVertical: DESIGN_TOKENS.spacing.sm,
+                                borderRadius: DESIGN_TOKENS.radius.lg,
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                gap: DESIGN_TOKENS.spacing.xs,
+                                justifyContent: 'center',
+                            })}
+                        >
+                            <Ionicons 
+                                name="stop" 
+                                size={16} 
+                                color={colors.background} 
+                            />
+                            <Text style={{
+                                color: colors.background,
+                                fontWeight: '600',
+                                fontSize: 14,
+                            }}>
+                                Terminer
+                            </Text>
+                        </Pressable>
+                    )}
                 </View>
             )}
 

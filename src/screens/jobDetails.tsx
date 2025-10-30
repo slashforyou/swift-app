@@ -10,9 +10,9 @@ import TabMenu from '../components/ui/TabMenu';
 import Toast from '../components/ui/toastNotification';
 import { DESIGN_TOKENS } from '../constants/Styles';
 import { JobStateProvider } from '../context/JobStateProvider';
+import { JobTimerProvider } from '../context/JobTimerProvider';
 import { useTheme } from '../context/ThemeProvider';
 import { useJobDetails } from '../hooks/useJobDetails';
-import { useJobTimer } from '../hooks/useJobTimer';
 import { useLocalization } from '../localization/useLocalization';
 import { useAuthCheck } from '../utils/checkAuth';
 import JobClient from './JobDetailsScreens/client';
@@ -64,7 +64,6 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
     
     // Récupération de l'ID du job depuis les paramètres de route ou props
     const actualJobId = route?.params?.jobId || jobId || route?.params?.id;
-    
     // Hook principal pour les données du job
     const { 
         jobDetails, 
@@ -283,25 +282,32 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
     const [jobPanel, setJobPanel] = useState('summary');
     // jobPanel: 'summary', 'job', 'client', 'notes', 'payment'
 
-    // 🎯 Timer avec callback de complétion automatique
-    const currentStep = job.step.actualStep || 0;
-    const totalSteps = job.step.steps.length || 0;
-    
-    useJobTimer(actualJobId, currentStep, {
-        totalSteps,
-        onJobCompleted: (finalCost, billableHours) => {
-            console.log('🎉 [JobDetails] Job completed!', { finalCost, billableHours });
-            
-            // Basculer automatiquement vers le panel de paiement
-            setJobPanel('payment');
-            
-            // Afficher un toast de succès
-            showToast(
-                `Job terminé ! Montant: $${finalCost.toFixed(2)} AUD (${billableHours.toFixed(2)}h facturables)`,
-                'success'
-            );
-        }
-    });
+    // ✅ Handler pour mettre à jour l'étape du job quand le timer change
+    const handleStepChange = (newStep: number) => {
+        console.log('🔄 [JobDetails] Timer step changed to:', newStep);
+        setJob((prevJob: any) => ({
+            ...prevJob,
+            step: {
+                ...prevJob.step,
+                actualStep: newStep
+            },
+            current_step: newStep
+        }));
+    };
+
+    // ✅ Handler pour la complétion du job
+    const handleJobCompleted = (finalCost: number, billableHours: number) => {
+        console.log('🎉 [JobDetails] Job completed!', { finalCost, billableHours });
+        
+        // Basculer automatiquement vers le panel de paiement
+        setJobPanel('payment');
+        
+        // Afficher un toast de succès
+        showToast(
+            `Job terminé ! Montant: $${finalCost.toFixed(2)} AUD (${billableHours.toFixed(2)}h facturables)`,
+            'success'
+        );
+    };
 
     // Handler pour TabMenu
     const handleTabPress = (tabId: string) => {
@@ -353,77 +359,88 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
         );
     }
 
+    const currentStep = job.step.actualStep || 0;
+    const totalSteps = job.step.steps.length || 6;
+
     return (
-        <View style={{
-            backgroundColor: colors.background,
-            width: '100%',
-            height: '100%',
-            flex: 1,
-        }}>
-            {/* Header moderne avec navigation et RefBookMark */}
-            <JobDetailsHeader
-                navigation={navigation}
-                jobRef={job.code || jobDetails?.job?.code || job.id}
-                title={getPanelTitle()}
-                onToast={showToast}
-            />
-            
-            {/* ScrollView principal */}
-            <ScrollView
-                style={{ flex: 1 }}
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{
-                    paddingTop: DESIGN_TOKENS.spacing.lg,
-                    paddingBottom: 60 + insets.bottom + DESIGN_TOKENS.spacing.lg, // JobMenu + Safe area + espacement
-                    paddingHorizontal: DESIGN_TOKENS.spacing.lg,
-                }}
-            >
-                {jobPanel === 'summary' && <JobSummary job={job} setJob={setJob} />}
-                {jobPanel === 'job' && <JobPage job={job} setJob={setJob} />}
-                {jobPanel === 'client' && <JobClient job={job} setJob={setJob} />}
-                {jobPanel === 'notes' && (
-                    <JobNote 
-                        job={job} 
-                        setJob={setJob}
-                    />
-                )}
-                {jobPanel === 'payment' && <PaymentScreen job={job} setJob={setJob} />}
-            </ScrollView>
-            
-            {/* Job Menu fixé en bas */}
-            <View style={{ 
-                position: 'absolute',
-                bottom: 0,
-                left: 0,
-                right: 0,
-                backgroundColor: colors.backgroundSecondary,
-                borderTopWidth: 1,
-                borderTopColor: colors.border,
-                zIndex: 10,
-            }}>
-                <TabMenu
-                    activeTab={jobPanel}
-                    onTabPress={handleTabPress}
-                    page="jobDetails"
-                />
-            </View>
-            
-            {/* Toast au-dessus de tout */}
+        <JobTimerProvider
+            jobId={actualJobId}
+            currentStep={currentStep}
+            totalSteps={totalSteps}
+            onStepChange={handleStepChange}
+            onJobCompleted={handleJobCompleted}
+        >
             <View style={{
-                position: 'absolute',
-                top: 100, // Position fixe sous le header
-                left: DESIGN_TOKENS.spacing.lg,
-                right: DESIGN_TOKENS.spacing.lg,
-                zIndex: 20,
-                pointerEvents: 'none',
+                backgroundColor: colors.background,
+                width: '100%',
+                height: '100%',
+                flex: 1,
             }}>
-                <Toast 
-                    message={toastDetails.message} 
-                    type={toastDetails.type} 
-                    status={toastDetails.status} 
+                {/* Header moderne avec navigation et RefBookMark */}
+                <JobDetailsHeader
+                    navigation={navigation}
+                    jobRef={job.code || jobDetails?.job?.code || job.id}
+                    title={getPanelTitle()}
+                    onToast={showToast}
                 />
+                
+                {/* ScrollView principal */}
+                <ScrollView
+                    style={{ flex: 1 }}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{
+                        paddingTop: DESIGN_TOKENS.spacing.lg,
+                        paddingBottom: 60 + insets.bottom + DESIGN_TOKENS.spacing.lg, // JobMenu + Safe area + espacement
+                        paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+                    }}
+                >
+                    {jobPanel === 'summary' && <JobSummary job={job} setJob={setJob} />}
+                    {jobPanel === 'job' && <JobPage job={job} setJob={setJob} />}
+                    {jobPanel === 'client' && <JobClient job={job} setJob={setJob} />}
+                    {jobPanel === 'notes' && (
+                        <JobNote 
+                            job={job} 
+                            setJob={setJob}
+                        />
+                    )}
+                    {jobPanel === 'payment' && <PaymentScreen job={job} setJob={setJob} />}
+                </ScrollView>
+                
+                {/* Job Menu fixé en bas */}
+                <View style={{ 
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    backgroundColor: colors.backgroundSecondary,
+                    borderTopWidth: 1,
+                    borderTopColor: colors.border,
+                    zIndex: 10,
+                }}>
+                    <TabMenu
+                        activeTab={jobPanel}
+                        onTabPress={handleTabPress}
+                        page="jobDetails"
+                    />
+                </View>
+                
+                {/* Toast au-dessus de tout */}
+                <View style={{
+                    position: 'absolute',
+                    top: 100, // Position fixe sous le header
+                    left: DESIGN_TOKENS.spacing.lg,
+                    right: DESIGN_TOKENS.spacing.lg,
+                    zIndex: 20,
+                    pointerEvents: 'none',
+                }}>
+                    <Toast 
+                        message={toastDetails.message} 
+                        type={toastDetails.type} 
+                        status={toastDetails.status} 
+                    />
+                </View>
             </View>
-        </View>
+        </JobTimerProvider>
     );
 };
 

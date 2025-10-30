@@ -2,8 +2,8 @@
  * JobPhotosSection - Section photos pour les détails de job
  * Permet l'upload, affichage, édition de description et suppression des photos
  */
-import { Image as ExpoImage } from 'expo-image';
 import Ionicons from '@react-native-vector-icons/ionicons';
+import { Image as ExpoImage } from 'expo-image';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
