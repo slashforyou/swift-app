@@ -2,6 +2,7 @@
  * JobPhotosSection - Section photos pour les détails de job
  * Permet l'upload, affichage, édition de description et suppression des photos
  */
+import { Image as ExpoImage } from 'expo-image';
 import Ionicons from '@react-native-vector-icons/ionicons';
 import React, { useState } from 'react';
 import {
@@ -25,6 +26,9 @@ import { JobPhotoAPI } from '../../../services/jobPhotos';
 import { HStack, VStack } from '../../primitives/Stack';
 import { Card } from '../../ui/Card';
 import PhotoSelectionModal from '../modals/PhotoSelectionModal';
+
+// Créer une version animée d'ExpoImage
+const AnimatedExpoImage = Animated.createAnimatedComponent(ExpoImage);
 
 interface JobPhotosSectionProps {
   jobId: string;
@@ -301,7 +305,7 @@ const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
 
           {/* Image avec zoom (double-tap) */}
           <Pressable onPress={handleImagePress}>
-            <Animated.Image
+            <AnimatedExpoImage
               source={{ 
                 uri: photo.url 
                   ? photo.url.replace(/\/\/uploads\//g, '/uploads/')  // ✅ PRIORITÉ 1: Signed URL (avec workaround double slash)
@@ -320,8 +324,9 @@ const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
                 marginVertical: 60,
                 transform: [{ scale: scaleAnim }]
               }}
-              resizeMode="contain"
-              onError={(error) => console.error('❌ [PhotoViewModal] Image load error:', error.nativeEvent.error)}
+              contentFit="contain"
+              transition={200}
+              onError={(error) => console.error('❌ [PhotoViewModal] Image load error:', error)}
             />
           </Pressable>
           
@@ -435,6 +440,7 @@ const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete 
   const [imageError, setImageError] = React.useState(false);
   const [showEditModal, setShowEditModal] = React.useState(false);
   const [editDescription, setEditDescription] = React.useState(photo.description || '');
+  const [imageDimensions, setImageDimensions] = React.useState<{ width: number; height: number } | null>(null);
   
   // Convertir l'ID en string pour vérifier si c'est une photo locale
   const photoId = String(photo.id);
@@ -467,6 +473,32 @@ const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete 
     const gcsUrl = `https://storage.googleapis.com/swift-images/${path}`;
     return gcsUrl;
   }, [photo.url, isLocalPhoto, photo.filename, photo.filePath, photo.file_path, photo.id]);
+  
+  // Récupérer les dimensions réelles de l'image
+  React.useEffect(() => {
+    if (photoUrl && isValidImageFile && !imageError) {
+      Image.getSize(
+        photoUrl,
+        (width, height) => {
+          setImageDimensions({ width, height });
+          const aspectRatio = width / height;
+          const orientation = height > width ? 'Portrait' : width > height ? 'Paysage' : 'Carré';
+          console.log(`📐 [PhotoItem ${photo.id}] Dimensions réelles:`, {
+            width,
+            height,
+            aspectRatio: aspectRatio.toFixed(2),
+            orientation,
+            filename: photo.filename,
+            displaySize: '48% width, aspectRatio: 1 (carré)',
+            resizeMode: 'cover'
+          });
+        },
+        (error) => {
+          console.warn(`⚠️ [PhotoItem ${photo.id}] Impossible de récupérer dimensions:`, error);
+        }
+      );
+    }
+  }, [photoUrl, isValidImageFile, imageError, photo.id, photo.filename]);
   
   const handleImageError = React.useCallback((error: any) => {
     if (!imageError) {
@@ -534,13 +566,36 @@ const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete 
             </Text>
           </View>
         ) : (
-          <View style={{ width: '100%', aspectRatio: 1, backgroundColor: colors.border, overflow: 'hidden' }}>
-            <Image
+          <View style={{ width: '100%', aspectRatio: 1, backgroundColor: colors.border, overflow: 'hidden', position: 'relative' }}>
+            <ExpoImage
               source={{ uri: photoUrl }}
               style={{ width: '100%', height: '100%' }}
-              resizeMode="cover"
+              contentFit="cover"
+              transition={200}
               onError={handleImageError}
             />
+            
+            {/* Badge debug dimensions (en haut à gauche) */}
+            {imageDimensions && (
+              <View style={{
+                position: 'absolute',
+                top: 4,
+                left: 4,
+                backgroundColor: 'rgba(0,0,0,0.7)',
+                paddingHorizontal: 6,
+                paddingVertical: 3,
+                borderRadius: 4
+              }}>
+                <Text style={{ color: 'white', fontSize: 9, fontWeight: '600' }}>
+                  {imageDimensions.width}×{imageDimensions.height}
+                </Text>
+                <Text style={{ color: 'white', fontSize: 8 }}>
+                  {imageDimensions.height > imageDimensions.width ? '📱' : imageDimensions.width > imageDimensions.height ? '🖼️' : '⬛'}
+                  {' '}
+                  {(imageDimensions.width / imageDimensions.height).toFixed(2)}
+                </Text>
+              </View>
+            )}
           </View>
         )}
         
