@@ -804,6 +804,10 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId }) => 
   const handleEditDescription = async (photoId: string, description: string) => {
     try {
       await updatePhotoDescription(photoId, description);
+      
+      // ✅ Recharger toutes les photos depuis le serveur
+      await refetch();
+      
       Alert.alert('Succès', 'Description mise à jour !');
     } catch (err) {
       Alert.alert('Erreur', 'Erreur lors de la mise à jour');
@@ -813,6 +817,10 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId }) => 
   const handleDeletePhoto = async (photoId: string) => {
     try {
       await deletePhoto(photoId);
+      
+      // ✅ Recharger toutes les photos depuis le serveur
+      await refetch();
+      
       Alert.alert('Succès', 'Photo supprimée !');
     } catch (err) {
       Alert.alert('Erreur', 'Erreur lors de la suppression');
