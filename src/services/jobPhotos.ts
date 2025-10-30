@@ -189,10 +189,21 @@ export async function uploadJobPhotos(
  * Récupère toutes les photos d'un job
  * Route: GET /swift-app/v1/job/{jobId}/images
  */
-export async function fetchJobPhotos(jobId: string): Promise<JobPhotoAPI[]> {
+/**
+ * Récupère les photos d'un job avec pagination
+ * Route: GET /swift-app/v1/job/{jobId}/images?limit=8&offset=0
+ */
+export async function fetchJobPhotos(
+  jobId: string, 
+  options?: { limit?: number; offset?: number }
+): Promise<{ photos: JobPhotoAPI[]; pagination: { total: number; hasMore: boolean; count: number } }> {
   const headers = await getAuthHeaders();
   
-  const res = await fetch(`${API}v1/job/${jobId}/images`, {
+  // Paramètres de pagination (défaut: 8 photos par page)
+  const limit = options?.limit ?? 8;
+  const offset = options?.offset ?? 0;
+  
+  const res = await fetch(`${API}v1/job/${jobId}/images?limit=${limit}&offset=${offset}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -207,10 +218,26 @@ export async function fetchJobPhotos(jobId: string): Promise<JobPhotoAPI[]> {
 
   const response = await res.json();
   
-  // API retourne: { success: true, data: { images: [...] } }
-  return response.data?.images ||   // Format actuel API
-         response.images ||         // Fallback ancien format
-         [];
+  // API retourne: { success: true, data: { images: [...], pagination: {...} } }
+  const images = response.data?.images || response.images || [];
+  const pagination = response.data?.pagination || { total: images.length, hasMore: false, count: images.length };
+  
+  console.log('📸 [fetchJobPhotos] Fetched:', { 
+    count: images.length, 
+    offset, 
+    limit, 
+    total: pagination.total,
+    hasMore: pagination.hasMore 
+  });
+  
+  return {
+    photos: images,
+    pagination: {
+      total: pagination.total,
+      hasMore: pagination.hasMore,
+      count: pagination.count
+    }
+  };
 }
 
 /**

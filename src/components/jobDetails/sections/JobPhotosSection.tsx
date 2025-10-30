@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
   Dimensions,
+  FlatList,
   Image,
   Modal,
   Pressable,
@@ -109,7 +110,7 @@ const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
 
   const handleSaveDescription = () => {
     if (photo) {
-      onEdit(photo.id, description);
+      onEdit(String(photo.id), description);
       setEditMode(false);
     }
   };
@@ -125,7 +126,7 @@ const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
             text: 'Supprimer', 
             style: 'destructive',
             onPress: () => {
-              onDelete(photo.id);
+              onDelete(String(photo.id));
               onClose();
             }
           }
@@ -387,6 +388,7 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId }) => 
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<JobPhotoAPI | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false); // ✅ Collapsible state
   
   console.log('📸 [JobPhotosSection] INIT - jobId:', jobId);
   
@@ -398,10 +400,14 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId }) => 
     updatePhotoDescription,
     deletePhoto,
     totalPhotos,
-    refetch
+    refetch,
+    // ✅ Pagination
+    hasMore,
+    loadMore,
+    isLoadingMore
   } = useJobPhotos(jobId);
   
-  console.log('📸 [JobPhotosSection] STATE - photos:', photos?.length || 0, 'isLoading:', isLoading, 'error:', error);
+  console.log('📸 [JobPhotosSection] STATE - photos:', photos?.length || 0, 'isLoading:', isLoading, 'error:', error, 'hasMore:', hasMore);
 
   const handlePhotoSelection = async (photoUri: string) => {
     console.log('🎯 [DEBUG] handlePhotoSelection - REÇU du modal');
@@ -459,57 +465,123 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId }) => 
     return null; // Ne pas afficher la section s'il y a une erreur et aucune photo
   }
 
+  // ✅ Render d'un item de la FlatList (2 colonnes)
+  const renderPhotoItem = ({ item, index }: { item: JobPhotoAPI; index: number }) => {
+    // Prendre 2 photos à la fois pour layout 2 colonnes
+    if (index % 2 !== 0) return null;
+    
+    const photo1 = item;
+    const photo2 = photos[index + 1];
+    
+    return (
+      <View style={{
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: DESIGN_TOKENS.spacing.sm
+      }}>
+        <PhotoItem
+          photo={photo1}
+          onPress={() => handlePhotoPress(photo1)}
+          onEdit={handleEditDescription}
+          onDelete={handleDeletePhoto}
+        />
+        
+        {photo2 && (
+          <PhotoItem
+            photo={photo2}
+            onPress={() => handlePhotoPress(photo2)}
+            onEdit={handleEditDescription}
+            onDelete={handleDeletePhoto}
+          />
+        )}
+        {!photo2 && <View style={{ width: '48%' }} />}
+      </View>
+    );
+  };
+
+  // ✅ Footer pour infinite scroll
+  const renderFooter = () => {
+    if (!isLoadingMore) return null;
+    
+    return (
+      <View style={{ padding: DESIGN_TOKENS.spacing.md, alignItems: 'center' }}>
+        <ActivityIndicator size="small" color={colors.primary} />
+        <Text style={{ marginTop: 8, color: colors.textSecondary, fontSize: 12 }}>
+          Chargement...
+        </Text>
+      </View>
+    );
+  };
+
   return (
     <>
       <Card style={{ padding: DESIGN_TOKENS.spacing.lg }}>
         <VStack gap="md">
-          <SectionHeader 
-            icon="camera-outline" 
-            title="Photos" 
-            badge={totalPhotos > 0 ? totalPhotos.toString() : undefined}
-          />
+          {/* Header avec toggle pour expand/collapse */}
+          <Pressable 
+            onPress={() => setIsExpanded(!isExpanded)}
+            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
+          >
+            <SectionHeader 
+              icon="camera-outline" 
+              title="Photos" 
+              badge={totalPhotos > 0 ? totalPhotos.toString() : undefined}
+            />
+            <Ionicons 
+              name={isExpanded ? "chevron-up-outline" : "chevron-down-outline"} 
+              size={24} 
+              color={colors.textSecondary} 
+            />
+          </Pressable>
           
-          {isLoading && (!Array.isArray(photos) || photos.length === 0) ? (
-            <View style={{
-              padding: DESIGN_TOKENS.spacing.lg,
-              alignItems: 'center'
-            }}>
-              <ActivityIndicator size="large" color={colors.primary} />
-              <Text style={{
-                marginTop: DESIGN_TOKENS.spacing.sm,
-                color: colors.textSecondary,
-                fontSize: 14
+          {/* Contenu conditionnel (sans Collapsible complex) */}
+          {isExpanded && (
+            <>
+              {isLoading && (!Array.isArray(photos) || photos.length === 0) ? (
+              <View style={{
+                padding: DESIGN_TOKENS.spacing.lg,
+                alignItems: 'center'
               }}>
-                Chargement des photos...
+                <ActivityIndicator size="large" color={colors.primary} />
+                <Text style={{
+                  marginTop: DESIGN_TOKENS.spacing.sm,
+                  color: colors.textSecondary,
+                  fontSize: 14
+                }}>
+                  Chargement des photos...
+                </Text>
+              </View>
+            ) : Array.isArray(photos) && photos.length > 0 ? (
+              <FlatList
+                data={photos}
+                renderItem={renderPhotoItem}
+                keyExtractor={(item) => String(item.id)}
+                numColumns={1}
+                scrollEnabled={false} // Désactiver scroll interne (on scroll la page parente)
+                onEndReached={() => {
+                  console.log('📸 [FlatList] onEndReached - hasMore:', hasMore, 'isLoadingMore:', isLoadingMore);
+                  if (hasMore && !isLoadingMore) {
+                    loadMore();
+                  }
+                }}
+                onEndReachedThreshold={0.5} // Charger quand on atteint 50% de la fin
+                ListFooterComponent={renderFooter}
+                contentContainerStyle={{
+                  paddingBottom: DESIGN_TOKENS.spacing.sm
+                }}
+              />
+            ) : (
+              <Text style={{
+                fontSize: 14,
+                color: colors.textSecondary,
+                fontStyle: 'italic',
+                textAlign: 'center',
+                paddingVertical: DESIGN_TOKENS.spacing.lg
+              }}>
+                Aucune photo pour le moment
               </Text>
-            </View>
-          ) : Array.isArray(photos) && photos.length > 0 ? (
-            <View style={{
-              flexDirection: 'row',
-              flexWrap: 'wrap',
-              justifyContent: 'space-between',
-              gap: DESIGN_TOKENS.spacing.sm
-            }}>
-              {photos.map((photo, index) => (
-                <PhotoItem
-                  key={photo.id}
-                  photo={photo}
-                  onPress={() => handlePhotoPress(photo)}
-                  onEdit={handleEditDescription}
-                  onDelete={handleDeletePhoto}
-                />
-              ))}
-            </View>
-          ) : (
-            <Text style={{
-              fontSize: 14,
-              color: colors.textSecondary,
-              fontStyle: 'italic',
-              textAlign: 'center',
-              paddingVertical: DESIGN_TOKENS.spacing.lg
-            }}>
-              Aucune photo pour le moment
-            </Text>
+            )}
+            </>
           )}
           
           {/* Bouton Ajouter une photo */}

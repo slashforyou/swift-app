@@ -53,6 +53,10 @@ interface UseJobPhotosReturn {
   getPhotoUrl: (photoId: string) => Promise<string | null>;
   totalPhotos: number;
   schedulePhotoSync: () => void; // ✅ Fonction pour retry upload des photos locales
+  // ✅ Pagination
+  hasMore: boolean;
+  loadMore: () => Promise<void>;
+  isLoadingMore: boolean;
 }
 
 export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
@@ -61,6 +65,12 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
   const [error, setError] = useState<string | null>(null);
   const [localUploadStatuses, setLocalUploadStatuses] = useState<Map<string, PhotoUploadStatus>>(new Map());
   const { profile } = useUserProfile();
+  
+  // ✅ Pagination state
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [currentOffset, setCurrentOffset] = useState(0);
+  const PHOTOS_PER_PAGE = 8;
 
   // ✅ Essayer d'obtenir le JobStateProvider (optionnel, peut être undefined si hors provider)
   let jobStateContext: ReturnType<typeof useJobState> | undefined;
@@ -98,8 +108,8 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
       : Array.from(localUploadStatuses.entries())
   );
 
-  const fetchPhotos = useCallback(async () => {
-    console.log('📸 [useJobPhotos] fetchPhotos - DÉBUT - jobId:', jobId);
+  const fetchPhotos = useCallback(async (reset: boolean = true) => {
+    console.log('📸 [useJobPhotos] fetchPhotos - DÉBUT - jobId:', jobId, 'reset:', reset);
     
     if (!jobId) {
       console.log('📸 [useJobPhotos] Pas de jobId, retour');
@@ -109,7 +119,10 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
     }
 
     try {
-      setIsLoading(true);
+      if (reset) {
+        setIsLoading(true);
+        setCurrentOffset(0);
+      }
       setError(null);
       
       console.log('📸 [useJobPhotos] Vérification connexion...');
@@ -125,14 +138,25 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
       console.log('✅ [useJobPhotos] Connecté, fetch API...');
       // Essayer l'API réelle
       try {
-        const apiPhotos = await fetchJobPhotos(jobId);
-        console.log('✅ [useJobPhotos] API photos reçues:', apiPhotos?.length || 0);
-        setPhotos(apiPhotos);
+        const offset = reset ? 0 : currentOffset;
+        const result = await fetchJobPhotos(jobId, { limit: PHOTOS_PER_PAGE, offset });
+        
+        console.log('✅ [useJobPhotos] API photos reçues:', result.photos.length, 'hasMore:', result.pagination.hasMore);
+        
+        if (reset) {
+          setPhotos(result.photos);
+        } else {
+          setPhotos(prev => [...prev, ...result.photos]);
+        }
+        
+        setHasMore(result.pagination.hasMore);
+        setCurrentOffset(offset + result.photos.length);
       } catch (fetchError) {
         console.log('📸 [useJobPhotos] API photos endpoint not available, loading from local storage');
         const localPhotos = await getLocalPhotos(jobId);
         console.log('📸 [useJobPhotos] Photos locales:', localPhotos?.length || 0);
         setPhotos(localPhotos);
+        setHasMore(false);
         
         if (localPhotos.length === 0) {
           setError('Aucune photo disponible pour ce job.');
@@ -151,15 +175,33 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
         setError(`Erreur lors du chargement des photos: ${errorMessage}`);
       }
       setPhotos([]);
+      setHasMore(false);
     } finally {
       setIsLoading(false);
       console.log('📸 [useJobPhotos] fetchPhotos - FIN');
     }
-  }, [jobId]);
+  }, [jobId, currentOffset, PHOTOS_PER_PAGE]);
 
   const refetch = useCallback(async () => {
-    await fetchPhotos();
+    await fetchPhotos(true); // Reset = true pour recharger depuis le début
   }, [fetchPhotos]);
+
+  // ✅ Charger 8 photos supplémentaires
+  const loadMore = useCallback(async () => {
+    if (isLoadingMore || !hasMore) {
+      console.log('📸 [loadMore] Skipping - isLoadingMore:', isLoadingMore, 'hasMore:', hasMore);
+      return;
+    }
+    
+    console.log('📸 [loadMore] Loading more photos from offset:', currentOffset);
+    setIsLoadingMore(true);
+    
+    try {
+      await fetchPhotos(false); // Reset = false pour ajouter à la suite
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [fetchPhotos, isLoadingMore, hasMore, currentOffset]);
 
   const uploadPhotoCallback = useCallback(async (photoUri: string, description?: string): Promise<JobPhotoAPI | null> => {
     console.log('📤 [DEBUG useJobPhotos] uploadPhotoCallback - DÉBUT');
@@ -203,7 +245,7 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
       
       console.log('✅ [DEBUG] ÉTAPE 3: Success (API)');
       // ✅ ÉTAPE 3: Success (API)
-      setUploadStatus(newPhoto.id, {
+      setUploadStatus(String(newPhoto.id), {
         status: 'success',
         progress: 100,
         isLocal: false,
@@ -221,12 +263,12 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
       setTimeout(() => {
         if (jobStateContext) {
           jobStateContext.removeUploadStatus(photoKey);
-          jobStateContext.removeUploadStatus(newPhoto.id);
+          jobStateContext.removeUploadStatus(String(newPhoto.id));
         } else {
           setLocalUploadStatuses(prev => {
             const newMap = new Map(prev);
             newMap.delete(photoKey);
-            newMap.delete(newPhoto.id);
+            newMap.delete(String(newPhoto.id));
             return newMap;
           });
         }
@@ -259,7 +301,7 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
         
         console.log('💾 [DEBUG] ÉTAPE 3b: Local (pas uploadé au serveur)');
         // ✅ ÉTAPE 3b: Local (pas uploadé au serveur)
-        setUploadStatus(localPhoto.id, {
+        setUploadStatus(String(localPhoto.id), {
           status: 'local',
           progress: 100,
           isLocal: true,
@@ -390,7 +432,7 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
           return;
         }
         
-        const localPhotos = photos.filter(p => p?.id?.startsWith('local-'));
+        const localPhotos = photos.filter(p => String(p?.id).startsWith('local-'));
         
         if (localPhotos.length > 0) {
           console.log(`📸 Retrying upload for ${localPhotos.length} local photos`);
@@ -408,7 +450,7 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
 
   useEffect(() => {
     console.log('📸 [useJobPhotos] useEffect triggered - jobId:', jobId);
-    fetchPhotos();
+    fetchPhotos(true); // Initial load
   }, [jobId]); // ✅ FIXED: Ne dépendre QUE de jobId, pas de fetchPhotos (sinon boucle infinie)
 
   const totalPhotos = photos.length;
@@ -426,5 +468,9 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
     getPhotoUrl: getPhotoUrlCallback,
     schedulePhotoSync, // ✅ Ajouté
     totalPhotos,
+    // ✅ Pagination
+    hasMore,
+    loadMore,
+    isLoadingMore,
   };
 };
