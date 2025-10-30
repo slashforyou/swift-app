@@ -276,7 +276,7 @@ const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
           <Image
             source={{ 
               uri: photo.url 
-                ? photo.url  // ✅ PRIORITÉ 1: Signed URL from backend
+                ? photo.url.replace(/\/\/uploads\//g, '/uploads/')  // ✅ PRIORITÉ 1: Signed URL (avec workaround double slash)
                 : String(photo.id).startsWith('local-') 
                   ? photo.filename  // ✅ PRIORITÉ 2: Photo locale
                   : (() => {
@@ -404,7 +404,9 @@ const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete 
   const photoUrl = React.useMemo(() => {
     // ✅ PRIORITÉ 1: Si le backend a renvoyé une signed URL, l'utiliser
     if (photo.url) {
-      return photo.url;
+      // 🔧 WORKAROUND: Le backend génère parfois des URLs avec double slash (//uploads/)
+      // On corrige ici en attendant le fix backend
+      return photo.url.replace(/\/\/uploads\//g, '/uploads/');
     }
     
     // ✅ PRIORITÉ 2: Photo locale (non uploadée)
