@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Animated,
   Dimensions,
   FlatList,
   Image,
@@ -157,6 +158,10 @@ const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
   const [description, setDescription] = useState('');
   const screenWidth = Dimensions.get('window').width;
   
+  // État pour le zoom
+  const [isZoomed, setIsZoomed] = useState(false);
+  const scaleAnim = React.useRef(new Animated.Value(1)).current;
+  
   React.useEffect(() => {
     if (photo) {
       setDescription(photo.description || '');
@@ -168,6 +173,28 @@ const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
       onEdit(String(photo.id), description);
       setEditMode(false);
     }
+  };
+  
+  const handleDoubleTap = () => {
+    const toValue = isZoomed ? 1 : 2.5;
+    setIsZoomed(!isZoomed);
+    
+    Animated.spring(scaleAnim, {
+      toValue,
+      useNativeDriver: true,
+      friction: 7,
+    }).start();
+  };
+  
+  let lastTap = 0;
+  const handleImagePress = () => {
+    const now = Date.now();
+    const DOUBLE_TAP_DELAY = 300;
+    
+    if (now - lastTap < DOUBLE_TAP_DELAY) {
+      handleDoubleTap();
+    }
+    lastTap = now;
   };
 
   const handleDelete = () => {
@@ -272,28 +299,48 @@ const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
             </HStack>
           </View>
 
-          {/* Image */}
-          <Image
-            source={{ 
-              uri: photo.url 
-                ? photo.url.replace(/\/\/uploads\//g, '/uploads/')  // ✅ PRIORITÉ 1: Signed URL (avec workaround double slash)
-                : String(photo.id).startsWith('local-') 
-                  ? photo.filename  // ✅ PRIORITÉ 2: Photo locale
-                  : (() => {
-                      // ⚠️ FALLBACK: Nettoyer le path pour éviter les doubles slashes
-                      const path = (photo.filename || photo.filePath || photo.file_path || '').replace(/^\/+/, '');
-                      return `https://storage.googleapis.com/swift-images/${path}`;
-                    })()
-            }}
-            style={{
-              width: screenWidth - 40,
-              height: screenWidth - 40,
-              borderRadius: DESIGN_TOKENS.radius.lg,
-              marginVertical: 60
-            }}
-            resizeMode="contain"
-            onError={(error) => console.error('❌ [PhotoViewModal] Image load error:', error.nativeEvent.error)}
-          />
+          {/* Image avec zoom (double-tap) */}
+          <Pressable onPress={handleImagePress}>
+            <Animated.Image
+              source={{ 
+                uri: photo.url 
+                  ? photo.url.replace(/\/\/uploads\//g, '/uploads/')  // ✅ PRIORITÉ 1: Signed URL (avec workaround double slash)
+                  : String(photo.id).startsWith('local-') 
+                    ? photo.filename  // ✅ PRIORITÉ 2: Photo locale
+                    : (() => {
+                        // ⚠️ FALLBACK: Nettoyer le path pour éviter les doubles slashes
+                        const path = (photo.filename || photo.filePath || photo.file_path || '').replace(/^\/+/, '');
+                        return `https://storage.googleapis.com/swift-images/${path}`;
+                      })()
+              }}
+              style={{
+                width: screenWidth - 40,
+                height: screenWidth - 40,
+                borderRadius: DESIGN_TOKENS.radius.lg,
+                marginVertical: 60,
+                transform: [{ scale: scaleAnim }]
+              }}
+              resizeMode="contain"
+              onError={(error) => console.error('❌ [PhotoViewModal] Image load error:', error.nativeEvent.error)}
+            />
+          </Pressable>
+          
+          {/* Indicateur de zoom */}
+          {isZoomed && (
+            <View style={{
+              position: 'absolute',
+              top: 100,
+              alignSelf: 'center',
+              backgroundColor: 'rgba(0,0,0,0.7)',
+              paddingHorizontal: 12,
+              paddingVertical: 6,
+              borderRadius: 16
+            }}>
+              <Text style={{ color: 'white', fontSize: 12 }}>
+                Double-tap pour dézoomer
+              </Text>
+            </View>
+          )}
 
           {/* Description */}
           <View style={{
@@ -487,12 +534,14 @@ const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete 
             </Text>
           </View>
         ) : (
-          <Image
-            source={{ uri: photoUrl }}
-            style={{ width: '100%', height: 140, backgroundColor: colors.border }}
-            resizeMode="contain"
-            onError={handleImageError}
-          />
+          <View style={{ width: '100%', aspectRatio: 1, backgroundColor: colors.border }}>
+            <Image
+              source={{ uri: photoUrl }}
+              style={{ width: '100%', height: '100%' }}
+              resizeMode="contain"
+              onError={handleImageError}
+            />
+          </View>
         )}
         
         {/* Info section */}
