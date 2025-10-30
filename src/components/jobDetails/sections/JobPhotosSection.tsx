@@ -393,11 +393,17 @@ const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete 
   const photoId = String(photo.id);
   const isLocalPhoto = photoId.startsWith('local-');
   
+  // Vérifier si le fichier est une image valide
+  const isValidImageFile = React.useMemo(() => {
+    const filename = (photo.filename || '').toLowerCase();
+    const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'];
+    return validExtensions.some(ext => filename.endsWith(ext));
+  }, [photo.filename]);
+  
   // Construire l'URL de la photo
   const photoUrl = React.useMemo(() => {
     // ✅ PRIORITÉ 1: Si le backend a renvoyé une signed URL, l'utiliser
     if (photo.url) {
-      console.log('🔐 [PhotoItem] Using signed URL from backend:', { id: photo.id, hasSignature: photo.url.includes('X-Goog-Signature') });
       return photo.url;
     }
     
@@ -410,23 +416,24 @@ const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete 
     // Note: Nettoyer le path pour éviter les doubles slashes
     const path = (photo.filename || photo.filePath || photo.file_path || '').replace(/^\/+/, ''); // Enlever les / au début
     const gcsUrl = `https://storage.googleapis.com/swift-images/${path}`;
-    console.warn('⚠️ [PhotoItem] No signed URL from backend, using direct GCS URL (will fail if bucket is private):', { id: photo.id, url: gcsUrl });
     return gcsUrl;
   }, [photo.url, isLocalPhoto, photo.filename, photo.filePath, photo.file_path, photo.id]);
   
   const handleImageError = React.useCallback((error: any) => {
     if (!imageError) {
       setImageError(true);
-      console.error('❌ [PhotoItem] Image load error:', JSON.stringify({ 
-        id: photo.id, 
-        url: photoUrl, 
-        errorMessage: error?.nativeEvent?.error || 'Unknown error',
-        errorObject: error?.nativeEvent || error,
-        hasSignedUrl: photo.url ? 'YES' : 'NO',
-        filename: photo.filename
-      }, null, 2));
+      // Log silencieux pour ne pas polluer la console avec des erreurs connues
+      const errorMsg = error?.nativeEvent?.error || 'Unknown error';
+      if (errorMsg !== 'Problem decoding into existing bitmap' && errorMsg !== 'unknown image format') {
+        console.error('❌ [PhotoItem] Image load error:', JSON.stringify({ 
+          id: photo.id, 
+          url: photoUrl, 
+          errorMessage: errorMsg,
+          filename: photo.filename
+        }, null, 2));
+      }
     }
-  }, [imageError, photo.id, photoUrl, photo.url, photo.filename]);
+  }, [imageError, photo.id, photoUrl, photo.filename]);
   
   const handleSaveDescription = () => {
     onEdit(photoId, editDescription);
@@ -453,13 +460,38 @@ const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete 
           marginBottom: DESIGN_TOKENS.spacing.sm,
         }}
       >
-        {/* Image */}
-        <Image
-          source={{ uri: photoUrl }}
-          style={{ width: '100%', height: 140 }}
-          resizeMode="cover"
-          onError={handleImageError}
-        />
+        {/* Image avec fallback */}
+        {!isValidImageFile || imageError ? (
+          <View style={{
+            width: '100%',
+            height: 140,
+            backgroundColor: colors.border,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}>
+            <Ionicons 
+              name={!isValidImageFile ? "document-outline" : "image-outline"} 
+              size={48} 
+              color={colors.textSecondary} 
+            />
+            <Text style={{ 
+              fontSize: 11, 
+              color: colors.textSecondary, 
+              marginTop: 8,
+              textAlign: 'center',
+              paddingHorizontal: 8
+            }}>
+              {!isValidImageFile ? 'Fichier non-image' : 'Erreur chargement'}
+            </Text>
+          </View>
+        ) : (
+          <Image
+            source={{ uri: photoUrl }}
+            style={{ width: '100%', height: 140 }}
+            resizeMode="cover"
+            onError={handleImageError}
+          />
+        )}
         
         {/* Info section */}
         <View style={{
