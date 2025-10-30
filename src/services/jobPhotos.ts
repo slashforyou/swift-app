@@ -203,7 +203,10 @@ export async function fetchJobPhotos(
   const limit = options?.limit ?? 8;
   const offset = options?.offset ?? 0;
   
-  const res = await fetch(`${API}v1/job/${jobId}/images?limit=${limit}&offset=${offset}`, {
+  const url = `${API}v1/job/${jobId}/images?limit=${limit}&offset=${offset}`;
+  console.log('📸 [fetchJobPhotos] REQUEST - URL:', url, 'limit:', limit, 'offset:', offset);
+  
+  const res = await fetch(url, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -218,17 +221,25 @@ export async function fetchJobPhotos(
 
   const response = await res.json();
   
+  console.log('📸 [fetchJobPhotos] RAW RESPONSE:', JSON.stringify({
+    success: response.success,
+    dataImages: response.data?.images?.length || 0,
+    dataPagination: response.data?.pagination,
+    topLevelImages: response.images?.length || 0
+  }, null, 2));
+  
   // API retourne: { success: true, data: { images: [...], pagination: {...} } }
   const images = response.data?.images || response.images || [];
   const pagination = response.data?.pagination || { total: images.length, hasMore: false, count: images.length };
   
-  console.log('📸 [fetchJobPhotos] Fetched:', { 
-    count: images.length, 
-    offset, 
-    limit, 
-    total: pagination.total,
-    hasMore: pagination.hasMore 
-  });
+  console.log('📸 [fetchJobPhotos] PARSED RESULT:', JSON.stringify({ 
+    photosCount: images.length, 
+    requestedLimit: limit,
+    requestedOffset: offset, 
+    totalInDB: pagination.total,
+    hasMore: pagination.hasMore,
+    paginationCount: pagination.count
+  }, null, 2));
   
   return {
     photos: images,

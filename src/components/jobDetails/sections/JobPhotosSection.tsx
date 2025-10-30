@@ -336,9 +336,16 @@ const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete 
   const handleImageError = React.useCallback((error: any) => {
     if (!imageError) {
       setImageError(true);
-      console.error('❌ [PhotoItem] Image load error:', { id: photo.id, url: photoUrl, error: error.nativeEvent.error });
+      console.error('❌ [PhotoItem] Image load error:', JSON.stringify({ 
+        id: photo.id, 
+        url: photoUrl, 
+        errorMessage: error?.nativeEvent?.error || 'Unknown error',
+        errorObject: error?.nativeEvent || error,
+        hasSignedUrl: photo.url ? 'YES' : 'NO',
+        filename: photo.filename
+      }, null, 2));
     }
-  }, [imageError, photo.id, photoUrl]);
+  }, [imageError, photo.id, photoUrl, photo.url, photo.filename]);
   
   return (
     <Pressable

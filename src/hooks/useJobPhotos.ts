@@ -70,6 +70,7 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [currentOffset, setCurrentOffset] = useState(0);
+  const [totalPhotos, setTotalPhotos] = useState<number>(0); // ✅ Total from backend
   const PHOTOS_PER_PAGE = 8;
 
   // ✅ Essayer d'obtenir le JobStateProvider (optionnel, peut être undefined si hors provider)
@@ -149,6 +150,8 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
           setPhotos(prev => [...prev, ...result.photos]);
         }
         
+        // ✅ Update total from backend (fixes badge issue)
+        setTotalPhotos(result.pagination.total);
         setHasMore(result.pagination.hasMore);
         setCurrentOffset(offset + result.photos.length);
       } catch (fetchError) {
@@ -453,7 +456,7 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
     fetchPhotos(true); // Initial load
   }, [jobId]); // ✅ FIXED: Ne dépendre QUE de jobId, pas de fetchPhotos (sinon boucle infinie)
 
-  const totalPhotos = photos.length;
+  // totalPhotos est maintenant un state qui vient du backend (ligne 73)
 
   return {
     photos,
@@ -467,7 +470,7 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
     deletePhoto: deletePhotoCallback,
     getPhotoUrl: getPhotoUrlCallback,
     schedulePhotoSync, // ✅ Ajouté
-    totalPhotos,
+    totalPhotos, // ✅ From backend pagination.total
     // ✅ Pagination
     hasMore,
     loadMore,
