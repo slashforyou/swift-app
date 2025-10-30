@@ -534,11 +534,11 @@ const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete 
             </Text>
           </View>
         ) : (
-          <View style={{ width: '100%', aspectRatio: 1, backgroundColor: colors.border }}>
+          <View style={{ width: '100%', aspectRatio: 1, backgroundColor: colors.border, overflow: 'hidden' }}>
             <Image
               source={{ uri: photoUrl }}
               style={{ width: '100%', height: '100%' }}
-              resizeMode="contain"
+              resizeMode="cover"
               onError={handleImageError}
             />
           </View>
