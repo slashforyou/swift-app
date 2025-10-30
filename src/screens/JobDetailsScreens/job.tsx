@@ -16,28 +16,21 @@ import { addJobItem, updateJobItem } from '../../services/jobs';
 
 // Fonction pour extraire l'ID numérique depuis un ID job de format JOB-NERD-URGENT-006
 const extractNumericJobId = (jobId: string): string => {
-    console.log('🔍 [extractNumericJobId] Input:', jobId);
-    
     if (!jobId) {
-        console.log('❌ [extractNumericJobId] Empty jobId, returning empty string');
         return '';
     }
     
     // Si c'est déjà numérique, retourner tel quel
     if (/^\d+$/.test(jobId)) {
-        console.log('✅ [extractNumericJobId] Already numeric:', jobId);
         return jobId;
     }
     
     // Extraire les chiffres à la fin (ex: JOB-NERD-URGENT-006 -> 006 -> 6)
     const match = jobId.match(/(\d+)$/);
     if (match) {
-        const result = parseInt(match[1], 10).toString(); // Convertir 006 -> 6
-        console.log('✅ [extractNumericJobId] Extracted:', result, 'from', jobId);
-        return result;
+        return parseInt(match[1], 10).toString(); // Convertir 006 -> 6
     }
     
-    console.warn(`❌ [extractNumericJobId] Could not extract numeric ID from: ${jobId}`);
     return jobId; // Fallback
 };
 
@@ -571,6 +564,9 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
     const [showAddItemModal, setShowAddItemModal] = useState(false);
     const [syncingItems, setSyncingItems] = useState<Set<string>>(new Set());
     
+    // Mémoïser l'extraction de l'ID numérique pour éviter les appels répétés
+    const numericJobId = React.useMemo(() => extractNumericJobId(job.id), [job.id]);
+    
     const handleItemToggle = async (itemIndex: number, checked: boolean) => {
         const updatedJob = { ...job };
         if (!updatedJob.items || !updatedJob.items[itemIndex]) {
@@ -586,8 +582,6 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
 
         // Synchroniser avec l'API si l'item a un ID et n'est pas temporaire
         if (item.id && !item.isTemp) {
-            const numericJobId = extractNumericJobId(job.id);
-            
             console.log(`[handleItemToggle] DEBUG - Item structure:`, JSON.stringify(item, null, 2));
             console.log(`[handleItemToggle] DEBUG - itemIndex: ${itemIndex}, item.id: "${item.id}" (type: ${typeof item.id})`);
             console.log(`[handleItemToggle] Job ID: ${numericJobId}, Item ID: ${item.id}`);
@@ -622,8 +616,6 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
 
         // Synchroniser avec l'API si l'item a un ID et n'est pas temporaire
         if (item.id && !item.isTemp) {
-            const numericJobId = extractNumericJobId(job.id);
-            
             console.log(`[handleQuantitySync] DEBUG - Item structure:`, JSON.stringify(item, null, 2));
             console.log(`[handleQuantitySync] DEBUG - itemIndex: ${itemIndex}, item.id: "${item.id}" (type: ${typeof item.id})`);
             console.log(`[handleQuantitySync] Job ID: ${numericJobId}, Item ID: ${item.id}, Quantity: ${completedQuantity}`);
@@ -665,7 +657,6 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
 
     const handleAddItem = async (name: string, quantity: number) => {
         try {
-            const numericJobId = extractNumericJobId(job.id);
             console.log(`[handleAddItem] Using numeric job ID: ${numericJobId} (from ${job.id})`);
             
             await addJobItem(numericJobId, { name, quantity });
@@ -793,7 +784,7 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
                 </Card>
 
                 {/* Photos Section */}
-                <JobPhotosSection jobId={extractNumericJobId(job.id)} />
+                <JobPhotosSection jobId={numericJobId} />
 
                 {/* Job Information */}
                 <Card style={{ padding: DESIGN_TOKENS.spacing.lg }}>
