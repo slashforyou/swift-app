@@ -306,18 +306,25 @@ const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
 
 const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete }) => {
   const { colors } = useCommonThemedStyles();
+  const [imageError, setImageError] = React.useState(false);
   
   // Convertir l'ID en string pour vérifier si c'est une photo locale
   const photoId = String(photo.id);
   const isLocalPhoto = photoId.startsWith('local-');
   
   // Construire l'URL de la photo
-  // Les photos uploadées ont un filePath relatif qu'on combine avec le serveur
-  const photoUrl = isLocalPhoto
-    ? photo.filename // Photo locale (URI file://)
-    : `https://storage.googleapis.com/swift-images/${photo.filename || photo.filePath || photo.file_path || ''}`; // Photo serveur (Google Cloud Storage)
+  const photoUrl = React.useMemo(() => {
+    return isLocalPhoto
+      ? photo.filename
+      : `https://storage.googleapis.com/swift-images/${photo.filename || photo.filePath || photo.file_path || ''}`;
+  }, [isLocalPhoto, photo.filename, photo.filePath, photo.file_path]);
   
-  console.log('🖼️ [PhotoItem] Photo:', { id: photo.id, filename: photo.filename, url: photoUrl });
+  const handleImageError = React.useCallback((error: any) => {
+    if (!imageError) {
+      setImageError(true);
+      console.error('❌ [PhotoItem] Image load error:', { id: photo.id, url: photoUrl, error: error.nativeEvent.error });
+    }
+  }, [imageError, photo.id, photoUrl]);
   
   return (
     <Pressable
@@ -339,7 +346,7 @@ const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete 
         source={{ uri: photoUrl }}
         style={{ width: '100%', height: '70%' }}
         resizeMode="cover"
-        onError={(error) => console.error('❌ [PhotoItem] Image load error:', error.nativeEvent.error)}
+        onError={handleImageError}
       />
       
       <View style={{

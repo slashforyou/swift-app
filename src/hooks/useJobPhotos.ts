@@ -409,7 +409,7 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
   useEffect(() => {
     console.log('📸 [useJobPhotos] useEffect triggered - jobId:', jobId);
     fetchPhotos();
-  }, [fetchPhotos]);
+  }, [jobId]); // ✅ FIXED: Ne dépendre QUE de jobId, pas de fetchPhotos (sinon boucle infinie)
 
   const totalPhotos = photos.length;
 
