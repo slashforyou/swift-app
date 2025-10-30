@@ -306,6 +306,15 @@ const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
 const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete }) => {
   const { colors } = useCommonThemedStyles();
   
+  // Convertir l'ID en string pour vérifier si c'est une photo locale
+  const photoId = String(photo.id);
+  const isLocalPhoto = photoId.startsWith('local-');
+  
+  // Construire l'URL de la photo
+  const photoUrl = isLocalPhoto
+    ? photo.filename // Photo locale (URI file://)
+    : `https://altivo.fr/swift-app/v1/photos/${photoId}/serve`; // Photo serveur
+  
   return (
     <Pressable
       onPress={onPress}
@@ -323,11 +332,7 @@ const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete 
       }}
     >
       <Image
-        source={{ 
-          uri: photo.id.startsWith('local-') 
-            ? photo.filename 
-            : `https://altivo.fr/swift-app/v1/photos/${photo.id}/serve`
-        }}
+        source={{ uri: photoUrl }}
         style={{ width: '100%', height: '70%' }}
         resizeMode="cover"
       />
