@@ -11,6 +11,9 @@ export interface JobPhotoAPI {
   filename: string;
   filePath?: string;    // Chemin relatif dans Google Cloud Storage
   file_path?: string;   // Alias snake_case
+  url?: string;         // ✅ Signed URL from backend (si disponible)
+  signedUrl?: string;   // ✅ Alias pour signed URL
+  expiresAt?: string;   // ✅ Date d'expiration de la signed URL
   original_name?: string;
   originalFilename?: string;  // Alias camelCase
   description?: string;

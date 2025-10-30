@@ -314,10 +314,23 @@ const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete 
   
   // Construire l'URL de la photo
   const photoUrl = React.useMemo(() => {
-    return isLocalPhoto
-      ? photo.filename
-      : `https://storage.googleapis.com/swift-images/${photo.filename || photo.filePath || photo.file_path || ''}`;
-  }, [isLocalPhoto, photo.filename, photo.filePath, photo.file_path]);
+    // ✅ PRIORITÉ 1: Si le backend a renvoyé une signed URL, l'utiliser
+    if (photo.url) {
+      console.log('🔐 [PhotoItem] Using signed URL from backend:', { id: photo.id, hasSignature: photo.url.includes('X-Goog-Signature') });
+      return photo.url;
+    }
+    
+    // ✅ PRIORITÉ 2: Photo locale (non uploadée)
+    if (isLocalPhoto) {
+      return photo.filename;
+    }
+    
+    // ⚠️ FALLBACK: URL publique GCS (ne marchera que si bucket public)
+    // Note: Ce fallback échouera si le bucket n'est pas public (erreur 403)
+    const gcsUrl = `https://storage.googleapis.com/swift-images/${photo.filename || photo.filePath || photo.file_path || ''}`;
+    console.warn('⚠️ [PhotoItem] No signed URL from backend, using direct GCS URL (will fail if bucket is private):', { id: photo.id, url: gcsUrl });
+    return gcsUrl;
+  }, [photo.url, isLocalPhoto, photo.filename, photo.filePath, photo.file_path, photo.id]);
   
   const handleImageError = React.useCallback((error: any) => {
     if (!imageError) {
