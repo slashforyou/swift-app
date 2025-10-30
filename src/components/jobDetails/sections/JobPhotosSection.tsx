@@ -279,7 +279,11 @@ const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
                 ? photo.url  // ✅ PRIORITÉ 1: Signed URL from backend
                 : String(photo.id).startsWith('local-') 
                   ? photo.filename  // ✅ PRIORITÉ 2: Photo locale
-                  : `https://storage.googleapis.com/swift-images/${photo.filename || photo.filePath || photo.file_path || ''}`  // ⚠️ Fallback
+                  : (() => {
+                      // ⚠️ FALLBACK: Nettoyer le path pour éviter les doubles slashes
+                      const path = (photo.filename || photo.filePath || photo.file_path || '').replace(/^\/+/, '');
+                      return `https://storage.googleapis.com/swift-images/${path}`;
+                    })()
             }}
             style={{
               width: screenWidth - 40,
@@ -403,8 +407,9 @@ const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete 
     }
     
     // ⚠️ FALLBACK: URL publique GCS (ne marchera que si bucket public)
-    // Note: Ce fallback échouera si le bucket n'est pas public (erreur 403)
-    const gcsUrl = `https://storage.googleapis.com/swift-images/${photo.filename || photo.filePath || photo.file_path || ''}`;
+    // Note: Nettoyer le path pour éviter les doubles slashes
+    const path = (photo.filename || photo.filePath || photo.file_path || '').replace(/^\/+/, ''); // Enlever les / au début
+    const gcsUrl = `https://storage.googleapis.com/swift-images/${path}`;
     console.warn('⚠️ [PhotoItem] No signed URL from backend, using direct GCS URL (will fail if bucket is private):', { id: photo.id, url: gcsUrl });
     return gcsUrl;
   }, [photo.url, isLocalPhoto, photo.filename, photo.filePath, photo.file_path, photo.id]);
@@ -609,8 +614,6 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId }) => 
   const [showViewModal, setShowViewModal] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false); // ✅ Collapsible state
   
-  console.log('📸 [JobPhotosSection] INIT - jobId:', jobId);
-  
   const {
     photos,
     isLoading,
@@ -625,8 +628,6 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId }) => 
     loadMore,
     isLoadingMore
   } = useJobPhotos(jobId);
-  
-  console.log('📸 [JobPhotosSection] STATE - photos:', photos?.length || 0, 'isLoading:', isLoading, 'error:', error, 'hasMore:', hasMore);
 
   const handlePhotoSelection = async (photoUri: string) => {
     console.log('🎯 [DEBUG] handlePhotoSelection - REÇU du modal');
