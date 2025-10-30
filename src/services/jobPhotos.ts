@@ -5,19 +5,37 @@ import { getAuthHeaders } from '../utils/auth';
 const API = ServerData.serverUrl;
 
 export interface JobPhotoAPI {
-  id: string;
-  job_id: string;
-  user_id: string;
+  id: string | number;  // L'API retourne des numbers
+  job_id?: string;
+  user_id?: string;
   filename: string;
-  original_name: string;
+  filePath?: string;    // Chemin relatif dans Google Cloud Storage
+  file_path?: string;   // Alias snake_case
+  original_name?: string;
+  originalFilename?: string;  // Alias camelCase
   description?: string;
-  file_size: number;
-  mime_type: string;
+  file_size?: number;
+  fileSize?: number;    // Alias camelCase
+  mime_type?: string;
+  mimeType?: string;    // Alias camelCase
   width?: number;
   height?: number;
-  created_at: string;
-  updated_at: string;
+  dimensions?: { width: number | null; height: number | null };
+  type?: string;        // before, after, other, etc.
+  stage?: string;       // pickup, delivery, etc.
+  isPublic?: boolean;
+  hasThumbnail?: boolean;
+  thumbnailPath?: string | null;
+  location?: any;
+  capturedAt?: string;
+  created_at?: string;
+  createdAt?: string;   // Alias camelCase
+  updated_at?: string;
+  updatedAt?: string;   // Alias camelCase
   deleted_at?: string;
+  user?: { id: number; name: string };
+  tags?: any[];
+  metadata?: any;
 }
 
 export interface CreatePhotoRequest {

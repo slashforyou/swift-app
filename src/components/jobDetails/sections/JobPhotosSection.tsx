@@ -219,9 +219,9 @@ const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
           {/* Image */}
           <Image
             source={{ 
-              uri: photo.id.startsWith('local-') 
+              uri: String(photo.id).startsWith('local-') 
                 ? photo.filename 
-                : `https://altivo.fr/swift-app/v1/photos/${photo.id}/serve`
+                : `https://storage.googleapis.com/swift-images/${photo.filename || photo.filePath || photo.file_path || ''}`
             }}
             style={{
               width: screenWidth - 40,
@@ -230,6 +230,7 @@ const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
               marginVertical: 60
             }}
             resizeMode="contain"
+            onError={(error) => console.error('❌ [PhotoViewModal] Image load error:', error.nativeEvent.error)}
           />
 
           {/* Description */}
@@ -311,9 +312,12 @@ const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete 
   const isLocalPhoto = photoId.startsWith('local-');
   
   // Construire l'URL de la photo
+  // Les photos uploadées ont un filePath relatif qu'on combine avec le serveur
   const photoUrl = isLocalPhoto
     ? photo.filename // Photo locale (URI file://)
-    : `https://altivo.fr/swift-app/v1/photos/${photoId}/serve`; // Photo serveur
+    : `https://storage.googleapis.com/swift-images/${photo.filename || photo.filePath || photo.file_path || ''}`; // Photo serveur (Google Cloud Storage)
+  
+  console.log('🖼️ [PhotoItem] Photo:', { id: photo.id, filename: photo.filename, url: photoUrl });
   
   return (
     <Pressable
@@ -335,6 +339,7 @@ const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete 
         source={{ uri: photoUrl }}
         style={{ width: '100%', height: '70%' }}
         resizeMode="cover"
+        onError={(error) => console.error('❌ [PhotoItem] Image load error:', error.nativeEvent.error)}
       />
       
       <View style={{
