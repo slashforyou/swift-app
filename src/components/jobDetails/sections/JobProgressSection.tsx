@@ -1,9 +1,11 @@
 /**
  * JobProgressSection - Section modulaire pour la progression du job
+ * ✅ Synchronisée avec JobTimerContext et système de steps dynamiques
  */
 import React, { useState } from 'react';
 import { Text, View, Pressable, Animated } from 'react-native';
 import { useTheme } from '../../../context/ThemeProvider';
+import { useJobTimerContext } from '../../../context/JobTimerProvider';
 import { DESIGN_TOKENS } from '../../../constants/Styles';
 import SectionCard from '../SectionCard';
 import JobTimeLine from '../../ui/jobPage/jobTimeLine';
@@ -19,6 +21,9 @@ const JobProgressSection: React.FC<JobProgressSectionProps> = ({ job, onAdvanceS
     const { colors } = useTheme();
     const [isExpanded, setIsExpanded] = useState(false); // Rétracté par défaut
     const [rotateAnim] = useState(new Animated.Value(isExpanded ? 1 : 0));
+    
+    // ✅ Récupérer les infos du timer context
+    const { currentStep, totalSteps, isRunning } = useJobTimerContext();
 
     const toggleExpanded = () => {
         setIsExpanded(!isExpanded);
@@ -34,8 +39,11 @@ const JobProgressSection: React.FC<JobProgressSectionProps> = ({ job, onAdvanceS
         outputRange: ['0deg', '180deg'],
     });
 
-    // Utiliser l'utilitaire partagé pour le calcul de progression
-    const progressPercentage = calculateProgressPercentage(job);
+    // ✅ Calculer la progression basée sur le timer context
+    const progressPercentage = React.useMemo(() => {
+        if (totalSteps === 0) return 0;
+        return Math.round((currentStep / totalSteps) * 100);
+    }, [currentStep, totalSteps]);
 
     return (
         <SectionCard level="primary" elevated={true}>

@@ -9,6 +9,7 @@ import JobDetailsHeader from '../components/jobDetails/JobDetailsHeader';
 import TabMenu from '../components/ui/TabMenu';
 import Toast from '../components/ui/toastNotification';
 import { DESIGN_TOKENS } from '../constants/Styles';
+import { getTemplateSteps, JobTemplate } from '../constants/JobSteps';
 import { JobStateProvider } from '../context/JobStateProvider';
 import { JobTimerProvider } from '../context/JobTimerProvider';
 import { useTheme } from '../context/ThemeProvider';
@@ -89,13 +90,15 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
         signatureDataUrl: '',
         signatureFileUri: '',
         step : {
-            actualStep: 1,
+            actualStep: 0, // ✅ Commence à 0 (job pas démarré)
             steps : [
                 { id: 1, name: t('jobDetails.steps.pickup'), description: t('jobDetails.steps.pickupDescription')},
                 { id: 2, name: t('jobDetails.steps.intermediate'), description: t('jobDetails.steps.intermediateDescription')},
                 { id: 3, name: t('jobDetails.steps.dropoff'), description: t('jobDetails.steps.dropoffDescription')},
             ],
         },
+        // ✅ Steps dynamiques du nouveau système
+        steps: getTemplateSteps(JobTemplate.SIMPLE_MOVE), // Template par défaut
         client: {
             firstName: "Client A",
             lastName: "Last Name", 
@@ -222,60 +225,75 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
             });
             
             // Mise à jour des données avec les vraies données de l'API transformées
-            setJob((prevJob: any) => ({
-                ...prevJob,
-                id: jobDetails.job?.id || actualJobId,
-                code: jobDetails.job?.code || actualJobId, // Ajouter le code du job
-                client: {
-                    firstName: jobDetails.client?.firstName || 'Client',
-                    lastName: jobDetails.client?.lastName || 'Inconnu', 
-                    phone: jobDetails.client?.phone || 'N/A',
-                    email: jobDetails.job?.client_email || 'N/A', // Fallback sur job.client_email
-                    type: 'Client', // Pour l'instant on met une valeur par défaut
-                },
-                notes: jobDetails.notes?.map((note: any) => ({
-                    id: parseInt(note.id),
-                    title: note.title || t('jobDetails.defaultNote'),
-                    content: note.content,
-                    createdAt: note.created_at,
-                    type: note.note_type || 0
-                })) || [],
-                truck: jobDetails.trucks?.length > 0 ? {
-                    licensePlate: jobDetails.trucks[0].license_plate,
-                    name: jobDetails.trucks[0].truck_name,
-                } : prevJob.truck,
-                items: jobDetails.items?.map((item: any, index: number) => ({
-                    id: item.id, // Garder l'ID API réel !
-                    name: item.name,
-                    number: item.quantity,
-                    checked: item.is_checked === 1,
-                    item_checked: item.is_checked === 1,
-                })) || [],
-                addresses: jobDetails.addresses && jobDetails.addresses.length > 0 
-                    ? jobDetails.addresses.map((address: any) => ({
-                        id: address.id,
-                        type: address.type,
-                        street: address.street,
-                        city: address.city,
-                        state: address.state,
-                        zip: address.zip,
-                        position: address.position,
-                    }))
-                    : prevJob.addresses, // Fallback sur les adresses par défaut si pas d'adresses API
-                time: {
-                    startWindowStart: jobDetails.job?.start_window_start || prevJob.time.startWindowStart,
-                    startWindowEnd: jobDetails.job?.start_window_end || prevJob.time.startWindowEnd,
-                    endWindowStart: jobDetails.job?.end_window_start || prevJob.time.endWindowStart,
-                    endWindowEnd: jobDetails.job?.end_window_end || prevJob.time.endWindowEnd,
-                },
-                // Ajouter aussi les champs directement sur l'objet pour compatibilité
-                start_window_start: jobDetails.job?.start_window_start,
-                start_window_end: jobDetails.job?.start_window_end,
-                end_window_start: jobDetails.job?.end_window_start,
-                end_window_end: jobDetails.job?.end_window_end
-            }));
-            
-            console.log('✅ [JobDetails] Local job data updated with API data');
+            setJob((prevJob: any) => {
+                // ✅ Déterminer le template de steps basé sur les données du job
+                let jobTemplate = JobTemplate.SIMPLE_MOVE; // Par défaut
+                
+                // TODO: Logique pour déterminer le template depuis l'API
+                // Exemple: if (jobDetails.job?.has_storage) jobTemplate = JobTemplate.WITH_STORAGE;
+                // Exemple: if (jobDetails.addresses?.length > 2) jobTemplate = JobTemplate.MULTI_STOP;
+                
+                const dynamicSteps = getTemplateSteps(jobTemplate);
+                
+                return {
+                    ...prevJob,
+                    id: jobDetails.job?.id || actualJobId,
+                    code: jobDetails.job?.code || actualJobId, // Ajouter le code du job
+                    // ✅ Steps dynamiques basés sur le job
+                    steps: dynamicSteps,
+                    step: {
+                        ...prevJob.step,
+                        actualStep: jobDetails.job?.current_step || prevJob.step?.actualStep || 0,
+                    },
+                    client: {
+                        firstName: jobDetails.client?.firstName || 'Client',
+                        lastName: jobDetails.client?.lastName || 'Inconnu', 
+                        phone: jobDetails.client?.phone || 'N/A',
+                        email: jobDetails.job?.client_email || 'N/A', // Fallback sur job.client_email
+                        type: 'Client', // Pour l'instant on met une valeur par défaut
+                    },
+                    notes: jobDetails.notes?.map((note: any) => ({
+                        id: parseInt(note.id),
+                        title: note.title || t('jobDetails.defaultNote'),
+                        content: note.content,
+                        createdAt: note.created_at,
+                        type: note.note_type || 0
+                    })) || [],
+                    truck: jobDetails.trucks?.length > 0 ? {
+                        licensePlate: jobDetails.trucks[0].license_plate,
+                        name: jobDetails.trucks[0].truck_name,
+                    } : prevJob.truck,
+                    items: jobDetails.items?.map((item: any, index: number) => ({
+                        id: item.id, // Garder l'ID API réel !
+                        name: item.name,
+                        number: item.quantity,
+                        checked: item.is_checked === 1,
+                        item_checked: item.is_checked === 1,
+                    })) || [],
+                    addresses: jobDetails.addresses && jobDetails.addresses.length > 0 
+                        ? jobDetails.addresses.map((address: any) => ({
+                            id: address.id,
+                            type: address.type,
+                            street: address.street,
+                            city: address.city,
+                            state: address.state,
+                            zip: address.zip,
+                            position: address.position,
+                        }))
+                        : prevJob.addresses, // Fallback sur les adresses par défaut si pas d'adresses API
+                    time: {
+                        startWindowStart: jobDetails.job?.start_window_start || prevJob.time.startWindowStart,
+                        startWindowEnd: jobDetails.job?.start_window_end || prevJob.time.startWindowEnd,
+                        endWindowStart: jobDetails.job?.end_window_start || prevJob.time.endWindowStart,
+                        endWindowEnd: jobDetails.job?.end_window_end || prevJob.time.endWindowEnd,
+                    },
+                    // Ajouter aussi les champs directement sur l'objet pour compatibilité
+                    start_window_start: jobDetails.job?.start_window_start,
+                    start_window_end: jobDetails.job?.start_window_end,
+                    end_window_start: jobDetails.job?.end_window_start,
+                    end_window_end: jobDetails.job?.end_window_end
+                };
+            });            console.log('✅ [JobDetails] Local job data updated with API data');
         }
     }, [jobDetails]);
     

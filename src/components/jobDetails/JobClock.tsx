@@ -2,20 +2,23 @@
  * Composant Clock - Affiche le chronométrage en cours du job
  * Utilisé sur la page Summary au-dessus de la timeline
  * ✅ Utilise maintenant JobTimerContext pour un état centralisé
+ * ✅ Intègre le système de steps dynamiques
  */
 
-import React from 'react';
-import { View, Text, Pressable, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
+import React from 'react';
+import { Alert, Pressable, Text, View } from 'react-native';
 import { DESIGN_TOKENS } from '../../constants/Styles';
+import { getStepConfig, StepType } from '../../constants/JobSteps';
 import { useJobTimerContext } from '../../context/JobTimerProvider';
+import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 
 interface JobClockProps {
     job: any;
+    onOpenSignatureModal?: () => void; // ✅ Callback pour ouvrir modal signature
 }
 
-const JobClock: React.FC<JobClockProps> = ({ job }) => {
+const JobClock: React.FC<JobClockProps> = ({ job, onOpenSignatureModal }) => {
     const { colors } = useCommonThemedStyles();
     
     // ✅ Utiliser le context au lieu du hook direct
@@ -33,6 +36,54 @@ const JobClock: React.FC<JobClockProps> = ({ job }) => {
         nextStep,
         stopTimer,
     } = useJobTimerContext();
+
+    // ✅ Obtenir la config de l'étape actuelle depuis le système de steps
+    const currentStepConfig = React.useMemo(() => {
+        if (!job?.steps || currentStep >= job.steps.length) return null;
+        return job.steps[currentStep];
+    }, [job?.steps, currentStep]);
+
+    // ✅ Handler pour terminer le job avec vérification signature
+    const handleStopTimer = () => {
+        // Vérifier si signature requise
+        const hasSignature = job?.signatureDataUrl || job?.signatureFileUri;
+        
+        if (!hasSignature) {
+            Alert.alert(
+                '✍️ Signature requise',
+                'Vous devez faire signer le client avant de finaliser le job et déclencher la facturation.',
+                [
+                    { text: 'Annuler', style: 'cancel' },
+                    { 
+                        text: 'Signer maintenant', 
+                        onPress: () => {
+                            if (onOpenSignatureModal) {
+                                onOpenSignatureModal();
+                            } else {
+                                Alert.alert('Erreur', 'Le modal de signature n\'est pas disponible');
+                            }
+                        },
+                        style: 'default'
+                    }
+                ]
+            );
+            return;
+        }
+
+        // Signature OK, confirmer l'arrêt
+        Alert.alert(
+            '🏁 Terminer le job',
+            'Êtes-vous sûr de vouloir terminer ce job ? Le timer sera arrêté et la facturation sera déclenchée immédiatement.',
+            [
+                { text: 'Annuler', style: 'cancel' },
+                { 
+                    text: 'Terminer', 
+                    onPress: stopTimer,
+                    style: 'destructive'
+                }
+            ]
+        );
+    };
 
     // Ne pas afficher si le job n'a pas commencé
     if (currentStep === 0) {
@@ -80,19 +131,34 @@ const JobClock: React.FC<JobClockProps> = ({ job }) => {
                     </Text>
                 </View>
                 
-                {/* Badge du step actuel */}
+                {/* ✅ Badge du step actuel avec config dynamique */}
                 <View style={{
-                    backgroundColor: colors.tint + '20',
+                    backgroundColor: currentStepConfig 
+                        ? currentStepConfig.color + '20' 
+                        : colors.tint + '20',
                     paddingHorizontal: DESIGN_TOKENS.spacing.sm,
                     paddingVertical: DESIGN_TOKENS.spacing.xs,
                     borderRadius: DESIGN_TOKENS.radius.md,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 4,
                 }}>
+                    {currentStepConfig && (
+                        <Ionicons 
+                            name={currentStepConfig.icon as any} 
+                            size={12} 
+                            color={currentStepConfig.color} 
+                        />
+                    )}
                     <Text style={{
                         fontSize: 12,
                         fontWeight: '600',
-                        color: colors.tint,
+                        color: currentStepConfig ? currentStepConfig.color : colors.tint,
                     }}>
-                        Étape {currentStep}/6
+                        {currentStepConfig 
+                            ? `${currentStepConfig.shortName || currentStepConfig.name} (${currentStep + 1}/${totalSteps})`
+                            : `Étape ${currentStep + 1}/${totalSteps}`
+                        }
                     </Text>
                 </View>
             </View>
@@ -223,23 +289,10 @@ const JobClock: React.FC<JobClockProps> = ({ job }) => {
                         </Pressable>
                     )}
 
-                    {/* Bouton Arrêter (dernière étape) */}
+                    {/* ✅ Bouton Arrêter (dernière étape) avec vérification signature */}
                     {currentStep === totalSteps - 1 && (
                         <Pressable
-                            onPress={() => {
-                                Alert.alert(
-                                    'Terminer le job',
-                                    'Êtes-vous sûr de vouloir terminer ce job ? Le timer sera arrêté et le paiement sera calculé.',
-                                    [
-                                        { text: 'Annuler', style: 'cancel' },
-                                        { 
-                                            text: 'Terminer', 
-                                            onPress: stopTimer,
-                                            style: 'destructive'
-                                        }
-                                    ]
-                                );
-                            }}
+                            onPress={handleStopTimer}
                             style={({ pressed }: { pressed: boolean }) => ({
                                 flex: currentStep < totalSteps ? 1 : undefined,
                                 backgroundColor: pressed ? '#EF4444DD' : '#EF4444',
@@ -253,7 +306,7 @@ const JobClock: React.FC<JobClockProps> = ({ job }) => {
                             })}
                         >
                             <Ionicons 
-                                name="stop" 
+                                name="flag" 
                                 size={16} 
                                 color={colors.background} 
                             />

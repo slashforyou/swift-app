@@ -192,7 +192,10 @@ const JobSummary = ({ job, setJob } : { job: any, setJob: React.Dispatch<React.S
                 </View>
 
                 {/* Module Clock - Chronométrage du job */}
-                <JobClock job={job} />
+                <JobClock 
+                    job={job} 
+                    onOpenSignatureModal={() => setIsSigningVisible(true)}
+                />
                 
                 {/* Section principale : Progression du job */}
                 <JobProgressSection job={job} onAdvanceStep={handleNextStep} />

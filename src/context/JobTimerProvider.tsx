@@ -3,8 +3,8 @@
  * Partage le même état de timer entre toutes les pages (summary, job, payment)
  */
 
-import React, { createContext, useContext, ReactNode, useCallback, useEffect } from 'react';
-import { useJobTimer, JobTimerData } from '../hooks/useJobTimer';
+import React, { createContext, ReactNode, useCallback, useContext, useEffect } from 'react';
+import { JobTimerData, useJobTimer } from '../hooks/useJobTimer';
 
 interface JobTimerContextValue {
     // Données du timer
