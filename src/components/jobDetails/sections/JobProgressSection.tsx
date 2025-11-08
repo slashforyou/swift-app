@@ -2,15 +2,14 @@
  * JobProgressSection - Section modulaire pour la progression du job
  * ✅ Synchronisée avec JobTimerContext et système de steps dynamiques
  */
-import React, { useState } from 'react';
-import { Text, View, Pressable, Animated } from 'react-native';
-import { useTheme } from '../../../context/ThemeProvider';
-import { useJobTimerContext } from '../../../context/JobTimerProvider';
-import { DESIGN_TOKENS } from '../../../constants/Styles';
-import SectionCard from '../SectionCard';
-import JobTimeLine from '../../ui/jobPage/jobTimeLine';
 import Ionicons from '@react-native-vector-icons/ionicons';
-import { calculateProgressPercentage } from '../../../utils/jobStepsUtils';
+import React, { useState } from 'react';
+import { Animated, Pressable, Text, View } from 'react-native';
+import { DESIGN_TOKENS } from '../../../constants/Styles';
+import { useJobTimerContext } from '../../../context/JobTimerProvider';
+import { useTheme } from '../../../context/ThemeProvider';
+import JobTimeLine from '../../ui/jobPage/jobTimeLine';
+import SectionCard from '../SectionCard';
 
 interface JobProgressSectionProps {
     job: any;

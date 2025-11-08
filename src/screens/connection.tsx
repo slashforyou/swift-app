@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { 
-    View, 
-    Text, 
-    Pressable, 
-    SafeAreaView, 
-    ActivityIndicator 
+import {
+    ActivityIndicator,
+    Pressable,
+    SafeAreaView,
+    Text,
+    View
 } from 'react-native';
 import { useCommonThemedStyles } from '../hooks/useCommonStyles';
 import { ensureSession } from '../utils/session';

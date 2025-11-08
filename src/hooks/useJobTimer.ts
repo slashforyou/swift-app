@@ -5,6 +5,8 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useEffect, useState } from 'react';
+import { completeJob, startJob, updateJobStep } from '../services/jobSteps'; // ✅ FIX: Utiliser les endpoints qui fonctionnent
+import { timerLogger } from '../utils/logger';
 
 export interface JobStepTime {
     step: number;
@@ -35,8 +37,9 @@ export interface JobTimerData {
 const TIMER_STORAGE_KEY = 'jobTimers';
 const HOURLY_RATE_AUD = 110; // Prix fixe par heure en dollars australiens
 
-// Définition des étapes avec leurs noms
-const JOB_STEPS = {
+// ✅ Définition des étapes par défaut (fallback)
+// Ces steps sont utilisés si aucune configuration dynamique n'est fournie
+const DEFAULT_JOB_STEPS = {
     0: 'Job pas commencé',
     1: 'Départ (entrepôt/client)',
     2: 'Arrivé première adresse',
@@ -51,6 +54,7 @@ export const useJobTimer = (
     currentStep: number = 0,
     options?: {
         totalSteps?: number; // ✅ Nombre total d'étapes (dynamique)
+        stepNames?: string[]; // ✅ NOUVEAU: Noms des steps dynamiques depuis job.steps
         onJobCompleted?: (finalCost: number, billableHours: number) => void; // ✅ Callback de complétion
     }
 ) => {
@@ -60,7 +64,19 @@ export const useJobTimer = (
     const [finalBillableHours, setFinalBillableHours] = useState<number | null>(null); // ✅ Heures finales freezées
 
     const totalSteps = options?.totalSteps || 6; // ✅ Par défaut 6, mais peut être changé
+    const stepNames = options?.stepNames || []; // ✅ Steps dynamiques (optionnel)
     const onJobCompleted = options?.onJobCompleted; // ✅ Callback
+
+    // ✅ Helper pour obtenir le nom d'un step (dynamique ou fallback)
+    const getStepName = useCallback((step: number): string => {
+        // Priorité 1: Utiliser stepNames dynamique si fourni
+        if (stepNames.length > 0 && step >= 0 && step < stepNames.length) {
+            return stepNames[step];
+        }
+        
+        // Priorité 2: Fallback sur DEFAULT_JOB_STEPS
+        return DEFAULT_JOB_STEPS[step as keyof typeof DEFAULT_JOB_STEPS] || `Étape ${step}`;
+    }, [stepNames]);
 
     // Met à jour l'heure actuelle toutes les secondes
     useEffect(() => {
@@ -80,7 +96,39 @@ export const useJobTimer = (
                 const jobTimer = timers[jobId];
                 
                 if (jobTimer) {
-                    setTimerData(jobTimer);
+                    // ✅ VALIDATION: Détecter incohérence step > 1 mais timer jamais démarré
+                    if (currentStep > 1 && (!jobTimer.startTime || jobTimer.startTime === 0)) {
+                        console.warn(`⚠️ [useJobTimer] INCOHÉRENCE DÉTECTÉE: Job à l'étape ${currentStep}/5 mais timer jamais démarré (startTime = ${jobTimer.startTime})`);
+                        console.warn('⚠️ [useJobTimer] Auto-correction: Démarrage automatique du timer pour synchroniser les données');
+                        
+                        // Auto-start timer avec timestamp rétroactif (estimé)
+                        const now = Date.now();
+                        const estimatedStartTime = now - (24 * 60 * 60 * 1000); // 24h avant (estimation)
+                        
+                        const correctedTimer: JobTimerData = {
+                            ...jobTimer,
+                            startTime: estimatedStartTime,
+                            isRunning: true,
+                            currentStep: currentStep,
+                            stepTimes: Array.from({ length: currentStep }, (_, i) => ({
+                                step: i + 1,
+                                stepName: getStepName(i + 1),
+                                startTime: estimatedStartTime + (i * 60 * 60 * 1000), // 1h par step
+                                endTime: i < currentStep - 1 ? estimatedStartTime + ((i + 1) * 60 * 60 * 1000) : undefined,
+                                duration: i < currentStep - 1 ? 60 * 60 * 1000 : undefined
+                            })),
+                            totalElapsed: now - estimatedStartTime
+                        };
+                        
+                        setTimerData(correctedTimer);
+                        
+                        // Sync to API - utiliser startJob qui fonctionne
+                        startJob(jobId)
+                            .then(() => console.log('✅ [useJobTimer] Timer auto-started and synced to API'))
+                            .catch(() => console.error('❌ [useJobTimer] Failed to sync auto-started timer'));
+                    } else {
+                        setTimerData(jobTimer);
+                    }
                 } else {
                     // Initialiser un nouveau timer pour ce job
                     const newTimer: JobTimerData = {
@@ -114,7 +162,7 @@ export const useJobTimer = (
         } catch (error) {
             console.error('Error loading timer data:', error);
         }
-    }, [jobId, currentStep]);
+    }, [jobId, currentStep, getStepName]);
 
     // Sauvegarder les données du timer
     const saveTimerData = useCallback(async (data: JobTimerData) => {
@@ -141,14 +189,23 @@ export const useJobTimer = (
             currentStep: 1,
             stepTimes: [{
                 step: 1,
-                stepName: JOB_STEPS[1],
+                stepName: getStepName(1),
                 startTime: now
             }]
         };
 
         setTimerData(updatedData);
         saveTimerData(updatedData);
-    }, [timerData, saveTimerData]);
+
+        // ✅ FIX: Synchroniser le démarrage avec startJob qui fonctionne
+        startJob(jobId)
+            .then(() => {
+                console.log('✅ [useJobTimer] Timer started and synced to API');
+            })
+            .catch(() => {
+                console.error('❌ [useJobTimer] Failed to sync timer start');
+            });
+    }, [timerData, saveTimerData, getStepName, jobId]);
 
     // Calculer le coût basé sur le temps écoulé
     const calculateCost = useCallback((milliseconds: number) => {
@@ -188,12 +245,14 @@ export const useJobTimer = (
         const updatedStepTimes = [...timerData.stepTimes];
         
         // Terminer l'étape actuelle
+        let currentStepDuration = 0;
         if (updatedStepTimes.length > 0) {
             const currentStepIndex = updatedStepTimes.length - 1;
+            currentStepDuration = now - updatedStepTimes[currentStepIndex].startTime;
             updatedStepTimes[currentStepIndex] = {
                 ...updatedStepTimes[currentStepIndex],
                 endTime: now,
-                duration: now - updatedStepTimes[currentStepIndex].startTime
+                duration: currentStepDuration
             };
         }
 
@@ -204,7 +263,7 @@ export const useJobTimer = (
         if (!isLastStep) {
             updatedStepTimes.push({
                 step: newStep,
-                stepName: JOB_STEPS[newStep as keyof typeof JOB_STEPS] || `Étape ${newStep}`,
+                stepName: getStepName(newStep),
                 startTime: now
             });
         }
@@ -225,7 +284,7 @@ export const useJobTimer = (
             
             // ✅ Appeler le callback de complétion
             if (onJobCompleted) {
-                console.log('🎉 [JobTimer] Job completed! Calling onJobCompleted callback');
+                timerLogger.complete(jobId, costData.cost, costData.hours);
                 onJobCompleted(costData.cost, costData.hours);
             }
         }
@@ -240,13 +299,44 @@ export const useJobTimer = (
 
         setTimerData(updatedData);
         saveTimerData(updatedData);
-    }, [timerData, saveTimerData, totalSteps, onJobCompleted, calculateCost]);
 
-    // Calculer le temps total écoulé
-    const getTotalElapsed = useCallback(() => {
-        if (!timerData || !timerData.isRunning) {
-            return timerData?.totalElapsed || 0;
+        // ✅ NOUVEAU: Synchroniser avec l'API
+        if (isLastStep) {
+            // Si c'est la dernière étape, compléter le job
+            const costData = calculateCost(Math.max(0, finalElapsedTime - (timerData.totalBreakTime || 0)));
+            const notes = `Job terminé - ${costData.hours.toFixed(2)}h facturables - ${costData.cost}€`;
+            
+            completeJob(jobId, notes)
+                .then(() => {
+                    console.log('✅ [useJobTimer] Job completed and synced to API');
+                })
+                .catch(() => {
+                    console.error('❌ [useJobTimer] Failed to sync job completion');
+                });
+        } else {
+            // ✅ FIX: Utiliser updateJobStep qui fonctionne au lieu de advanceStepAPI
+            updateJobStep(jobId, newStep, `Avancé à l'étape ${newStep} après ${(currentStepDuration / 3600).toFixed(2)}h`)
+                .then(() => {
+                    console.log('✅ [useJobTimer] Step advanced and synced to API');
+                })
+                .catch(error => {
+                    console.error('❌ [useJobTimer] Failed to sync step advancement:', error);
+                });
         }
+    }, [timerData, saveTimerData, totalSteps, onJobCompleted, calculateCost, jobId]);
+
+    // Calculer le temps total écoulé - SIMPLIFIÉ
+    const getTotalElapsed = useCallback(() => {
+        if (!timerData || timerData.startTime === 0) {
+            return 0;
+        }
+        
+        // Si en pause, retourner le temps freezé
+        if (!timerData.isRunning) {
+            return timerData.totalElapsed || 0;
+        }
+        
+        // Si actif, calculer depuis startTime
         return currentTime - timerData.startTime;
     }, [timerData, currentTime]);
 
@@ -268,64 +358,47 @@ export const useJobTimer = (
         loadTimerData();
     }, [loadTimerData]);
 
-    // Démarrer une pause
-    const startBreak = useCallback(() => {
-        if (!timerData || !timerData.isRunning || timerData.isOnBreak) return;
+    // ✅ V1.0 ULTRA-SIMPLIFIÉ: Toggle pause - juste flip isRunning
+    const togglePause = useCallback(() => {
+        if (!timerData) return;
+
+        console.log('🔄 [togglePause] Current state:', { isRunning: timerData.isRunning, isOnBreak: timerData.isOnBreak });
 
         const now = Date.now();
-        const updatedData: JobTimerData = {
-            ...timerData,
-            isOnBreak: true,
-            breakTimes: [
-                ...timerData.breakTimes,
-                { startTime: now }
-            ]
-        };
-
-        setTimerData(updatedData);
-        saveTimerData(updatedData);
-    }, [timerData, saveTimerData]);
-
-    // Arrêter une pause
-    const stopBreak = useCallback(() => {
-        if (!timerData || !timerData.isOnBreak) return;
-
-        const now = Date.now();
-        const updatedBreakTimes = [...timerData.breakTimes];
-        const currentBreakIndex = updatedBreakTimes.length - 1;
         
-        if (currentBreakIndex >= 0) {
-            const currentBreak = updatedBreakTimes[currentBreakIndex];
-            updatedBreakTimes[currentBreakIndex] = {
-                ...currentBreak,
-                endTime: now,
-                duration: now - currentBreak.startTime
+        if (timerData.isRunning) {
+            // PAUSE: Freeze le temps actuel
+            const elapsedMs = now - timerData.startTime;
+            const updatedData: JobTimerData = {
+                ...timerData,
+                isRunning: false,
+                isOnBreak: true,
+                totalElapsed: elapsedMs, // Freeze le temps
             };
+            
+            console.log('⏸️ [togglePause] PAUSE - Freezing at:', elapsedMs / 1000, 'seconds');
+            setTimerData(updatedData);
+            saveTimerData(updatedData);
+        } else {
+            // PLAY: Recalculer startTime pour reprendre
+            const newStartTime = now - (timerData.totalElapsed || 0);
+            const updatedData: JobTimerData = {
+                ...timerData,
+                isRunning: true,
+                isOnBreak: false,
+                startTime: newStartTime, // Ajuster pour reprendre au bon moment
+            };
+            
+            console.log('▶️ [togglePause] PLAY - Resuming from:', timerData.totalElapsed / 1000, 'seconds');
+            setTimerData(updatedData);
+            saveTimerData(updatedData);
         }
-
-        const updatedData: JobTimerData = {
-            ...timerData,
-            isOnBreak: false,
-            breakTimes: updatedBreakTimes,
-            totalBreakTime: updatedBreakTimes.reduce((total, breakTime) => 
-                total + (breakTime.duration || 0), 0
-            )
-        };
-
-        setTimerData(updatedData);
-        saveTimerData(updatedData);
     }, [timerData, saveTimerData]);
 
-    // Calculer le temps facturable (sans les pauses)
+    // Calculer le temps facturable (sans les pauses) - SIMPLIFIÉ
     const getBillableTime = useCallback(() => {
-        const totalElapsed = getTotalElapsed();
-        const totalBreakTime = timerData?.totalBreakTime || 0;
-        const currentBreakTime = timerData?.isOnBreak && timerData.breakTimes.length > 0 
-            ? currentTime - timerData.breakTimes[timerData.breakTimes.length - 1].startTime
-            : 0;
-        
-        return Math.max(0, totalElapsed - totalBreakTime - currentBreakTime);
-    }, [getTotalElapsed, timerData, currentTime]);
+        return getTotalElapsed(); // Pour l'instant, pas de distinction pause
+    }, [getTotalElapsed]);
 
     // Démarrer automatiquement si le job a déjà commencé
     const startTimerWithJobData = useCallback((job: any) => {
@@ -340,7 +413,7 @@ export const useJobTimer = (
             calculatedStartTime = new Date(job.created_at).getTime();
         }
 
-        console.log('🕐 [JobTimer] Auto-starting timer for job:', jobId, 'calculated start:', new Date(calculatedStartTime));
+        timerLogger.start(jobId);
 
         const now = Date.now();
         const updatedData: JobTimerData = {
@@ -350,7 +423,7 @@ export const useJobTimer = (
             currentStep: Math.max(1, currentStep),
             stepTimes: [{
                 step: Math.max(1, currentStep),
-                stepName: JOB_STEPS[Math.max(1, currentStep) as keyof typeof JOB_STEPS] || `Étape ${currentStep}`,
+                stepName: getStepName(Math.max(1, currentStep)),
                 startTime: calculatedStartTime
             }]
         };
@@ -359,16 +432,19 @@ export const useJobTimer = (
         saveTimerData(updatedData);
     }, [timerData, jobId, currentStep, saveTimerData]);
 
-    // Démarrer automatiquement si on passe de 0 à 1+ ou si le job a déjà commencé
+    // ✅ FIX: Ne PAS démarrer automatiquement - laisse le contrôle explicite à l'utilisateur
+    // Commenté pour éviter le démarrage automatique intempestif
+    /*
     useEffect(() => {
         if (timerData && currentStep >= 1 && !timerData.isRunning && timerData.startTime === 0) {
-            console.log('🕐 [JobTimer] Starting timer for job:', jobId, 'step:', currentStep);
+            timerLogger.start(jobId);
             startTimer();
         } else if (timerData && currentStep > timerData.currentStep && timerData.isRunning) {
-            console.log('🕐 [JobTimer] Advancing step for job:', jobId, 'from', timerData.currentStep, 'to', currentStep);
+            timerLogger.step(jobId, currentStep, totalSteps);
             advanceStep(currentStep);
         }
     }, [currentStep, timerData, startTimer, advanceStep]);
+    */
 
     return {
         timerData,
@@ -379,11 +455,11 @@ export const useJobTimer = (
         startTimer,
         startTimerWithJobData,
         advanceStep,
-        startBreak,
-        stopBreak,
+        togglePause, // ✅ V1.0: Simple Play/Pause toggle
         isRunning: timerData?.isRunning || false,
         isOnBreak: timerData?.isOnBreak || false,
-        currentStep: timerData?.currentStep || 0,
+        // ✅ FIX #3: Prioriser currentStep des props (API) sur timerData (localStorage)
+        currentStep: currentStep > 0 ? currentStep : (timerData?.currentStep || 0),
         HOURLY_RATE_AUD,
         // ✅ Nouvelles valeurs finales freezées
         finalCost, // Coût final (freezé à la complétion)

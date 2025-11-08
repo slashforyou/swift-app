@@ -745,3 +745,92 @@ async function fetchJobDetailsClassic(jobId: string): Promise<JobDetailsComplete
     throw error;
   }
 }
+
+/**
+ * Sauvegarde la signature d'un job via l'API
+ * @param jobId - ID du job
+ * @param signatureDataUrl - Data URL de la signature (format: data:image/png;base64,...)
+ * @returns Promise avec le résultat de la sauvegarde
+ */
+export async function saveJobSignature(
+  jobId: number | string,
+  signatureDataUrl: string,
+  signatureType: 'client' | 'delivery' | 'pickup' = 'client'
+): Promise<{
+  success: boolean;
+  signatureUrl?: string;
+  signatureId?: string;
+  message?: string;
+}> {
+  try {
+    console.log('📝 [SAVE SIGNATURE] Starting signature save for job:', jobId);
+    
+    // ✅ Vérifier que signatureDataUrl commence par "data:image/"
+    if (!signatureDataUrl.startsWith('data:image/')) {
+      console.error('❌ [SAVE SIGNATURE] Invalid signature format - must start with data:image/');
+      return {
+        success: false,
+        message: 'Format de signature invalide'
+      };
+    }
+
+    console.log('📝 [SAVE SIGNATURE] Signature format valid:', {
+      length: signatureDataUrl.length,
+      type: signatureDataUrl.substring(0, 30) + '...'
+    });
+
+    // ✅ Créer le body JSON selon les specs de l'API
+    const requestBody = {
+      signature_data: signatureDataUrl, // Chaîne Base64 complète avec data:image/
+      signature_type: signatureType     // "client", "delivery", ou "pickup"
+    };
+
+    console.log('📝 [SAVE SIGNATURE] Sending to API:', {
+      jobId,
+      signature_type: signatureType,
+      signature_data_length: signatureDataUrl.length
+    });
+
+    // ✅ Envoyer à l'API avec l'ID numérique
+    const uploadResponse = await authenticatedFetch(
+      `${API}v1/job/${jobId}/signature`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+      }
+    );
+
+    if (!uploadResponse.ok) {
+      const errorText = await uploadResponse.text();
+      console.error('❌ [SAVE SIGNATURE] Upload failed:', {
+        status: uploadResponse.status,
+        error: errorText
+      });
+      
+      return {
+        success: false,
+        message: `Erreur lors de l'upload: ${uploadResponse.status}`
+      };
+    }
+
+    const result = await uploadResponse.json();
+    console.log('✅ [SAVE SIGNATURE] Signature saved successfully:', result);
+
+    return {
+      success: true,
+      signatureUrl: result.signatureUrl || result.url,
+      signatureId: result.signatureId || result.id,
+      message: 'Signature enregistrée avec succès'
+    };
+
+  } catch (error: any) {
+    console.error('❌ [SAVE SIGNATURE] Exception:', error);
+    return {
+      success: false,
+      message: error.message || 'Erreur inconnue'
+    };
+  }
+}

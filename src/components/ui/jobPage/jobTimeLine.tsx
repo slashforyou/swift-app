@@ -1,12 +1,13 @@
 // Modern Job Timeline with animated progress and beautiful design
+// ✅ Utilise JobTimerContext pour la source unique de vérité
 
+import Ionicons from '@react-native-vector-icons/ionicons';
 import * as React from 'react';
 import { useEffect, useRef, useState } from 'react';
-import { View, Text, Animated, StyleSheet, Pressable } from 'react-native';
-import { useTheme } from '../../../context/ThemeProvider';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { DESIGN_TOKENS } from '../../../constants/Styles';
-import Ionicons from '@react-native-vector-icons/ionicons';
-import { generateJobSteps, calculateAnimationProgress, getCurrentStep, calculateProgressPercentage } from '../../../utils/jobStepsUtils';
+import { useJobTimerContext } from '../../../context/JobTimerProvider';
+import { useTheme } from '../../../context/ThemeProvider';
 
 interface JobTimeLineProps {
     job: any;
@@ -20,6 +21,9 @@ const JobTimeLine = ({ job, onAdvanceStep }: JobTimeLineProps) => {
     const [isStepsExpanded, setIsStepsExpanded] = useState(false); // Rétracté par défaut
     const [stepsRotateAnim] = useState(new Animated.Value(0));
 
+    // ✅ Utiliser le timer context pour les steps (source unique de vérité)
+    const { currentStep, totalSteps, stepTimes } = useJobTimerContext();
+
     // Protection contre les données manquantes
     if (!job) {
         return (
@@ -29,11 +33,20 @@ const JobTimeLine = ({ job, onAdvanceStep }: JobTimeLineProps) => {
         );
     }
 
-    // Utiliser les utilitaires partagés
-    const steps = generateJobSteps(job);
-    const currentStep = getCurrentStep(job);
-    const animationProgress = calculateAnimationProgress(job); // Pour les animations (0-1)
-    const displayPercentage = calculateProgressPercentage(job); // Pour l'affichage (0-100)
+    // ✅ Récupérer les steps depuis job.steps (configuration)
+    const steps = job?.steps || [];
+
+    // ✅ Calculer la progression pour les animations (0-1)
+    const animationProgress = React.useMemo(() => {
+        if (totalSteps === 0) return 0;
+        return currentStep / totalSteps;
+    }, [currentStep, totalSteps]);
+
+    // ✅ Calculer le pourcentage pour l'affichage (0-100)
+    const displayPercentage = React.useMemo(() => {
+        if (totalSteps === 0) return 0;
+        return Math.round((currentStep / totalSteps) * 100);
+    }, [currentStep, totalSteps]);
     
 
 
@@ -488,65 +501,78 @@ const JobTimeLine = ({ job, onAdvanceStep }: JobTimeLineProps) => {
                     />
                 </View>
 
-                {/* Header cliquable pour les étapes */}
-                <Pressable 
-                    onPress={toggleSteps}
-                    style={styles.stepHeader}
-                >
+                {/* En-tête avec titre et bouton toggle */}
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: DESIGN_TOKENS.spacing.sm }}>
                     <View style={{ flex: 1 }}>
                         <Text style={styles.currentStepTitle}>
                             {steps[currentStep - 1]?.title || 'Étape en cours'}
                         </Text>
                     </View>
                     
-                    <View style={styles.headerActions}>
-                        <Pressable
-                            style={[
-                                styles.nextStepButton,
-                                currentStep >= steps.length && styles.nextStepButtonDisabled
-                            ]}
-                            onPress={() => {
-                                if (currentStep < steps.length && onAdvanceStep) {
-                                    onAdvanceStep();
-                                }
-                            }}
-                            disabled={currentStep >= steps.length}
-                        >
-                            <Text style={[
-                                styles.nextStepText,
-                                currentStep >= steps.length && styles.nextStepTextDisabled
-                            ]}>
-                                {currentStep >= steps.length ? 'Terminé' : 'Next Step'}
-                            </Text>
-                            <Ionicons 
-                                name="arrow-forward" 
-                                size={16} 
-                                color={currentStep >= steps.length ? colors.textSecondary : colors.primary}
-                            />
-                        </Pressable>
-
+                    {/* Bouton pour voir tous les détails */}
+                    <Pressable
+                        onPress={toggleSteps}
+                        style={({ pressed }) => ({
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: 4,
+                            paddingHorizontal: DESIGN_TOKENS.spacing.sm,
+                            paddingVertical: DESIGN_TOKENS.spacing.xs,
+                            borderRadius: DESIGN_TOKENS.radius.sm,
+                            borderWidth: 1,
+                            borderColor: colors.border,
+                            backgroundColor: pressed ? colors.backgroundTertiary : colors.backgroundSecondary,
+                        })}
+                    >
+                        <Text style={{ fontSize: 12, color: colors.primary, fontWeight: '600' }}>
+                            {isStepsExpanded ? 'Masquer' : 'Voir détails'}
+                        </Text>
                         <Animated.View style={{ transform: [{ rotate: stepsRotateInterpolate }] }}>
                             <Ionicons 
                                 name="chevron-down" 
-                                size={20} 
-                                color={colors.textSecondary} 
+                                size={16} 
+                                color={colors.primary} 
                             />
                         </Animated.View>
-                    </View>
-                </Pressable>
-                
-                {/* Contenu rétractable - Liste de toutes les étapes */}
+                    </Pressable>
+                </View>
+
+                {/* Liste détaillée des étapes - Affichée si étendue */}
                 {isStepsExpanded && (
                     <View style={styles.stepsListContainer}>
-                        {steps.map((step, index) => {
+                        {steps.map((step: any, index: number) => {
                             const stepNumber = index + 1;
                             const isCompleted = stepNumber < currentStep;
                             const isCurrent = stepNumber === currentStep;
-                            const isPending = stepNumber > currentStep;
+                            const stepTime = stepTimes[index];
+                            
+                            // Formater la durée
+                            const formatDuration = (ms: number) => {
+                                const totalSeconds = Math.floor(ms / 1000);
+                                const hours = Math.floor(totalSeconds / 3600);
+                                const minutes = Math.floor((totalSeconds % 3600) / 60);
+                                const seconds = totalSeconds % 60;
+                                
+                                if (hours > 0) {
+                                    return `${hours}h ${String(minutes).padStart(2, '0')}min`;
+                                }
+                                return `${minutes}min ${String(seconds).padStart(2, '0')}s`;
+                            };
+
+                            // Formater timestamp (HH:MM)
+                            const formatTimestamp = (timestamp: number) => {
+                                if (!timestamp) return '';
+                                const date = new Date(timestamp);
+                                return date.toLocaleTimeString('fr-FR', { 
+                                    hour: '2-digit', 
+                                    minute: '2-digit' 
+                                });
+                            };
                             
                             return (
                                 <View key={step.id} style={styles.stepListItem}>
                                     <View style={styles.stepListHeader}>
+                                        {/* Icône step */}
                                         <View style={[
                                             styles.stepListIcon,
                                             isCompleted ? styles.stepListIconCompleted :
@@ -554,7 +580,11 @@ const JobTimeLine = ({ job, onAdvanceStep }: JobTimeLineProps) => {
                                             styles.stepListIconPending
                                         ]}>
                                             {isCompleted ? (
-                                                <Ionicons name="checkmark" size={12} color={colors.background} />
+                                                <Ionicons 
+                                                    name="checkmark" 
+                                                    size={12} 
+                                                    color={colors.background} 
+                                                />
                                             ) : (
                                                 <Text style={[
                                                     styles.stepListNumber,
@@ -564,18 +594,57 @@ const JobTimeLine = ({ job, onAdvanceStep }: JobTimeLineProps) => {
                                                 </Text>
                                             )}
                                         </View>
-                                        <Text style={[
-                                            styles.stepListTitle,
-                                            isCurrent ? styles.stepListTitleCurrent : 
-                                            isCompleted ? styles.stepListTitleCompleted :
-                                            styles.stepListTitlePending
-                                        ]}>
-                                            {step.title}
-                                        </Text>
+
+                                        {/* Titre et durée */}
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={[
+                                                styles.stepListTitle,
+                                                isCurrent ? styles.stepListTitleCurrent :
+                                                isCompleted ? styles.stepListTitleCompleted :
+                                                styles.stepListTitlePending
+                                            ]}>
+                                                {step.title || step.name}
+                                            </Text>
+                                            
+                                            {/* Timestamps et durée */}
+                                            {stepTime && (
+                                                <Text style={{ fontSize: 11, color: colors.textSecondary, marginTop: 2 }}>
+                                                    {stepTime.startTime && (
+                                                        <>
+                                                            Commencé à {formatTimestamp(stepTime.startTime)}
+                                                            {stepTime.endTime && ` • Terminé à ${formatTimestamp(stepTime.endTime)}`}
+                                                        </>
+                                                    )}
+                                                    {stepTime.duration > 0 && (
+                                                        <Text style={{ fontWeight: '600', color: colors.primary }}>
+                                                            {' • Durée: '}
+                                                            <Text style={{ color: colors.text }}>
+                                                                {formatDuration(stepTime.duration)}
+                                                            </Text>
+                                                        </Text>
+                                                    )}
+                                                    {!stepTime.startTime && 'Pas encore commencé'}
+                                                </Text>
+                                            )}
+                                            {!stepTime && isCurrent && (
+                                                <Text style={{ fontSize: 11, color: colors.primary, marginTop: 2, fontWeight: '600' }}>
+                                                    ⏱️ En cours...
+                                                </Text>
+                                            )}
+                                            {!stepTime && !isCurrent && !isCompleted && (
+                                                <Text style={{ fontSize: 11, color: colors.textSecondary, marginTop: 2 }}>
+                                                    Pas encore commencé
+                                                </Text>
+                                            )}
+                                        </View>
                                     </View>
-                                    <Text style={styles.stepListDescription}>
-                                        {step.description}
-                                    </Text>
+
+                                    {/* Description (si disponible) */}
+                                    {step.description && (
+                                        <Text style={styles.stepListDescription}>
+                                            {step.description}
+                                        </Text>
+                                    )}
                                 </View>
                             );
                         })}

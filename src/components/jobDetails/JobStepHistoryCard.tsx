@@ -1,0 +1,342 @@
+/**
+ * JobStepHistoryCard - Affiche l'historique détaillé des étapes avec durées réelles
+ * Utilise step_history depuis l'API au lieu du timer local
+ */
+
+import { format, parseISO } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+
+export interface JobStepHistory {
+  step: number;
+  step_name: string;
+  started_at: string | null;
+  completed_at: string | null;
+  duration_hours: number | null;
+  is_current: boolean;
+}
+
+export interface JobTimerInfo {
+  step_history: JobStepHistory[];
+  timer_billable_hours: number;
+  timer_break_hours: number;
+  timer_is_running: boolean;
+  timer_started_at: string | null;
+  timer_completed_at: string | null;
+}
+
+interface JobStepHistoryCardProps {
+  timerInfo: JobTimerInfo;
+}
+
+export const JobStepHistoryCard: React.FC<JobStepHistoryCardProps> = ({ timerInfo }) => {
+  const { step_history, timer_billable_hours, timer_break_hours, timer_is_running } = timerInfo;
+
+  const formatDuration = (hours: number | null) => {
+    if (hours === null || hours === 0) return '-';
+    
+    if (hours < 1) {
+      // Moins d'une heure: afficher en minutes
+      const minutes = Math.round(hours * 60);
+      return `${minutes}min`;
+    } else if (hours < 24) {
+      // Moins de 24h: afficher en heures avec décimales
+      return `${hours.toFixed(1)}h`;
+    } else {
+      // Plus de 24h: afficher jours + heures
+      const days = Math.floor(hours / 24);
+      const remainingHours = Math.round(hours % 24);
+      return `${days}j ${remainingHours}h`;
+    }
+  };
+
+  const formatDateTime = (dateString: string | null) => {
+    if (!dateString) return '-';
+    try {
+      return format(parseISO(dateString), 'dd/MM/yyyy HH:mm', { locale: fr });
+    } catch {
+      return dateString;
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.title}>📊 Historique des étapes</Text>
+        {timer_is_running && (
+          <View style={styles.runningBadge}>
+            <View style={styles.pulseDot} />
+            <Text style={styles.runningText}>En cours</Text>
+          </View>
+        )}
+      </View>
+
+      {/* Step History List */}
+      {step_history && step_history.length > 0 ? (
+        <View style={styles.stepList}>
+          {step_history.map((stepItem) => (
+            <View 
+              key={stepItem.step} 
+              style={[
+                styles.stepItem,
+                stepItem.is_current && styles.stepItemCurrent,
+                stepItem.completed_at && styles.stepItemCompleted
+              ]}
+            >
+              {/* Step Number & Name */}
+              <View style={styles.stepHeader}>
+                <View style={styles.stepNumberContainer}>
+                  <Text style={styles.stepNumber}>{stepItem.step}</Text>
+                </View>
+                <View style={styles.stepInfo}>
+                  <Text style={styles.stepName}>{stepItem.step_name}</Text>
+                  {stepItem.is_current && (
+                    <Text style={styles.currentLabel}>⏱️ Étape actuelle</Text>
+                  )}
+                  {stepItem.completed_at && (
+                    <Text style={styles.completedLabel}>✅ Terminée</Text>
+                  )}
+                </View>
+              </View>
+
+              {/* Duration */}
+              <View style={styles.durationRow}>
+                <Text style={styles.durationLabel}>Durée:</Text>
+                <Text style={styles.durationValue}>
+                  {formatDuration(stepItem.duration_hours)}
+                </Text>
+              </View>
+
+              {/* Timestamps */}
+              {stepItem.started_at && (
+                <View style={styles.timestampRow}>
+                  <Text style={styles.timestampLabel}>Démarré:</Text>
+                  <Text style={styles.timestampValue}>
+                    {formatDateTime(stepItem.started_at)}
+                  </Text>
+                </View>
+              )}
+              {stepItem.completed_at && (
+                <View style={styles.timestampRow}>
+                  <Text style={styles.timestampLabel}>Terminé:</Text>
+                  <Text style={styles.timestampValue}>
+                    {formatDateTime(stepItem.completed_at)}
+                  </Text>
+                </View>
+              )}
+            </View>
+          ))}
+        </View>
+      ) : (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyText}>Aucun historique disponible</Text>
+          <Text style={styles.emptyHint}>
+            Les étapes apparaîtront ici une fois le timer démarré
+          </Text>
+        </View>
+      )}
+
+      {/* Summary Footer */}
+      <View style={styles.footer}>
+        <View style={styles.summaryRow}>
+          <Text style={styles.summaryLabel}>💰 Heures facturables:</Text>
+          <Text style={styles.summaryValue}>
+            {formatDuration(timer_billable_hours)}
+          </Text>
+        </View>
+        <View style={styles.summaryRow}>
+          <Text style={styles.summaryLabel}>⏸️ Temps de pause:</Text>
+          <Text style={styles.summaryValue}>
+            {formatDuration(timer_break_hours)}
+          </Text>
+        </View>
+        <View style={styles.separatorLine} />
+        <View style={styles.summaryRow}>
+          <Text style={styles.summaryLabelBold}>⏱️ Total:</Text>
+          <Text style={styles.summaryValueBold}>
+            {formatDuration(timer_billable_hours + timer_break_hours)}
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    marginVertical: 8,
+    marginHorizontal: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+  },
+  runningBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E8F5E9',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  pulseDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#4CAF50',
+    marginRight: 6,
+  },
+  runningText: {
+    fontSize: 12,
+    color: '#2E7D32',
+    fontWeight: '600',
+  },
+  stepList: {
+    gap: 12,
+  },
+  stepItem: {
+    backgroundColor: '#F5F5F5',
+    borderRadius: 8,
+    padding: 12,
+    borderLeftWidth: 3,
+    borderLeftColor: '#9E9E9E',
+  },
+  stepItemCurrent: {
+    backgroundColor: '#FFF3E0',
+    borderLeftColor: '#FF9800',
+  },
+  stepItemCompleted: {
+    backgroundColor: '#E8F5E9',
+    borderLeftColor: '#4CAF50',
+  },
+  stepHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  stepNumberContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  stepNumber: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+  },
+  stepInfo: {
+    flex: 1,
+  },
+  stepName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginBottom: 2,
+  },
+  currentLabel: {
+    fontSize: 12,
+    color: '#F57C00',
+    fontWeight: '500',
+  },
+  completedLabel: {
+    fontSize: 12,
+    color: '#2E7D32',
+    fontWeight: '500',
+  },
+  durationRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 4,
+  },
+  durationLabel: {
+    fontSize: 13,
+    color: '#757575',
+  },
+  durationValue: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#1a1a1a',
+  },
+  timestampRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 2,
+  },
+  timestampLabel: {
+    fontSize: 11,
+    color: '#9E9E9E',
+  },
+  timestampValue: {
+    fontSize: 11,
+    color: '#757575',
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 32,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: '#757575',
+    marginBottom: 4,
+  },
+  emptyHint: {
+    fontSize: 12,
+    color: '#9E9E9E',
+  },
+  footer: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  summaryLabel: {
+    fontSize: 13,
+    color: '#757575',
+  },
+  summaryValue: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#1a1a1a',
+  },
+  summaryLabelBold: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+  },
+  summaryValueBold: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#FF9800',
+  },
+  separatorLine: {
+    height: 1,
+    backgroundColor: '#E0E0E0',
+    marginVertical: 8,
+  },
+});

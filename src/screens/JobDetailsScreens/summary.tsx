@@ -5,27 +5,29 @@
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import LanguageButton from '../../components/calendar/LanguageButton';
-import JobClock from '../../components/jobDetails/JobClock';
+import { JobStepHistoryCard } from '../../components/jobDetails/JobStepHistoryCard';
+import JobTimerDisplay from '../../components/jobDetails/JobTimerDisplay';
 import ImprovedNoteModal from '../../components/jobDetails/modals/ImprovedNoteModal';
 import JobStepAdvanceModal from '../../components/jobDetails/modals/JobStepAdvanceModal';
 import PhotoSelectionModal from '../../components/jobDetails/modals/PhotoSelectionModal';
 import AddressesSection from '../../components/jobDetails/sections/AddressesSection';
 import ClientDetailsSection from '../../components/jobDetails/sections/ClientDetailsSection';
 import ContactDetailsSection from '../../components/jobDetails/sections/ContactDetailsSection';
-import JobProgressSection from '../../components/jobDetails/sections/JobProgressSection';
 import QuickActionsSection from '../../components/jobDetails/sections/QuickActionsSection';
 import TimeWindowsSection from '../../components/jobDetails/sections/TimeWindowsSection';
 import TruckDetailsSection from '../../components/jobDetails/sections/TruckDetailsSection';
 import SigningBloc from '../../components/signingBloc';
 import { DESIGN_TOKENS } from '../../constants/Styles';
+import { useJobTimerContext } from '../../context/JobTimerProvider';
 import { useTheme } from '../../context/ThemeProvider';
 import { useToast } from '../../context/ToastProvider';
 import { useJobNotes } from '../../hooks/useJobNotes';
 import { useJobPhotos } from '../../hooks/useJobPhotos';
 import { useLocalization } from '../../localization/useLocalization';
+import { saveJobSignature } from '../../services/jobDetails';
 import { updateJobStep } from '../../services/jobSteps';
 
-const JobSummary = ({ job, setJob } : { job: any, setJob: React.Dispatch<React.SetStateAction<any>> }) => {
+const JobSummary = ({ job, setJob, onOpenPaymentPanel } : { job: any, setJob: React.Dispatch<React.SetStateAction<any>>, onOpenPaymentPanel?: () => void }) => {
     const [isSigningVisible, setIsSigningVisible] = useState(false);
     const [isPhotoModalVisible, setIsPhotoModalVisible] = useState(false);
     const [isNoteModalVisible, setIsNoteModalVisible] = useState(false);
@@ -33,6 +35,17 @@ const JobSummary = ({ job, setJob } : { job: any, setJob: React.Dispatch<React.S
     
     const { t } = useLocalization();
     const { colors } = useTheme();
+
+    // ✅ Utiliser le context du timer pour avoir les steps en temps réel
+    const { currentStep, totalSteps, nextStep } = useJobTimerContext();
+    
+    // 🔍 DEBUG: Surveiller les changements de job.step
+    React.useEffect(() => {
+        console.log('🔍 [SUMMARY] job.step changed:', {
+            actualStep: job?.step?.actualStep,
+            contextCurrentStep: currentStep
+        });
+    }, [job?.step, currentStep]);
 
     // Hooks pour la gestion des notes et photos
     const { addNote } = useJobNotes(job?.id);
@@ -79,54 +92,97 @@ const JobSummary = ({ job, setJob } : { job: any, setJob: React.Dispatch<React.S
         }
     };
 
-    // Gestion de l'avancement des étapes
+    // ✅ Gestion de l'avancement des étapes - utilise maintenant le timer context
     const handleAdvanceStep = async (targetStep: number) => {
         try {
-            // Mettre à jour le job localement immédiatement pour l'UI
-            setJob((prevJob: any) => ({
-                ...prevJob,
-                step: {
-                    ...prevJob.step,
-                    actualStep: targetStep
-                },
-                // Mettre à jour aussi current_step si disponible
-                current_step: targetStep
-            }));
+            // ✅ Appel API pour mettre à jour sur le serveur
+            const jobCode = job?.code || job?.id; // Utiliser le code du job, pas l'ID numérique
             
-            // Appel API pour mettre à jour sur le serveur
-            if (job?.id) {
+            if (jobCode) {
                 try {
-                    await updateJobStep(job.id, targetStep);
+                    console.log(`📊 [SUMMARY] Updating step to ${targetStep} for job ${jobCode}`);
+                    
+                    const response = await updateJobStep(jobCode, targetStep);
+                    
+                    console.log(`✅ [SUMMARY] Step updated successfully:`, response);
+                    
+                    // 🔍 DEBUG: Vérifier response.data
+                    console.log('🔍 [SUMMARY] Response analysis:', {
+                        hasData: !!response.data,
+                        dataCurrentStep: response.data?.currentStep,
+                        targetStep,
+                        willUse: response.data?.currentStep || targetStep
+                    });
+                    
+                    // 🔍 DEBUG: État avant setJob
+                    console.log('🔍 [SUMMARY] BEFORE setJob - job.step:', job?.step);
+                    
+                    // ✅ Mettre à jour l'objet job local avec la réponse de l'API
+                    // L'API retourne: { success: true, data: { currentStep, status, ... } }
+                    setJob((prevJob: any) => {
+                        console.log('🔍 [SUMMARY] Inside setJob callback:', {
+                            prevStep: prevJob?.step,
+                            newStep: response.data?.currentStep || targetStep
+                        });
+                        
+                        const updatedJob = {
+                            ...prevJob,
+                            step: {
+                                ...prevJob.step,
+                                actualStep: response.data?.currentStep || targetStep
+                            },
+                            // Mettre à jour le status si le backend l'a changé
+                            status: response.data?.status || prevJob.status
+                        };
+                        
+                        console.log('🔍 [SUMMARY] Returning from setJob:', {
+                            newStep: updatedJob.step
+                        });
+                        
+                        return updatedJob;
+                    });
+                    
+                    // 🔍 DEBUG: État après setJob (sera encore l'ancien à cause de l'async)
+                    console.log('🔍 [SUMMARY] AFTER setJob (async) - job.step:', job?.step);
+                    
+                    showSuccess(
+                        t('jobDetails.messages.nextStep'), 
+                        `${t('jobDetails.messages.advancedToStep')} ${targetStep}`
+                    );
                 } catch (apiError) {
-                    console.warn('API update failed, keeping local state:', apiError);
-                    // On garde la mise à jour locale même si l'API échoue
-                    // L'utilisateur verra le changement et on peut retry plus tard
+                    console.error('❌ [SUMMARY] API update failed:', apiError);
+                    showError(
+                        'Erreur de synchronisation',
+                        'La mise à jour de l\'étape a échoué. Veuillez réessayer.'
+                    );
+                    throw apiError;
                 }
+            } else {
+                console.error('❌ [SUMMARY] No job code/id available');
+                throw new Error('No job identifier');
             }
             
             return Promise.resolve();
         } catch (error) {
-            console.error('Error advancing step:', error);
-            // Restaurer l'état précédent en cas d'erreur critique
-            setJob((prevJob: any) => ({
-                ...prevJob,
-                step: {
-                    ...prevJob.step,
-                    actualStep: job?.step?.actualStep || job?.current_step || 1
-                }
-            }));
+            console.error('❌ [SUMMARY] Error advancing step:', error);
             throw error;
         }
     };
 
-    // Fonction simple pour avancer à l'étape suivante
+    // ✅ Fonction simple pour avancer à l'étape suivante - délègue au timer context
     const handleNextStep = async () => {
-        const currentStep = job?.step?.actualStep || job?.current_step || 1;
-        const nextStep = currentStep + 1;
-        
-        if (nextStep <= 5) { // Maximum 5 étapes
-            await handleAdvanceStep(nextStep);
-            showSuccess(t('jobDetails.messages.nextStep'), `${t('jobDetails.messages.advancedToStep')} ${nextStep}`);
+        if (currentStep < totalSteps) {
+            const targetStep = currentStep + 1;
+            
+            try {
+                // Avancer dans le timer context
+                nextStep();
+                
+                // Synchroniser avec l'API
+                await handleAdvanceStep(targetStep);
+            } catch (error) {
+                console.error('Failed to advance step:', error);
+            }
         }
     };
 
@@ -154,7 +210,29 @@ const JobSummary = ({ job, setJob } : { job: any, setJob: React.Dispatch<React.S
                 <SigningBloc 
                     isVisible={isSigningVisible} 
                     setIsVisible={setIsSigningVisible} 
-                    onSave={(signature: any) => console.log('Signature saved:', signature)} 
+                    onSave={async (signature: string) => {
+                        try {
+                            // ✅ Passer l'ID numérique et le type "client"
+                            const result = await saveJobSignature(job.id, signature, 'client');
+                            console.log('📝 [SUMMARY] Signature save result:', result);
+                            
+                            if (result.success) {
+                                // ✅ Mettre à jour TOUS les champs de signature
+                                setJob({ 
+                                    ...job, 
+                                    signature_blob: result.signatureUrl,
+                                    signatureDataUrl: signature, // Garder aussi la data URL locale
+                                    signatureFileUri: '' // Sera mis à jour par signingBloc
+                                });
+                                showSuccess('Signature enregistrée avec succès!');
+                            } else {
+                                showError('Erreur', result.message || 'Impossible de sauvegarder la signature');
+                            }
+                        } catch (error) {
+                            console.error('Erreur lors de la sauvegarde de la signature:', error);
+                            showError('Erreur', 'Une erreur est survenue lors de la sauvegarde');
+                        }
+                    }}
                     job={job} 
                     setJob={setJob}
                 />
@@ -191,14 +269,32 @@ const JobSummary = ({ job, setJob } : { job: any, setJob: React.Dispatch<React.S
                     <LanguageButton />
                 </View>
 
-                {/* Module Clock - Chronométrage du job */}
-                <JobClock 
+                {/* 🆕 Module Timer + Progression fusionnés */}
+                <JobTimerDisplay 
                     job={job} 
                     onOpenSignatureModal={() => setIsSigningVisible(true)}
+                    onOpenPaymentPanel={onOpenPaymentPanel}
                 />
-                
-                {/* Section principale : Progression du job */}
-                <JobProgressSection job={job} onAdvanceStep={handleNextStep} />
+
+                {/* 📊 NOUVEAU: Afficher step_history si disponible depuis l'API */}
+                {job?.timer_info && job.timer_info.step_history && job.timer_info.step_history.length > 0 && (
+                    <JobStepHistoryCard timerInfo={job.timer_info} />
+                )}
+
+                {/* 🆕 Badge de validation du step - DÉSACTIVÉ car validation déjà faite dans jobDetails.tsx */}
+                {/* La validation automatique se fait déjà au chargement du job dans jobDetails.tsx ligne 315-374 */}
+                {/* Le badge ici causait une boucle infinie car l'objet 'job' n'a pas le status synchronisé */}
+                {/*
+                <StepValidationBadge 
+                    job={job}
+                    onStepCorrected={(newStep) => {
+                        setJob((prev: any) => ({
+                            ...prev,
+                            step: { ...prev.step, actualStep: newStep }
+                        }));
+                    }}
+                />
+                */}
                 
                 {/* Actions rapides */}
                 <QuickActionsSection 

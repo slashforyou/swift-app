@@ -3,8 +3,9 @@
  * Partage le même état de timer entre toutes les pages (summary, job, payment)
  */
 
-import React, { createContext, ReactNode, useCallback, useContext, useEffect } from 'react';
+import React, { createContext, ReactNode, useCallback, useContext, useEffect, useRef } from 'react';
 import { JobTimerData, useJobTimer } from '../hooks/useJobTimer';
+import { timerLogger } from '../utils/logger';
 
 interface JobTimerContextValue {
     // Données du timer
@@ -16,6 +17,7 @@ interface JobTimerContextValue {
     currentStep: number;
     totalSteps: number;
     isCompleted: boolean;
+    stepTimes: any[]; // ✅ NOUVEAU: Historique des temps par étape
     
     // Valeurs finales (freezées à la complétion)
     finalCost: number | null;
@@ -26,8 +28,7 @@ interface JobTimerContextValue {
     advanceStep: (step: number) => void;
     nextStep: () => void; // ✅ Helper pour avancer à l'étape suivante
     stopTimer: () => void; // ✅ Arrêter complètement (dernière étape)
-    startBreak: () => void;
-    stopBreak: () => void;
+    togglePause: () => void; // ✅ V1.0: Simple Play/Pause toggle
     
     // Utilitaires
     formatTime: (milliseconds: number, includeSeconds?: boolean) => string;
@@ -42,6 +43,8 @@ interface JobTimerProviderProps {
     jobId: string;
     currentStep: number;
     totalSteps?: number;
+    stepNames?: string[]; // ✅ NOUVEAU: Noms des steps depuis job.steps
+    jobStatus?: string; // ✅ NOUVEAU: Statut du job ('completed', 'in_progress', etc.)
     onStepChange?: (newStep: number) => void; // ✅ Callback pour synchroniser avec job.step.actualStep
     onJobCompleted?: (finalCost: number, billableHours: number) => void;
 }
@@ -51,55 +54,155 @@ export const JobTimerProvider: React.FC<JobTimerProviderProps> = ({
     jobId,
     currentStep,
     totalSteps = 6,
+    stepNames = [], // ✅ Par défaut vide
+    jobStatus, // ✅ NOUVEAU
     onStepChange,
     onJobCompleted,
 }) => {
-    const timer = useJobTimer(jobId, currentStep, {
-        totalSteps,
+    // ✅ Ref pour éviter les loops infinis de synchronisation
+    const isInternalUpdateRef = useRef(false);
+    
+    // ✅ FIX BOUCLE INFINIE #2: Tracker le dernier step synchronisé
+    const lastSyncedStepRef = useRef<number>(currentStep);
+    
+    // ✅ Validation des props
+    const safeJobId = jobId || 'unknown';
+    const safeCurrentStep = Math.max(0, currentStep || 0);
+    const safeTotalSteps = Math.max(1, totalSteps || 5);
+    
+    // ✅ FIX BOUCLE INFINIE: Logger uniquement quand les valeurs changent (dans useEffect)
+    useEffect(() => {
+        timerLogger.step(safeJobId, safeCurrentStep, safeTotalSteps);
+    }, [safeJobId, safeCurrentStep, safeTotalSteps]);
+    
+    const timer = useJobTimer(safeJobId, safeCurrentStep, {
+        totalSteps: safeTotalSteps,
+        stepNames, // ✅ Passer les noms des steps
         onJobCompleted,
     });
 
+    // ✅ NOUVEAU: Arrêter le timer automatiquement si le job est completed
+    useEffect(() => {
+        if (jobStatus === 'completed' && timer.isRunning) {
+            console.log('🛑 [JobTimerProvider] Job completed detected, stopping timer');
+            timer.togglePause(); // Mettre en pause
+        }
+    }, [jobStatus, timer.isRunning, timer.togglePause]);
+
     // ✅ Helper pour avancer à l'étape suivante
     const nextStep = useCallback(() => {
-        if (timer.currentStep < totalSteps) {
-            const newStep = timer.currentStep + 1;
-            timer.advanceStep(newStep);
-            
-            // Notifier le parent (jobDetails) du changement d'étape
-            if (onStepChange) {
-                onStepChange(newStep);
+        try {
+            if (timer.currentStep < safeTotalSteps) {
+                const newStep = timer.currentStep + 1;
+                isInternalUpdateRef.current = true; // ✅ Marquer comme update interne
+                timer.advanceStep(newStep);
+                
+                // Notifier le parent (jobDetails) du changement d'étape
+                if (onStepChange) {
+                    onStepChange(newStep);
+                }
+                
+                // Reset après un court délai
+                setTimeout(() => {
+                    isInternalUpdateRef.current = false;
+                }, 100);
             }
+        } catch (error) {
+            timerLogger.error('nextStep', error);
+            isInternalUpdateRef.current = false;
         }
-    }, [timer.currentStep, timer.advanceStep, totalSteps, onStepChange]);
+    }, [timer.currentStep, timer.advanceStep, safeTotalSteps, onStepChange]);
 
     // ✅ Helper pour arrêter le timer (dernière étape)
     const stopTimer = useCallback(() => {
-        console.log('🛑 [JobTimerProvider] Stopping timer at final step');
-        timer.advanceStep(totalSteps); // Avancer à la dernière étape = arrêt
-        
-        // Notifier le parent
-        if (onStepChange) {
-            onStepChange(totalSteps);
+        try {
+            timerLogger.sync('toContext', safeTotalSteps);
+            isInternalUpdateRef.current = true; // ✅ Marquer comme update interne
+            timer.advanceStep(safeTotalSteps); // Avancer à la dernière étape = arrêt
+            
+            // Notifier le parent
+            if (onStepChange) {
+                onStepChange(safeTotalSteps);
+            }
+            
+            // Reset après un court délai
+            setTimeout(() => {
+                isInternalUpdateRef.current = false;
+            }, 100);
+        } catch (error) {
+            timerLogger.error('stopTimer', error);
+            isInternalUpdateRef.current = false;
         }
-    }, [timer.advanceStep, totalSteps, onStepChange]);
+    }, [timer.advanceStep, safeTotalSteps, onStepChange]);
 
     // ✅ Wrapper pour advanceStep avec notification
     const advanceStepWithCallback = useCallback((step: number) => {
-        timer.advanceStep(step);
-        
-        // Notifier le parent du changement d'étape
-        if (onStepChange) {
-            onStepChange(step);
+        try {
+            isInternalUpdateRef.current = true; // ✅ Marquer comme update interne
+            timer.advanceStep(step);
+            
+            // Notifier le parent du changement d'étape
+            if (onStepChange) {
+                onStepChange(step);
+            }
+            
+            // Reset après un court délai
+            setTimeout(() => {
+                isInternalUpdateRef.current = false;
+            }, 100);
+        } catch (error) {
+            timerLogger.error('advanceStepWithCallback', error);
+            isInternalUpdateRef.current = false;
         }
     }, [timer.advanceStep, onStepChange]);
 
     // ✅ Synchroniser avec les changements externes de currentStep (depuis jobDetails)
+    // IMPORTANT: Garde contre les loops infinis - ne synchronise que si vraiment différent
     useEffect(() => {
-        if (currentStep !== timer.currentStep && currentStep > 0) {
-            console.log('🔄 [JobTimerProvider] External step change detected:', currentStep);
-            timer.advanceStep(currentStep);
+        // Ne pas synchroniser si le changement vient de nous-mêmes
+        if (isInternalUpdateRef.current) {
+            timerLogger.sync('fromContext', currentStep);
+            return;
         }
-    }, [currentStep]);
+        
+        // ✅ FIX BOUCLE INFINIE: Ne sync que si le step a VRAIMENT changé depuis la dernière sync
+        if (currentStep !== lastSyncedStepRef.current && currentStep > 0 && timer.timerData) {
+            console.log(`� [JobTimerProvider] SYNCING step from ${timer.currentStep} to ${currentStep}`);
+            timerLogger.sync('toContext', currentStep);
+            timer.advanceStep(currentStep);
+            lastSyncedStepRef.current = currentStep; // ✅ Sauvegarder le step synchronisé
+            console.log(`✅ [JobTimerProvider] Sync completed`);
+        }
+    }, [currentStep]); // ✅ Dépendance UNIQUEMENT sur currentStep (pas timer.currentStep)
+
+    // ✅ DÉSACTIVÉ TEMPORAIREMENT - Cause boucle infinie
+    // Auto-sync timer to API every 30 seconds when running
+    /*
+    useEffect(() => {
+        // Only auto-sync if timer is running and has data
+        if (timer.isRunning && timer.timerData && !timer.isOnBreak) {
+            console.log('⏱️ [JobTimerProvider] Starting auto-sync (every 30s)');
+            
+            const intervalId = setInterval(() => {
+                console.log('🔄 [JobTimerProvider] Auto-syncing timer to API...');
+                syncTimerToAPI(timer.timerData!)
+                    .then(response => {
+                        if (response?.success) {
+                            console.log('✅ [JobTimerProvider] Auto-sync successful');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('❌ [JobTimerProvider] Auto-sync failed:', error);
+                    });
+            }, 30000); // 30 seconds
+            
+            return () => {
+                console.log('⏱️ [JobTimerProvider] Stopping auto-sync');
+                clearInterval(intervalId);
+            };
+        }
+    }, [timer.isRunning, timer.timerData, timer.isOnBreak]);
+    */
 
     const value: JobTimerContextValue = {
         // Données
@@ -111,6 +214,7 @@ export const JobTimerProvider: React.FC<JobTimerProviderProps> = ({
         currentStep: timer.currentStep,
         totalSteps: timer.totalSteps,
         isCompleted: timer.isCompleted,
+        stepTimes: timer.timerData?.stepTimes || [], // ✅ NOUVEAU: Exposer stepTimes
         finalCost: timer.finalCost,
         finalBillableHours: timer.finalBillableHours,
         
@@ -119,8 +223,7 @@ export const JobTimerProvider: React.FC<JobTimerProviderProps> = ({
         advanceStep: advanceStepWithCallback,
         nextStep,
         stopTimer,
-        startBreak: timer.startBreak,
-        stopBreak: timer.stopBreak,
+        togglePause: timer.togglePause, // ✅ V1.0: Simple Play/Pause
         
         // Utilitaires
         formatTime: timer.formatTime,

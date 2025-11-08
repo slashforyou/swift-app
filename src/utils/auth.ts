@@ -1,7 +1,7 @@
 // services/auth.ts
 import * as SecureStore from "expo-secure-store";
-import { collectDevicePayload } from "./device";
 import { ServerData } from "../constants/ServerData";
+import { collectDevicePayload } from "./device";
 
 const API = ServerData.serverUrl;
 
@@ -102,6 +102,22 @@ export async function refreshToken(): Promise<boolean> {
 
     if (!res.ok) {
       console.log('🔍 [TOKEN REFRESH] ❌ Step 6: Token refresh FAILED - Status:', res.status);
+      
+      // ✅ Lire le body de l'erreur pour debug
+      try {
+        const errorBody = await res.text();
+        console.log('🔍 [TOKEN REFRESH] Error response body:', errorBody);
+        
+        try {
+          const errorJson = JSON.parse(errorBody);
+          console.log('🔍 [TOKEN REFRESH] Error JSON parsed:', errorJson);
+        } catch {
+          console.log('🔍 [TOKEN REFRESH] Error body is not JSON');
+        }
+      } catch (e) {
+        console.log('🔍 [TOKEN REFRESH] Could not read error body:', e);
+      }
+      
       console.error('❌ Token refresh failed:', res.status);
       return false;
     }

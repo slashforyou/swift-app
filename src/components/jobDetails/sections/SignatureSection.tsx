@@ -3,10 +3,10 @@
  */
 import React from 'react';
 import { Text, View } from 'react-native';
-import { useTheme } from '../../../context/ThemeProvider';
 import { DESIGN_TOKENS } from '../../../constants/Styles';
-import SectionCard from '../SectionCard';
+import { useTheme } from '../../../context/ThemeProvider';
 import { Button } from '../../ui/Button';
+import SectionCard from '../SectionCard';
 
 interface SignatureSectionProps {
     job: any;
@@ -16,7 +16,12 @@ interface SignatureSectionProps {
 const SignatureSection: React.FC<SignatureSectionProps> = ({ job, onSignContract }) => {
     const { colors } = useTheme();
 
-    const isContractSigned = job.signatureDataUrl !== '' && job.signatureFileUri !== '';
+    // ✅ Vérifier signature (local OU API)
+    const isContractSigned = !!(
+        (job.signatureDataUrl && job.signatureFileUri) ||
+        job.signature_blob ||
+        job.job?.signature_blob
+    );
 
     return (
         <SectionCard level="secondary">

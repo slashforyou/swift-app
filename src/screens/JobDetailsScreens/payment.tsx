@@ -2,13 +2,14 @@
  * Payment Page - Gestion moderne des paiements conforme au design Summary
  * Utilise le timer en temps réel pour calculer les coûts
  */
-import React, { useState } from 'react';
-import { View, Text, Pressable, Alert, ScrollView } from 'react-native';
-import { DESIGN_TOKENS } from '../../constants/Styles';
-import { useTheme } from '../../context/ThemeProvider';
 import Ionicons from '@react-native-vector-icons/ionicons';
+import React, { useState } from 'react';
+import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import SigningBloc from '../../components/signingBloc';
+import { DESIGN_TOKENS } from '../../constants/Styles';
+import { useJobTimerContext } from '../../context/JobTimerProvider';
+import { useTheme } from '../../context/ThemeProvider';
 import PaymentWindow from './paymentWindow';
-import { useJobTimer } from '../../hooks/useJobTimer';
 
 // Interfaces
 interface PaymentProps {
@@ -19,20 +20,19 @@ interface PaymentProps {
 const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
     const { colors } = useTheme();
     const [paymentWindowVisible, setPaymentWindowVisible] = useState<string | null>(null);
+    const [isSigningVisible, setIsSigningVisible] = useState(false);
 
-    // Utiliser le hook timer pour les calculs en temps réel
-    const jobId = job?.job?.code || job?.code || 'unknown';
-    const currentStep = job?.job?.current_step || job?.current_step || 0;
-    
+    // ✅ Utiliser le context du timer pour les calculs en temps réel
     const { 
-        timerData,
         totalElapsed,
         billableTime,
         formatTime,
         calculateCost,
         HOURLY_RATE_AUD,
-        isRunning
-    } = useJobTimer(jobId, currentStep);
+        isRunning,
+        currentStep,
+        totalSteps,
+    } = useJobTimerContext();
 
     // Calculer le coût en temps réel
     const getRealTimePaymentInfo = () => {
@@ -93,16 +93,41 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
     const paymentInfo = getRealTimePaymentInfo();
     const statusInfo = getStatusInfo(paymentInfo.status);
 
-    // Vérifier si le job est terminé (actualStep = nombre total d'étapes)
+    // ✅ Vérifier si le job est terminé (currentStep = totalSteps)
     const isJobCompleted = () => {
-        const stepData = job?.step || job?.job?.step;
-        if (!stepData) return false;
-        return stepData.actualStep >= stepData.steps.length;
+        return currentStep >= totalSteps;
+    };
+
+    // ✅ Vérifier si le client a signé (local OU API)
+    const hasSignature = () => {
+        return !!(
+            job?.signatureDataUrl || 
+            job?.signatureFileUri || 
+            job?.signature_blob ||
+            job?.job?.signature_blob
+        );
+    };
+
+    // ✅ Handler pour le bouton de signature
+    const handleOpenSignature = () => {
+        setIsSigningVisible(true);
     };
 
     const handlePayment = () => {
         if (!isJobCompleted()) {
             Alert.alert("Job en cours", "Le paiement ne sera disponible qu'une fois le job terminé.");
+            return;
+        }
+        
+        if (!hasSignature()) {
+            Alert.alert(
+                "Signature requise",
+                "Le client doit signer avant de procéder au paiement.",
+                [
+                    { text: 'Annuler', style: 'cancel' },
+                    { text: 'Signer maintenant', onPress: handleOpenSignature }
+                ]
+            );
             return;
         }
         
@@ -125,7 +150,19 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
     }
 
     return (
-        <ScrollView 
+        <>
+            {/* ✅ Modal de signature */}
+            {isSigningVisible && (
+                <SigningBloc 
+                    isVisible={isSigningVisible} 
+                    setIsVisible={setIsSigningVisible} 
+                    onSave={(signature: any) => console.log('Signature saved:', signature)} 
+                    job={job} 
+                    setJob={setJob}
+                />
+            )}
+            
+            <ScrollView 
             style={{ flex: 1, backgroundColor: colors.background }}
             contentContainerStyle={{ padding: DESIGN_TOKENS.spacing.md }}
         >
@@ -198,39 +235,93 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                     </View>
                 </View>
 
-                {/* Bouton de paiement en dessous des badges */}
-                {paymentInfo.status === 'pending' && (
-                    <Pressable
-                        onPress={handlePayment}
-                        style={({ pressed }) => ({
-                            backgroundColor: isJobCompleted() 
-                                ? (pressed ? colors.tint + 'DD' : colors.tint)
-                                : colors.backgroundTertiary,
-                            paddingHorizontal: DESIGN_TOKENS.spacing.lg,
-                            paddingVertical: DESIGN_TOKENS.spacing.md,
-                            borderRadius: DESIGN_TOKENS.radius.lg,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: DESIGN_TOKENS.spacing.sm,
-                            minHeight: 56,
-                            opacity: isJobCompleted() ? 1 : 0.6,
-                            alignSelf: 'flex-start', // Le bouton prend sa taille naturelle
-                        })}
-                    >
-                        <Ionicons 
-                            name="card" 
-                            size={20} 
-                            color={isJobCompleted() ? colors.background : colors.textSecondary} 
-                        />
-                        <Text style={{
-                            color: isJobCompleted() ? colors.background : colors.textSecondary,
-                            fontWeight: '700',
-                            fontSize: 16,
-                        }}>
-                            {isJobCompleted() ? 'Payer maintenant' : 'Job en cours...'}
-                        </Text>
-                    </Pressable>
+                {/* ✅ Bouton de signature ou paiement selon l'état */}
+                {isJobCompleted() && (
+                    <View style={{ marginTop: DESIGN_TOKENS.spacing.md }}>
+                        {!hasSignature() ? (
+                            // Bouton pour signer si pas encore signé
+                            <Pressable
+                                onPress={handleOpenSignature}
+                                style={({ pressed }) => ({
+                                    backgroundColor: pressed ? colors.primary + 'DD' : colors.primary,
+                                    paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+                                    paddingVertical: DESIGN_TOKENS.spacing.md,
+                                    borderRadius: DESIGN_TOKENS.radius.lg,
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: DESIGN_TOKENS.spacing.sm,
+                                    minHeight: 56,
+                                })}
+                            >
+                                <Ionicons 
+                                    name="create" 
+                                    size={20} 
+                                    color={colors.background} 
+                                />
+                                <Text style={{
+                                    color: colors.background,
+                                    fontWeight: '700',
+                                    fontSize: 16,
+                                }}>
+                                    Signer le job
+                                </Text>
+                            </Pressable>
+                        ) : (
+                            // Bouton pour payer si signé
+                            <Pressable
+                                onPress={handlePayment}
+                                style={({ pressed }) => ({
+                                    backgroundColor: pressed ? '#10B981DD' : '#10B981',
+                                    paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+                                    paddingVertical: DESIGN_TOKENS.spacing.md,
+                                    borderRadius: DESIGN_TOKENS.radius.lg,
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: DESIGN_TOKENS.spacing.sm,
+                                    minHeight: 56,
+                                })}
+                            >
+                                <Ionicons 
+                                    name="card" 
+                                    size={20} 
+                                    color={colors.background} 
+                                />
+                                <Text style={{
+                                    color: colors.background,
+                                    fontWeight: '700',
+                                    fontSize: 16,
+                                }}>
+                                    Payer maintenant
+                                </Text>
+                            </Pressable>
+                        )}
+                        
+                        {/* Indicateur si signé */}
+                        {hasSignature() && (
+                            <View style={{
+                                marginTop: DESIGN_TOKENS.spacing.sm,
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: DESIGN_TOKENS.spacing.xs,
+                            }}>
+                                <Ionicons 
+                                    name="checkmark-circle" 
+                                    size={16} 
+                                    color="#10B981" 
+                                />
+                                <Text style={{
+                                    fontSize: 14,
+                                    color: '#10B981',
+                                    fontWeight: '600',
+                                }}>
+                                    Job signé par le client
+                                </Text>
+                            </View>
+                        )}
+                    </View>
                 )}
             </View>
 
@@ -451,6 +542,243 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                         </View>
                     )}
                 </View>
+            </View>
+
+            {/* 💰 BREAKDOWN DÉTAILLÉ DE FACTURATION */}
+            <View style={{
+                backgroundColor: colors.backgroundSecondary,
+                borderRadius: DESIGN_TOKENS.radius.lg,
+                padding: DESIGN_TOKENS.spacing.lg,
+                marginBottom: DESIGN_TOKENS.spacing.lg,
+                borderWidth: 2,
+                borderColor: colors.primary + '20',
+            }}>
+                <View style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: DESIGN_TOKENS.spacing.sm,
+                    marginBottom: DESIGN_TOKENS.spacing.lg,
+                }}>
+                    <View style={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: 16,
+                        backgroundColor: colors.primary + '20',
+                        justifyContent: 'center',
+                        alignItems: 'center'
+                    }}>
+                        <Ionicons name="receipt" size={18} color={colors.primary} />
+                    </View>
+                    <Text style={{
+                        fontSize: 18,
+                        fontWeight: '700',
+                        color: colors.text,
+                        flex: 1
+                    }}>
+                        Détail de Facturation
+                    </Text>
+                </View>
+
+                {/* Calcul détaillé */}
+                <View style={{ gap: DESIGN_TOKENS.spacing.md }}>
+                    {/* Ligne 1: Temps de travail réel */}
+                    <View style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        paddingBottom: DESIGN_TOKENS.spacing.sm,
+                    }}>
+                        <Text style={{ fontSize: 14, color: colors.text }}>
+                            Temps de travail réel
+                        </Text>
+                        <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text }}>
+                            {formatTime(paymentInfo.totalTime)}
+                        </Text>
+                    </View>
+
+                    {/* Ligne 2: Pauses (si > 0) */}
+                    {paymentInfo.totalTime > paymentInfo.actualTime && (
+                        <View style={{
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            paddingBottom: DESIGN_TOKENS.spacing.sm,
+                        }}>
+                            <Text style={{ fontSize: 14, color: colors.textSecondary }}>
+                                Pauses (non facturables)
+                            </Text>
+                            <Text style={{ fontSize: 14, fontWeight: '500', color: colors.warning }}>
+                                -{formatTime(paymentInfo.totalTime - paymentInfo.actualTime)}
+                            </Text>
+                        </View>
+                    )}
+
+                    {/* Séparateur */}
+                    <View style={{ height: 1, backgroundColor: colors.border, marginVertical: DESIGN_TOKENS.spacing.xs }} />
+
+                    {/* Ligne 3: Temps facturable brut */}
+                    <View style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        paddingBottom: DESIGN_TOKENS.spacing.sm,
+                    }}>
+                        <Text style={{ fontSize: 14, color: colors.text, fontWeight: '600' }}>
+                            Temps facturable brut
+                        </Text>
+                        <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
+                            {formatTime(paymentInfo.actualTime)}
+                        </Text>
+                    </View>
+
+                    {/* Ligne 4: Minimum facturable (2h) */}
+                    <View style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                    }}>
+                        <View style={{ flex: 1 }}>
+                            <Text style={{ fontSize: 14, color: colors.text }}>
+                                Minimum facturable
+                            </Text>
+                            <Text style={{ fontSize: 11, color: colors.textSecondary }}>
+                                (Politique des 2 heures)
+                            </Text>
+                        </View>
+                        <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text }}>
+                            2h00min
+                        </Text>
+                    </View>
+
+                    {/* Ligne 5: Call-out fee */}
+                    <View style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                    }}>
+                        <View style={{ flex: 1 }}>
+                            <Text style={{ fontSize: 14, color: colors.text }}>
+                                Call-out fee
+                            </Text>
+                            <Text style={{ fontSize: 11, color: colors.textSecondary }}>
+                                (Frais de déplacement)
+                            </Text>
+                        </View>
+                        <Text style={{ fontSize: 14, fontWeight: '500', color: colors.primary }}>
+                            +0h30min
+                        </Text>
+                    </View>
+
+                    {/* Ligne 6: Arrondi (règle 7min) */}
+                    <View style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        paddingBottom: DESIGN_TOKENS.spacing.sm,
+                    }}>
+                        <View style={{ flex: 1 }}>
+                            <Text style={{ fontSize: 14, color: colors.text }}>
+                                Arrondi demi-heure
+                            </Text>
+                            <Text style={{ fontSize: 11, color: colors.textSecondary }}>
+                                (Règle des 7 minutes)
+                            </Text>
+                        </View>
+                        <Text style={{ fontSize: 14, fontWeight: '500', color: colors.primary }}>
+                            Auto
+                        </Text>
+                    </View>
+
+                    {/* Double séparateur */}
+                    <View style={{ height: 2, backgroundColor: colors.border, marginVertical: DESIGN_TOKENS.spacing.xs }} />
+
+                    {/* Ligne 7: Total heures facturables */}
+                    <View style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        backgroundColor: colors.backgroundTertiary + '30',
+                        padding: DESIGN_TOKENS.spacing.md,
+                        borderRadius: DESIGN_TOKENS.radius.md,
+                        marginBottom: DESIGN_TOKENS.spacing.sm,
+                    }}>
+                        <Text style={{ fontSize: 15, color: colors.text, fontWeight: '700' }}>
+                            Total heures facturables
+                        </Text>
+                        <Text style={{ fontSize: 16, fontWeight: '700', color: colors.primary }}>
+                            {paymentInfo.billableHours}h
+                        </Text>
+                    </View>
+
+                    {/* Ligne 8: Taux horaire */}
+                    <View style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        paddingBottom: DESIGN_TOKENS.spacing.md,
+                    }}>
+                        <Text style={{ fontSize: 14, color: colors.textSecondary }}>
+                            Taux horaire
+                        </Text>
+                        <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text }}>
+                            {formatCurrency(HOURLY_RATE_AUD)}/h
+                        </Text>
+                    </View>
+
+                    {/* Triple séparateur */}
+                    <View style={{ height: 3, backgroundColor: colors.primary + '30', marginVertical: DESIGN_TOKENS.spacing.sm }} />
+
+                    {/* Ligne 9: MONTANT FINAL */}
+                    <View style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        backgroundColor: colors.primary + '10',
+                        padding: DESIGN_TOKENS.spacing.lg,
+                        borderRadius: DESIGN_TOKENS.radius.md,
+                        borderWidth: 2,
+                        borderColor: colors.primary + '30',
+                    }}>
+                        <Text style={{ fontSize: 17, color: colors.text, fontWeight: '700' }}>
+                            MONTANT FINAL
+                        </Text>
+                        <Text style={{ fontSize: 22, fontWeight: '700', color: colors.primary }}>
+                            {formatCurrency(paymentInfo.current)}
+                        </Text>
+                    </View>
+
+                    {/* Note explicative */}
+                    <View style={{
+                        backgroundColor: colors.backgroundTertiary + '30',
+                        borderRadius: DESIGN_TOKENS.radius.md,
+                        padding: DESIGN_TOKENS.spacing.md,
+                        marginTop: DESIGN_TOKENS.spacing.sm,
+                        borderLeftWidth: 3,
+                        borderLeftColor: colors.primary,
+                    }}>
+                        <View style={{
+                            flexDirection: 'row',
+                            alignItems: 'flex-start',
+                            gap: DESIGN_TOKENS.spacing.sm,
+                        }}>
+                            <Ionicons name="information-circle" size={18} color={colors.primary} style={{ marginTop: 2 }} />
+                            <Text style={{ fontSize: 12, color: colors.textSecondary, flex: 1, lineHeight: 18 }}>
+                                Le calcul inclut un minimum de 2 heures, un call-out fee de 30 minutes, 
+                                et un arrondi à la demi-heure supérieure selon la règle des 7 minutes 
+                                (≥7min arrondis à 30min, &lt;7min arrondis à 0min).
+                            </Text>
+                        </View>
+                    </View>
+                </View>
+            </View>
+
+            {/* Section détails du job (suite existante...) */}
+            <View style={{
+                backgroundColor: colors.backgroundSecondary,
+                borderRadius: DESIGN_TOKENS.radius.lg,
+                padding: DESIGN_TOKENS.spacing.lg,
+                marginBottom: DESIGN_TOKENS.spacing.lg,
+            }}>
 
                 {/* Détails de facturation */}
                 <View style={{
@@ -571,6 +899,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                 </View>
             </View>
         </ScrollView>
+        </>
     );
 };
 

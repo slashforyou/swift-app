@@ -15,6 +15,7 @@ import {
     deletePhoto,
     fetchJobPhotos,
     getPhotoServeUrl,
+    JobPhotoAPI,
     updatePhotoDescription,
     uploadJobPhoto
 } from '../../src/services/jobPhotos';
@@ -75,7 +76,7 @@ describe('📸 API Photos Integration Tests', () => {
         expect(result.created_at).toBeDefined();
         
         // Sauvegarder l'ID pour les tests suivants
-        uploadedPhotoId = result.id;
+        uploadedPhotoId = String(result.id); // ✅ FIX: Convert to string explicitly
         
       } catch (error) {
         console.error('❌ Upload failed:', error);
@@ -125,7 +126,8 @@ describe('📸 API Photos Integration Tests', () => {
     it('should fetch photos for a job', async () => {
       console.log('\n📥 Testing fetch photos...');
       
-      const photos = await fetchJobPhotos(TEST_JOB_ID);
+      const result = await fetchJobPhotos(TEST_JOB_ID);
+      const photos = result.photos; // ✅ FIX: Access photos property
       
       console.log(`✅ Fetched ${photos.length} photos`);
       
@@ -152,12 +154,11 @@ describe('📸 API Photos Integration Tests', () => {
     });
 
     it('should return empty array for job without photos', async () => {
-      const photos = await fetchJobPhotos('JOB-NONEXISTENT-999');
+      const result = await fetchJobPhotos('JOB-NONEXISTENT-999');
       
-      // Peut retourner soit [] soit erreur 404
-      if (Array.isArray(photos)) {
-        expect(photos).toEqual([]);
-      }
+      // ✅ FIX: Access photos property
+      const photos = result.photos;
+      expect(photos).toEqual([]);
     });
   });
 
@@ -221,7 +222,7 @@ describe('📸 API Photos Integration Tests', () => {
         expect(updated.updated_at).toBeDefined();
         
         // updated_at devrait être récent
-        const updatedTime = new Date(updated.updated_at).getTime();
+        const updatedTime = new Date(updated.updated_at || new Date()).getTime(); // ✅ FIX: Handle undefined
         const now = Date.now();
         expect(now - updatedTime).toBeLessThan(60000); // moins de 1 minute
         
@@ -257,8 +258,8 @@ describe('📸 API Photos Integration Tests', () => {
         console.log('✅ Photo deleted successfully');
         
         // Vérifier que la photo n'est plus dans la liste
-        const photos = await fetchJobPhotos(TEST_JOB_ID);
-        const deletedPhoto = photos.find(p => p.id === uploadedPhotoId);
+        const result = await fetchJobPhotos(TEST_JOB_ID);
+        const deletedPhoto = result.photos.find((p: JobPhotoAPI) => p.id === uploadedPhotoId); // ✅ FIX: Access photos property and type param
         
         expect(deletedPhoto).toBeUndefined();
         console.log('✅ Photo removed from list');
@@ -303,7 +304,8 @@ describe('📸 API Photos Integration Tests', () => {
 
   describe('📊 Response Format Tests', () => {
     it('should return correct JobPhotoAPI structure', async () => {
-      const photos = await fetchJobPhotos(TEST_JOB_ID);
+      const result = await fetchJobPhotos(TEST_JOB_ID);
+      const photos = result.photos; // ✅ FIX: Access photos property
       
       if (photos.length > 0) {
         const photo = photos[0];
@@ -331,7 +333,8 @@ describe('📸 API Photos Integration Tests', () => {
     });
 
     it('should have valid timestamps', async () => {
-      const photos = await fetchJobPhotos(TEST_JOB_ID);
+      const result = await fetchJobPhotos(TEST_JOB_ID);
+      const photos = result.photos; // ✅ FIX: Access photos property
       
       if (photos.length > 0) {
         const photo = photos[0];
@@ -341,8 +344,8 @@ describe('📸 API Photos Integration Tests', () => {
         expect(photo.updated_at).toMatch(/^\d{4}-\d{2}-\d{2}T/);
         
         // Vérifier que les dates sont valides
-        const created = new Date(photo.created_at);
-        const updated = new Date(photo.updated_at);
+        const created = new Date(photo.created_at || new Date()); // ✅ FIX: Handle undefined
+        const updated = new Date(photo.updated_at || new Date()); // ✅ FIX: Handle undefined
         
         expect(created.getTime()).toBeGreaterThan(0);
         expect(updated.getTime()).toBeGreaterThan(0);

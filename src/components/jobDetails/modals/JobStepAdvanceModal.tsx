@@ -1,28 +1,21 @@
 /**
  * JobStepAdvanceModal - Modal amélioré pour la gestion des étapes du job
+ * ✅ Utilise maintenant le JobTimerContext pour la source unique de vérité
  */
-import React, { useState, useEffect } from 'react';
-import { 
-    View, 
-    Text, 
-    Modal, 
-    Pressable, 
+import Ionicons from '@react-native-vector-icons/ionicons';
+import React, { useEffect, useState } from 'react';
+import {
+    Modal,
+    Pressable,
     ScrollView,
     StyleSheet,
-    Animated
+    Text,
+    View
 } from 'react-native';
-import { useTheme } from '../../../context/ThemeProvider';
 import { DESIGN_TOKENS } from '../../../constants/Styles';
-import Ionicons from '@react-native-vector-icons/ionicons';
+import { useJobTimerContext } from '../../../context/JobTimerProvider';
+import { useTheme } from '../../../context/ThemeProvider';
 import { useToast } from '../../../context/ToastProvider';
-import { 
-    generateJobSteps, 
-    calculateProgressPercentage, 
-    getCurrentStep, 
-    isStepClickable, 
-    getStepName,
-    JobStep
-} from '../../../utils/jobStepsUtils';
 
 interface JobStepAdvanceModalProps {
     isVisible: boolean;
@@ -42,9 +35,11 @@ const JobStepAdvanceModal: React.FC<JobStepAdvanceModalProps> = ({
     const [isUpdating, setIsUpdating] = useState(false);
     const [selectedStep, setSelectedStep] = useState<number | null>(null);
 
-    // Utiliser les utilitaires partagés
-    const jobSteps = generateJobSteps(job);
-    const currentStep = getCurrentStep(job);
+    // ✅ Utiliser le timer context pour les steps (source unique de vérité)
+    const { currentStep, totalSteps } = useJobTimerContext();
+
+    // ✅ Récupérer les steps depuis le job (configuration)
+    const jobSteps = job?.steps || [];
 
     useEffect(() => {
         if (isVisible) {
@@ -52,20 +47,28 @@ const JobStepAdvanceModal: React.FC<JobStepAdvanceModalProps> = ({
         }
     }, [isVisible]);
 
-    const canAdvanceTo = (stepId: number): boolean => {
-        return isStepClickable(stepId, job);
+    // ✅ Calculer le statut de chaque étape
+    const getStepStatus = (stepIndex: number): 'completed' | 'current' | 'pending' => {
+        if (stepIndex < currentStep) return 'completed';
+        if (stepIndex === currentStep) return 'current';
+        return 'pending';
     };
 
-    const handleStepSelection = async (stepId: number) => {
-        if (!canAdvanceTo(stepId) || isUpdating) return;
+    // ✅ Un step est cliquable s'il est l'étape suivante ou déjà atteint
+    const canAdvanceTo = (stepIndex: number): boolean => {
+        return stepIndex <= currentStep + 1 && stepIndex < totalSteps;
+    };
+
+    const handleStepSelection = async (stepIndex: number) => {
+        if (!canAdvanceTo(stepIndex) || isUpdating) return;
 
         try {
             setIsUpdating(true);
-            setSelectedStep(stepId);
+            setSelectedStep(stepIndex);
             
-            await onAdvanceStep(stepId);
+            await onAdvanceStep(stepIndex);
             
-            const stepName = getStepName(stepId, job);
+            const stepName = jobSteps[stepIndex]?.name || `Étape ${stepIndex + 1}`;
             showSuccess('Étape mise à jour', `${stepName} activée avec succès`);
             
             // Fermer le modal après un court délai
@@ -83,8 +86,8 @@ const JobStepAdvanceModal: React.FC<JobStepAdvanceModalProps> = ({
         }
     };
 
-    const getStepStatusColor = (step: JobStep): string => {
-        switch (step.status) {
+    const getStepStatusColor = (status: 'completed' | 'current' | 'pending'): string => {
+        switch (status) {
             case 'completed':
                 return colors.success;
             case 'current':
@@ -96,8 +99,8 @@ const JobStepAdvanceModal: React.FC<JobStepAdvanceModalProps> = ({
         }
     };
 
-    const getStepBackgroundColor = (step: JobStep): string => {
-        switch (step.status) {
+    const getStepBackgroundColor = (status: 'completed' | 'current' | 'pending'): string => {
+        switch (status) {
             case 'completed':
                 return colors.success + '15';
             case 'current':
@@ -108,6 +111,12 @@ const JobStepAdvanceModal: React.FC<JobStepAdvanceModalProps> = ({
                 return colors.backgroundSecondary;
         }
     };
+
+    // ✅ Calculer le pourcentage de progression
+    const progressPercentage = React.useMemo(() => {
+        if (totalSteps === 0) return 0;
+        return Math.round((currentStep / totalSteps) * 100);
+    }, [currentStep, totalSteps]);
 
     const styles = StyleSheet.create({
         overlay: {
@@ -275,8 +284,6 @@ const JobStepAdvanceModal: React.FC<JobStepAdvanceModalProps> = ({
         }
     };
 
-    const progressPercentage = calculateProgressPercentage(job);
-
     return (
         <Modal
             visible={isVisible}
@@ -316,16 +323,17 @@ const JobStepAdvanceModal: React.FC<JobStepAdvanceModalProps> = ({
 
                             {/* Steps List */}
                             <View style={styles.stepsContainer}>
-                                {jobSteps.map((step) => {
-                                    const stepColor = getStepStatusColor(step);
-                                    const stepBgColor = getStepBackgroundColor(step);
-                                    const isClickable = canAdvanceTo(step.id);
-                                    const isProcessing = selectedStep === step.id && isUpdating;
+                                {jobSteps.map((step: any, index: number) => {
+                                    const status = getStepStatus(index);
+                                    const stepColor = getStepStatusColor(status);
+                                    const stepBgColor = getStepBackgroundColor(status);
+                                    const isClickable = canAdvanceTo(index);
+                                    const isProcessing = selectedStep === index && isUpdating;
 
                                     return (
                                         <Pressable
-                                            key={step.id}
-                                            onPress={() => isClickable && handleStepSelection(step.id)}
+                                            key={step.id || index}
+                                            onPress={() => isClickable && handleStepSelection(index)}
                                             disabled={!isClickable || isUpdating}
                                             style={({ pressed }) => [
                                                 styles.stepItem,
@@ -358,9 +366,9 @@ const JobStepAdvanceModal: React.FC<JobStepAdvanceModalProps> = ({
                                                 </View>
 
                                                 <View style={styles.stepInfo}>
-                                                    <Text style={styles.stepName}>{step.name}</Text>
+                                                    <Text style={styles.stepName}>{step.name || `Étape ${index + 1}`}</Text>
                                                     <Text style={styles.stepDescription}>
-                                                        {step.description}
+                                                        {step.description || 'Aucune description'}
                                                     </Text>
                                                 </View>
 
@@ -373,11 +381,11 @@ const JobStepAdvanceModal: React.FC<JobStepAdvanceModalProps> = ({
                                                             styles.stepStatusText,
                                                             { color: stepColor }
                                                         ]}>
-                                                            {getStatusLabel(step.status)}
+                                                            {getStatusLabel(status)}
                                                         </Text>
                                                     </View>
 
-                                                    {isClickable && step.id === currentStep + 1 && (
+                                                    {isClickable && index === currentStep + 1 && (
                                                         <Pressable
                                                             style={[
                                                                 styles.advanceButton,

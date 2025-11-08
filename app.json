@@ -12,7 +12,8 @@
       "supportsTablet": true
     },
     "android": {
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.slash4u.swiftapp"
     },
     "web": {
       "bundler": "metro"

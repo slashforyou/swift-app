@@ -2,20 +2,21 @@
  * JobDetails - Écran principal des détails de tâche
  * Architecture moderne avec gestion correcte des Safe Areas et marges
  */
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import JobDetailsHeader from '../components/jobDetails/JobDetailsHeader';
 import TabMenu from '../components/ui/TabMenu';
 import Toast from '../components/ui/toastNotification';
-import { DESIGN_TOKENS } from '../constants/Styles';
 import { getTemplateSteps, JobTemplate } from '../constants/JobSteps';
+import { DESIGN_TOKENS } from '../constants/Styles';
 import { JobStateProvider } from '../context/JobStateProvider';
 import { JobTimerProvider } from '../context/JobTimerProvider';
 import { useTheme } from '../context/ThemeProvider';
 import { useJobDetails } from '../hooks/useJobDetails';
 import { useLocalization } from '../localization/useLocalization';
 import { useAuthCheck } from '../utils/checkAuth';
+import { formatValidationReport, validateJobConsistency } from '../utils/jobValidation';
 import JobClient from './JobDetailsScreens/client';
 import JobPage from './JobDetailsScreens/job';
 import JobNote from './JobDetailsScreens/note';
@@ -213,6 +214,9 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
         }
     });
     
+    // ✅ FIX BOUCLE INFINIE: Ref pour tracker si validation déjà effectuée
+    const hasValidatedRef = useRef(false);
+    
     // Effet pour mettre à jour les données locales quand jobDetails change
     React.useEffect(() => {
         if (jobDetails) {
@@ -223,6 +227,38 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
                 clientKeys: jobDetails.client ? Object.keys(jobDetails.client) : [],
                 jobKeys: jobDetails.job ? Object.keys(jobDetails.job) : []
             });
+            
+            // 🔍 VALIDATION: Vérifier la cohérence du job à chaque chargement
+            // ✅ FIX BOUCLE INFINIE: Ne valider QU'UNE SEULE FOIS par job
+            if (jobDetails.job && !hasValidatedRef.current) {
+                hasValidatedRef.current = true; // Marquer comme validé
+                console.log('🔍 [JobDetails] Première validation du job...');
+                
+                validateJobConsistency(jobDetails.job)
+                    .then(async (validation) => {
+                        if (!validation.isValid) {
+                            console.warn('⚠️ [JobDetails] Incohérences détectées:', validation.inconsistencies);
+                            const report = formatValidationReport(validation);
+                            console.log(report);
+                        }
+                        
+                        if (validation.autoCorrected) {
+                            console.log('✅ [JobDetails] Auto-corrections appliquées:', validation.corrections);
+                            showToast('Incohérence corrigée automatiquement', 'success');
+                            
+                            // 🔄 RECHARGER les données du job pour afficher le timer créé
+                            console.log('🔄 [JobDetails] Rechargement du job après auto-correction...');
+                            await new Promise(resolve => setTimeout(resolve, 1000)); // Attendre 1s pour sync API
+                            refreshJobDetails(); // Recharger les données du job
+                            console.log('✅ [JobDetails] Données rechargées après auto-correction');
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('❌ [JobDetails] Erreur lors de la validation:', error);
+                    });
+            } else if (jobDetails.job && hasValidatedRef.current) {
+                console.log('🔍 [JobDetails] Validation déjà effectuée pour ce job, skip');
+            }
             
             // Mise à jour des données avec les vraies données de l'API transformées
             setJob((prevJob: any) => {
@@ -296,6 +332,12 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
             });            console.log('✅ [JobDetails] Local job data updated with API data');
         }
     }, [jobDetails]);
+    
+    // ✅ FIX BOUCLE INFINIE: Reset du flag de validation quand on change de job
+    React.useEffect(() => {
+        console.log('🔄 [JobDetails] Job ID changed, resetting validation flag');
+        hasValidatedRef.current = false; // Permettre la validation pour le nouveau job
+    }, [actualJobId]);
     
     const [jobPanel, setJobPanel] = useState('summary');
     // jobPanel: 'summary', 'job', 'client', 'notes', 'payment'
@@ -378,13 +420,16 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
     }
 
     const currentStep = job.step.actualStep || 0;
-    const totalSteps = job.step.steps.length || 6;
+    // ✅ FIX: Utiliser la longueur du tableau steps dynamique (depuis getTemplateSteps)
+    // job.steps contient les steps du template (JobTemplate) qui peut varier (3-7 steps)
+    const totalSteps = job.steps?.length || 5;
 
     return (
         <JobTimerProvider
             jobId={actualJobId}
             currentStep={currentStep}
             totalSteps={totalSteps}
+            jobStatus={jobDetails?.job?.status}
             onStepChange={handleStepChange}
             onJobCompleted={handleJobCompleted}
         >
@@ -412,7 +457,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
                         paddingHorizontal: DESIGN_TOKENS.spacing.lg,
                     }}
                 >
-                    {jobPanel === 'summary' && <JobSummary job={job} setJob={setJob} />}
+                    {jobPanel === 'summary' && <JobSummary job={job} setJob={setJob} onOpenPaymentPanel={() => setJobPanel('payment')} />}
                     {jobPanel === 'job' && <JobPage job={job} setJob={setJob} />}
                     {jobPanel === 'client' && <JobClient job={job} setJob={setJob} />}
                     {jobPanel === 'notes' && (

@@ -1,23 +1,24 @@
 /**
- * PaymentWindow - Interface de paiement moderne avec données API réelles
+ * PaymentWindow - Interface de paiement moderne avec temps réel
+ * ✅ Intégré au JobTimerContext pour calculs en temps réel
  */
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { 
-  View, 
-  Text, 
-  ScrollView, 
-  Pressable, 
-  TextInput, 
-  Modal, 
-  Animated, 
-  Dimensions, 
+import Ionicons from '@react-native-vector-icons/ionicons';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  ActivityIndicator,
   Alert,
-  ActivityIndicator 
+  Animated,
+  Dimensions,
+  Modal,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Ionicons from '@react-native-vector-icons/ionicons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { DESIGN_TOKENS } from '../../constants/Styles';
+import { useJobTimerContext } from '../../context/JobTimerProvider';
 import { useTheme } from '../../context/ThemeProvider';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -52,20 +53,38 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
   const { colors } = useTheme();
   const isVisible = visibleCondition === 'paymentWindow';
   
-  // Extraire les informations de coût depuis les données du job (comme dans payment.tsx)
+  // ✅ Utiliser le timer context pour les calculs en temps réel
+  const { 
+    billableTime, 
+    calculateCost, 
+    formatTime,
+    HOURLY_RATE_AUD 
+  } = useJobTimerContext();
+  
+  // ✅ Calculer le montant à payer en temps réel basé sur le billableTime
   const getPaymentAmount = () => {
+    // Utiliser le coût calculé en temps réel
+    const costData = calculateCost(billableTime);
+    const realTimeCost = costData.cost;
+    
+    // Fallback sur les données du job si le timer n'a pas encore démarré
     const jobData = job?.job || job;
-    return jobData?.actualCost || jobData?.estimatedCost || 0;
+    const estimatedCost = jobData?.estimatedCost || jobData?.actualCost || 0;
+    
+    // Retourner le coût temps réel s'il est supérieur à 0, sinon l'estimé
+    return realTimeCost > 0 ? realTimeCost : estimatedCost;
   };
 
+  // ✅ Changer EUR → AUD pour correspondre au taux horaire
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
+    return new Intl.NumberFormat('en-AU', {
       style: 'currency',
-      currency: 'EUR',
+      currency: 'AUD',
     }).format(amount);
   };
 
   const paymentAmount = getPaymentAmount();
+  const costData = calculateCost(billableTime);
   
   // Payment state
   const [state, setState] = useState<PaymentState>({
@@ -228,10 +247,36 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
         fontSize: 16,
         color: colors.textSecondary,
         textAlign: 'center',
-        marginBottom: DESIGN_TOKENS.spacing.xl,
+        marginBottom: DESIGN_TOKENS.spacing.sm,
       }}>
         Montant à payer : {formatCurrency(paymentAmount)}
       </Text>
+
+      {/* ✅ Afficher le temps facturable */}
+      {billableTime > 0 && (
+        <View style={{
+          backgroundColor: colors.backgroundSecondary,
+          borderRadius: DESIGN_TOKENS.radius.md,
+          padding: DESIGN_TOKENS.spacing.md,
+          marginBottom: DESIGN_TOKENS.spacing.lg,
+          alignItems: 'center',
+        }}>
+          <Text style={{
+            fontSize: 12,
+            color: colors.textSecondary,
+            marginBottom: 4,
+          }}>
+            Temps facturable
+          </Text>
+          <Text style={{
+            fontSize: 16,
+            fontWeight: '600',
+            color: colors.tint,
+          }}>
+            {formatTime(billableTime)} • {costData.hours.toFixed(2)}h @ {HOURLY_RATE_AUD} AUD/h
+          </Text>
+        </View>
+      )}
 
       <View style={{ gap: DESIGN_TOKENS.spacing.md }}>
         <Pressable
@@ -331,10 +376,33 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
         fontSize: 16,
         color: colors.textSecondary,
         textAlign: 'center',
-        marginBottom: DESIGN_TOKENS.spacing.xl,
+        marginBottom: DESIGN_TOKENS.spacing.sm,
       }}>
         {formatCurrency(paymentAmount)}
       </Text>
+
+      {/* ✅ Afficher le détail du calcul */}
+      {billableTime > 0 && (
+        <View style={{
+          backgroundColor: colors.backgroundSecondary,
+          borderRadius: DESIGN_TOKENS.radius.md,
+          padding: DESIGN_TOKENS.spacing.md,
+          marginBottom: DESIGN_TOKENS.spacing.lg,
+        }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+            <Text style={{ fontSize: 12, color: colors.textSecondary }}>Temps facturable</Text>
+            <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text }}>
+              {formatTime(billableTime)}
+            </Text>
+          </View>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <Text style={{ fontSize: 12, color: colors.textSecondary }}>Taux horaire</Text>
+            <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text }}>
+              {costData.hours.toFixed(2)}h × {HOURLY_RATE_AUD} AUD/h
+            </Text>
+          </View>
+        </View>
+      )}
 
       <View style={{ gap: DESIGN_TOKENS.spacing.lg, marginBottom: DESIGN_TOKENS.spacing.xl }}>
         <View>
@@ -525,10 +593,33 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
         fontSize: 16,
         color: colors.textSecondary,
         textAlign: 'center',
-        marginBottom: DESIGN_TOKENS.spacing.xl,
+        marginBottom: DESIGN_TOKENS.spacing.sm,
       }}>
         Montant à payer : {formatCurrency(paymentAmount)}
       </Text>
+
+      {/* ✅ Afficher le détail du calcul */}
+      {billableTime > 0 && (
+        <View style={{
+          backgroundColor: colors.backgroundSecondary,
+          borderRadius: DESIGN_TOKENS.radius.md,
+          padding: DESIGN_TOKENS.spacing.md,
+          marginBottom: DESIGN_TOKENS.spacing.lg,
+        }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+            <Text style={{ fontSize: 12, color: colors.textSecondary }}>Temps facturable</Text>
+            <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text }}>
+              {formatTime(billableTime)}
+            </Text>
+          </View>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <Text style={{ fontSize: 12, color: colors.textSecondary }}>Taux horaire</Text>
+            <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text }}>
+              {costData.hours.toFixed(2)}h × {HOURLY_RATE_AUD} AUD/h
+            </Text>
+          </View>
+        </View>
+      )}
 
       <View style={{ marginBottom: DESIGN_TOKENS.spacing.xl }}>
         <Text style={{

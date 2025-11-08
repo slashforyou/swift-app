@@ -1,6 +1,6 @@
 // services/jobs.ts
-import { getAuthHeaders } from '../utils/auth';
 import { ServerData } from '../constants/ServerData';
+import { getAuthHeaders } from '../utils/auth';
 
 const API = ServerData.serverUrl;
 
@@ -380,17 +380,17 @@ export async function completeJob(jobId: string): Promise<JobAPI> {
 }
 
 /**
- * Récupère les détails complets d'un job par son code (ex: JOB-NERD-URGENT-006)
- * Utilise UNIQUEMENT l'endpoint /v1/job/:code/full
+ * Récupère les détails complets d'un job par son CODE (ex: JOB-NERD-URGENT-006)
+ * Utilise l'endpoint /v1/job/:code/full
  * Si échec, retour à l'écran précédent
  */
-export async function getJobDetails(jobId: string): Promise<any> {
+export async function getJobDetails(jobCode: string): Promise<any> {
   const startTime = performance.now();
   
-  console.log(`📡 [getJobDetails] Starting fetch for jobId: ${jobId}`);
+  console.log(`📡 [getJobDetails] Starting fetch for jobCode: ${jobCode}`);
   
   try {
-    const fullUrl = `${API}v1/job/${jobId}/full`;
+    const fullUrl = `${API}v1/job/${jobCode}/full`;
     console.log(`📡 [getJobDetails] Fetching job details from URL: ${fullUrl}`);
     
     const res = await authenticatedFetch(fullUrl, {
@@ -416,13 +416,40 @@ export async function getJobDetails(jobId: string): Promise<any> {
 
     const { data } = rawData;
     
+    // ✅ FIX: Transformer current_step en job.step.actualStep
+    // L'API retourne current_step dans data.job ET dans data.workflow
+    const currentStepFromAPI = data.job?.current_step || data.workflow?.current_step || 0;
+    const totalStepsFromAPI = data.workflow?.total_steps || data.addresses?.length || 5;
+    
+    console.log('🔍 [getJobDetails] Step data from API:', {
+      jobCurrentStep: data.job?.current_step,
+      workflowCurrentStep: data.workflow?.current_step,
+      workflowTotalSteps: data.workflow?.total_steps,
+      finalCurrentStep: currentStepFromAPI,
+      finalTotalSteps: totalStepsFromAPI
+    });
+    
     // Format attendu par useJobDetails
     const transformedData = {
-      job: data.job,
+      job: {
+        ...data.job,
+        // ✅ AJOUTER: Créer job.step.actualStep pour la synchronisation
+        step: {
+          actualStep: currentStepFromAPI,
+          totalSteps: totalStepsFromAPI
+        },
+        // ✅ SIGNATURE: Assurer que signature_blob est bien récupéré
+        signature_blob: data.job?.signature_blob || null,
+        signature_date: data.job?.signature_date || null
+      },
       client: data.client,
       company: data.company,
       trucks: data.trucks || [],
       workers: data.crew || [], // Transformer 'crew' en 'workers'
+      // ✅ AJOUTER: Transformer addresses en steps pour totalSteps
+      steps: data.addresses || [],
+      // ✅ AJOUTER: Garder workflow pour accès direct
+      workflow: data.workflow || {},
       items: (data.items || []).map((item: any, index: number) => {
         const transformedItem = {
           ...item,
@@ -448,8 +475,19 @@ export async function getJobDetails(jobId: string): Promise<any> {
       workersCount: transformedData.workers.length,
       itemsCount: transformedData.items.length,
       notesCount: transformedData.notes.length,
-      addressesCount: transformedData.addresses.length
+      addressesCount: transformedData.addresses.length,
+      // ✅ AJOUTER: Log du step transformé
+      stepActualStep: transformedData.job?.step?.actualStep,
+      stepTotalSteps: transformedData.job?.step?.totalSteps,
+      // ✅ SIGNATURE: Log des champs signature
+      hasSignatureBlob: !!transformedData.job?.signature_blob,
+      signatureBlobPreview: transformedData.job?.signature_blob ? 
+        transformedData.job.signature_blob.substring(0, 50) + '...' : 'null',
+      signatureDate: transformedData.job?.signature_date
     });
+    
+    // ✅ AJOUTER: Log détaillé du step pour debug
+    console.log('🔍 [getJobDetails] Transformed job.step:', transformedData.job?.step);
     
     console.log('🏠 [getJobDetails] Addresses data:', JSON.stringify(transformedData.addresses, null, 2));
 

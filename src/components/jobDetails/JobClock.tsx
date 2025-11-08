@@ -9,7 +9,6 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
 import { DESIGN_TOKENS } from '../../constants/Styles';
-import { getStepConfig, StepType } from '../../constants/JobSteps';
 import { useJobTimerContext } from '../../context/JobTimerProvider';
 import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 
@@ -31,8 +30,7 @@ const JobClock: React.FC<JobClockProps> = ({ job, onOpenSignatureModal }) => {
         isCompleted,
         currentStep,
         totalSteps,
-        startBreak,
-        stopBreak,
+        togglePause, // ✅ V1.0: Simple Play/Pause toggle
         nextStep,
         stopTimer,
     } = useJobTimerContext();
@@ -200,14 +198,14 @@ const JobClock: React.FC<JobClockProps> = ({ job, onOpenSignatureModal }) => {
                 </Text>
             </View>
 
-            {/* Bouton Break */}
+            {/* ✅ V1.0: Bouton Play/Pause simplifié */}
             {isRunning && (
                 <View style={{
                     alignItems: 'center',
                     marginBottom: DESIGN_TOKENS.spacing.sm,
                 }}>
                     <Pressable
-                        onPress={isOnBreak ? stopBreak : startBreak}
+                        onPress={togglePause}
                         style={({ pressed }: { pressed: boolean }) => ({
                             backgroundColor: isOnBreak 
                                 ? (pressed ? '#10B981DD' : '#10B981') 
@@ -232,7 +230,7 @@ const JobClock: React.FC<JobClockProps> = ({ job, onOpenSignatureModal }) => {
                             fontWeight: '600',
                             fontSize: 14,
                         }}>
-                            {isOnBreak ? 'Reprendre' : 'Pause'}
+                            {isOnBreak ? 'Play' : 'Pause'}
                         </Text>
                     </Pressable>
                 </View>
