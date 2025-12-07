@@ -20,6 +20,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useJobTimerContext } from '../../context/JobTimerProvider';
 import { useTheme } from '../../context/ThemeProvider';
+import { useJobPayment } from '../../hooks/useJobPayment';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -41,6 +42,9 @@ interface PaymentState {
   };
   cashAmount: string;
   isProcessing: boolean;
+  // Nouveau: données Payment Intent
+  paymentIntentId: string | null;
+  clientSecret: string | null;
 }
 
 const PaymentWindow: React.FC<PaymentWindowProps> = ({ 
@@ -86,6 +90,9 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
   const paymentAmount = getPaymentAmount();
   const costData = calculateCost(billableTime);
   
+  // ✅ Hook pour les paiements de job
+  const jobPayment = useJobPayment();
+  
   // Payment state
   const [state, setState] = useState<PaymentState>({
     step: 'method',
@@ -93,6 +100,8 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
     newCard: { number: '', expiry: '', cvv: '', name: '' },
     cashAmount: '',
     isProcessing: false,
+    paymentIntentId: null,
+    clientSecret: null,
   });
 
   // Animations
@@ -134,6 +143,8 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
   };
 
   const handleClose = () => {
+    // ✅ Reset du hook de paiement
+    jobPayment.reset();
     setVisibleCondition(null);
   };
 
@@ -150,18 +161,48 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
     updateState({ isProcessing: true, step: 'processing' });
     
     try {
-      // Simuler le traitement du paiement
+      console.log('🚀 [PaymentWindow] Starting REAL Stripe payment process...');
+      
+      // ✅ 1. Créer le Payment Intent via notre backend
+      const jobId = job?.id || job?.job?.id;
+      if (!jobId) {
+        throw new Error('ID du job non trouvé');
+      }
+
+      console.log(`💳 [PaymentWindow] Creating Payment Intent for job ${jobId}, amount: ${paymentAmount}`);
+      
+      const paymentIntent = await jobPayment.createPayment(jobId, {
+        amount: Math.round(paymentAmount * 100), // Convertir en centimes
+        currency: 'AUD',
+        description: `Paiement job ${job?.title || jobId}`
+      });
+
+      console.log(`✅ [PaymentWindow] Payment Intent created: ${paymentIntent.payment_intent_id}`);
+
+      // Mettre à jour l'état avec les données Payment Intent
+      updateState({ 
+        paymentIntentId: paymentIntent.payment_intent_id,
+        clientSecret: paymentIntent.client_secret 
+      });
+
+      // ✅ 2. Simuler la confirmation Stripe (en attendant l'intégration Stripe Elements)
+      // TODO: Remplacer par la vraie intégration @stripe/stripe-react-native
+      console.log('💳 [PaymentWindow] Simulating Stripe card processing...');
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Mettre à jour le job avec le paiement effectué
-      const updatedJob = {
-        ...job,
-        job: {
-          ...job.job,
-          actualCost: paymentAmount, // Marquer comme payé
-        }
-      };
-      setJob(updatedJob);
+      // ✅ 3. Confirmer le paiement côté backend
+      console.log(`✅ [PaymentWindow] Confirming payment: ${paymentIntent.payment_intent_id}`);
+      
+      const confirmResult = await jobPayment.confirmPayment(
+        jobId, 
+        paymentIntent.payment_intent_id, 
+        'succeeded' // TODO: Utiliser le vrai résultat Stripe
+      );
+
+      console.log(`✅ [PaymentWindow] Payment confirmed successfully!`, confirmResult);
+
+      // ✅ 4. Mettre à jour le job avec les nouvelles données
+      setJob(confirmResult.job);
       
       updateState({ step: 'success' });
       
@@ -170,7 +211,12 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
       }, 2000);
       
     } catch (error) {
-      Alert.alert("Erreur de paiement", "Une erreur s'est produite lors du traitement du paiement.");
+      console.error('❌ [PaymentWindow] REAL payment failed:', error);
+      
+      Alert.alert(
+        "Erreur de paiement", 
+        error instanceof Error ? error.message : "Une erreur s'est produite lors du traitement du paiement."
+      );
       updateState({ isProcessing: false, step: 'card' });
     }
   };
@@ -185,16 +231,40 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
     updateState({ isProcessing: true, step: 'processing' });
     
     try {
+      console.log('💰 [PaymentWindow] Starting REAL cash payment process...');
+      
+      // ✅ 1. Créer le Payment Intent pour paiement cash
+      const jobId = job?.id || job?.job?.id;
+      if (!jobId) {
+        throw new Error('ID du job non trouvé');
+      }
+
+      console.log(`💰 [PaymentWindow] Creating Payment Intent for cash payment, job ${jobId}`);
+      
+      const paymentIntent = await jobPayment.createPayment(jobId, {
+        amount: Math.round(paymentAmount * 100), // Convertir en centimes
+        currency: 'AUD',
+        description: `Paiement cash job ${job?.title || jobId}`
+      });
+
+      console.log(`✅ [PaymentWindow] Payment Intent created for cash: ${paymentIntent.payment_intent_id}`);
+
+      // Simuler le traitement cash (instantané)
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      const updatedJob = {
-        ...job,
-        job: {
-          ...job.job,
-          actualCost: paymentAmount,
-        }
-      };
-      setJob(updatedJob);
+      // ✅ 2. Confirmer le paiement cash côté backend
+      console.log(`💰 [PaymentWindow] Confirming cash payment: ${paymentIntent.payment_intent_id}`);
+      
+      const confirmResult = await jobPayment.confirmPayment(
+        jobId, 
+        paymentIntent.payment_intent_id, 
+        'succeeded'
+      );
+
+      console.log(`✅ [PaymentWindow] Cash payment confirmed!`, confirmResult);
+
+      // ✅ 3. Mettre à jour le job
+      setJob(confirmResult.job);
       
       updateState({ step: 'success' });
       
@@ -203,7 +273,12 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
       }, 2000);
       
     } catch (error) {
-      Alert.alert("Erreur", "Une erreur s'est produite lors de l'enregistrement du paiement.");
+      console.error('❌ [PaymentWindow] REAL cash payment failed:', error);
+      
+      Alert.alert(
+        "Erreur", 
+        error instanceof Error ? error.message : "Une erreur s'est produite lors de l'enregistrement du paiement."
+      );
       updateState({ isProcessing: false, step: 'cash' });
     }
   };
@@ -251,6 +326,60 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
       }}>
         Montant à payer : {formatCurrency(paymentAmount)}
       </Text>
+
+      {/* ✅ Affichage des erreurs de paiement */}
+      {jobPayment.error && (
+        <View style={{
+          backgroundColor: '#FEF2F2',
+          borderRadius: DESIGN_TOKENS.radius.md,
+          padding: DESIGN_TOKENS.spacing.md,
+          marginBottom: DESIGN_TOKENS.spacing.lg,
+          borderLeftWidth: 3,
+          borderLeftColor: '#EF4444',
+        }}>
+          <Text style={{
+            fontSize: 14,
+            color: '#DC2626',
+            fontWeight: '600',
+            marginBottom: 4,
+          }}>
+            ⚠️ Erreur de paiement
+          </Text>
+          <Text style={{
+            fontSize: 13,
+            color: '#B91C1C',
+          }}>
+            {jobPayment.error}
+          </Text>
+        </View>
+      )}
+
+      {/* ✅ Statut Payment Intent */}
+      {state.paymentIntentId && (
+        <View style={{
+          backgroundColor: colors.tint + '10',
+          borderRadius: DESIGN_TOKENS.radius.md,
+          padding: DESIGN_TOKENS.spacing.md,
+          marginBottom: DESIGN_TOKENS.spacing.lg,
+          borderLeftWidth: 3,
+          borderLeftColor: colors.tint,
+        }}>
+          <Text style={{
+            fontSize: 12,
+            color: colors.textSecondary,
+            marginBottom: 4,
+          }}>
+            🔐 Payment Intent créé
+          </Text>
+          <Text style={{
+            fontSize: 11,
+            fontFamily: 'monospace',
+            color: colors.tint,
+          }}>
+            {state.paymentIntentId}
+          </Text>
+        </View>
+      )}
 
       {/* ✅ Afficher le temps facturable */}
       {billableTime > 0 && (

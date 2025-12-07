@@ -150,8 +150,6 @@ const BusinessHeader: React.FC<BusinessHeaderProps> = ({
               </Text>
             </Pressable>
           )}
-          
-          {rightComponent && rightComponent}
         </View>
       </View>
 

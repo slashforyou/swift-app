@@ -12,7 +12,7 @@ import Toast from '../components/ui/toastNotification';
 import { DESIGN_TOKENS } from '../constants/Styles';
 import { useTheme } from '../context/ThemeProvider';
 import { useLocalization } from '../localization/useLocalization';
-import { JobsBillingScreen, StaffCrewScreen, TrucksScreen } from '../screens/business';
+import { PaymentsListScreen, PayoutsScreen, StaffCrewScreen, StripeHub, StripeSettingsScreen, TrucksScreen } from '../screens/business';
 import BusinessInfoPage from '../screens/business/BusinessInfoPage';
 import { useAuthCheck } from '../utils/checkAuth';
 
@@ -54,11 +54,24 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
     const { t } = useLocalization();
     
     const [businessPanel, setBusinessPanel] = useState('BusinessInfo');
+    const [stripeScreen, setStripeScreen] = useState<string | null>(null);
     // businessPanel: 'BusinessInfo', 'StaffCrew', 'Trucks', 'JobsBilling'
+    // stripeScreen: null, 'PaymentsList', 'Payouts', 'StripeSettings'
 
     // Handler pour TabMenu
     const handleTabPress = (tabId: string) => {
         setBusinessPanel(tabId);
+        setStripeScreen(null); // Reset Stripe screen when changing main tabs
+    };
+
+    // Navigation object pour les écrans Stripe
+    const stripeNavigation = {
+        navigate: (screenName: string) => {
+            setStripeScreen(screenName);
+        },
+        goBack: () => {
+            setStripeScreen(null);
+        }
     };
 
     // Titres des panneaux
@@ -101,28 +114,41 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
                     paddingHorizontal: DESIGN_TOKENS.spacing.lg,
                 }}
             >
-                {businessPanel === 'BusinessInfo' && <BusinessInfoPage />}
-                {businessPanel === 'StaffCrew' && <StaffCrewScreen />}
-                {businessPanel === 'Trucks' && <TrucksScreen />}
-                {businessPanel === 'JobsBilling' && <JobsBillingScreen />}
+                {/* Écrans Stripe ou écrans business normaux */}
+                {stripeScreen ? (
+                    <>
+                        {stripeScreen === 'PaymentsList' && <PaymentsListScreen navigation={stripeNavigation} />}
+                        {stripeScreen === 'Payouts' && <PayoutsScreen navigation={stripeNavigation} />}
+                        {stripeScreen === 'StripeSettings' && <StripeSettingsScreen navigation={stripeNavigation} />}
+                    </>
+                ) : (
+                    <>
+                        {businessPanel === 'BusinessInfo' && <BusinessInfoPage />}
+                        {businessPanel === 'StaffCrew' && <StaffCrewScreen />}
+                        {businessPanel === 'Trucks' && <TrucksScreen />}
+                        {businessPanel === 'JobsBilling' && <StripeHub navigation={stripeNavigation} />}
+                    </>
+                )}
             </ScrollView>
             
-            {/* Business Tab Menu fixé en bas */}
-            <View style={{ 
-                position: 'absolute',
-                bottom: 0,
-                left: 0,
-                right: 0,
-                backgroundColor: colors.backgroundSecondary,
-                borderTopWidth: 1,
-                borderTopColor: colors.border,
-                zIndex: 10,
-            }}>
-                <BusinessTabMenu
-                    activeTab={businessPanel}
-                    onTabPress={handleTabPress}
-                />
-            </View>
+            {/* Business Tab Menu fixé en bas - masqué dans les écrans Stripe */}
+            {!stripeScreen && (
+                <View style={{ 
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    backgroundColor: colors.backgroundSecondary,
+                    borderTopWidth: 1,
+                    borderTopColor: colors.border,
+                    zIndex: 10,
+                }}>
+                    <BusinessTabMenu
+                        activeTab={businessPanel}
+                        onTabPress={handleTabPress}
+                    />
+                </View>
+            )}
             
             {/* Toast au-dessus de tout */}
             <View style={{

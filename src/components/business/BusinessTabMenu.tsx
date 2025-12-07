@@ -52,10 +52,10 @@ const getBusinessTabsConfig = (t: any): BusinessTabItem[] => [
   },
   { 
     id: 'JobsBilling', 
-    label: t('business.navigation.jobsBilling'),
-    icon: 'receipt',
+    label: 'Stripe',
+    icon: 'card',
     routeName: 'JobsBilling',
-    accessibilityLabel: 'Jobs and Billing Tab'
+    accessibilityLabel: 'Stripe Payments Hub Tab'
   },
 ];
 

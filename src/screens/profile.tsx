@@ -1,25 +1,33 @@
-import React, { useState } from 'react';
-import {
-  View,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  ActivityIndicator,
-  Pressable,
-  SafeAreaView,
-} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import React, { useState } from 'react';
+import {
+    ActivityIndicator,
+    Alert,
+    ScrollView,
+    View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTheme } from '../context/ThemeProvider';
-import { useUserProfile } from '../hooks/useUserProfile';
-import { UserType } from '../services/user';
-import { DESIGN_TOKENS } from '../constants/Styles';
 
-interface EditableFieldProps {
+// Design System Components
+import {
+    Body,
+    Caption,
+    Card,
+    H2,
+    IconButton,
+    Input,
+    Label,
+    PrimaryButton,
+    SecondaryButton,
+    SEMANTIC_SPACING,
+    TextArea,
+    useTheme
+} from '../components/ui';
+
+import { useUserProfile } from '../hooks/useUserProfile';
+
+interface ProfileFormFieldProps {
   label: string;
   value: string;
   onChangeText: (text: string) => void;
@@ -29,7 +37,7 @@ interface EditableFieldProps {
   editable?: boolean;
 }
 
-const EditableField: React.FC<EditableFieldProps> = ({
+const ProfileFormField: React.FC<ProfileFormFieldProps> = ({
   label,
   value,
   onChangeText,
@@ -38,29 +46,20 @@ const EditableField: React.FC<EditableFieldProps> = ({
   placeholder,
   editable = true,
 }) => {
-  const { colors } = useTheme();
-
+  const Component = multiline ? TextArea : Input;
+  
   return (
-    <View style={styles.fieldContainer}>
-      <Text style={[styles.fieldLabel, { color: colors.text }]}>{label}</Text>
-      <TextInput
-        style={[
-          styles.fieldInput,
-          { 
-            backgroundColor: colors.backgroundTertiary, 
-            color: colors.text,
-            borderColor: colors.border 
-          },
-          multiline && styles.multilineInput,
-          !editable && styles.disabledInput,
-        ]}
+    <View style={{ marginBottom: SEMANTIC_SPACING.lg }}>
+      <Label style={{ marginBottom: SEMANTIC_SPACING.xs }}>
+        {label}
+      </Label>
+      <Component
         value={value}
         onChangeText={onChangeText}
+        placeholder={placeholder || `Enter ${label.toLowerCase()}`}
         keyboardType={keyboardType}
-        multiline={multiline}
-        placeholder={placeholder}
-        placeholderTextColor={colors.textMuted}
         editable={editable}
+        variant={editable ? 'outlined' : 'filled'}
       />
     </View>
   );
@@ -72,64 +71,43 @@ export const ProfileScreen: React.FC = () => {
   const { colors } = useTheme();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  
   const { profile, isLoading, error, updateProfile, refreshProfile, isUpdating } = useUserProfile();
-  
-  console.log('🔍 [PROFILE SCREEN] Hook state:', {
-    hasProfile: !!profile,
-    profileId: profile?.id,
-    profileName: profile ? `${profile.firstName} ${profile.lastName}` : 'null',
-    isLoading,
-    hasError: !!error,
-    errorMessage: error,
-    isUpdating
-  });
-  
+
+  // Form state
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    postalCode: '',
-    country: '',
-    companyName: '',
-    siret: '',
-    tva: '',
+    firstName: profile?.firstName || '',
+    lastName: profile?.lastName || '',
+    email: profile?.email || '',
+    phone: profile?.phone || '',
+    companyName: profile?.companyName || '',
+    address: profile?.address || '',
+    city: profile?.city || '',
+    postalCode: profile?.postalCode || '',
+    hasError: !!error,
+    errorMessage: error,
   });
 
-  // Update form data when profile loads
+  // Update form when profile loads
   React.useEffect(() => {
-    console.log('🔍 [PROFILE SCREEN] useEffect - Profile changed:', {
-      hasProfile: !!profile,
-      profileData: profile ? {
-        id: profile.id,
-        firstName: profile.firstName,
-        lastName: profile.lastName,
-        userType: profile.userType
-      } : null
-    });
-    
     if (profile) {
-      console.log('🔍 [PROFILE SCREEN] Setting form data from profile...');
       setFormData({
         firstName: profile.firstName || '',
         lastName: profile.lastName || '',
         email: profile.email || '',
         phone: profile.phone || '',
+        companyName: profile.companyName || '',
         address: profile.address || '',
         city: profile.city || '',
         postalCode: profile.postalCode || '',
-        country: profile.country || '',
-        companyName: profile.companyName || '',
-        siret: profile.siret || '',
-        tva: profile.tva || '',
+        hasError: false,
+        errorMessage: null,
       });
     }
   }, [profile]);
 
-  const updateField = (field: keyof typeof formData, value: string) => {
+  const updateField = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value,
@@ -137,50 +115,56 @@ export const ProfileScreen: React.FC = () => {
   };
 
   const handleSave = async () => {
-    if (!profile) return;
+    if (!profile?.id) return;
     
     try {
-      const success = await updateProfile(formData);
-      if (success) {
-        setIsEditing(false);
-        Alert.alert('Success', 'Profile updated successfully');
-      }
+      console.log('💾 Saving profile changes...', formData);
+      await updateProfile(profile.id, formData);
+      setIsEditing(false);
+      Alert.alert('Success', 'Profile updated successfully');
     } catch (error) {
+      console.error('❌ Error updating profile:', error);
       Alert.alert('Error', 'Failed to update profile');
     }
   };
 
   const handleCancel = () => {
-    // Reset form data to original profile data
+    // Reset form to original profile data
     if (profile) {
       setFormData({
         firstName: profile.firstName || '',
         lastName: profile.lastName || '',
         email: profile.email || '',
         phone: profile.phone || '',
+        companyName: profile.companyName || '',
         address: profile.address || '',
         city: profile.city || '',
         postalCode: profile.postalCode || '',
-        country: profile.country || '',
-        companyName: profile.companyName || '',
-        siret: profile.siret || '',
-        tva: profile.tva || '',
+        hasError: false,
+        errorMessage: null,
       });
     }
     setIsEditing(false);
   };
 
-  // Helper function to determine if user can see company section
-  const canSeeCompanySection = (): boolean => {
+  const isWorkerProfile = () => {
     return profile?.userType === 'worker';
   };
 
   // Show loading state
   if (isLoading) {
     return (
-      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
+      <View style={{ 
+        flex: 1, 
+        backgroundColor: colors.background,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: SEMANTIC_SPACING.lg
+      }}>
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={[styles.loadingText, { color: colors.text }]}>Loading profile...</Text>
+        <Body style={{ marginTop: SEMANTIC_SPACING.md, color: colors.text }}>
+          Loading profile...
+        </Body>
       </View>
     );
   }
@@ -188,38 +172,53 @@ export const ProfileScreen: React.FC = () => {
   // Show error state
   if (error) {
     return (
-      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
+      <View style={{ 
+        flex: 1, 
+        backgroundColor: colors.background,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: SEMANTIC_SPACING.lg
+      }}>
         <Ionicons name="alert-circle" size={64} color={colors.error} />
-        <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>
-        <TouchableOpacity 
-          style={[styles.retryButton, { backgroundColor: colors.primary }]}
+        <Body style={{ color: colors.error, textAlign: 'center', marginVertical: SEMANTIC_SPACING.md }}>
+          {error}
+        </Body>
+        <PrimaryButton
+          title="Retry"
           onPress={refreshProfile}
-        >
-          <Text style={[styles.retryButtonText, { color: colors.background }]}>Retry</Text>
-        </TouchableOpacity>
+          style={{ marginTop: SEMANTIC_SPACING.lg }}
+        />
       </View>
     );
   }
 
   if (!profile) {
     return (
-      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
-        <Text style={[styles.errorText, { color: colors.text }]}>No profile data available</Text>
+      <View style={{ 
+        flex: 1, 
+        backgroundColor: colors.background,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: SEMANTIC_SPACING.lg
+      }}>
+        <Body style={{ color: colors.text }}>
+          No profile data available
+        </Body>
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Header avec bouton retour - Style uniforme avec l'app */}
       <View style={{
-        paddingTop: insets.top + DESIGN_TOKENS.spacing.md,
-        paddingHorizontal: DESIGN_TOKENS.spacing.lg,
-        paddingBottom: DESIGN_TOKENS.spacing.md,
+        paddingTop: insets.top + SEMANTIC_SPACING.md,
+        paddingHorizontal: SEMANTIC_SPACING.lg,
+        paddingBottom: SEMANTIC_SPACING.md,
         backgroundColor: colors.backgroundSecondary,
         borderBottomWidth: 1,
         borderBottomColor: colors.border,
-        shadowColor: colors.shadow,
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
@@ -231,542 +230,255 @@ export const ProfileScreen: React.FC = () => {
           justifyContent: 'space-between',
           alignItems: 'center',
         }}>
-          <Pressable
+          <IconButton
+            icon="arrow-back"
             onPress={() => navigation.goBack()}
-            style={{
-              padding: DESIGN_TOKENS.spacing.sm,
-              borderRadius: DESIGN_TOKENS.radius.md,
-              backgroundColor: colors.background,
-            }}
-            hitSlop={{
-              top: DESIGN_TOKENS.touch.hitSlop,
-              bottom: DESIGN_TOKENS.touch.hitSlop,
-              left: DESIGN_TOKENS.touch.hitSlop,
-              right: DESIGN_TOKENS.touch.hitSlop,
-            }}
-          >
-            <Ionicons name="arrow-back" size={24} color={colors.primary} />
-          </Pressable>
+            variant="secondary"
+            size="lg"
+          />
           
-          <Text style={{
-            fontSize: DESIGN_TOKENS.typography.title.fontSize,
-            lineHeight: DESIGN_TOKENS.typography.title.lineHeight,
-            fontWeight: DESIGN_TOKENS.typography.title.fontWeight,
-            color: colors.text,
-          }}>
+          <H2 style={{ color: colors.text }}>
             Profile
-          </Text>
+          </H2>
           
           <View style={{ width: 40 }} />
         </View>
       </View>
 
       <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          padding: SEMANTIC_SPACING.lg,
+          paddingTop: SEMANTIC_SPACING.xl,
+          paddingBottom: SEMANTIC_SPACING.xl,
+        }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header avec avatar et informations principales + gamification */}
-        <View style={styles.header}>
-          <View style={styles.headerContent}>
-            <View style={styles.avatarSection}>
-              <View style={[styles.avatarContainer, { backgroundColor: colors.backgroundSecondary }]}>
-                <Ionicons name="person" size={40} color={colors.primary} />
-                <View style={[styles.levelBadge, { backgroundColor: colors.primary }]}>
-                  <Text style={[styles.levelText, { color: colors.background }]}>
-                    {profile.level || 1}
-                  </Text>
-                </View>
+        {/* Header avec avatar et informations principales */}
+        <Card variant="elevated" style={{ marginBottom: SEMANTIC_SPACING.xl }}>
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: SEMANTIC_SPACING.lg,
+          }}>
+            <View style={{
+              alignItems: 'center',
+              marginRight: SEMANTIC_SPACING.lg,
+            }}>
+              <View style={{
+                width: 80,
+                height: 80,
+                borderRadius: 40,
+                backgroundColor: colors.primary,
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginBottom: SEMANTIC_SPACING.sm,
+              }}>
+                <Body style={{ 
+                  fontSize: 24, 
+                  fontWeight: 'bold',
+                  color: colors.buttonPrimaryText 
+                }}>
+                  {(formData.firstName?.[0] || '').toUpperCase()}
+                  {(formData.lastName?.[0] || '').toUpperCase()}
+                </Body>
               </View>
-              <View style={[styles.experienceBar, { backgroundColor: colors.backgroundTertiary }]}>
-                <View style={[
-                  styles.experienceProgress, 
-                  { 
-                    backgroundColor: colors.primary, 
-                    width: `${((profile.experience || 0) / (profile.experienceToNextLevel || 1000)) * 100}%`
-                  }
-                ]} />
-              </View>
-              <Text style={[styles.experienceText, { color: colors.textMuted }]}>
-                {profile.experience || 0} / {profile.experienceToNextLevel || 1000} XP to Level {(profile.level || 1) + 1}
-              </Text>
+              <IconButton
+                icon="camera"
+                size="sm"
+                variant="primary"
+                onPress={() => Alert.alert('Photo', 'Photo upload coming soon')}
+              />
             </View>
-            <View style={styles.headerInfo}>
-              <Text style={[styles.headerName, { color: colors.text }]}>
-                {`${profile.firstName} ${profile.lastName}`}
-              </Text>
-              <View style={styles.titleRow}>
-                <Ionicons name="star" size={14} color={colors.warning} />
-                <Text style={[styles.userTitle, { color: colors.warning }]}>
-                  {profile.title || 'Driver'} {profile.userType === 'worker' ? '(ABN)' : '(TFN)'}
-                </Text>
-              </View>
-              <Text style={[styles.headerEmail, { color: colors.textSecondary }]}>
-                {profile.email}
-              </Text>
-              {canSeeCompanySection() && profile.companyName && (
-                <Text style={[styles.headerCompany, { color: colors.textMuted }]}>
-                  {profile.companyName}
-                </Text>
+            
+            <View style={{ flex: 1 }}>
+              <H2 style={{ color: colors.text, marginBottom: SEMANTIC_SPACING.xs }}>
+                {formData.firstName} {formData.lastName}
+              </H2>
+              <Body style={{ color: colors.textSecondary }}>
+                {formData.email}
+              </Body>
+              {formData.companyName && (
+                <Caption style={{ color: colors.textMuted, marginTop: SEMANTIC_SPACING.xs }}>
+                  {formData.companyName}
+                </Caption>
               )}
             </View>
-          </View>
-          
-          <TouchableOpacity
-            style={[styles.editButton, { backgroundColor: colors.primary }]}
-            onPress={() => setIsEditing(!isEditing)}
-          >
-            <Ionicons
-              name={isEditing ? "close" : "pencil"}
-              size={20}
-              color={colors.background}
+
+            <IconButton
+              icon={isEditing ? 'close' : 'create'}
+              variant={isEditing ? 'secondary' : 'primary'}
+              onPress={() => isEditing ? handleCancel() : setIsEditing(true)}
             />
-          </TouchableOpacity>
-        </View>
+          </View>
+        </Card>
 
         {/* Personal Information Section */}
-        <View style={[styles.sectionContainer, { backgroundColor: colors.backgroundSecondary }]}>
-          <View style={styles.sectionHeader}>
+        <Card variant="outlined" style={{ marginBottom: SEMANTIC_SPACING.xl }}>
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: SEMANTIC_SPACING.lg,
+          }}>
             <Ionicons name="person-outline" size={20} color={colors.primary} />
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            <H2 style={{ 
+              color: colors.text, 
+              marginLeft: SEMANTIC_SPACING.sm,
+              fontSize: 16,
+              fontWeight: '600'
+            }}>
               Personal Information
-            </Text>
+            </H2>
           </View>
 
-          <EditableField
+          <ProfileFormField
             label="First Name"
             value={formData.firstName}
-            onChangeText={(text) => updateField('firstName', text)}
+            onChangeText={(text: string) => updateField('firstName', text)}
             placeholder="Enter your first name"
             editable={isEditing}
           />
 
-          <EditableField
+          <ProfileFormField
             label="Last Name"
             value={formData.lastName}
-            onChangeText={(text) => updateField('lastName', text)}
+            onChangeText={(text: string) => updateField('lastName', text)}
             placeholder="Enter your last name"
             editable={isEditing}
           />
 
-          <EditableField
+          <ProfileFormField
             label="Email"
             value={formData.email}
-            onChangeText={(text) => updateField('email', text)}
+            onChangeText={(text: string) => updateField('email', text)}
             keyboardType="email-address"
             placeholder="Enter your email"
-            editable={isEditing}
+            editable={false} // Email is usually not editable
           />
 
-          <EditableField
+          <ProfileFormField
             label="Phone"
             value={formData.phone}
-            onChangeText={(text) => updateField('phone', text)}
+            onChangeText={(text: string) => updateField('phone', text)}
             keyboardType="phone-pad"
             placeholder="Enter your phone number"
             editable={isEditing}
           />
-        </View>
+        </Card>
 
         {/* Address Section */}
-        <View style={[styles.sectionContainer, { backgroundColor: colors.backgroundSecondary }]}>
-          <View style={styles.sectionHeader}>
+        <Card variant="outlined" style={{ marginBottom: SEMANTIC_SPACING.xl }}>
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: SEMANTIC_SPACING.lg,
+          }}>
             <Ionicons name="location-outline" size={20} color={colors.primary} />
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            <H2 style={{ 
+              color: colors.text, 
+              marginLeft: SEMANTIC_SPACING.sm,
+              fontSize: 16,
+              fontWeight: '600'
+            }}>
               Address
-            </Text>
+            </H2>
           </View>
 
-          <EditableField
+          <ProfileFormField
             label="Address"
             value={formData.address}
-            onChangeText={(text) => updateField('address', text)}
+            onChangeText={(text: string) => updateField('address', text)}
             multiline={true}
             placeholder="Enter your address"
             editable={isEditing}
           />
 
-          <View style={styles.row}>
-            <View style={styles.rowItem}>
-              <EditableField
+          <View style={{
+            flexDirection: 'row',
+            marginHorizontal: -SEMANTIC_SPACING.sm,
+          }}>
+            <View style={{
+              flex: 1,
+              marginHorizontal: SEMANTIC_SPACING.sm,
+            }}>
+              <ProfileFormField
                 label="City"
                 value={formData.city}
-                onChangeText={(text) => updateField('city', text)}
+                onChangeText={(text: string) => updateField('city', text)}
                 placeholder="City"
                 editable={isEditing}
               />
             </View>
-            <View style={styles.rowItem}>
-              <EditableField
+            <View style={{
+              flex: 1,
+              marginHorizontal: SEMANTIC_SPACING.sm,
+            }}>
+              <ProfileFormField
                 label="Postal Code"
                 value={formData.postalCode}
-                onChangeText={(text) => updateField('postalCode', text)}
+                onChangeText={(text: string) => updateField('postalCode', text)}
                 keyboardType="phone-pad"
                 placeholder="Postal code"
                 editable={isEditing}
               />
             </View>
           </View>
+        </Card>
 
-          <EditableField
-            label="Country"
-            value={formData.country}
-            onChangeText={(text) => updateField('country', text)}
-            placeholder="Enter your country"
-            editable={isEditing}
-          />
-        </View>
-
-        {/* Company Information Section - Only for workers (ABN) */}
-        {canSeeCompanySection() && (
-          <View style={[styles.sectionContainer, { backgroundColor: colors.backgroundSecondary }]}>
-            <View style={styles.sectionHeader}>
+        {/* Company Section - If user is business */}
+        {!isWorkerProfile() && (
+          <Card variant="outlined" style={{ marginBottom: SEMANTIC_SPACING.xl }}>
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginBottom: SEMANTIC_SPACING.lg,
+            }}>
               <Ionicons name="business-outline" size={20} color={colors.primary} />
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                Company Information (ABN)
-              </Text>
+              <H2 style={{ 
+                color: colors.text, 
+                marginLeft: SEMANTIC_SPACING.sm,
+                fontSize: 16,
+                fontWeight: '600'
+              }}>
+                Company Information
+              </H2>
             </View>
 
-            <EditableField
+            <ProfileFormField
               label="Company Name"
               value={formData.companyName}
-              onChangeText={(text) => updateField('companyName', text)}
+              onChangeText={(text: string) => updateField('companyName', text)}
               placeholder="Enter your company name"
               editable={isEditing}
             />
-
-            <EditableField
-              label="SIRET"
-              value={formData.siret}
-              onChangeText={(text) => updateField('siret', text)}
-              placeholder="Enter your SIRET number"
-              editable={isEditing}
-            />
-
-            <EditableField
-              label="VAT Number"
-              value={formData.tva}
-              onChangeText={(text) => updateField('tva', text)}
-              placeholder="Enter your VAT number"
-              editable={isEditing}
-            />
-          </View>
+          </Card>
         )}
 
-        {/* Boutons d'action en mode édition */}
+        {/* Action Buttons */}
         {isEditing && (
-          <View style={styles.actionButtons}>
-            <TouchableOpacity
-              style={[styles.cancelButton, { backgroundColor: colors.backgroundTertiary, borderColor: colors.border }]}
+          <View style={{
+            flexDirection: 'row',
+            gap: SEMANTIC_SPACING.md,
+            marginTop: SEMANTIC_SPACING.lg,
+          }}>
+            <SecondaryButton
+              title="Cancel"
               onPress={handleCancel}
-            >
-              <Text style={[styles.cancelButtonText, { color: colors.text }]}>
-                Cancel
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.saveButton, { backgroundColor: colors.primary }]}
+              style={{ flex: 1 }}
+              disabled={isUpdating}
+            />
+            <PrimaryButton
+              title={isUpdating ? "Saving..." : "Save Changes"}
               onPress={handleSave}
-            >
-              <Text style={[styles.saveButtonText, { color: colors.background }]}>
-                Save
-              </Text>
-            </TouchableOpacity>
+              style={{ flex: 1 }}
+              disabled={isUpdating}
+              loading={isUpdating}
+            />
           </View>
         )}
-
-        {/* Section Statistiques */}
-        <View style={[styles.statsContainer, { backgroundColor: colors.backgroundSecondary }]}>
-          <View style={styles.sectionHeader}>
-            <Ionicons name="analytics-outline" size={20} color={colors.primary} />
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>
-              Statistiques du compte
-            </Text>
-          </View>
-          
-          <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-              <Text style={[styles.statValue, { color: colors.primary }]}>
-                15 mars 2024
-              </Text>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-                Membre depuis
-              </Text>
-            </View>
-            
-            <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
-            
-            <View style={styles.statItem}>
-              <Text style={[styles.statValue, { color: colors.primary }]}>
-                Aujourd'hui
-              </Text>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-                Dernière connexion
-              </Text>
-            </View>
-          </View>
-          
-          <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-              <Text style={[styles.statValue, { color: colors.success }]}>
-                47
-              </Text>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-                Jobs complétés
-              </Text>
-            </View>
-            
-            <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
-            
-            <View style={styles.statItem}>
-              <Text style={[styles.statValue, { color: colors.warning }]}>
-                3
-              </Text>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-                En cours
-              </Text>
-            </View>
-          </View>
-        </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 16,
-    paddingTop: 40,
-    paddingBottom: 32,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 24,
-    paddingBottom: 20,
-  },
-  headerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  avatarSection: {
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  avatarContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  levelBadge: {
-    position: 'absolute',
-    bottom: -2,
-    right: -2,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  levelText: {
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-  experienceBar: {
-    width: 80,
-    height: 6,
-    borderRadius: 3,
-    marginTop: 8,
-    overflow: 'hidden',
-  },
-  experienceProgress: {
-    height: '100%',
-    borderRadius: 3,
-  },
-  experienceText: {
-    fontSize: 9,
-    textAlign: 'center',
-    marginTop: 4,
-  },
-  headerInfo: {
-    flex: 1,
-  },
-  headerName: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  userTitle: {
-    fontSize: 12,
-    fontWeight: '600',
-    marginLeft: 4,
-  },
-  headerEmail: {
-    fontSize: 14,
-    marginBottom: 2,
-  },
-  headerCompany: {
-    fontSize: 12,
-    fontStyle: 'italic',
-  },
-  editButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  sectionContainer: {
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginLeft: 8,
-  },
-  fieldContainer: {
-    marginBottom: 16,
-  },
-  fieldLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  fieldInput: {
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    minHeight: 44,
-    borderWidth: 1,
-  },
-  multilineInput: {
-    height: 80,
-    textAlignVertical: 'top',
-    paddingTop: 12,
-  },
-  disabledInput: {
-    opacity: 0.7,
-  },
-  row: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  rowItem: {
-    flex: 1,
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 16,
-  },
-  cancelButton: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-    borderWidth: 1,
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  saveButton: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  saveButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  statsContainer: {
-    borderRadius: 12,
-    padding: 16,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  statItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  statDivider: {
-    width: 1,
-    height: 30,
-    marginHorizontal: 16,
-  },
-  statValue: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    textAlign: 'center',
-  },
-  centered: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    flex: 1,
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-  },
-  errorText: {
-    fontSize: 16,
-    textAlign: 'center',
-    marginVertical: 16,
-  },
-  retryButton: {
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-    marginTop: 16,
-  },
-  retryButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});
 
 export default ProfileScreen;
