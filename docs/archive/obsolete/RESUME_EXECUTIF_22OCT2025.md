@@ -279,7 +279,7 @@ OBJECTIF 30 JOURS : 56% (10 sections)
 
 **Document créé le** : 22 octobre 2025  
 **Pour validation avant** : 23 octobre 2025  
-**Contact** : GitHub Copilot
+**Contact** : Romain Giovanni (slashforyou)
 
 ---
 

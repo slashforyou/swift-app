@@ -178,5 +178,5 @@ C'est le frontend qui doit s'adapter à l'API existante. Si le backend n'expose 
 ---
 
 **Date** : 8 novembre 2025 - 09h30  
-**Auteur** : GitHub Copilot  
+**Auteur** : Romain Giovanni (slashforyou)  
 **Statut** : ✅ CORRECTIONS APPLIQUÉES - PRÊT À TESTER

@@ -440,6 +440,6 @@ setTimeout(() => {
 
 ---
 
-**Auteur:** GitHub Copilot  
+**Auteur:** Romain Giovanni (slashforyou)  
 **Dernière mise à jour:** 2 novembre 2025  
 **Version:** 1.0

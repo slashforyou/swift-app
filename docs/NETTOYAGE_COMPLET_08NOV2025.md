@@ -203,7 +203,6 @@ swift-app/
 
 ---
 
-**Nettoyage effectué par** : GitHub Copilot  
 **Date** : 8 novembre 2025 - 10h35  
 **Statut** : ✅ **100% TERMINÉ**  
 **Résultat** : 🎯 **Projet parfaitement organisé**

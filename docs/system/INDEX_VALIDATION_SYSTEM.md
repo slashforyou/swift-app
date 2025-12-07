@@ -393,7 +393,7 @@ R: Oui, stockées dans AsyncStorage jusqu'à synchronisation réussie.
 
 ## ✨ Crédits
 
-**Développé par:** GitHub Copilot  
+**Développé par:** Romain Giovanni (slashforyou)  
 **Date:** 04 Novembre 2025  
 **Version:** 1.0.0  
 **Status:** ✅ Production-ready

@@ -335,5 +335,5 @@ npx create-expo-app temp-project
 ---
 
 **Date :** 02 Novembre 2025  
-**Auteur :** GitHub Copilot  
+**Auteur :** Romain Giovanni (slashforyou)  
 **Status :** 📖 Guide de référence

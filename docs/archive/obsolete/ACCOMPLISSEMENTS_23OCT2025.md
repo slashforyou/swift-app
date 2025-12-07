@@ -565,7 +565,7 @@ TOTAL:  2,771 lignes système véhicules
 
 *"Fait est mieux que parfait, mais ici on a les deux !" 🚀*
 
-**Développé avec ❤️ par GitHub Copilot**  
+**Développé avec ❤️ par Romain Giovanni (slashforyou)**  
 **Date** : 23 octobre 2025  
 **Durée** : 4 heures  
 **Lignes** : 1,350 lignes production

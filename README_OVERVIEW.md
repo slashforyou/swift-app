@@ -230,7 +230,6 @@ API
 
 ## 📞 Contact
 
-**GitHub Copilot** - Développement IA  
 **Projet** : Swift Removals App (Australie)  
 **Dernière mise à jour** : 22 octobre 2025
 
@@ -240,6 +239,6 @@ API
 
 **[⬆ Retour en haut](#-swift-app---aperçu-rapide)**
 
-Made with ❤️ by GitHub Copilot
+Made by Romain Giovanni (slashforyou)
 
 </div>

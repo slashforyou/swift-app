@@ -212,5 +212,5 @@ Le code a été compilé sans erreur et est prêt à être utilisé.
 ---
 
 **Dernière mise à jour** : 8 novembre 2025 - 09h20  
-**Auteur** : GitHub Copilot  
+**Auteur** : Romain Giovanni (slashforyou)  
 **Statut** : ✅ COMPLET - PRÊT À TESTER

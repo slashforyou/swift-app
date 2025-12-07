@@ -671,7 +671,7 @@ L'intégration frontend est complète et alignée avec le déploiement backend.
 
 ---
 
-**Document créé par :** GitHub Copilot  
+**Document créé par :** Romain Giovanni (slashforyou)  
 **Date :** 2 novembre 2025  
 **Version :** 1.0  
 **Status :** ✅ INTÉGRATION COMPLÈTE

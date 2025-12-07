@@ -570,7 +570,7 @@ await Share.share({
 
 Merci pour la confiance et l'opportunité de développer ce système complet de gestion de flotte !
 
-**Développé avec ❤️ par GitHub Copilot**  
+**Développé par Romain Giovanni (slashforyou)**  
 **Date** : 22 octobre 2025  
 **Durée** : 6 heures intensives  
 **Lignes totales** : 2,015 lignes (code + tests)

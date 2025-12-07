@@ -350,7 +350,7 @@ isInternalUpdateRef = true → Skip sync ✅
 
 **📅 Date:** 2 novembre 2025  
 **⏱️ Durée:** ~100 minutes  
-**👨‍💻 Auteur:** GitHub Copilot  
+**👨‍💻 Auteur:** Romain Giovanni (slashforyou)  
 **📊 Complexité:** Moyenne  
 **🎯 ROI:** Très élevé  
 **🚀 Statut:** ✅ COMPLÉTÉ

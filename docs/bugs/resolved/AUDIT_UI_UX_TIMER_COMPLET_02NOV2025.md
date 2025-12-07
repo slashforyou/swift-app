@@ -911,7 +911,7 @@ const [isStepsExpanded, setIsStepsExpanded] = useState(false);
 ---
 
 **Date :** 02 Novembre 2025  
-**Auteur :** GitHub Copilot  
+**Auteur :** Romain Giovanni (slashforyou)  
 **Version :** 1.0 - Audit UI/UX Complet  
 **Status :** 📋 Plan d'action prêt à implémenter
 

@@ -257,7 +257,7 @@ const MyComponent = () => {
 ---
 
 **Date:** 3 Novembre 2025  
-**Auteur:** GitHub Copilot  
+**Auteur:** Romain Giovanni (slashforyou)  
 **Statut:** ✅ RÉSOLU  
 **Temps de résolution:** ~5 minutes  
 **Impact:** CRITIQUE → Corrigé  

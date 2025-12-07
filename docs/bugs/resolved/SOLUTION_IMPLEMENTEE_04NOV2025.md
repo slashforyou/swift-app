@@ -326,6 +326,6 @@ Avant de considérer le fix comme complet:
 ---
 
 **Créé:** 04 Novembre 2025  
-**Auteur:** GitHub Copilot  
+**Auteur:** Romain Giovanni (slashforyou)  
 **Type:** Solution temporaire (migration backend recommandée)  
 **Status:** ✅ IMPLÉMENTÉ, EN ATTENTE DE TESTS

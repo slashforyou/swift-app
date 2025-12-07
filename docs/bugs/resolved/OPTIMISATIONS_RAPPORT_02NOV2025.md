@@ -344,6 +344,6 @@ Les optimisations recommandées dans l'audit ont été **100% implémentées** a
 
 ---
 
-**Auteur:** GitHub Copilot  
+**Auteur:** Romain Giovanni (slashforyou)  
 **Date:** 2 novembre 2025  
 **Version:** 1.0

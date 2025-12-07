@@ -122,6 +122,6 @@ src/
 
 ---
 
-**Résolu par** : GitHub Copilot  
+**Résolu par** : Romain Giovanni (slashforyou)  
 **Validé par** : Utilisateur  
 **Date de validation** : 8 novembre 2025 - 10h15

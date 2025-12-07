@@ -193,6 +193,5 @@ cat docs/system/JOB_DETAILS_SYSTEM.md
 
 ---
 
-**Nettoyage effectué par** : GitHub Copilot  
 **Date** : 8 novembre 2025 - 10h30  
 **Statut** : ✅ **TERMINÉ**

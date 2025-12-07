@@ -222,5 +222,5 @@ npx expo start
 ---
 
 **Documentation complète :** `STEP_VALIDATION_SYSTEM_02NOV2025.md`  
-**Créé par :** GitHub Copilot  
+**Créé par :** Romain Giovanni (slashforyou)  
 **Date :** 2 novembre 2025

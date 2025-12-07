@@ -152,5 +152,5 @@ Dans ce cas :
 ---
 
 **Date** : 8 novembre 2025 - 10h00  
-**Auteur** : GitHub Copilot  
+**Auteur** : Romain Giovanni (slashforyou)  
 **Statut** : ✅ CORRIGÉ - À TESTER

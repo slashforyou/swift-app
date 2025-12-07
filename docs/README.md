@@ -208,5 +208,5 @@ cat docs/system/JOB_DETAILS_SYSTEM.md
 
 ---
 
-**Maintenu par** : GitHub Copilot  
+**Maintenu par** : Romain Giovanni (slashforyou)  
 **Dernière révision** : 8 novembre 2025

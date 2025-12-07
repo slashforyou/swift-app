@@ -563,5 +563,5 @@ L'architecture de gestion du temps est **très bien conçue et fonctionnelle**. 
 ---
 
 **Généré le:** 2 novembre 2025  
-**Auteur:** GitHub Copilot  
+**Auteur:** Romain Giovanni (slashforyou)  
 **Version:** 1.0

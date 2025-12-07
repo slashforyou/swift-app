@@ -467,6 +467,6 @@ Remove-Item .expo -Recurse -Force; npx expo start --clear
 
 ---
 
-**Document créé par:** GitHub Copilot  
+**Document créé par:** Romain Giovanni (slashforyou)  
 **Date:** 3 Novembre 2025  
 **Status:** ✅ Fix appliqué, en attente de validation utilisateur

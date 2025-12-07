@@ -300,5 +300,5 @@ Si la boucle infinie persiste après ces correctifs :
 ---
 
 **Date :** 02 Novembre 2025  
-**Auteur :** GitHub Copilot  
+**Auteur :** Romain Giovanni (slashforyou)  
 **Status :** ✅ Correctifs appliqués - En attente de tests utilisateur

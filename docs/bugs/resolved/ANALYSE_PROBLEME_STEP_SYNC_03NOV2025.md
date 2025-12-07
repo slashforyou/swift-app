@@ -474,6 +474,6 @@ Après avoir appliqué le fix, vérifier:
 
 ---
 
-**Document créé par:** GitHub Copilot  
+**Document créé par:** Romain Giovanni (slashforyou)  
 **Pour:** Diagnostic complet du bug de synchronisation des steps  
 **Prochaine action:** Appliquer FIX 1 dans `src/services/jobs.ts`

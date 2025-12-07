@@ -393,6 +393,6 @@ Time:        ~45s
 ---
 
 **Date de création :** 26 Octobre 2025  
-**Auteur :** GitHub Copilot + Romain  
+**Auteur :** Romain Giovanni (slashforyou) + Romain  
 **Status :** 🚧 En cours  
 **Objectif :** 324/324 tests (100% Absolute Coverage)

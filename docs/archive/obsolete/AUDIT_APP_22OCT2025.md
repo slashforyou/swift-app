@@ -454,5 +454,5 @@
 ---
 
 **Audit réalisé le** : 22 octobre 2025  
-**Par** : GitHub Copilot  
+**Par** : Romain Giovanni (slashforyou)  
 **Prochaine révision** : Après complétion Modal Add Vehicle

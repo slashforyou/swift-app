@@ -220,7 +220,7 @@ Doit retourner : `current_step = 5`
 
 ---
 
-**Créé par :** GitHub Copilot  
+**Créé par :** Romain Giovanni (slashforyou)  
 **Date :** 2 novembre 2025  
 **Version :** 1.0  
 **Status :** ✅ **PRÊT POUR TESTS**
