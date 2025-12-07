@@ -81,7 +81,14 @@
   - Récompenses concrètes par niveau
   - **Impact :** +40% engagement, +25% rétention
 
-- [ ] **📊 Analytics Avancées** 
+- [ ] **� Système de Rôles et Permissions Enterprise**
+  - 4 forfaits : Fournisseur, Entreprise, Prestataire, Employé
+  - Architecture User ↔ Company séparée
+  - Permissions granulaires par action (jobs, payments, teams)
+  - Middleware de sécurité backend + UI adaptive
+  - **Impact :** SaaS B2B scalable, €1.18M ARR potential
+
+- [ ] **�📊 Analytics Avancées** 
   - Dashboard exécutif temps réel
   - Prédictions revenus IA
   - Benchmarks sectoriels
@@ -192,11 +199,12 @@ Q4 : €1.2M ARR (platform effects)
 
 #### **Revenue Stream 2 : SaaS Subscriptions (Nouveau)**
 ```
-2026 H2 Launch :
-- Plan Basic : €29/mois × 5,000 users = €145k/mois
-- Plan Pro : €79/mois × 2,000 users = €158k/mois  
-- Plan Enterprise : €299/mois × 500 teams = €150k/mois
-Total SaaS ARR 2026 : €5.4M
+2026 H2 Launch - 4 Forfaits Différenciés :
+- Employee : €0/mois × 5,000 users = €0 (payé par entreprises)
+- Contractor : €39/mois × 1,000 users = €39k/mois
+- Enterprise : €199/mois × 200 teams = €39.8k/mois  
+- Supplier : €999/mois × 20 teams = €19.9k/mois
+Total SaaS ARR 2026 : €1.18M (€98.7k MRR)
 ```
 
 #### **Revenue Stream 3 : Marketplace & APIs (Futur)**
@@ -266,6 +274,14 @@ Total Platform ARR 2026 : €1.6M
 - **Referral Rate :** +60% recommandations par points référence
 - **Revenue Correlation :** Utilisateurs niveau 4+ génèrent 3x plus de revenue
 - **Customer Lifetime Value :** +50% LTV grâce à meilleure rétention
+
+#### **Enterprise Permissions Impact Projections**
+- **B2B Market Penetration :** 4 forfaits différenciés pour tous segments
+- **Enterprise Sales :** €1.18M ARR potential avec pricing tier adapté
+- **Security & Compliance :** Architecture enterprise-grade pour gros clients
+- **Operational Efficiency :** Permissions granulaires = contrôle précis des actions
+- **Scalability Factor :** User ↔ Company séparé = support équipes illimitées
+- **Market Positioning :** Transition d'app mobile vers plateforme SaaS B2B
 
 ---
 
