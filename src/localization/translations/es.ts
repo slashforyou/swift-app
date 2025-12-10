@@ -311,4 +311,48 @@ export const esTranslations: TranslationKeys = {
             created: 'Creado exitosamente',
         },
     },
+
+    // TODO: Add complete translations
+    payment: {
+        missingInfo: { title: 'Información faltante', message: 'Complete todos los campos.' },
+        errors: { 
+            jobIdNotFound: 'ID de trabajo no encontrado',
+            paymentError: 'Error de pago',
+            generic: 'Error',
+            processingFailed: 'Error al procesar el pago.',
+            networkError: 'Error de conexión'
+        },
+        buttons: { processing: 'Procesando...', confirm: 'Confirmar pago', retry: 'Reintentar' },
+        status: { processing: 'Procesando...', success: 'Pago exitoso', failed: 'Pago fallido' },
+        summary: { total: 'Total', tax: 'Impuesto', subtotal: 'Subtotal' }
+    },
+
+    vehicles: {
+        title: 'Vehículos',
+        addNew: 'Añadir vehículo',
+        edit: 'Editar vehículo',
+        delete: 'Eliminar vehículo',
+        fields: {
+            plate: 'Placa',
+            model: 'Modelo', 
+            year: 'Año',
+            type: 'Tipo',
+            status: 'Estado'
+        },
+        types: { truck: 'Camión', van: 'Furgoneta', car: 'Auto', motorcycle: 'Motocicleta', other: 'Otro' },
+        statuses: { active: 'Activo', maintenance: 'Mantenimiento', inactive: 'Inactivo', retired: 'Retirado' },
+        maintenance: { title: 'Mantenimiento', addRecord: 'Añadir registro', date: 'Fecha', description: 'Descripción', cost: 'Costo' },
+        emptyState: { title: 'Sin vehículos', subtitle: 'Añada su primer vehículo' }
+    },
+
+    staff: {
+        title: 'Personal',
+        addEmployee: 'Añadir empleado',
+        addContractor: 'Añadir contratista', 
+        invite: 'Invitar',
+        role: { employee: 'Empleado', contractor: 'Contratista' },
+        status: { active: 'Activo', inactive: 'Inactivo', pending: 'Pendiente' },
+        fields: { name: 'Nombre', email: 'Email', phone: 'Teléfono', hourlyRate: 'Tarifa por hora' },
+        emptyState: { title: 'Sin personal', subtitle: 'Añada su primer miembro del equipo' }
+    },
 };

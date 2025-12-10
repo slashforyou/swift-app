@@ -15,7 +15,10 @@ interface ScreenProps {
     safeArea?: boolean;
     topPadding?: boolean;
     bottomPadding?: boolean;
+    variant?: 'default' | 'scroll'; // Support de variants pour compatibilité
 }
+
+export { ScreenProps };
 
 export const Screen: React.FC<ScreenProps> = ({
     children,
@@ -24,6 +27,7 @@ export const Screen: React.FC<ScreenProps> = ({
     safeArea = true,
     topPadding = false,
     bottomPadding = false,
+    variant = 'default', // variant ajouté
 }) => {
     const insets = useSafeAreaInsets();
 
@@ -45,3 +49,5 @@ export const Screen: React.FC<ScreenProps> = ({
         </View>
     );
 };
+
+export default Screen;

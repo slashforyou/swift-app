@@ -119,7 +119,7 @@ export const ProfileScreen: React.FC = () => {
     
     try {
       console.log('💾 Saving profile changes...', formData);
-      await updateProfile(profile.id, formData);
+      await updateProfile(formData);
       setIsEditing(false);
       Alert.alert('Success', 'Profile updated successfully');
     } catch (error) {
@@ -231,10 +231,11 @@ export const ProfileScreen: React.FC = () => {
           alignItems: 'center',
         }}>
           <IconButton
-            icon="arrow-back"
+            leftIcon="arrow-back"
             onPress={() => navigation.goBack()}
             variant="secondary"
             size="lg"
+            iconOnly
           />
           
           <H2 style={{ color: colors.text }}>
@@ -284,9 +285,10 @@ export const ProfileScreen: React.FC = () => {
                 </Body>
               </View>
               <IconButton
-                icon="camera"
+                leftIcon="camera"
                 size="sm"
                 variant="primary"
+                iconOnly
                 onPress={() => Alert.alert('Photo', 'Photo upload coming soon')}
               />
             </View>
@@ -306,8 +308,9 @@ export const ProfileScreen: React.FC = () => {
             </View>
 
             <IconButton
-              icon={isEditing ? 'close' : 'create'}
+              leftIcon={isEditing ? 'close' : 'create'}
               variant={isEditing ? 'secondary' : 'primary'}
+              iconOnly
               onPress={() => isEditing ? handleCancel() : setIsEditing(true)}
             />
           </View>

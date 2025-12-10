@@ -104,35 +104,34 @@ const JobSummary = ({ job, setJob, onOpenPaymentPanel } : { job: any, setJob: Re
                     
                     const response = await updateJobStep(jobCode, targetStep);
                     
-                    console.log(`✅ [SUMMARY] Step updated successfully:`, response);
+                    console.log(`✅ [SUMMARY] Step updated successfully`);
                     
-                    // 🔍 DEBUG: Vérifier response.data
+                    // 🔍 DEBUG: updateJobStep retourne void, utilisons targetStep directement
                     console.log('🔍 [SUMMARY] Response analysis:', {
-                        hasData: !!response.data,
-                        dataCurrentStep: response.data?.currentStep,
+                        hasData: true,
                         targetStep,
-                        willUse: response.data?.currentStep || targetStep
+                        willUse: targetStep
                     });
                     
                     // 🔍 DEBUG: État avant setJob
                     console.log('🔍 [SUMMARY] BEFORE setJob - job.step:', job?.step);
                     
-                    // ✅ Mettre à jour l'objet job local avec la réponse de l'API
-                    // L'API retourne: { success: true, data: { currentStep, status, ... } }
+                    // ✅ Mettre à jour l'objet job local avec targetStep
+                    // updateJobStep retourne void, utilisons targetStep directement
                     setJob((prevJob: any) => {
                         console.log('🔍 [SUMMARY] Inside setJob callback:', {
                             prevStep: prevJob?.step,
-                            newStep: response.data?.currentStep || targetStep
+                            newStep: targetStep
                         });
                         
                         const updatedJob = {
                             ...prevJob,
                             step: {
                                 ...prevJob.step,
-                                actualStep: response.data?.currentStep || targetStep
+                                actualStep: targetStep
                             },
-                            // Mettre à jour le status si le backend l'a changé
-                            status: response.data?.status || prevJob.status
+                            // Garder le status existant car updateJobStep ne le retourne pas
+                            status: prevJob.status
                         };
                         
                         console.log('🔍 [SUMMARY] Returning from setJob:', {

@@ -3,14 +3,14 @@
  * RefBookMark - Onglet moderne pour afficher/copier la référence job
  * Design d'onglet attaché sous le TopMenu avec animation de feedback
  */
+import Ionicons from '@react-native-vector-icons/ionicons';
 import React, { useState } from 'react';
-import { Text, Pressable, Animated } from 'react-native';
+import { Animated, Pressable, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { HStack } from '../primitives/Stack';
-import copyToClipBoard from '../../services/copyToClipBoard';
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
-import Ionicons from '@react-native-vector-icons/ionicons';
+import copyToClipBoard from '../../services/copyToClipBoard';
+import { HStack } from '../primitives/Stack';
 
 interface RefBookMarkProps {
     jobRef: string;
@@ -61,14 +61,18 @@ const RefBookMark: React.FC<RefBookMarkProps> = ({ jobRef, toastIt, isHeaderMode
             <Pressable
                 onPress={copyRefToClipboard}
                 style={({ pressed }) => (isHeaderMode ? {
-                    // Mode header : style compact et intégré
-                    backgroundColor: pressed ? colors.backgroundTertiary : colors.background,
+                    // Mode header : style compact et intégré avec angles du haut à 0px
+                    backgroundColor: pressed ? colors.backgroundTertiary : colors.border,
                     paddingHorizontal: DESIGN_TOKENS.spacing.sm,
                     paddingVertical: DESIGN_TOKENS.spacing.xs,
-                    borderRadius: DESIGN_TOKENS.radius.md,
+                    borderTopLeftRadius: 0,  // Angles du haut à 0px
+                    borderTopRightRadius: 0, // Angles du haut à 0px
+                    borderBottomLeftRadius: DESIGN_TOKENS.radius.md,
+                    borderBottomRightRadius: DESIGN_TOKENS.radius.md,
                     borderWidth: 1,
                     borderColor: colors.border,
                     minHeight: 32,
+                    margin: 0, // Pas de margin
                 } : {
                     // Mode classique : style onglet
                     backgroundColor: pressed ? colors.backgroundTertiary : colors.backgroundSecondary,

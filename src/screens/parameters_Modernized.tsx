@@ -547,7 +547,7 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
                             <Button
                                 title="Fermer"
                                 variant="ghost"
-                                size="small"
+                                size="sm"
                                 onPress={() => setShowPickerModal(false)}
                             />
                         </View>

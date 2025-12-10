@@ -167,24 +167,33 @@ export const fetchInvoices = async (): Promise<Invoice[]> => {
     });
 
     if (!response.ok) {
-      console.warn('Invoices API not available, using mock data');
-      return mockInvoices;
+      if (__DEV__) {
+        console.warn('Invoices API not available in development, using mock data');
+        return mockInvoices;
+      }
+      throw new Error(`Invoices API failed with status ${response.status}`);
     }
 
     const data: InvoiceListResponse = await response.json();
     
     if (!data.success) {
-      console.warn('Invoices API returned success: false, using mock data');
-      return mockInvoices;
+      if (__DEV__) {
+        console.warn('Invoices API returned success: false, using mock data');
+        return mockInvoices;
+      }
+      throw new Error('Invoices API returned success: false');
     }
 
     // Filtrer seulement les factures (si l'API renvoie aussi des quotes/templates)
     const invoices = (data.quotes || []).filter(quote => quote.isInvoice);
-    return invoices.length > 0 ? invoices : mockInvoices;
+    return invoices.length > 0 ? invoices : (__DEV__ ? mockInvoices : []);
   } catch (error) {
     console.error('Error fetching invoices:', error);
-    console.warn('Using mock invoices as fallback');
-    return mockInvoices;
+    if (__DEV__) {
+      console.warn('Using mock invoices as fallback in development');
+      return mockInvoices;
+    }
+    throw new Error(`Failed to fetch invoices: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 };
 

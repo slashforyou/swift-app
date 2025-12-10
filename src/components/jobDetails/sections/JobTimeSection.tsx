@@ -19,19 +19,16 @@ const JobTimeSection: React.FC<JobTimeSectionProps> = ({ job }) => {
     const jobId = job?.job?.code || job?.code || 'unknown';
     const currentStep = job?.job?.current_step || job?.current_step || 0;
     
-    const { 
+    const {
         timerData,
-        totalElapsed, 
+        totalElapsed,
         billableTime,
         formatTime, 
         isRunning,
         isOnBreak,
-        startBreak,
-        stopBreak,
+        togglePause,
         startTimerWithJobData
-    } = useJobTimer(jobId, currentStep);
-
-    // Auto-démarrer si le job a déjà commencé
+    } = useJobTimer(jobId, currentStep);    // Auto-démarrer si le job a déjà commencé
     React.useEffect(() => {
         if (currentStep >= 1 && !isRunning) {
             startTimerWithJobData(job);
@@ -225,7 +222,7 @@ const JobTimeSection: React.FC<JobTimeSectionProps> = ({ job }) => {
                     marginBottom: DESIGN_TOKENS.spacing.lg,
                 }}>
                     <Pressable
-                        onPress={isOnBreak ? stopBreak : startBreak}
+                        onPress={togglePause}
                         style={({ pressed }: { pressed: boolean }) => ({
                             backgroundColor: isOnBreak 
                                 ? (pressed ? '#10B981DD' : '#10B981') 

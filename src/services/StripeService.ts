@@ -828,3 +828,1053 @@ export const getJobPaymentHistory = async (
     throw error;
   }
 };
+
+// ========================================
+// 💸 REFUND SYSTEM - NOUVEAU
+// ========================================
+
+/**
+ * Crée un remboursement pour un paiement spécifique
+ * Utilise l'endpoint backend: POST /v1/stripe/refunds/create
+ * 
+ * @param paymentIntentId - Payment Intent ID à rembourser
+ * @param options - Options du remboursement (montant, raison)
+ * @returns Refund data avec statut et details
+ */
+export const createStripeRefund = async (
+  paymentIntentId: string,
+  options: {
+    amount?: number;      // Montant en centimes, null = remboursement total
+    reason?: 'duplicate' | 'fraudulent' | 'requested_by_customer';
+    metadata?: Record<string, string>;
+    reverse_transfer?: boolean; // Annuler le transfer vers le compte connecté
+  } = {}
+): Promise<{
+  refund_id: string;
+  status: string;
+  amount: number;
+  currency: string;
+  reason: string | null;
+  receipt_number: string | null;
+  created: string;
+  updated: string | null;
+  metadata: Record<string, string>;
+}> => {
+  try {
+    console.log(`💸 [STRIPE REFUND] Creating refund for Payment Intent ${paymentIntentId}...`);
+
+    const createUrl = `${ServerData.serverUrl}v1/stripe/refunds/create`;
+    console.log('🌐 [STRIPE REFUND] Calling endpoint:', createUrl);
+
+    const response = await fetchWithAuth(createUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        payment_intent_id: paymentIntentId,
+        ...options
+      })
+    });
+
+    console.log(`📡 [STRIPE REFUND] Response status: ${response.status}`);
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'No error text');
+      console.error(`❌ [STRIPE REFUND] Error response: ${errorText}`);
+      
+      if (response.status === 401) {
+        throw new Error('Non autorisé à créer un remboursement');
+      } else if (response.status === 404) {
+        throw new Error('Paiement introuvable pour remboursement');
+      } else if (response.status === 400) {
+        throw new Error('Données de remboursement invalides');
+      }
+      
+      throw new Error(`Erreur lors de la création du remboursement: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('✅ [STRIPE REFUND] Refund created:', JSON.stringify(data, null, 2));
+
+    if (!data.success || !data.data?.refund_id) {
+      throw new Error('API returned invalid refund data');
+    }
+
+    console.log(`💸 [STRIPE REFUND] Refund ID: ${data.data.refund_id}`);
+    console.log(`💰 [STRIPE REFUND] Amount: ${data.data.amount / 100} ${data.data.currency.toUpperCase()}`);
+    console.log(`📋 [STRIPE REFUND] Status: ${data.data.status}`);
+
+    return data.data;
+
+  } catch (error) {
+    console.error('❌ [STRIPE REFUND] Error creating refund:', error);
+    throw error;
+  }
+};
+
+/**
+ * Récupère tous les remboursements d'une entreprise
+ * Utilise l'endpoint backend: GET /v1/stripe/refunds?company_id={id}
+ * 
+ * @param filters - Filtres optionnels pour les remboursements
+ * @returns Liste des remboursements avec métadonnées
+ */
+export const fetchStripeRefunds = async (
+  filters: {
+    limit?: number;
+    starting_after?: string;
+    ending_before?: string;
+    created?: {
+      gte?: number;
+      lte?: number;
+    };
+  } = {}
+): Promise<{
+  refunds: Array<{
+    id: string;
+    amount: number;
+    currency: string;
+    status: 'pending' | 'succeeded' | 'failed' | 'canceled';
+    reason: string | null;
+    receipt_number: string | null;
+    payment_intent_id: string;
+    created: string;
+    updated: string | null;
+    metadata: Record<string, string>;
+  }>;
+  meta: {
+    total_count: number;
+    has_more: boolean;
+    source: string;
+  };
+}> => {
+  try {
+    const companyId = await getUserCompanyId();
+    console.log('💸 [FETCH REFUNDS] Loading refunds for company:', companyId);
+
+    const queryParams = new URLSearchParams({
+      company_id: companyId.toString(),
+      ...Object.fromEntries(
+        Object.entries(filters).map(([key, value]) => [
+          key,
+          typeof value === 'object' ? JSON.stringify(value) : String(value)
+        ])
+      )
+    });
+
+    const refundsUrl = `${ServerData.serverUrl}v1/stripe/refunds?${queryParams}`;
+    console.log('🌐 [FETCH REFUNDS] Calling endpoint:', refundsUrl);
+
+    const response = await fetchWithAuth(refundsUrl, {
+      method: 'GET'
+    });
+
+    console.log(`📡 [FETCH REFUNDS] Response status: ${response.status}`);
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'No error text');
+      console.error(`❌ [FETCH REFUNDS] Error response: ${errorText}`);
+      
+      if (response.status === 401) {
+        throw new Error('Non autorisé à voir les remboursements');
+      }
+      
+      throw new Error(`Erreur lors de la récupération des remboursements: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('✅ [FETCH REFUNDS] Refunds retrieved:', JSON.stringify(data, null, 2));
+
+    if (!data.success) {
+      throw new Error('API returned error for refunds');
+    }
+
+    console.log(`💸 [FETCH REFUNDS] Found ${data.data.length} refunds`);
+    console.log(`🔒 [FETCH REFUNDS] Data source: ${data.meta?.source || 'stripe_api'} (sécurisé)`);
+
+    return {
+      refunds: data.data,
+      meta: data.meta
+    };
+
+  } catch (error) {
+    console.error('❌ [FETCH REFUNDS] Error fetching refunds:', error);
+    throw error;
+  }
+};
+
+/**
+ * Récupère les détails d'un remboursement spécifique
+ * Utilise l'endpoint backend: GET /v1/stripe/refunds/{refund_id}
+ * 
+ * @param refundId - ID du remboursement
+ * @returns Détails complets du remboursement
+ */
+export const getStripeRefundDetails = async (
+  refundId: string
+): Promise<{
+  id: string;
+  amount: number;
+  currency: string;
+  status: 'pending' | 'succeeded' | 'failed' | 'canceled';
+  reason: string | null;
+  receipt_number: string | null;
+  payment_intent_id: string;
+  failure_reason: string | null;
+  created: string;
+  updated: string | null;
+  metadata: Record<string, string>;
+  balance_transaction: {
+    id: string;
+    amount: number;
+    fee: number;
+    net: number;
+  } | null;
+}> => {
+  try {
+    console.log(`💸 [REFUND DETAILS] Getting details for refund ${refundId}...`);
+
+    const detailsUrl = `${ServerData.serverUrl}v1/stripe/refunds/${refundId}`;
+    console.log('🌐 [REFUND DETAILS] Calling endpoint:', detailsUrl);
+
+    const response = await fetchWithAuth(detailsUrl, {
+      method: 'GET'
+    });
+
+    console.log(`📡 [REFUND DETAILS] Response status: ${response.status}`);
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'No error text');
+      console.error(`❌ [REFUND DETAILS] Error response: ${errorText}`);
+      
+      if (response.status === 401) {
+        throw new Error('Non autorisé à voir ce remboursement');
+      } else if (response.status === 404) {
+        throw new Error('Remboursement introuvable');
+      }
+      
+      throw new Error(`Erreur lors de la récupération du remboursement: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('✅ [REFUND DETAILS] Refund details retrieved:', JSON.stringify(data, null, 2));
+
+    if (!data.success) {
+      throw new Error('API returned error for refund details');
+    }
+
+    console.log(`💸 [REFUND DETAILS] Refund ${refundId} status: ${data.data.status}`);
+    console.log(`💰 [REFUND DETAILS] Amount: ${data.data.amount / 100} ${data.data.currency.toUpperCase()}`);
+
+    return data.data;
+
+  } catch (error) {
+    console.error('❌ [REFUND DETAILS] Error getting refund details:', error);
+    throw error;
+  }
+};
+
+/**
+ * Annule un remboursement en attente (si possible)
+ * Utilise l'endpoint backend: POST /v1/stripe/refunds/{refund_id}/cancel
+ * 
+ * @param refundId - ID du remboursement à annuler
+ * @returns Remboursement mis à jour avec statut 'canceled'
+ */
+export const cancelStripeRefund = async (
+  refundId: string
+): Promise<{
+  id: string;
+  status: 'canceled';
+  canceled_at: string;
+  amount: number;
+  currency: string;
+}> => {
+  try {
+    console.log(`❌ [CANCEL REFUND] Canceling refund ${refundId}...`);
+
+    const cancelUrl = `${ServerData.serverUrl}v1/stripe/refunds/${refundId}/cancel`;
+    console.log('🌐 [CANCEL REFUND] Calling endpoint:', cancelUrl);
+
+    const response = await fetchWithAuth(cancelUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+
+    console.log(`📡 [CANCEL REFUND] Response status: ${response.status}`);
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'No error text');
+      console.error(`❌ [CANCEL REFUND] Error response: ${errorText}`);
+      
+      if (response.status === 401) {
+        throw new Error('Non autorisé à annuler ce remboursement');
+      } else if (response.status === 404) {
+        throw new Error('Remboursement introuvable');
+      } else if (response.status === 400) {
+        throw new Error('Impossible d\'annuler ce remboursement (probablement déjà traité)');
+      }
+      
+      throw new Error(`Erreur lors de l'annulation du remboursement: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('✅ [CANCEL REFUND] Refund canceled:', JSON.stringify(data, null, 2));
+
+    if (!data.success) {
+      throw new Error('API returned error during refund cancellation');
+    }
+
+    console.log(`❌ [CANCEL REFUND] Refund ${refundId} successfully canceled`);
+
+    return data.data;
+
+  } catch (error) {
+    console.error('❌ [CANCEL REFUND] Error canceling refund:', error);
+    throw error;
+  }
+};
+
+// ========================================
+// 🧾 INVOICE SYSTEM - NOUVEAU
+// ========================================
+
+/**
+ * Crée une facture Stripe pour un client
+ * Utilise l'endpoint backend: POST /v1/stripe/invoices/create
+ * 
+ * @param invoiceData - Données de la facture
+ * @returns Invoice data avec URL de paiement
+ */
+export const createStripeInvoice = async (
+  invoiceData: {
+    customer_email: string;
+    customer_name?: string;
+    description?: string;
+    line_items: Array<{
+      description: string;
+      quantity: number;
+      unit_amount: number; // En centimes
+      currency?: string;
+    }>;
+    due_date?: string; // ISO string
+    metadata?: Record<string, string>;
+    auto_advance?: boolean; // Auto-finaliser la facture
+    collection_method?: 'send_invoice' | 'charge_automatically';
+  }
+): Promise<{
+  invoice_id: string;
+  invoice_number: string;
+  status: string;
+  amount_due: number;
+  amount_paid: number;
+  currency: string;
+  customer_email: string;
+  hosted_invoice_url: string;
+  invoice_pdf: string;
+  created: string;
+  due_date: string | null;
+  metadata: Record<string, string>;
+}> => {
+  try {
+    console.log('🧾 [STRIPE INVOICE] Creating invoice...');
+
+    const createUrl = `${ServerData.serverUrl}v1/stripe/invoices/create`;
+    console.log('🌐 [STRIPE INVOICE] Calling endpoint:', createUrl);
+
+    const response = await fetchWithAuth(createUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(invoiceData)
+    });
+
+    console.log(`📡 [STRIPE INVOICE] Response status: ${response.status}`);
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'No error text');
+      console.error(`❌ [STRIPE INVOICE] Error response: ${errorText}`);
+      
+      if (response.status === 401) {
+        throw new Error('Non autorisé à créer une facture');
+      } else if (response.status === 400) {
+        throw new Error('Données de facture invalides');
+      }
+      
+      throw new Error(`Erreur lors de la création de la facture: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('✅ [STRIPE INVOICE] Invoice created:', JSON.stringify(data, null, 2));
+
+    if (!data.success || !data.data?.invoice_id) {
+      throw new Error('API returned invalid invoice data');
+    }
+
+    console.log(`🧾 [STRIPE INVOICE] Invoice ID: ${data.data.invoice_id}`);
+    console.log(`💰 [STRIPE INVOICE] Amount due: ${data.data.amount_due / 100} ${data.data.currency.toUpperCase()}`);
+    console.log(`📧 [STRIPE INVOICE] Customer: ${data.data.customer_email}`);
+
+    return data.data;
+
+  } catch (error) {
+    console.error('❌ [STRIPE INVOICE] Error creating invoice:', error);
+    throw error;
+  }
+};
+
+/**
+ * Récupère toutes les factures d'une entreprise
+ * Utilise l'endpoint backend: GET /v1/stripe/invoices?company_id={id}
+ * 
+ * @param filters - Filtres pour les factures
+ * @returns Liste des factures avec métadonnées
+ */
+export const fetchStripeInvoices = async (
+  filters: {
+    status?: 'draft' | 'open' | 'paid' | 'void' | 'uncollectible';
+    limit?: number;
+    starting_after?: string;
+    ending_before?: string;
+    created?: {
+      gte?: number;
+      lte?: number;
+    };
+    due_date?: {
+      gte?: number;
+      lte?: number;
+    };
+  } = {}
+): Promise<{
+  invoices: Array<{
+    id: string;
+    number: string;
+    status: 'draft' | 'open' | 'paid' | 'void' | 'uncollectible';
+    amount_due: number;
+    amount_paid: number;
+    amount_remaining: number;
+    currency: string;
+    customer_email: string;
+    customer_name: string | null;
+    description: string | null;
+    hosted_invoice_url: string;
+    invoice_pdf: string;
+    created: string;
+    due_date: string | null;
+    paid_at: string | null;
+    metadata: Record<string, string>;
+  }>;
+  meta: {
+    total_count: number;
+    has_more: boolean;
+    source: string;
+  };
+}> => {
+  try {
+    const companyId = await getUserCompanyId();
+    console.log('🧾 [FETCH INVOICES] Loading invoices for company:', companyId);
+
+    const queryParams = new URLSearchParams({
+      company_id: companyId.toString(),
+      ...Object.fromEntries(
+        Object.entries(filters).map(([key, value]) => [
+          key,
+          typeof value === 'object' ? JSON.stringify(value) : String(value)
+        ])
+      )
+    });
+
+    const invoicesUrl = `${ServerData.serverUrl}v1/stripe/invoices?${queryParams}`;
+    console.log('🌐 [FETCH INVOICES] Calling endpoint:', invoicesUrl);
+
+    const response = await fetchWithAuth(invoicesUrl, {
+      method: 'GET'
+    });
+
+    console.log(`📡 [FETCH INVOICES] Response status: ${response.status}`);
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'No error text');
+      console.error(`❌ [FETCH INVOICES] Error response: ${errorText}`);
+      
+      if (response.status === 401) {
+        throw new Error('Non autorisé à voir les factures');
+      }
+      
+      throw new Error(`Erreur lors de la récupération des factures: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('✅ [FETCH INVOICES] Invoices retrieved:', JSON.stringify(data, null, 2));
+
+    if (!data.success) {
+      throw new Error('API returned error for invoices');
+    }
+
+    console.log(`🧾 [FETCH INVOICES] Found ${data.data.length} invoices`);
+    console.log(`🔒 [FETCH INVOICES] Data source: ${data.meta?.source || 'stripe_api'} (sécurisé)`);
+
+    return {
+      invoices: data.data,
+      meta: data.meta
+    };
+
+  } catch (error) {
+    console.error('❌ [FETCH INVOICES] Error fetching invoices:', error);
+    throw error;
+  }
+};
+
+/**
+ * Envoie une facture par email au client
+ * Utilise l'endpoint backend: POST /v1/stripe/invoices/{invoice_id}/send
+ * 
+ * @param invoiceId - ID de la facture à envoyer
+ * @returns Confirmation d'envoi avec détails
+ */
+export const sendStripeInvoice = async (
+  invoiceId: string
+): Promise<{
+  invoice_id: string;
+  sent: boolean;
+  sent_at: string;
+  customer_email: string;
+}> => {
+  try {
+    console.log(`📧 [SEND INVOICE] Sending invoice ${invoiceId} by email...`);
+
+    const sendUrl = `${ServerData.serverUrl}v1/stripe/invoices/${invoiceId}/send`;
+    console.log('🌐 [SEND INVOICE] Calling endpoint:', sendUrl);
+
+    const response = await fetchWithAuth(sendUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+
+    console.log(`📡 [SEND INVOICE] Response status: ${response.status}`);
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'No error text');
+      console.error(`❌ [SEND INVOICE] Error response: ${errorText}`);
+      
+      if (response.status === 401) {
+        throw new Error('Non autorisé à envoyer cette facture');
+      } else if (response.status === 404) {
+        throw new Error('Facture introuvable');
+      } else if (response.status === 400) {
+        throw new Error('Impossible d\'envoyer cette facture (vérifiez son statut)');
+      }
+      
+      throw new Error(`Erreur lors de l'envoi de la facture: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('✅ [SEND INVOICE] Invoice sent:', JSON.stringify(data, null, 2));
+
+    if (!data.success) {
+      throw new Error('API returned error during invoice sending');
+    }
+
+    console.log(`📧 [SEND INVOICE] Invoice ${invoiceId} sent to ${data.data.customer_email}`);
+
+    return data.data;
+
+  } catch (error) {
+    console.error('❌ [SEND INVOICE] Error sending invoice:', error);
+    throw error;
+  }
+};
+
+/**
+ * Marque une facture comme payée manuellement
+ * Utilise l'endpoint backend: POST /v1/stripe/invoices/{invoice_id}/mark_paid
+ * 
+ * @param invoiceId - ID de la facture
+ * @param paymentDetails - Détails du paiement externe
+ * @returns Facture mise à jour
+ */
+export const markStripeInvoiceAsPaid = async (
+  invoiceId: string,
+  paymentDetails?: {
+    external_payment_id?: string;
+    payment_method?: string;
+    notes?: string;
+  }
+): Promise<{
+  invoice_id: string;
+  status: 'paid';
+  amount_paid: number;
+  paid_at: string;
+  payment_method: string | null;
+}> => {
+  try {
+    console.log(`✅ [MARK PAID] Marking invoice ${invoiceId} as paid...`);
+
+    const markUrl = `${ServerData.serverUrl}v1/stripe/invoices/${invoiceId}/mark_paid`;
+    console.log('🌐 [MARK PAID] Calling endpoint:', markUrl);
+
+    const response = await fetchWithAuth(markUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(paymentDetails || {})
+    });
+
+    console.log(`📡 [MARK PAID] Response status: ${response.status}`);
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'No error text');
+      console.error(`❌ [MARK PAID] Error response: ${errorText}`);
+      
+      if (response.status === 401) {
+        throw new Error('Non autorisé à modifier cette facture');
+      } else if (response.status === 404) {
+        throw new Error('Facture introuvable');
+      } else if (response.status === 400) {
+        throw new Error('Impossible de marquer cette facture comme payée');
+      }
+      
+      throw new Error(`Erreur lors de la mise à jour de la facture: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('✅ [MARK PAID] Invoice marked as paid:', JSON.stringify(data, null, 2));
+
+    if (!data.success) {
+      throw new Error('API returned error during invoice update');
+    }
+
+    console.log(`✅ [MARK PAID] Invoice ${invoiceId} marked as paid`);
+
+    return data.data;
+
+  } catch (error) {
+    console.error('❌ [MARK PAID] Error marking invoice as paid:', error);
+    throw error;
+  }
+};
+
+/**
+ * Annule une facture (draft ou open)
+ * Utilise l'endpoint backend: POST /v1/stripe/invoices/{invoice_id}/void
+ * 
+ * @param invoiceId - ID de la facture à annuler
+ * @returns Facture annulée
+ */
+export const voidStripeInvoice = async (
+  invoiceId: string
+): Promise<{
+  invoice_id: string;
+  status: 'void';
+  voided_at: string;
+}> => {
+  try {
+    console.log(`❌ [VOID INVOICE] Voiding invoice ${invoiceId}...`);
+
+    const voidUrl = `${ServerData.serverUrl}v1/stripe/invoices/${invoiceId}/void`;
+    console.log('🌐 [VOID INVOICE] Calling endpoint:', voidUrl);
+
+    const response = await fetchWithAuth(voidUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+
+    console.log(`📡 [VOID INVOICE] Response status: ${response.status}`);
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'No error text');
+      console.error(`❌ [VOID INVOICE] Error response: ${errorText}`);
+      
+      if (response.status === 401) {
+        throw new Error('Non autorisé à annuler cette facture');
+      } else if (response.status === 404) {
+        throw new Error('Facture introuvable');
+      } else if (response.status === 400) {
+        throw new Error('Impossible d\'annuler cette facture (vérifiez son statut)');
+      }
+      
+      throw new Error(`Erreur lors de l'annulation de la facture: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('✅ [VOID INVOICE] Invoice voided:', JSON.stringify(data, null, 2));
+
+    if (!data.success) {
+      throw new Error('API returned error during invoice voiding');
+    }
+
+    console.log(`❌ [VOID INVOICE] Invoice ${invoiceId} successfully voided`);
+
+    return data.data;
+
+  } catch (error) {
+    console.error('❌ [VOID INVOICE] Error voiding invoice:', error);
+    throw error;
+  }
+};
+
+// ========================================
+// 📊 ANALYTICS & REPORTS - NOUVEAU
+// ========================================
+
+/**
+ * Récupère les analytics détaillés par période
+ * Utilise l'endpoint backend: GET /v1/stripe/analytics/overview
+ * 
+ * @param period - Période d'analyse
+ * @returns Analytics complets avec métriques et graphiques
+ */
+export const getStripeAnalytics = async (
+  period: {
+    start_date: string; // ISO string
+    end_date: string;   // ISO string
+    granularity?: 'day' | 'week' | 'month';
+  }
+): Promise<{
+  metrics: {
+    total_revenue: number;
+    total_fees: number;
+    net_revenue: number;
+    total_payments: number;
+    successful_payments: number;
+    failed_payments: number;
+    total_refunds: number;
+    refund_amount: number;
+    average_payment_amount: number;
+    success_rate: number;
+  };
+  period_data: Array<{
+    date: string;
+    revenue: number;
+    fees: number;
+    net: number;
+    payments_count: number;
+    refunds_count: number;
+    refund_amount: number;
+  }>;
+  top_customers: Array<{
+    customer_id: string;
+    customer_email: string;
+    total_spent: number;
+    payments_count: number;
+  }>;
+  payment_methods: Array<{
+    type: string;
+    count: number;
+    amount: number;
+    percentage: number;
+  }>;
+  currency_breakdown: Array<{
+    currency: string;
+    amount: number;
+    count: number;
+    percentage: number;
+  }>;
+  meta: {
+    period: string;
+    granularity: string;
+    timezone: string;
+    source: string;
+  };
+}> => {
+  try {
+    const companyId = await getUserCompanyId();
+    console.log('📊 [STRIPE ANALYTICS] Loading analytics for company:', companyId);
+
+    const queryParams = new URLSearchParams({
+      company_id: companyId.toString(),
+      start_date: period.start_date,
+      end_date: period.end_date,
+      granularity: period.granularity || 'day'
+    });
+
+    const analyticsUrl = `${ServerData.serverUrl}v1/stripe/analytics/overview?${queryParams}`;
+    console.log('🌐 [STRIPE ANALYTICS] Calling endpoint:', analyticsUrl);
+
+    const response = await fetchWithAuth(analyticsUrl, {
+      method: 'GET'
+    });
+
+    console.log(`📡 [STRIPE ANALYTICS] Response status: ${response.status}`);
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'No error text');
+      console.error(`❌ [STRIPE ANALYTICS] Error response: ${errorText}`);
+      
+      if (response.status === 401) {
+        throw new Error('Non autorisé à voir les analytics');
+      }
+      
+      throw new Error(`Erreur lors de la récupération des analytics: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('✅ [STRIPE ANALYTICS] Analytics retrieved:', JSON.stringify(data, null, 2));
+
+    if (!data.success) {
+      throw new Error('API returned error for analytics');
+    }
+
+    console.log(`📊 [STRIPE ANALYTICS] Revenue: ${data.data.metrics.total_revenue / 100} ${data.data.currency || 'AUD'}`);
+    console.log(`📊 [STRIPE ANALYTICS] Payments: ${data.data.metrics.total_payments}`);
+    console.log(`📊 [STRIPE ANALYTICS] Success rate: ${data.data.metrics.success_rate.toFixed(2)}%`);
+
+    return data.data;
+
+  } catch (error) {
+    console.error('❌ [STRIPE ANALYTICS] Error fetching analytics:', error);
+    throw error;
+  }
+};
+
+/**
+ * Exporte les données Stripe au format CSV
+ * Utilise l'endpoint backend: POST /v1/stripe/exports/csv
+ * 
+ * @param exportConfig - Configuration de l'export
+ * @returns URL de téléchargement du fichier CSV
+ */
+export const exportStripeDataCSV = async (
+  exportConfig: {
+    type: 'payments' | 'refunds' | 'invoices' | 'payouts' | 'analytics';
+    start_date: string;
+    end_date: string;
+    filters?: Record<string, any>;
+    include_fields?: string[];
+  }
+): Promise<{
+  download_url: string;
+  file_name: string;
+  expires_at: string;
+  record_count: number;
+}> => {
+  try {
+    const companyId = await getUserCompanyId();
+    console.log('📄 [CSV EXPORT] Creating CSV export for company:', companyId);
+
+    const exportUrl = `${ServerData.serverUrl}v1/stripe/exports/csv`;
+    console.log('🌐 [CSV EXPORT] Calling endpoint:', exportUrl);
+
+    const response = await fetchWithAuth(exportUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        company_id: companyId,
+        ...exportConfig
+      })
+    });
+
+    console.log(`📡 [CSV EXPORT] Response status: ${response.status}`);
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'No error text');
+      console.error(`❌ [CSV EXPORT] Error response: ${errorText}`);
+      
+      if (response.status === 401) {
+        throw new Error('Non autorisé à exporter les données');
+      } else if (response.status === 400) {
+        throw new Error('Configuration d\'export invalide');
+      }
+      
+      throw new Error(`Erreur lors de la création de l'export: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('✅ [CSV EXPORT] Export created:', JSON.stringify(data, null, 2));
+
+    if (!data.success || !data.data?.download_url) {
+      throw new Error('API returned invalid export data');
+    }
+
+    console.log(`📄 [CSV EXPORT] File: ${data.data.file_name}`);
+    console.log(`📊 [CSV EXPORT] Records: ${data.data.record_count}`);
+    console.log(`🔗 [CSV EXPORT] Download: ${data.data.download_url}`);
+
+    return data.data;
+
+  } catch (error) {
+    console.error('❌ [CSV EXPORT] Error creating CSV export:', error);
+    throw error;
+  }
+};
+
+/**
+ * Exporte les données Stripe au format PDF
+ * Utilise l'endpoint backend: POST /v1/stripe/exports/pdf
+ * 
+ * @param reportConfig - Configuration du rapport PDF
+ * @returns URL de téléchargement du fichier PDF
+ */
+export const exportStripeDataPDF = async (
+  reportConfig: {
+    type: 'monthly_report' | 'payment_summary' | 'refund_report' | 'invoice_summary';
+    start_date: string;
+    end_date: string;
+    template?: 'standard' | 'detailed' | 'summary';
+    include_charts?: boolean;
+    company_branding?: boolean;
+  }
+): Promise<{
+  download_url: string;
+  file_name: string;
+  expires_at: string;
+  page_count: number;
+}> => {
+  try {
+    const companyId = await getUserCompanyId();
+    console.log('📊 [PDF EXPORT] Creating PDF report for company:', companyId);
+
+    const exportUrl = `${ServerData.serverUrl}v1/stripe/exports/pdf`;
+    console.log('🌐 [PDF EXPORT] Calling endpoint:', exportUrl);
+
+    const response = await fetchWithAuth(exportUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        company_id: companyId,
+        ...reportConfig
+      })
+    });
+
+    console.log(`📡 [PDF EXPORT] Response status: ${response.status}`);
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'No error text');
+      console.error(`❌ [PDF EXPORT] Error response: ${errorText}`);
+      
+      if (response.status === 401) {
+        throw new Error('Non autorisé à créer un rapport PDF');
+      } else if (response.status === 400) {
+        throw new Error('Configuration de rapport invalide');
+      }
+      
+      throw new Error(`Erreur lors de la création du rapport: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('✅ [PDF EXPORT] Report created:', JSON.stringify(data, null, 2));
+
+    if (!data.success || !data.data?.download_url) {
+      throw new Error('API returned invalid report data');
+    }
+
+    console.log(`📊 [PDF EXPORT] File: ${data.data.file_name}`);
+    console.log(`📄 [PDF EXPORT] Pages: ${data.data.page_count}`);
+    console.log(`🔗 [PDF EXPORT] Download: ${data.data.download_url}`);
+
+    return data.data;
+
+  } catch (error) {
+    console.error('❌ [PDF EXPORT] Error creating PDF report:', error);
+    throw error;
+  }
+};
+
+/**
+ * Récupère les analytics en temps réel (tableau de bord)
+ * Utilise l'endpoint backend: GET /v1/stripe/analytics/realtime
+ * 
+ * @returns Métriques en temps réel pour le tableau de bord
+ */
+export const getStripeRealtimeAnalytics = async (): Promise<{
+  today: {
+    revenue: number;
+    payments_count: number;
+    avg_payment: number;
+    refunds_count: number;
+    refund_amount: number;
+  };
+  yesterday: {
+    revenue: number;
+    payments_count: number;
+    avg_payment: number;
+    refunds_count: number;
+    refund_amount: number;
+  };
+  this_month: {
+    revenue: number;
+    payments_count: number;
+    avg_payment: number;
+    refunds_count: number;
+    refund_amount: number;
+  };
+  last_month: {
+    revenue: number;
+    payments_count: number;
+    avg_payment: number;
+    refunds_count: number;
+    refund_amount: number;
+  };
+  trending: {
+    revenue_change_pct: number;
+    payments_change_pct: number;
+    trend_direction: 'up' | 'down' | 'stable';
+  };
+  recent_activity: Array<{
+    type: 'payment' | 'refund' | 'invoice' | 'payout';
+    amount: number;
+    currency: string;
+    description: string;
+    timestamp: string;
+  }>;
+  meta: {
+    last_updated: string;
+    timezone: string;
+    source: string;
+  };
+}> => {
+  try {
+    const companyId = await getUserCompanyId();
+    console.log('⚡ [REALTIME ANALYTICS] Loading real-time data for company:', companyId);
+
+    const realtimeUrl = `${ServerData.serverUrl}v1/stripe/analytics/realtime?company_id=${companyId}`;
+    console.log('🌐 [REALTIME ANALYTICS] Calling endpoint:', realtimeUrl);
+
+    const response = await fetchWithAuth(realtimeUrl, {
+      method: 'GET'
+    });
+
+    console.log(`📡 [REALTIME ANALYTICS] Response status: ${response.status}`);
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'No error text');
+      console.error(`❌ [REALTIME ANALYTICS] Error response: ${errorText}`);
+      
+      if (response.status === 401) {
+        throw new Error('Non autorisé à voir les analytics en temps réel');
+      }
+      
+      throw new Error(`Erreur lors de la récupération des données temps réel: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('✅ [REALTIME ANALYTICS] Real-time data retrieved:', JSON.stringify(data, null, 2));
+
+    if (!data.success) {
+      throw new Error('API returned error for real-time analytics');
+    }
+
+    console.log(`⚡ [REALTIME ANALYTICS] Today's revenue: ${data.data.today.revenue / 100} AUD`);
+    console.log(`⚡ [REALTIME ANALYTICS] Today's payments: ${data.data.today.payments_count}`);
+    console.log(`📈 [REALTIME ANALYTICS] Trend: ${data.data.trending.trend_direction} (${data.data.trending.revenue_change_pct}%)`);
+
+    return data.data;
+
+  } catch (error) {
+    console.error('❌ [REALTIME ANALYTICS] Error fetching real-time analytics:', error);
+    throw error;
+  }
+};

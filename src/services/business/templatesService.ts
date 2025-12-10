@@ -139,24 +139,43 @@ export const fetchJobTemplates = async (): Promise<JobTemplate[]> => {
     });
 
     if (!response.ok) {
-      console.warn('Templates API not available, using mock data');
-      return mockTemplates;
+      if (__DEV__) {
+        console.warn('⚠️ [DEV] Templates API not available, using mock data');
+        return mockTemplates;
+      } else {
+        throw new Error(`Templates API error: ${response.status}`);
+      }
     }
 
     const data: TemplateListResponse = await response.json();
     
     if (!data.success) {
-      console.warn('Templates API returned success: false, using mock data');
-      return mockTemplates;
+      if (__DEV__) {
+        console.warn('⚠️ [DEV] Templates API returned success: false, using mock data');
+        return mockTemplates;
+      } else {
+        throw new Error('Templates API returned unsuccessful response');
+      }
     }
 
     // Filtrer seulement les templates (si l'API renvoie aussi des quotes normaux)
     const templates = (data.quotes || []).filter(quote => quote.isTemplate);
-    return templates.length > 0 ? templates : mockTemplates;
+    
+    if (templates.length === 0) {
+      console.log('ℹ️ No templates found in API response');
+      return __DEV__ ? mockTemplates : [];
+    }
+    
+    console.log(`✅ Retrieved ${templates.length} job templates from API`);
+    return templates;
   } catch (error) {
-    console.error('Error fetching job templates:', error);
-    console.warn('Using mock job templates as fallback');
-    return mockTemplates;
+    console.error('❌ Error fetching job templates:', error);
+    if (__DEV__) {
+      console.warn('🔄 Using mock job templates as fallback in DEV mode');
+      return mockTemplates;
+    } else {
+      throw new Error('Failed to fetch job templates from API');
+    }
   }
 };
 
@@ -220,7 +239,25 @@ export const createJobTemplate = async (templateData: TemplateCreateData): Promi
     const data: TemplateResponse = await response.json();
     
     if (!data.success || !data.quote) {
-      console.warn('Template creation API returned invalid data, creating mock template');
+      if (__DEV__) {
+        console.warn('Template creation API returned invalid data, creating mock template');
+        const mockTemplate: JobTemplate = {
+          id: `template-${Date.now()}`,
+          ...templateData,
+          isTemplate: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+        return mockTemplate;
+      }
+      throw new Error('Template creation API returned invalid data');
+    }
+
+    return data.quote;
+  } catch (error) {
+    console.error('Error creating job template:', error);
+    if (__DEV__) {
+      console.warn('Creating mock job template as fallback in DEV mode');
       const mockTemplate: JobTemplate = {
         id: `template-${Date.now()}`,
         ...templateData,
@@ -230,19 +267,7 @@ export const createJobTemplate = async (templateData: TemplateCreateData): Promi
       };
       return mockTemplate;
     }
-
-    return data.quote;
-  } catch (error) {
-    console.error('Error creating job template:', error);
-    console.warn('Creating mock job template as fallback');
-    const mockTemplate: JobTemplate = {
-      id: `template-${Date.now()}`,
-      ...templateData,
-      isTemplate: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    return mockTemplate;
+    throw new Error(`Failed to create job template: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 };
 

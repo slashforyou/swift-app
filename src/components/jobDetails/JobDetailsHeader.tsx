@@ -1,13 +1,15 @@
 /**
- * JobDetailsHeader - Navigation moderne pour JobDetails
- * Remplace TopMenu avec navigation intégrée et RefBookMark repositionné
+ * JobDetailsHeader - Header unifié pour JobDetails
+ * Suit le même design pattern que BusinessHeader avec bouton langue circulaire
  */
-import React from 'react';
-import { View, Pressable, Text } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@react-native-vector-icons/ionicons';
-import { useTheme } from '../../context/ThemeProvider';
+import React, { useState } from 'react';
+import { Pressable, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DESIGN_TOKENS } from '../../constants/Styles';
+import { useTheme } from '../../context/ThemeProvider';
+import { useLocalization } from '../../localization/useLocalization';
+import LanguageSelector from '../ui/LanguageSelector';
 import RefBookMark from '../ui/refBookMark';
 
 interface JobDetailsHeaderProps {
@@ -15,22 +17,25 @@ interface JobDetailsHeaderProps {
     jobRef: string;
     title: string;
     onToast: (message: string, type: 'info' | 'success' | 'error') => void;
+    showLanguageButton?: boolean;
 }
 
 const JobDetailsHeader: React.FC<JobDetailsHeaderProps> = ({ 
     navigation, 
     jobRef, 
     title, 
-    onToast 
+    onToast,
+    showLanguageButton = true,
 }) => {
     const insets = useSafeAreaInsets();
     const { colors } = useTheme();
+    const { currentLanguage, getSupportedLanguages } = useLocalization();
+    const [showLanguageSelector, setShowLanguageSelector] = useState(false);
+    
+    const supportedLanguages = getSupportedLanguages();
+    const currentLangInfo = supportedLanguages[currentLanguage];
 
-    const goHome = () => {
-        navigation.navigate('Home');
-    };
-
-    const goBack = () => {
+    const handleBackPress = () => {
         if (navigation.canGoBack()) {
             navigation.goBack();
         } else {
@@ -39,85 +44,109 @@ const JobDetailsHeader: React.FC<JobDetailsHeaderProps> = ({
     };
 
     return (
-        <View style={{
-            paddingTop: insets.top + DESIGN_TOKENS.spacing.md,
-            paddingHorizontal: DESIGN_TOKENS.spacing.lg,
-            paddingBottom: DESIGN_TOKENS.spacing.md,
-            backgroundColor: colors.backgroundSecondary,
-            borderBottomWidth: 1,
-            borderBottomColor: colors.border,
-            shadowColor: colors.shadow,
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.1,
-            shadowRadius: 4,
-            elevation: 4,
-            zIndex: 10,
-        }}>
-            {/* Première ligne : Navigation et RefBookMark */}
+        <>
+            {/* Header menu */}
             <View style={{
                 flexDirection: 'row',
-                justifyContent: 'space-between',
                 alignItems: 'center',
-                marginBottom: DESIGN_TOKENS.spacing.md,
+                justifyContent: 'space-between',
+                paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+                paddingTop: insets.top + DESIGN_TOKENS.spacing.md,
+                paddingBottom: DESIGN_TOKENS.spacing.lg,
+                backgroundColor: colors.background,
+                borderBottomWidth: 1,
+                borderBottomColor: colors.border,
+                minHeight: 76 + insets.top,
             }}>
-                {/* Boutons de navigation */}
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Pressable
-                        onPress={goBack}
-                        style={{
-                            padding: DESIGN_TOKENS.spacing.sm,
-                            marginRight: DESIGN_TOKENS.spacing.md,
-                            borderRadius: DESIGN_TOKENS.radius.md,
-                            backgroundColor: colors.background,
-                        }}
-                        hitSlop={{
-                            top: DESIGN_TOKENS.touch.hitSlop,
-                            bottom: DESIGN_TOKENS.touch.hitSlop,
-                            left: DESIGN_TOKENS.touch.hitSlop,
-                            right: DESIGN_TOKENS.touch.hitSlop,
-                        }}
-                    >
-                        <Ionicons name="arrow-back" size={24} color={colors.primary} />
-                    </Pressable>
-
-                    <Pressable
-                        onPress={goHome}
-                        style={{
-                            padding: DESIGN_TOKENS.spacing.sm,
-                            borderRadius: DESIGN_TOKENS.radius.md,
-                            backgroundColor: colors.background,
-                        }}
-                        hitSlop={{
-                            top: DESIGN_TOKENS.touch.hitSlop,
-                            bottom: DESIGN_TOKENS.touch.hitSlop,
-                            left: DESIGN_TOKENS.touch.hitSlop,
-                            right: DESIGN_TOKENS.touch.hitSlop,
-                        }}
-                    >
-                        <Ionicons name="home" size={24} color={colors.primary} />
-                    </Pressable>
-                </View>
-
-                {/* RefBookMark en haut à droite */}
-                <RefBookMark 
-                    jobRef={jobRef} 
-                    toastIt={onToast}
-                    isHeaderMode={true}
-                />
-            </View>
-
-            {/* Deuxième ligne : Titre complet */}
-            <View>
+                {/* Bouton retour circulaire (style Business) */}
+                <TouchableOpacity
+                    style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: 22,
+                        backgroundColor: colors.background,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        shadowColor: '#000',
+                        shadowOffset: { width: 0, height: 1 },
+                        shadowOpacity: 0.1,
+                        shadowRadius: 2,
+                        elevation: 2,
+                    }}
+                    onPress={handleBackPress}
+                    activeOpacity={0.7}
+                    accessible={true}
+                    accessibilityLabel="Retour"
+                    accessibilityRole="button"
+                >
+                    <Ionicons
+                        name="arrow-back"
+                        size={24}
+                        color={colors.primary}
+                    />
+                </TouchableOpacity>
+                
+                {/* Titre centré */}
                 <Text style={{
-                    fontSize: 24,
-                    fontWeight: '700',
+                    fontSize: DESIGN_TOKENS.typography.title.fontSize,
+                    fontWeight: '600',
                     color: colors.text,
-                    textAlign: 'left',
-                }}>
-                    {title}
+                    textAlign: 'center',
+                    flex: 1,
+                }} numberOfLines={1}>
+                    Job Details
                 </Text>
+                
+                {/* Bouton langue circulaire (style Business) */}
+                {showLanguageButton && (
+                    <Pressable
+                        onPress={() => setShowLanguageSelector(true)}
+                        style={({ pressed }) => ({
+                            width: 44,
+                            height: 44,
+                            borderRadius: 22,
+                            backgroundColor: colors.backgroundSecondary,
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            borderWidth: 1,
+                            borderColor: colors.border,
+                            transform: [{ scale: pressed ? 0.95 : 1 }],
+                        })}
+                        hitSlop={DESIGN_TOKENS.touch.hitSlop}
+                    >
+                        <Text style={{ fontSize: 18 }}>
+                            {currentLangInfo.flag}
+                        </Text>
+                    </Pressable>
+                )}
             </View>
-        </View>
+
+            {/* RefBookMark exactement en dessous du menu, centré */}
+            <View style={{
+                alignItems: 'center',
+                paddingTop: 0, // Au pixel près sous le menu
+            }}>
+                <View style={{
+                    backgroundColor: colors.border, // Même couleur que le border bottom du menu
+                    borderTopLeftRadius: 0,  // Coins du haut à 0px
+                    borderTopRightRadius: 0, // Coins du haut à 0px
+                    borderBottomLeftRadius: DESIGN_TOKENS.radius.md,
+                    borderBottomRightRadius: DESIGN_TOKENS.radius.md,
+                }}>
+                    <RefBookMark 
+                        jobRef={jobRef} 
+                        toastIt={onToast}
+                        isHeaderMode={true}
+                    />
+                </View>
+            </View>
+
+            {/* Sélecteur de langue modal */}
+            <LanguageSelector
+                visible={showLanguageSelector}
+                onClose={() => setShowLanguageSelector(false)}
+            />
+        </>
     );
 };
 

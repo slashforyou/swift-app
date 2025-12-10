@@ -7,7 +7,7 @@
  * - Le currentStep et l'état de complétion
  */
 
-import { updateJobStep } from '../services/jobDetails';
+import { updateJobStep } from '../services/jobSteps';
 
 /**
  * Type pour les résultats de validation

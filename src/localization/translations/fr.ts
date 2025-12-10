@@ -307,6 +307,111 @@ export const frTranslations: TranslationKeys = {
         },
     },
 
+    payment: {
+        missingInfo: {
+            title: 'Informations manquantes',
+            message: 'Veuillez remplir tous les champs de la carte.',
+        },
+        errors: {
+            jobIdNotFound: 'ID du job non trouvé',
+            paymentError: 'Erreur de paiement',
+            generic: 'Erreur',
+            processingFailed: 'Une erreur s\'est produite lors du traitement du paiement.',
+            networkError: 'Erreur de connexion',
+        },
+        buttons: {
+            processing: 'Enregistrement...',
+            confirm: 'Confirmer le paiement',
+            retry: 'Réessayer',
+        },
+        status: {
+            processing: 'Traitement en cours...',
+            success: 'Paiement réussi',
+            failed: 'Paiement échoué',
+        },
+    },
+
+    vehicles: {
+        actions: {
+            edit: 'Modifier le véhicule',
+            delete: 'Supprimer le véhicule',
+            cancel: 'Annuler',
+            remove: 'Supprimer',
+        },
+        alerts: {
+            addSuccess: {
+                title: 'Succès',
+                message: 'Véhicule ajouté avec succès! 🎉',
+            },
+            addError: {
+                title: 'Erreur',
+                message: 'Une erreur est survenue lors de l\'ajout du véhicule',
+            },
+            deleteConfirm: {
+                message: 'Êtes-vous sûr de vouloir supprimer {{vehicleName}} ?',
+            },
+            deleteSuccess: {
+                title: 'Succès',
+                message: 'Véhicule supprimé',
+            },
+            deleteError: {
+                title: 'Erreur',
+                message: 'Impossible de supprimer le véhicule',
+            },
+            editConfirm: {
+                message: 'Modification de {{vehicleName}}',
+            },
+        },
+        errors: {
+            loadingTitle: 'Erreur lors du chargement des véhicules',
+            loadingMessage: 'Une erreur est survenue',
+        },
+    },
+
+    staff: {
+        titles: {
+            main: 'Gestion du Personnel',
+            subtitle: 'Gérez vos employés et prestataires',
+            loading: 'Chargement du personnel...',
+        },
+        stats: {
+            active: 'Actifs',
+            employees: 'Employés',
+            contractors: 'Prestataires',
+            averageRate: 'Taux moyen',
+        },
+        actions: {
+            add: 'Ajouter un membre',
+            edit: 'Modifier',
+            remove: 'Retirer',
+            cancel: 'Annuler',
+        },
+        filters: {
+            all: 'Tous',
+            employees: 'Employés',
+            contractors: 'Prestataires',
+        },
+        types: {
+            employee: 'Employé (TFN)',
+            contractor: 'Prestataire (ABN)',
+        },
+        status: {
+            active: 'Actif',
+            inactive: 'Inactif',
+            pending: 'En attente',
+        },
+        alerts: {
+            removeConfirm: {
+                title: 'Retirer du staff',
+                message: 'Êtes-vous sûr de vouloir retirer {{memberName}} ?',
+            },
+        },
+        empty: {
+            title: 'Aucun membre du personnel',
+            subtitle: 'Ajoutez votre premier employé ou prestataire',
+        },
+    },
+
     messages: {
         errors: {
             network: 'Erreur de connexion réseau',

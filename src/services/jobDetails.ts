@@ -6,7 +6,7 @@ import { getMockJobDetails } from './jobDetailsMockData';
 const API = ServerData.serverUrl;
 
 // Flag pour utiliser les données mock (développement/test)
-const USE_MOCK_DATA = false;
+const USE_MOCK_DATA = __DEV__;
 
 // Types pour les données complètes d'un job
 export interface JobDetailsComplete {

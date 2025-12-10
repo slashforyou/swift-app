@@ -75,6 +75,12 @@ export interface ThemeColors {
   overlay: string;
   overlayLight: string;
   overlayStrong: string;
+  
+  // Button colors (compatibilité legacy)
+  buttonPrimaryText: string;
+  primaryButtonText: string;
+  errorButtonBackground: string;
+  errorButtonText: string;
 }
 
 export interface Theme {
@@ -153,6 +159,12 @@ const lightTheme: ThemeColors = {
   overlay: 'rgba(0, 0, 0, 0.5)',
   overlayLight: 'rgba(0, 0, 0, 0.25)',
   overlayStrong: 'rgba(0, 0, 0, 0.75)',
+  
+  // Button colors (compatibilité legacy)
+  buttonPrimaryText: Colors.light.background,
+  primaryButtonText: Colors.light.background,
+  errorButtonBackground: Colors.light.error,
+  errorButtonText: Colors.light.background,
 };
 
 const darkTheme: ThemeColors = {
@@ -213,6 +225,12 @@ const darkTheme: ThemeColors = {
   overlay: 'rgba(0, 0, 0, 0.7)',
   overlayLight: 'rgba(0, 0, 0, 0.4)',
   overlayStrong: 'rgba(0, 0, 0, 0.9)',
+  
+  // Button colors (compatibilité legacy)
+  buttonPrimaryText: Colors.dark?.background || '#000000',
+  primaryButtonText: Colors.dark?.background || '#000000',
+  errorButtonBackground: Colors.dark?.error || '#EF4444',
+  errorButtonText: Colors.dark?.background || '#000000',
 };
 
 // ============================================================================

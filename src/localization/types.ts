@@ -336,6 +336,114 @@ export interface TranslationKeys {
         };
     };
 
+    // Payment
+    payment: {
+        missingInfo: {
+            title: string;
+            message: string;
+        };
+        errors: {
+            jobIdNotFound: string;
+            paymentError: string;
+            generic: string;
+            processingFailed: string;
+            networkError: string;
+        };
+        buttons: {
+            processing: string;
+            confirm: string;
+            retry: string;
+        };
+        status: {
+            processing: string;
+            success: string;
+            failed: string;
+        };
+    };
+
+    // Vehicles
+    vehicles: {
+        actions: {
+            edit: string;
+            delete: string;
+            cancel: string;
+            remove: string;
+        };
+        alerts: {
+            addSuccess: {
+                title: string;
+                message: string;
+            };
+            addError: {
+                title: string;
+                message: string;
+            };
+            deleteConfirm: {
+                message: string;
+            };
+            deleteSuccess: {
+                title: string;
+                message: string;
+            };
+            deleteError: {
+                title: string;
+                message: string;
+            };
+            editConfirm: {
+                message: string;
+            };
+        };
+        errors: {
+            loadingTitle: string;
+            loadingMessage: string;
+        };
+    };
+
+    // Staff Management
+    staff: {
+        titles: {
+            main: string;
+            subtitle: string;
+            loading: string;
+        };
+        stats: {
+            active: string;
+            employees: string;
+            contractors: string;
+            averageRate: string;
+        };
+        actions: {
+            add: string;
+            edit: string;
+            remove: string;
+            cancel: string;
+        };
+        filters: {
+            all: string;
+            employees: string;
+            contractors: string;
+        };
+        types: {
+            employee: string;
+            contractor: string;
+        };
+        status: {
+            active: string;
+            inactive: string;
+            pending: string;
+        };
+        alerts: {
+            removeConfirm: {
+                title: string;
+                message: string;
+            };
+        };
+        empty: {
+            title: string;
+            subtitle: string;
+        };
+    };
+
     // Errors and Messages
     messages: {
         errors: {

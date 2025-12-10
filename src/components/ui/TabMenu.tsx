@@ -17,7 +17,7 @@ interface TabMenuProps {
   activeTab: string;
   onTabPress: (tabId: string) => void;
   style?: any;
-  page?: 'business' | 'jobDetails'; // Type de page pour adapter le comportement
+  page?: 'business' | 'jobDetails' | 'calendar'; // Type de page pour adapter le comportement
 }
 
 // Configuration des menus selon la page
@@ -37,6 +37,13 @@ const getMenuConfig = (page: string, t: any): TabMenuItem[] => {
         { id: 'client', label: t('jobDetails.panels.clientInfo'), icon: 'person' },
         { id: 'notes', label: t('jobDetails.panels.notes'), icon: 'chatbubble' },
         { id: 'payment', label: t('jobDetails.panels.payment'), icon: 'card' },
+      ];
+    case 'calendar':
+      return [
+        { id: 'Day', label: t('calendar.navigation.dailyView'), icon: 'today' },
+        { id: 'Month', label: t('calendar.navigation.monthlyView'), icon: 'calendar' },
+        { id: 'Year', label: t('calendar.navigation.yearlyView'), icon: 'calendar-outline' },
+        { id: 'MultipleYears', label: t('calendar.navigation.multiYearView'), icon: 'layers' },
       ];
     default:
       return [];

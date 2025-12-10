@@ -22,7 +22,7 @@ export const MIGRATION_MAP = {
     md: DESIGN_TOKENS.spacing.md,     // 12
     lg: DESIGN_TOKENS.spacing.lg,     // 16
     xl: DESIGN_TOKENS.spacing.xl,     // 24
-    xxl: DESIGN_TOKENS.spacing.xxl,   // 32
+    xxl: DESIGN_TOKENS.spacing.xxxl,   // 32 (using xxxl as per tokens.ts)
   },
   
   // Ancien système radius

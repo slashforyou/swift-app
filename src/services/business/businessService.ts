@@ -81,22 +81,31 @@ export const fetchBusinessList = async (): Promise<BusinessInfo[]> => {
     });
 
     if (!response.ok) {
-      console.warn('API not available, using mock data');
-      return [mockBusinessInfo];
+      if (__DEV__) {
+        console.warn('API not available in development, using mock data');
+        return [mockBusinessInfo];
+      }
+      throw new Error(`Business List API failed with status ${response.status}`);
     }
 
     const data: BusinessListResponse = await response.json();
     
     if (!data.success) {
-      console.warn('API returned success: false, using mock data');
-      return [mockBusinessInfo];
+      if (__DEV__) {
+        console.warn('API returned success: false, using mock data');
+        return [mockBusinessInfo];
+      }
+      throw new Error('Business List API returned success: false');
     }
 
-    return data.companies || [mockBusinessInfo];
+    return data.companies || [];
   } catch (error) {
     console.error('Error fetching business list:', error);
-    console.warn('Using mock business data as fallback');
-    return [mockBusinessInfo];
+    if (__DEV__) {
+      console.warn('Using mock business data as fallback in development');
+      return [mockBusinessInfo];
+    }
+    throw new Error(`Failed to fetch business list: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 };
 
@@ -110,22 +119,31 @@ export const fetchBusinessDetails = async (companyId: string): Promise<BusinessI
     });
 
     if (!response.ok) {
-      console.warn('API not available, using mock data');
-      return { ...mockBusinessInfo, id: companyId };
+      if (__DEV__) {
+        console.warn('Business Details API not available in development, using mock data');
+        return { ...mockBusinessInfo, id: companyId };
+      }
+      throw new Error(`Business Details API failed with status ${response.status} for company ${companyId}`);
     }
 
     const data: BusinessResponse = await response.json();
     
     if (!data.success || !data.company) {
-      console.warn('API returned invalid data, using mock data');
-      return { ...mockBusinessInfo, id: companyId };
+      if (__DEV__) {
+        console.warn('API returned invalid data, using mock data');
+        return { ...mockBusinessInfo, id: companyId };
+      }
+      throw new Error(`Business Details API returned invalid data for company ${companyId}`);
     }
 
     return data.company;
   } catch (error) {
     console.error('Error fetching business details:', error);
-    console.warn('Using mock business details as fallback');
-    return { ...mockBusinessInfo, id: companyId };
+    if (__DEV__) {
+      console.warn('Using mock business details as fallback in development');
+      return { ...mockBusinessInfo, id: companyId };
+    }
+    throw new Error(`Failed to fetch business details for ${companyId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 };
 
@@ -207,22 +225,31 @@ export const fetchBusinessStats = async (companyId: string): Promise<BusinessSta
     });
 
     if (!response.ok) {
-      console.warn('Stats API not available, using mock data');
-      return mockBusinessStats;
+      if (__DEV__) {
+        console.warn('Business Stats API not available in development, using mock data');
+        return mockBusinessStats;
+      }
+      throw new Error(`Business Stats API failed with status ${response.status} for company ${companyId}`);
     }
 
     const data = await response.json();
     
     if (!data.success || !data.stats) {
-      console.warn('Stats API returned invalid data, using mock data');
-      return mockBusinessStats;
+      if (__DEV__) {
+        console.warn('Stats API returned invalid data, using mock data');
+        return mockBusinessStats;
+      }
+      throw new Error(`Business Stats API returned invalid data for company ${companyId}`);
     }
 
     return data.stats;
   } catch (error) {
     console.error('Error fetching business stats:', error);
-    console.warn('Using mock business stats as fallback');
-    return mockBusinessStats;
+    if (__DEV__) {
+      console.warn('Using mock business stats as fallback in development');
+      return mockBusinessStats;
+    }
+    throw new Error(`Failed to fetch business stats for ${companyId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 };
 

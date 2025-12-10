@@ -66,7 +66,7 @@ const DesignSystemDemo: React.FC = () => {
             color: colors.textSecondary,
             marginBottom: DESIGN_TOKENS.spacing.lg 
           }}>
-            Mode actuel: {theme}
+            Mode actuel: {String(theme)}
           </Caption>
           
           <Heading1 style={{ marginBottom: DESIGN_TOKENS.spacing.sm }}>
@@ -101,28 +101,28 @@ const DesignSystemDemo: React.FC = () => {
             <Button 
               title="Primary Button"
               variant="primary" 
-              size="medium"
+              size="md"
               onPress={() => handleButtonPress('primary')}
             />
             
             <Button 
               title="Secondary Button"
               variant="secondary"
-              size="medium" 
+              size="md" 
               onPress={() => handleButtonPress('secondary')}
             />
             
             <Button 
               title="Outline Button"
               variant="outline"
-              size="medium"
+              size="md"
               onPress={() => handleButtonPress('outline')}
             />
             
             <Button 
               title="Ghost Button"
               variant="ghost"
-              size="medium"
+              size="md"
               onPress={() => handleButtonPress('ghost')}
             />
           </View>
@@ -137,7 +137,7 @@ const DesignSystemDemo: React.FC = () => {
           <View style={{ gap: DESIGN_TOKENS.spacing.md }}>
             <Input
               variant="default"
-              size="medium"
+              size="md"
               label="Input Default"
               placeholder="Saisissez votre texte"
               value={inputValue}
@@ -147,14 +147,14 @@ const DesignSystemDemo: React.FC = () => {
             
             <Input
               variant="outlined"
-              size="medium"
+              size="md"
               label="Input Outlined"
               placeholder="Version outlined"
             />
             
             <Input
               variant="filled"
-              size="medium"
+              size="md"
               label="Input Filled"
               placeholder="Version filled"
             />

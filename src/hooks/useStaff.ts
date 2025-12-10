@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
+import { staffService } from '../services/staff/staffService';
 import { Contractor, Employee, InviteEmployeeData, StaffFilters, StaffMember, UseStaffResult } from '../types/staff';
+
+// Configuration pour basculer entre mock et API
+const USE_MOCK_DATA = __DEV__; // En dev on peut utiliser les mocks en cas de problème API
 
 export const useStaff = (): UseStaffResult => {
   const [staff, setStaff] = useState<StaffMember[]>([]);
@@ -96,19 +100,38 @@ export const useStaff = (): UseStaffResult => {
       setIsLoading(true);
       setError(null);
 
-      // Simuler un appel API
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log(`📋 [useStaff] Loading staff members... (USE_MOCK: ${USE_MOCK_DATA})`);
 
-      console.log('📋 [useStaff] Loading staff members...');
-      
-      // En production, cet appel récupérerait les données de l'API
-      // const apiStaff = await fetchStaff();
-      
-      setStaff(mockStaff);
-      console.log(`✅ [useStaff] Loaded ${mockStaff.length} staff members`);
+      if (USE_MOCK_DATA) {
+        // Utiliser les données mock en développement ou en cas de problème API
+        console.log('🔄 [useStaff] Using mock data');
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Simuler latence réseau
+        setStaff(mockStaff);
+        console.log(`✅ [useStaff] Loaded ${mockStaff.length} mock staff members`);
+      } else {
+        // Utiliser la vraie API
+        console.log('🌐 [useStaff] Using real API');
+        const apiStaff = await staffService.fetchStaff();
+        setStaff(apiStaff);
+        console.log(`✅ [useStaff] Loaded ${apiStaff.length} staff members from API`);
+      }
 
     } catch (err) {
       console.error('❌ [useStaff] Error loading staff:', err);
+      
+      if (!USE_MOCK_DATA) {
+        // En cas d'erreur API, fallback vers les mocks
+        console.log('🔄 [useStaff] API failed, falling back to mock data');
+        try {
+          setStaff(mockStaff);
+          setError('Connexion API limitée - données de démonstration');
+          console.log(`✅ [useStaff] Fallback: loaded ${mockStaff.length} mock staff members`);
+          return;
+        } catch (mockError) {
+          console.error('❌ [useStaff] Even mock data failed:', mockError);
+        }
+      }
+      
       setError(err instanceof Error ? err.message : 'Erreur lors du chargement du personnel');
     } finally {
       setIsLoading(false);
@@ -149,100 +172,109 @@ export const useStaff = (): UseStaffResult => {
     try {
       console.log('📧 [useStaff] Inviting employee:', employeeData.email);
       
-      // Simuler l'envoi d'invitation
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      if (USE_MOCK_DATA) {
+        // Mode mock : simuler l'invitation
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        const newEmployee: Employee = {
+          id: `emp_${Date.now()}`,
+          type: 'employee',
+          firstName: employeeData.firstName,
+          lastName: employeeData.lastName,
+          email: employeeData.email,
+          phone: employeeData.phone,
+          role: employeeData.role,
+          team: employeeData.team,
+          startDate: new Date().toISOString().split('T')[0],
+          status: 'pending',
+          hourlyRate: employeeData.hourlyRate,
+          invitationStatus: 'sent',
+          accountLinked: false,
+        };
 
-      const newEmployee: Employee = {
-        id: `emp_${Date.now()}`,
-        type: 'employee',
-        firstName: employeeData.firstName,
-        lastName: employeeData.lastName,
-        email: employeeData.email,
-        phone: employeeData.phone,
-        role: employeeData.role,
-        team: employeeData.team,
-        startDate: new Date().toISOString().split('T')[0],
-        status: 'pending',
-        hourlyRate: employeeData.hourlyRate,
-        invitationStatus: 'sent',
-        accountLinked: false,
-      };
-
-      setStaff(prev => [...prev, newEmployee]);
-      console.log(`✅ [useStaff] Employee invitation sent to ${employeeData.email}`);
-
-      // En production, cet appel enverrait l'invitation par email
-      // await sendEmployeeInvitation(employeeData);
+        setStaff(prev => [...prev, newEmployee]);
+        console.log(`✅ [useStaff] Mock employee invitation sent to ${employeeData.email}`);
+      } else {
+        // Mode API : vraie invitation
+        const result = await staffService.inviteEmployee(employeeData);
+        
+        // Recharger la liste pour avoir les données à jour
+        await loadStaff();
+        
+        console.log(`✅ [useStaff] Real employee invitation sent to ${employeeData.email}, ID: ${result.employeeId}`);
+      }
 
     } catch (err) {
       console.error('❌ [useStaff] Error inviting employee:', err);
       throw new Error('Erreur lors de l\'envoi de l\'invitation');
     }
-  }, []);
+  }, [loadStaff]);
 
   const searchContractor = useCallback(async (searchTerm: string): Promise<Contractor[]> => {
     try {
       console.log('🔍 [useStaff] Searching contractors:', searchTerm);
       
-      // Simuler la recherche
-      await new Promise(resolve => setTimeout(resolve, 800));
+      if (USE_MOCK_DATA) {
+        // Mode mock : données de recherche simulées
+        await new Promise(resolve => setTimeout(resolve, 800));
 
-      // Données mockées de recherche de prestataires
-      const mockSearchResults: Contractor[] = [
-        {
-          id: 'search_1',
-          type: 'contractor',
-          firstName: 'Alex',
-          lastName: 'Thompson',
-          email: 'alex.thompson@contractor.com',
-          phone: '+61 467 890 123',
-          role: 'Furniture Mover',
-          team: 'External Contractors',
-          startDate: new Date().toISOString().split('T')[0],
-          status: 'active',
-          abn: '11 222 333 444',
-          contractStatus: 'standard',
-          rateType: 'hourly',
-          rate: 35,
-          isVerified: true,
-        },
-        {
-          id: 'search_2',
-          type: 'contractor',
-          firstName: 'Lisa',
-          lastName: 'Chen',
-          email: 'lisa.chen@freelance.au',
-          phone: '+61 478 901 234',
-          role: 'Packing Expert',
-          team: 'External Contractors',
-          startDate: new Date().toISOString().split('T')[0],
-          status: 'active',
-          abn: '55 666 777 888',
-          contractStatus: 'standard',
-          rateType: 'project',
-          rate: 120,
-          isVerified: true,
-        },
-      ];
+        const mockSearchResults: Contractor[] = [
+          {
+            id: 'search_1',
+            type: 'contractor',
+            firstName: 'Alex',
+            lastName: 'Thompson',
+            email: 'alex.thompson@contractor.com',
+            phone: '+61 467 890 123',
+            role: 'Furniture Mover',
+            team: 'External Contractors',
+            startDate: new Date().toISOString().split('T')[0],
+            status: 'active',
+            abn: '11 222 333 444',
+            contractStatus: 'standard',
+            rateType: 'hourly',
+            rate: 35,
+            isVerified: true,
+          },
+          {
+            id: 'search_2',
+            type: 'contractor',
+            firstName: 'Lisa',
+            lastName: 'Chen',
+            email: 'lisa.chen@freelance.au',
+            phone: '+61 478 901 234',
+            role: 'Packing Expert',
+            team: 'External Contractors',
+            startDate: new Date().toISOString().split('T')[0],
+            status: 'active',
+            abn: '55 666 777 888',
+            contractStatus: 'standard',
+            rateType: 'project',
+            rate: 120,
+            isVerified: true,
+          },
+        ];
 
-      // Filtrer selon le terme de recherche
-      const results = mockSearchResults.filter(contractor => {
-        const fullName = `${contractor.firstName} ${contractor.lastName}`.toLowerCase();
-        const searchLower = searchTerm.toLowerCase();
-        
-        // Si c'est un ABN (11 chiffres), recherche exacte
-        if (searchTerm.replace(/\s/g, '').length === 11) {
-          return contractor.abn.replace(/\s/g, '') === searchTerm.replace(/\s/g, '');
-        }
-        
-        // Sinon, recherche par nom
-        return fullName.includes(searchLower);
-      });
+        // Filtrer selon le terme de recherche
+        const results = mockSearchResults.filter(contractor => {
+          const fullName = `${contractor.firstName} ${contractor.lastName}`.toLowerCase();
+          const searchLower = searchTerm.toLowerCase();
+          
+          if (searchTerm.replace(/\s/g, '').length === 11) {
+            return contractor.abn.replace(/\s/g, '') === searchTerm.replace(/\s/g, '');
+          }
+          
+          return fullName.includes(searchLower);
+        });
 
-      console.log(`✅ [useStaff] Found ${results.length} contractors`);
-      return results;
-
-      // En production : const results = await searchContractorsAPI(searchTerm);
+        console.log(`✅ [useStaff] Found ${results.length} mock contractors`);
+        return results;
+      } else {
+        // Mode API : vraie recherche
+        const results = await staffService.searchContractors(searchTerm);
+        console.log(`✅ [useStaff] Found ${results.length} contractors via API`);
+        return results;
+      }
 
     } catch (err) {
       console.error('❌ [useStaff] Error searching contractors:', err);
@@ -254,38 +286,45 @@ export const useStaff = (): UseStaffResult => {
     try {
       console.log('🤝 [useStaff] Adding contractor to staff:', contractorId, contractStatus);
       
-      // Simuler l'ajout du prestataire
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (USE_MOCK_DATA) {
+        // Mode mock : simuler l'ajout
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // En pratique, on récupérerait les données complètes du prestataire depuis la recherche
-      const contractorData: Contractor = {
-        id: contractorId,
-        type: 'contractor',
-        firstName: 'New',
-        lastName: 'Contractor',
-        email: 'contractor@email.com',
-        phone: '+61 400 000 000',
-        role: 'Specialist',
-        team: 'External Contractors',
-        startDate: new Date().toISOString().split('T')[0],
-        status: 'active',
-        abn: '99 888 777 666',
-        contractStatus,
-        rateType: 'hourly',
-        rate: 38,
-        isVerified: true,
-      };
+        const contractorData: Contractor = {
+          id: contractorId,
+          type: 'contractor',
+          firstName: 'New',
+          lastName: 'Contractor',
+          email: 'contractor@email.com',
+          phone: '+61 400 000 000',
+          role: 'Specialist',
+          team: 'External Contractors',
+          startDate: new Date().toISOString().split('T')[0],
+          status: 'active',
+          abn: '99 888 777 666',
+          contractStatus,
+          rateType: 'hourly',
+          rate: 38,
+          isVerified: true,
+        };
 
-      setStaff(prev => [...prev, contractorData]);
-      console.log(`✅ [useStaff] Contractor added with ${contractStatus} status`);
-
-      // En production : await addContractorToStaff(contractorId, contractStatus);
+        setStaff(prev => [...prev, contractorData]);
+        console.log(`✅ [useStaff] Mock contractor added with ${contractStatus} status`);
+      } else {
+        // Mode API : vraie ajout
+        const result = await staffService.addContractorToStaff(contractorId, contractStatus);
+        
+        // Recharger la liste pour avoir les données à jour
+        await loadStaff();
+        
+        console.log(`✅ [useStaff] Real contractor added with ${contractStatus} status`);
+      }
 
     } catch (err) {
       console.error('❌ [useStaff] Error adding contractor:', err);
       throw new Error('Erreur lors de l\'ajout du prestataire');
     }
-  }, []);
+  }, [loadStaff]);
 
   // Calculer les statistiques
   const employees = staff.filter((member): member is Employee => member.type === 'employee');

@@ -28,7 +28,7 @@ const PERIOD_OPTIONS = [
   { value: 'custom', label: 'Personnalisé' }
 ] as const;
 
-const STATUS_OPTIONS = [
+const STATUS_OPTIONS: readonly ({ value: 'all' | 'succeeded' | 'pending' | 'failed'; label: string; icon: string; color?: string })[] = [
   { value: 'all', label: 'Tous les statuts', icon: 'apps' },
   { value: 'succeeded', label: 'Réussis', icon: 'checkmark-circle', color: '#10B981' },
   { value: 'pending', label: 'En attente', icon: 'time', color: '#F59E0B' },
@@ -393,7 +393,7 @@ export const ReportsFilters: React.FC<ReportsFiltersProps> = ({
                 }}
                 onPress={handleAmountSubmit}
               >
-                <Text style={{ color: colors.primaryButtonText || colors.background, fontSize: 16, fontWeight: '600' }}>
+                <Text style={{ color: colors.background, fontSize: 16, fontWeight: '600' }}>
                   Appliquer
                 </Text>
               </TouchableOpacity>

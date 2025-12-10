@@ -23,6 +23,7 @@ import { DESIGN_TOKENS } from '../../constants/Styles'
 import { useTheme } from '../../context/ThemeProvider'
 import { useVehicles as useVehiclesContext } from '../../context/VehiclesProvider'
 import { useVehicles } from '../../hooks/useVehicles'
+import { useTranslation } from '../../localization/useLocalization'
 import { VehicleAPI } from '../../services/vehiclesService'
 
 // Types
@@ -391,6 +392,7 @@ const VehicleCard: React.FC<{
  */
 export default function TrucksScreen() {
   const { colors } = useTheme()
+  const { t } = useTranslation()
   
   // Context pour la gestion d'état des véhicules
   const {
@@ -537,10 +539,10 @@ export default function TrucksScreen() {
       })
       
       setIsAddModalVisible(false)
-      Alert.alert('Success', 'Vehicle added successfully! 🎉')
+      Alert.alert(t('vehicles.alerts.addSuccess.title'), t('vehicles.alerts.addSuccess.message'))
     } catch (error) {
       console.error('Error creating vehicle:', error)
-      Alert.alert('Error', 'An error occurred while adding the vehicle')
+      Alert.alert(t('vehicles.alerts.addError.title'), t('vehicles.alerts.addError.message'))
     }
   }
 
@@ -554,9 +556,9 @@ export default function TrucksScreen() {
     event?.stopPropagation?.();
     
     Alert.alert(
-      'Modifier le véhicule',
-      `Modification de ${vehicle.name}`,
-      [{ text: 'OK' }]
+      t('vehicles.actions.edit'),
+      t('vehicles.alerts.editConfirm.message', { vehicleName: vehicle.name }),
+      [{ text: t('common.ok') }]
     );
   };
 
@@ -565,19 +567,19 @@ export default function TrucksScreen() {
     event?.stopPropagation?.()
     
     Alert.alert(
-      'Supprimer le véhicule',
-      `Êtes-vous sûr de vouloir supprimer ${vehicle.name} ?`,
+      t('vehicles.actions.delete'),
+      t('vehicles.alerts.deleteConfirm.message', { vehicleName: vehicle.name }),
       [
-        { text: 'Annuler', style: 'cancel' },
+        { text: t('vehicles.actions.cancel'), style: 'cancel' },
         { 
-          text: 'Supprimer', 
+          text: t('vehicles.actions.remove'), 
           style: 'destructive',
           onPress: async () => {
             try {
               await deleteVehicleFromContext(vehicle.id)
-              Alert.alert('Succès', 'Véhicule supprimé')
+              Alert.alert(t('vehicles.alerts.deleteSuccess.title'), t('vehicles.alerts.deleteSuccess.message'))
             } catch (error) {
-              Alert.alert('Erreur', 'Impossible de supprimer le véhicule')
+              Alert.alert(t('vehicles.alerts.deleteError.title'), t('vehicles.alerts.deleteError.message'))
             }
           }
         }
@@ -608,7 +610,7 @@ export default function TrucksScreen() {
     return (
       <View testID="error-state" style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background, padding: 20 }}>
         <Text style={{ fontSize: 48, marginBottom: 16 }}>⚠️</Text>
-        <Text testID="error-title" style={{ fontSize: 18, fontWeight: '600', color: colors.text, marginBottom: 8 }}>Error loading vehicles</Text>
+        <Text testID="error-title" style={{ fontSize: 18, fontWeight: '600', color: colors.text, marginBottom: 8 }}>{t('vehicles.errors.loadingTitle')}</Text>
         <Text testID="error-message" style={{ color: colors.textSecondary, textAlign: 'center', marginBottom: 20 }}>{vehiclesError}</Text>
         <TouchableOpacity
           testID="retry-button"
@@ -620,7 +622,7 @@ export default function TrucksScreen() {
             borderRadius: 8,
           }}
         >
-          <Text style={{ color: '#FFFFFF', fontWeight: '600' }}>Retry</Text>
+          <Text style={{ color: '#FFFFFF', fontWeight: '600' }}>{t('common.retry')}</Text>
         </TouchableOpacity>
       </View>
     )

@@ -1,21 +1,21 @@
 // Modern year calendar screen with monthly job indicators, statistics, and enhanced UX
 
-import React, { useState, useMemo, useCallback } from 'react';
-import { 
-    View, 
-    Text, 
-    Pressable, 
-    Dimensions, 
-    StyleSheet, 
-    ScrollView, 
-    RefreshControl,
-    ActivityIndicator,
-    Animated 
-} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import React, { useCallback, useMemo, useState } from 'react';
+import {
+    ActivityIndicator,
+    Animated,
+    Dimensions,
+    Pressable,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View
+} from 'react-native';
+import CalendarHeader from '../../components/calendar/CalendarHeader';
 import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 import { useTranslation } from '../../localization';
-import LanguageButton from '../../components/calendar/LanguageButton';
 
 // Design tokens for consistent styling
 const DESIGN_TOKENS = {
@@ -326,49 +326,16 @@ const YearCalendarScreen = ({ navigation, route }: any) => {
 
     return (
         <View style={customStyles.container}>
+            {/* Header unifié avec style Business - Position fixe en haut */}
+            <CalendarHeader 
+                navigation={navigation} 
+                title={selectedYear.toString()} 
+            />
+
             <Animated.View style={[
                 customStyles.header,
                 { transform: [{ scale: animatedValue }] }
             ]}>
-                {/* Header avec navigation moderne */}
-                <View style={customStyles.headerTop}>
-                    <View style={customStyles.leftButtons}>
-                        <Pressable
-                            style={({ pressed }) => ({
-                                ...customStyles.backButton,
-                                opacity: pressed ? 0.8 : 1,
-                            })}
-                            onPress={() => navigation.goBack()}
-                        >
-                            <Ionicons name="arrow-back" size={20} color={colors.text} />
-                        </Pressable>
-                        
-                        <Pressable
-                            style={({ pressed }) => ({
-                                ...customStyles.homeButton,
-                                opacity: pressed ? 0.8 : 1,
-                            })}
-                            onPress={() => navigation.navigate('Home')}
-                        >
-                            <Ionicons name="home" size={20} color={colors.buttonPrimaryText} />
-                        </Pressable>
-                    </View>
-
-                    <View style={customStyles.titleArea}>
-                        <Text style={[commonStyles.h2, { color: colors.text }]}>
-                            {selectedYear}
-                        </Text>
-                        {selectedYear === currentYear && (
-                            <Text style={[commonStyles.bodySmall, { color: colors.textSecondary }]}>
-                                {t('calendar.currentYear')}
-                            </Text>
-                        )}
-                    </View>
-
-                    {/* Bouton de traduction */}
-                    <LanguageButton />
-                </View>
-
                 {/* Statistiques de l'année */}
                 <View style={customStyles.statsContainer}>
                     <View style={customStyles.statItem}>

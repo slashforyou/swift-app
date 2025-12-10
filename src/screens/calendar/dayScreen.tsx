@@ -2,23 +2,21 @@
 
 import JobBox from '@/src/components/calendar/modernJobBox';
 import Ionicons from '@react-native-vector-icons/ionicons';
-import React, { useState, useCallback, useMemo } from 'react';
-import { 
-  View, 
-  Text, 
-  ScrollView, 
-  Pressable, 
-  StyleSheet, 
-  RefreshControl, 
-  Animated,
-  Dimensions
+import React, { useCallback, useMemo, useState } from 'react';
+import {
+    Pressable,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View
 } from 'react-native';
-import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
-import { useJobsForDay, Job } from '../../hooks/useJobsForDay';
-import { JobsLoadingSkeleton, EmptyDayState, ErrorState } from '../../components/calendar/DayScreenComponents';
+import CalendarHeader from '../../components/calendar/CalendarHeader';
+import { EmptyDayState, ErrorState, JobsLoadingSkeleton } from '../../components/calendar/DayScreenComponents';
 import { DESIGN_TOKENS } from '../../constants/Styles';
+import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
+import { Job, useJobsForDay } from '../../hooks/useJobsForDay';
 import { useTranslation } from '../../localization';
-import LanguageButton from '../../components/calendar/LanguageButton';
 
 interface DayScreenProps {
     route: {
@@ -304,62 +302,14 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
 
     return (
         <View style={styles.container}>
-            {/* Header */}
-            <View style={styles.header}>
-                <View style={styles.headerTop}>
-                    <View style={styles.leftButtons}>
-                        <Pressable
-                            style={({ pressed }) => ({
-                                ...styles.backButton,
-                                opacity: pressed ? 0.8 : 1,
-                            })}
-                            onPress={() => navigation.goBack()}
-                        >
-                            <Ionicons name="arrow-back" size={20} color={colors.text} />
-                        </Pressable>
-                        
-                        <Pressable
-                            style={({ pressed }) => ({
-                                ...styles.homeButton,
-                                opacity: pressed ? 0.8 : 1,
-                            })}
-                            onPress={() => navigation.navigate('Home')}
-                        >
-                            <Ionicons name="home" size={20} color={colors.buttonPrimaryText} />
-                        </Pressable>
-                    </View>
+            {/* Header unifié avec style Business */}
+            <CalendarHeader 
+                navigation={navigation} 
+                title={formattedDate} 
+            />
 
-                    <View style={styles.dateContainer}>
-                        <Text style={styles.dateText}>{formattedDate}</Text>
-                    </View>
-
-                    {/* Bouton de traduction */}
-                    <LanguageButton />
-
-                    <View style={styles.dayNavigation}>
-                        <Pressable
-                            style={({ pressed }) => ({
-                                ...styles.navButton,
-                                opacity: pressed ? 0.8 : 1,
-                            })}
-                            onPress={() => navigateDay('prev')}
-                        >
-                            <Ionicons name="chevron-back" size={16} color={colors.buttonPrimaryText} />
-                        </Pressable>
-                        <Pressable
-                            style={({ pressed }) => ({
-                                ...styles.navButton,
-                                opacity: pressed ? 0.8 : 1,
-                            })}
-                            onPress={() => navigateDay('next')}
-                        >
-                            <Ionicons name="chevron-forward" size={16} color={colors.buttonPrimaryText} />
-                        </Pressable>
-                    </View>
-                </View>
-
-                {/* Stats */}
-                <View style={styles.statsContainer}>
+            {/* Stats */}
+            <View style={styles.statsContainer}>
                     <View style={styles.statItem}>
                         <Text style={styles.statNumber}>{totalJobs}</Text>
                         <Text style={styles.statLabel}>{t('calendar.dayScreen.stats.total')}</Text>
@@ -373,7 +323,6 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
                         <Text style={styles.statLabel}>{t('calendar.dayScreen.stats.completed')}</Text>
                     </View>
                 </View>
-            </View>
 
             {/* Filters */}
             <View style={styles.filtersContainer}>

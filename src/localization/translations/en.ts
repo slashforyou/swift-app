@@ -307,6 +307,111 @@ export const enTranslations: TranslationKeys = {
         },
     },
 
+    payment: {
+        missingInfo: {
+            title: 'Missing Information',
+            message: 'Please fill in all card fields.',
+        },
+        errors: {
+            jobIdNotFound: 'Job ID not found',
+            paymentError: 'Payment error',
+            generic: 'Error',
+            processingFailed: 'An error occurred while processing the payment.',
+            networkError: 'Connection error',
+        },
+        buttons: {
+            processing: 'Processing...',
+            confirm: 'Confirm payment',
+            retry: 'Retry',
+        },
+        status: {
+            processing: 'Processing...',
+            success: 'Payment successful',
+            failed: 'Payment failed',
+        },
+    },
+
+    vehicles: {
+        actions: {
+            edit: 'Edit vehicle',
+            delete: 'Delete vehicle',
+            cancel: 'Cancel',
+            remove: 'Delete',
+        },
+        alerts: {
+            addSuccess: {
+                title: 'Success',
+                message: 'Vehicle added successfully! 🎉',
+            },
+            addError: {
+                title: 'Error',
+                message: 'An error occurred while adding the vehicle',
+            },
+            deleteConfirm: {
+                message: 'Are you sure you want to delete {{vehicleName}}?',
+            },
+            deleteSuccess: {
+                title: 'Success',
+                message: 'Vehicle deleted',
+            },
+            deleteError: {
+                title: 'Error',
+                message: 'Unable to delete vehicle',
+            },
+            editConfirm: {
+                message: 'Editing {{vehicleName}}',
+            },
+        },
+        errors: {
+            loadingTitle: 'Error loading vehicles',
+            loadingMessage: 'An error occurred',
+        },
+    },
+
+    staff: {
+        titles: {
+            main: 'Staff Management',
+            subtitle: 'Manage your employees and contractors',
+            loading: 'Loading staff...',
+        },
+        stats: {
+            active: 'Active',
+            employees: 'Employees',
+            contractors: 'Contractors',
+            averageRate: 'Avg Rate',
+        },
+        actions: {
+            add: 'Add Member',
+            edit: 'Edit',
+            remove: 'Remove',
+            cancel: 'Cancel',
+        },
+        filters: {
+            all: 'All',
+            employees: 'Employees',
+            contractors: 'Contractors',
+        },
+        types: {
+            employee: 'Employee (TFN)',
+            contractor: 'Contractor (ABN)',
+        },
+        status: {
+            active: 'Active',
+            inactive: 'Inactive',
+            pending: 'Pending',
+        },
+        alerts: {
+            removeConfirm: {
+                title: 'Remove from staff',
+                message: 'Are you sure you want to remove {{memberName}}?',
+            },
+        },
+        empty: {
+            title: 'No staff members',
+            subtitle: 'Add your first employee or contractor',
+        },
+    },
+
     messages: {
         errors: {
             network: 'Network connection error',

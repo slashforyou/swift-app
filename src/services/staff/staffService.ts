@@ -1,0 +1,236 @@
+/**
+ * Staff Service - API Service pour la gestion du personnel
+ * Remplace les données mock par de vraies APIs REST
+ */
+
+import { apiConfig } from '../../services/api.config';
+import { Contractor, Employee, InviteEmployeeData, StaffMember } from '../../types/staff';
+
+/**
+ * Récupère tous les membres du personnel
+ */
+export const fetchStaff = async (): Promise<StaffMember[]> => {
+  try {
+    console.log('🌐 [staffService] Fetching all staff members...');
+    
+    const response = await apiConfig.authenticatedFetch(`${apiConfig.baseURL}/api/staff`);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log(`✅ [staffService] Retrieved ${data.staff.length} staff members`);
+    
+    return data.staff;
+  } catch (error) {
+    console.error('❌ [staffService] Error fetching staff:', error);
+    throw new Error('Failed to fetch staff members');
+  }
+};
+
+/**
+ * Récupère uniquement les employés
+ */
+export const fetchEmployees = async (): Promise<Employee[]> => {
+  try {
+    console.log('🌐 [staffService] Fetching employees...');
+    
+    const response = await apiConfig.authenticatedFetch(`${apiConfig.baseURL}/api/staff/employees`);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log(`✅ [staffService] Retrieved ${data.employees.length} employees`);
+    
+    return data.employees;
+  } catch (error) {
+    console.error('❌ [staffService] Error fetching employees:', error);
+    throw new Error('Failed to fetch employees');
+  }
+};
+
+/**
+ * Récupère uniquement les prestataires
+ */
+export const fetchContractors = async (): Promise<Contractor[]> => {
+  try {
+    console.log('🌐 [staffService] Fetching contractors...');
+    
+    const response = await apiConfig.authenticatedFetch(`${apiConfig.baseURL}/api/staff/contractors`);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log(`✅ [staffService] Retrieved ${data.contractors.length} contractors`);
+    
+    return data.contractors;
+  } catch (error) {
+    console.error('❌ [staffService] Error fetching contractors:', error);
+    throw new Error('Failed to fetch contractors');
+  }
+};
+
+/**
+ * Envoie une invitation à un employé
+ */
+export const inviteEmployee = async (employeeData: InviteEmployeeData): Promise<{ success: boolean; employeeId: string }> => {
+  try {
+    console.log('📧 [staffService] Sending employee invitation to:', employeeData.email);
+    
+    const response = await apiConfig.authenticatedFetch(`${apiConfig.baseURL}/api/staff/employees/invite`, {
+      method: 'POST',
+      body: JSON.stringify(employeeData),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log(`✅ [staffService] Employee invitation sent, ID: ${data.employeeId}`);
+    
+    return {
+      success: true,
+      employeeId: data.employeeId,
+    };
+  } catch (error) {
+    console.error('❌ [staffService] Error inviting employee:', error);
+    throw new Error('Failed to send employee invitation');
+  }
+};
+
+/**
+ * Recherche des prestataires disponibles
+ */
+export const searchContractors = async (searchTerm: string): Promise<Contractor[]> => {
+  try {
+    console.log('🔍 [staffService] Searching contractors:', searchTerm);
+    
+    const params = new URLSearchParams({
+      q: searchTerm,
+      limit: '20',
+    });
+
+    const response = await apiConfig.authenticatedFetch(`${apiConfig.baseURL}/api/contractors/search?${params}`);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log(`✅ [staffService] Found ${data.results.length} contractors`);
+    
+    return data.results;
+  } catch (error) {
+    console.error('❌ [staffService] Error searching contractors:', error);
+    throw new Error('Failed to search contractors');
+  }
+};
+
+/**
+ * Ajoute un prestataire au personnel
+ */
+export const addContractorToStaff = async (
+  contractorId: string, 
+  contractStatus: Contractor['contractStatus']
+): Promise<{ success: boolean; contractor: Contractor }> => {
+  try {
+    console.log('🤝 [staffService] Adding contractor to staff:', contractorId, contractStatus);
+    
+    const response = await apiConfig.authenticatedFetch(`${apiConfig.baseURL}/api/staff/contractors/add`, {
+      method: 'POST',
+      body: JSON.stringify({
+        contractorId,
+        contractStatus,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log(`✅ [staffService] Contractor added to staff successfully`);
+    
+    return {
+      success: true,
+      contractor: data.contractor,
+    };
+  } catch (error) {
+    console.error('❌ [staffService] Error adding contractor to staff:', error);
+    throw new Error('Failed to add contractor to staff');
+  }
+};
+
+/**
+ * Met à jour les informations d'un membre du personnel
+ */
+export const updateStaffMember = async (
+  staffId: string, 
+  updateData: Partial<StaffMember>
+): Promise<{ success: boolean; member: StaffMember }> => {
+  try {
+    console.log('📝 [staffService] Updating staff member:', staffId);
+    
+    const response = await apiConfig.authenticatedFetch(`${apiConfig.baseURL}/api/staff/${staffId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updateData),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log(`✅ [staffService] Staff member updated successfully`);
+    
+    return {
+      success: true,
+      member: data.member,
+    };
+  } catch (error) {
+    console.error('❌ [staffService] Error updating staff member:', error);
+    throw new Error('Failed to update staff member');
+  }
+};
+
+/**
+ * Supprime un membre du personnel
+ */
+export const removeStaffMember = async (staffId: string): Promise<{ success: boolean }> => {
+  try {
+    console.log('🗑️ [staffService] Removing staff member:', staffId);
+    
+    const response = await apiConfig.authenticatedFetch(`${apiConfig.baseURL}/api/staff/${staffId}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    console.log(`✅ [staffService] Staff member removed successfully`);
+    
+    return { success: true };
+  } catch (error) {
+    console.error('❌ [staffService] Error removing staff member:', error);
+    throw new Error('Failed to remove staff member');
+  }
+};
+
+// Export des fonctions principales pour compatibilité
+export const staffService = {
+  fetchStaff,
+  fetchEmployees,
+  fetchContractors,
+  inviteEmployee,
+  searchContractors,
+  addContractorToStaff,
+  updateStaffMember,
+  removeStaffMember,
+};

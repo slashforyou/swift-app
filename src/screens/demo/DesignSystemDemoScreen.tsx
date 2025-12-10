@@ -21,7 +21,6 @@ import {
     ElevatedCard,
     ErrorText,
     FilledCard,
-    FilledInput,
     GhostButton,
     GlassCard,
     H1, H2, H3,
@@ -35,22 +34,17 @@ import {
     Link,
     OutlineButton,
     OutlinedCard,
-    OutlinedInput,
-    PasswordInput,
     // Buttons
     PrimaryButton,
-    SearchInput,
     SecondaryButton,
     SEMANTIC_SPACING,
     SuccessButton,
     SuccessText,
-    TextArea,
-    UnderlinedInput,
     // Layout & Theme
     useTheme,
     WarningButton,
-    WarningText,
-} from '../components/ui';
+    WarningText
+} from '../../components/ui';
 
 export const DesignSystemDemoScreen: React.FC = () => {
   const { colors, isDark, toggleTheme } = useTheme();
@@ -106,7 +100,7 @@ export const DesignSystemDemoScreen: React.FC = () => {
         <Caption style={{ color: colors.textSecondary }}>Caption Text</Caption>
         
         <Code style={{ color: colors.text }}>const code = 'example';</Code>
-        <Link href="#" style={{ color: colors.interactive }}>Link Text</Link>
+        <Link style={{ color: colors.interactive }}>Link Text</Link>
         
         <View style={styles.messagesRow}>
           <ErrorText>Erreur : Champ requis</ErrorText>
@@ -213,71 +207,61 @@ export const DesignSystemDemoScreen: React.FC = () => {
           clearable
         />
         
-        <OutlinedInput
+        <Input
           label="Input Outlined"
           placeholder="Outlined input"
-          leftIcon="person"
-          style={{ marginTop: SEMANTIC_SPACING.md }}
+          // leftIcon="person" // Propriété non supportée pour l'instant
         />
         
-        <FilledInput
+        <Input
           label="Input Filled"
           placeholder="Filled input"
-          rightIcon="calendar"
-          style={{ marginTop: SEMANTIC_SPACING.md }}
+          // rightIcon="calendar" // Propriété non supportée pour l'instant
         />
         
-        <UnderlinedInput
+        <Input
           label="Input Underlined"
           placeholder="Underlined input"
-          style={{ marginTop: SEMANTIC_SPACING.md }}
         />
         
-        <PasswordInput
+        <Input
           label="Mot de passe"
           placeholder="Entrer votre mot de passe"
           value={passwordValue}
           onChangeText={setPasswordValue}
-          style={{ marginTop: SEMANTIC_SPACING.md }}
+          secureTextEntry={true}
         />
         
-        <SearchInput
+        <Input
           label="Recherche"
           placeholder="Rechercher..."
           value={searchValue}
           onChangeText={setSearchValue}
-          style={{ marginTop: SEMANTIC_SPACING.md }}
         />
         
-        <TextArea
+        <Input
           label="Zone de texte"
           placeholder="Saisir un texte long..."
           value={textAreaValue}
           onChangeText={setTextAreaValue}
-          style={{ marginTop: SEMANTIC_SPACING.md }}
+          multiline={true}
+          numberOfLines={4}
         />
         
         <Input
           label="Input avec erreur"
           placeholder="Test erreur"
-          error
-          errorText="Ce champ est obligatoire"
-          style={{ marginTop: SEMANTIC_SPACING.md }}
         />
         
         <Input
           label="Input avec succès"
           placeholder="Test succès"
-          success
-          successText="Valeur correcte"
-          style={{ marginTop: SEMANTIC_SPACING.md }}
         />
         
         <Input
           label="Input désactivé"
           placeholder="Désactivé"
-          disabled
-          style={{ marginTop: SEMANTIC_SPACING.md }}
+          editable={false}
         />
       </View>
 

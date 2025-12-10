@@ -1,8 +1,10 @@
 /**
  * PaymentWindow - Interface de paiement moderne avec temps réel
  * ✅ Intégré au JobTimerContext pour calculs en temps réel
+ * ✅ Intégration Stripe Elements pour vrais paiements
  */
 import Ionicons from '@react-native-vector-icons/ionicons';
+import { CardField, useConfirmPayment } from '@stripe/stripe-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -21,6 +23,7 @@ import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useJobTimerContext } from '../../context/JobTimerProvider';
 import { useTheme } from '../../context/ThemeProvider';
 import { useJobPayment } from '../../hooks/useJobPayment';
+import { useTranslation } from '../../localization/useLocalization';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -42,9 +45,12 @@ interface PaymentState {
   };
   cashAmount: string;
   isProcessing: boolean;
-  // Nouveau: données Payment Intent
+  // ✅ Données Payment Intent Stripe
   paymentIntentId: string | null;
   clientSecret: string | null;
+  // ✅ État CardField Stripe
+  cardComplete: boolean;
+  cardError: string | null;
 }
 
 const PaymentWindow: React.FC<PaymentWindowProps> = ({ 
@@ -55,7 +61,11 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
 }) => {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const isVisible = visibleCondition === 'paymentWindow';
+  
+  // ✅ Hooks Stripe pour les vrais paiements
+  const { confirmPayment } = useConfirmPayment();
   
   // ✅ Utiliser le timer context pour les calculs en temps réel
   const { 
@@ -102,6 +112,8 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
     isProcessing: false,
     paymentIntentId: null,
     clientSecret: null,
+    cardComplete: false,
+    cardError: null,
   });
 
   // Animations
@@ -153,8 +165,12 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
   };
 
   const handleCardPayment = async () => {
-    if (!state.newCard.number || !state.newCard.expiry || !state.newCard.cvv || !state.newCard.name) {
-      Alert.alert("Informations manquantes", "Veuillez remplir tous les champs de la carte.");
+    // ✅ Vérifier que le CardField Stripe est valide
+    if (!state.cardComplete || state.cardError) {
+      Alert.alert(
+        t('payment.missingInfo.title'), 
+        state.cardError || t('payment.missingInfo.message')
+      );
       return;
     }
 
@@ -166,7 +182,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
       // ✅ 1. Créer le Payment Intent via notre backend
       const jobId = job?.id || job?.job?.id;
       if (!jobId) {
-        throw new Error('ID du job non trouvé');
+        throw new Error(t('payment.errors.jobIdNotFound'));
       }
 
       console.log(`💳 [PaymentWindow] Creating Payment Intent for job ${jobId}, amount: ${paymentAmount}`);
@@ -179,24 +195,31 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
 
       console.log(`✅ [PaymentWindow] Payment Intent created: ${paymentIntent.payment_intent_id}`);
 
-      // Mettre à jour l'état avec les données Payment Intent
-      updateState({ 
-        paymentIntentId: paymentIntent.payment_intent_id,
-        clientSecret: paymentIntent.client_secret 
-      });
+      // ✅ 2. Utiliser Stripe Elements pour confirmer le paiement
+      console.log('💳 [PaymentWindow] Confirming payment with Stripe...');
+      
+      const { error, paymentIntent: confirmedPayment } = await confirmPayment(
+        paymentIntent.client_secret, 
+        {
+          paymentMethodType: 'Card',
+        }
+      );
 
-      // ✅ 2. Simuler la confirmation Stripe (en attendant l'intégration Stripe Elements)
-      // TODO: Remplacer par la vraie intégration @stripe/stripe-react-native
-      console.log('💳 [PaymentWindow] Simulating Stripe card processing...');
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      if (error) {
+        console.error('❌ [PaymentWindow] Stripe confirmation failed:', error);
+        throw new Error(error.message);
+      }
+
+      console.log(`✅ [PaymentWindow] Payment confirmed by Stripe: ${confirmedPayment?.status}`);
+
+      // ✅ 3. Confirmer le paiement côté backend avec le statut Stripe réel
+      console.log(`✅ [PaymentWindow] Confirming payment in backend: ${paymentIntent.payment_intent_id}`);
       
-      // ✅ 3. Confirmer le paiement côté backend
-      console.log(`✅ [PaymentWindow] Confirming payment: ${paymentIntent.payment_intent_id}`);
-      
+      const backendStatus = confirmedPayment?.status === 'Succeeded' ? 'succeeded' : 'failed';
       const confirmResult = await jobPayment.confirmPayment(
         jobId, 
         paymentIntent.payment_intent_id, 
-        'succeeded' // TODO: Utiliser le vrai résultat Stripe
+        backendStatus
       );
 
       console.log(`✅ [PaymentWindow] Payment confirmed successfully!`, confirmResult);
@@ -214,8 +237,8 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
       console.error('❌ [PaymentWindow] REAL payment failed:', error);
       
       Alert.alert(
-        "Erreur de paiement", 
-        error instanceof Error ? error.message : "Une erreur s'est produite lors du traitement du paiement."
+        t('payment.errors.paymentError'), 
+        error instanceof Error ? error.message : t('payment.errors.processingFailed')
       );
       updateState({ isProcessing: false, step: 'card' });
     }
@@ -276,8 +299,8 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
       console.error('❌ [PaymentWindow] REAL cash payment failed:', error);
       
       Alert.alert(
-        "Erreur", 
-        error instanceof Error ? error.message : "Une erreur s'est produite lors de l'enregistrement du paiement."
+        t('payment.errors.generic'), 
+        error instanceof Error ? error.message : t('payment.errors.processingFailed')
       );
       updateState({ isProcessing: false, step: 'cash' });
     }
@@ -533,101 +556,71 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
         </View>
       )}
 
-      <View style={{ gap: DESIGN_TOKENS.spacing.lg, marginBottom: DESIGN_TOKENS.spacing.xl }}>
-        <View>
+      {/* ✅ Stripe CardField - Remplace tous les champs de carte */}
+      <View style={{ marginBottom: DESIGN_TOKENS.spacing.xl }}>
+        <Text style={{
+          fontSize: 14,
+          fontWeight: '600',
+          color: colors.text,
+          marginBottom: DESIGN_TOKENS.spacing.xs,
+        }}>
+          Informations de la carte
+        </Text>
+        
+        <CardField
+          postalCodeEnabled={false}
+          placeholders={{
+            number: '1234 5678 9012 3456',
+            // ✅ Simplifier les placeholders selon la doc Stripe
+          }}
+          cardStyle={{
+            backgroundColor: colors.backgroundSecondary,
+            borderColor: state.cardError ? '#FF6B6B' : colors.border, // Couleur d'erreur fixe
+            borderWidth: 2,
+            borderRadius: DESIGN_TOKENS.radius.lg,
+            fontSize: 16,
+            placeholderColor: colors.textSecondary,
+            textColor: colors.text,
+          }}
+          style={{
+            width: '100%',
+            height: 50,
+            marginVertical: 4,
+          }}
+          onCardChange={(cardDetails) => {
+            console.log('💳 Card changed:', cardDetails);
+            
+            // ✅ Gestion simplifiée des erreurs
+            let errorMessage = null;
+            if (!cardDetails.complete && cardDetails.number) {
+              if (cardDetails.number.length > 0 && cardDetails.validNumber === 'Invalid') {
+                errorMessage = 'Numéro de carte invalide';
+              }
+            }
+            
+            updateState({
+              cardComplete: cardDetails.complete,
+              cardError: errorMessage,
+            });
+          }}
+          onFocus={(focusedField) => {
+            console.log('💳 Focused field:', focusedField);
+          }}
+        />
+
+        {/* ✅ Afficher l'erreur de validation */}
+        {state.cardError && (
           <Text style={{
-            fontSize: 14,
-            fontWeight: '600',
-            color: colors.text,
-            marginBottom: DESIGN_TOKENS.spacing.xs,
+            fontSize: 12,
+            color: colors.error,
+            marginTop: DESIGN_TOKENS.spacing.xs,
           }}>
-            Numéro de carte
+            {state.cardError}
           </Text>
-          <TextInput
-            style={{
-              backgroundColor: colors.backgroundSecondary,
-              borderRadius: DESIGN_TOKENS.radius.lg,
-              padding: DESIGN_TOKENS.spacing.md,
-              fontSize: 16,
-              color: colors.text,
-              borderWidth: 2,
-              borderColor: colors.border,
-            }}
-            placeholder="1234 5678 9012 3456"
-            placeholderTextColor={colors.textSecondary}
-            value={state.newCard.number}
-            onChangeText={(text) => updateState({ 
-              newCard: { ...state.newCard, number: formatCardNumber(text) } 
-            })}
-            maxLength={19}
-            keyboardType="numeric"
-          />
-        </View>
+        )}
 
-        <View style={{ flexDirection: 'row', gap: DESIGN_TOKENS.spacing.md }}>
-          <View style={{ flex: 1 }}>
-            <Text style={{
-              fontSize: 14,
-              fontWeight: '600',
-              color: colors.text,
-              marginBottom: DESIGN_TOKENS.spacing.xs,
-            }}>
-              Date d'expiration
-            </Text>
-            <TextInput
-              style={{
-                backgroundColor: colors.backgroundSecondary,
-                borderRadius: DESIGN_TOKENS.radius.lg,
-                padding: DESIGN_TOKENS.spacing.md,
-                fontSize: 16,
-                color: colors.text,
-                borderWidth: 2,
-                borderColor: colors.border,
-              }}
-              placeholder="MM/AA"
-              placeholderTextColor={colors.textSecondary}
-              value={state.newCard.expiry}
-              onChangeText={(text) => updateState({ 
-                newCard: { ...state.newCard, expiry: formatExpiry(text) } 
-              })}
-              maxLength={5}
-              keyboardType="numeric"
-            />
-          </View>
-
-          <View style={{ flex: 1 }}>
-            <Text style={{
-              fontSize: 14,
-              fontWeight: '600',
-              color: colors.text,
-              marginBottom: DESIGN_TOKENS.spacing.xs,
-            }}>
-              CVV
-            </Text>
-            <TextInput
-              style={{
-                backgroundColor: colors.backgroundSecondary,
-                borderRadius: DESIGN_TOKENS.radius.lg,
-                padding: DESIGN_TOKENS.spacing.md,
-                fontSize: 16,
-                color: colors.text,
-                borderWidth: 2,
-                borderColor: colors.border,
-              }}
-              placeholder="123"
-              placeholderTextColor={colors.textSecondary}
-              value={state.newCard.cvv}
-              onChangeText={(text) => updateState({ 
-                newCard: { ...state.newCard, cvv: text.replace(/[^0-9]/g, '') } 
-              })}
-              maxLength={4}
-              keyboardType="numeric"
-              secureTextEntry
-            />
-          </View>
-        </View>
-
-        <View>
+        {/* ✅ Champ nom du porteur séparé */}
+        <View style={{ marginTop: DESIGN_TOKENS.spacing.md }}>
           <Text style={{
             fontSize: 14,
             fontWeight: '600',
@@ -645,6 +638,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
               color: colors.text,
               borderWidth: 2,
               borderColor: colors.border,
+              height: 50, // Même hauteur que CardField
             }}
             placeholder="Jean Dupont"
             placeholderTextColor={colors.textSecondary}
@@ -680,26 +674,35 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
 
         <Pressable
           onPress={handleCardPayment}
-          disabled={state.isProcessing}
-          style={({ pressed }) => ({
-            flex: 2,
-            backgroundColor: pressed ? colors.tint + 'DD' : colors.tint,
-            borderRadius: DESIGN_TOKENS.radius.lg,
-            padding: DESIGN_TOKENS.spacing.md,
-            alignItems: 'center',
-            flexDirection: 'row',
-            justifyContent: 'center',
-            gap: DESIGN_TOKENS.spacing.xs,
-            opacity: state.isProcessing ? 0.7 : 1,
-          })}
+          disabled={state.isProcessing || !state.cardComplete || !state.newCard.name.trim()}
+          style={({ pressed }) => {
+            const isReady = state.cardComplete && state.newCard.name.trim().length > 0;
+            return {
+              flex: 2,
+              backgroundColor: pressed 
+                ? (isReady ? colors.tint + 'DD' : colors.border) 
+                : (isReady ? colors.tint : colors.border),
+              borderRadius: DESIGN_TOKENS.radius.lg,
+              padding: DESIGN_TOKENS.spacing.md,
+              alignItems: 'center',
+              flexDirection: 'row',
+              justifyContent: 'center',
+              gap: DESIGN_TOKENS.spacing.xs,
+              opacity: state.isProcessing ? 0.7 : 1,
+            };
+          }}
         >
           {state.isProcessing && <ActivityIndicator size="small" color={colors.background} />}
           <Text style={{
             fontSize: 16,
             fontWeight: '700',
-            color: colors.background,
+            color: (state.cardComplete && state.newCard.name.trim()) ? colors.background : colors.textSecondary,
           }}>
-            {state.isProcessing ? 'Traitement...' : `Payer ${formatCurrency(paymentAmount)}`}
+            {state.isProcessing 
+              ? 'Traitement...' 
+              : (state.cardComplete && state.newCard.name.trim()) 
+                ? `Payer ${formatCurrency(paymentAmount)}` 
+                : 'Complétez les informations'}
           </Text>
         </Pressable>
       </View>
@@ -837,7 +840,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
             fontWeight: '700',
             color: colors.background,
           }}>
-            {state.isProcessing ? 'Enregistrement...' : 'Confirmer le paiement'}
+            {state.isProcessing ? t('payment.buttons.processing') : t('payment.buttons.confirm')}
           </Text>
         </Pressable>
       </View>

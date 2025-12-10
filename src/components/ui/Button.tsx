@@ -4,16 +4,19 @@
  * Radius 8, hauteur standardisée
  */
 
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { Pressable, Text, PressableProps, ViewStyle, TextStyle } from 'react-native';
-import { useCommonThemedStyles, DESIGN_TOKENS } from '../../constants/Styles';
+import { Pressable, PressableProps, Text, TextStyle, View, ViewStyle } from 'react-native';
+import { DESIGN_TOKENS, useCommonThemedStyles } from '../../constants/Styles';
 
-interface ButtonProps extends Omit<PressableProps, 'style'> {
+export interface ButtonProps extends Omit<PressableProps, 'style'> {
   title: string;
-  variant?: 'primary' | 'secondary';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'outline';
   style?: ViewStyle;
   textStyle?: TextStyle;
   disabled?: boolean;
+  icon?: string; // Nom de l'icône Ionicons
+  size?: 'sm' | 'md' | 'lg' | 'large'; // Support des anciennes tailles
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -22,6 +25,8 @@ export const Button: React.FC<ButtonProps> = ({
   style,
   textStyle,
   disabled = false,
+  icon,
+  size,
   ...props
 }) => {
   const styles = useCommonThemedStyles();
@@ -46,9 +51,25 @@ export const Button: React.FC<ButtonProps> = ({
       }}
       {...props}
     >
-      <Text style={[styles.buttonText, buttonTextStyle, textStyle]}>
-        {title}
-      </Text>
+      <View style={{ 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        justifyContent: 'center' 
+      }}>
+        {icon && (
+          <Ionicons 
+            name={icon as any} 
+            size={size === 'sm' ? 16 : size === 'lg' || size === 'large' ? 24 : 20} 
+            color={buttonTextStyle.color} 
+            style={{ marginRight: title ? 8 : 0 }}
+          />
+        )}
+        {title && (
+          <Text style={[styles.buttonText, buttonTextStyle, textStyle]}>
+            {title}
+          </Text>
+        )}
+      </View>
     </Pressable>
   );
 };

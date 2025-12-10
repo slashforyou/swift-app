@@ -21,6 +21,7 @@ export const TYPOGRAPHY = {
     '4xl': 32,
     '5xl': 36,
     '6xl': 48,
+    xxl: 52, // Ajout pour compatibilité legacy
   },
 
   // Poids de police
@@ -206,6 +207,7 @@ export const SEMANTIC_SPACING = {
   '4xl': SPACING[32], // 64px
   '5xl': SPACING[40], // 80px
   '6xl': SPACING[48], // 96px
+  xxxl: SPACING[64], // 128px - pour compatibilité legacy
 } as const;
 
 // ============================================================================
@@ -284,6 +286,14 @@ export const SHADOWS = {
     shadowOpacity: 0.25,
     shadowRadius: 50,
     elevation: 16,
+  },
+
+  // Ombres spécialisées
+  card: {
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 3,
   },
 } as const;
 
@@ -395,10 +405,81 @@ export const UI_CONSTANTS = {
 export const DESIGN_TOKENS = {
   spacing: SEMANTIC_SPACING,
   radius: RADIUS,
-  typography: TYPOGRAPHY,
+  borderRadius: RADIUS, // Alias pour compatibilité avec les composants existants
+  typography: {
+    ...TYPOGRAPHY,
+    // Variants de typographie pour compatibilité
+    display: {
+      fontSize: TYPOGRAPHY.fontSize['6xl'],
+      fontWeight: TYPOGRAPHY.fontWeight.bold,
+      lineHeight: TYPOGRAPHY.lineHeight.tight,
+    },
+    h1: {
+      fontSize: TYPOGRAPHY.fontSize['5xl'],
+      fontWeight: TYPOGRAPHY.fontWeight.bold,
+      lineHeight: TYPOGRAPHY.lineHeight.tight,
+    },
+    h2: {
+      fontSize: TYPOGRAPHY.fontSize['4xl'],
+      fontWeight: TYPOGRAPHY.fontWeight.semibold,
+      lineHeight: TYPOGRAPHY.lineHeight.tight,
+    },
+    h3: {
+      fontSize: TYPOGRAPHY.fontSize['3xl'],
+      fontWeight: TYPOGRAPHY.fontWeight.semibold,
+      lineHeight: TYPOGRAPHY.lineHeight.normal,
+    },
+    h4: {
+      fontSize: TYPOGRAPHY.fontSize['2xl'],
+      fontWeight: TYPOGRAPHY.fontWeight.medium,
+      lineHeight: TYPOGRAPHY.lineHeight.normal,
+    },
+    title: {
+      fontSize: TYPOGRAPHY.fontSize.xl,
+      fontWeight: TYPOGRAPHY.fontWeight.semibold,
+      lineHeight: TYPOGRAPHY.lineHeight.normal,
+    },
+    subtitle: {
+      fontSize: TYPOGRAPHY.fontSize.lg,
+      fontWeight: TYPOGRAPHY.fontWeight.medium,
+      lineHeight: TYPOGRAPHY.lineHeight.normal,
+    },
+    body: {
+      fontSize: TYPOGRAPHY.fontSize.base,
+      fontWeight: TYPOGRAPHY.fontWeight.regular,
+      lineHeight: TYPOGRAPHY.lineHeight.normal,
+    },
+    bodyLarge: {
+      fontSize: TYPOGRAPHY.fontSize.md,
+      fontWeight: TYPOGRAPHY.fontWeight.regular,
+      lineHeight: TYPOGRAPHY.lineHeight.normal,
+    },
+    bodySmall: {
+      fontSize: TYPOGRAPHY.fontSize.sm,
+      fontWeight: TYPOGRAPHY.fontWeight.regular,
+      lineHeight: TYPOGRAPHY.lineHeight.normal,
+    },
+    caption: {
+      fontSize: TYPOGRAPHY.fontSize.xs,
+      fontWeight: TYPOGRAPHY.fontWeight.regular,
+      lineHeight: TYPOGRAPHY.lineHeight.normal,
+    },
+    overline: {
+      fontSize: TYPOGRAPHY.fontSize.xs,
+      fontWeight: TYPOGRAPHY.fontWeight.medium,
+      lineHeight: TYPOGRAPHY.lineHeight.normal,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    },
+  },
   colors: COLORS,
   shadows: SHADOWS,
   animations: ANIMATIONS,
+  // Propriétés Touch pour compatibilité
+  touch: {
+    minSize: 44,
+    hitSlop: 8,
+  },
 } as const;
 
 // Export par défaut pour l'ancien système

@@ -185,7 +185,7 @@ export const useJobPayment = (): UseJobPaymentState & UseJobPaymentActions => {
         loadingHistory: false 
       });
       
-      console.log(`✅ [useJobPayment] History loaded:`, history.data.length, 'payments');
+      console.log(`✅ [useJobPayment] History loaded:`, history.payments.length, 'payments');
       return history;
       
     } catch (error) {

@@ -1,58 +1,51 @@
 /**
- * LanguageButton - Bouton compact de changement de langue pour les calendriers
- * Composant réutilisable pour toutes les pages calendar
+ * LanguageButton - Bouton circulaire de changement de langue pour les calendriers
+ * Style unifié avec BusinessHeader (rond avec juste le drapeau)
  */
-import React, { useState } from 'react';
-import { View, Text, Pressable, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalization, useTranslation } from '../../localization';
+import React, { useState } from 'react';
+import { Modal, Pressable, Text, View } from 'react-native';
 import { Colors } from '../../constants/Colors';
 import { DESIGN_TOKENS } from '../../constants/Styles';
+import { useTheme } from '../../context/ThemeProvider';
+import { useLocalization, useTranslation } from '../../localization';
 
 interface LanguageButtonProps {
     style?: any;
+    size?: number;
 }
 
-const LanguageButton: React.FC<LanguageButtonProps> = ({ style }) => {
+const LanguageButton: React.FC<LanguageButtonProps> = ({ style, size = 44 }) => {
     const { currentLanguage, setLanguage, getSupportedLanguages } = useLocalization();
     const supportedLanguages = getSupportedLanguages();
     const { t } = useTranslation();
     const [showModal, setShowModal] = useState(false);
-
-    const getCurrentLanguageDisplay = () => {
-        const lang = supportedLanguages[currentLanguage];
-        return lang?.flag + ' ' + lang?.code.toUpperCase() || 'EN';
-    };
+    const { colors } = useTheme();
+    
+    const currentLangInfo = supportedLanguages[currentLanguage];
 
     return (
         <>
-            {/* Bouton compact */}
+            {/* Bouton circulaire avec juste le drapeau (style Business) */}
             <Pressable
                 onPress={() => setShowModal(true)}
                 style={({ pressed }) => ({
-                    flexDirection: 'row',
+                    width: size,
+                    height: size,
+                    borderRadius: size / 2,
+                    backgroundColor: colors.backgroundSecondary,
+                    justifyContent: 'center',
                     alignItems: 'center',
-                    backgroundColor: pressed 
-                        ? Colors.light.backgroundSecondary + '80'
-                        : Colors.light.backgroundSecondary,
-                    paddingHorizontal: DESIGN_TOKENS.spacing.sm,
-                    paddingVertical: DESIGN_TOKENS.spacing.xs,
-                    borderRadius: DESIGN_TOKENS.radius.md,
                     borderWidth: 1,
-                    borderColor: Colors.light.border,
-                    minWidth: 60,
+                    borderColor: colors.border,
+                    transform: [{ scale: pressed ? 0.95 : 1 }],
                     ...style,
                 })}
+                hitSlop={DESIGN_TOKENS.touch.hitSlop}
             >
-                <Text style={{
-                    fontSize: 14,
-                    fontWeight: '600',
-                    color: Colors.light.text,
-                    marginRight: 4,
-                }}>
-                    {getCurrentLanguageDisplay()}
+                <Text style={{ fontSize: Math.round(size * 0.4) }}>
+                    {currentLangInfo.flag}
                 </Text>
-                <Ionicons name="chevron-down" size={14} color={Colors.light.textSecondary} />
             </Pressable>
 
             {/* Modal de sélection */}

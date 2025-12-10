@@ -1,21 +1,20 @@
 // Modern multiple years selection screen with enhanced design and navigation
 
-import React, { useState, useMemo, useCallback } from 'react';
-import { 
-    View, 
-    Text, 
-    Pressable, 
-    ScrollView, 
-    StyleSheet, 
-    RefreshControl,
+import React, { useCallback, useMemo, useState } from 'react';
+import {
     ActivityIndicator,
     Animated,
-    Dimensions 
+    Dimensions,
+    Pressable,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import CalendarHeader from '../../components/calendar/CalendarHeader';
 import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 import { useTranslation } from '../../localization';
-import LanguageButton from '../../components/calendar/LanguageButton';
 
 // Design tokens
 const DESIGN_TOKENS = {
@@ -191,44 +190,16 @@ const MultipleYearsScreen = ({ navigation }: any) => {
 
     return (
         <View style={customStyles.container}>
+            {/* Header unifié avec style Business - Position fixe en haut */}
+            <CalendarHeader 
+                navigation={navigation} 
+                title={t('calendar.years')} 
+            />
+
             <Animated.View style={[
                 customStyles.header,
                 { transform: [{ scale: animatedValue }] }
             ]}>
-                {/* Header avec navigation */}
-                <View style={customStyles.headerTop}>
-                    <View style={customStyles.leftButtons}>
-                        <Pressable
-                            style={({ pressed }) => ({
-                                ...customStyles.backButton,
-                                opacity: pressed ? 0.8 : 1,
-                            })}
-                            onPress={() => navigation.goBack()}
-                        >
-                            <Ionicons name="arrow-back" size={20} color={colors.text} />
-                        </Pressable>
-                        
-                        <Pressable
-                            style={({ pressed }) => ({
-                                ...customStyles.homeButton,
-                                opacity: pressed ? 0.8 : 1,
-                            })}
-                            onPress={() => navigation.navigate('Home')}
-                        >
-                            <Ionicons name="home" size={20} color={colors.buttonPrimaryText} />
-                        </Pressable>
-                    </View>
-
-                    <View style={customStyles.titleArea}>
-                        <Text style={[commonStyles.h2, { color: colors.text }]}>
-                            {t('calendar.years')}
-                        </Text>
-                    </View>
-
-                    {/* Bouton de traduction */}
-                    <LanguageButton />
-                </View>
-
                 {/* Informations sur la plage d'années */}
                 <View style={customStyles.infoContainer}>
                     <Text style={customStyles.yearRangeText}>

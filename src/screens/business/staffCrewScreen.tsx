@@ -5,23 +5,25 @@
 import { Ionicons } from '@expo/vector-icons'
 import React, { useEffect, useState } from 'react'
 import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View
+    ActivityIndicator,
+    Alert,
+    Pressable,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View
 } from 'react-native'
 import AddStaffModal from '../../components/modals/AddStaffModal'
 import { DESIGN_TOKENS } from '../../constants/Styles'
 import { useTheme } from '../../context/ThemeProvider'
 import { useStaff } from '../../hooks/useStaff'
+import { useTranslation } from '../../localization/useLocalization'
 import { Contractor, Employee, StaffMember } from '../../types/staff'
 
 export default function StaffCrewScreen() {
   const { colors } = useTheme()
+  const { t } = useTranslation()
   const {
     staff,
     employees,
@@ -59,12 +61,12 @@ export default function StaffCrewScreen() {
 
   const handleRemoveStaff = (member: StaffMember) => {
     Alert.alert(
-      'Retirer du staff',
-      `Êtes-vous sûr de vouloir retirer ${member.firstName} ${member.lastName} ?`,
+      t('staff.alerts.removeConfirm.title'),
+      t('staff.alerts.removeConfirm.message', { memberName: `${member.firstName} ${member.lastName}` }),
       [
-        { text: 'Annuler', style: 'cancel' },
+        { text: t('staff.actions.cancel'), style: 'cancel' },
         {
-          text: 'Retirer',
+          text: t('staff.actions.remove'),
           style: 'destructive',
           onPress: () => {
             // TODO: Implémenter la suppression
@@ -101,18 +103,18 @@ export default function StaffCrewScreen() {
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'active':
-        return 'Actif'
+        return t('staff.status.active')
       case 'inactive':
-        return 'Inactif'
+        return t('staff.status.inactive')
       case 'pending':
-        return 'En attente'
+        return t('staff.status.pending')
       default:
         return status
     }
   }
 
   const getTypeLabel = (type: 'employee' | 'contractor') => {
-    return type === 'employee' ? 'Employé (TFN)' : 'Prestataire (ABN)'
+    return type === 'employee' ? t('staff.types.employee') : t('staff.types.contractor')
   }
 
   const getTypeIcon = (type: 'employee' | 'contractor') => {
@@ -124,7 +126,7 @@ export default function StaffCrewScreen() {
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.primary} />
         <Text testID="loading-text" style={[styles.loadingText, { color: colors.textSecondary }]}>
-          Chargement du personnel...
+          {t('staff.titles.loading')}
         </Text>
       </View>
     )
@@ -146,10 +148,10 @@ export default function StaffCrewScreen() {
         {/* Header avec stats */}
         <View style={[styles.header, { backgroundColor: colors.backgroundSecondary }]}>
           <Text testID="screen-title" style={[styles.title, { color: colors.text }]}>
-            Gestion du Personnel
+            {t('staff.titles.main')}
           </Text>
           <Text testID="screen-subtitle" style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Gérez vos employés et prestataires
+            {t('staff.titles.subtitle')}
           </Text>
 
           {/* Stats rapides */}
@@ -160,7 +162,7 @@ export default function StaffCrewScreen() {
                 {totalActive}
               </Text>
               <Text testID="stat-active-label" style={[styles.statLabel, { color: colors.textSecondary }]}>
-                Actifs
+                {t('staff.stats.active')}
               </Text>
             </View>
             <View style={styles.statItem}>
@@ -169,7 +171,7 @@ export default function StaffCrewScreen() {
                 {totalEmployees}
               </Text>
               <Text testID="stat-employees-label" style={[styles.statLabel, { color: colors.textSecondary }]}>
-                Employés
+                {t('staff.stats.employees')}
               </Text>
             </View>
             <View style={styles.statItem}>
@@ -178,7 +180,7 @@ export default function StaffCrewScreen() {
                 {totalContractors}
               </Text>
               <Text testID="stat-contractors-label" style={[styles.statLabel, { color: colors.textSecondary }]}>
-                Prestataires
+                {t('staff.stats.contractors')}
               </Text>
             </View>
             <View style={styles.statItem}>
@@ -187,7 +189,7 @@ export default function StaffCrewScreen() {
                 ${averageEmployeeRate.toFixed(0)}
               </Text>
               <Text testID="stat-avgrate-label" style={[styles.statLabel, { color: colors.textSecondary }]}>
-                Taux moyen
+                {t('staff.stats.averageRate')}
               </Text>
             </View>
           </View>
@@ -200,7 +202,7 @@ export default function StaffCrewScreen() {
           onPress={handleAddStaff}
         >
           <Ionicons name="add-circle" size={24} color="#FFFFFF" />
-          <Text style={styles.addButtonText}>Ajouter un membre</Text>
+          <Text style={styles.addButtonText}>{t('staff.actions.add')}</Text>
         </Pressable>
 
         {/* Filtres */}
@@ -221,7 +223,7 @@ export default function StaffCrewScreen() {
                 filterType === 'all' && { color: '#FFFFFF' },
               ]}
             >
-              Tous ({staff.length})
+              {t('staff.filters.all')} ({staff.length})
             </Text>
           </Pressable>
           <Pressable
@@ -240,7 +242,7 @@ export default function StaffCrewScreen() {
                 filterType === 'employee' && { color: '#FFFFFF' },
               ]}
             >
-              Employés ({totalEmployees})
+              {t('staff.filters.employees')} ({totalEmployees})
             </Text>
           </Pressable>
           <Pressable
@@ -259,7 +261,7 @@ export default function StaffCrewScreen() {
                 filterType === 'contractor' && { color: '#FFFFFF' },
               ]}
             >
-              Prestataires ({totalContractors})
+              {t('staff.filters.contractors')} ({totalContractors})
             </Text>
           </Pressable>
         </View>
@@ -277,10 +279,10 @@ export default function StaffCrewScreen() {
           <View testID="empty-state" style={[styles.emptyContainer, { backgroundColor: colors.backgroundSecondary }]}>
             <Ionicons name="people-outline" size={64} color={colors.textSecondary} />
             <Text testID="empty-text" style={[styles.emptyText, { color: colors.text }]}>
-              Aucun membre du personnel
+              {t('staff.empty.title')}
             </Text>
             <Text testID="empty-subtext" style={[styles.emptySubtext, { color: colors.textSecondary }]}>
-              Ajoutez votre premier employé ou prestataire
+              {t('staff.empty.subtitle')}
             </Text>
           </View>
         ) : (
@@ -410,7 +412,7 @@ export default function StaffCrewScreen() {
                   >
                     <Ionicons name="create-outline" size={20} color={colors.primary} />
                     <Text style={[styles.actionButtonText, { color: colors.primary }]}>
-                      Modifier
+                      {t('staff.actions.edit')}
                     </Text>
                   </Pressable>
                   <Pressable
@@ -420,7 +422,7 @@ export default function StaffCrewScreen() {
                   >
                     <Ionicons name="trash-outline" size={20} color="#DC2626" />
                     <Text style={[styles.actionButtonText, { color: '#DC2626' }]}>
-                      Retirer
+                      {t('staff.actions.remove')}
                     </Text>
                   </Pressable>
                 </View>
