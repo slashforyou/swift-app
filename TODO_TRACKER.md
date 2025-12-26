@@ -1,8 +1,8 @@
 # 📋 SUIVI DES TODOs - SWIFTAPP
 
-> **Dernière mise à jour :** 26 Décembre 2025 (Session 3 - Stripe & Payments)  
+> **Dernière mise à jour :** 26 Décembre 2025 (Session 4 - Vehicles Migration)  
 > **Total TODOs :** 45  
-> **Résolus cette session :** 12 (6 précédents + 6 Stripe/Payments)
+> **Résolus cette session :** 19 (12 précédents + 7 vehiclesService)
 
 ---
 
@@ -10,9 +10,9 @@
 
 | Catégorie | Count | Priorité | Notes |
 |-----------|-------|----------|-------|
-| 🔌 API Integration | 15 → 8 | 🔴 Haute | 7 vehiclesService.ts ont API existante |
+| 🔌 API Integration | 15 → 1 | ✅ Résolu | vehiclesService migré, 1 conceptuel (staffService) |
 | 💳 Stripe & Paiements | 8 → 2 | ✅ Résolu | 6 implémentés, 2 AWAITING_BACKEND |
-| 🚗 Véhicules | 7 | 🟡 Moyenne | Migration interface requise |
+| 🚗 Véhicules | 7 → 0 | ✅ Résolu | Migration complète vers API réelle |
 | 👥 Staff & Business | 5 | 🟡 Moyenne | staffService = RH, pas job crew |
 | 📸 Photos | 2 | 🟢 Basse | |
 | 🌍 Traductions | 2 | 🟢 Basse | |
@@ -21,6 +21,13 @@
 ---
 
 ## ✅ RÉSOLUS RÉCEMMENT
+
+### 26 Décembre 2025 - Session 4 - Vehicles Migration
+- [x] **useVehicles.ts** - Migré vers API réelle via business/vehiclesService.ts
+  - ✅ 7 TODOs "Replace with real API call" résolus
+  - ✅ Adaptateurs de types BusinessVehicle ↔ VehicleAPI créés
+  - ✅ vehiclesService.ts converti en fichier de ré-export
+  - **Commit:** `b06b592`
 
 ### 26 Décembre 2025 - Session 3 - Stripe & Payments TODOs
 - [x] **StripeService.ts - createInstantPayout** - Implémenté avec POST /stripe/payouts/create
@@ -69,11 +76,14 @@
 | Payments History | `GET /payments/history` | ✅ Implémenté |
 | Transactions Export | `GET /transactions-export` | ✅ Implémenté |
 
-### ⚠️ Service business/vehiclesService.ts EXISTE
+### ✅ Service vehiclesService.ts - MIGRÉ
 
-Le fichier `src/services/business/vehiclesService.ts` **utilise déjà l'API réelle** (`/company/:companyId/trucks`).
+Le fichier `src/hooks/useVehicles.ts` **utilise maintenant l'API réelle** via `business/vehiclesService.ts`.
 
-L'ancien fichier `src/services/vehiclesService.ts` (avec mocks) est encore utilisé par `useVehicles.ts` → **Migration d'interface requise** (VehicleAPI ≠ BusinessVehicle).
+**Migration effectuée le 26 Décembre 2025:**
+- `useVehicles.ts` réécrit avec adaptateurs de types BusinessVehicle ↔ VehicleAPI
+- `vehiclesService.ts` converti en fichier de ré-export pour compatibilité
+- 7 TODOs "Replace with real API call" **RÉSOLUS**
 
 ### ⚠️ staffService.ts = Gestion RH
 
@@ -85,17 +95,12 @@ L'ancien fichier `src/services/vehiclesService.ts` (avec mocks) est encore utili
 
 ## 🔴 PRIORITÉ HAUTE
 
-### 🔌 API Integration - Endpoints Manquants
+### 🔌 API Integration - ✅ MAJORITÉ RÉSOLUE
 
 | Fichier | Ligne | TODO | Status |
 |---------|-------|------|--------|
-| `src/services/vehiclesService.ts` | 197 | Replace with real API call when /business/vehicles is ready | ⚠️ API existe dans business/vehiclesService.ts - Migration interface requise |
-| `src/services/vehiclesService.ts` | 217 | Replace with real API call | ⚠️ Idem |
-| `src/services/vehiclesService.ts` | 240 | Replace with real API call | ⚠️ Idem |
-| `src/services/vehiclesService.ts` | 277 | Replace with real API call | ⚠️ Idem |
-| `src/services/vehiclesService.ts` | 311 | Replace with real API call | ⚠️ Idem |
-| `src/services/vehiclesService.ts` | 339 | Replace with real API call | ⚠️ Idem |
-| `src/services/vehiclesService.ts` | 364 | Replace with real API call | ⚠️ Idem |
+| `src/services/vehiclesService.ts` | - | Replace with real API call (7 TODOs) | ✅ **MIGRÉ** - Utilise business/vehiclesService.ts |
+| `src/hooks/useVehicles.ts` | - | Migration vers API réelle | ✅ **IMPLÉMENTÉ** - Commit b06b592 |
 | `src/services/business/staffService.ts` | 4 | Connecter aux endpoints Job Crew quand disponible | ℹ️ staffService = RH, Job Crew = assignation job. Concepts différents |
 | `src/context/JobStateProvider.tsx` | 298 | Appeler l'API pour sync l'état | ✅ **IMPLÉMENTÉ** - fetchJobProgressFromAPI() |
 
