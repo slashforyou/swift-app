@@ -9,8 +9,44 @@
  */
 
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { ServerData } from '../constants/ServerData';
 import { JobProgress, JobState, JobStateAction, JobStateContextType, PhotoUploadStatus } from '../types/jobState';
+import { fetchWithAuth } from '../utils/session';
 import { loadJobState, saveJobState } from '../utils/jobStateStorage';
+
+/**
+ * Récupère les données de progression d'un job depuis l'API
+ * Utilise GET /v1/job/:id pour récupérer current_step et status
+ */
+async function fetchJobProgressFromAPI(jobId: string): Promise<{ currentStep: number; totalSteps: number; status: string } | null> {
+    try {
+        const response = await fetchWithAuth(`${ServerData.serverUrl}v1/job/${jobId}`, {
+            method: 'GET',
+        });
+
+        if (!response.ok) {
+            console.warn(`[syncWithAPI] API returned ${response.status} for job ${jobId}`);
+            return null;
+        }
+
+        const data = await response.json();
+        
+        if (!data.success || !data.data) {
+            console.warn('[syncWithAPI] Invalid API response format');
+            return null;
+        }
+
+        const job = data.data;
+        return {
+            currentStep: job.current_step || job.step || 1,
+            totalSteps: job.total_steps || 5, // Default to 5 if not specified
+            status: job.status || 'pending'
+        };
+    } catch (error) {
+        console.error('[syncWithAPI] Error fetching job progress:', error);
+        return null;
+    }
+}
 
 const JobStateContext = createContext<JobStateContextType | undefined>(undefined);
 
@@ -46,7 +82,7 @@ export const JobStateProvider: React.FC<JobStateProviderProps> = ({
             const stored = await loadJobState(jobId);
 
             if (stored) {
-                console.log(`📦 Loaded job state from storage: step ${stored.progress.actualStep}`);
+                // TEMP_DISABLED: console.log(`📦 Loaded job state from storage: step ${stored.progress.actualStep}`);
                 setJobState(stored);
             } else if (initialProgress) {
                 // Créer un nouvel état avec les données initiales
@@ -59,7 +95,7 @@ export const JobStateProvider: React.FC<JobStateProviderProps> = ({
                     isDirty: false,
                 };
                 
-                console.log(`📦 Created new job state: step ${newState.progress.actualStep}`);
+                // TEMP_DISABLED: console.log(`📦 Created new job state: step ${newState.progress.actualStep}`);
                 setJobState(newState);
                 await saveJobState(newState);
             } else {
@@ -78,11 +114,12 @@ export const JobStateProvider: React.FC<JobStateProviderProps> = ({
                     isDirty: false,
                 };
                 
-                console.log(`📦 Created default job state (no stored/initial progress)`);
+                // TEMP_DISABLED: console.log(`📦 Created default job state (no stored/initial progress)`);
                 setJobState(defaultState);
                 await saveJobState(defaultState);
             }
         } catch (err) {
+
             console.error('Error loading job state:', err);
             setError(err instanceof Error ? err.message : 'Failed to load job state');
         } finally {
@@ -267,7 +304,7 @@ export const JobStateProvider: React.FC<JobStateProviderProps> = ({
         setJobState(newState);
         await saveJobState(newState);
         
-        console.log(`📦 Job state updated: ${action.type}, step ${newState.progress.actualStep}`);
+        // TEMP_DISABLED: console.log(`📦 Job state updated: ${action.type}, step ${newState.progress.actualStep}`);
     };
 
     // Actions exposées au contexte
@@ -295,13 +332,32 @@ export const JobStateProvider: React.FC<JobStateProviderProps> = ({
         if (!jobState) return;
 
         try {
-            // TODO: Appeler l'API pour sync l'état
-            // const apiProgress = await fetchJobProgress(jobId);
-            // await dispatch({ type: 'SYNC_WITH_API', payload: apiProgress });
+            console.log('📡 [syncWithAPI] Syncing job state with API for job:', jobId);
             
-            console.log('📡 Sync with API (TODO: implement API call)');
+            // ✅ Appeler l'API pour récupérer l'état actuel du job
+            const apiData = await fetchJobProgressFromAPI(jobId);
+            
+            if (!apiData) {
+                console.warn('📡 [syncWithAPI] Could not fetch job progress from API');
+                return;
+            }
+
+            console.log('📡 [syncWithAPI] API data received:', apiData);
+
+            // ✅ Créer la progression à partir des données de l'API
+            const apiProgress: JobProgress = {
+                actualStep: apiData.currentStep,
+                totalSteps: apiData.totalSteps,
+                steps: jobState.progress.steps, // Conserver les étapes existantes
+                isCompleted: apiData.status === 'completed' || apiData.currentStep >= apiData.totalSteps,
+                completedAt: apiData.status === 'completed' ? new Date().toISOString() : undefined,
+            };
+
+            // ✅ Dispatcher la synchronisation
+            await dispatch({ type: 'SYNC_WITH_API', payload: apiProgress });
+            console.log('✅ [syncWithAPI] Job state synced with API');
         } catch (err) {
-            console.error('Error syncing with API:', err);
+            console.error('❌ [syncWithAPI] Error syncing with API:', err);
             setError(err instanceof Error ? err.message : 'Sync failed');
         }
     }, [jobState, jobId]);
