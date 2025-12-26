@@ -17,6 +17,7 @@ import {
 import AddVehicleModal from '../../components/modals/AddVehicleModal'
 import { HStack, VStack } from '../../components/primitives/Stack'
 import { Card } from '../../components/ui/Card'
+import VehicleDetailsScreen from './VehicleDetailsScreen'
 
 // Hooks & Utils
 import { DESIGN_TOKENS } from '../../constants/Styles'
@@ -436,6 +437,7 @@ export default function TrucksScreen() {
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
 
   const styles = StyleSheet.create({
     scrollContent: {
@@ -548,8 +550,7 @@ export default function TrucksScreen() {
   }
 
   const handleVehiclePress = (vehicle: Vehicle) => {
-    // TODO: Ouvrir détails du véhicule
-    // TEMP_DISABLED: console.log('View vehicle details:', vehicle.id);
+    setSelectedVehicle(vehicle);
   };
 
   const handleEditVehicle = (vehicle: Vehicle, event?: any) => {
@@ -775,6 +776,26 @@ export default function TrucksScreen() {
         onClose={() => setIsAddModalVisible(false)}
         onAddVehicle={handleSubmitVehicle}
       />
+
+      {/* Écran de détails du véhicule */}
+      {selectedVehicle && (
+        <View style={StyleSheet.absoluteFill}>
+          <VehicleDetailsScreen
+            vehicleId={selectedVehicle.id}
+            vehicle={selectedVehicle}
+            onBack={() => setSelectedVehicle(null)}
+            onUpdate={(updatedVehicle) => {
+              // Mettre à jour le véhicule si nécessaire
+              refetch();
+              setSelectedVehicle(null);
+            }}
+            onDelete={() => {
+              refetch();
+              setSelectedVehicle(null);
+            }}
+          />
+        </View>
+      )}
     </ScrollView>
   )
 }

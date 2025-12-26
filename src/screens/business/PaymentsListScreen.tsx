@@ -15,6 +15,9 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
+// Components
+import PaymentDetailModal from '../../components/modals/PaymentDetailModal'
+
 // Context
 import { DESIGN_TOKENS } from '../../constants/Styles'
 import { useTheme } from '../../context/ThemeProvider'
@@ -28,6 +31,7 @@ export default function PaymentsListScreen({ navigation }: PaymentsListScreenPro
   const { colors } = useTheme()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'succeeded' | 'processing' | 'failed'>('all')
+  const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null)
 
   // Utilisation du hook Stripe pour récupérer les vraies données
   const { payments, loading: isLoading, error, refresh } = useStripePayments()
@@ -80,8 +84,7 @@ export default function PaymentsListScreen({ navigation }: PaymentsListScreenPro
   }
 
   const handlePaymentPress = (payment: Payment) => {
-    // TODO: Navigation vers le détail du paiement
-    // TEMP_DISABLED: console.log('Payment details:', payment.id)
+    setSelectedPayment(payment)
   }
 
   const filteredPayments = payments.filter(payment => {
@@ -364,6 +367,13 @@ export default function PaymentsListScreen({ navigation }: PaymentsListScreenPro
           />
         )}
       </View>
+
+      {/* Modal détail paiement */}
+      <PaymentDetailModal
+        visible={selectedPayment !== null}
+        payment={selectedPayment}
+        onClose={() => setSelectedPayment(null)}
+      />
     </SafeAreaView>
   )
 }

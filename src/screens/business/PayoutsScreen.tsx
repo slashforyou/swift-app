@@ -14,6 +14,9 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
+// Components
+import PayoutDetailModal from '../../components/modals/PayoutDetailModal'
+
 // Context
 import { DESIGN_TOKENS } from '../../constants/Styles'
 import { useTheme } from '../../context/ThemeProvider'
@@ -27,6 +30,7 @@ interface PayoutsScreenProps {
 export default function PayoutsScreen({ navigation }: PayoutsScreenProps) {
   const { colors } = useTheme()
   const [selectedTab, setSelectedTab] = useState<'all' | 'pending' | 'completed'>('all')
+  const [selectedPayout, setSelectedPayout] = useState<Payout | null>(null)
 
   // Utilisation du hook Stripe pour récupérer les vraies données
   const { payouts, loading: isLoading, error, refresh, createPayout } = useStripePayouts()
@@ -97,8 +101,7 @@ export default function PayoutsScreen({ navigation }: PayoutsScreenProps) {
   }
 
   const handlePayoutPress = (payout: Payout) => {
-    // TODO: Navigation vers le détail du payout
-    // TEMP_DISABLED: console.log('Payout details:', payout.id)
+    setSelectedPayout(payout)
   }
 
   const filteredPayouts = payouts.filter(payout => {
@@ -400,6 +403,13 @@ export default function PayoutsScreen({ navigation }: PayoutsScreenProps) {
           />
         )}
       </View>
+
+      {/* Modal de détail du payout */}
+      <PayoutDetailModal
+        visible={selectedPayout !== null}
+        payout={selectedPayout}
+        onClose={() => setSelectedPayout(null)}
+      />
     </SafeAreaView>
   )
 }
