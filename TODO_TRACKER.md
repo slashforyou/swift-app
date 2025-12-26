@@ -1,28 +1,33 @@
 # 📋 SUIVI DES TODOs - SWIFTAPP
 
-> **Dernière mise à jour :** 26 Décembre 2025  
+> **Dernière mise à jour :** 26 Décembre 2025 (Session 2)  
 > **Total TODOs :** 45  
-> **Résolus cette session :** 5 (Bug signature)
+> **Résolus cette session :** 6 (Bug signature + syncWithAPI)
 
 ---
 
 ## 📊 RÉSUMÉ PAR CATÉGORIE
 
-| Catégorie | Count | Priorité |
-|-----------|-------|----------|
-| 🔌 API Integration | 15 | 🔴 Haute |
-| 💳 Stripe & Paiements | 8 | 🔴 Haute |
-| 🚗 Véhicules | 7 | 🟡 Moyenne |
-| 👥 Staff & Business | 5 | 🟡 Moyenne |
-| 📸 Photos | 2 | 🟢 Basse |
-| 🌍 Traductions | 2 | 🟢 Basse |
-| 🔧 Divers | 6 | 🟢 Basse |
+| Catégorie | Count | Priorité | Notes |
+|-----------|-------|----------|-------|
+| 🔌 API Integration | 15 → 8 | 🔴 Haute | 7 vehiclesService.ts ont API existante |
+| 💳 Stripe & Paiements | 8 | 🔴 Haute | Endpoints disponibles |
+| 🚗 Véhicules | 7 | 🟡 Moyenne | Migration interface requise |
+| 👥 Staff & Business | 5 | 🟡 Moyenne | staffService = RH, pas job crew |
+| 📸 Photos | 2 | 🟢 Basse | |
+| 🌍 Traductions | 2 | 🟢 Basse | |
+| 🔧 Divers | 6 | 🟢 Basse | |
 
 ---
 
 ## ✅ RÉSOLUS RÉCEMMENT
 
-### 26 Décembre 2025 - Bug Signature
+### 26 Décembre 2025 - Session 2 - Analyse API TODOs
+- [x] **syncWithAPI dans JobStateProvider.tsx** - Implémenté avec `fetchJobProgressFromAPI()`
+  - ✅ Appelle GET /v1/job/:id pour récupérer current_step et status
+  - ✅ Dispatch SYNC_WITH_API avec les données de progression
+
+### 26 Décembre 2025 - Session 1 - Bug Signature
 - [x] **Signature redemandée après avoir quitté le job** - Commits `a89ac90` → `c271c1f`
   - ✅ Ajout `getJobSignatures()` et `checkJobSignatureExists()` dans jobDetails.ts
   - ✅ SignatureSection vérifie le serveur avant d'afficher le bouton
@@ -32,21 +37,49 @@
 
 ---
 
+## 📌 ANALYSE API INTEGRATION (26 Déc 2025)
+
+### ✅ Endpoints Backend DISPONIBLES
+
+| Fonctionnalité | Endpoint | Status |
+|---------------|----------|--------|
+| Job Crew | `GET/POST /job/:id/crew` | ✅ Disponible |
+| Job Trucks | `GET/POST /job/:id/trucks` | ✅ Disponible |
+| Company Trucks | `GET/POST/PATCH/DELETE /company/:companyId/trucks` | ✅ Disponible |
+| Job Signatures | `GET /job/:jobId/signatures`, `POST /job/:jobId/signature` | ✅ Disponible |
+| Stripe Balance | `GET /stripe/balance` | ✅ Disponible |
+| Stripe Payouts | `GET /stripe/payouts`, `POST /stripe/payouts/create` | ✅ Disponible |
+| Stripe Connect | Multiple endpoints | ✅ Disponible |
+
+### ⚠️ Service business/vehiclesService.ts EXISTE
+
+Le fichier `src/services/business/vehiclesService.ts` **utilise déjà l'API réelle** (`/company/:companyId/trucks`).
+
+L'ancien fichier `src/services/vehiclesService.ts` (avec mocks) est encore utilisé par `useVehicles.ts` → **Migration d'interface requise** (VehicleAPI ≠ BusinessVehicle).
+
+### ⚠️ staffService.ts = Gestion RH
+
+`staffService.ts` gère les **employés de l'entreprise** (RH), pas les crew members assignés aux jobs.
+- Endpoint Job Crew (`/job/:id/crew`) = pour assigner du staff à un job
+- Pas d'endpoint dédié pour la gestion RH → AsyncStorage reste la solution
+
+---
+
 ## 🔴 PRIORITÉ HAUTE
 
 ### 🔌 API Integration - Endpoints Manquants
 
 | Fichier | Ligne | TODO | Status |
 |---------|-------|------|--------|
-| `src/services/vehiclesService.ts` | 197 | Replace with real API call when /business/vehicles is ready | ⏳ En attente backend |
-| `src/services/vehiclesService.ts` | 217 | Replace with real API call | ⏳ En attente backend |
-| `src/services/vehiclesService.ts` | 240 | Replace with real API call | ⏳ En attente backend |
-| `src/services/vehiclesService.ts` | 277 | Replace with real API call | ⏳ En attente backend |
-| `src/services/vehiclesService.ts` | 311 | Replace with real API call | ⏳ En attente backend |
-| `src/services/vehiclesService.ts` | 339 | Replace with real API call | ⏳ En attente backend |
-| `src/services/vehiclesService.ts` | 364 | Replace with real API call | ⏳ En attente backend |
-| `src/services/business/staffService.ts` | 4 | Connecter aux endpoints Job Crew quand disponible | ⏳ En attente backend |
-| `src/context/JobStateProvider.tsx` | 298 | Appeler l'API pour sync l'état | ⏳ À implémenter |
+| `src/services/vehiclesService.ts` | 197 | Replace with real API call when /business/vehicles is ready | ⚠️ API existe dans business/vehiclesService.ts - Migration interface requise |
+| `src/services/vehiclesService.ts` | 217 | Replace with real API call | ⚠️ Idem |
+| `src/services/vehiclesService.ts` | 240 | Replace with real API call | ⚠️ Idem |
+| `src/services/vehiclesService.ts` | 277 | Replace with real API call | ⚠️ Idem |
+| `src/services/vehiclesService.ts` | 311 | Replace with real API call | ⚠️ Idem |
+| `src/services/vehiclesService.ts` | 339 | Replace with real API call | ⚠️ Idem |
+| `src/services/vehiclesService.ts` | 364 | Replace with real API call | ⚠️ Idem |
+| `src/services/business/staffService.ts` | 4 | Connecter aux endpoints Job Crew quand disponible | ℹ️ staffService = RH, Job Crew = assignation job. Concepts différents |
+| `src/context/JobStateProvider.tsx` | 298 | Appeler l'API pour sync l'état | ✅ **IMPLÉMENTÉ** - fetchJobProgressFromAPI() |
 
 ### 💳 Stripe & Paiements
 
