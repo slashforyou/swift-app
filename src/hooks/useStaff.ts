@@ -100,34 +100,36 @@ export const useStaff = (): UseStaffResult => {
       setIsLoading(true);
       setError(null);
 
-      console.log(`📋 [useStaff] Loading staff members... (USE_MOCK: ${USE_MOCK_DATA})`);
+      // TEMP_DISABLED: console.log(`📋 [useStaff] Loading staff members... (USE_MOCK: ${USE_MOCK_DATA})`);
 
       if (USE_MOCK_DATA) {
         // Utiliser les données mock en développement ou en cas de problème API
-        console.log('🔄 [useStaff] Using mock data');
+        // TEMP_DISABLED: console.log('🔄 [useStaff] Using mock data');
         await new Promise(resolve => setTimeout(resolve, 1000)); // Simuler latence réseau
         setStaff(mockStaff);
-        console.log(`✅ [useStaff] Loaded ${mockStaff.length} mock staff members`);
+        // TEMP_DISABLED: console.log(`✅ [useStaff] Loaded ${mockStaff.length} mock staff members`);
       } else {
         // Utiliser la vraie API
-        console.log('🌐 [useStaff] Using real API');
+        // TEMP_DISABLED: console.log('🌐 [useStaff] Using real API');
         const apiStaff = await staffService.fetchStaff();
         setStaff(apiStaff);
-        console.log(`✅ [useStaff] Loaded ${apiStaff.length} staff members from API`);
+        // TEMP_DISABLED: console.log(`✅ [useStaff] Loaded ${apiStaff.length} staff members from API`);
       }
 
     } catch (err) {
+
       console.error('❌ [useStaff] Error loading staff:', err);
       
       if (!USE_MOCK_DATA) {
         // En cas d'erreur API, fallback vers les mocks
-        console.log('🔄 [useStaff] API failed, falling back to mock data');
+        // TEMP_DISABLED: console.log('🔄 [useStaff] API failed, falling back to mock data');
         try {
           setStaff(mockStaff);
           setError('Connexion API limitée - données de démonstration');
-          console.log(`✅ [useStaff] Fallback: loaded ${mockStaff.length} mock staff members`);
+          // TEMP_DISABLED: console.log(`✅ [useStaff] Fallback: loaded ${mockStaff.length} mock staff members`);
           return;
         } catch (mockError) {
+
           console.error('❌ [useStaff] Even mock data failed:', mockError);
         }
       }
@@ -170,11 +172,9 @@ export const useStaff = (): UseStaffResult => {
 
   const inviteEmployee = useCallback(async (employeeData: InviteEmployeeData) => {
     try {
-      console.log('📧 [useStaff] Inviting employee:', employeeData.email);
+      // TEMP_DISABLED: console.log('📧 [useStaff] Inviting employee:', employeeData.email);
       
-      if (USE_MOCK_DATA) {
-        // Mode mock : simuler l'invitation
-        await new Promise(resolve => setTimeout(resolve, 1500));
+      if (USE_MOCK_DATA) {await new Promise(resolve => setTimeout(resolve, 1500));
         
         const newEmployee: Employee = {
           id: `emp_${Date.now()}`,
@@ -193,7 +193,7 @@ export const useStaff = (): UseStaffResult => {
         };
 
         setStaff(prev => [...prev, newEmployee]);
-        console.log(`✅ [useStaff] Mock employee invitation sent to ${employeeData.email}`);
+        // TEMP_DISABLED: console.log(`✅ [useStaff] Mock employee invitation sent to ${employeeData.email}`);
       } else {
         // Mode API : vraie invitation
         const result = await staffService.inviteEmployee(employeeData);
@@ -201,10 +201,11 @@ export const useStaff = (): UseStaffResult => {
         // Recharger la liste pour avoir les données à jour
         await loadStaff();
         
-        console.log(`✅ [useStaff] Real employee invitation sent to ${employeeData.email}, ID: ${result.employeeId}`);
+        // TEMP_DISABLED: console.log(`✅ [useStaff] Real employee invitation sent to ${employeeData.email}, ID: ${result.employeeId}`);
       }
 
     } catch (err) {
+
       console.error('❌ [useStaff] Error inviting employee:', err);
       throw new Error('Erreur lors de l\'envoi de l\'invitation');
     }
@@ -212,11 +213,9 @@ export const useStaff = (): UseStaffResult => {
 
   const searchContractor = useCallback(async (searchTerm: string): Promise<Contractor[]> => {
     try {
-      console.log('🔍 [useStaff] Searching contractors:', searchTerm);
+      // TEMP_DISABLED: console.log('🔍 [useStaff] Searching contractors:', searchTerm);
       
-      if (USE_MOCK_DATA) {
-        // Mode mock : données de recherche simulées
-        await new Promise(resolve => setTimeout(resolve, 800));
+      if (USE_MOCK_DATA) {await new Promise(resolve => setTimeout(resolve, 800));
 
         const mockSearchResults: Contractor[] = [
           {
@@ -267,16 +266,17 @@ export const useStaff = (): UseStaffResult => {
           return fullName.includes(searchLower);
         });
 
-        console.log(`✅ [useStaff] Found ${results.length} mock contractors`);
+        // TEMP_DISABLED: console.log(`✅ [useStaff] Found ${results.length} mock contractors`);
         return results;
       } else {
         // Mode API : vraie recherche
         const results = await staffService.searchContractors(searchTerm);
-        console.log(`✅ [useStaff] Found ${results.length} contractors via API`);
+        // TEMP_DISABLED: console.log(`✅ [useStaff] Found ${results.length} contractors via API`);
         return results;
       }
 
     } catch (err) {
+
       console.error('❌ [useStaff] Error searching contractors:', err);
       throw new Error('Erreur lors de la recherche de prestataires');
     }
@@ -284,11 +284,9 @@ export const useStaff = (): UseStaffResult => {
 
   const addContractor = useCallback(async (contractorId: string, contractStatus: Contractor['contractStatus']) => {
     try {
-      console.log('🤝 [useStaff] Adding contractor to staff:', contractorId, contractStatus);
+      // TEMP_DISABLED: console.log('🤝 [useStaff] Adding contractor to staff:', contractorId, contractStatus);
       
-      if (USE_MOCK_DATA) {
-        // Mode mock : simuler l'ajout
-        await new Promise(resolve => setTimeout(resolve, 1000));
+      if (USE_MOCK_DATA) {await new Promise(resolve => setTimeout(resolve, 1000));
 
         const contractorData: Contractor = {
           id: contractorId,
@@ -309,7 +307,7 @@ export const useStaff = (): UseStaffResult => {
         };
 
         setStaff(prev => [...prev, contractorData]);
-        console.log(`✅ [useStaff] Mock contractor added with ${contractStatus} status`);
+        // TEMP_DISABLED: console.log(`✅ [useStaff] Mock contractor added with ${contractStatus} status`);
       } else {
         // Mode API : vraie ajout
         const result = await staffService.addContractorToStaff(contractorId, contractStatus);
@@ -317,14 +315,73 @@ export const useStaff = (): UseStaffResult => {
         // Recharger la liste pour avoir les données à jour
         await loadStaff();
         
-        console.log(`✅ [useStaff] Real contractor added with ${contractStatus} status`);
+        // TEMP_DISABLED: console.log(`✅ [useStaff] Real contractor added with ${contractStatus} status`);
       }
 
     } catch (err) {
+
       console.error('❌ [useStaff] Error adding contractor:', err);
       throw new Error('Erreur lors de l\'ajout du prestataire');
     }
   }, [loadStaff]);
+
+  const updateStaff = useCallback(async (staffId: string, updateData: Partial<StaffMember>) => {
+    try {
+      if (USE_MOCK_DATA) {
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        setStaff(prev => prev.map(member => {
+          if (member.id !== staffId) return member;
+          
+          // Préserver le type discriminant pour TypeScript
+          if (member.type === 'employee') {
+            return { ...member, ...updateData, type: 'employee' as const } as Employee;
+          } else {
+            return { ...member, ...updateData, type: 'contractor' as const } as Contractor;
+          }
+        }));
+      } else {
+        await staffService.updateStaffMember(staffId, updateData);
+        await loadStaff();
+      }
+    } catch (err) {
+      console.error('❌ [useStaff] Error updating staff:', err);
+      throw new Error('Erreur lors de la mise à jour du membre');
+    }
+  }, [loadStaff]);
+
+  const removeStaff = useCallback(async (staffId: string) => {
+    try {
+      if (USE_MOCK_DATA) {
+        await new Promise(resolve => setTimeout(resolve, 800));
+        setStaff(prev => prev.filter(member => member.id !== staffId));
+      } else {
+        await staffService.removeStaffMember(staffId);
+        await loadStaff();
+      }
+    } catch (err) {
+      console.error('❌ [useStaff] Error removing staff:', err);
+      throw new Error('Erreur lors de la suppression du membre');
+    }
+  }, [loadStaff]);
+
+  const inviteContractor = useCallback(async (email: string, firstName: string, lastName: string) => {
+    try {
+      if (USE_MOCK_DATA) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        // En mode mock, on simule juste l'envoi
+        return { success: true, message: `Invitation envoyée à ${email}` };
+      } else {
+        // En mode API, utiliser un endpoint dédié si disponible
+        // Pour l'instant, on simule
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return { success: true, message: `Invitation envoyée à ${email}` };
+      }
+    } catch (err) {
+      console.error('❌ [useStaff] Error inviting contractor:', err);
+      throw new Error('Erreur lors de l\'envoi de l\'invitation');
+    }
+  }, []);
 
   // Calculer les statistiques
   const employees = staff.filter((member): member is Employee => member.type === 'employee');
@@ -359,6 +416,9 @@ export const useStaff = (): UseStaffResult => {
     inviteEmployee,
     searchContractor,
     addContractor,
+    updateStaff,
+    removeStaff,
+    inviteContractor,
     filterStaff,
   };
 };

@@ -55,6 +55,9 @@ export interface UseStaffResult {
   inviteEmployee: (employeeData: InviteEmployeeData) => Promise<void>;
   searchContractor: (searchTerm: string) => Promise<Contractor[]>;
   addContractor: (contractorId: string, contractStatus: Contractor['contractStatus']) => Promise<void>;
+  updateStaff: (staffId: string, updateData: Partial<StaffMember>) => Promise<void>;
+  removeStaff: (staffId: string) => Promise<void>;
+  inviteContractor: (email: string, firstName: string, lastName: string) => Promise<{ success: boolean; message: string }>;
   filterStaff: (filters: StaffFilters) => StaffMember[];
 }
 

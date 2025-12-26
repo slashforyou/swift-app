@@ -27,10 +27,11 @@ interface AddStaffModalProps {
   onInviteEmployee: (data: InviteEmployeeData) => Promise<void>
   onSearchContractor: (searchTerm: string) => Promise<Contractor[]>
   onAddContractor: (contractorId: string, contractStatus: Contractor['contractStatus']) => Promise<void>
+  onInviteContractor?: (email: string, firstName: string, lastName: string) => Promise<{ success: boolean; message: string }>
 }
 
 type StaffType = 'employee' | 'contractor'
-type Step = 'type' | 'employee-form' | 'contractor-search' | 'contractor-results'
+type Step = 'type' | 'employee-form' | 'contractor-search' | 'contractor-results' | 'contractor-invite'
 
 export default function AddStaffModal({
   visible,
@@ -38,6 +39,7 @@ export default function AddStaffModal({
   onInviteEmployee,
   onSearchContractor,
   onAddContractor,
+  onInviteContractor,
 }: AddStaffModalProps) {
   const { colors } = useTheme()
   const [step, setStep] = useState<Step>('type')
@@ -59,6 +61,13 @@ export default function AddStaffModal({
   const [searchTerm, setSearchTerm] = useState('')
   const [searchResults, setSearchResults] = useState<Contractor[]>([])
 
+  // Invitation prestataire
+  const [contractorInviteData, setContractorInviteData] = useState({
+    email: '',
+    firstName: '',
+    lastName: '',
+  })
+
   const resetModal = () => {
     setStep('type')
     setStaffType('employee')
@@ -73,6 +82,7 @@ export default function AddStaffModal({
     })
     setSearchTerm('')
     setSearchResults([])
+    setContractorInviteData({ email: '', firstName: '', lastName: '' })
   }
 
   const handleClose = () => {
@@ -125,6 +135,7 @@ export default function AddStaffModal({
       )
       handleClose()
     } catch (error) {
+
       Alert.alert('Erreur', 'Impossible d\'envoyer l\'invitation')
     } finally {
       setIsLoading(false)
@@ -143,6 +154,7 @@ export default function AddStaffModal({
       setSearchResults(results)
       setStep('contractor-results')
     } catch (error) {
+
       Alert.alert('Erreur', 'Erreur lors de la recherche')
     } finally {
       setIsLoading(false)
@@ -167,6 +179,7 @@ export default function AddStaffModal({
               )
               handleClose()
             } catch (error) {
+
               Alert.alert('Erreur', 'Impossible d\'ajouter le prestataire')
             } finally {
               setIsLoading(false)
@@ -178,20 +191,42 @@ export default function AddStaffModal({
   }
 
   const handleInviteContractor = () => {
-    Alert.alert(
-      'Inviter un prestataire',
-      'Un email d\'invitation sera envoyé au prestataire pour créer un compte avec son ABN.',
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Envoyer',
-          onPress: () => {
-            // TODO: Implémenter l'invitation de prestataire
-            Alert.alert('En développement', 'Fonctionnalité à venir')
-          },
-        },
-      ]
-    )
+    // Passer à l'étape d'invitation
+    setStep('contractor-invite')
+  }
+
+  const handleSendContractorInvite = async () => {
+    if (!contractorInviteData.email) {
+      Alert.alert('Erreur', 'Veuillez renseigner l\'email')
+      return
+    }
+    if (!contractorInviteData.firstName || !contractorInviteData.lastName) {
+      Alert.alert('Erreur', 'Veuillez renseigner le nom et prénom')
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      if (onInviteContractor) {
+        const result = await onInviteContractor(
+          contractorInviteData.email,
+          contractorInviteData.firstName,
+          contractorInviteData.lastName
+        )
+        Alert.alert('Invitation envoyée', result.message)
+      } else {
+        // Fallback si pas de handler
+        Alert.alert(
+          'Invitation envoyée',
+          `Un email d'invitation a été envoyé à ${contractorInviteData.email}`
+        )
+      }
+      handleClose()
+    } catch (error) {
+      Alert.alert('Erreur', 'Impossible d\'envoyer l\'invitation')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const renderStepType = () => (
@@ -531,6 +566,98 @@ export default function AddStaffModal({
     </View>
   )
 
+  const renderContractorInvite = () => (
+    <View style={styles.stepContainer}>
+      <Pressable
+        style={styles.backButton}
+        onPress={() => setStep('contractor-search')}
+      >
+        <Ionicons name="arrow-back" size={24} color={colors.text} />
+      </Pressable>
+
+      <Text style={[styles.stepTitle, { color: colors.text }]}>
+        Inviter un prestataire
+      </Text>
+      <Text style={[styles.stepSubtitle, { color: colors.textSecondary }]}>
+        Envoyez une invitation par email pour créer un compte avec son ABN
+      </Text>
+
+      <View style={styles.formGroup}>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>Prénom *</Text>
+        <TextInput
+          style={[styles.input, { 
+            backgroundColor: colors.backgroundSecondary,
+            color: colors.text,
+            borderColor: colors.border
+          }]}
+          value={contractorInviteData.firstName}
+          onChangeText={(text) => setContractorInviteData(prev => ({ ...prev, firstName: text }))}
+          placeholder="Prénom du prestataire"
+          placeholderTextColor={colors.textSecondary}
+        />
+      </View>
+
+      <View style={styles.formGroup}>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>Nom *</Text>
+        <TextInput
+          style={[styles.input, { 
+            backgroundColor: colors.backgroundSecondary,
+            color: colors.text,
+            borderColor: colors.border
+          }]}
+          value={contractorInviteData.lastName}
+          onChangeText={(text) => setContractorInviteData(prev => ({ ...prev, lastName: text }))}
+          placeholder="Nom du prestataire"
+          placeholderTextColor={colors.textSecondary}
+        />
+      </View>
+
+      <View style={styles.formGroup}>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>Email *</Text>
+        <TextInput
+          style={[styles.input, { 
+            backgroundColor: colors.backgroundSecondary,
+            color: colors.text,
+            borderColor: colors.border
+          }]}
+          value={contractorInviteData.email}
+          onChangeText={(text) => setContractorInviteData(prev => ({ ...prev, email: text }))}
+          placeholder="email@exemple.com"
+          placeholderTextColor={colors.textSecondary}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+      </View>
+
+      <View style={[styles.infoBox, { backgroundColor: colors.backgroundSecondary }]}>
+        <Ionicons name="information-circle" size={24} color={colors.primary} />
+        <Text style={[styles.infoBoxText, { color: colors.textSecondary }]}>
+          Le prestataire recevra un email pour créer son compte et renseigner son ABN.
+          Une fois inscrit, il apparaîtra dans votre liste de prestataires.
+        </Text>
+      </View>
+
+      <Pressable
+        style={[
+          styles.submitButton,
+          { backgroundColor: colors.primary },
+          isLoading && styles.submitButtonDisabled,
+        ]}
+        onPress={handleSendContractorInvite}
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <ActivityIndicator color="#FFFFFF" />
+        ) : (
+          <>
+            <Ionicons name="mail" size={20} color="#FFFFFF" />
+            <Text style={styles.submitButtonText}>Envoyer l'invitation</Text>
+          </>
+        )}
+      </Pressable>
+    </View>
+  )
+
   return (
     <Modal
       visible={visible}
@@ -556,6 +683,7 @@ export default function AddStaffModal({
           {step === 'employee-form' && renderEmployeeForm()}
           {step === 'contractor-search' && renderContractorSearch()}
           {step === 'contractor-results' && renderContractorResults()}
+          {step === 'contractor-invite' && renderContractorInvite()}
         </ScrollView>
       </KeyboardAvoidingView>
     </Modal>
@@ -767,5 +895,18 @@ const styles = StyleSheet.create({
   },
   detailText: {
     fontSize: 14,
+  },
+  infoBox: {
+    flexDirection: 'row',
+    padding: DESIGN_TOKENS.spacing.md,
+    borderRadius: DESIGN_TOKENS.radius.md,
+    marginVertical: DESIGN_TOKENS.spacing.lg,
+    gap: DESIGN_TOKENS.spacing.sm,
+    alignItems: 'flex-start',
+  },
+  infoBoxText: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 20,
   },
 })

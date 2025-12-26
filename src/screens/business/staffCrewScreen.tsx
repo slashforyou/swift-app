@@ -15,6 +15,7 @@ import {
     View
 } from 'react-native'
 import AddStaffModal from '../../components/modals/AddStaffModal'
+import EditStaffModal from '../../components/modals/EditStaffModal'
 import { DESIGN_TOKENS } from '../../constants/Styles'
 import { useTheme } from '../../context/ThemeProvider'
 import { useStaff } from '../../hooks/useStaff'
@@ -39,9 +40,14 @@ export default function StaffCrewScreen() {
     inviteEmployee,
     searchContractor,
     addContractor,
+    updateStaff,
+    removeStaff,
+    inviteContractor,
   } = useStaff()
 
   const [isModalVisible, setIsModalVisible] = useState(false)
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false)
+  const [selectedMember, setSelectedMember] = useState<StaffMember | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [filterType, setFilterType] = useState<'all' | 'employee' | 'contractor'>('all')
 
@@ -68,9 +74,13 @@ export default function StaffCrewScreen() {
         {
           text: t('staff.actions.remove'),
           style: 'destructive',
-          onPress: () => {
-            // TODO: Implémenter la suppression
-            console.log('Remove staff:', member.id)
+          onPress: async () => {
+            try {
+              await removeStaff(member.id)
+              Alert.alert('Succès', `${member.firstName} ${member.lastName} a été supprimé`)
+            } catch (error) {
+              Alert.alert('Erreur', 'Impossible de supprimer ce membre')
+            }
           },
         },
       ]
@@ -78,8 +88,12 @@ export default function StaffCrewScreen() {
   }
 
   const handleEditStaff = (member: StaffMember) => {
-    // TODO: Ouvrir modal d'édition
-    console.log('Edit staff:', member.id)
+    setSelectedMember(member)
+    setIsEditModalVisible(true)
+  }
+
+  const handleSaveStaff = async (staffId: string, updateData: Partial<StaffMember>) => {
+    await updateStaff(staffId, updateData)
   }
 
   const filteredStaff = staff.filter((member) => {
@@ -439,6 +453,18 @@ export default function StaffCrewScreen() {
         onInviteEmployee={inviteEmployee}
         onSearchContractor={searchContractor}
         onAddContractor={addContractor}
+        onInviteContractor={inviteContractor}
+      />
+
+      {/* Modal d'édition */}
+      <EditStaffModal
+        visible={isEditModalVisible}
+        member={selectedMember}
+        onClose={() => {
+          setIsEditModalVisible(false)
+          setSelectedMember(null)
+        }}
+        onSave={handleSaveStaff}
       />
     </View>
   )
