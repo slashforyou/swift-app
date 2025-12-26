@@ -23,9 +23,8 @@ import VehicleDetailsScreen from './VehicleDetailsScreen'
 import { DESIGN_TOKENS } from '../../constants/Styles'
 import { useTheme } from '../../context/ThemeProvider'
 import { useVehicles as useVehiclesContext } from '../../context/VehiclesProvider'
-import { useVehicles } from '../../hooks/useVehicles'
+import { useVehicles, type VehicleAPI } from '../../hooks/useVehicles'
 import { useTranslation } from '../../localization/useLocalization'
-import { VehicleAPI } from '../../services/vehiclesService'
 
 // Types
 interface Vehicle {

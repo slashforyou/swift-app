@@ -3,9 +3,10 @@
  * Gestion des paramètres du compte Stripe, webhooks, et configuration
  */
 import Ionicons from '@react-native-vector-icons/ionicons'
-import React from 'react'
+import React, { useState } from 'react'
 import {
     Alert,
+    Linking,
     ScrollView,
     StyleSheet,
     Switch,
@@ -18,7 +19,8 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 // Context
 import { DESIGN_TOKENS } from '../../constants/Styles'
 import { useTheme } from '../../context/ThemeProvider'
-import { useStripeAccount } from '../../hooks/useStripe'
+import { useStripeAccount, useStripeSettings } from '../../hooks/useStripe'
+import { getStripeConnectOnboardingLink } from '../../services/StripeService'
 
 // Types
 interface StripeConfig {
@@ -42,9 +44,13 @@ interface StripeSettingsScreenProps {
 
 export default function StripeSettingsScreen({ navigation }: StripeSettingsScreenProps) {
   const { colors } = useTheme()
+  const [isProcessing, setIsProcessing] = useState(false)
 
   // Utilisation du hook Stripe pour récupérer les vraies données
   const { account, balance, loading: isLoading, error, refresh, updateSettings } = useStripeAccount()
+  
+  // Hook pour les paramètres avancés
+  const { settings, updateSettings: updateStripeSettings, saving } = useStripeSettings()
 
   // Configuration transformée à partir des données du compte
   const config = account ? {
@@ -66,12 +72,13 @@ export default function StripeSettingsScreen({ navigation }: StripeSettingsScree
     try {
       // Utilise la fonction updateSettings du hook pour vraiment sauvegarder
       await updateSettings({ [key]: value })
-    } catch (error) {
+    } catch (error) {
+
       Alert.alert('Erreur', 'Impossible de mettre à jour les paramètres')
     }
   }
 
-  const handleAccountSetup = () => {
+  const handleAccountSetup = async () => {
     Alert.alert(
       'Setup Stripe Account',
       'You will be redirected to Stripe to complete your account setup.',
@@ -79,9 +86,18 @@ export default function StripeSettingsScreen({ navigation }: StripeSettingsScree
         { text: 'Cancel', style: 'cancel' },
         { 
           text: 'Continue', 
-          onPress: () => {
-            // TODO: Ouvrir Stripe Connect Onboarding
-            // TEMP_DISABLED: console.log('Open Stripe Connect onboarding')
+          onPress: async () => {
+            try {
+              setIsProcessing(true)
+              const onboardingUrl = await getStripeConnectOnboardingLink()
+              if (onboardingUrl) {
+                await Linking.openURL(onboardingUrl)
+              }
+            } catch (err) {
+              Alert.alert('Error', 'Could not open Stripe onboarding. Please try again.')
+            } finally {
+              setIsProcessing(false)
+            }
           } 
         }
       ]
@@ -91,16 +107,9 @@ export default function StripeSettingsScreen({ navigation }: StripeSettingsScree
   const handleWebhooksSetup = () => {
     Alert.alert(
       'Webhook Configuration',
-      'Webhooks allow real-time updates from Stripe. Configure your webhook endpoints.',
+      'Webhooks are automatically configured by the server. Contact support if you need custom webhook endpoints.',
       [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Configure', 
-          onPress: () => {
-            // TODO: Navigation vers configuration webhooks
-            // TEMP_DISABLED: console.log('Configure webhooks')
-          } 
-        }
+        { text: 'OK' }
       ]
     )
   }
@@ -108,14 +117,16 @@ export default function StripeSettingsScreen({ navigation }: StripeSettingsScree
   const handleTestPayment = () => {
     Alert.alert(
       'Test Payment',
-      'This will create a test payment to verify your Stripe integration.',
+      'To test your Stripe integration, create a Payment Link from the Stripe Hub and complete a test payment.',
       [
         { text: 'Cancel', style: 'cancel' },
         { 
           text: 'Create Test Payment', 
           onPress: () => {
-            // TODO: Créer un paiement test
-            // TEMP_DISABLED: console.log('Create test payment')
+            // Navigation vers StripeHub pour créer un lien de paiement
+            if (navigation?.navigate) {
+              navigation.navigate('StripeHub')
+            }
           } 
         }
       ]
@@ -125,17 +136,9 @@ export default function StripeSettingsScreen({ navigation }: StripeSettingsScree
   const handleDisconnect = () => {
     Alert.alert(
       'Disconnect Stripe',
-      'Are you sure you want to disconnect your Stripe account? This will disable payment processing.',
+      'This feature requires contacting support. Your Stripe account must be disconnected through the admin portal.',
       [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Disconnect', 
-          style: 'destructive',
-          onPress: () => {
-            // TODO: Déconnecter le compte Stripe
-            // TEMP_DISABLED: console.log('Disconnect Stripe account')
-          } 
-        }
+        { text: 'OK' }
       ]
     )
   }

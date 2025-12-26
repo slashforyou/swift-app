@@ -602,15 +602,336 @@ export const createInstantPayout = async (amount: number): Promise<string> => {
   }
 };
 
-export const createStripePaymentLink = async (request: any): Promise<string> => {
-  // TEMP_DISABLED: console.log('🔗 [CREATE PAYMENT LINK] Creating payment link:', request);
-  // AWAITING_BACKEND: Pas d'endpoint /stripe/payment-links disponible
-  return `https://buy.stripe.com/test_${Date.now()}`;
+// ========================================
+// 🔗 PAYMENT LINKS API - NOUVEAUX ENDPOINTS
+// ========================================
+
+/**
+ * Interface pour la création de Payment Link
+ */
+export interface CreatePaymentLinkRequest {
+  amount: number; // Montant en centimes
+  currency?: string;
+  description?: string;
+  customer_email?: string;
+  metadata?: Record<string, string>;
+}
+
+/**
+ * Interface pour un Payment Link
+ */
+export interface PaymentLink {
+  id: string;
+  url: string;
+  active: boolean;
+  created: number;
+  currency?: string;
+  metadata?: Record<string, string>;
+}
+
+/**
+ * Crée un lien de paiement Stripe partageable
+ * POST /v1/stripe/payment-links/create
+ */
+export const createStripePaymentLink = async (request: CreatePaymentLinkRequest): Promise<PaymentLink> => {
+  try {
+    const response = await fetchWithAuth(`${ServerData.serverUrl}v1/stripe/payment-links/create`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        amount: request.amount,
+        currency: request.currency || 'aud',
+        description: request.description,
+        customer_email: request.customer_email,
+        metadata: request.metadata
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `HTTP error ${response.status}`);
+    }
+
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to create payment link');
+    }
+
+    return data.data;
+  } catch (error) {
+    safeLogError('CREATE_PAYMENT_LINK', error);
+    throw error;
+  }
 };
 
-export const updateStripeAccountSettings = async (settings: any): Promise<void> => {
-  // TEMP_DISABLED: console.log('⚙️ [UPDATE SETTINGS] Updating account settings:', settings);
-  // AWAITING_BACKEND: Pas d'endpoint /stripe/account/settings disponible
+/**
+ * Liste tous les liens de paiement
+ * GET /v1/stripe/payment-links/list
+ */
+export const fetchStripePaymentLinks = async (options?: {
+  limit?: number;
+  active?: boolean;
+}): Promise<{ payment_links: PaymentLink[]; has_more: boolean }> => {
+  try {
+    const params = new URLSearchParams();
+    if (options?.limit) params.append('limit', options.limit.toString());
+    if (options?.active !== undefined) params.append('active', options.active.toString());
+
+    const url = `${ServerData.serverUrl}v1/stripe/payment-links/list${params.toString() ? '?' + params.toString() : ''}`;
+    const response = await fetchWithAuth(url, { method: 'GET' });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `HTTP error ${response.status}`);
+    }
+
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to fetch payment links');
+    }
+
+    return data.data;
+  } catch (error) {
+    safeLogError('FETCH_PAYMENT_LINKS', error);
+    throw error;
+  }
+};
+
+/**
+ * Récupère les détails d'un lien de paiement
+ * GET /v1/stripe/payment-links/:id
+ */
+export const getStripePaymentLink = async (linkId: string): Promise<PaymentLink> => {
+  try {
+    const response = await fetchWithAuth(
+      `${ServerData.serverUrl}v1/stripe/payment-links/${linkId}`,
+      { method: 'GET' }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `HTTP error ${response.status}`);
+    }
+
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to fetch payment link');
+    }
+
+    return data.data;
+  } catch (error) {
+    safeLogError('GET_PAYMENT_LINK', error);
+    throw error;
+  }
+};
+
+/**
+ * Met à jour un lien de paiement
+ * PATCH /v1/stripe/payment-links/:id
+ */
+export const updateStripePaymentLink = async (
+  linkId: string,
+  updates: { active?: boolean; metadata?: Record<string, string> }
+): Promise<PaymentLink> => {
+  try {
+    const response = await fetchWithAuth(
+      `${ServerData.serverUrl}v1/stripe/payment-links/${linkId}`,
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `HTTP error ${response.status}`);
+    }
+
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to update payment link');
+    }
+
+    return data.data;
+  } catch (error) {
+    safeLogError('UPDATE_PAYMENT_LINK', error);
+    throw error;
+  }
+};
+
+/**
+ * Désactive un lien de paiement
+ * POST /v1/stripe/payment-links/:id/deactivate
+ */
+export const deactivateStripePaymentLink = async (linkId: string): Promise<{ id: string; active: boolean }> => {
+  try {
+    const response = await fetchWithAuth(
+      `${ServerData.serverUrl}v1/stripe/payment-links/${linkId}/deactivate`,
+      { method: 'POST' }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `HTTP error ${response.status}`);
+    }
+
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to deactivate payment link');
+    }
+
+    return data.data;
+  } catch (error) {
+    safeLogError('DEACTIVATE_PAYMENT_LINK', error);
+    throw error;
+  }
+};
+
+// ========================================
+// ⚙️ ACCOUNT SETTINGS API - NOUVEAUX ENDPOINTS
+// ========================================
+
+/**
+ * Interface pour les paramètres du compte Stripe
+ */
+export interface StripeAccountSettings {
+  branding?: {
+    icon?: string | null;
+    logo?: string | null;
+    primary_color?: string | null;
+    secondary_color?: string | null;
+  };
+  payments?: {
+    statement_descriptor?: string | null;
+    statement_descriptor_kana?: string | null;
+    statement_descriptor_kanji?: string | null;
+  };
+  payouts?: {
+    schedule?: {
+      interval?: 'manual' | 'daily' | 'weekly' | 'monthly';
+      delay_days?: number;
+      weekly_anchor?: string;
+      monthly_anchor?: number;
+    };
+    statement_descriptor?: string | null;
+    debit_negative_balances?: boolean;
+  };
+  dashboard?: {
+    display_name?: string | null;
+    support_email?: string | null;
+    support_phone?: string | null;
+    support_url?: string | null;
+    url?: string | null;
+  };
+  account_status?: {
+    charges_enabled: boolean;
+    payouts_enabled: boolean;
+    details_submitted: boolean;
+    country: string;
+    default_currency: string;
+  };
+}
+
+/**
+ * Récupère les paramètres actuels du compte Stripe
+ * GET /v1/stripe/account/settings
+ */
+export const getStripeAccountSettings = async (): Promise<StripeAccountSettings> => {
+  try {
+    const response = await fetchWithAuth(
+      `${ServerData.serverUrl}v1/stripe/account/settings`,
+      { method: 'GET' }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `HTTP error ${response.status}`);
+    }
+
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to fetch account settings');
+    }
+
+    return data.data.settings;
+  } catch (error) {
+    safeLogError('GET_ACCOUNT_SETTINGS', error);
+    throw error;
+  }
+};
+
+/**
+ * Met à jour les paramètres du compte Stripe
+ * PATCH /v1/stripe/account/settings
+ */
+export const updateStripeAccountSettings = async (
+  settings: Partial<Omit<StripeAccountSettings, 'account_status'>>
+): Promise<StripeAccountSettings> => {
+  try {
+    const response = await fetchWithAuth(
+      `${ServerData.serverUrl}v1/stripe/account/settings`,
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings)
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `HTTP error ${response.status}`);
+    }
+
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to update account settings');
+    }
+
+    return data.data.settings;
+  } catch (error) {
+    safeLogError('UPDATE_ACCOUNT_SETTINGS', error);
+    throw error;
+  }
+};
+
+/**
+ * Interface pour l'historique des modifications
+ */
+export interface SettingsHistoryEntry {
+  id: number;
+  changes: Partial<StripeAccountSettings>;
+  updated_by_user_id: number;
+  created_at: string;
+}
+
+/**
+ * Récupère l'historique des modifications de paramètres
+ * GET /v1/stripe/account/settings/history
+ */
+export const getStripeSettingsHistory = async (limit?: number): Promise<SettingsHistoryEntry[]> => {
+  try {
+    const params = limit ? `?limit=${limit}` : '';
+    const response = await fetchWithAuth(
+      `${ServerData.serverUrl}v1/stripe/account/settings/history${params}`,
+      { method: 'GET' }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `HTTP error ${response.status}`);
+    }
+
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to fetch settings history');
+    }
+
+    return data.data.history;
+  } catch (error) {
+    safeLogError('GET_SETTINGS_HISTORY', error);
+    throw error;
+  }
 };
 
 // ========================================

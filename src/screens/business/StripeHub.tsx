@@ -20,6 +20,7 @@ import { DESIGN_TOKENS } from '../../constants/Styles'
 import { useTheme } from '../../context/ThemeProvider'
 import { useStripeConnection } from '../../hooks/useStripeConnection'
 // Components
+import CreatePaymentLinkModal from '../../components/modals/CreatePaymentLinkModal'
 import { StripeConnectWebView } from '../../components/stripe/StripeConnectWebView'
 
 // Types
@@ -47,6 +48,7 @@ interface StripeAccount {
 export default function StripeHub({ navigation }: StripeHubProps) {
   const { colors } = useTheme()
   const [isLoading, setIsLoading] = useState(false)
+  const [showPaymentLinkModal, setShowPaymentLinkModal] = useState(false)
 
   // Hook pour détecter la connexion Stripe réelle
   const stripeConnection = useStripeConnection()
@@ -140,7 +142,8 @@ export default function StripeHub({ navigation }: StripeHubProps) {
         stripePayouts.refresh(),
         stripeConnection.refresh()
       ]);
-    } catch (error) {
+    } catch (error) {
+
       console.error('Error refreshing Stripe data:', error);
     }
     setIsLoading(false)
@@ -161,7 +164,8 @@ export default function StripeHub({ navigation }: StripeHubProps) {
       setStripeAccountLink(onboardingUrl)
       setShowStripeWebView(true)
       
-    } catch (error) {
+    } catch (error) {
+
       console.error('❌ Error creating Stripe Connect Express account:', error);
       Alert.alert(
         'Erreur de Connexion', 
@@ -230,29 +234,8 @@ export default function StripeHub({ navigation }: StripeHubProps) {
   }
 
   const handleCreatePaymentLink = () => {
-    // TEMP_DISABLED: console.log('Create payment link')
-    // TODO: Ouvrir modal de création de lien de paiement ou navigation
-    Alert.alert(
-      'Create Payment Link',
-      'Choose the type of payment link to create',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Quick Link', 
-          onPress: () => {
-            // TODO: Créer un lien de paiement rapide
-            // TEMP_DISABLED: console.log('Create quick payment link')
-          }
-        },
-        { 
-          text: 'Custom Link', 
-          onPress: () => {
-            // TODO: Navigation vers création personnalisée
-            // TEMP_DISABLED: console.log('Create custom payment link')
-          }
-        }
-      ]
-    )
+    // Ouvrir le modal de création de lien de paiement
+    setShowPaymentLinkModal(true)
   }
 
   const styles = StyleSheet.create({
@@ -726,6 +709,15 @@ export default function StripeHub({ navigation }: StripeHubProps) {
         onSuccess={handleWebViewSuccess}
         onError={handleWebViewError}
         accountLinkUrl={stripeAccountLink || undefined}
+      />
+
+      {/* Modal de création de lien de paiement */}
+      <CreatePaymentLinkModal
+        visible={showPaymentLinkModal}
+        onClose={() => setShowPaymentLinkModal(false)}
+        onSuccess={(paymentLink) => {
+          // Lien créé avec succès
+        }}
       />
     </>
   );
