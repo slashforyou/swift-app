@@ -18,6 +18,8 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 // Context
 import { DESIGN_TOKENS } from '../../constants/Styles'
 import { useTheme } from '../../context/ThemeProvider'
+import { fetchWithAuth } from '../../utils/session'
+import { ServerData } from '../../constants/ServerData'
 
 // Types
 interface PaymentData {
@@ -56,20 +58,66 @@ export const StripePaymentScreen: React.FC<StripePaymentScreenProps> = ({
       setLoading(true)
       setError(null)
 
-      // Simulation de l'API Stripe
-      // TODO: Intégrer avec la vraie API Stripe
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      // Mock payment intent success
-      const mockPaymentIntent = {
-        id: 'pi_mock_success',
-        status: 'succeeded',
-        amount: paymentData.amount * 100, // En centimes
-        currency: paymentData.currency
+      // Appel API réel pour créer le payment intent
+      const createIntentResponse = await fetchWithAuth(
+        `${ServerData.serverUrl}v1/payments/create-payment-intent`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            amount: paymentData.amount * 100, // En centimes
+            currency: paymentData.currency || 'aud',
+            description: paymentData.description,
+            job_id: paymentData.jobId,
+            payment_method_data: {
+              type: 'card',
+              card: {
+                number: cardNumber?.replace(/\s/g, ''),
+                exp_month: expiryDate?.split('/')[0],
+                exp_year: expiryDate?.split('/')[1],
+                cvc: cvv,
+              },
+              billing_details: {
+                name: cardholderName,
+              },
+            },
+          }),
+        }
+      )
+
+      if (!createIntentResponse.ok) {
+        const errorData = await createIntentResponse.json()
+        throw new Error(errorData.message || 'Payment intent creation failed')
       }
 
-      onSuccess(mockPaymentIntent)
+      const paymentIntentData = await createIntentResponse.json()
+      
+      // Confirmer le paiement
+      const confirmResponse = await fetchWithAuth(
+        `${ServerData.serverUrl}v1/payments/confirm`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            payment_intent_id: paymentIntentData.data?.id || paymentIntentData.id,
+          }),
+        }
+      )
+
+      if (!confirmResponse.ok) {
+        const errorData = await confirmResponse.json()
+        throw new Error(errorData.message || 'Payment confirmation failed')
+      }
+
+      const confirmedPayment = await confirmResponse.json()
+      
+      onSuccess(confirmedPayment.data || confirmedPayment)
     } catch (err) {
+
       const errorMessage = err instanceof Error ? err.message : 'Payment failed'
       setError(errorMessage)
       Alert.alert('Payment Error', errorMessage)

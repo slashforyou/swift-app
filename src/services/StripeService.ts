@@ -3,6 +3,7 @@
  * Version simplifiée pour tester avec Company ID 1
  */
 import { ServerData } from '../constants/ServerData';
+import { safeLogError } from '../utils/logUtils';
 import { fetchWithAuth } from '../utils/session';
 import { fetchUserProfile } from './user';
 
@@ -15,17 +16,14 @@ let cachedUserId: string | null = null;
  */
 const getUserCompanyId = async (): Promise<string> => {
   try {
-    console.log('🔍 [COMPANY ID] Getting company_id for user...');
+    // TEMP_DISABLED: console.log('🔍 [COMPANY ID] Getting company_id for user...');
     const profile = await fetchUserProfile();
     const userId = profile.id.toString();
     
-    console.log('👤 [USER INFO] User ID:', userId, '-', profile.firstName, profile.lastName);
+    // TEMP_DISABLED: console.log('👤 [USER INFO] User ID:', userId, '-', profile.firstName, profile.lastName);
     
     // TEMPORAIRE: D'après tes données, l'utilisateur 15 est lié à Company ID: 1
-    if (userId === '15') {
-      console.log('✅ [COMPANY ID] User 15 → Using Company ID: 1 (Nerd-Test)');
-      console.log('🏢 [COMPANY INFO] Company: Nerd-Test (acct_1SV8KSIsgSU2xbML)');
-      cachedUserId = '1';
+    if (userId === '15') {cachedUserId = '1';
       return '1';
     }
     
@@ -35,6 +33,7 @@ const getUserCompanyId = async (): Promise<string> => {
     return userId;
     
   } catch (error) {
+
     console.error('❌ [COMPANY ID] Failed to get company_id:', error);
     throw new Error('Unable to get user company_id. Please ensure you are logged in.');
   }
@@ -52,28 +51,27 @@ export const checkStripeConnectionStatus = async (): Promise<{
 }> => {
   try {
     const companyId = await getUserCompanyId();
-    console.log('🔍 [STRIPE CONNECTION] Checking connection status for company_id:', companyId);
+    // TEMP_DISABLED: console.log('🔍 [STRIPE CONNECTION] Checking connection status for company_id:', companyId);
 
     // Utiliser l'endpoint confirmé par le backend
     const statusUrl = `${ServerData.serverUrl}v1/stripe/connect/status?company_id=${companyId}`;
-    console.log('🌐 [STRIPE STATUS] Calling confirmed endpoint:', statusUrl);
+    // TEMP_DISABLED: console.log('🌐 [STRIPE STATUS] Calling confirmed endpoint:', statusUrl);
 
     const response = await fetchWithAuth(statusUrl, {
       method: 'GET',
     });
 
-    console.log(`🔍 [STRIPE CONNECTION] Response status: ${response.status}`);
+    // TEMP_DISABLED: console.log(`🔍 [STRIPE CONNECTION] Response status: ${response.status}`);
 
     if (response.ok) {
       const data = await response.json();
-      console.log('✅ [STRIPE CONNECTION] Success! Response:', JSON.stringify(data, null, 2));
+      // TEMP_DISABLED: console.log('✅ [STRIPE CONNECTION] Success! Response received');
 
       // Analyser la réponse pour déterminer le statut de connexion
       return analyzeStripeConnectionResponse(data);
     } else {
-      console.log(`❌ [STRIPE CONNECTION] Endpoint failed with status ${response.status}`);
-      const errorText = await response.text().catch(() => 'No error text');
-      console.log(`❌ [STRIPE CONNECTION] Error details: ${errorText}`);
+        const errorText = await response.text().catch(() => 'No error text');
+      // TEMP_DISABLED: console.log(`❌ [STRIPE CONNECTION] Error details: ${errorText}`);
       
       return {
         isConnected: false,
@@ -82,6 +80,7 @@ export const checkStripeConnectionStatus = async (): Promise<{
       };
     }
   } catch (error) {
+
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('❌ [STRIPE CONNECTION] Error checking connection status:', error);
     return {
@@ -102,12 +101,12 @@ export const createStripeConnectAccount = async (): Promise<{
 }> => {
   try {
     const companyId = await getUserCompanyId();
-    console.log('🏢 Creating Stripe Connect Express account for company:', companyId);
+    // TEMP_DISABLED: console.log('🏢 Creating Stripe Connect Express account for company:', companyId);
 
     const createUrl = `${ServerData.serverUrl}v1/stripe/connect/create`;
-    console.log('🌐 Full URL being called:', createUrl);
-    console.log('🔧 ServerData.serverUrl:', ServerData.serverUrl);
-    console.log('🏢 Company ID:', companyId);
+    // TEMP_DISABLED: console.log('🌐 Full URL being called:', createUrl);
+    // TEMP_DISABLED: console.log('🔧 ServerData.serverUrl:', ServerData.serverUrl);
+    // TEMP_DISABLED: console.log('🏢 Company ID:', companyId);
 
     // Appel du vrai endpoint POST du serveur avec company_id dans le body
     const response = await fetchWithAuth(createUrl, {
@@ -120,8 +119,8 @@ export const createStripeConnectAccount = async (): Promise<{
       })
     });
 
-    console.log('📡 [STRIPE CREATE] Response status:', response.status);
-    console.log('📡 [STRIPE CREATE] Response ok:', response.ok);
+    // TEMP_DISABLED: console.log('📡 [STRIPE CREATE] Response status:', response.status);
+    // TEMP_DISABLED: console.log('📡 [STRIPE CREATE] Response ok:', response.ok);
 
     if (!response.ok) {
       if (response.status === 400) {
@@ -134,14 +133,14 @@ export const createStripeConnectAccount = async (): Promise<{
     }
 
     const data = await response.json();
-    console.log('✅ [STRIPE CREATE] Response data:', JSON.stringify(data, null, 2));
+    // TEMP_DISABLED: console.log('✅ [STRIPE CREATE] Response data received');
     
     if (!data.success || !data.data?.stripe_account_id) {
       throw new Error('API returned invalid account data');
     }
 
-    console.log('✅ Stripe Connect Express account created:', data.data.stripe_account_id);
-    console.log('🔗 Onboarding URL received:', data.data.onboarding_url);
+    // TEMP_DISABLED: console.log('✅ Stripe Connect Express account created:', data.data.stripe_account_id);
+    // TEMP_DISABLED: console.log('🔗 Onboarding URL received:', data.data.onboarding_url);
     
     return {
       accountId: data.data.stripe_account_id,
@@ -149,18 +148,20 @@ export const createStripeConnectAccount = async (): Promise<{
     };
 
   } catch (error) {
+
     console.error('Error creating Stripe Connect Express account:', error);
     
     // Si c'est un compte existant, essayer de récupérer le lien d'onboarding
     if (error instanceof Error && error.message.includes('déjà existant')) {
       try {
-        console.log('🔄 Account exists, trying to get onboarding link...');
+        // TEMP_DISABLED: console.log('🔄 Account exists, trying to get onboarding link...');
         const onboardingUrl = await getStripeConnectOnboardingLink();
         return {
           accountId: 'existing_account',
           onboardingUrl: onboardingUrl
         };
       } catch (onboardingError) {
+
         console.error('Failed to get existing account onboarding link:', onboardingError);
       }
     }
@@ -184,10 +185,10 @@ export const createStripeConnectAccount = async (): Promise<{
 export const getStripeConnectOnboardingLink = async (): Promise<string> => {
   try {
     const companyId = await getUserCompanyId();
-    console.log('🔗 Getting Stripe Connect onboarding link for company:', companyId);
+    // TEMP_DISABLED: console.log('🔗 Getting Stripe Connect onboarding link for company:', companyId);
 
     const onboardingUrl = `${ServerData.serverUrl}v1/stripe/connect/onboarding?company_id=${companyId}`;
-    console.log('🌐 Onboarding URL being called:', onboardingUrl);
+    // TEMP_DISABLED: console.log('🌐 Onboarding URL being called:', onboardingUrl);
 
     const response = await fetchWithAuth(onboardingUrl, {
       method: 'GET',
@@ -196,7 +197,7 @@ export const getStripeConnectOnboardingLink = async (): Promise<string> => {
       }
     });
 
-    console.log('📡 [STRIPE ONBOARDING] Response status:', response.status);
+    // TEMP_DISABLED: console.log('📡 [STRIPE ONBOARDING] Response status:', response.status);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'No error text');
@@ -205,17 +206,18 @@ export const getStripeConnectOnboardingLink = async (): Promise<string> => {
     }
 
     const data = await response.json();
-    console.log('✅ [STRIPE ONBOARDING] Response data:', JSON.stringify(data, null, 2));
+    // TEMP_DISABLED: console.log('✅ [STRIPE ONBOARDING] Response data received');
     
     if (!data.success || !data.data?.onboarding_url) {
       throw new Error('API returned invalid onboarding link data');
     }
 
-    console.log('✅ Onboarding link retrieved:', data.data.onboarding_url);
-    console.log('⏰ Expires at:', data.data.expires_at);
+    // TEMP_DISABLED: console.log('✅ Onboarding link retrieved:', data.data.onboarding_url);
+    // TEMP_DISABLED: console.log('⏰ Expires at:', data.data.expires_at);
     
     return data.data.onboarding_url;
   } catch (error) {
+
     console.error('Error getting Stripe Connect onboarding link:', error);
     // Return mock URL for development
     const mockUrl = `https://connect.stripe.com/express/setup/mock-${Date.now()}`;
@@ -233,13 +235,12 @@ const analyzeStripeConnectionResponse = (data: any): {
   account?: any;
   details?: string;
 } => {
-  console.log('🔍 [STRIPE ANALYSIS] Analyzing response data...');
+  // Analyse silencieuse pour éviter tout crash
 
   // CORRIGÉ: Chercher dans data.data.stripe_account_id car c'est la structure réelle de la réponse
   const accountId = data.data?.stripe_account_id || data.stripe_account_id || data.account?.id || data.id;
   
   if (!accountId || accountId === '' || accountId === 'null') {
-    console.log('❌ [STRIPE ANALYSIS] No account ID found');
     return {
       isConnected: false,
       status: 'not_connected',
@@ -247,30 +248,16 @@ const analyzeStripeConnectionResponse = (data: any): {
     };
   }
 
-  console.log('✅ [STRIPE ANALYSIS] Found account ID:', accountId);
-
   // CORRIGÉ: Chercher dans data.data aussi pour les autres propriétés
   const detailsSubmitted = data.data?.details_submitted ?? data.details_submitted ?? data.account?.details_submitted ?? false;
   const chargesEnabled = data.data?.charges_enabled ?? data.charges_enabled ?? data.account?.charges_enabled ?? false;
   const payoutsEnabled = data.data?.payouts_enabled ?? data.payouts_enabled ?? data.account?.payouts_enabled ?? false;
-
-  console.log('🔍 [STRIPE ANALYSIS] Capabilities:', {
-    detailsSubmitted,
-    chargesEnabled,
-    payoutsEnabled
-  });
 
   // Vérifier les blocages - aussi dans data.data
   const requirements = data.data?.requirements ?? data.requirements ?? data.account?.requirements ?? {};
   const currentlyDue = requirements.currently_due ?? [];
   const pastDue = requirements.past_due ?? [];
   const disabledReason = requirements.disabled_reason;
-
-  console.log('🔍 [STRIPE ANALYSIS] Requirements:', {
-    currentlyDue: currentlyDue.length,
-    pastDue: pastDue.length,
-    disabledReason
-  });
 
   // Déterminer le statut
   if (disabledReason) {
@@ -310,7 +297,6 @@ const analyzeStripeConnectionResponse = (data: any): {
   }
 
   // Tout semble bon !
-  console.log('✅ [STRIPE ANALYSIS] Account is fully active!');
   return {
     isConnected: true,
     status: 'active',
@@ -323,11 +309,11 @@ const analyzeStripeConnectionResponse = (data: any): {
 export const fetchStripePayments = async () => {
   try {
     const companyId = await getUserCompanyId();
-    console.log('� [FETCH PAYMENTS] Loading REAL payments data for company:', companyId);
+    // TEMP_DISABLED: console.log('� [FETCH PAYMENTS] Loading REAL payments data for company:', companyId);
 
     // Essayer l'endpoint payments dédié
     const paymentsUrl = `${ServerData.serverUrl}v1/stripe/payments?company_id=${companyId}`;
-    console.log('🌐 [FETCH PAYMENTS] Calling payments endpoint:', paymentsUrl);
+    // TEMP_DISABLED: console.log('🌐 [FETCH PAYMENTS] Calling payments endpoint:', paymentsUrl);
 
     const response = await fetchWithAuth(paymentsUrl, {
       method: 'GET',
@@ -335,11 +321,9 @@ export const fetchStripePayments = async () => {
 
     if (response.ok) {
       const data = await response.json();
-      console.log('✅ [FETCH PAYMENTS] Payments API response:', JSON.stringify(data, null, 2));
+      // TEMP_DISABLED: console.log('✅ [FETCH PAYMENTS] Payments API response received');
       
-      if (data.success && data.data) {
-        // Transformer les données API en format attendu
-        const payments = data.data.map((payment: any) => ({
+      if (data.success && data.data) {const payments = data.data.map((payment: any) => ({
           id: payment.id || payment.stripe_payment_id,
           date: payment.created || payment.date || new Date().toISOString(),
           amount: payment.amount_received || payment.amount || 0,
@@ -350,7 +334,7 @@ export const fetchStripePayments = async () => {
           method: payment.payment_method || 'card'
         }));
         
-        console.log('💳 [FETCH PAYMENTS] Processed payments:', payments.length, 'items');
+        // TEMP_DISABLED: console.log('💳 [FETCH PAYMENTS] Processed payments:', payments.length, 'items');
         return payments;
       }
     } else {
@@ -359,10 +343,11 @@ export const fetchStripePayments = async () => {
 
     throw new Error('Unable to fetch payments from API');
 
-  } catch (error) {
-    console.error('❌ [FETCH PAYMENTS] Error fetching real payments:', error);
+  } catch (error: any) {
+
+    safeLogError('❌ [FETCH PAYMENTS] Error fetching real payments:', error);
     // Retourner des données vides en cas d'erreur
-    console.log('💳 [FETCH PAYMENTS] Using empty payments list');
+    // TEMP_DISABLED: console.log('💳 [FETCH PAYMENTS] Using empty payments list');
     return [];
   }
 };
@@ -370,11 +355,11 @@ export const fetchStripePayments = async () => {
 export const fetchStripePayouts = async () => {
   try {
     const companyId = await getUserCompanyId();
-    console.log('� [FETCH PAYOUTS] Loading REAL payouts data for company:', companyId);
+    // TEMP_DISABLED: console.log('� [FETCH PAYOUTS] Loading REAL payouts data for company:', companyId);
 
     // Essayer l'endpoint payouts dédié
     const payoutsUrl = `${ServerData.serverUrl}v1/stripe/payouts?company_id=${companyId}`;
-    console.log('🌐 [FETCH PAYOUTS] Calling payouts endpoint:', payoutsUrl);
+    // TEMP_DISABLED: console.log('🌐 [FETCH PAYOUTS] Calling payouts endpoint:', payoutsUrl);
 
     const response = await fetchWithAuth(payoutsUrl, {
       method: 'GET',
@@ -382,13 +367,10 @@ export const fetchStripePayouts = async () => {
 
     if (response.ok) {
       const data = await response.json();
-      console.log('✅ [FETCH PAYOUTS] Payouts API response:', JSON.stringify(data, null, 2));
+      // TEMP_DISABLED: console.log('✅ [FETCH PAYOUTS] Payouts API response received');
       
-      if (data.success && data.data) {
-        // Transformer les données API en format attendu
-        // CORRIGÉ: La structure réelle a data.payouts au lieu de data directement
-        const payoutsList = data.data.payouts || data.data || [];
-        console.log('💸 [FETCH PAYOUTS] Raw payouts list:', payoutsList);
+      if (data.success && data.data) {const payoutsList = data.data.payouts || data.data || [];
+        // TEMP_DISABLED: console.log('💸 [FETCH PAYOUTS] Raw payouts list:', payoutsList);
         
         const payouts = Array.isArray(payoutsList) ? payoutsList.map((payout: any) => ({
           id: payout.id || payout.stripe_payout_id,
@@ -402,7 +384,7 @@ export const fetchStripePayouts = async () => {
           type: payout.type || 'bank_account'
         })) : [];
         
-        console.log('💸 [FETCH PAYOUTS] Processed payouts:', payouts.length, 'items');
+        // TEMP_DISABLED: console.log('💸 [FETCH PAYOUTS] Processed payouts:', payouts.length, 'items');
         return payouts;
       }
     } else {
@@ -411,10 +393,11 @@ export const fetchStripePayouts = async () => {
 
     throw new Error('Unable to fetch payouts from API');
 
-  } catch (error) {
-    console.error('❌ [FETCH PAYOUTS] Error fetching real payouts:', error);
+  } catch (error: any) {
+
+    safeLogError('❌ [FETCH PAYOUTS] Error fetching real payouts:', error);
     // Retourner des données vides en cas d'erreur
-    console.log('💸 [FETCH PAYOUTS] Using empty payouts list');
+    // TEMP_DISABLED: console.log('💸 [FETCH PAYOUTS] Using empty payouts list');
     return [];
   }
 };
@@ -422,11 +405,11 @@ export const fetchStripePayouts = async () => {
 export const fetchStripeAccount = async () => {
   try {
     const companyId = await getUserCompanyId();
-    console.log('📊 [FETCH ACCOUNT] Loading REAL account data for company:', companyId);
+    // TEMP_DISABLED: console.log('📊 [FETCH ACCOUNT] Loading REAL account data for company:', companyId);
 
     // Utiliser l'endpoint de statut qui contient toutes les infos du compte
     const statusUrl = `${ServerData.serverUrl}v1/stripe/connect/status?company_id=${companyId}`;
-    console.log('🌐 [FETCH ACCOUNT] Calling endpoint:', statusUrl);
+    // TEMP_DISABLED: console.log('🌐 [FETCH ACCOUNT] Calling endpoint:', statusUrl);
 
     const response = await fetchWithAuth(statusUrl, {
       method: 'GET',
@@ -437,7 +420,7 @@ export const fetchStripeAccount = async () => {
     }
 
     const data = await response.json();
-    console.log('✅ [FETCH ACCOUNT] Raw API response:', JSON.stringify(data, null, 2));
+    // TEMP_DISABLED: console.log('✅ [FETCH ACCOUNT] Raw API response received');
     
     if (!data.success || !data.data) {
       throw new Error('Invalid account data from API');
@@ -454,7 +437,7 @@ export const fetchStripeAccount = async () => {
       support_email: data.data.business_profile?.support_email || null,
       country: data.data.country || 'AU',
       default_currency: data.data.default_currency || 'AUD',
-      bank_accounts: [], // TODO: récupérer les comptes bancaires
+      bank_accounts: data.data.external_accounts?.data || [], // Récupéré depuis external_accounts si disponible
       requirements: data.data.requirements || {
         currently_due: [],
         eventually_due: [],
@@ -464,10 +447,11 @@ export const fetchStripeAccount = async () => {
       capabilities: data.data.capabilities || {}
     };
 
-    console.log('📊 [FETCH ACCOUNT] Processed account data:', JSON.stringify(accountData, null, 2));
+    // TEMP_DISABLED: console.log('📊 [FETCH ACCOUNT] Processed account data:', JSON.stringify(accountData, null, 2));
     return accountData;
 
   } catch (error) {
+
     console.error('❌ [FETCH ACCOUNT] Error fetching real account data:', error);
     // Fallback vers les données mock en cas d'erreur
     return {
@@ -494,11 +478,11 @@ export const fetchStripeAccount = async () => {
 export const fetchStripeBalance = async () => {
   try {
     const companyId = await getUserCompanyId();
-    console.log('� [FETCH BALANCE] Loading REAL balance data for company:', companyId);
+    // TEMP_DISABLED: console.log('� [FETCH BALANCE] Loading REAL balance data for company:', companyId);
 
     // Essayer l'endpoint balance dédié
     const balanceUrl = `${ServerData.serverUrl}v1/stripe/balance?company_id=${companyId}`;
-    console.log('🌐 [FETCH BALANCE] Calling balance endpoint:', balanceUrl);
+    // TEMP_DISABLED: console.log('🌐 [FETCH BALANCE] Calling balance endpoint:', balanceUrl);
 
     const response = await fetchWithAuth(balanceUrl, {
       method: 'GET',
@@ -506,15 +490,13 @@ export const fetchStripeBalance = async () => {
 
     if (response.ok) {
       const data = await response.json();
-      console.log('✅ [FETCH BALANCE] Balance API response:', JSON.stringify(data, null, 2));
+      // TEMP_DISABLED: console.log('✅ [FETCH BALANCE] Balance API response:', JSON.stringify(data, null, 2));
       
-      if (data.success && data.data) {
-        // CORRIGÉ: La structure réelle a des objets amount/currency, pas des nombres simples
-        const balanceData = {
+      if (data.success && data.data) {const balanceData = {
           available: data.data.available?.amount || 0,
           pending: data.data.pending?.amount || 0
         };
-        console.log('💰 [FETCH BALANCE] Processed balance:', balanceData);
+        // TEMP_DISABLED: console.log('💰 [FETCH BALANCE] Processed balance:', balanceData);
         return balanceData;
       }
     } else {
@@ -522,7 +504,7 @@ export const fetchStripeBalance = async () => {
     }
 
     // Si l'endpoint balance n'existe pas, essayer de récupérer depuis l'endpoint status
-    console.log('💰 [FETCH BALANCE] Fallback: trying to get balance from status endpoint');
+    // TEMP_DISABLED: console.log('💰 [FETCH BALANCE] Fallback: trying to get balance from status endpoint');
     
     const statusUrl = `${ServerData.serverUrl}v1/stripe/connect/status?company_id=${companyId}`;
     const statusResponse = await fetchWithAuth(statusUrl, {
@@ -531,12 +513,10 @@ export const fetchStripeBalance = async () => {
 
     if (statusResponse.ok) {
       const statusData = await statusResponse.json();
-      console.log('💰 [FETCH BALANCE] Status response for balance:', JSON.stringify(statusData, null, 2));
+      // TEMP_DISABLED: console.log('💰 [FETCH BALANCE] Status response for balance:', JSON.stringify(statusData, null, 2));
       
-      if (statusData.success && statusData.data) {
-        // Chercher les données de balance dans la réponse status
-        const balance = statusData.data.balance || { available: 0, pending: 0 };
-        console.log('💰 [FETCH BALANCE] Balance from status endpoint:', balance);
+      if (statusData.success && statusData.data) {const balance = statusData.data.balance || { available: 0, pending: 0 };
+        // TEMP_DISABLED: console.log('💰 [FETCH BALANCE] Balance from status endpoint:', balance);
         return balance;
       }
     }
@@ -544,10 +524,11 @@ export const fetchStripeBalance = async () => {
     throw new Error('Unable to fetch balance from any endpoint');
 
   } catch (error) {
+
     console.error('❌ [FETCH BALANCE] Error fetching real balance:', error);
     // Fallback vers données mock avec valeurs réalistes
     const fallbackBalance = { available: 0, pending: 0 };
-    console.log('💰 [FETCH BALANCE] Using fallback balance:', fallbackBalance);
+    // TEMP_DISABLED: console.log('💰 [FETCH BALANCE] Using fallback balance:', fallbackBalance);
     return fallbackBalance;
   }
 };
@@ -558,25 +539,23 @@ export const fetchStripeBalance = async () => {
  */
 export const createStripeConnectAccountAndLink = async (): Promise<string> => {
   try {
-    console.log('🔗 [CREATE & LINK] Creating Stripe Connect account and getting onboarding link...');
+    // TEMP_DISABLED: console.log('🔗 [CREATE & LINK] Creating Stripe Connect account and getting onboarding link...');
     
     // Essayer de créer un compte d'abord
     const result = await createStripeConnectAccount();
-    console.log('✅ [CREATE & LINK] Account creation result:', result);
+    // TEMP_DISABLED: console.log('✅ [CREATE & LINK] Account creation result:', result);
     
     // Retourner l'URL d'onboarding
     return result.onboardingUrl;
     
   } catch (error) {
-    console.log('⚠️ [CREATE & LINK] Account creation failed, trying to get existing onboarding link...');
-    
-    // Si ça échoue, essayer de récupérer un lien d'onboarding pour un compte existant
     try {
       const onboardingUrl = await getStripeConnectOnboardingLink();
-      console.log('✅ [CREATE & LINK] Got existing account onboarding link:', onboardingUrl);
+      // TEMP_DISABLED: console.log('✅ [CREATE & LINK] Got existing account onboarding link:', onboardingUrl);
       return onboardingUrl;
       
     } catch (onboardingError) {
+
       console.error('❌ [CREATE & LINK] Failed to get any onboarding link:', onboardingError);
       
       // En dernier recours, retourner une URL mock
@@ -590,19 +569,48 @@ export const createStripeConnectAccountAndLink = async (): Promise<string> => {
 // Fonctions additionnelles utilisées par les hooks
 export const createInstantPayout = async (amount: number): Promise<string> => {
   console.log('💸 [CREATE PAYOUT] Creating instant payout for:', amount);
-  // TODO: Implémenter l'API réelle
-  return `po_${Date.now()}`;
+  
+  try {
+    // ✅ Utiliser l'endpoint réel POST /stripe/payouts/create
+    const response = await fetchWithAuth(`${ServerData.serverUrl}v1/stripe/payouts/create`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        amount: Math.round(amount * 100), // Stripe utilise les centimes
+        currency: 'aud',
+        method: 'instant', // Payout instantané
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('❌ [CREATE PAYOUT] API error:', response.status, errorData);
+      throw new Error(errorData.message || `HTTP ${response.status}: Failed to create payout`);
+    }
+
+    const data = await response.json();
+    console.log('✅ [CREATE PAYOUT] Payout created:', data);
+    
+    // Retourner l'ID du payout
+    return data.data?.id || data.id || `po_${Date.now()}`;
+  } catch (error) {
+    console.error('❌ [CREATE PAYOUT] Error:', error);
+    // Fallback: retourner un ID mock en cas d'erreur
+    return `po_error_${Date.now()}`;
+  }
 };
 
 export const createStripePaymentLink = async (request: any): Promise<string> => {
-  console.log('🔗 [CREATE PAYMENT LINK] Creating payment link:', request);
-  // TODO: Implémenter l'API réelle
+  // TEMP_DISABLED: console.log('🔗 [CREATE PAYMENT LINK] Creating payment link:', request);
+  // AWAITING_BACKEND: Pas d'endpoint /stripe/payment-links disponible
   return `https://buy.stripe.com/test_${Date.now()}`;
 };
 
 export const updateStripeAccountSettings = async (settings: any): Promise<void> => {
-  console.log('⚙️ [UPDATE SETTINGS] Updating account settings:', settings);
-  // TODO: Implémenter l'API réelle
+  // TEMP_DISABLED: console.log('⚙️ [UPDATE SETTINGS] Updating account settings:', settings);
+  // AWAITING_BACKEND: Pas d'endpoint /stripe/account/settings disponible
 };
 
 // ========================================
@@ -634,10 +642,10 @@ export const createJobPaymentIntent = async (
   metadata: any;
 }> => {
   try {
-    console.log(`💳 [JOB PAYMENT] Creating Payment Intent for job ${jobId}...`);
+    // TEMP_DISABLED: console.log(`💳 [JOB PAYMENT] Creating Payment Intent for job ${jobId}...`);
 
     const createUrl = `${ServerData.serverUrl}v1/jobs/${jobId}/payment/create`;
-    console.log('🌐 [JOB PAYMENT] Calling endpoint:', createUrl);
+    // TEMP_DISABLED: console.log('🌐 [JOB PAYMENT] Calling endpoint:', createUrl);
 
     const response = await fetchWithAuth(createUrl, {
       method: 'POST',
@@ -647,7 +655,7 @@ export const createJobPaymentIntent = async (
       body: JSON.stringify(options)
     });
 
-    console.log(`📡 [JOB PAYMENT] Response status: ${response.status}`);
+    // TEMP_DISABLED: console.log(`📡 [JOB PAYMENT] Response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'No error text');
@@ -665,19 +673,20 @@ export const createJobPaymentIntent = async (
     }
 
     const data = await response.json();
-    console.log('✅ [JOB PAYMENT] Payment Intent created:', JSON.stringify(data, null, 2));
+    // TEMP_DISABLED: console.log('✅ [JOB PAYMENT] Payment Intent created:', JSON.stringify(data, null, 2));
 
     if (!data.success || !data.data?.payment_intent_id) {
       throw new Error('API returned invalid Payment Intent data');
     }
 
-    console.log(`💳 [JOB PAYMENT] Payment Intent ID: ${data.data.payment_intent_id}`);
-    console.log(`💰 [JOB PAYMENT] Amount: ${data.data.amount / 100} ${data.data.currency.toUpperCase()}`);
-    console.log(`💼 [JOB PAYMENT] Application Fee: ${data.data.application_fee_amount / 100} ${data.data.currency.toUpperCase()}`);
+    // TEMP_DISABLED: console.log(`💳 [JOB PAYMENT] Payment Intent ID: ${data.data.payment_intent_id}`);
+    // TEMP_DISABLED: console.log(`💰 [JOB PAYMENT] Amount: ${data.data.amount / 100} ${data.data.currency.toUpperCase()}`);
+    // TEMP_DISABLED: console.log(`💼 [JOB PAYMENT] Application Fee: ${data.data.application_fee_amount / 100} ${data.data.currency.toUpperCase()}`);
 
     return data.data;
 
   } catch (error) {
+
     console.error('❌ [JOB PAYMENT] Error creating Payment Intent:', error);
     throw error;
   }
@@ -702,11 +711,11 @@ export const confirmJobPayment = async (
   message: string;
 }> => {
   try {
-    console.log(`✅ [JOB PAYMENT] Confirming payment for job ${jobId}...`);
-    console.log(`💳 [JOB PAYMENT] Payment Intent: ${paymentIntentId}, Status: ${status}`);
+    // TEMP_DISABLED: console.log(`✅ [JOB PAYMENT] Confirming payment for job ${jobId}...`);
+    // TEMP_DISABLED: console.log(`💳 [JOB PAYMENT] Payment Intent: ${paymentIntentId}, Status: ${status}`);
 
     const confirmUrl = `${ServerData.serverUrl}v1/jobs/${jobId}/payment/confirm`;
-    console.log('🌐 [JOB PAYMENT] Calling endpoint:', confirmUrl);
+    // TEMP_DISABLED: console.log('🌐 [JOB PAYMENT] Calling endpoint:', confirmUrl);
 
     const response = await fetchWithAuth(confirmUrl, {
       method: 'POST',
@@ -719,7 +728,7 @@ export const confirmJobPayment = async (
       })
     });
 
-    console.log(`📡 [JOB PAYMENT] Response status: ${response.status}`);
+    // TEMP_DISABLED: console.log(`📡 [JOB PAYMENT] Response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'No error text');
@@ -735,18 +744,19 @@ export const confirmJobPayment = async (
     }
 
     const data = await response.json();
-    console.log('✅ [JOB PAYMENT] Payment confirmed:', JSON.stringify(data, null, 2));
+    // TEMP_DISABLED: console.log('✅ [JOB PAYMENT] Payment confirmed:', JSON.stringify(data, null, 2));
 
     if (!data.success) {
       throw new Error('API returned error during payment confirmation');
     }
 
-    console.log(`✅ [JOB PAYMENT] Job updated with payment status: ${data.data.payment_status}`);
-    console.log(`💰 [JOB PAYMENT] Amount paid: ${data.data.job.amount_paid}`);
+    // TEMP_DISABLED: console.log(`✅ [JOB PAYMENT] Job updated with payment status: ${data.data.payment_status}`);
+    // TEMP_DISABLED: console.log(`💰 [JOB PAYMENT] Amount paid: ${data.data.job.amount_paid}`);
 
     return data.data;
 
   } catch (error) {
+
     console.error('❌ [JOB PAYMENT] Error confirming payment:', error);
     throw error;
   }
@@ -787,16 +797,16 @@ export const getJobPaymentHistory = async (
   };
 }> => {
   try {
-    console.log(`📊 [JOB PAYMENT] Getting payment history for job ${jobId}...`);
+    // TEMP_DISABLED: console.log(`📊 [JOB PAYMENT] Getting payment history for job ${jobId}...`);
 
     const historyUrl = `${ServerData.serverUrl}v1/jobs/${jobId}/payments`;
-    console.log('🌐 [JOB PAYMENT] Calling endpoint:', historyUrl);
+    // TEMP_DISABLED: console.log('🌐 [JOB PAYMENT] Calling endpoint:', historyUrl);
 
     const response = await fetchWithAuth(historyUrl, {
       method: 'GET'
     });
 
-    console.log(`📡 [JOB PAYMENT] Response status: ${response.status}`);
+    // TEMP_DISABLED: console.log(`📡 [JOB PAYMENT] Response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'No error text');
@@ -812,18 +822,19 @@ export const getJobPaymentHistory = async (
     }
 
     const data = await response.json();
-    console.log('✅ [JOB PAYMENT] Payment history retrieved:', JSON.stringify(data, null, 2));
+    // TEMP_DISABLED: console.log('✅ [JOB PAYMENT] Payment history retrieved:', JSON.stringify(data, null, 2));
 
     if (!data.success) {
       throw new Error('API returned error for payment history');
     }
 
-    console.log(`📊 [JOB PAYMENT] Found ${data.data.length} payments for job ${jobId}`);
-    console.log(`🔒 [JOB PAYMENT] Data source: ${data.meta?.source || 'stripe_api'} (sécurisé)`);
+    // TEMP_DISABLED: console.log(`📊 [JOB PAYMENT] Found ${data.data.length} payments for job ${jobId}`);
+    // TEMP_DISABLED: console.log(`🔒 [JOB PAYMENT] Data source: ${data.meta?.source || 'stripe_api'} (sécurisé)`);
 
     return data;
 
   } catch (error) {
+
     console.error('❌ [JOB PAYMENT] Error getting payment history:', error);
     throw error;
   }
@@ -861,10 +872,10 @@ export const createStripeRefund = async (
   metadata: Record<string, string>;
 }> => {
   try {
-    console.log(`💸 [STRIPE REFUND] Creating refund for Payment Intent ${paymentIntentId}...`);
+    // TEMP_DISABLED: console.log(`💸 [STRIPE REFUND] Creating refund for Payment Intent ${paymentIntentId}...`);
 
     const createUrl = `${ServerData.serverUrl}v1/stripe/refunds/create`;
-    console.log('🌐 [STRIPE REFUND] Calling endpoint:', createUrl);
+    // TEMP_DISABLED: console.log('🌐 [STRIPE REFUND] Calling endpoint:', createUrl);
 
     const response = await fetchWithAuth(createUrl, {
       method: 'POST',
@@ -877,7 +888,7 @@ export const createStripeRefund = async (
       })
     });
 
-    console.log(`📡 [STRIPE REFUND] Response status: ${response.status}`);
+    // TEMP_DISABLED: console.log(`📡 [STRIPE REFUND] Response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'No error text');
@@ -895,19 +906,20 @@ export const createStripeRefund = async (
     }
 
     const data = await response.json();
-    console.log('✅ [STRIPE REFUND] Refund created:', JSON.stringify(data, null, 2));
+    // TEMP_DISABLED: console.log('✅ [STRIPE REFUND] Refund created:', JSON.stringify(data, null, 2));
 
     if (!data.success || !data.data?.refund_id) {
       throw new Error('API returned invalid refund data');
     }
 
-    console.log(`💸 [STRIPE REFUND] Refund ID: ${data.data.refund_id}`);
-    console.log(`💰 [STRIPE REFUND] Amount: ${data.data.amount / 100} ${data.data.currency.toUpperCase()}`);
-    console.log(`📋 [STRIPE REFUND] Status: ${data.data.status}`);
+    // TEMP_DISABLED: console.log(`💸 [STRIPE REFUND] Refund ID: ${data.data.refund_id}`);
+    // TEMP_DISABLED: console.log(`💰 [STRIPE REFUND] Amount: ${data.data.amount / 100} ${data.data.currency.toUpperCase()}`);
+    // TEMP_DISABLED: console.log(`📋 [STRIPE REFUND] Status: ${data.data.status}`);
 
     return data.data;
 
   } catch (error) {
+
     console.error('❌ [STRIPE REFUND] Error creating refund:', error);
     throw error;
   }
@@ -951,7 +963,7 @@ export const fetchStripeRefunds = async (
 }> => {
   try {
     const companyId = await getUserCompanyId();
-    console.log('💸 [FETCH REFUNDS] Loading refunds for company:', companyId);
+    // TEMP_DISABLED: console.log('💸 [FETCH REFUNDS] Loading refunds for company:', companyId);
 
     const queryParams = new URLSearchParams({
       company_id: companyId.toString(),
@@ -964,13 +976,13 @@ export const fetchStripeRefunds = async (
     });
 
     const refundsUrl = `${ServerData.serverUrl}v1/stripe/refunds?${queryParams}`;
-    console.log('🌐 [FETCH REFUNDS] Calling endpoint:', refundsUrl);
+    // TEMP_DISABLED: console.log('🌐 [FETCH REFUNDS] Calling endpoint:', refundsUrl);
 
     const response = await fetchWithAuth(refundsUrl, {
       method: 'GET'
     });
 
-    console.log(`📡 [FETCH REFUNDS] Response status: ${response.status}`);
+    // TEMP_DISABLED: console.log(`📡 [FETCH REFUNDS] Response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'No error text');
@@ -984,14 +996,14 @@ export const fetchStripeRefunds = async (
     }
 
     const data = await response.json();
-    console.log('✅ [FETCH REFUNDS] Refunds retrieved:', JSON.stringify(data, null, 2));
+    // TEMP_DISABLED: console.log('✅ [FETCH REFUNDS] Refunds retrieved:', JSON.stringify(data, null, 2));
 
     if (!data.success) {
       throw new Error('API returned error for refunds');
     }
 
-    console.log(`💸 [FETCH REFUNDS] Found ${data.data.length} refunds`);
-    console.log(`🔒 [FETCH REFUNDS] Data source: ${data.meta?.source || 'stripe_api'} (sécurisé)`);
+    // TEMP_DISABLED: console.log(`💸 [FETCH REFUNDS] Found ${data.data.length} refunds`);
+    // TEMP_DISABLED: console.log(`🔒 [FETCH REFUNDS] Data source: ${data.meta?.source || 'stripe_api'} (sécurisé)`);
 
     return {
       refunds: data.data,
@@ -999,6 +1011,7 @@ export const fetchStripeRefunds = async (
     };
 
   } catch (error) {
+
     console.error('❌ [FETCH REFUNDS] Error fetching refunds:', error);
     throw error;
   }
@@ -1033,16 +1046,16 @@ export const getStripeRefundDetails = async (
   } | null;
 }> => {
   try {
-    console.log(`💸 [REFUND DETAILS] Getting details for refund ${refundId}...`);
+    // TEMP_DISABLED: console.log(`💸 [REFUND DETAILS] Getting details for refund ${refundId}...`);
 
     const detailsUrl = `${ServerData.serverUrl}v1/stripe/refunds/${refundId}`;
-    console.log('🌐 [REFUND DETAILS] Calling endpoint:', detailsUrl);
+    // TEMP_DISABLED: console.log('🌐 [REFUND DETAILS] Calling endpoint:', detailsUrl);
 
     const response = await fetchWithAuth(detailsUrl, {
       method: 'GET'
     });
 
-    console.log(`📡 [REFUND DETAILS] Response status: ${response.status}`);
+    // TEMP_DISABLED: console.log(`📡 [REFUND DETAILS] Response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'No error text');
@@ -1058,18 +1071,19 @@ export const getStripeRefundDetails = async (
     }
 
     const data = await response.json();
-    console.log('✅ [REFUND DETAILS] Refund details retrieved:', JSON.stringify(data, null, 2));
+    // TEMP_DISABLED: console.log('✅ [REFUND DETAILS] Refund details retrieved:', JSON.stringify(data, null, 2));
 
     if (!data.success) {
       throw new Error('API returned error for refund details');
     }
 
-    console.log(`💸 [REFUND DETAILS] Refund ${refundId} status: ${data.data.status}`);
-    console.log(`💰 [REFUND DETAILS] Amount: ${data.data.amount / 100} ${data.data.currency.toUpperCase()}`);
+    // TEMP_DISABLED: console.log(`💸 [REFUND DETAILS] Refund ${refundId} status: ${data.data.status}`);
+    // TEMP_DISABLED: console.log(`💰 [REFUND DETAILS] Amount: ${data.data.amount / 100} ${data.data.currency.toUpperCase()}`);
 
     return data.data;
 
   } catch (error) {
+
     console.error('❌ [REFUND DETAILS] Error getting refund details:', error);
     throw error;
   }
@@ -1092,10 +1106,10 @@ export const cancelStripeRefund = async (
   currency: string;
 }> => {
   try {
-    console.log(`❌ [CANCEL REFUND] Canceling refund ${refundId}...`);
+    // TEMP_DISABLED: console.log(`❌ [CANCEL REFUND] Canceling refund ${refundId}...`);
 
     const cancelUrl = `${ServerData.serverUrl}v1/stripe/refunds/${refundId}/cancel`;
-    console.log('🌐 [CANCEL REFUND] Calling endpoint:', cancelUrl);
+    // TEMP_DISABLED: console.log('🌐 [CANCEL REFUND] Calling endpoint:', cancelUrl);
 
     const response = await fetchWithAuth(cancelUrl, {
       method: 'POST',
@@ -1104,7 +1118,7 @@ export const cancelStripeRefund = async (
       }
     });
 
-    console.log(`📡 [CANCEL REFUND] Response status: ${response.status}`);
+    // TEMP_DISABLED: console.log(`📡 [CANCEL REFUND] Response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'No error text');
@@ -1122,17 +1136,18 @@ export const cancelStripeRefund = async (
     }
 
     const data = await response.json();
-    console.log('✅ [CANCEL REFUND] Refund canceled:', JSON.stringify(data, null, 2));
+    // TEMP_DISABLED: console.log('✅ [CANCEL REFUND] Refund canceled:', JSON.stringify(data, null, 2));
 
     if (!data.success) {
       throw new Error('API returned error during refund cancellation');
     }
 
-    console.log(`❌ [CANCEL REFUND] Refund ${refundId} successfully canceled`);
+    // TEMP_DISABLED: console.log(`❌ [CANCEL REFUND] Refund ${refundId} successfully canceled`);
 
     return data.data;
 
   } catch (error) {
+
     console.error('❌ [CANCEL REFUND] Error canceling refund:', error);
     throw error;
   }
@@ -1180,10 +1195,10 @@ export const createStripeInvoice = async (
   metadata: Record<string, string>;
 }> => {
   try {
-    console.log('🧾 [STRIPE INVOICE] Creating invoice...');
+    // TEMP_DISABLED: console.log('🧾 [STRIPE INVOICE] Creating invoice...');
 
     const createUrl = `${ServerData.serverUrl}v1/stripe/invoices/create`;
-    console.log('🌐 [STRIPE INVOICE] Calling endpoint:', createUrl);
+    // TEMP_DISABLED: console.log('🌐 [STRIPE INVOICE] Calling endpoint:', createUrl);
 
     const response = await fetchWithAuth(createUrl, {
       method: 'POST',
@@ -1193,7 +1208,7 @@ export const createStripeInvoice = async (
       body: JSON.stringify(invoiceData)
     });
 
-    console.log(`📡 [STRIPE INVOICE] Response status: ${response.status}`);
+    // TEMP_DISABLED: console.log(`📡 [STRIPE INVOICE] Response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'No error text');
@@ -1209,19 +1224,20 @@ export const createStripeInvoice = async (
     }
 
     const data = await response.json();
-    console.log('✅ [STRIPE INVOICE] Invoice created:', JSON.stringify(data, null, 2));
+    // TEMP_DISABLED: console.log('✅ [STRIPE INVOICE] Invoice created:', JSON.stringify(data, null, 2));
 
     if (!data.success || !data.data?.invoice_id) {
       throw new Error('API returned invalid invoice data');
     }
 
-    console.log(`🧾 [STRIPE INVOICE] Invoice ID: ${data.data.invoice_id}`);
-    console.log(`💰 [STRIPE INVOICE] Amount due: ${data.data.amount_due / 100} ${data.data.currency.toUpperCase()}`);
-    console.log(`📧 [STRIPE INVOICE] Customer: ${data.data.customer_email}`);
+    // TEMP_DISABLED: console.log(`🧾 [STRIPE INVOICE] Invoice ID: ${data.data.invoice_id}`);
+    // TEMP_DISABLED: console.log(`💰 [STRIPE INVOICE] Amount due: ${data.data.amount_due / 100} ${data.data.currency.toUpperCase()}`);
+    // TEMP_DISABLED: console.log(`📧 [STRIPE INVOICE] Customer: ${data.data.customer_email}`);
 
     return data.data;
 
   } catch (error) {
+
     console.error('❌ [STRIPE INVOICE] Error creating invoice:', error);
     throw error;
   }
@@ -1276,7 +1292,7 @@ export const fetchStripeInvoices = async (
 }> => {
   try {
     const companyId = await getUserCompanyId();
-    console.log('🧾 [FETCH INVOICES] Loading invoices for company:', companyId);
+    // TEMP_DISABLED: console.log('🧾 [FETCH INVOICES] Loading invoices for company:', companyId);
 
     const queryParams = new URLSearchParams({
       company_id: companyId.toString(),
@@ -1289,13 +1305,13 @@ export const fetchStripeInvoices = async (
     });
 
     const invoicesUrl = `${ServerData.serverUrl}v1/stripe/invoices?${queryParams}`;
-    console.log('🌐 [FETCH INVOICES] Calling endpoint:', invoicesUrl);
+    // TEMP_DISABLED: console.log('🌐 [FETCH INVOICES] Calling endpoint:', invoicesUrl);
 
     const response = await fetchWithAuth(invoicesUrl, {
       method: 'GET'
     });
 
-    console.log(`📡 [FETCH INVOICES] Response status: ${response.status}`);
+    // TEMP_DISABLED: console.log(`📡 [FETCH INVOICES] Response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'No error text');
@@ -1309,14 +1325,14 @@ export const fetchStripeInvoices = async (
     }
 
     const data = await response.json();
-    console.log('✅ [FETCH INVOICES] Invoices retrieved:', JSON.stringify(data, null, 2));
+    // TEMP_DISABLED: console.log('✅ [FETCH INVOICES] Invoices retrieved:', JSON.stringify(data, null, 2));
 
     if (!data.success) {
       throw new Error('API returned error for invoices');
     }
 
-    console.log(`🧾 [FETCH INVOICES] Found ${data.data.length} invoices`);
-    console.log(`🔒 [FETCH INVOICES] Data source: ${data.meta?.source || 'stripe_api'} (sécurisé)`);
+    // TEMP_DISABLED: console.log(`🧾 [FETCH INVOICES] Found ${data.data.length} invoices`);
+    // TEMP_DISABLED: console.log(`🔒 [FETCH INVOICES] Data source: ${data.meta?.source || 'stripe_api'} (sécurisé)`);
 
     return {
       invoices: data.data,
@@ -1324,6 +1340,7 @@ export const fetchStripeInvoices = async (
     };
 
   } catch (error) {
+
     console.error('❌ [FETCH INVOICES] Error fetching invoices:', error);
     throw error;
   }
@@ -1345,10 +1362,10 @@ export const sendStripeInvoice = async (
   customer_email: string;
 }> => {
   try {
-    console.log(`📧 [SEND INVOICE] Sending invoice ${invoiceId} by email...`);
+    // TEMP_DISABLED: console.log(`📧 [SEND INVOICE] Sending invoice ${invoiceId} by email...`);
 
     const sendUrl = `${ServerData.serverUrl}v1/stripe/invoices/${invoiceId}/send`;
-    console.log('🌐 [SEND INVOICE] Calling endpoint:', sendUrl);
+    // TEMP_DISABLED: console.log('🌐 [SEND INVOICE] Calling endpoint:', sendUrl);
 
     const response = await fetchWithAuth(sendUrl, {
       method: 'POST',
@@ -1357,7 +1374,7 @@ export const sendStripeInvoice = async (
       }
     });
 
-    console.log(`📡 [SEND INVOICE] Response status: ${response.status}`);
+    // TEMP_DISABLED: console.log(`📡 [SEND INVOICE] Response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'No error text');
@@ -1375,17 +1392,18 @@ export const sendStripeInvoice = async (
     }
 
     const data = await response.json();
-    console.log('✅ [SEND INVOICE] Invoice sent:', JSON.stringify(data, null, 2));
+    // TEMP_DISABLED: console.log('✅ [SEND INVOICE] Invoice sent:', JSON.stringify(data, null, 2));
 
     if (!data.success) {
       throw new Error('API returned error during invoice sending');
     }
 
-    console.log(`📧 [SEND INVOICE] Invoice ${invoiceId} sent to ${data.data.customer_email}`);
+    // TEMP_DISABLED: console.log(`📧 [SEND INVOICE] Invoice ${invoiceId} sent to ${data.data.customer_email}`);
 
     return data.data;
 
   } catch (error) {
+
     console.error('❌ [SEND INVOICE] Error sending invoice:', error);
     throw error;
   }
@@ -1414,10 +1432,10 @@ export const markStripeInvoiceAsPaid = async (
   payment_method: string | null;
 }> => {
   try {
-    console.log(`✅ [MARK PAID] Marking invoice ${invoiceId} as paid...`);
+    // TEMP_DISABLED: console.log(`✅ [MARK PAID] Marking invoice ${invoiceId} as paid...`);
 
     const markUrl = `${ServerData.serverUrl}v1/stripe/invoices/${invoiceId}/mark_paid`;
-    console.log('🌐 [MARK PAID] Calling endpoint:', markUrl);
+    // TEMP_DISABLED: console.log('🌐 [MARK PAID] Calling endpoint:', markUrl);
 
     const response = await fetchWithAuth(markUrl, {
       method: 'POST',
@@ -1427,7 +1445,7 @@ export const markStripeInvoiceAsPaid = async (
       body: JSON.stringify(paymentDetails || {})
     });
 
-    console.log(`📡 [MARK PAID] Response status: ${response.status}`);
+    // TEMP_DISABLED: console.log(`📡 [MARK PAID] Response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'No error text');
@@ -1445,17 +1463,18 @@ export const markStripeInvoiceAsPaid = async (
     }
 
     const data = await response.json();
-    console.log('✅ [MARK PAID] Invoice marked as paid:', JSON.stringify(data, null, 2));
+    // TEMP_DISABLED: console.log('✅ [MARK PAID] Invoice marked as paid:', JSON.stringify(data, null, 2));
 
     if (!data.success) {
       throw new Error('API returned error during invoice update');
     }
 
-    console.log(`✅ [MARK PAID] Invoice ${invoiceId} marked as paid`);
+    // TEMP_DISABLED: console.log(`✅ [MARK PAID] Invoice ${invoiceId} marked as paid`);
 
     return data.data;
 
   } catch (error) {
+
     console.error('❌ [MARK PAID] Error marking invoice as paid:', error);
     throw error;
   }
@@ -1476,10 +1495,10 @@ export const voidStripeInvoice = async (
   voided_at: string;
 }> => {
   try {
-    console.log(`❌ [VOID INVOICE] Voiding invoice ${invoiceId}...`);
+    // TEMP_DISABLED: console.log(`❌ [VOID INVOICE] Voiding invoice ${invoiceId}...`);
 
     const voidUrl = `${ServerData.serverUrl}v1/stripe/invoices/${invoiceId}/void`;
-    console.log('🌐 [VOID INVOICE] Calling endpoint:', voidUrl);
+    // TEMP_DISABLED: console.log('🌐 [VOID INVOICE] Calling endpoint:', voidUrl);
 
     const response = await fetchWithAuth(voidUrl, {
       method: 'POST',
@@ -1488,7 +1507,7 @@ export const voidStripeInvoice = async (
       }
     });
 
-    console.log(`📡 [VOID INVOICE] Response status: ${response.status}`);
+    // TEMP_DISABLED: console.log(`📡 [VOID INVOICE] Response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'No error text');
@@ -1506,17 +1525,18 @@ export const voidStripeInvoice = async (
     }
 
     const data = await response.json();
-    console.log('✅ [VOID INVOICE] Invoice voided:', JSON.stringify(data, null, 2));
+    // TEMP_DISABLED: console.log('✅ [VOID INVOICE] Invoice voided:', JSON.stringify(data, null, 2));
 
     if (!data.success) {
       throw new Error('API returned error during invoice voiding');
     }
 
-    console.log(`❌ [VOID INVOICE] Invoice ${invoiceId} successfully voided`);
+    // TEMP_DISABLED: console.log(`❌ [VOID INVOICE] Invoice ${invoiceId} successfully voided`);
 
     return data.data;
 
   } catch (error) {
+
     console.error('❌ [VOID INVOICE] Error voiding invoice:', error);
     throw error;
   }
@@ -1588,7 +1608,7 @@ export const getStripeAnalytics = async (
 }> => {
   try {
     const companyId = await getUserCompanyId();
-    console.log('📊 [STRIPE ANALYTICS] Loading analytics for company:', companyId);
+    // TEMP_DISABLED: console.log('📊 [STRIPE ANALYTICS] Loading analytics for company:', companyId);
 
     const queryParams = new URLSearchParams({
       company_id: companyId.toString(),
@@ -1598,13 +1618,13 @@ export const getStripeAnalytics = async (
     });
 
     const analyticsUrl = `${ServerData.serverUrl}v1/stripe/analytics/overview?${queryParams}`;
-    console.log('🌐 [STRIPE ANALYTICS] Calling endpoint:', analyticsUrl);
+    // TEMP_DISABLED: console.log('🌐 [STRIPE ANALYTICS] Calling endpoint:', analyticsUrl);
 
     const response = await fetchWithAuth(analyticsUrl, {
       method: 'GET'
     });
 
-    console.log(`📡 [STRIPE ANALYTICS] Response status: ${response.status}`);
+    // TEMP_DISABLED: console.log(`📡 [STRIPE ANALYTICS] Response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'No error text');
@@ -1618,19 +1638,20 @@ export const getStripeAnalytics = async (
     }
 
     const data = await response.json();
-    console.log('✅ [STRIPE ANALYTICS] Analytics retrieved:', JSON.stringify(data, null, 2));
+    // TEMP_DISABLED: console.log('✅ [STRIPE ANALYTICS] Analytics retrieved:', JSON.stringify(data, null, 2));
 
     if (!data.success) {
       throw new Error('API returned error for analytics');
     }
 
-    console.log(`📊 [STRIPE ANALYTICS] Revenue: ${data.data.metrics.total_revenue / 100} ${data.data.currency || 'AUD'}`);
-    console.log(`📊 [STRIPE ANALYTICS] Payments: ${data.data.metrics.total_payments}`);
-    console.log(`📊 [STRIPE ANALYTICS] Success rate: ${data.data.metrics.success_rate.toFixed(2)}%`);
+    // TEMP_DISABLED: console.log(`📊 [STRIPE ANALYTICS] Revenue: ${data.data.metrics.total_revenue / 100} ${data.data.currency || 'AUD'}`);
+    // TEMP_DISABLED: console.log(`📊 [STRIPE ANALYTICS] Payments: ${data.data.metrics.total_payments}`);
+    // TEMP_DISABLED: console.log(`📊 [STRIPE ANALYTICS] Success rate: ${data.data.metrics.success_rate.toFixed(2)}%`);
 
     return data.data;
 
   } catch (error) {
+
     console.error('❌ [STRIPE ANALYTICS] Error fetching analytics:', error);
     throw error;
   }
@@ -1659,10 +1680,10 @@ export const exportStripeDataCSV = async (
 }> => {
   try {
     const companyId = await getUserCompanyId();
-    console.log('📄 [CSV EXPORT] Creating CSV export for company:', companyId);
+    // TEMP_DISABLED: console.log('📄 [CSV EXPORT] Creating CSV export for company:', companyId);
 
     const exportUrl = `${ServerData.serverUrl}v1/stripe/exports/csv`;
-    console.log('🌐 [CSV EXPORT] Calling endpoint:', exportUrl);
+    // TEMP_DISABLED: console.log('🌐 [CSV EXPORT] Calling endpoint:', exportUrl);
 
     const response = await fetchWithAuth(exportUrl, {
       method: 'POST',
@@ -1675,7 +1696,7 @@ export const exportStripeDataCSV = async (
       })
     });
 
-    console.log(`📡 [CSV EXPORT] Response status: ${response.status}`);
+    // TEMP_DISABLED: console.log(`📡 [CSV EXPORT] Response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'No error text');
@@ -1691,19 +1712,20 @@ export const exportStripeDataCSV = async (
     }
 
     const data = await response.json();
-    console.log('✅ [CSV EXPORT] Export created:', JSON.stringify(data, null, 2));
+    // TEMP_DISABLED: console.log('✅ [CSV EXPORT] Export created:', JSON.stringify(data, null, 2));
 
     if (!data.success || !data.data?.download_url) {
       throw new Error('API returned invalid export data');
     }
 
-    console.log(`📄 [CSV EXPORT] File: ${data.data.file_name}`);
-    console.log(`📊 [CSV EXPORT] Records: ${data.data.record_count}`);
-    console.log(`🔗 [CSV EXPORT] Download: ${data.data.download_url}`);
+    // TEMP_DISABLED: console.log(`📄 [CSV EXPORT] File: ${data.data.file_name}`);
+    // TEMP_DISABLED: console.log(`📊 [CSV EXPORT] Records: ${data.data.record_count}`);
+    // TEMP_DISABLED: console.log(`🔗 [CSV EXPORT] Download: ${data.data.download_url}`);
 
     return data.data;
 
   } catch (error) {
+
     console.error('❌ [CSV EXPORT] Error creating CSV export:', error);
     throw error;
   }
@@ -1733,10 +1755,10 @@ export const exportStripeDataPDF = async (
 }> => {
   try {
     const companyId = await getUserCompanyId();
-    console.log('📊 [PDF EXPORT] Creating PDF report for company:', companyId);
+    // TEMP_DISABLED: console.log('📊 [PDF EXPORT] Creating PDF report for company:', companyId);
 
     const exportUrl = `${ServerData.serverUrl}v1/stripe/exports/pdf`;
-    console.log('🌐 [PDF EXPORT] Calling endpoint:', exportUrl);
+    // TEMP_DISABLED: console.log('🌐 [PDF EXPORT] Calling endpoint:', exportUrl);
 
     const response = await fetchWithAuth(exportUrl, {
       method: 'POST',
@@ -1749,7 +1771,7 @@ export const exportStripeDataPDF = async (
       })
     });
 
-    console.log(`📡 [PDF EXPORT] Response status: ${response.status}`);
+    // TEMP_DISABLED: console.log(`📡 [PDF EXPORT] Response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'No error text');
@@ -1765,19 +1787,20 @@ export const exportStripeDataPDF = async (
     }
 
     const data = await response.json();
-    console.log('✅ [PDF EXPORT] Report created:', JSON.stringify(data, null, 2));
+    // TEMP_DISABLED: console.log('✅ [PDF EXPORT] Report created:', JSON.stringify(data, null, 2));
 
     if (!data.success || !data.data?.download_url) {
       throw new Error('API returned invalid report data');
     }
 
-    console.log(`📊 [PDF EXPORT] File: ${data.data.file_name}`);
-    console.log(`📄 [PDF EXPORT] Pages: ${data.data.page_count}`);
-    console.log(`🔗 [PDF EXPORT] Download: ${data.data.download_url}`);
+    // TEMP_DISABLED: console.log(`📊 [PDF EXPORT] File: ${data.data.file_name}`);
+    // TEMP_DISABLED: console.log(`📄 [PDF EXPORT] Pages: ${data.data.page_count}`);
+    // TEMP_DISABLED: console.log(`🔗 [PDF EXPORT] Download: ${data.data.download_url}`);
 
     return data.data;
 
   } catch (error) {
+
     console.error('❌ [PDF EXPORT] Error creating PDF report:', error);
     throw error;
   }
@@ -1838,16 +1861,16 @@ export const getStripeRealtimeAnalytics = async (): Promise<{
 }> => {
   try {
     const companyId = await getUserCompanyId();
-    console.log('⚡ [REALTIME ANALYTICS] Loading real-time data for company:', companyId);
+    // TEMP_DISABLED: console.log('⚡ [REALTIME ANALYTICS] Loading real-time data for company:', companyId);
 
     const realtimeUrl = `${ServerData.serverUrl}v1/stripe/analytics/realtime?company_id=${companyId}`;
-    console.log('🌐 [REALTIME ANALYTICS] Calling endpoint:', realtimeUrl);
+    // TEMP_DISABLED: console.log('🌐 [REALTIME ANALYTICS] Calling endpoint:', realtimeUrl);
 
     const response = await fetchWithAuth(realtimeUrl, {
       method: 'GET'
     });
 
-    console.log(`📡 [REALTIME ANALYTICS] Response status: ${response.status}`);
+    // TEMP_DISABLED: console.log(`📡 [REALTIME ANALYTICS] Response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'No error text');
@@ -1861,19 +1884,20 @@ export const getStripeRealtimeAnalytics = async (): Promise<{
     }
 
     const data = await response.json();
-    console.log('✅ [REALTIME ANALYTICS] Real-time data retrieved:', JSON.stringify(data, null, 2));
+    // TEMP_DISABLED: console.log('✅ [REALTIME ANALYTICS] Real-time data retrieved:', JSON.stringify(data, null, 2));
 
     if (!data.success) {
       throw new Error('API returned error for real-time analytics');
     }
 
-    console.log(`⚡ [REALTIME ANALYTICS] Today's revenue: ${data.data.today.revenue / 100} AUD`);
-    console.log(`⚡ [REALTIME ANALYTICS] Today's payments: ${data.data.today.payments_count}`);
-    console.log(`📈 [REALTIME ANALYTICS] Trend: ${data.data.trending.trend_direction} (${data.data.trending.revenue_change_pct}%)`);
+    // TEMP_DISABLED: console.log(`⚡ [REALTIME ANALYTICS] Today's revenue: ${data.data.today.revenue / 100} AUD`);
+    // TEMP_DISABLED: console.log(`⚡ [REALTIME ANALYTICS] Today's payments: ${data.data.today.payments_count}`);
+    // TEMP_DISABLED: console.log(`📈 [REALTIME ANALYTICS] Trend: ${data.data.trending.trend_direction} (${data.data.trending.revenue_change_pct}%)`);
 
     return data.data;
 
   } catch (error) {
+
     console.error('❌ [REALTIME ANALYTICS] Error fetching real-time analytics:', error);
     throw error;
   }

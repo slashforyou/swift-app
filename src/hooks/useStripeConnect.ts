@@ -1,10 +1,13 @@
 /**
  * useStripeConnect - Hook pour la gestion de Stripe Connect
  * Gère l'onboarding, le statut du compte et les capacités
+ * ✅ Utilise les endpoints réels: GET /stripe/connect/status, GET /stripe/connect/onboarding, DELETE /stripe/connect/disconnect
  */
 
 import { useCallback, useEffect, useState } from 'react';
+import { ServerData } from '../constants/ServerData';
 import { StripeConnectStatusResponse, StripeConnectionStatus } from '../types/stripe';
+import { fetchWithAuth } from '../utils/session';
 
 export interface UseStripeConnectResult {
   status: StripeConnectionStatus;
@@ -28,29 +31,41 @@ export const useStripeConnect = (): UseStripeConnectResult => {
     setError(null);
     
     try {
-      // TODO: Remplacer par vraie API
-      const mockResponse: StripeConnectStatusResponse = {
-        success: true,
-        data: {
-          status: 'not_connected',
-          charges_enabled: false,
-          payouts_enabled: false,
-          details_submitted: false,
-          onboarding_completed: false,
-        },
-      };
+      // ✅ Appeler l'API réelle GET /stripe/connect/status
+      const response = await fetchWithAuth(`${ServerData.serverUrl}v1/stripe/connect/status`, {
+        method: 'GET',
+      });
 
+      if (!response.ok) {
+        // Si pas connecté (404 ou autre), mettre le statut à not_connected
+        console.log('[useStripeConnect] Account not connected or API error:', response.status);
+        setStatus({
+          isConnected: false,
+          status: 'not_connected',
+        });
+        return;
+      }
+
+      const data = await response.json();
+      console.log('✅ [useStripeConnect] Status fetched:', data);
+
+      const statusData = data.data || data;
       setStatus({
-        isConnected: mockResponse.data.status === 'active',
-        status: mockResponse.data.status,
+        isConnected: statusData.status === 'active' || statusData.onboarding_completed === true,
+        status: statusData.status || (statusData.onboarding_completed ? 'active' : 'pending'),
         capabilities: {
-          charges_enabled: mockResponse.data.charges_enabled,
-          payouts_enabled: mockResponse.data.payouts_enabled,
+          charges_enabled: statusData.charges_enabled || false,
+          payouts_enabled: statusData.payouts_enabled || false,
         },
       });
     } catch (err) {
       console.error('[useStripeConnect] Error fetching status:', err);
       setError(err instanceof Error ? err.message : 'Erreur lors du chargement du statut Stripe');
+      // En cas d'erreur, considérer comme non connecté
+      setStatus({
+        isConnected: false,
+        status: 'not_connected',
+      });
     } finally {
       setLoading(false);
     }
@@ -60,9 +75,26 @@ export const useStripeConnect = (): UseStripeConnectResult => {
     setError(null);
     
     try {
-      // TODO: Remplacer par vraie API
-      const mockOnboardingUrl = 'https://connect.stripe.com/oauth/authorize?client_id=mock';
-      return mockOnboardingUrl;
+      // ✅ Appeler l'API réelle GET /stripe/connect/onboarding
+      const response = await fetchWithAuth(`${ServerData.serverUrl}v1/stripe/connect/onboarding`, {
+        method: 'GET',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: Échec de création du lien d'onboarding`);
+      }
+
+      const data = await response.json();
+      console.log('✅ [useStripeConnect] Onboarding URL fetched:', data);
+
+      // Retourner l'URL d'onboarding
+      const onboardingUrl = data.data?.url || data.url || data.onboarding_url;
+      if (!onboardingUrl) {
+        throw new Error('URL d\'onboarding non trouvée dans la réponse');
+      }
+
+      return onboardingUrl;
     } catch (err) {
       console.error('[useStripeConnect] Error creating account link:', err);
       const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la création du lien de connexion';
@@ -76,8 +108,19 @@ export const useStripeConnect = (): UseStripeConnectResult => {
     setLoading(true);
     
     try {
-      // TODO: Remplacer par vraie API
+      // ✅ Appeler l'API réelle DELETE /stripe/connect/disconnect
       console.log('[useStripeConnect] Disconnecting account...');
+      
+      const response = await fetchWithAuth(`${ServerData.serverUrl}v1/stripe/connect/disconnect`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: Échec de la déconnexion`);
+      }
+
+      console.log('✅ [useStripeConnect] Account disconnected');
       
       setStatus({
         isConnected: false,
