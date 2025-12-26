@@ -2,18 +2,19 @@
  * Client Page - Affichage des informations client avec actions rapides
  * Conforme aux normes mobiles iOS/Android - Touch targets ≥44pt, 8pt grid
  */
-import React, { useState, useEffect } from 'react';
-import { View, Text, Pressable, Alert } from 'react-native';
-import { VStack, HStack } from '../../components/primitives/Stack';
+import Ionicons from '@react-native-vector-icons/ionicons';
+import React, { useEffect, useState } from 'react';
+import { Pressable, Text } from 'react-native';
+import SignatureSection from '../../components/jobDetails/sections/SignatureSection';
+import { HStack, VStack } from '../../components/primitives/Stack';
+import SigningBloc from '../../components/signingBloc';
 import { Card } from '../../components/ui/Card';
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
+import { useJobDetails } from '../../hooks/useJobDetails';
+import { ClientAPI, fetchClientById } from '../../services/clients';
 import contactLink from '../../services/contactLink';
-import Ionicons from '@react-native-vector-icons/ionicons';
-import { fetchClientById, ClientAPI } from '../../services/clients';
 import { isLoggedIn } from '../../utils/auth';
-import SigningBloc from '../../components/signingBloc';
-import SignatureSection from '../../components/jobDetails/sections/SignatureSection';
 
 interface JobClientProps {
     job: any;
@@ -57,8 +58,32 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
     const [isLoadingClient, setIsLoadingClient] = useState(false);
     const [isSigningVisible, setIsSigningVisible] = useState(false);
 
+    // ✅ Récupérer jobDetails du context pour avoir les données fraîches (notamment signature_blob)
+    // NOTE: L'endpoint /job/:code/full attend un CODE (JOB-XXX), pas un ID numérique
+    const jobCode = job?.code || job?.job?.code;
+    const { jobDetails } = useJobDetails(jobCode);
+
+    // ✅ SYNC: Synchroniser job state avec jobDetails.job (notamment signature_blob)
+    useEffect(() => {
+        if (jobDetails?.job) {
+            console.log('🔄 [JobClient] Syncing job state with jobDetails:', {
+                hasSignatureInContext: !!jobDetails.job.signature_blob,
+                hasSignatureInState: !!job?.signature_blob,
+                signatureDate: jobDetails.job.signature_date
+            });
+            
+            // Merge pour garder modifications locales + ajouter données backend
+            setJob((prev: any) => ({
+                ...prev,
+                ...jobDetails.job,
+                // Préserver certains champs locaux si nécessaire
+                signatureDataUrl: prev?.signatureDataUrl || jobDetails.job.signature_blob,
+            }));
+        }
+    }, [jobDetails?.job?.id, jobDetails?.job?.signature_blob, jobDetails?.job?.signature_date]);
+
     const handleSignContract = () => {
-        console.log('🖋️ [JobClient] handleSignContract called - Opening signature modal');
+        // TEMP_DISABLED: console.log('🖋️ [JobClient] handleSignContract called - Opening signature modal');
         setIsSigningVisible(true);
     };
     
@@ -75,6 +100,7 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
                 setExtendedClientData(clientData);
             }
         } catch (error) {
+
             console.error('Error loading extended client data:', error);
             // En cas d'erreur, on continue avec les données de base du job
         } finally {
@@ -284,7 +310,9 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
             <SigningBloc 
                 isVisible={isSigningVisible} 
                 setIsVisible={setIsSigningVisible} 
-                onSave={(signature: any) => console.log('Signature saved:', signature)} 
+                onSave={(signature: any) => {
+                    // TEMP_DISABLED: console.log('Signature saved:', signature);
+                }}
                 job={job} 
                 setJob={setJob}
             />
