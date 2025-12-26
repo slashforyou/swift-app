@@ -3,12 +3,14 @@
  * Utilise le timer en temps réel pour calculer les coûts
  */
 import Ionicons from '@react-native-vector-icons/ionicons';
-import React, { useState } from 'react';
-import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import SigningBloc from '../../components/signingBloc';
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useJobTimerContext } from '../../context/JobTimerProvider';
 import { useTheme } from '../../context/ThemeProvider';
+import { useJobDetails } from '../../hooks/useJobDetails';
+import { checkJobSignatureExists } from '../../services/jobDetails';
 import PaymentWindow from './paymentWindow';
 
 // Interfaces
@@ -21,6 +23,64 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
     const { colors } = useTheme();
     const [paymentWindowVisible, setPaymentWindowVisible] = useState<string | null>(null);
     const [isSigningVisible, setIsSigningVisible] = useState(false);
+    
+    // ✅ État pour la signature vérifiée depuis le serveur
+    const [signatureFromServer, setSignatureFromServer] = useState<{
+        exists: boolean;
+        signatureId?: number;
+        isLoading: boolean;
+    }>({ exists: false, isLoading: true });
+
+    // ✅ Récupérer jobDetails du context pour avoir les données fraîches
+    // NOTE: L'endpoint /job/:code/full attend un CODE (JOB-XXX), pas un ID numérique
+    const jobCode = job?.code || job?.job?.code;
+    const { jobDetails } = useJobDetails(jobCode);
+
+    // ✅ Vérifier la signature sur le serveur au montage
+    useEffect(() => {
+        const checkSignatureOnServer = async () => {
+            const jobId = job?.id || job?.job?.id;
+            if (!jobId) {
+                setSignatureFromServer({ exists: false, isLoading: false });
+                return;
+            }
+
+            try {
+                console.log('🔍 [Payment] Checking signature on server for job:', jobId);
+                const result = await checkJobSignatureExists(jobId, 'client');
+                console.log('🔍 [Payment] Server signature check result:', result);
+                setSignatureFromServer({
+                    exists: result.exists,
+                    signatureId: result.signatureId,
+                    isLoading: false
+                });
+            } catch (error) {
+                console.error('❌ [Payment] Error checking signature:', error);
+                setSignatureFromServer({ exists: false, isLoading: false });
+            }
+        };
+
+        checkSignatureOnServer();
+    }, [job?.id, job?.job?.id]);
+
+    // ✅ SYNC: Synchroniser job state avec jobDetails.job (notamment signature_blob)
+    useEffect(() => {
+        if (jobDetails?.job) {
+            console.log('🔄 [Payment] Syncing job state with jobDetails:', {
+                hasSignatureInContext: !!jobDetails.job.signature_blob,
+                hasSignatureInState: !!job.signature_blob,
+                signatureDate: jobDetails.job.signature_date
+            });
+            
+            // Merge pour garder modifications locales + ajouter données backend
+            setJob((prev: any) => ({
+                ...prev,
+                ...jobDetails.job,
+                // Préserver certains champs locaux si nécessaire
+                signatureDataUrl: prev.signatureDataUrl || jobDetails.job.signature_blob,
+            }));
+        }
+    }, [jobDetails?.job?.id, jobDetails?.job?.signature_blob, jobDetails?.job?.signature_date]);
 
     // ✅ Utiliser le context du timer pour les calculs en temps réel
     const { 
@@ -31,14 +91,20 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
         HOURLY_RATE_AUD,
         isRunning,
         currentStep,
-        totalSteps,
+        totalSteps: contextTotalSteps,
     } = useJobTimerContext();
+
+    // ✅ FIX: Forcer au moins 5 étapes car l'étape 5 = paiement (pas une étape de travail)
+    // Si le template n'a que 4 steps, on considère step 4 comme la fin du travail
+    // et le paiement est accessible dès step 4
+    const totalSteps = Math.max(4, contextTotalSteps);
 
     // Calculer le coût en temps réel
     const getRealTimePaymentInfo = () => {
         const costData = calculateCost(billableTime);
         const estimatedCost = job?.job?.estimatedCost || job?.estimatedCost || 0;
         const currentCost = costData.cost;
+        const isPaid = job?.job?.isPaid || job?.isPaid || false;
         
         return {
             estimated: estimatedCost,
@@ -47,16 +113,26 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
             actualTime: billableTime,
             totalTime: totalElapsed,
             currency: 'AUD',
-            status: determinePaymentStatus(currentCost, estimatedCost),
-            isPaid: job?.job?.isPaid || job?.isPaid || false,
+            status: determinePaymentStatus(currentCost, estimatedCost, isPaid),
+            isPaid: isPaid,
             isRunning
         };
     };
 
-    const determinePaymentStatus = (actualCost: number, estimatedCost: number) => {
-        if (actualCost === 0) return 'pending';
-        if (actualCost < estimatedCost) return 'partial';
-        return 'completed';
+    const determinePaymentStatus = (actualCost: number, estimatedCost: number, isPaid: boolean) => {
+        // Si déjà payé via Stripe, statut = completed (priorité absolue)
+        if (isPaid) {
+            return 'completed';
+        }
+        
+        // Sinon, déterminer selon le coût actuel
+        if (actualCost === 0) {
+            return 'pending';
+        }
+        
+        // Coût calculé mais pas encore payé → toujours 'pending'
+        // (peu importe si actualCost >= estimatedCost, le statut reste 'pending' tant que isPaid = false)
+        return 'pending';
     };
 
     const formatCurrency = (amount: number) => {
@@ -93,20 +169,53 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
     const paymentInfo = getRealTimePaymentInfo();
     const statusInfo = getStatusInfo(paymentInfo.status);
 
-    // ✅ Vérifier si le job est terminé (currentStep = totalSteps)
-    const isJobCompleted = () => {
-        return currentStep >= totalSteps;
-    };
+    // ✅ Vérifier si le job est terminé (currentStep = totalSteps) - OPTIMIZED WITH useMemo
+    // ✅ FIX 2: Extract status values BEFORE useMemo to stabilize dependencies
+    const jobStatus = job?.status;
+    const jobJobStatus = job?.job?.status;
+    
+    const isJobCompleted = useMemo(() => {
+        // ✅ FIX: Job complété si on a atteint au moins l'étape 4
+        // (car étape 5 = paiement, pas une étape de travail)
+        // OU si le statut du job est 'completed'
+        const isStepCompleted = currentStep >= 4;  // Au moins step 4
+        const isStatusCompleted = jobStatus === 'completed' || jobJobStatus === 'completed';
+        
+        console.log('🔍 [Payment] isJobCompleted check:', {
+            currentStep,
+            totalSteps,
+            isStepCompleted,
+            isStatusCompleted,
+            result: isStepCompleted || isStatusCompleted
+        });
+        
+        return isStepCompleted || isStatusCompleted;
+    }, [currentStep, totalSteps, jobStatus, jobJobStatus]);
 
-    // ✅ Vérifier si le client a signé (local OU API)
-    const hasSignature = () => {
-        return !!(
+    // ✅ Vérifier si le client a signé (serveur OU local OU API) - UTILISER useMemo pour éviter boucle infinie
+    const hasSignature = useMemo(() => {
+        const result = !!(
+            signatureFromServer.exists ||  // ✅ PRIORITÉ: Vérification serveur
             job?.signatureDataUrl || 
             job?.signatureFileUri || 
             job?.signature_blob ||
             job?.job?.signature_blob
         );
-    };
+        
+        return result;
+    }, [signatureFromServer.exists, job?.signatureDataUrl, job?.signatureFileUri, job?.signature_blob, job?.job?.signature_blob]);
+
+    // Log uniquement quand la valeur change (pas à chaque render)
+    useEffect(() => {
+        console.log('🔍 [Payment] hasSignature changed:', {
+            signatureFromServer: signatureFromServer.exists,
+            signatureDataUrl: !!job?.signatureDataUrl,
+            signatureFileUri: !!job?.signatureFileUri,
+            signatureBlob: !!job?.signature_blob,
+            jobSignatureBlob: !!job?.job?.signature_blob,
+            result: hasSignature
+        });
+    }, [hasSignature]);
 
     // ✅ Handler pour le bouton de signature
     const handleOpenSignature = () => {
@@ -114,12 +223,12 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
     };
 
     const handlePayment = () => {
-        if (!isJobCompleted()) {
+        if (!isJobCompleted) {
             Alert.alert("Job en cours", "Le paiement ne sera disponible qu'une fois le job terminé.");
             return;
         }
         
-        if (!hasSignature()) {
+        if (!hasSignature) {
             Alert.alert(
                 "Signature requise",
                 "Le client doit signer avant de procéder au paiement.",
@@ -156,7 +265,9 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                 <SigningBloc 
                     isVisible={isSigningVisible} 
                     setIsVisible={setIsSigningVisible} 
-                    onSave={(signature: any) => console.log('Signature saved:', signature)} 
+                    onSave={(signature: any) => {
+                        // TEMP_DISABLED: console.log('Signature saved:', signature);
+                    }}
                     job={job} 
                     setJob={setJob}
                 />
@@ -192,7 +303,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                 }}>
                     {/* Badge de statut du job */}
                     <View style={{
-                        backgroundColor: isJobCompleted() ? '#D1FAE5' : '#FEF3C7',
+                        backgroundColor: isJobCompleted ? '#D1FAE5' : '#FEF3C7',
                         borderRadius: DESIGN_TOKENS.radius.lg,
                         paddingHorizontal: DESIGN_TOKENS.spacing.md,
                         paddingVertical: DESIGN_TOKENS.spacing.xs,
@@ -201,16 +312,16 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                         gap: DESIGN_TOKENS.spacing.xs,
                     }}>
                         <Ionicons 
-                            name={isJobCompleted() ? 'checkmark-circle-outline' : 'time-outline'} 
+                            name={isJobCompleted ? 'checkmark-circle-outline' : 'time-outline'} 
                             size={16} 
-                            color={isJobCompleted() ? '#10B981' : '#F59E0B'} 
+                            color={isJobCompleted ? '#10B981' : '#F59E0B'} 
                         />
                         <Text style={{
                             fontSize: 14,
                             fontWeight: '600',
-                            color: isJobCompleted() ? '#10B981' : '#F59E0B',
+                            color: isJobCompleted ? '#10B981' : '#F59E0B',
                         }}>
-                            {isJobCompleted() ? 'Job terminé' : 'Job en cours'}
+                            {isJobCompleted ? 'Job terminé' : 'Job en cours'}
                         </Text>
                     </View>
                     
@@ -236,9 +347,23 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                 </View>
 
                 {/* ✅ Bouton de signature ou paiement selon l'état */}
-                {isJobCompleted() && (
+                {isJobCompleted && (
                     <View style={{ marginTop: DESIGN_TOKENS.spacing.md }}>
-                        {!hasSignature() ? (
+                        {signatureFromServer.isLoading ? (
+                            // Afficher un loader pendant la vérification serveur
+                            <View style={{
+                                paddingVertical: DESIGN_TOKENS.spacing.md,
+                                alignItems: 'center',
+                                flexDirection: 'row',
+                                justifyContent: 'center',
+                                gap: DESIGN_TOKENS.spacing.sm,
+                            }}>
+                                <ActivityIndicator size="small" color={colors.primary} />
+                                <Text style={{ color: colors.textSecondary, fontSize: 14 }}>
+                                    Vérification de la signature...
+                                </Text>
+                            </View>
+                        ) : !hasSignature ? (
                             // Bouton pour signer si pas encore signé
                             <Pressable
                                 onPress={handleOpenSignature}
@@ -299,7 +424,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                         )}
                         
                         {/* Indicateur si signé */}
-                        {hasSignature() && (
+                        {hasSignature && (
                             <View style={{
                                 marginTop: DESIGN_TOKENS.spacing.sm,
                                 flexDirection: 'row',
