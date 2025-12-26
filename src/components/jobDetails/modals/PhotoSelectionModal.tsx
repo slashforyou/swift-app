@@ -67,8 +67,18 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
             // TEMP_DISABLED: console.log('✅ [DEBUG] Image compressée:', compressed);
             // TEMP_DISABLED: console.log('📤 [DEBUG] Envoi au parent via onPhotoSelected...');
             
-            // TODO: Code pour prendre la photo manquant ici
-            // onPhotoSelected(compressed.uri);
+            // Lancer la caméra pour prendre une photo
+            const result = await ImagePicker.launchCameraAsync({
+                mediaTypes: ['images'],
+                allowsEditing: true,
+                aspect: [4, 3],
+                quality: 0.8, // Compression pour réduire la taille
+            });
+
+            if (!result.canceled && result.assets && result.assets.length > 0) {
+                const photoUri = result.assets[0].uri;
+                onPhotoSelected(photoUri);
+            }
             
             // TEMP_DISABLED: console.log('✅ [DEBUG] Photo envoyée, fermeture modal...');
             
@@ -104,8 +114,18 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
             // TEMP_DISABLED: console.log('✅ [DEBUG] Image compressée:', compressed);
             // TEMP_DISABLED: console.log('📤 [DEBUG] Envoi au parent via onPhotoSelected...');
             
-            // TODO: Code pour sélectionner la photo manquant ici
-            // onPhotoSelected(compressed.uri);
+            // Ouvrir la galerie pour sélectionner une photo
+            const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ['images'],
+                allowsEditing: true,
+                aspect: [4, 3],
+                quality: 0.8, // Compression pour réduire la taille
+            });
+
+            if (!result.canceled && result.assets && result.assets.length > 0) {
+                const photoUri = result.assets[0].uri;
+                onPhotoSelected(photoUri);
+            }
             
             // TEMP_DISABLED: console.log('✅ [DEBUG] Photo envoyée, fermeture modal...');
             
