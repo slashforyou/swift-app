@@ -1,13 +1,12 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { View, Text, Pressable, Modal, Alert, StyleSheet, Platform, ScrollView, ActivityIndicator, Animated, Dimensions } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import * as FileSystem from 'expo-file-system/legacy';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+import React, { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Alert, Animated, Dimensions, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Signature, { SignatureViewRef } from 'react-native-signature-canvas';
-import * as FileSystem from 'expo-file-system';
-import { DESIGN_TOKENS } from '../constants/Styles';
 import { useThemeColors } from '../../hooks/useThemeColor';
+import { DESIGN_TOKENS } from '../constants/Styles';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -348,13 +347,17 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
       gap: DESIGN_TOKENS.spacing.xs,
       padding: DESIGN_TOKENS.spacing.sm,
     },
-  });
-
-  // Convertit le data URL en fichier PNG dans le sandbox Expo
+  });// Convertit le data URL en fichier PNG dans le sandbox Expo
   const dataUrlToPngFile = async (dataUrl: string) => {
     const base64 = dataUrl.replace(/^data:image\/\w+;base64,/, '');
-    const uri = `${FileSystem.documentDirectory}signature_${Date.now()}.png`;
-    await FileSystem.writeAsStringAsync(uri, base64, { encoding: FileSystem.EncodingType.Base64 });
+    // ✅ SESSION 9 FIX: Force type pour éviter erreur TypeScript
+    const dir = (FileSystem as any).documentDirectory || (FileSystem as any).cacheDirectory || '';
+    const uri = `${dir}signature_${Date.now()}.png`;
+    
+    // ✅ SESSION 9 FIX: Utiliser l'API legacy officielle d'Expo
+    await FileSystem.writeAsStringAsync(uri, base64, { 
+      encoding: FileSystem.EncodingType.Base64
+    });
     return uri;
   };
 
@@ -362,13 +365,106 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
   const handleSignatureOK = async (sig: string) => {
     try {
       setIsSaving(true);
+      
+      // ✅ ÉTAPE 1: Sauvegarder le fichier localement
       const fileUri = await dataUrlToPngFile(sig);
 
-      // Stocke à la fois la data URL et le chemin fichier dans le job
+      // ⚡ VÉRIFICATION SERVEUR: Vérifier si une signature existe déjà sur le backend
+      const { checkJobSignatureExists, saveJobSignature } = await import('../services/jobDetails');
+      
+      console.log('🔍 [SigningBloc] Checking if signature already exists on server for job:', job.id);
+      const existingSignature = await checkJobSignatureExists(job.id, 'client');
+      
+      if (existingSignature.exists) {
+        console.log('⚠️ [SigningBloc] Signature already exists on server (id:', existingSignature.signatureId, ')');
+        
+        // Mettre à jour le state local SANS appeler le backend (car signature existe)
+        setJob(prev => ({
+          ...prev,
+          signatureDataUrl: sig,
+          signatureFileUri: fileUri,
+          signature_blob: existingSignature.signatureData || sig,
+          signature_date: new Date().toISOString(),
+        }));
+        
+        onSave(sig);
+        setIsSigning(false);
+        
+        setTimeout(() => {
+          handleClose();
+        }, 500);
+        
+        Alert.alert(
+          "✅ Signature Confirmée",
+          "Une signature existe déjà pour ce contrat. La signature a été mise à jour localement.",
+          [{ text: "OK" }]
+        );
+        return; // ✅ Ne pas appeler le backend si signature existe
+      }
+
+      // ✅ ÉTAPE 2: Envoyer la signature au backend (seulement si nouvelle)
+      console.log('📤 [SigningBloc] Uploading NEW signature to server for job:', job.id);
+      
+      const uploadResult = await saveJobSignature(
+        job.id,
+        sig, // Data URL complète
+        'client' // Type de signature
+      );
+
+      if (!uploadResult.success) {
+        console.error('❌ [SigningBloc] Server upload failed:', uploadResult.message);
+        
+        // ⚡ GESTION SPÉCIFIQUE: Signature existe déjà (code 400)
+        if (uploadResult.message?.includes('existe déjà')) {
+          console.log('⚠️ [SigningBloc] Signature already exists, treating as update');
+          
+          // Mettre à jour le state local même si backend refuse (signature existe = OK)
+          setJob(prev => ({
+            ...prev,
+            signatureDataUrl: sig,
+            signatureFileUri: fileUri,
+            signature_blob: sig,
+            signature_date: new Date().toISOString(),
+          }));
+          
+          onSave(sig);
+          setIsSigning(false);
+          
+          setTimeout(() => {
+            handleClose();
+          }, 500);
+          
+          Alert.alert(
+            "✅ Signature Mise à Jour",
+            "Votre signature a été mise à jour localement. Une signature existait déjà sur le serveur.",
+            [{ text: "OK" }]
+          );
+          return; // ✅ Continuer malgré erreur backend (signature existe = pas grave)
+        }
+        
+        // Autres erreurs (réseau, etc.)
+        Alert.alert(
+          'Erreur Serveur',
+          `La signature n'a pas pu être enregistrée sur le serveur: ${uploadResult.message}`,
+          [{ text: "OK" }]
+        );
+        return;
+      }
+
+      console.log('✅ [SigningBloc] Signature uploaded successfully:', {
+        signatureId: uploadResult.signatureId,
+        signatureUrl: uploadResult.signatureUrl
+      });
+
+      // ✅ ÉTAPE 3: Mettre à jour le state local avec la signature ET l'URL serveur
       setJob(prev => ({
         ...prev,
         signatureDataUrl: sig,
         signatureFileUri: fileUri,
+        signature_blob: sig, // ⚡ IMPORTANT: Pour la validation
+        signature_date: new Date().toISOString(),
+        signatureId: uploadResult.signatureId,
+        signatureUrl: uploadResult.signatureUrl,
       }));
 
       // Callback externe
@@ -382,15 +478,16 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
       
       // Confirmation moderne
       Alert.alert(
-        "✅ Signature Saved",
-        "Your signature has been successfully saved.",
-        [{ text: "Perfect!" }]
+        "✅ Signature Enregistrée",
+        "Votre signature a été enregistrée avec succès sur le serveur.",
+        [{ text: "Parfait !" }]
       );
     } catch (error) {
-      console.error('Signature save error:', error);
+
+      console.error('❌ [SigningBloc] Signature save error:', error);
       Alert.alert(
-        'Save Error',
-        "Unable to save signature. Please try again.",
+        'Erreur de Sauvegarde',
+        "Impossible d'enregistrer la signature. Veuillez réessayer.",
         [{ text: "OK" }]
       );
     } finally {

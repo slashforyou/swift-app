@@ -1,10 +1,11 @@
 /**
  * SignatureSection - Section modulaire pour le statut de signature
  */
-import React from 'react';
-import { Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Text, View } from 'react-native';
 import { DESIGN_TOKENS } from '../../../constants/Styles';
 import { useTheme } from '../../../context/ThemeProvider';
+import { checkJobSignatureExists } from '../../../services/jobDetails';
 import { Button } from '../../ui/Button';
 import SectionCard from '../SectionCard';
 
@@ -15,13 +16,55 @@ interface SignatureSectionProps {
 
 const SignatureSection: React.FC<SignatureSectionProps> = ({ job, onSignContract }) => {
     const { colors } = useTheme();
+    const [isLoading, setIsLoading] = useState(true);
+    const [signatureFromServer, setSignatureFromServer] = useState<{
+        exists: boolean;
+        signatureId?: number;
+        signatureUrl?: string;
+    }>({ exists: false });
 
-    // ✅ Vérifier signature (local OU API)
+    // ✅ Récupérer les signatures depuis le serveur au montage
+    useEffect(() => {
+        const checkSignature = async () => {
+            const jobId = job?.id || job?.job?.id;
+            if (!jobId) {
+                setIsLoading(false);
+                return;
+            }
+
+            try {
+                console.log('🔍 [SignatureSection] Checking signature for job:', jobId);
+                const result = await checkJobSignatureExists(jobId, 'client');
+                console.log('🔍 [SignatureSection] Signature check result:', result);
+                setSignatureFromServer(result);
+            } catch (error) {
+                console.error('❌ [SignatureSection] Error checking signature:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        checkSignature();
+    }, [job?.id, job?.job?.id]);
+
+    // ✅ Vérifier signature (local OU API OU serveur)
     const isContractSigned = !!(
+        signatureFromServer.exists ||
         (job.signatureDataUrl && job.signatureFileUri) ||
         job.signature_blob ||
         job.job?.signature_blob
     );
+
+    // Log pour debug
+    useEffect(() => {
+        console.log('🔍 [SignatureSection] isContractSigned:', {
+            signatureFromServer: signatureFromServer.exists,
+            localSignature: !!(job.signatureDataUrl && job.signatureFileUri),
+            signatureBlob: !!job.signature_blob,
+            jobSignatureBlob: !!job.job?.signature_blob,
+            final: isContractSigned
+        });
+    }, [isContractSigned, signatureFromServer, job]);
 
     return (
         <SectionCard level="secondary">
@@ -43,7 +86,21 @@ const SignatureSection: React.FC<SignatureSectionProps> = ({ job, onSignContract
                 </Text>
             </View>
 
-            {isContractSigned ? (
+            {isLoading ? (
+                <View style={{
+                    padding: DESIGN_TOKENS.spacing.lg,
+                    alignItems: 'center',
+                }}>
+                    <ActivityIndicator size="small" color={colors.primary} />
+                    <Text style={{
+                        fontSize: 14,
+                        color: colors.textSecondary,
+                        marginTop: DESIGN_TOKENS.spacing.sm,
+                    }}>
+                        Vérification de la signature...
+                    </Text>
+                </View>
+            ) : isContractSigned ? (
                 <View style={{
                     padding: DESIGN_TOKENS.spacing.lg,
                     backgroundColor: colors.success + '15',
