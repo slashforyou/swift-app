@@ -53,7 +53,7 @@ const SubscribeMailVerification = ({ route }: any) => {
     };
 
     const handleVerification = async () => {
-        console.log('Verification function called with code:', verificationCode, 'and email:', mail);
+        // TEMP_DISABLED: console.log('Verification function called with code:', verificationCode, 'and email:', mail);
 
         // Validation des champs
         if (!verificationCode.trim()) {
@@ -79,7 +79,7 @@ const SubscribeMailVerification = ({ route }: any) => {
         setIsLoading(true);
 
         try {
-            console.log('[ Verify Mail endpoint called ]', mail, verificationCode);
+            // TEMP_DISABLED: console.log('[ Verify Mail endpoint called ]', mail, verificationCode);
             const response = await fetch(`${ServerData.serverUrl}verifyMail`, {
                 method: 'POST',
                 headers: {
@@ -120,7 +120,7 @@ const SubscribeMailVerification = ({ route }: any) => {
             } else {
                 showAlert('error', 'Une erreur serveur s\'est produite. Veuillez réessayer.', 'Erreur serveur');
             }
-        } catch (error: any) {
+        } catch (error: any) {
             console.error('Verification error:', error);
             
             let errorMessage = 'Problème de connexion. Veuillez vérifier votre connexion internet.';

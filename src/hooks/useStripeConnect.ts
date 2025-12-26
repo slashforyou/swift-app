@@ -6,7 +6,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { ServerData } from '../constants/ServerData';
-import { StripeConnectStatusResponse, StripeConnectionStatus } from '../types/stripe';
+import { StripeConnectionStatus } from '../types/stripe';
 import { fetchWithAuth } from '../utils/session';
 
 export interface UseStripeConnectResult {

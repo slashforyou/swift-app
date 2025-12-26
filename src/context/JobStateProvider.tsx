@@ -11,8 +11,8 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { ServerData } from '../constants/ServerData';
 import { JobProgress, JobState, JobStateAction, JobStateContextType, PhotoUploadStatus } from '../types/jobState';
-import { fetchWithAuth } from '../utils/session';
 import { loadJobState, saveJobState } from '../utils/jobStateStorage';
+import { fetchWithAuth } from '../utils/session';
 
 /**
  * Récupère les données de progression d'un job depuis l'API

@@ -112,7 +112,7 @@ export default function InviteEmployeeModal({ visible, onClose, onSubmit }: Invi
       
       // Reset form (will also be done by useEffect when modal closes)
       setFormData(initialFormData);
-    } catch (error) {
+    } catch (error) {
       Alert.alert('Erreur', 'Impossible d\'envoyer l\'invitation');
     } finally {
       setIsLoading(false);

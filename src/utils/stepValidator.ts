@@ -33,12 +33,7 @@ export function validateJobStep(job: any, timeline?: any[]): StepValidationResul
   const status = job?.status || 'pending';
   const totalSteps = job?.steps?.length || 5;
   
-  console.log('🔍 [STEP VALIDATOR] Validating job step:', {
-    jobId: job?.id,
-    currentStep,
-    status,
-    totalSteps
-  });
+  // TEMP_DISABLED: console.log(`🔍 [STEP VALIDATOR] Validating job step: Job ${job?.id}, Step ${currentStep}/${totalSteps}, Status ${status}`);
 
   // ✅ RÈGLE 1 : Job terminé DOIT être au step final
   if ((status === 'completed' || status === 'cancelled') && currentStep < totalSteps) {
@@ -172,12 +167,12 @@ export async function correctJobStep(
   }
 
   try {
-    console.log(`🔧 [STEP VALIDATOR] Correcting job ${jobCode} step from ${validation.currentStep} to ${validation.expectedStep}`);
+    // TEMP_DISABLED: console.log(`🔧 [STEP VALIDATOR] Correcting job ${jobCode} step from ${validation.currentStep} to ${validation.expectedStep}`);
     
     // Appeler l'API pour corriger le step
     const result = await updateJobStep(jobCode, validation.expectedStep);
     
-    console.log(`✅ [STEP VALIDATOR] Step corrected successfully:`, result);
+    // TEMP_DISABLED: console.log(`✅ [STEP VALIDATOR] Step corrected successfully for job ${jobCode}`);
     
     return {
       success: true,
@@ -185,7 +180,7 @@ export async function correctJobStep(
       newStep: validation.expectedStep
     };
     
-  } catch (error) {
+  } catch (error) {
     console.error('❌ [STEP VALIDATOR] Error correcting step:', error);
     
     return {
@@ -217,7 +212,7 @@ export async function validateAndCorrectJobStep(
   // 1. Valider le step
   const validation = validateJobStep(job, timeline);
   
-  console.log('🔍 [STEP VALIDATOR] Validation result:', validation);
+  // TEMP_DISABLED: console.log('🔍 [STEP VALIDATOR] Validation result:', validation.isValid ? 'Valid' : `Invalid - ${validation.reason}`);
   
   // 2. Si incohérence détectée et auto-correction activée
   if (!validation.isValid && validation.shouldCorrect && autoCorrect) {

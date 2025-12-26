@@ -124,7 +124,9 @@ export const useJobTimer = (
                         
                         // Sync to API - utiliser startJob qui fonctionne
                         startJob(jobId)
-                            .then(() => console.log('✅ [useJobTimer] Timer auto-started and synced to API'))
+                            .then(() => {
+                                // TEMP_DISABLED: console.log('✅ [useJobTimer] Timer auto-started and synced to API');
+                            })
                             .catch(() => console.error('❌ [useJobTimer] Failed to sync auto-started timer'));
                     } else {
                         setTimerData(jobTimer);
@@ -160,6 +162,7 @@ export const useJobTimer = (
                 setTimerData(newTimer);
             }
         } catch (error) {
+
             console.error('Error loading timer data:', error);
         }
     }, [jobId, currentStep, getStepName]);
@@ -173,6 +176,7 @@ export const useJobTimer = (
             timers[jobId] = data;
             await AsyncStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify(timers));
         } catch (error) {
+
             console.error('Error saving timer data:', error);
         }
     }, [jobId]);
@@ -200,7 +204,7 @@ export const useJobTimer = (
         // ✅ FIX: Synchroniser le démarrage avec startJob qui fonctionne
         startJob(jobId)
             .then(() => {
-                console.log('✅ [useJobTimer] Timer started and synced to API');
+                // TEMP_DISABLED: console.log('✅ [useJobTimer] Timer started and synced to API');
             })
             .catch(() => {
                 console.error('❌ [useJobTimer] Failed to sync timer start');
@@ -308,7 +312,7 @@ export const useJobTimer = (
             
             completeJob(jobId, notes)
                 .then(() => {
-                    console.log('✅ [useJobTimer] Job completed and synced to API');
+                    // TEMP_DISABLED: console.log('✅ [useJobTimer] Job completed and synced to API');
                 })
                 .catch(() => {
                     console.error('❌ [useJobTimer] Failed to sync job completion');
@@ -317,7 +321,7 @@ export const useJobTimer = (
             // ✅ FIX: Utiliser updateJobStep qui fonctionne au lieu de advanceStepAPI
             updateJobStep(jobId, newStep, `Avancé à l'étape ${newStep} après ${(currentStepDuration / 3600).toFixed(2)}h`)
                 .then(() => {
-                    console.log('✅ [useJobTimer] Step advanced and synced to API');
+                    // TEMP_DISABLED: console.log('✅ [useJobTimer] Step advanced and synced to API');
                 })
                 .catch(error => {
                     console.error('❌ [useJobTimer] Failed to sync step advancement:', error);
@@ -362,7 +366,7 @@ export const useJobTimer = (
     const togglePause = useCallback(() => {
         if (!timerData) return;
 
-        console.log('🔄 [togglePause] Current state:', { isRunning: timerData.isRunning, isOnBreak: timerData.isOnBreak });
+        // TEMP_DISABLED: console.log('🔄 [togglePause] Current state:', { isRunning: timerData.isRunning, isOnBreak: timerData.isOnBreak });
 
         const now = Date.now();
         
@@ -376,12 +380,11 @@ export const useJobTimer = (
                 totalElapsed: elapsedMs, // Freeze le temps
             };
             
-            console.log('⏸️ [togglePause] PAUSE - Freezing at:', elapsedMs / 1000, 'seconds');
+            // TEMP_DISABLED: console.log('⏸️ [togglePause] PAUSE - Freezing at:', elapsedMs / 1000, 'seconds');
             setTimerData(updatedData);
             saveTimerData(updatedData);
         } else {
-            // PLAY: Recalculer startTime pour reprendre
-            const newStartTime = now - (timerData.totalElapsed || 0);
+        const newStartTime = now - (timerData.totalElapsed || 0);
             const updatedData: JobTimerData = {
                 ...timerData,
                 isRunning: true,
@@ -389,7 +392,7 @@ export const useJobTimer = (
                 startTime: newStartTime, // Ajuster pour reprendre au bon moment
             };
             
-            console.log('▶️ [togglePause] PLAY - Resuming from:', timerData.totalElapsed / 1000, 'seconds');
+            // TEMP_DISABLED: console.log('▶️ [togglePause] PLAY - Resuming from:', timerData.totalElapsed / 1000, 'seconds');
             setTimerData(updatedData);
             saveTimerData(updatedData);
         }

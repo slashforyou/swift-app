@@ -144,10 +144,9 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                         if (now - lastTapTime < 500) {
                             // Double tap détecté - bonus XP !
                             addXP(5, '🎯 Easter egg bonus!');
-                            console.log('🎉 +5 XP Easter egg!');
+                            // TEMP_DISABLED: console.log('🎉 +5 XP Easter egg!');
                         } else {
-                            // Simple tap - aller au profil
-                            setTimeout(() => {
+        setTimeout(() => {
                                 if (Date.now() - now > 400) {
                                     navigation.navigate('Profile');
                                 }

@@ -1,0 +1,21 @@
+2025-12-13T02:57:20.465Z [INFO] Application démarrage (app-init)
+
+2025-12-13T02:57:20.465Z [DEBUG] Stripe connection check started (stripe-hook)
+Data: {
+  "connectionAttempt": 1
+}
+
+2025-12-13T02:57:20.465Z [WARN] Large response detected (stripe-hook)
+Data: {
+  "responseSize": "50KB",
+  "endpoint": "/stripe/account",
+  "largePayload": "Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très volumineux Payload très vol... [String truncated]"
+}
+
+2025-12-13T02:57:20.465Z [ERROR] Critical error before crash (stripe-hook)
+Data: {
+  "error": "Memory overflow due to large logs",
+  "stack": "Error stack trace would be here...",
+  "lastOperation": "Processing Stripe connection response"
+}
+

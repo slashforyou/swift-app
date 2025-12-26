@@ -178,7 +178,9 @@ export const DesignSystemDemoScreen: React.FC = () => {
         
         <InteractiveCard 
           padding="md" 
-          onPress={() => console.log('Card pressed')}
+          onPress={() => {
+            // TEMP_DISABLED: console.log('Card pressed');
+          }}
           style={{ marginBottom: SEMANTIC_SPACING.md }}
         >
           <H3 style={{ color: colors.text }}>Interactive Card</H3>

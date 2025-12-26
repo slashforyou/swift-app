@@ -1,18 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import { 
-    View, 
-    Text, 
-    Pressable, 
-    SafeAreaView, 
-    ActivityIndicator, 
+import { useEffect, useState } from 'react';
+import {
+    ActivityIndicator,
+    Dimensions,
+    Pressable,
+    SafeAreaView,
     StyleSheet,
-    Dimensions 
+    Text,
+    View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTheme } from '../context/ThemeProvider';
 import { DESIGN_TOKENS } from '../constants/Styles';
+import { useTheme } from '../context/ThemeProvider';
 import { ensureSession } from '../utils/session';
-import SimpleAnimatedBackground from '../components/ui/SimpleAnimatedBackground';
 
 const { width, height } = Dimensions.get('window');
 
@@ -22,19 +21,16 @@ const ConnectionScreen = ({ navigation }) => {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        console.log("ConnectionScreen mounted, checking session...");
+        // TEMP_DISABLED: console.log("ConnectionScreen mounted, checking session...");
 
         const checkSession = async () => {
             try {
                 setIsLoading(true);
-                console.log("Checking user session...");
+                // TEMP_DISABLED: console.log("Checking user session...");
                 const userLoggedIn = await ensureSession();
-                console.log("🔍 Session result:", userLoggedIn);
+                // TEMP_DISABLED: console.log("🔍 Session result:", userLoggedIn);
                 // DÉSACTIVÉ TEMPORAIREMENT POUR DEBUG
-                // if (userLoggedIn && userLoggedIn.authenticated === true) {
-                //     navigation.navigate('Home');
-                // }
-            } catch (error) {
+                // if (userLoggedIn && userLoggedIn.authenticated === true) {} catch (error) {
                 console.error("Error checking session:", error);
             } finally {
                 setIsLoading(false);

@@ -22,9 +22,9 @@ const openMap = async (address: string, latitude?: number, longitude?: number): 
         if (supported) {
             await Linking.openURL(url);
         } else {
-            console.log("Unsupported URL:", url);
+            // TEMP_DISABLED: console.log("Unsupported URL:", url);
         }
-    } catch (error) {
+    } catch (error) {
         console.error("Error opening map:", error);
     }
 };

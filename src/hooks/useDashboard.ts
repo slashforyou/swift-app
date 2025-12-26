@@ -89,7 +89,7 @@ export const useDashboard = () => {
         loading: false,
         error: null,
       });
-    } catch (error) {
+    } catch (error) {
       console.error('[useDashboard] Error refreshing data:', error);
       setData(prev => ({
         ...prev,

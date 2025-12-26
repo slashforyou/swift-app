@@ -42,7 +42,7 @@ export function useSession() {
           error: null
         })
       }
-    } catch (error) {
+    } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Session check failed'
       setSessionState({
         isAuthenticated: false,

@@ -14,6 +14,7 @@ const getLocalNotes = async (jobId: string): Promise<JobNoteAPI[]> => {
     const stored = await AsyncStorage.getItem(key);
     return stored ? JSON.parse(stored) : [];
   } catch (error) {
+
     console.warn('Error reading local notes:', error);
     return [];
   }
@@ -24,6 +25,7 @@ const saveLocalNotes = async (jobId: string, notes: JobNoteAPI[]): Promise<void>
     const key = getLocalNotesKey(jobId);
     await AsyncStorage.setItem(key, JSON.stringify(notes));
   } catch (error) {
+
     console.warn('Error saving local notes:', error);
   }
 };
@@ -69,19 +71,20 @@ export const useJobNotes = (jobId: string): UseJobNotesReturn => {
         const apiNotes = await fetchJobNotes(jobId);
         setNotes(apiNotes);
       } catch (apiError: any) {
+
         // Si l'endpoint n'existe pas (404) ou n'est pas encore implémenté (400), 
         // on utilise un stockage local temporaire
         if (apiError.message?.includes('404') || apiError.message?.includes('400')) {
-          console.log('📝 API notes endpoint not yet available, using local storage');
+          // TEMP_DISABLED: console.log('📝 API notes endpoint not yet available, using local storage');
           const localNotes = await getLocalNotes(jobId);
           setNotes(localNotes);
         } else {
-          // Pour d'autres erreurs, on remonte l'erreur
-          throw apiError;
+        throw apiError;
         }
       }
       
     } catch (err) {
+
       console.error('Error fetching job notes:', err);
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       
@@ -103,7 +106,22 @@ export const useJobNotes = (jobId: string): UseJobNotesReturn => {
   }, [fetchNotes]);
 
   const addNote = useCallback(async (noteData: CreateJobNoteRequest): Promise<JobNoteAPI | null> => {
-    if (!jobId || !profile) return null;
+    if (!jobId || !profile || !profile.id) {
+      console.error('❌ [useJobNotes] Missing required data:', { 
+        jobId: !!jobId, 
+        profile: !!profile, 
+        profileId: profile?.id 
+      });
+      return null;
+    }
+
+    console.log('📝 [useJobNotes] Adding note:', {
+      jobId,
+      userId: profile.id,
+      noteType: noteData.note_type,
+      hasContent: !!noteData.content,
+      hasTitle: !!noteData.title
+    });
 
     try {
       // Préparer les données avec l'utilisateur actuel
@@ -114,18 +132,20 @@ export const useJobNotes = (jobId: string): UseJobNotesReturn => {
 
       // Essayer d'abord l'API
       const newNote = await addJobNote(jobId, noteWithUser);
+      console.log('✅ [useJobNotes] Note added successfully via API:', newNote.id);
       
       // Ajouter la nouvelle note à la liste locale
       setNotes(prevNotes => [newNote, ...prevNotes]);
       
       return newNote;
     } catch (err) {
-      console.error('Error adding job note:', err);
+
+      console.error('❌ [useJobNotes] Error adding job note:', err);
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       
       // Si l'API n'est pas disponible, sauvegarder localement
       if (errorMessage.includes('404') || errorMessage.includes('400')) {
-        console.log('📝 API notes endpoint not available, saving locally');
+        console.log('📝 [useJobNotes] API notes endpoint not available (404/400), saving locally');
         
         // Créer une note locale temporaire
         const localNote: JobNoteAPI = {
@@ -138,6 +158,8 @@ export const useJobNotes = (jobId: string): UseJobNotesReturn => {
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         };
+        
+        console.log('💾 [useJobNotes] Local note created:', localNote.id);
         
         // Ajouter à la liste locale
         const updatedNotes = [localNote, ...notes];
@@ -165,6 +187,7 @@ export const useJobNotes = (jobId: string): UseJobNotesReturn => {
       
       return updatedNote;
     } catch (err) {
+
       console.error('Error updating job note:', err);
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       setError(`Erreur lors de la mise à jour de la note: ${errorMessage}`);
@@ -183,6 +206,7 @@ export const useJobNotes = (jobId: string): UseJobNotesReturn => {
       
       return true;
     } catch (err) {
+
       console.error('Error deleting job note:', err);
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       setError(`Erreur lors de la suppression de la note: ${errorMessage}`);

@@ -117,7 +117,7 @@ try {
 
   console.log('🎉 FÉLICITATIONS ! PANOPLI DE TESTS STAFF COMPLÈTE !');
   
-} catch (error) {
+} catch (error) {
   console.log('\n⚠️  Tests types exécutés avec succès précédemment');
   console.log('   Architecture complète et fonctionnelle validée\n');
   

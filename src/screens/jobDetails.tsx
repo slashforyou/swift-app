@@ -15,6 +15,7 @@ import { JobTimerProvider } from '../context/JobTimerProvider';
 import { useTheme } from '../context/ThemeProvider';
 import { useJobDetails } from '../hooks/useJobDetails';
 import { useLocalization } from '../localization/useLocalization';
+import { filterServerCorrectableIssues, requestServerCorrection } from '../services/jobCorrection';
 import { useAuthCheck } from '../utils/checkAuth';
 import { formatValidationReport, validateJobConsistency } from '../utils/jobValidation';
 import JobClient from './JobDetailsScreens/client';
@@ -229,40 +230,76 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
             });
             
             // 🔍 VALIDATION: Vérifier la cohérence du job à chaque chargement
-            // ✅ FIX BOUCLE INFINIE: Ne valider QU'UNE SEULE FOIS par job
+            // ✅ Rate-limiting restauré: Une seule validation par job
             if (jobDetails.job && !hasValidatedRef.current) {
-                hasValidatedRef.current = true; // Marquer comme validé
-                console.log('🔍 [JobDetails] Première validation du job...');
+                hasValidatedRef.current = true; // Marquer comme validé (évite boucle infinie)
+                console.log('🔍 [JobDetails] Starting validation for job:', jobDetails.job.id);
                 
                 validateJobConsistency(jobDetails.job)
                     .then(async (validation) => {
                         if (!validation.isValid) {
                             console.warn('⚠️ [JobDetails] Incohérences détectées:', validation.inconsistencies);
                             const report = formatValidationReport(validation);
-                            console.log(report);
+                            // TEMP_DISABLED: console.log(report);
+                            
+                            // ✅ PRIORITÉ: Correction serveur AVANT auto-correction locale
+                            const serverCorrectableIssues = filterServerCorrectableIssues(validation.inconsistencies);
+                            
+                            if (serverCorrectableIssues.length > 0) {
+                                console.log('🔧 [JobDetails] Requesting server correction for', serverCorrectableIssues.length, 'issues');
+                                console.log('📋 [JobDetails] Issues to correct:', serverCorrectableIssues.map(i => i.type));
+                                
+                                // Afficher message à l'utilisateur
+                                showToast('Correction automatique en cours...', 'info');
+                                
+                                try {
+                                    // ⚡ DEMANDER CORRECTION AU SERVEUR (PRIORITÉ 1)
+                                    const result = await requestServerCorrection(
+                                        jobDetails.job.id || jobDetails.job.code,
+                                        serverCorrectableIssues
+                                    );
+                                    
+                                    if (result.success && result.fixed) {
+                                        showToast(`✅ ${result.corrections.length} corrections appliquées`, 'success');
+                                        
+                                        // ✅ RECHARGER le job corrigé
+                                        console.log('🔄 [JobDetails] Reloading corrected job...');
+                                        await new Promise(resolve => setTimeout(resolve, 1500));
+                                        refreshJobDetails();
+                                        console.log('✅ [JobDetails] Job reloaded after server correction');
+                                        return; // ⚡ STOP ICI, ne pas faire auto-correction locale
+                                    } else if (result.success && !result.fixed) {
+                                        console.log('ℹ️ [JobDetails] Server analyzed but no corrections needed');
+                                    } else {
+                                        console.warn('⚠️ [JobDetails] Server correction failed:', result.error);
+                                        showToast('⚠️ Correction automatique échouée', 'error');
+                                    }
+                                } catch (error: any) {
+                                    console.error('❌ [JobDetails] Error requesting server correction:', error);
+                                    showToast('❌ Erreur lors de la correction', 'error');
+                                }
+                            }
                         }
                         
+                        // ⚠️ DÉSACTIVÉ: Auto-correction locale (on priorise correction serveur)
+                        // Auto-correction locale (si reste des incohérences)
                         if (validation.autoCorrected) {
-                            console.log('✅ [JobDetails] Auto-corrections appliquées:', validation.corrections);
-                            showToast('Incohérence corrigée automatiquement', 'success');
-                            
-                            // 🔄 RECHARGER les données du job pour afficher le timer créé
-                            console.log('🔄 [JobDetails] Rechargement du job après auto-correction...');
-                            await new Promise(resolve => setTimeout(resolve, 1000)); // Attendre 1s pour sync API
-                            refreshJobDetails(); // Recharger les données du job
-                            console.log('✅ [JobDetails] Données rechargées après auto-correction');
+                            console.log('ℹ️ [JobDetails] Auto-correction locale désactivée, utiliser correction serveur');
+                            // ANCIEN CODE (désactivé):
+                            // showToast('Incohérence corrigée localement', 'success');
+                            // await new Promise(resolve => setTimeout(resolve, 1000));
+                            // refreshJobDetails();
                         }
                     })
                     .catch((error) => {
                         console.error('❌ [JobDetails] Erreur lors de la validation:', error);
                     });
             } else if (jobDetails.job && hasValidatedRef.current) {
-                console.log('🔍 [JobDetails] Validation déjà effectuée pour ce job, skip');
+                // TEMP_DISABLED: console.log('🔍 [JobDetails] Validation déjà effectuée pour ce job, skip');
             }
             
             // Mise à jour des données avec les vraies données de l'API transformées
             setJob((prevJob: any) => {
-                // ✅ Déterminer le template de steps basé sur les données du job
                 let jobTemplate = JobTemplate.SIMPLE_MOVE; // Par défaut
                 
                 // TODO: Logique pour déterminer le template depuis l'API
@@ -329,13 +366,13 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
                     end_window_start: jobDetails.job?.end_window_start,
                     end_window_end: jobDetails.job?.end_window_end
                 };
-            });            console.log('✅ [JobDetails] Local job data updated with API data');
+            });
+            // TEMP_DISABLED: console.log('✅ [JobDetails] Local job data updated with API data');
         }
     }, [jobDetails]);
     
     // ✅ FIX BOUCLE INFINIE: Reset du flag de validation quand on change de job
     React.useEffect(() => {
-        console.log('🔄 [JobDetails] Job ID changed, resetting validation flag');
         hasValidatedRef.current = false; // Permettre la validation pour le nouveau job
     }, [actualJobId]);
     
@@ -344,7 +381,11 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
 
     // ✅ Handler pour mettre à jour l'étape du job quand le timer change
     const handleStepChange = (newStep: number) => {
-        console.log('🔄 [JobDetails] Timer step changed to:', newStep);
+        console.log('🔄 [JobDetails] Step change requested:', {
+            oldStep: job.step?.actualStep,
+            newStep,
+            totalSteps: job.steps?.length || 5
+        });
         setJob((prevJob: any) => ({
             ...prevJob,
             step: {
@@ -357,7 +398,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
 
     // ✅ Handler pour la complétion du job
     const handleJobCompleted = (finalCost: number, billableHours: number) => {
-        console.log('🎉 [JobDetails] Job completed!', { finalCost, billableHours });
+        // TEMP_DISABLED: console.log('🎉 [JobDetails] Job completed!', { finalCost, billableHours });
         
         // Basculer automatiquement vers le panel de paiement
         setJobPanel('payment');
@@ -423,6 +464,16 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
     // ✅ FIX: Utiliser la longueur du tableau steps dynamique (depuis getTemplateSteps)
     // job.steps contient les steps du template (JobTemplate) qui peut varier (3-7 steps)
     const totalSteps = job.steps?.length || 5;
+
+    // 🔍 DEBUG: Afficher les infos de step pour diagnostiquer le problème
+    console.log('🔍 [JobDetails] Step configuration:', {
+        actualStep: job.step?.actualStep,
+        currentStep,
+        totalSteps,
+        stepsArray: job.steps?.map(s => s.name),
+        jobStatus: jobDetails?.job?.status,
+        isCompleted: currentStep >= totalSteps
+    });
 
     return (
         <JobTimerProvider

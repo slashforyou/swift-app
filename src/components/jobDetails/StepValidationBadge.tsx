@@ -38,15 +38,7 @@ export const StepValidationBadge: React.FC<StepValidationBadgeProps> = ({
         
         // Log pour debugging
         if (!result.isValid) {
-            console.log('⚠️ [STEP VALIDATION BADGE] Validation failed:', {
-                isValid: result.isValid,
-                currentStep: result.currentStep,
-                expectedStep: result.expectedStep,
-                reason: result.reason,
-                severity: result.severity,
-                shouldCorrect: result.shouldCorrect
-            });
-        }
+            }
     }, [job, timeline]);
 
     // Ne rien afficher si tout est OK
@@ -67,7 +59,7 @@ export const StepValidationBadge: React.FC<StepValidationBadgeProps> = ({
         setIsCorrect(true);
 
         try {
-            console.log('🔧 [STEP VALIDATION] Correcting step...');
+            // TEMP_DISABLED: console.log('🔧 [STEP VALIDATION] Correcting step...');
             
             const result = await correctJobStep(jobCode, validation);
             
@@ -82,7 +74,7 @@ export const StepValidationBadge: React.FC<StepValidationBadgeProps> = ({
                 showError(result.message);
             }
             
-        } catch (error) {
+        } catch (error) {
             console.error('❌ [STEP VALIDATION] Error correcting:', error);
             showError('Erreur lors de la correction du step');
         } finally {

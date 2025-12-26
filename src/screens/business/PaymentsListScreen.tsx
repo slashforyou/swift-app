@@ -81,7 +81,7 @@ export default function PaymentsListScreen({ navigation }: PaymentsListScreenPro
 
   const handlePaymentPress = (payment: Payment) => {
     // TODO: Navigation vers le détail du paiement
-    console.log('Payment details:', payment.id)
+    // TEMP_DISABLED: console.log('Payment details:', payment.id)
   }
 
   const filteredPayments = payments.filter(payment => {

@@ -2,7 +2,6 @@
  * Hook pour la détection de connexion Stripe
  */
 import { useCallback, useEffect, useState } from 'react';
-import { checkStripeConnectionStatus } from '../services/StripeService';
 
 export interface StripeConnectionStatus {
   isConnected: boolean;
@@ -24,16 +23,22 @@ export const useStripeConnection = () => {
       setLoading(true);
       setError(null);
       
-      console.log('🔍 [STRIPE HOOK] Checking Stripe connection...');
-      const status = await checkStripeConnectionStatus();
+      // TEMPORAIRE: Désactiver l'appel Stripe pour tester
+      // const status = await checkStripeConnectionStatus();
       
-      console.log('✅ [STRIPE HOOK] Connection status result:', status);
+      // Mock data pour tester l'interface
+      const status = {
+        isConnected: false,
+        status: 'not_connected' as const,
+        details: 'Stripe check temporarily disabled'
+      };
+      
       setConnectionStatus(status);
       
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       setError(errorMessage);
-      console.error('❌ [STRIPE HOOK] Error checking connection:', err);
+      
     } finally {
       setLoading(false);
     }
@@ -41,7 +46,7 @@ export const useStripeConnection = () => {
 
   useEffect(() => {
     checkConnection();
-  }, [checkConnection]);
+  }, []); // ✅ CORRECTION: Retirer checkConnection des dépendances
 
   return {
     ...connectionStatus,

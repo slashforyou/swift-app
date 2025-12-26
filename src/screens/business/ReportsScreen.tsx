@@ -124,7 +124,7 @@ export const ReportsScreen: React.FC<ReportsScreenProps> = ({ onBack }) => {
       );
       await exportData(format);
       Alert.alert('Succès', `Rapport ${format.toUpperCase()} généré avec succès`);
-    } catch (error) {
+    } catch (error) {
       Alert.alert('Erreur', 'Impossible de générer le rapport');
     }
   }, [exportData]);

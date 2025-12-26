@@ -85,7 +85,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                 navigation.navigate('Home');
             }, 1500);
             
-        } catch (error: any) {
+        } catch (error: any) {
             console.error('Login error:', error);
             
             // Messages d'erreur personnalisés basés sur les nouveaux codes

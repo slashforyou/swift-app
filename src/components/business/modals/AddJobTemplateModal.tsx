@@ -154,9 +154,7 @@ const AddJobTemplateModal: React.FC<AddJobTemplateModalProps> = ({
       rate: '',
       minimumCharge: '',
     },
-  });
-
-  // États pour les erreurs et l'UI
+  });// États pour les erreurs et l'UI
   const [errors, setErrors] = useState<Partial<Record<keyof JobTemplate | 'pricing' | 'requirements', string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [newInclusion, setNewInclusion] = useState('');
@@ -410,9 +408,7 @@ const AddJobTemplateModal: React.FC<AddJobTemplateModalProps> = ({
       marginTop: DESIGN_TOKENS.spacing.xs,
       fontStyle: 'italic',
     },
-  });
-
-  // Mise à jour des données du formulaire
+  });// Mise à jour des données du formulaire
   const updateFormData = (field: keyof JobTemplate, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     
@@ -623,7 +619,7 @@ const AddJobTemplateModal: React.FC<AddJobTemplateModalProps> = ({
       onClose();
       
       Alert.alert('Success', 'Job template created successfully!');
-    } catch (error) {
+    } catch (error) {
       Alert.alert('Error', 'Failed to create job template. Please try again.');
     } finally {
       setIsSubmitting(false);

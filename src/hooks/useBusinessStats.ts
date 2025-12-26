@@ -210,26 +210,24 @@ export const useBusinessStats = (): UseBusinessStatsReturn => {
     
     try {
       if (USE_MOCK_BUSINESS_STATS) {
-        console.log('📊 [BUSINESS STATS] Using mock overview stats');
+        // TEMP_DISABLED: console.log('📊 [BUSINESS STATS] Using mock overview stats');
         await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
         setOverviewStats(mockOverviewStats);
       } else {
-        console.log('📊 [BUSINESS STATS] Loading real overview stats from API');
         const stats = await fetchBusinessOverviewStats();
         setOverviewStats(stats);
       }
       setLastUpdated(new Date());
-    } catch (error) {
+    } catch (error) {
       console.error('❌ [BUSINESS STATS] Error loading overview stats:', error);
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des statistiques générales';
       setOverviewError(errorMessage);
       
       if (__DEV__) {
         // Fallback vers les données mock en développement uniquement
-        console.log('📊 [BUSINESS STATS] Using mock data as fallback for overview in DEV');
+        // TEMP_DISABLED: console.log('📊 [BUSINESS STATS] Using mock data as fallback for overview in DEV');
         setOverviewStats(mockOverviewStats);
       } else {
-        // En production, on ne masque pas les erreurs API
         setOverviewStats(null);
       }
     } finally {
@@ -245,26 +243,24 @@ export const useBusinessStats = (): UseBusinessStatsReturn => {
     
     try {
       if (USE_MOCK_BUSINESS_STATS) {
-        console.log('📊 [BUSINESS STATS] Using mock performance metrics');
+        // TEMP_DISABLED: console.log('📊 [BUSINESS STATS] Using mock performance metrics');
         await new Promise(resolve => setTimeout(resolve, 500));
         setPerformanceMetrics(mockPerformanceMetrics);
       } else {
-        console.log('📊 [BUSINESS STATS] Loading real performance metrics from API');
         const metrics = await fetchBusinessPerformanceMetrics();
         setPerformanceMetrics(metrics);
       }
       setLastUpdated(new Date());
-    } catch (error) {
+    } catch (error) {
       console.error('❌ [BUSINESS STATS] Error loading performance metrics:', error);
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des métriques de performance';
       setPerformanceError(errorMessage);
       
       if (__DEV__) {
         // Fallback vers les données mock en développement uniquement
-        console.log('📊 [BUSINESS STATS] Using mock data as fallback for performance in DEV');
+        // TEMP_DISABLED: console.log('📊 [BUSINESS STATS] Using mock data as fallback for performance in DEV');
         setPerformanceMetrics(mockPerformanceMetrics);
       } else {
-        // En production, on ne masque pas les erreurs API
         setPerformanceMetrics(null);
       }
     } finally {
@@ -282,23 +278,23 @@ export const useBusinessStats = (): UseBusinessStatsReturn => {
     
     try {
       if (USE_MOCK_BUSINESS_STATS) {
-        console.log(`📊 [BUSINESS STATS] Using mock trend data for period: ${period}`);
+        // TEMP_DISABLED: console.log(`📊 [BUSINESS STATS] Using mock trend data for period: ${period}`);
         await new Promise(resolve => setTimeout(resolve, 500));
         setTrendData({ ...mockTrendData, period });
       } else {
-        console.log(`📊 [BUSINESS STATS] Loading real trend data from API for period: ${period}`);
+        // TEMP_DISABLED: console.log(`📊 [BUSINESS STATS] Loading real trend data from API for period: ${period}`);
         const trends = await fetchBusinessTrendData(period);
         setTrendData(trends);
       }
       setLastUpdated(new Date());
-    } catch (error) {
+    } catch (error) {
       console.error('❌ [BUSINESS STATS] Error loading trend data:', error);
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des données de tendance';
       setTrendsError(errorMessage);
       
       if (__DEV__) {
         // Fallback vers les données mock en développement uniquement
-        console.log('📊 [BUSINESS STATS] Using mock data as fallback for trends in DEV');
+        // TEMP_DISABLED: console.log('📊 [BUSINESS STATS] Using mock data as fallback for trends in DEV');
         setTrendData({ ...mockTrendData, period });
       } else {
         // En production, on ne masque pas les erreurs API
@@ -317,26 +313,24 @@ export const useBusinessStats = (): UseBusinessStatsReturn => {
     
     try {
       if (USE_MOCK_BUSINESS_STATS) {
-        console.log('📊 [BUSINESS STATS] Using mock regional stats');
+        // TEMP_DISABLED: console.log('📊 [BUSINESS STATS] Using mock regional stats');
         await new Promise(resolve => setTimeout(resolve, 500));
         setRegionalStats(mockRegionalStats);
       } else {
-        console.log('📊 [BUSINESS STATS] Loading real regional stats from API');
         const regional = await fetchBusinessRegionalStats();
         setRegionalStats(regional);
       }
       setLastUpdated(new Date());
-    } catch (error) {
+    } catch (error) {
       console.error('❌ [BUSINESS STATS] Error loading regional stats:', error);
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des statistiques régionales';
       setRegionalError(errorMessage);
       
       if (__DEV__) {
         // Fallback vers les données mock en développement uniquement
-        console.log('📊 [BUSINESS STATS] Using mock data as fallback for regional in DEV');
+        // TEMP_DISABLED: console.log('📊 [BUSINESS STATS] Using mock data as fallback for regional in DEV');
         setRegionalStats(mockRegionalStats);
       } else {
-        // En production, on ne masque pas les erreurs API
         setRegionalStats(null);
       }
     } finally {
@@ -352,26 +346,24 @@ export const useBusinessStats = (): UseBusinessStatsReturn => {
     
     try {
       if (USE_MOCK_BUSINESS_STATS) {
-        console.log('📊 [BUSINESS STATS] Using mock competitive analysis');
+        // TEMP_DISABLED: console.log('📊 [BUSINESS STATS] Using mock competitive analysis');
         await new Promise(resolve => setTimeout(resolve, 500));
         setCompetitiveAnalysis(mockCompetitiveAnalysis);
       } else {
-        console.log('📊 [BUSINESS STATS] Loading real competitive analysis from API');
         const competitive = await fetchBusinessCompetitiveAnalysis();
         setCompetitiveAnalysis(competitive);
       }
       setLastUpdated(new Date());
-    } catch (error) {
+    } catch (error) {
       console.error('❌ [BUSINESS STATS] Error loading competitive analysis:', error);
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement de l\'analyse concurrentielle';
       setCompetitiveError(errorMessage);
       
       if (__DEV__) {
         // Fallback vers les données mock en développement uniquement
-        console.log('📊 [BUSINESS STATS] Using mock data as fallback for competitive in DEV');
+        // TEMP_DISABLED: console.log('📊 [BUSINESS STATS] Using mock data as fallback for competitive in DEV');
         setCompetitiveAnalysis(mockCompetitiveAnalysis);
       } else {
-        // En production, on ne masque pas les erreurs API
         setCompetitiveAnalysis(null);
       }
     } finally {
@@ -384,7 +376,7 @@ export const useBusinessStats = (): UseBusinessStatsReturn => {
   // ===========================
   
   const loadAllStats = useCallback(async () => {
-    console.log('📊 [BUSINESS STATS] Loading all business statistics...');
+    // TEMP_DISABLED: console.log('📊 [BUSINESS STATS] Loading all business statistics...');
     await Promise.all([
       loadOverviewStats(),
       loadPerformanceMetrics(),
@@ -392,17 +384,15 @@ export const useBusinessStats = (): UseBusinessStatsReturn => {
       loadRegionalStats(),
       loadCompetitiveAnalysis()
     ]);
-    console.log('✅ [BUSINESS STATS] All statistics loaded successfully');
+    // TEMP_DISABLED: console.log('✅ [BUSINESS STATS] All statistics loaded successfully');
   }, [loadOverviewStats, loadPerformanceMetrics, loadTrendData, loadRegionalStats, loadCompetitiveAnalysis]);
   
-  const refreshAllStats = useCallback(async () => {
-    console.log('🔄 [BUSINESS STATS] Refreshing all business statistics...');
-    
+  const refreshAllStats = useCallback(async () => {    
     try {
       if (!USE_MOCK_BUSINESS_STATS) {
         // Déclencher le refresh côté backend
         await refreshBusinessStats();
-        console.log('✅ [BUSINESS STATS] Backend refresh initiated');
+        // TEMP_DISABLED: console.log('✅ [BUSINESS STATS] Backend refresh initiated');
         
         // Attendre un délai pour laisser le backend recalculer
         await new Promise(resolve => setTimeout(resolve, 2000));
@@ -411,7 +401,7 @@ export const useBusinessStats = (): UseBusinessStatsReturn => {
       // Recharger toutes les données
       await loadAllStats();
       
-    } catch (error) {
+    } catch (error) {
       console.error('❌ [BUSINESS STATS] Error during refresh:', error);
       // Continuer avec le rechargement même en cas d'erreur de refresh
       await loadAllStats();

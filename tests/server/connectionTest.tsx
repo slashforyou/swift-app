@@ -70,7 +70,7 @@ const ServerConnectionTest: React.FC = () => {
                 success: true,
                 message: JSON.stringify(data)
             };
-        } catch (err) {
+        } catch (err) {
             return {
                 method: type,
                 success: false,

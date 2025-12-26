@@ -28,7 +28,7 @@ describe('API Load Testing', () => {
         const result = await fn();
         results.push(result);
         times.push(performance.now() - startTime);
-      } catch (error) {
+      } catch (error) {
         errors++;
         times.push(performance.now() - startTime);
       }
@@ -62,7 +62,7 @@ describe('API Load Testing', () => {
             try {
               await fn();
               completed++;
-            } catch (error) {
+            } catch (error) {
               errors++;
             }
           }

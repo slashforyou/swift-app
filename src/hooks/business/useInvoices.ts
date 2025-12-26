@@ -82,7 +82,7 @@ export const useInvoices = (): UseInvoicesReturn => {
       
       const invoicesList = await fetchInvoices();
       setInvoices(invoicesList);
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load invoices';
       setError(errorMessage);
       console.error('Error loading invoices:', err);
@@ -106,7 +106,7 @@ export const useInvoices = (): UseInvoicesReturn => {
       setInvoices(prev => 
         prev.map(inv => inv.id === invoiceId ? invoice : inv)
       );
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load invoice details';
       setError(errorMessage);
       console.error('Error loading invoice details:', err);
@@ -131,7 +131,7 @@ export const useInvoices = (): UseInvoicesReturn => {
       setInvoices(prev => [...prev, newInvoice]);
       
       return newInvoice;
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create invoice';
       setError(errorMessage);
       console.error('Error creating invoice:', err);
@@ -165,7 +165,7 @@ export const useInvoices = (): UseInvoicesReturn => {
       }
       
       return updatedInvoice;
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update invoice';
       setError(errorMessage);
       console.error('Error updating invoice:', err);
@@ -202,7 +202,7 @@ export const useInvoices = (): UseInvoicesReturn => {
           updated_at: new Date().toISOString() 
         } : null);
       }
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to send invoice';
       setError(errorMessage);
       console.error('Error sending invoice:', err);
@@ -241,7 +241,7 @@ export const useInvoices = (): UseInvoicesReturn => {
           paidDate: new Date().toISOString() 
         } : null);
       }
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to mark invoice as paid';
       setError(errorMessage);
       console.error('Error marking invoice as paid:', err);
@@ -267,7 +267,7 @@ export const useInvoices = (): UseInvoicesReturn => {
       if (currentInvoice?.id === invoiceId) {
         setCurrentInvoice(null);
       }
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete invoice';
       setError(errorMessage);
       console.error('Error deleting invoice:', err);

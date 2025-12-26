@@ -57,8 +57,8 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
     } = useJobsForDay(selectedDay, selectedMonth, selectedYear, statusFilter, sortBy);
     
     // Debug logs
-    console.log(`🏠 DayScreen Hook Results - Date: ${selectedDay}/${selectedMonth}/${selectedYear}`);
-    console.log(`📊 Hook State - isLoading: ${isLoading}, error: ${error}, jobs: ${jobs.length}, filteredJobs: ${filteredJobs.length}`);
+    // TEMP_DISABLED: console.log(`🏠 DayScreen Hook Results - Date: ${selectedDay}/${selectedMonth}/${selectedYear}`);
+    // TEMP_DISABLED: console.log(`📊 Hook State - isLoading: ${isLoading}, error: ${error}, jobs: ${jobs.length}, filteredJobs: ${filteredJobs.length}`);
     
     // Format date for display
     const formattedDate = useMemo(() => {
@@ -75,7 +75,7 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
     const handleJobPress = useCallback((job: Job) => {
         // Utiliser le code du job (ex: JOB-NERD-URGENT-006) au lieu de l'ID numérique
         const jobCode = job.code || job.id; // Fallback sur ID si pas de code
-        console.log(`Job ${job.id} (code: ${jobCode}) selected`);
+        // TEMP_DISABLED: console.log(`Job ${job.id} (code: ${jobCode}) selected`);
         navigation.navigate('JobDetails', { 
             jobId: jobCode, // Passer le code du job
             day: selectedDay,
@@ -370,9 +370,9 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
                         showsVerticalScrollIndicator={false}
                     >
                         {(() => {
-                            console.log(`🔍 Day Screen Render - isLoading: ${isLoading}, jobs: ${jobs.length}, filteredJobs: ${filteredJobs.length}`);
-                            console.log('📋 Jobs data:', JSON.stringify(jobs, null, 2));
-                            console.log('🔽 Filtered jobs:', JSON.stringify(filteredJobs, null, 2));
+                            // TEMP_DISABLED: console.log(`🔍 Day Screen Render - isLoading: ${isLoading}, jobs: ${jobs.length}, filteredJobs: ${filteredJobs.length}`);
+                            // TEMP_DISABLED: console.log('📋 Jobs data:', JSON.stringify(jobs, null, 2));
+                            // TEMP_DISABLED: console.log('🔽 Filtered jobs:', JSON.stringify(filteredJobs, null, 2));
                             return null;
                         })()}
                         

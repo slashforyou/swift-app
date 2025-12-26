@@ -284,7 +284,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (savedMode && ['light', 'dark', 'auto'].includes(savedMode)) {
           setThemeMode(savedMode as ThemeMode);
         }
-      } catch (error) {
+      } catch (error) {
         console.warn('Failed to load theme from storage:', error);
       }
     };
@@ -306,7 +306,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setThemeMode(mode);
     try {
       await AsyncStorage.setItem(STORAGE_KEY, mode);
-    } catch (error) {
+    } catch (error) {
       console.warn('Failed to save theme to storage:', error);
     }
   };

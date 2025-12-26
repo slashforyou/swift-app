@@ -96,7 +96,7 @@ const ProfileHeaderComplete: React.FC<ProfileHeaderProps> = ({ navigation }) => 
             </View>
         );
         
-    } catch (error) {
+    } catch (error) {
         console.error('ProfileHeaderComplete Error:', error);
         
         // Fallback en cas d'erreur

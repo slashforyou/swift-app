@@ -99,8 +99,8 @@ export async function uploadJobPhoto(
   }
 
   const response = await res.json();
-  console.log('🔍 [DEBUG] Server response:', JSON.stringify(response));
-  console.log('🔍 [DEBUG] Response keys:', Object.keys(response));
+  // TEMP_DISABLED: console.log('🔍 [DEBUG] Server response:', JSON.stringify(response));
+  // TEMP_DISABLED: console.log('🔍 [DEBUG] Response keys:', Object.keys(response));
   
   // Le serveur retourne la photo dans response.data au lieu de response.photo
   // On transforme pour correspondre à l'interface JobPhotoAPI
@@ -112,7 +112,7 @@ export async function uploadJobPhoto(
     throw new Error('No photo data returned from server');
   }
   
-  console.log('✅ [DEBUG] Photo data received:', serverData);
+  // TEMP_DISABLED: console.log('✅ [DEBUG] Photo data received:', serverData);
   
   // Transformer la réponse serveur en format JobPhotoAPI
   const photo: JobPhotoAPI = {
@@ -130,7 +130,7 @@ export async function uploadJobPhoto(
     updated_at: serverData.updated_at || serverData.updatedAt || new Date().toISOString(),
   };
   
-  console.log('✅ [DEBUG] Photo normalized:', photo);
+  // TEMP_DISABLED: console.log('✅ [DEBUG] Photo normalized:', photo);
   return photo;
 }
 
@@ -204,7 +204,7 @@ export async function fetchJobPhotos(
   const offset = options?.offset ?? 0;
   
   const url = `${API}v1/job/${jobId}/images?limit=${limit}&offset=${offset}`;
-  console.log('📸 [fetchJobPhotos] REQUEST - URL:', url, 'limit:', limit, 'offset:', offset);
+  // TEMP_DISABLED: console.log('📸 [fetchJobPhotos] REQUEST - URL:', url, 'limit:', limit, 'offset:', offset);
   
   const res = await fetch(url, {
     method: 'GET',
@@ -221,25 +221,25 @@ export async function fetchJobPhotos(
 
   const response = await res.json();
   
-  console.log('📸 [fetchJobPhotos] RAW RESPONSE:', JSON.stringify({
+  /* TEMP_DISABLED: console.log('📸 [fetchJobPhotos] RAW RESPONSE:', JSON.stringify({
     success: response.success,
     dataImages: response.data?.images?.length || 0,
     dataPagination: response.data?.pagination,
     topLevelImages: response.images?.length || 0
-  }, null, 2));
+  }, null, 2)); */
   
   // API retourne: { success: true, data: { images: [...], pagination: {...} } }
   const images = response.data?.images || response.images || [];
   const pagination = response.data?.pagination || { total: images.length, hasMore: false, count: images.length };
   
-  console.log('📸 [fetchJobPhotos] PARSED RESULT:', JSON.stringify({ 
+  /* TEMP_DISABLED: console.log('📸 [fetchJobPhotos] PARSED RESULT:', JSON.stringify({ 
     photosCount: images.length, 
     requestedLimit: limit,
     requestedOffset: offset, 
     totalInDB: pagination.total,
     hasMore: pagination.hasMore,
     paginationCount: pagination.count
-  }, null, 2));
+  }, null, 2)); */
   
   return {
     photos: images,

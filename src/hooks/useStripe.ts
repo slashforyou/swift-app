@@ -80,7 +80,7 @@ export const useStripePayments = () => {
     try {
       const data = await fetchStripePayments();
       setPayments(data);
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erreur lors du chargement des paiements';
       setError(errorMessage);
       console.error('Error loading payments:', err);
@@ -118,7 +118,7 @@ export const useStripePayouts = () => {
     try {
       const data = await fetchStripePayouts();
       setPayouts(data);
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erreur lors du chargement des virements';
       setError(errorMessage);
       console.error('Error loading payouts:', err);
@@ -134,7 +134,7 @@ export const useStripePayouts = () => {
       // Refresh les données après création
       await loadPayouts(true);
       return payoutId;
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la création du virement';
       setError(errorMessage);
       throw err;
@@ -181,7 +181,7 @@ export const useStripeAccount = () => {
         pending_balance: balanceData.pending
       });
       setBalance(balanceData);
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erreur lors du chargement du compte';
       setError(errorMessage);
       console.error('Error loading account:', err);
@@ -201,7 +201,7 @@ export const useStripeAccount = () => {
       await updateStripeAccountSettings(settings);
       // Refresh les données après mise à jour
       await loadAccount(true);
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la mise à jour';
       setError(errorMessage);
       throw err;
@@ -236,7 +236,7 @@ export const useStripePaymentLinks = () => {
     try {
       const url = await createStripePaymentLink(request);
       return url;
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la création du lien';
       setError(errorMessage);
       throw err;

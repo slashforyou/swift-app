@@ -70,7 +70,7 @@ export const useJobTemplates = (): UseJobTemplatesReturn => {
       
       const templatesList = await fetchJobTemplates();
       setTemplates(templatesList);
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load templates';
       setError(errorMessage);
       console.error('Error loading templates:', err);
@@ -95,7 +95,7 @@ export const useJobTemplates = (): UseJobTemplatesReturn => {
       setTemplates(prev => [...prev, newTemplate]);
       
       return newTemplate;
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create template';
       setError(errorMessage);
       console.error('Error creating template:', err);
@@ -121,7 +121,7 @@ export const useJobTemplates = (): UseJobTemplatesReturn => {
       setTemplates(prev => [...prev, duplicatedTemplate]);
       
       return duplicatedTemplate;
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to duplicate template';
       setError(errorMessage);
       console.error('Error duplicating template:', err);
@@ -150,7 +150,7 @@ export const useJobTemplates = (): UseJobTemplatesReturn => {
       );
       
       return updatedTemplate;
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update template';
       setError(errorMessage);
       console.error('Error updating template:', err);
@@ -172,7 +172,7 @@ export const useJobTemplates = (): UseJobTemplatesReturn => {
       
       // Retirer de la liste
       setTemplates(prev => prev.filter(t => t.id !== templateId));
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete template';
       setError(errorMessage);
       console.error('Error deleting template:', err);

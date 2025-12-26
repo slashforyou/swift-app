@@ -79,7 +79,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
   visibleCondition, 
   setVisibleCondition 
 }) => {
-  console.log('🔄 PaymentWindow render'); // DEBUG
+  // TEMP_DISABLED: console.log('🔄 PaymentWindow render'); // DEBUG
   const insets = useSafeAreaInsets();
   const { colors } = useCommonThemedStyles();
   const isVisible = visibleCondition === 'paymentWindow';
@@ -184,7 +184,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
   }, []);
   
   const handleCardUpdate = useCallback((card: { number: string; expiry: string; cvv: string; name: string }) => {
-    console.log('📝 Card update (debounced):', card); // DEBUG
+    // TEMP_DISABLED: console.log('📝 Card update (debounced):', card); // DEBUG
     
     // SOLUTION: No validation here to avoid re-renders!
     // Just update the card data
@@ -202,7 +202,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
     isCvvValid: boolean;
     numberMessage: string;
   }) => {
-    console.log('🔍 Validation update:', validation); // DEBUG
+    // TEMP_DISABLED: console.log('🔍 Validation update:', validation); // DEBUG
     
     // Update validation separately
     setCardValidation({

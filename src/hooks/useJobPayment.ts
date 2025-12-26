@@ -107,7 +107,7 @@ export const useJobPayment = (): UseJobPaymentState & UseJobPaymentActions => {
       description?: string;
     }
   ): Promise<JobPaymentIntent> => {
-    console.log(`💳 [useJobPayment] Creating payment for job ${jobId}...`);
+    // TEMP_DISABLED: console.log(`💳 [useJobPayment] Creating payment for job ${jobId}...`);
     
     updateState({ loading: true, error: null });
 
@@ -119,10 +119,10 @@ export const useJobPayment = (): UseJobPaymentState & UseJobPaymentActions => {
         loading: false 
       });
       
-      console.log(`✅ [useJobPayment] Payment Intent created:`, paymentIntent.payment_intent_id);
+      // TEMP_DISABLED: console.log(`✅ [useJobPayment] Payment Intent created:`, paymentIntent.payment_intent_id);
       return paymentIntent;
       
-    } catch (error) {
+    } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la création du paiement';
       console.error(`❌ [useJobPayment] Create payment error:`, error);
       
@@ -141,7 +141,7 @@ export const useJobPayment = (): UseJobPaymentState & UseJobPaymentActions => {
     paymentIntentId: string,
     status: 'succeeded' | 'failed'
   ): Promise<any> => {
-    console.log(`✅ [useJobPayment] Confirming payment for job ${jobId}...`);
+    // TEMP_DISABLED: console.log(`✅ [useJobPayment] Confirming payment for job ${jobId}...`);
     
     updateState({ confirming: true, error: null });
 
@@ -153,10 +153,10 @@ export const useJobPayment = (): UseJobPaymentState & UseJobPaymentActions => {
         confirmationResult: result
       });
       
-      console.log(`✅ [useJobPayment] Payment confirmed:`, result.payment_status);
+      // TEMP_DISABLED: console.log(`✅ [useJobPayment] Payment confirmed:`, result.payment_status);
       return result;
       
-    } catch (error) {
+    } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la confirmation du paiement';
       console.error(`❌ [useJobPayment] Confirm payment error:`, error);
       
@@ -173,7 +173,7 @@ export const useJobPayment = (): UseJobPaymentState & UseJobPaymentActions => {
   const loadHistory = useCallback(async (
     jobId: string | number
   ): Promise<JobPaymentHistory> => {
-    console.log(`📊 [useJobPayment] Loading payment history for job ${jobId}...`);
+    // TEMP_DISABLED: console.log(`📊 [useJobPayment] Loading payment history for job ${jobId}...`);
     
     updateState({ loadingHistory: true, error: null });
 
@@ -185,10 +185,10 @@ export const useJobPayment = (): UseJobPaymentState & UseJobPaymentActions => {
         loadingHistory: false 
       });
       
-      console.log(`✅ [useJobPayment] History loaded:`, history.payments.length, 'payments');
+      // TEMP_DISABLED: console.log(`✅ [useJobPayment] History loaded:`, history.payments.length, 'payments');
       return history;
       
-    } catch (error) {
+    } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement de l\'historique';
       console.error(`❌ [useJobPayment] Load history error:`, error);
       
@@ -203,7 +203,7 @@ export const useJobPayment = (): UseJobPaymentState & UseJobPaymentActions => {
 
   // Reset de l'état
   const reset = useCallback(() => {
-    console.log('🔄 [useJobPayment] Resetting state...');
+    // TEMP_DISABLED: console.log('🔄 [useJobPayment] Resetting state...');
     setState({
       paymentIntent: null,
       loading: false,
@@ -244,7 +244,7 @@ export const useQuickJobPayment = () => {
     }
   ) => {
     try {
-      console.log(`🚀 [useQuickJobPayment] Processing payment for job ${jobId}...`);
+      // TEMP_DISABLED: console.log(`🚀 [useQuickJobPayment] Processing payment for job ${jobId}...`);
       
       // 1. Créer le Payment Intent
       const paymentIntent = await jobPayment.createPayment(jobId, options);
@@ -260,10 +260,10 @@ export const useQuickJobPayment = () => {
         confirmStatus
       );
 
-      console.log(`✅ [useQuickJobPayment] Payment processed successfully`);
+      // TEMP_DISABLED: console.log(`✅ [useQuickJobPayment] Payment processed successfully`);
       return { stripeResult, finalResult };
 
-    } catch (error) {
+    } catch (error) {
       console.error(`❌ [useQuickJobPayment] Payment processing failed:`, error);
       throw error;
     }

@@ -142,13 +142,13 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
     const { jobs, isLoading, error, refreshJobs } = useJobsForMonth(selectedYear, selectedMonthIndex + 1);
     
     // Debug logs pour suivre l'état des jobs
-    console.log('🔍 [MONTH SCREEN] Component state:', {
-        selectedYear,
-        selectedMonth: selectedMonthIndex + 1,
-        jobsCount: jobs.length,
-        isLoading,
-        hasError: !!error
-    });
+    // TEMP_DISABLED: console.log('🔍 [MONTH SCREEN] Component state:', {
+        // selectedYear,
+        // selectedMonth: selectedMonthIndex + 1,
+        // jobsCount: jobs.length,
+        // isLoading,
+        // hasError: !!error;
+    // });
     
     const selectedMonth = monthList[month - 1] || new Date().toLocaleString('default', { month: 'long' });
 
@@ -201,7 +201,7 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
 
     // Calculate month statistics
     const monthStats = useMemo(() => {
-        console.log('🔍 [MONTH STATS] Calculating stats for', jobs.length, 'jobs');
+        // TEMP_DISABLED: console.log('🔍 [MONTH STATS] Calculating stats for', jobs.length, 'jobs');
         let totalJobs = 0;
         let urgentJobs = 0;
         let completedJobs = 0;
@@ -215,7 +215,7 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
             }
         }
         
-        console.log('🔍 [MONTH STATS] Result:', { totalJobs, urgentJobs, completedJobs });
+        // TEMP_DISABLED: console.log('🔍 [MONTH STATS] Result:', { totalJobs, urgentJobs, completedJobs });
         return { totalJobs, urgentJobs, completedJobs };
     }, [selectedMonthIndex, selectedYear, daysInMonth, jobs]);
 

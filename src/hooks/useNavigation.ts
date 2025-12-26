@@ -26,7 +26,7 @@ export const useNavigation = () => {
     }));
     
     // Logique de navigation simulée
-    console.log(`Navigation vers: ${routeName}`, params);
+    // TEMP_DISABLED: console.log(`Navigation vers: ${routeName}`, params);
   }, []);
 
   const goBack = useCallback(() => {

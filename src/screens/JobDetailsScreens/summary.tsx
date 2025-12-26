@@ -21,6 +21,7 @@ import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useJobTimerContext } from '../../context/JobTimerProvider';
 import { useTheme } from '../../context/ThemeProvider';
 import { useToast } from '../../context/ToastProvider';
+import { useAnalytics } from '../../hooks/useAnalytics';
 import { useJobNotes } from '../../hooks/useJobNotes';
 import { useJobPhotos } from '../../hooks/useJobPhotos';
 import { useLocalization } from '../../localization/useLocalization';
@@ -35,6 +36,7 @@ const JobSummary = ({ job, setJob, onOpenPaymentPanel } : { job: any, setJob: Re
     
     const { t } = useLocalization();
     const { colors } = useTheme();
+    const { track } = useAnalytics('job_summary', 'job_details');
 
     // ✅ Utiliser le context du timer pour avoir les steps en temps réel
     const { currentStep, totalSteps, nextStep } = useJobTimerContext();
@@ -53,24 +55,44 @@ const JobSummary = ({ job, setJob, onOpenPaymentPanel } : { job: any, setJob: Re
     const { showSuccess, showError } = useToast();
 
     const handleSignContract = () => {
+        track.userAction('contract_signing_opened', { 
+            jobId: job?.id, 
+            jobCode: job?.code 
+        });
         setIsSigningVisible(true);
     };
 
     // Gestion des notes avec API - nouvelle structure
     const handleAddNote = async (content: string, note_type: 'general' | 'important' | 'client' | 'internal' = 'general', title?: string) => {
         try {
+            track.userAction('note_add_started', { 
+                jobId: job?.id, 
+                note_type: note_type,
+                content_length: content.length 
+            });
+            
             const result = await addNote({ 
                 title: title || `Note du ${new Date().toLocaleDateString()}`,
                 content, 
                 note_type 
             });
+            
             if (result) {
+                track.businessEvent('note_added', { 
+                    jobId: job?.id, 
+                    note_type: note_type,
+                    success: true 
+                });
                 showSuccess(t('jobDetails.messages.noteAdded'), t('jobDetails.messages.noteAddedSuccess'));
                 return Promise.resolve();
             } else {
                 throw new Error(t('jobDetails.messages.noteAddErrorMessage'));
             }
-        } catch (error) {
+        } catch (error) {
+            track.error('api_error', `Failed to add note: ${error}`, { 
+                jobId: job?.id, 
+                note_type: note_type 
+            });
             console.error('Error adding note:', error);
             showError(t('jobDetails.messages.noteAddError'), t('jobDetails.messages.noteAddErrorMessage'));
             throw error;
@@ -80,90 +102,88 @@ const JobSummary = ({ job, setJob, onOpenPaymentPanel } : { job: any, setJob: Re
     // Gestion des photos avec API
     const handlePhotoSelected = async (photoUri: string) => {
         try {
+            track.userAction('photo_upload_started', { 
+                jobId: job?.id,
+                photo_uri: photoUri.substring(0, 50) // Partial URI for privacy
+            });
+            
             const result = await uploadPhoto(photoUri, `${t('jobDetails.messages.photoDescription')} ${job?.id || 'N/A'}`);
             if (result) {
+                track.businessEvent('photo_uploaded', { 
+                    jobId: job?.id,
+                    success: true 
+                });
                 showSuccess(t('jobDetails.messages.photoAdded'), t('jobDetails.messages.photoAddedSuccess'));
             } else {
                 throw new Error(t('jobDetails.messages.photoAddErrorMessage'));
             }
-        } catch (error) {
+        } catch (error) {
             console.error('Error uploading photo:', error);
             showError(t('jobDetails.messages.photoAddError'), t('jobDetails.messages.photoAddErrorMessage'));
         }
     };
 
-    // ✅ Gestion de l'avancement des étapes - utilise maintenant le timer context
+    // ✅ Gestion de l'avancement des étapes avec nouvelle API backend
     const handleAdvanceStep = async (targetStep: number) => {
         try {
-            // ✅ Appel API pour mettre à jour sur le serveur
-            const jobCode = job?.code || job?.id; // Utiliser le code du job, pas l'ID numérique
+            // Utiliser l'ID numérique du job pour l'API
+            const jobId = job?.id?.toString(); 
             
-            if (jobCode) {
-                try {
-                    console.log(`📊 [SUMMARY] Updating step to ${targetStep} for job ${jobCode}`);
+            // TEMP_DISABLED: console.log('� [SUMMARY] Updating step:', {
+                // jobId: jobId,
+                // targetStep,
+                // jobObject: job ? Object.keys(job) : 'no job'
+            // });
+            
+            if (!jobId) {
+                throw new Error('No job ID available');
+            }
+
+            // TEMP_DISABLED: console.log(`📊 [SUMMARY] Calling updateJobStep API for job ${jobId}, step ${targetStep}`);
+            
+            const response = await updateJobStep(jobId, targetStep);
+            
+            if (response.success) {
+                // TEMP_DISABLED: console.log(`✅ [SUMMARY] Step updated successfully:`, response.data);
+                
+                // ✅ Mettre à jour l'objet job local
+                setJob((prevJob: any) => {
+                    const updatedJob = {
+                        ...prevJob,
+                        step: {
+                            ...prevJob.step,
+                            actualStep: targetStep
+                        }
+                    };
                     
-                    const response = await updateJobStep(jobCode, targetStep);
+                    // TEMP_DISABLED: console.log('🔍 [SUMMARY] Job updated locally:', {
+                        // oldStep: prevJob?.step?.actualStep,
+                        // newStep: targetStep
+                    // });
                     
-                    console.log(`✅ [SUMMARY] Step updated successfully`);
-                    
-                    // 🔍 DEBUG: updateJobStep retourne void, utilisons targetStep directement
-                    console.log('🔍 [SUMMARY] Response analysis:', {
-                        hasData: true,
-                        targetStep,
-                        willUse: targetStep
-                    });
-                    
-                    // 🔍 DEBUG: État avant setJob
-                    console.log('🔍 [SUMMARY] BEFORE setJob - job.step:', job?.step);
-                    
-                    // ✅ Mettre à jour l'objet job local avec targetStep
-                    // updateJobStep retourne void, utilisons targetStep directement
-                    setJob((prevJob: any) => {
-                        console.log('🔍 [SUMMARY] Inside setJob callback:', {
-                            prevStep: prevJob?.step,
-                            newStep: targetStep
-                        });
-                        
-                        const updatedJob = {
-                            ...prevJob,
-                            step: {
-                                ...prevJob.step,
-                                actualStep: targetStep
-                            },
-                            // Garder le status existant car updateJobStep ne le retourne pas
-                            status: prevJob.status
-                        };
-                        
-                        console.log('🔍 [SUMMARY] Returning from setJob:', {
-                            newStep: updatedJob.step
-                        });
-                        
-                        return updatedJob;
-                    });
-                    
-                    // 🔍 DEBUG: État après setJob (sera encore l'ancien à cause de l'async)
-                    console.log('🔍 [SUMMARY] AFTER setJob (async) - job.step:', job?.step);
-                    
-                    showSuccess(
-                        t('jobDetails.messages.nextStep'), 
-                        `${t('jobDetails.messages.advancedToStep')} ${targetStep}`
-                    );
-                } catch (apiError) {
-                    console.error('❌ [SUMMARY] API update failed:', apiError);
-                    showError(
-                        'Erreur de synchronisation',
-                        'La mise à jour de l\'étape a échoué. Veuillez réessayer.'
-                    );
-                    throw apiError;
-                }
+                    return updatedJob;
+                });
+                
+                showSuccess(
+                    t('jobDetails.messages.nextStep'), 
+                    `${t('jobDetails.messages.advancedToStep')} ${targetStep}`
+                );
             } else {
-                console.error('❌ [SUMMARY] No job code/id available');
-                throw new Error('No job identifier');
+                console.error('❌ [SUMMARY] API returned error:', response.error);
+                showError(
+                    'Erreur de synchronisation',
+                    response.error || 'La mise à jour de l\'étape a échoué.'
+                );
+                throw new Error(response.error);
             }
             
             return Promise.resolve();
-        } catch (error) {
+        } catch (error) {
             console.error('❌ [SUMMARY] Error advancing step:', error);
+            showError(
+                'Erreur',
+                'Impossible de mettre à jour l\'étape. Vérifiez votre connexion.'
+            );
             throw error;
         }
     };
@@ -179,7 +199,7 @@ const JobSummary = ({ job, setJob, onOpenPaymentPanel } : { job: any, setJob: Re
                 
                 // Synchroniser avec l'API
                 await handleAdvanceStep(targetStep);
-            } catch (error) {
+            } catch (error) {
                 console.error('Failed to advance step:', error);
             }
         }
@@ -213,11 +233,9 @@ const JobSummary = ({ job, setJob, onOpenPaymentPanel } : { job: any, setJob: Re
                         try {
                             // ✅ Passer l'ID numérique et le type "client"
                             const result = await saveJobSignature(job.id, signature, 'client');
-                            console.log('📝 [SUMMARY] Signature save result:', result);
+                            // TEMP_DISABLED: console.log('📝 [SUMMARY] Signature save result:', result);
                             
-                            if (result.success) {
-                                // ✅ Mettre à jour TOUS les champs de signature
-                                setJob({ 
+                            if (result.success) {setJob({ 
                                     ...job, 
                                     signature_blob: result.signatureUrl,
                                     signatureDataUrl: signature, // Garder aussi la data URL locale
@@ -227,7 +245,7 @@ const JobSummary = ({ job, setJob, onOpenPaymentPanel } : { job: any, setJob: Re
                             } else {
                                 showError('Erreur', result.message || 'Impossible de sauvegarder la signature');
                             }
-                        } catch (error) {
+                        } catch (error) {
                             console.error('Erreur lors de la sauvegarde de la signature:', error);
                             showError('Erreur', 'Une erreur est survenue lors de la sauvegarde');
                         }

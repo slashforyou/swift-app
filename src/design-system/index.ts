@@ -7,7 +7,7 @@
 export { Colors, getColorWithOpacity } from '../constants/Colors';
 export type { ColorName, ColorScheme } from '../constants/Colors';
 
-// Theme Provider (utiliser l'ancien pour l'instant)  
+// Theme Provider (utiliser l'ancien pour compatibilité)  
 export { ThemeProvider, useTheme } from '../context/ThemeProvider';
 
 // Design Tokens - Export simple sans conflit

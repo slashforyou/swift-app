@@ -84,7 +84,7 @@ export const JobTimerProvider: React.FC<JobTimerProviderProps> = ({
     // ✅ NOUVEAU: Arrêter le timer automatiquement si le job est completed
     useEffect(() => {
         if (jobStatus === 'completed' && timer.isRunning) {
-            console.log('🛑 [JobTimerProvider] Job completed detected, stopping timer');
+            // TEMP_DISABLED: console.log('🛑 [JobTimerProvider] Job completed detected, stopping timer');
             timer.togglePause(); // Mettre en pause
         }
     }, [jobStatus, timer.isRunning, timer.togglePause]);
@@ -108,6 +108,7 @@ export const JobTimerProvider: React.FC<JobTimerProviderProps> = ({
                 }, 100);
             }
         } catch (error) {
+
             timerLogger.error('nextStep', error);
             isInternalUpdateRef.current = false;
         }
@@ -130,6 +131,7 @@ export const JobTimerProvider: React.FC<JobTimerProviderProps> = ({
                 isInternalUpdateRef.current = false;
             }, 100);
         } catch (error) {
+
             timerLogger.error('stopTimer', error);
             isInternalUpdateRef.current = false;
         }
@@ -151,6 +153,7 @@ export const JobTimerProvider: React.FC<JobTimerProviderProps> = ({
                 isInternalUpdateRef.current = false;
             }, 100);
         } catch (error) {
+
             timerLogger.error('advanceStepWithCallback', error);
             isInternalUpdateRef.current = false;
         }
@@ -167,28 +170,24 @@ export const JobTimerProvider: React.FC<JobTimerProviderProps> = ({
         
         // ✅ FIX BOUCLE INFINIE: Ne sync que si le step a VRAIMENT changé depuis la dernière sync
         if (currentStep !== lastSyncedStepRef.current && currentStep > 0 && timer.timerData) {
-            console.log(`� [JobTimerProvider] SYNCING step from ${timer.currentStep} to ${currentStep}`);
+            // TEMP_DISABLED: console.log(`� [JobTimerProvider] SYNCING step from ${timer.currentStep} to ${currentStep}`);
             timerLogger.sync('toContext', currentStep);
             timer.advanceStep(currentStep);
             lastSyncedStepRef.current = currentStep; // ✅ Sauvegarder le step synchronisé
-            console.log(`✅ [JobTimerProvider] Sync completed`);
+            // TEMP_DISABLED: console.log(`✅ [JobTimerProvider] Sync completed`);
         }
     }, [currentStep]); // ✅ Dépendance UNIQUEMENT sur currentStep (pas timer.currentStep)
 
     // ✅ DÉSACTIVÉ TEMPORAIREMENT - Cause boucle infinie
     // Auto-sync timer to API every 30 seconds when running
     /*
-    useEffect(() => {
-        // Only auto-sync if timer is running and has data
-        if (timer.isRunning && timer.timerData && !timer.isOnBreak) {
-            console.log('⏱️ [JobTimerProvider] Starting auto-sync (every 30s)');
+    useEffect(() =>);        if (timer.isRunning && timer.timerData && !timer.isOnBreak) {
+            // TEMP_DISABLED: console.log('⏱️ [JobTimerProvider] Starting auto-sync (every 30s)');
             
-            const intervalId = setInterval(() => {
-                console.log('🔄 [JobTimerProvider] Auto-syncing timer to API...');
-                syncTimerToAPI(timer.timerData!)
+            const intervalId = setInterval(() =>);                syncTimerToAPI(timer.timerData!)
                     .then(response => {
                         if (response?.success) {
-                            console.log('✅ [JobTimerProvider] Auto-sync successful');
+                            // TEMP_DISABLED: console.log('✅ [JobTimerProvider] Auto-sync successful');
                         }
                     })
                     .catch(error => {
@@ -197,7 +196,7 @@ export const JobTimerProvider: React.FC<JobTimerProviderProps> = ({
             }, 30000); // 30 seconds
             
             return () => {
-                console.log('⏱️ [JobTimerProvider] Stopping auto-sync');
+                // TEMP_DISABLED: console.log('⏱️ [JobTimerProvider] Stopping auto-sync');
                 clearInterval(intervalId);
             };
         }
@@ -205,7 +204,6 @@ export const JobTimerProvider: React.FC<JobTimerProviderProps> = ({
     */
 
     const value: JobTimerContextValue = {
-        // Données
         timerData: timer.timerData,
         totalElapsed: timer.totalElapsed,
         billableTime: timer.billableTime,

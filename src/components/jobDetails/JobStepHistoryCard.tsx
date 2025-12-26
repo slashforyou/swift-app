@@ -55,7 +55,7 @@ export const JobStepHistoryCard: React.FC<JobStepHistoryCardProps> = ({ timerInf
     if (!dateString) return '-';
     try {
       return format(parseISO(dateString), 'dd/MM/yyyy HH:mm', { locale: fr });
-    } catch {
+    } catch (e) {
       return dateString;
     }
   };
@@ -76,9 +76,9 @@ export const JobStepHistoryCard: React.FC<JobStepHistoryCardProps> = ({ timerInf
       {/* Step History List */}
       {step_history && step_history.length > 0 ? (
         <View style={styles.stepList}>
-          {step_history.map((stepItem) => (
+          {step_history.map((stepItem, index) => (
             <View 
-              key={stepItem.step} 
+              key={`step-history-${stepItem.step}-${index}`} 
               style={[
                 styles.stepItem,
                 stepItem.is_current && styles.stepItemCurrent,

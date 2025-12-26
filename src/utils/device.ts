@@ -25,7 +25,7 @@ export async function getOrCreateLocalDeviceKey() {
 }
 
 export async function collectDevicePayload() {
-    console.log("Collecting device payload...");
+    // TEMP_DISABLED: console.log("Collecting device payload...");
 
   const localKey = await getOrCreateLocalDeviceKey();
 

@@ -49,7 +49,7 @@ export const logger = {
    */
   log: (...args: any[]) => {
     if (IS_DEV) {
-      console.log(PREFIX.LOG, ...args);
+      // TEMP_DISABLED: console.log(PREFIX.LOG, ...args);
     }
   },
 
@@ -90,7 +90,7 @@ export const logger = {
    */
   success: (...args: any[]) => {
     if (IS_DEV) {
-      console.log(PREFIX.SUCCESS, ...args);
+      // TEMP_DISABLED: console.log(PREFIX.SUCCESS, ...args);
     }
   },
 
@@ -99,7 +99,7 @@ export const logger = {
    */
   timer: (...args: any[]) => {
     if (IS_DEV) {
-      console.log(PREFIX.TIMER, ...args);
+      // TEMP_DISABLED: console.log(PREFIX.TIMER, ...args);
     }
   },
 
@@ -108,7 +108,7 @@ export const logger = {
    */
   api: (...args: any[]) => {
     if (IS_DEV) {
-      console.log(PREFIX.API, ...args);
+      // TEMP_DISABLED: console.log(PREFIX.API, ...args);
     }
   },
 
@@ -117,7 +117,7 @@ export const logger = {
    */
   storage: (...args: any[]) => {
     if (IS_DEV) {
-      console.log(PREFIX.STORAGE, ...args);
+      // TEMP_DISABLED: console.log(PREFIX.STORAGE, ...args);
     }
   },
 

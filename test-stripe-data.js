@@ -84,7 +84,7 @@ async function testStripeEndpoints() {
         console.log(`❌ Error: ${errorText}`);
       }
       
-    } catch (error) {
+    } catch (error) {
       console.log(`💥 Exception: ${error.message}`);
     }
     

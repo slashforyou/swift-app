@@ -28,7 +28,7 @@ export const useJobsForYear = (year: number): UseJobsForYearResult => {
       const startDate = new Date(year, 0, 1); // 1er janvier
       const endDate = new Date(year, 11, 31); // 31 décembre
       
-      console.log(`📅 Fetching jobs for year ${year} (${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()})`);
+      // TEMP_DISABLED: console.log(`📅 Fetching jobs for year ${year} (${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()})`);
       
       const fetchedJobs = await fetchJobs(startDate, endDate);
       
@@ -56,12 +56,12 @@ export const useJobsForYear = (year: number): UseJobsForYearResult => {
         totalCount++;
       });
 
-      console.log(`✅ Found ${totalCount} jobs for year ${year}, grouped in ${Object.keys(groupedByMonth).length} months`);
+      // TEMP_DISABLED: console.log(`✅ Found ${totalCount} jobs for year ${year}, grouped in ${Object.keys(groupedByMonth).length} months`);
       
       setJobsByMonth(groupedByMonth);
       setTotalJobs(totalCount);
 
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erreur lors du chargement des jobs de l\'année';
       console.error('❌ Error loading year jobs:', err);
       setError(errorMessage);

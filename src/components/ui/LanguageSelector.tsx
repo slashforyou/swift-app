@@ -3,12 +3,13 @@
  * Design épuré avec animations subtiles
  */
 
-import React, { useState } from 'react';
-import { View, Text, Pressable, Modal, ScrollView, SafeAreaView, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalization, SupportedLanguage } from '../../localization';
+import React, { useState } from 'react';
+import { ActivityIndicator, Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
+import { SupportedLanguage, useLocalization } from '../../localization';
 
 interface LanguageSelectorProps {
     visible: boolean;
@@ -130,6 +131,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
                 setIsChanging(null);
             }, 500);
         } catch (error) {
+
             console.error('Error changing language:', error);
             setIsChanging(null);
         }

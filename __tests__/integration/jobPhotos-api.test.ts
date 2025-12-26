@@ -78,7 +78,7 @@ describe('📸 API Photos Integration Tests', () => {
         // Sauvegarder l'ID pour les tests suivants
         uploadedPhotoId = String(result.id); // ✅ FIX: Convert to string explicitly
         
-      } catch (error) {
+      } catch (error) {
         console.error('❌ Upload failed:', error);
         
         // Si c'est une erreur 400 (pas de vraie image), c'est normal en test
@@ -95,7 +95,7 @@ describe('📸 API Photos Integration Tests', () => {
       try {
         await uploadJobPhoto(TEST_JOB_ID, '', MOCK_DESCRIPTION);
         fail('Should have thrown error for missing image');
-      } catch (error) {
+      } catch (error) {
         expect(error).toBeDefined();
         console.log('✅ Correctly rejected empty image');
       }
@@ -113,7 +113,7 @@ describe('📸 API Photos Integration Tests', () => {
         
         console.log('✅ Upload without description successful');
         
-      } catch (error) {
+      } catch (error) {
         // Erreur 400 attendue en test sans vraie image
         if (error instanceof Error && error.message.includes('400')) {
           console.log('ℹ️  Expected: Need real image file');
@@ -183,7 +183,7 @@ describe('📸 API Photos Integration Tests', () => {
         // URL devrait être soit une URL signée, soit l'endpoint serve
         expect(url).toMatch(/https?:\/\//);
         
-      } catch (error) {
+      } catch (error) {
         console.error('❌ Failed to get serve URL:', error);
         throw error;
       }
@@ -193,7 +193,7 @@ describe('📸 API Photos Integration Tests', () => {
       try {
         await getPhotoServeUrl('invalid-photo-id-999');
         fail('Should have thrown error for invalid photo ID');
-      } catch (error) {
+      } catch (error) {
         expect(error).toBeDefined();
         console.log('✅ Correctly rejected invalid photo ID');
       }
@@ -226,7 +226,7 @@ describe('📸 API Photos Integration Tests', () => {
         const now = Date.now();
         expect(now - updatedTime).toBeLessThan(60000); // moins de 1 minute
         
-      } catch (error) {
+      } catch (error) {
         console.error('❌ Failed to update description:', error);
         throw error;
       }
@@ -236,7 +236,7 @@ describe('📸 API Photos Integration Tests', () => {
       try {
         await updatePhotoDescription('invalid-id', 'New description');
         fail('Should have thrown error for invalid photo ID');
-      } catch (error) {
+      } catch (error) {
         expect(error).toBeDefined();
         console.log('✅ Correctly rejected invalid photo ID');
       }
@@ -264,7 +264,7 @@ describe('📸 API Photos Integration Tests', () => {
         expect(deletedPhoto).toBeUndefined();
         console.log('✅ Photo removed from list');
         
-      } catch (error) {
+      } catch (error) {
         console.error('❌ Failed to delete photo:', error);
         throw error;
       }
@@ -274,7 +274,7 @@ describe('📸 API Photos Integration Tests', () => {
       try {
         await deletePhoto('invalid-id-999');
         fail('Should have thrown error for invalid photo ID');
-      } catch (error) {
+      } catch (error) {
         expect(error).toBeDefined();
         console.log('✅ Correctly rejected invalid photo ID');
       }
@@ -375,7 +375,7 @@ describe('📸 API Photos Integration Tests', () => {
       
       try {
         await uploadJobPhoto(TEST_JOB_ID, MOCK_PHOTO_URI, 'Performance test');
-      } catch (error) {
+      } catch (error) {
         // Erreur attendue sans vraie image
       }
       

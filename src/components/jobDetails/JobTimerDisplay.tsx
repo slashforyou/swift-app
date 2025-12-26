@@ -42,25 +42,12 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({ job, onOpenSignatureM
     
     // 🔍 DEBUG: Log chaque fois que le composant re-render
     React.useEffect(() => {
-        console.log('🔍 [JobTimerDisplay] Rendering with:', {
-            contextCurrentStep: currentStep,
-            contextTotalSteps: totalSteps,
-            jobStepActualStep: job?.step?.actualStep,
-            match: currentStep === job?.step?.actualStep
-        });
+        // TEMP_DISABLED: console.log(`🔍 [JobTimerDisplay] Rendering: Step ${currentStep}/${totalSteps}, Job Step ${job?.step?.actualStep}`);
     }, [currentStep, totalSteps, job?.step?.actualStep]);
 
     // 🔍 DEBUG: Log des boutons
     React.useEffect(() => {
-        console.log('🔍 [BUTTON DEBUG]', {
-            isRunning,
-            isOnBreak,
-            currentStep,
-            totalSteps,
-            condition: currentStep < totalSteps,
-            willShow: isRunning && !isOnBreak,
-            buttonType: currentStep < totalSteps ? 'Étape suivante' : 'Terminer'
-        });
+        // TEMP_DISABLED: console.log(`🔍 [BUTTON DEBUG] Running: ${isRunning}, Break: ${isOnBreak}, Step: ${currentStep}/${totalSteps}`);
     }, [isRunning, isOnBreak, currentStep, totalSteps]);
 
     // Config de l'étape actuelle
@@ -80,14 +67,7 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({ job, onOpenSignatureM
     
     // Log pour debug
     React.useEffect(() => {
-        console.log('🔍 [TIMER FROZEN DEBUG]', {
-            jobStatus: job?.status,
-            isJobCompleted,
-            currentStep,
-            totalSteps,
-            isAtFinalStep,
-            isTimerFrozen
-        });
+        // TEMP_DISABLED: console.log(`🔍 [TIMER FROZEN DEBUG] Status: ${job?.status}, Frozen: ${isTimerFrozen}, Step: ${currentStep}/${totalSteps}`);
     }, [job?.status, isJobCompleted, currentStep, totalSteps, isAtFinalStep, isTimerFrozen]);
     
     // Vérifier si signature présente
@@ -281,43 +261,84 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({ job, onOpenSignatureM
                         );
                     })}
                 </View>
+            </View>
 
-                {/* ✅ CORRECTION: Plus de bouton Play/Pause si job terminé */}
+            {/* LIGNE 2.5: Boutons de contrôle (sous la timeline) */}
+            <View style={{
+                flexDirection: 'row',
+                gap: DESIGN_TOKENS.spacing.md,
+                marginBottom: DESIGN_TOKENS.spacing.lg,
+            }}>
+                {/* ✅ Bouton Play/Pause/Commencer */}
                 {!isTimerFrozen && (
                     <Pressable
                         onPress={togglePause}
                         style={({ pressed }) => ({
-                            marginLeft: DESIGN_TOKENS.spacing.md,
-                            paddingHorizontal: DESIGN_TOKENS.spacing.md,
-                            paddingVertical: DESIGN_TOKENS.spacing.sm,
+                            paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+                            paddingVertical: DESIGN_TOKENS.spacing.md,
                             borderRadius: DESIGN_TOKENS.radius.md,
                             backgroundColor: pressed 
                                 ? (isRunning ? colors.warning + 'DD' : '#10B981DD')
                                 : (isRunning ? colors.warning : '#10B981'),
                             flexDirection: 'row',
                             alignItems: 'center',
-                            gap: 6,
+                            gap: 8,
+                            flex: 1,
+                            justifyContent: 'center',
                         })}
                     >
                         <Ionicons 
                             name={isRunning ? 'pause' : 'play'} 
-                            size={16} 
+                            size={18} 
                             color={colors.background} 
                         />
                         <Text style={{
                             color: colors.background,
-                            fontSize: 14,
+                            fontSize: 16,
                             fontWeight: '600',
                         }}>
-                            {isRunning ? 'Pause' : 'Play'}
+                            {isRunning ? 'Pause' : 'Commencer'}
+                        </Text>
+                    </Pressable>
+                )}
+
+                {/* ✅ Bouton Étape suivante / Terminer */}
+                {isRunning && !isOnBreak && (
+                    <Pressable
+                        onPress={currentStep < totalSteps ? handleNextStep : handleStopTimer}
+                        style={({ pressed }) => ({
+                            flex: 1,
+                            paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+                            paddingVertical: DESIGN_TOKENS.spacing.md,
+                            borderRadius: DESIGN_TOKENS.radius.md,
+                            backgroundColor: pressed 
+                                ? colors.primary + 'DD' 
+                                : colors.primary,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 8,
+                        })}
+                    >
+                        <Ionicons 
+                            name={currentStep < totalSteps ? 'arrow-forward' : 'checkmark-circle'} 
+                            size={18} 
+                            color={colors.background} 
+                        />
+                        <Text style={{
+                            color: colors.background,
+                            fontSize: 16,
+                            fontWeight: '600',
+                        }}>
+                            {currentStep < totalSteps ? 'Étape suivante' : 'Terminer'}
                         </Text>
                     </Pressable>
                 )}
             </View>
 
-            {/* LIGNE 3: Boutons d'action */}
+            {/* LIGNE 3: Boutons d'action pour jobs terminés */}
             {/* ✅ CORRECTION: Si job terminé (completed), afficher bouton Signature ou Paiement */}
-            {isJobCompleted ? (
+            {isJobCompleted && (
                 <View style={{
                     flexDirection: 'row',
                     gap: DESIGN_TOKENS.spacing.md,
@@ -401,64 +422,6 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({ job, onOpenSignatureM
                         </View>
                     )}
                 </View>
-            ) : (
-                isRunning && !isOnBreak && (
-                    <View style={{
-                        flexDirection: 'row',
-                        gap: DESIGN_TOKENS.spacing.md,
-                    }}>
-                        {/* ✅ Boutons normaux: Étape suivante ou Terminer */}
-                        {currentStep < totalSteps ? (
-                            // Steps 1 à 4 : Bouton "Étape suivante"
-                            <Pressable
-                                onPress={handleNextStep}
-                                style={({ pressed }) => ({
-                                    flex: 1,
-                                    paddingVertical: DESIGN_TOKENS.spacing.md,
-                                    borderRadius: DESIGN_TOKENS.radius.lg,
-                                    backgroundColor: pressed ? colors.primary + 'DD' : colors.primary,
-                                    flexDirection: 'row',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: 8,
-                                })}
-                            >
-                                <Ionicons name="arrow-forward" size={18} color={colors.background} />
-                                <Text style={{
-                                    color: colors.background,
-                                    fontSize: 15,
-                                    fontWeight: '600',
-                                }}>
-                                    Étape suivante
-                                </Text>
-                            </Pressable>
-                        ) : (
-                            // Step 5 (dernière étape) : Bouton "Terminer le job"
-                            <Pressable
-                                onPress={handleStopTimer}
-                                style={({ pressed }) => ({
-                                    flex: 1,
-                                    paddingVertical: DESIGN_TOKENS.spacing.md,
-                                    borderRadius: DESIGN_TOKENS.radius.lg,
-                                    backgroundColor: pressed ? '#EF4444DD' : '#EF4444',
-                                    flexDirection: 'row',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: 8,
-                                })}
-                            >
-                                <Ionicons name="flag" size={18} color={colors.background} />
-                                <Text style={{
-                                    color: colors.background,
-                                    fontSize: 15,
-                                    fontWeight: '600',
-                                }}>
-                                    Terminer le job
-                                </Text>
-                            </Pressable>
-                        )}
-                    </View>
-                )
             )}
 
             {/* Footer: Temps facturable */}

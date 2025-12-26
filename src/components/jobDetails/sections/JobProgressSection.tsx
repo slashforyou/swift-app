@@ -36,9 +36,7 @@ const JobProgressSection: React.FC<JobProgressSectionProps> = ({ job, onAdvanceS
     const rotateInterpolate = rotateAnim.interpolate({
         inputRange: [0, 1],
         outputRange: ['0deg', '180deg'],
-    });
-
-    // ✅ Calculer la progression basée sur le timer context
+    });// ✅ Calculer la progression basée sur le timer context
     const progressPercentage = React.useMemo(() => {
         if (totalSteps === 0) return 0;
         return Math.round((currentStep / totalSteps) * 100);

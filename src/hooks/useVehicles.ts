@@ -10,8 +10,8 @@ import { useCallback, useEffect, useState } from 'react';
 import {
     createBusinessVehicle,
     deleteBusinessVehicle,
-    fetchBusinessVehicles,
     fetchVehicleDetails as fetchBusinessVehicleById,
+    fetchBusinessVehicles,
     updateBusinessVehicle,
     type BusinessVehicle,
     type VehicleCreateData as BusinessVehicleCreateData,

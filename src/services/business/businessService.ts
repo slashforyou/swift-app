@@ -99,7 +99,7 @@ export const fetchBusinessList = async (): Promise<BusinessInfo[]> => {
     }
 
     return data.companies || [];
-  } catch (error) {
+  } catch (error) {
     console.error('Error fetching business list:', error);
     if (__DEV__) {
       console.warn('Using mock business data as fallback in development');
@@ -137,7 +137,7 @@ export const fetchBusinessDetails = async (companyId: string): Promise<BusinessI
     }
 
     return data.company;
-  } catch (error) {
+  } catch (error) {
     console.error('Error fetching business details:', error);
     if (__DEV__) {
       console.warn('Using mock business details as fallback in development');
@@ -174,7 +174,7 @@ export const updateBusinessInfo = async (
     }
 
     return data.company;
-  } catch (error) {
+  } catch (error) {
     console.error('Error updating business info:', error);
     throw new Error('Failed to update business information');
   }
@@ -206,7 +206,7 @@ export const createBusiness = async (
     }
 
     return data.company;
-  } catch (error) {
+  } catch (error) {
     console.error('Error creating business:', error);
     throw new Error('Failed to create business');
   }
@@ -243,7 +243,7 @@ export const fetchBusinessStats = async (companyId: string): Promise<BusinessSta
     }
 
     return data.stats;
-  } catch (error) {
+  } catch (error) {
     console.error('Error fetching business stats:', error);
     if (__DEV__) {
       console.warn('Using mock business stats as fallback in development');
@@ -268,7 +268,7 @@ export const deleteBusiness = async (companyId: string): Promise<void> => {
     if (!data.success) {
       throw new Error('API returned success: false');
     }
-  } catch (error) {
+  } catch (error) {
     console.error('Error deleting business:', error);
     throw new Error('Failed to delete business');
   }

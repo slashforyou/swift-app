@@ -17,9 +17,11 @@ export {
 
 export {
     ThemeProvider,
-    useTheme, type ThemeColors,
-    type ThemeContextType, type ThemeMode
-} from '../../context/ThemeProvider_Advanced';
+    useTheme
+} from '../../context/ThemeProvider';
+
+// Export des types depuis l'advanced pour compatibilité (si besoin)
+export type { ThemeColors, ThemeContextType, ThemeMode } from '../../context/ThemeProvider_Advanced';
 
 // ============================================================================
 // TYPOGRAPHY COMPONENTS

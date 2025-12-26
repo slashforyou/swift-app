@@ -136,9 +136,7 @@ const createCommonStyles = (colors: typeof Colors.light) => StyleSheet.create({
     backgroundColor: colors.background,
     color: colors.text,
   },
-});
-
-// Export des styles par défaut
+});// Export des styles par défaut
 export const CommonStyles = createCommonStyles(Colors.light);
 
 // Export de la fonction pour thématisation

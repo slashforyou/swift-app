@@ -98,7 +98,7 @@ export default function PayoutsScreen({ navigation }: PayoutsScreenProps) {
 
   const handlePayoutPress = (payout: Payout) => {
     // TODO: Navigation vers le détail du payout
-    console.log('Payout details:', payout.id)
+    // TEMP_DISABLED: console.log('Payout details:', payout.id)
   }
 
   const filteredPayouts = payouts.filter(payout => {

@@ -64,9 +64,7 @@ const InvoiceCreateEditModal: React.FC<InvoiceCreateEditModalProps> = ({
     dueDate: '',
     status: 'draft',
     items: [],
-  });
-
-  // Initialize form when invoice changes
+  });// Initialize form when invoice changes
   useEffect(() => {
     if (invoice) {
       setFormData(invoice);
@@ -131,9 +129,7 @@ const InvoiceCreateEditModal: React.FC<InvoiceCreateEditModalProps> = ({
           return updatedItem;
         }
         return item;
-      });
-      
-      // Recalculate total amount
+      });// Recalculate total amount
       const totalAmount = updatedItems.reduce((sum, item) => sum + item.total, 0);
       
       return {
@@ -172,7 +168,7 @@ const InvoiceCreateEditModal: React.FC<InvoiceCreateEditModalProps> = ({
     try {
       setSaving(true);
       await onSave(formData as Invoice);
-    } catch (error) {
+    } catch (error) {
       Alert.alert('Erreur', 'Impossible de sauvegarder la facture');
     } finally {
       setSaving(false);

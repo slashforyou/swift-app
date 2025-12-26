@@ -50,7 +50,7 @@ export function useCalendar(): UseCalendarReturn {
       
       setLastQuery({ startDate, endDate })
       
-    } catch (error) {
+    } catch (error) {
       let errorMessage = 'Failed to load calendar data'
       
       if (error instanceof CalendarApiError) {

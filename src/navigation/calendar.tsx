@@ -1,24 +1,21 @@
-import React from 'react'
 import { NavigationIndependentTree } from '@react-navigation/native'
-import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import { View, ActivityIndicator, Text, TouchableOpacity, StyleSheet } from 'react-native'
-import { NativeStackNavigationProp } from '@react-navigation/native-stack'
+import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-navigation/native-stack'
+import React from 'react'
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 // Components
-import MonthCalendarScreen from '../screens/calendar/monthScreen'
-import YearCalendarScreen from '../screens/calendar/yearScreen'
-import MultipleYearsScreen from '../screens/calendar/multipleYearsScreen'
-import DayScreen from '../screens/calendar/dayScreen'
 import LoadingDots from '../components/ui/LoadingDots'
+import DayScreen from '../screens/calendar/dayScreen'
+import MonthCalendarScreen from '../screens/calendar/monthScreen'
+import MultipleYearsScreen from '../screens/calendar/multipleYearsScreen'
+import YearCalendarScreen from '../screens/calendar/yearScreen'
 
 // Hooks & Utils
-import { useAuthGuard } from '../hooks/useSession'
 import { useCalendarData } from '../hooks/useCalendar'
-import { getCalendarDateRange } from '../utils/dateUtils'
 import { useCommonThemedStyles } from '../hooks/useCommonStyles'
-import { useAuthCheck } from '../utils/checkAuth'
-import { Colors } from '../constants/Colors'
 import { useLocalization } from '../localization/useLocalization'
+import { useAuthCheck } from '../utils/checkAuth'
+import { getCalendarDateRange } from '../utils/dateUtils'
 
 // Types
 type RootStackParamList = {
@@ -35,6 +32,16 @@ type CalendarStackParamList = {
 
 interface CalendarNavigationProps {
   navigation: NativeStackNavigationProp<RootStackParamList>;
+  route?: {
+    params?: {
+      screen?: 'Month' | 'Year' | 'MultipleYears' | 'Day';
+      params?: {
+        day?: number;
+        month?: number;
+        year?: number;
+      };
+    };
+  };
 }
 
 const CalendarStack = createNativeStackNavigator<CalendarStackParamList>()
@@ -43,8 +50,12 @@ const CalendarStack = createNativeStackNavigator<CalendarStackParamList>()
  * Calendar Navigation Component
  * Manages calendar stack navigation with authentication and data loading
  */
-export default function CalendarNavigation({ navigation }: CalendarNavigationProps) {
+export default function CalendarNavigation({ navigation, route }: CalendarNavigationProps) {
   const { t } = useLocalization();
+  
+  // Déterminer l'écran initial et les paramètres
+  const initialRouteName = route?.params?.screen || 'Month';
+  const initialParams = route?.params?.params;
   
   // Authentication check with loading UI
   const authCheck = useAuthCheck(navigation, t('calendar.navigation.loadingCalendar'))
@@ -167,7 +178,7 @@ export default function CalendarNavigation({ navigation }: CalendarNavigationPro
 
       <NavigationIndependentTree>
         <CalendarStack.Navigator 
-          initialRouteName="Month" 
+          initialRouteName={initialRouteName as any}
           screenOptions={{ 
             headerShown: false,
             animation: 'slide_from_right',
@@ -198,6 +209,7 @@ export default function CalendarNavigation({ navigation }: CalendarNavigationPro
           <CalendarStack.Screen 
             name="Day" 
             component={DayScreen}
+            initialParams={initialRouteName === 'Day' ? initialParams : undefined}
             options={{
               title: t('calendar.navigation.dailyView'),
             }}

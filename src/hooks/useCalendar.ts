@@ -39,7 +39,7 @@ export function useCalendar(): UseCalendarReturn {
   const loadDays = async (startDate: Date, endDate: Date) => {
 
     if (__DEV__) {
-      console.log("***** LoadDays called *****");
+      // TEMP_DISABLED: console.log("***** LoadDays called *****");
     }
     try {
       setState(prev => ({ ...prev, isLoading: true, error: null }))
@@ -55,7 +55,7 @@ export function useCalendar(): UseCalendarReturn {
       
       setLastQuery({ startDate, endDate })
       
-    } catch (error) {
+    } catch (error) {
       let errorMessage = 'Failed to load calendar data'
       
       if (error instanceof CalendarApiError) {
@@ -108,7 +108,7 @@ export function useCalendarData(
     //   If autoLoad is true, load data on mount
     // Console log for debug if the user is authenticated
     if (autoLoad && !hasLoaded.current) {
-      console.log('User is authenticated, loading calendar data...')
+      // TEMP_DISABLED: console.log('User is authenticated, loading calendar data...')
     }
 
   // Auto-load data seulement une fois au mount

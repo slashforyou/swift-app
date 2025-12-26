@@ -50,7 +50,7 @@ export async function ensureSession() {
           }
 
           return { authenticated: true, user: data, reason: "session_ok" as const };
-        } catch {
+        } catch (e) {
           return { authenticated: false, user: null, reason: "invalid_response" as const };
         }
     }
@@ -66,7 +66,7 @@ export async function ensureSession() {
         const data2 = await res2.json().catch(() => ({}));
         return { authenticated: true, user: data2, reason: "refreshed" as const };
       }
-    } catch (e) {
+    } catch (e) {
       // refresh ko: chute plus bas
     }
   }
@@ -105,7 +105,7 @@ export async function fetchWithAuth(input: RequestInfo | URL, init: RequestInit 
   // 401 Unauthorized - try to refresh the token
   try {
     await refreshAuthToken();
-  } catch {
+  } catch (e) {
     // refresh failed
     await clearLocalSession();
     return res;

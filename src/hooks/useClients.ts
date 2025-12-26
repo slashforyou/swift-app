@@ -35,7 +35,7 @@ export const useClients = (): UseClientsReturn => {
       const apiClients = await fetchClients();
       setClients(apiClients);
       
-    } catch (err) {
+    } catch (err) {
       console.error('Error fetching clients:', err);
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       

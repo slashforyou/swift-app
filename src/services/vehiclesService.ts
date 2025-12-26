@@ -11,24 +11,17 @@
  */
 
 // Re-export types from useVehicles for backward compatibility
-export { 
-  type VehicleAPI,
-  type VehicleCreateData,
-  type VehicleUpdateData,
-  type MaintenanceRecord,
-  type MaintenanceCreateData,
+export {
+    type MaintenanceCreateData, type MaintenanceRecord, type VehicleAPI,
+    type VehicleCreateData,
+    type VehicleUpdateData
 } from '../hooks/useVehicles';
 
 // Re-export business vehicle types for convenience
 export {
-  type BusinessVehicle,
-  type VehicleCreateData as BusinessVehicleCreateData,
-  fetchBusinessVehicles,
-  fetchVehicleDetails,
-  createBusinessVehicle,
-  updateBusinessVehicle,
-  deleteBusinessVehicle,
-  createMultipleVehicles,
+    createBusinessVehicle, createMultipleVehicles, deleteBusinessVehicle, fetchBusinessVehicles,
+    fetchVehicleDetails, updateBusinessVehicle, type BusinessVehicle,
+    type VehicleCreateData as BusinessVehicleCreateData
 } from './business/vehiclesService';
 
 /**

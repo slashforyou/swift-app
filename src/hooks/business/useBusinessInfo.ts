@@ -71,7 +71,7 @@ export const useBusinessInfo = (): UseBusinessInfoReturn => {
         try {
           const stats = await fetchBusinessStats(businesses[0].id);
           setBusinessStats(stats);
-        } catch (statsError) {
+        } catch (statsError) {
           console.warn('Could not load business stats:', statsError);
           // Les stats par défaut sont gérées dans le service avec fallback
         }
@@ -81,7 +81,7 @@ export const useBusinessInfo = (): UseBusinessInfoReturn => {
       if (!currentBusiness && businesses.length > 0) {
         setCurrentBusiness(businesses[0]);
       }
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load businesses';
       setError(errorMessage);
       console.error('Error loading businesses:', err);
@@ -105,7 +105,7 @@ export const useBusinessInfo = (): UseBusinessInfoReturn => {
       setBusinesses(prev => 
         prev.map(b => b.id === businessId ? business : b)
       );
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load business details';
       setError(errorMessage);
       console.error('Error loading business details:', err);
@@ -135,7 +135,7 @@ export const useBusinessInfo = (): UseBusinessInfoReturn => {
       }
       
       return newBusiness;
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create business';
       setError(errorMessage);
       console.error('Error creating business:', err);
@@ -169,7 +169,7 @@ export const useBusinessInfo = (): UseBusinessInfoReturn => {
       }
       
       return updatedBusiness;
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update business';
       setError(errorMessage);
       console.error('Error updating business:', err);
@@ -196,7 +196,7 @@ export const useBusinessInfo = (): UseBusinessInfoReturn => {
       if (currentBusiness?.id === businessId) {
         setCurrentBusiness(null);
       }
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete business';
       setError(errorMessage);
       console.error('Error deleting business:', err);

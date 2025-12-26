@@ -58,7 +58,7 @@ export default function AddContractorModal({ visible, onClose, onSearch, onAdd }
       if (results.length === 0) {
         Alert.alert('Aucun résultat', 'Aucun prestataire trouvé avec ces critères');
       }
-    } catch (error) {
+    } catch (error) {
       Alert.alert('Erreur', 'Erreur lors de la recherche');
     } finally {
       setIsLoading(false);
@@ -82,7 +82,7 @@ export default function AddContractorModal({ visible, onClose, onSearch, onAdd }
         `${selectedContractor.firstName} ${selectedContractor.lastName} a été ajouté à votre staff avec le statut ${contractStatuses.find(s => s.key === contractStatus)?.label}.`,
         [{ text: 'OK', onPress: handleClose }]
       );
-    } catch (error) {
+    } catch (error) {
       Alert.alert('Erreur', 'Impossible d\'ajouter le prestataire');
     } finally {
       setIsLoading(false);

@@ -6,6 +6,9 @@ import React from 'react'
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View } from 'react-native'
 
 // Components
+import { AutoTestButton } from '../../components/DevTools/AutoTestInterface'
+import { ErrorTestButton } from '../../components/DevTools/ErrorTestButton'
+import { SimpleSessionLogButton } from '../../components/DevTools/SimpleSessionLogViewer'
 import { HStack, VStack } from '../../components/primitives/Stack'
 
 // Hooks & Utils
@@ -234,6 +237,11 @@ const BusinessInfoPage: React.FC = () => {
 
       {/* Espacement final */}
       <View style={styles.bottomSpacer} />
+      
+      {/* Boutons de développement (dev only) */}
+      <SimpleSessionLogButton />
+      <ErrorTestButton />
+      <AutoTestButton />
     </ScrollView>
   )
 }

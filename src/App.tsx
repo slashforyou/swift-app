@@ -1,6 +1,6 @@
 // src/App.tsx
 import { StripeProvider } from '@stripe/stripe-react-native'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { View } from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { ThemeProvider } from './context/ThemeProvider'
@@ -8,11 +8,36 @@ import { ToastProvider } from './context/ToastProvider'
 import { VehiclesProvider } from './context/VehiclesProvider'
 import { LocalizationProvider } from './localization'
 import Navigation from './navigation/index'
+import { logInfo, simpleSessionLogger } from './services/simpleSessionLogger'
+import './services/testCommunication'; // Initialize test communication
+import './services/testReporter'; // Initialize test reporter
 
 // Configuration Stripe (test keys pour le développement)
 const STRIPE_PUBLISHABLE_KEY = 'pk_test_51OsLQ8DYjI2sE1B1Gxw8SJ9xqJBAFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF'; // Remplacer par vraie clé test
 
 export default function App() {
+  useEffect(() => {
+    // Initialiser le session logger au démarrage
+    simpleSessionLogger.setupGlobalErrorCapture();
+    logInfo('SwiftApp started successfully', 'app-startup');
+    
+    // Log des informations de démarrage utiles
+    logInfo(`Stripe Provider initialized with key: ${STRIPE_PUBLISHABLE_KEY.substring(0, 20)}...`, 'stripe-init');
+    
+    // Signal to Copilot that app is ready for testing
+    if (__DEV__) {
+      setTimeout(() => {
+        logInfo('🤖 APP READY FOR COPILOT TESTING', 'copilot-ready');
+        console.log('🚀 COPILOT: App is ready for automated testing!');
+        console.log('📡 Available commands: global.copilotAPI.*');
+      }, 2000); // Wait for full app initialization
+    }
+    
+    return () => {
+      logInfo('SwiftApp shutting down', 'app-shutdown');
+    };
+  }, []);
+
   return (
     <SafeAreaProvider>
       <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>

@@ -18,11 +18,9 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 // Context
 import { DESIGN_TOKENS } from '../../constants/Styles'
 import { useTheme } from '../../context/ThemeProvider'
-import { useStripeAccount, useStripePayments, useStripePayouts } from '../../hooks/useStripe'
 import { useStripeConnection } from '../../hooks/useStripeConnection'
 // Components
 import { StripeConnectWebView } from '../../components/stripe/StripeConnectWebView'
-import { createStripeConnectAccountAndLink } from '../../services/StripeService'
 
 // Types
 interface StripeHubProps {
@@ -53,13 +51,49 @@ export default function StripeHub({ navigation }: StripeHubProps) {
   // Hook pour détecter la connexion Stripe réelle
   const stripeConnection = useStripeConnection()
   
-  // 🔄 NOUVEAU: Utiliser les vrais hooks Stripe au lieu des données mock
-  const stripeAccount = useStripeAccount()
-  const stripePayments = useStripePayments()
-  const stripePayouts = useStripePayouts()
+  // TEMPORAIRE: Désactiver tous les hooks Stripe pour identifier le problème
+  // const stripeAccount = useStripeAccount()
+  // const stripePayments = useStripePayments()
+  // const stripePayouts = useStripePayouts()
+
+  // Mock data pour tester l'interface
+  const stripeAccount = { 
+    account: {
+      default_currency: 'AUD',
+      charges_enabled: false,
+      business_name: 'Swift Moving Services',
+      stripe_account_id: 'acct_mock123456789'
+    },
+    loading: false,
+    error: null,
+    balance: { pending: 0, available: 0 },
+    refresh: () => Promise.resolve()
+  }
+  const stripePayments = { 
+    payments: [], 
+    loading: false, 
+    error: null,
+    refresh: () => Promise.resolve()
+  }
+  const stripePayouts = { 
+    payouts: [], 
+    loading: false, 
+    error: null,
+    refresh: () => Promise.resolve()
+  }
 
   // Calculer les stats réelles à partir des données Stripe
   const stripeStats = React.useMemo(() => {
+    // TEMPORAIRE: Mock stats pour éviter les erreurs
+    return {
+      totalRevenue: 0,
+      monthlyRevenue: 0,
+      pendingPayouts: 0,
+      successfulPayments: 0,
+      currency: 'AUD'
+    };
+    
+    /* VERSION ORIGINALE COMMENTÉE
     const totalRevenue = stripePayments.payments.reduce((total, payment) => {
       return payment.status === 'succeeded' ? total + payment.amount : total;
     }, 0);
@@ -77,11 +111,12 @@ export default function StripeHub({ navigation }: StripeHubProps) {
     
     return {
       totalRevenue,
-      monthlyRevenue, 
+      monthlyRevenue,
       pendingPayouts,
       successfulPayments,
       currency: stripeAccount.account?.default_currency || 'AUD'
     };
+    */
   }, [stripePayments.payments, stripeAccount.balance, stripeAccount.account]);
 
   // WebView states
@@ -105,7 +140,7 @@ export default function StripeHub({ navigation }: StripeHubProps) {
         stripePayouts.refresh(),
         stripeConnection.refresh()
       ]);
-    } catch (error) {
+    } catch (error) {
       console.error('Error refreshing Stripe data:', error);
     }
     setIsLoading(false)
@@ -113,18 +148,20 @@ export default function StripeHub({ navigation }: StripeHubProps) {
 
   const handleStripeConnect = async () => {
     try {
-      console.log('� Starting Stripe Connect Express account creation...');
+      // TEMP_DISABLED: console.log('🔧 TEMPORAIRE: Test avec URL Stripe valide');
       
-      // Créer un compte Stripe Connect Express + lien d'onboarding
-      const onboardingUrl = await createStripeConnectAccountAndLink();
-
-      console.log('✅ Stripe Connect Express onboarding URL:', onboardingUrl);
+      // TEMPORAIRE: Désactiver l'appel API pour tester
+      // const onboardingUrl = await createStripeConnectAccountAndLink();
+      
+      // URL de test valide pour vérifier que le WebView fonctionne
+      const onboardingUrl = 'https://stripe.com/connect';
+      // TEMP_DISABLED: console.log('🔧 Using test URL:', onboardingUrl);
       
       // Ouvrir la WebView intégrée avec le lien d'onboarding Express
       setStripeAccountLink(onboardingUrl)
       setShowStripeWebView(true)
       
-    } catch (error) {
+    } catch (error) {
       console.error('❌ Error creating Stripe Connect Express account:', error);
       Alert.alert(
         'Erreur de Connexion', 
@@ -140,7 +177,7 @@ export default function StripeHub({ navigation }: StripeHubProps) {
   }
 
   const handleWebViewSuccess = () => {
-    console.log('✅ Stripe Connect onboarding completed!')
+    // TEMP_DISABLED: console.log('✅ Stripe Connect onboarding completed!')
     setShowStripeWebView(false)
     setStripeAccountLink(null)
     // Refresh connection status
@@ -177,7 +214,7 @@ export default function StripeHub({ navigation }: StripeHubProps) {
   }
 
   const handleViewPayments = () => {
-    console.log('Navigate to payments list')
+    // TEMP_DISABLED: console.log('Navigate to payments list')
     // Navigation vers la liste des paiements
     if (navigation?.navigate) {
       navigation.navigate('PaymentsList')
@@ -185,7 +222,7 @@ export default function StripeHub({ navigation }: StripeHubProps) {
   }
 
   const handleViewPayouts = () => {
-    console.log('Navigate to payouts')
+    // TEMP_DISABLED: console.log('Navigate to payouts')
     // Navigation vers les payouts
     if (navigation?.navigate) {
       navigation.navigate('Payouts')
@@ -193,7 +230,7 @@ export default function StripeHub({ navigation }: StripeHubProps) {
   }
 
   const handleCreatePaymentLink = () => {
-    console.log('Create payment link')
+    // TEMP_DISABLED: console.log('Create payment link')
     // TODO: Ouvrir modal de création de lien de paiement ou navigation
     Alert.alert(
       'Create Payment Link',
@@ -204,14 +241,14 @@ export default function StripeHub({ navigation }: StripeHubProps) {
           text: 'Quick Link', 
           onPress: () => {
             // TODO: Créer un lien de paiement rapide
-            console.log('Create quick payment link')
+            // TEMP_DISABLED: console.log('Create quick payment link')
           }
         },
         { 
           text: 'Custom Link', 
           onPress: () => {
             // TODO: Navigation vers création personnalisée
-            console.log('Create custom payment link')
+            // TEMP_DISABLED: console.log('Create custom payment link')
           }
         }
       ]

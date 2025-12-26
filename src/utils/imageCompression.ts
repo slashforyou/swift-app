@@ -65,7 +65,7 @@ export interface CompressionResult {
  * @example
  * ```typescript
  * const result = await compressImage('file:///path/to/image.jpg');
- * console.log(result.uri); // URI de l'image compressée
+ * // TEMP_DISABLED: console.log(result.uri); // URI de l'image compressée
  * ```
  */
 export async function compressImage(
@@ -102,7 +102,7 @@ export async function compressImage(
             width: manipulatedImage.width,
             height: manipulatedImage.height,
         };
-    } catch (error) {
+    } catch (error) {
         console.error('Error compressing image:', error);
         throw new Error('Failed to compress image');
     }

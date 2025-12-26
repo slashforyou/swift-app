@@ -104,7 +104,7 @@ export function VehiclesProvider({ children }: { children: ReactNode }) {
       setVehicles(prev => [...prev, newVehicle])
       
       setLoading(false)
-    } catch (err) {
+    } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to add vehicle')
       setLoading(false)
       throw err
@@ -123,7 +123,7 @@ export function VehiclesProvider({ children }: { children: ReactNode }) {
       )
 
       setLoading(false)
-    } catch (err) {
+    } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update vehicle')
       setLoading(false)
       throw err
@@ -138,7 +138,7 @@ export function VehiclesProvider({ children }: { children: ReactNode }) {
       setVehicles(prev => prev.filter(vehicle => vehicle.id !== id))
 
       setLoading(false)
-    } catch (err) {
+    } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete vehicle')
       setLoading(false)
       throw err

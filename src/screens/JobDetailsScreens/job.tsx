@@ -145,7 +145,7 @@ const AddItemModal: React.FC<{
             setName('');
             setQuantity('1');
             onClose();
-        } catch (error) {
+        } catch (error) {
             Alert.alert('Error', 'Unable to add item. Please try again.');
         } finally {
             setIsLoading(false);
@@ -582,9 +582,9 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
 
         // Synchroniser avec l'API si l'item a un ID et n'est pas temporaire
         if (item.id && !item.isTemp) {
-            console.log(`[handleItemToggle] DEBUG - Item structure:`, JSON.stringify(item, null, 2));
-            console.log(`[handleItemToggle] DEBUG - itemIndex: ${itemIndex}, item.id: "${item.id}" (type: ${typeof item.id})`);
-            console.log(`[handleItemToggle] Job ID: ${numericJobId}, Item ID: ${item.id}`);
+            // TEMP_DISABLED: console.log(`[handleItemToggle] DEBUG - Item structure:`, JSON.stringify(item, null, 2));
+            // TEMP_DISABLED: console.log(`[handleItemToggle] DEBUG - itemIndex: ${itemIndex}, item.id: "${item.id}" (type: ${typeof item.id})`);
+            // TEMP_DISABLED: console.log(`[handleItemToggle] Job ID: ${numericJobId}, Item ID: ${item.id}`);
             
             const itemKey = `${itemIndex}-${item.id}`;
             setSyncingItems(prev => new Set(prev).add(itemKey));
@@ -594,8 +594,8 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
                     is_checked: checked,
                     completedQuantity: item.completedQuantity || 0
                 });
-                console.log(`[handleItemToggle] Successfully updated item ${item.id} in API`);
-            } catch (error) {
+                // TEMP_DISABLED: console.log(`[handleItemToggle] Successfully updated item ${item.id} in API`);
+            } catch (error) {
                 console.error(`[handleItemToggle] Failed to update item ${item.id} in API:`, error);
             } finally {
                 setSyncingItems(prev => {
@@ -605,7 +605,7 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
                 });
             }
         } else {
-            console.log(`[handleItemToggle] Item has no ID or is temporary, skipping API sync`);
+            // TEMP_DISABLED: console.log(`[handleItemToggle] Item has no ID or is temporary, skipping API sync`);
         }
     };
 
@@ -616,9 +616,9 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
 
         // Synchroniser avec l'API si l'item a un ID et n'est pas temporaire
         if (item.id && !item.isTemp) {
-            console.log(`[handleQuantitySync] DEBUG - Item structure:`, JSON.stringify(item, null, 2));
-            console.log(`[handleQuantitySync] DEBUG - itemIndex: ${itemIndex}, item.id: "${item.id}" (type: ${typeof item.id})`);
-            console.log(`[handleQuantitySync] Job ID: ${numericJobId}, Item ID: ${item.id}, Quantity: ${completedQuantity}`);
+            // TEMP_DISABLED: console.log(`[handleQuantitySync] DEBUG - Item structure:`, JSON.stringify(item, null, 2));
+            // TEMP_DISABLED: console.log(`[handleQuantitySync] DEBUG - itemIndex: ${itemIndex}, item.id: "${item.id}" (type: ${typeof item.id})`);
+            // TEMP_DISABLED: console.log(`[handleQuantitySync] Job ID: ${numericJobId}, Item ID: ${item.id}, Quantity: ${completedQuantity}`);
             
             const itemKey = `${itemIndex}-${item.id}`;
             setSyncingItems(prev => new Set(prev).add(itemKey));
@@ -628,8 +628,8 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
                     completedQuantity,
                     is_checked: item.item_checked || item.checked || false
                 });
-                console.log(`[handleQuantitySync] Successfully updated quantity for item ${item.id} in API`);
-            } catch (error) {
+                // TEMP_DISABLED: console.log(`[handleQuantitySync] Successfully updated quantity for item ${item.id} in API`);
+            } catch (error) {
                 console.error(`[handleQuantitySync] Failed to update quantity for item ${item.id} in API:`, error);
             } finally {
                 setSyncingItems(prev => {
@@ -639,7 +639,7 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
                 });
             }
         } else {
-            console.log(`[handleQuantitySync] Item has no ID or is temporary, skipping API sync`);
+            // TEMP_DISABLED: console.log(`[handleQuantitySync] Item has no ID or is temporary, skipping API sync`);
         }
     };
 
@@ -657,7 +657,7 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
 
     const handleAddItem = async (name: string, quantity: number) => {
         try {
-            console.log(`[handleAddItem] Using numeric job ID: ${numericJobId} (from ${job.id})`);
+            // TEMP_DISABLED: console.log(`[handleAddItem] Using numeric job ID: ${numericJobId} (from ${job.id})`);
             
             await addJobItem(numericJobId, { name, quantity });
             
@@ -676,11 +676,11 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
             setJob(updatedJob);
             
             Alert.alert('Success', 'Item added successfully');
-        } catch (error) {
+        } catch (error) {
             console.error('Error adding item via API:', error);
             
             // Fallback: ajouter localement même si l'API échoue
-            console.log('Falling back to local addition');
+            // TEMP_DISABLED: console.log('Falling back to local addition');
             const updatedJob = { ...job };
             if (!updatedJob.items) {
                 updatedJob.items = [];

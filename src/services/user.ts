@@ -1,6 +1,6 @@
 // services/user.ts
-import { getAuthHeaders, authenticatedFetch } from '../utils/auth';
 import { ServerData } from '../constants/ServerData';
+import { authenticatedFetch } from '../utils/auth';
 
 const API = ServerData.serverUrl;
 
@@ -84,16 +84,16 @@ export interface UpdateUserProfile {
  * Récupère les informations du profil utilisateur
  */
 export async function fetchUserProfile(): Promise<UserProfile> {
-  console.log('� [API FETCH] === STARTING API PROFILE FETCH ===');
-  console.log('🔍 [API FETCH] Step 1: Preparing API call to:', `${API}v1/user/profile`);
-  console.log('🔍 [API FETCH] Step 2: Using authenticatedFetch (with token refresh)...');
+  // TEMP_DISABLED: console.log('� [API FETCH] === STARTING API PROFILE FETCH ===');
+  // TEMP_DISABLED: console.log('🔍 [API FETCH] Step 1: Preparing API call to:', `${API}v1/user/profile`);
+  // TEMP_DISABLED: console.log('🔍 [API FETCH] Step 2: Using authenticatedFetch (with token refresh)...');
   
   // Utilise authenticatedFetch qui gère le refresh automatique
   const res = await authenticatedFetch(`${API}v1/user/profile`, {
     method: 'GET',
   });
   
-  console.log('🔍 [API FETCH] Step 3: API response received - Status:', res.status, 'OK:', res.ok);
+  // TEMP_DISABLED: console.log('🔍 [API FETCH] Step 3: API response received - Status:', res.status, 'OK:', res.ok);
 
   if (!res.ok) {
     console.error(`❌ HTTP ${res.status} response for ${API}v1/user/profile`);
@@ -112,43 +112,40 @@ export async function fetchUserProfile(): Promise<UserProfile> {
     throw new Error(error.message || `HTTP ${res.status}: Failed to fetch user profile`);
   }
 
-  console.log('🔍 [API FETCH] ✅ Step 4: API call SUCCESS - Parsing response...');
+  // TEMP_DISABLED: console.log('🔍 [API FETCH] ✅ Step 4: API call SUCCESS - Parsing response...');
   let data;
   try {
     data = await res.json();
-    console.log('🔍 [API FETCH] Step 5: Response JSON parsed successfully');
-    console.log('✅ User profile fetched:', data);
+    // TEMP_DISABLED: console.log('🔍 [API FETCH] Step 5: Response JSON parsed successfully');
+    // TEMP_DISABLED: console.log('✅ User profile fetched:', data);
   } catch (parseError) {
-    console.log('🔍 [API FETCH] ❌ Step 5: Failed to parse JSON response:', parseError);
     throw new Error('Failed to parse server response');
   }
   
   // L'API peut retourner soit { success: true, user: {...} } soit { user: {...} }
-  console.log('🔍 [API FETCH] Step 6: Validating response format...');
-  console.log('🔍 [API FETCH] - success:', data.success);
-  console.log('🔍 [API FETCH] - user exists:', !!data.user);
+  // TEMP_DISABLED: console.log('🔍 [API FETCH] Step 6: Validating response format...');
+  // TEMP_DISABLED: console.log('🔍 [API FETCH] - success:', data.success);
+  // TEMP_DISABLED: console.log('🔍 [API FETCH] - user exists:', !!data.user);
   
   // Accepter les deux formats de réponse
-  if (!data.user) {
-    console.log('🔍 [API FETCH] ❌ Step 7: No user data in response');
-    throw new Error('No user data received from server');
+  if (!data.user) {throw new Error('No user data received from server');
   }
   
   // Si success existe, il doit être true
   if (data.success !== undefined && !data.success) {
-    console.log('🔍 [API FETCH] ❌ Step 7: API returned success: false');
+    // TEMP_DISABLED: console.log('🔍 [API FETCH] ❌ Step 7: API returned success: false');
     throw new Error('API returned unsuccessful response');
   }
   
-  console.log('🔍 [API FETCH] Step 7: Response format valid, normalizing user data...');
+  // TEMP_DISABLED: console.log('🔍 [API FETCH] Step 7: Response format valid, normalizing user data...');
   // Normaliser les données reçues
   const normalizedProfile = normalizeUserProfile(data.user);
-  console.log('🔍 [API FETCH] ✅ Step 8: Profile normalized successfully:', {
-    id: normalizedProfile.id,
-    firstName: normalizedProfile.firstName,
-    lastName: normalizedProfile.lastName,
-    email: normalizedProfile.email
-  });
+  // TEMP_DISABLED: console.log('🔍 [API FETCH] ✅ Step 8: Profile normalized successfully:', {
+    // id: normalizedProfile.id,
+    // firstName: normalizedProfile.firstName,
+    // lastName: normalizedProfile.lastName,
+    // email: normalizedProfile.email
+  // });
   
   return normalizedProfile;
 }
@@ -157,7 +154,7 @@ export async function fetchUserProfile(): Promise<UserProfile> {
  * Met à jour le profil utilisateur
  */
 export async function updateUserProfile(updates: UpdateUserProfile): Promise<UserProfile> {
-  console.log('🔄 Updating user profile...', updates);
+  // TEMP_DISABLED: console.log('🔄 Updating user profile...', updates);
   
   // Utilise authenticatedFetch qui gère le refresh automatique
   const res = await authenticatedFetch(`${API}v1/user/profile`, {
@@ -183,7 +180,7 @@ export async function updateUserProfile(updates: UpdateUserProfile): Promise<Use
   }
 
   const data = await res.json();
-  console.log('✅ User profile updated:', data);
+  // TEMP_DISABLED: console.log('✅ User profile updated:', data);
   
   if (!data.success || !data.user) {
     throw new Error('Invalid response format from server');
@@ -241,7 +238,7 @@ function normalizeUserProfile(apiData: any): UserProfile {
  * Récupère les statistiques détaillées de l'utilisateur
  */
 export async function fetchUserStats(): Promise<UserStats> {
-  console.log('📊 Fetching user statistics...');
+  // TEMP_DISABLED: console.log('📊 Fetching user statistics...');
   
   // Utilise authenticatedFetch qui gère le refresh automatique
   const res = await authenticatedFetch(`${API}v1/user/stats`, {
@@ -263,7 +260,7 @@ export async function fetchUserStats(): Promise<UserStats> {
   }
 
   const data = await res.json();
-  console.log('✅ User stats fetched:', data);
+  // TEMP_DISABLED: console.log('✅ User stats fetched:', data);
   
   if (!data.success || !data.stats) {
     throw new Error('Invalid response format from server');

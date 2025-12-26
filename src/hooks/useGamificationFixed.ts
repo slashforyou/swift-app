@@ -117,11 +117,11 @@ export const useGamificationFixed = (): UseGamificationReturn => {
         // Si niveau up, on affiche un log
         const leveledUp = levelInfo.level > data.level;
         if (leveledUp) {
-            console.log(`🎉 Level Up! Vous êtes maintenant ${levelInfo.role} niveau ${levelInfo.level}!`);
+            // TEMP_DISABLED: console.log(`🎉 Level Up! Vous êtes maintenant ${levelInfo.role} niveau ${levelInfo.level}!`);
         }
         
         setData(newData);
-        console.log(`+${amount} XP: ${reason}`);
+        // TEMP_DISABLED: console.log(`+${amount} XP: ${reason}`);
     };
 
     const updateLevel = () => {

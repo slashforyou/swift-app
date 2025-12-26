@@ -54,6 +54,15 @@ export interface TranslationKeys {
     home: {
         title: string;
         welcome: string;
+        today: {
+            title: string;
+            loading: string;
+            noJobs: string;
+            allCompleted: string;
+            pending: string;
+            totalJobs: string;
+            completed: string;
+        };
         calendar: {
             title: string;
             description: string;

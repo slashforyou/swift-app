@@ -138,7 +138,7 @@ export const fetchBusinessVehicles = async (companyId: string): Promise<Business
     }
 
     return data.trucks || mockVehicles.map(v => ({ ...v, company_id: companyId }));
-  } catch (error) {
+  } catch (error) {
     console.error('Error fetching business vehicles:', error);
     console.warn('Using mock business vehicles as fallback');
     return mockVehicles.map(v => ({ ...v, company_id: companyId }));
@@ -165,7 +165,7 @@ export const fetchVehicleDetails = async (companyId: string, vehicleId: string):
     }
 
     return data.truck;
-  } catch (error) {
+  } catch (error) {
     console.error('Error fetching vehicle details:', error);
     throw new Error('Failed to fetch vehicle details');
   }
@@ -217,7 +217,7 @@ export const createBusinessVehicle = async (
     }
 
     return data.truck;
-  } catch (error) {
+  } catch (error) {
     console.error('Error creating vehicle:', error);
     console.warn('Creating mock vehicle as fallback');
     const mockVehicle: BusinessVehicle = {
@@ -260,7 +260,7 @@ export const updateBusinessVehicle = async (
     }
 
     return data.truck;
-  } catch (error) {
+  } catch (error) {
     console.error('Error updating vehicle:', error);
     throw new Error('Failed to update vehicle');
   }
@@ -284,7 +284,7 @@ export const deleteBusinessVehicle = async (companyId: string, vehicleId: string
     if (!data.success) {
       throw new Error('API returned success: false');
     }
-  } catch (error) {
+  } catch (error) {
     console.error('Error deleting vehicle:', error);
     throw new Error('Failed to delete vehicle');
   }
@@ -317,7 +317,7 @@ export const createMultipleVehicles = async (
     }
 
     return data.trucks || [];
-  } catch (error) {
+  } catch (error) {
     console.error('Error creating multiple vehicles:', error);
     throw new Error('Failed to create multiple vehicles');
   }

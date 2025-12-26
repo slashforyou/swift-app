@@ -11,7 +11,7 @@ const SimpleAnimatedBackground: React.FC<SimpleAnimatedBackgroundProps> = ({
   const [visible, setVisible] = useState(true);
   const { width, height } = Dimensions.get('window');
 
-  console.log('🟢 SimpleAnimatedBackground rendering - dimensions:', width, 'x', height);
+  // TEMP_DISABLED: console.log('🟢 SimpleAnimatedBackground rendering - dimensions:', width, 'x', height);
 
   // Test simple clignotement pour vérifier la visibilité
   useEffect(() => {

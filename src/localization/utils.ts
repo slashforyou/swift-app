@@ -132,13 +132,13 @@ export const exampleUsage = () => {
         category: 'jobs'
     });
     
-    console.log('Example new translation template:');
-    console.log(newTranslation);
+    // TEMP_DISABLED: console.log('Example new translation template:');
+    // TEMP_DISABLED: console.log(newTranslation);
     
     // Exemple 2: Valider des clés
     const keys = ['home.title', 'invalid-key', 'settings.theme.dark'];
     keys.forEach(key => {
-        console.log(`Key "${key}" is valid: ${validateTranslationKey(key)}`);
+        // TEMP_DISABLED: console.log(`Key "${key}" is valid: ${validateTranslationKey(key)}`);
     });
 };
 

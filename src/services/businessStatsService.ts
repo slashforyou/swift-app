@@ -117,7 +117,7 @@ export interface BusinessCompetitiveAnalysis {
  */
 export const fetchBusinessOverviewStats = async (): Promise<BusinessOverviewStats> => {
   try {
-    console.log('📊 [BUSINESS STATS] Fetching overview statistics...');
+    // TEMP_DISABLED: console.log('📊 [BUSINESS STATS] Fetching overview statistics...');
     
     const response = await apiConfig.authenticatedFetch('/v1/business/stats/overview', {
       method: 'GET'
@@ -129,14 +129,14 @@ export const fetchBusinessOverviewStats = async (): Promise<BusinessOverviewStat
       throw new Error('API returned invalid business stats data');
     }
 
-    console.log('✅ [BUSINESS STATS] Overview stats loaded successfully');
-    console.log(`📈 [BUSINESS STATS] Monthly revenue: $${data.data.monthlyRevenue}`);
-    console.log(`🏢 [BUSINESS STATS] Active jobs: ${data.data.activeJobs}`);
-    console.log(`👥 [BUSINESS STATS] Total employees: ${data.data.totalEmployees}`);
+    // TEMP_DISABLED: console.log('✅ [BUSINESS STATS] Overview stats loaded successfully');
+    // TEMP_DISABLED: console.log(`📈 [BUSINESS STATS] Monthly revenue: $${data.data.monthlyRevenue}`);
+    // TEMP_DISABLED: console.log(`🏢 [BUSINESS STATS] Active jobs: ${data.data.activeJobs}`);
+    // TEMP_DISABLED: console.log(`👥 [BUSINESS STATS] Total employees: ${data.data.totalEmployees}`);
     
     return data.data;
     
-  } catch (error) {
+  } catch (error) {
     console.error('❌ [BUSINESS STATS] Error fetching overview stats:', error);
     throw error;
   }
@@ -148,7 +148,7 @@ export const fetchBusinessOverviewStats = async (): Promise<BusinessOverviewStat
  */
 export const fetchBusinessPerformanceMetrics = async (): Promise<BusinessPerformanceMetrics> => {
   try {
-    console.log('📊 [BUSINESS STATS] Fetching performance metrics...');
+    // TEMP_DISABLED: console.log('📊 [BUSINESS STATS] Fetching performance metrics...');
     
     const response = await apiConfig.authenticatedFetch('/v1/business/stats/performance', {
       method: 'GET'
@@ -160,14 +160,14 @@ export const fetchBusinessPerformanceMetrics = async (): Promise<BusinessPerform
       throw new Error('API returned invalid performance metrics');
     }
 
-    console.log('✅ [BUSINESS STATS] Performance metrics loaded successfully');
-    console.log(`⏱️ [BUSINESS STATS] Avg job duration: ${data.data.averageJobDuration}h`);
-    console.log(`🎯 [BUSINESS STATS] On-time completion: ${data.data.onTimeCompletionRate}%`);
-    console.log(`⭐ [BUSINESS STATS] Customer satisfaction: ${data.data.customerSatisfaction}/5`);
+    // TEMP_DISABLED: console.log('✅ [BUSINESS STATS] Performance metrics loaded successfully');
+    // TEMP_DISABLED: console.log(`⏱️ [BUSINESS STATS] Avg job duration: ${data.data.averageJobDuration}h`);
+    // TEMP_DISABLED: console.log(`🎯 [BUSINESS STATS] On-time completion: ${data.data.onTimeCompletionRate}%`);
+    // TEMP_DISABLED: console.log(`⭐ [BUSINESS STATS] Customer satisfaction: ${data.data.customerSatisfaction}/5`);
     
     return data.data;
     
-  } catch (error) {
+  } catch (error) {
     console.error('❌ [BUSINESS STATS] Error fetching performance metrics:', error);
     throw error;
   }
@@ -181,7 +181,7 @@ export const fetchBusinessTrendData = async (
   period: 'last_7_days' | 'last_30_days' | 'last_3_months' | 'last_12_months' = 'last_30_days'
 ): Promise<BusinessTrendData> => {
   try {
-    console.log(`📊 [BUSINESS STATS] Fetching trend data for period: ${period}...`);
+    // TEMP_DISABLED: console.log(`📊 [BUSINESS STATS] Fetching trend data for period: ${period}...`);
     
     const response = await apiConfig.authenticatedFetch(`/v1/business/stats/trends?period=${period}`, {
       method: 'GET'
@@ -193,13 +193,13 @@ export const fetchBusinessTrendData = async (
       throw new Error('API returned invalid trend data');
     }
 
-    console.log('✅ [BUSINESS STATS] Trend data loaded successfully');
-    console.log(`📈 [BUSINESS STATS] Data points: ${data.data.data_points.length}`);
-    console.log(`📊 [BUSINESS STATS] Revenue trend: ${data.data.trends.revenue_trend}`);
+    // TEMP_DISABLED: console.log('✅ [BUSINESS STATS] Trend data loaded successfully');
+    // TEMP_DISABLED: console.log(`📈 [BUSINESS STATS] Data points: ${data.data.data_points.length}`);
+    // TEMP_DISABLED: console.log(`📊 [BUSINESS STATS] Revenue trend: ${data.data.trends.revenue_trend}`);
     
     return data.data;
     
-  } catch (error) {
+  } catch (error) {
     console.error('❌ [BUSINESS STATS] Error fetching trend data:', error);
     throw error;
   }
@@ -211,7 +211,7 @@ export const fetchBusinessTrendData = async (
  */
 export const fetchBusinessRegionalStats = async (): Promise<BusinessRegionalStats> => {
   try {
-    console.log('🗺️ [BUSINESS STATS] Fetching regional statistics...');
+    // TEMP_DISABLED: console.log('🗺️ [BUSINESS STATS] Fetching regional statistics...');
     
     const response = await apiConfig.authenticatedFetch('/v1/business/stats/regional', {
       method: 'GET'
@@ -223,13 +223,13 @@ export const fetchBusinessRegionalStats = async (): Promise<BusinessRegionalStat
       throw new Error('API returned invalid regional stats');
     }
 
-    console.log('✅ [BUSINESS STATS] Regional stats loaded successfully');
-    console.log(`🏘️ [BUSINESS STATS] Regions covered: ${data.data.regions.length}`);
-    console.log(`🔝 [BUSINESS STATS] Top suburbs: ${data.data.top_suburbs.length}`);
+    // TEMP_DISABLED: console.log('✅ [BUSINESS STATS] Regional stats loaded successfully');
+    // TEMP_DISABLED: console.log(`🏘️ [BUSINESS STATS] Regions covered: ${data.data.regions.length}`);
+    // TEMP_DISABLED: console.log(`🔝 [BUSINESS STATS] Top suburbs: ${data.data.top_suburbs.length}`);
     
     return data.data;
     
-  } catch (error) {
+  } catch (error) {
     console.error('❌ [BUSINESS STATS] Error fetching regional stats:', error);
     throw error;
   }
@@ -241,7 +241,7 @@ export const fetchBusinessRegionalStats = async (): Promise<BusinessRegionalStat
  */
 export const fetchBusinessCompetitiveAnalysis = async (): Promise<BusinessCompetitiveAnalysis> => {
   try {
-    console.log('🏆 [BUSINESS STATS] Fetching competitive analysis...');
+    // TEMP_DISABLED: console.log('🏆 [BUSINESS STATS] Fetching competitive analysis...');
     
     const response = await apiConfig.authenticatedFetch('/v1/business/stats/competitive', {
       method: 'GET'
@@ -253,14 +253,14 @@ export const fetchBusinessCompetitiveAnalysis = async (): Promise<BusinessCompet
       throw new Error('API returned invalid competitive analysis');
     }
 
-    console.log('✅ [BUSINESS STATS] Competitive analysis loaded successfully');
-    console.log(`🏆 [BUSINESS STATS] Market rank: #${data.data.market_position.estimated_rank}`);
-    console.log(`📊 [BUSINESS STATS] Market share: ${data.data.market_position.market_share}%`);
-    console.log(`💰 [BUSINESS STATS] Pricing: ${data.data.pricing_analysis.price_competitiveness}`);
+    // TEMP_DISABLED: console.log('✅ [BUSINESS STATS] Competitive analysis loaded successfully');
+    // TEMP_DISABLED: console.log(`🏆 [BUSINESS STATS] Market rank: #${data.data.market_position.estimated_rank}`);
+    // TEMP_DISABLED: console.log(`📊 [BUSINESS STATS] Market share: ${data.data.market_position.market_share}%`);
+    // TEMP_DISABLED: console.log(`💰 [BUSINESS STATS] Pricing: ${data.data.pricing_analysis.price_competitiveness}`);
     
     return data.data;
     
-  } catch (error) {
+  } catch (error) {
     console.error('❌ [BUSINESS STATS] Error fetching competitive analysis:', error);
     throw error;
   }
@@ -287,7 +287,7 @@ export const fetchCompleteBusinessReport = async (
   report_id: string;
 }> => {
   try {
-    console.log('📋 [BUSINESS STATS] Fetching complete business report...');
+    // TEMP_DISABLED: console.log('📋 [BUSINESS STATS] Fetching complete business report...');
     
     const queryParams = new URLSearchParams();
     if (options.include_trends) queryParams.set('include_trends', 'true');
@@ -307,13 +307,13 @@ export const fetchCompleteBusinessReport = async (
       throw new Error('API returned invalid complete report');
     }
 
-    console.log('✅ [BUSINESS STATS] Complete report loaded successfully');
-    console.log(`📋 [BUSINESS STATS] Report ID: ${data.data.report_id}`);
-    console.log(`⏰ [BUSINESS STATS] Generated: ${data.data.generated_at}`);
+    // TEMP_DISABLED: console.log('✅ [BUSINESS STATS] Complete report loaded successfully');
+    // TEMP_DISABLED: console.log(`📋 [BUSINESS STATS] Report ID: ${data.data.report_id}`);
+    // TEMP_DISABLED: console.log(`⏰ [BUSINESS STATS] Generated: ${data.data.generated_at}`);
     
     return data.data;
     
-  } catch (error) {
+  } catch (error) {
     console.error('❌ [BUSINESS STATS] Error fetching complete report:', error);
     throw error;
   }
@@ -339,7 +339,7 @@ export const exportBusinessStatsCSV = async (
   record_count: number;
 }> => {
   try {
-    console.log('📄 [BUSINESS STATS] Creating CSV export...');
+    // TEMP_DISABLED: console.log('📄 [BUSINESS STATS] Creating CSV export...');
     
     const response = await apiConfig.authenticatedFetch('/v1/business/stats/export/csv', {
       method: 'POST',
@@ -355,13 +355,13 @@ export const exportBusinessStatsCSV = async (
       throw new Error('API returned invalid export data');
     }
 
-    console.log('✅ [BUSINESS STATS] CSV export created successfully');
-    console.log(`📄 [BUSINESS STATS] File: ${data.data.file_name}`);
-    console.log(`📊 [BUSINESS STATS] Records: ${data.data.record_count}`);
+    // TEMP_DISABLED: console.log('✅ [BUSINESS STATS] CSV export created successfully');
+    // TEMP_DISABLED: console.log(`📄 [BUSINESS STATS] File: ${data.data.file_name}`);
+    // TEMP_DISABLED: console.log(`📊 [BUSINESS STATS] Records: ${data.data.record_count}`);
     
     return data.data;
     
-  } catch (error) {
+  } catch (error) {
     console.error('❌ [BUSINESS STATS] Error creating CSV export:', error);
     throw error;
   }
@@ -377,7 +377,7 @@ export const refreshBusinessStats = async (): Promise<{
   estimated_completion: string;
 }> => {
   try {
-    console.log('🔄 [BUSINESS STATS] Triggering stats refresh...');
+    // TEMP_DISABLED: console.log('🔄 [BUSINESS STATS] Triggering stats refresh...');
     
     const response = await apiConfig.authenticatedFetch('/v1/business/stats/refresh', {
       method: 'POST',
@@ -392,13 +392,13 @@ export const refreshBusinessStats = async (): Promise<{
       throw new Error('API returned invalid refresh response');
     }
 
-    console.log('✅ [BUSINESS STATS] Stats refresh initiated successfully');
-    console.log(`🆔 [BUSINESS STATS] Refresh ID: ${data.data.refresh_id}`);
-    console.log(`⏰ [BUSINESS STATS] Est. completion: ${data.data.estimated_completion}`);
+    // TEMP_DISABLED: console.log('✅ [BUSINESS STATS] Stats refresh initiated successfully');
+    // TEMP_DISABLED: console.log(`🆔 [BUSINESS STATS] Refresh ID: ${data.data.refresh_id}`);
+    // TEMP_DISABLED: console.log(`⏰ [BUSINESS STATS] Est. completion: ${data.data.estimated_completion}`);
     
     return data.data;
     
-  } catch (error) {
+  } catch (error) {
     console.error('❌ [BUSINESS STATS] Error triggering stats refresh:', error);
     throw error;
   }

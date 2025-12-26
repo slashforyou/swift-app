@@ -88,7 +88,7 @@ async function testFetchPhotos() {
     
     return photos;
     
-  } catch (error) {
+  } catch (error) {
     console.error(`❌ Exception:`, error.message);
     return null;
   }
@@ -139,7 +139,7 @@ async function testServePhoto(photoId) {
     console.error(`❌ Erreur: ${error}`);
     return null;
     
-  } catch (error) {
+  } catch (error) {
     console.error(`❌ Exception:`, error.message);
     return null;
   }
@@ -188,7 +188,7 @@ async function testUpdateDescription(photoId) {
     
     return photo;
     
-  } catch (error) {
+  } catch (error) {
     console.error(`❌ Exception:`, error.message);
     return null;
   }
@@ -238,7 +238,7 @@ async function testDeletePhoto(photoId) {
     
     return true;
     
-  } catch (error) {
+  } catch (error) {
     console.error(`❌ Exception:`, error.message);
     return false;
   }
@@ -290,7 +290,7 @@ async function testSecurityNoToken() {
       return false;
     }
     
-  } catch (error) {
+  } catch (error) {
     console.error(`❌ Exception:`, error.message);
     return null;
   }

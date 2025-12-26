@@ -38,7 +38,7 @@ async function runTest(name, testFn) {
         await testFn();
         logSuccess(`${name} - PASSED`);
         return true;
-    } catch (error) {
+    } catch (error) {
         logError(`${name} - FAILED: ${error.message}`);
         return false;
     }
@@ -72,7 +72,7 @@ function testDesignSystemImports() {
     
     try {
         execSync(`npx tsc --noEmit "${designSystemPath}"`, { stdio: 'pipe' });
-    } catch (error) {
+    } catch (error) {
         throw new Error(`Design system components have TypeScript errors: ${error.stdout}`);
     }
 }
@@ -85,7 +85,7 @@ function testTypeScriptCompilation() {
             stdio: 'pipe',
             encoding: 'utf8'
         });
-    } catch (error) {
+    } catch (error) {
         const errorOutput = error.stdout || error.message;
         
         // Filtrer les erreurs non-critiques

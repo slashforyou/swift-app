@@ -98,9 +98,7 @@ const AddStaffModal: React.FC<AddStaffModalProps> = ({
     phone: '',
     email: '',
     hourlyRate: '',
-  });
-
-  // États pour les erreurs
+  });// États pour les erreurs
   const [errors, setErrors] = useState<Partial<Employee>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -257,9 +255,7 @@ const AddStaffModal: React.FC<AddStaffModalProps> = ({
       color: colors.primary,
       fontWeight: '600',
     },
-  });
-
-  // Mise à jour des données du formulaire
+  });// Mise à jour des données du formulaire
   const updateFormData = (field: keyof Employee, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     
@@ -338,7 +334,7 @@ const AddStaffModal: React.FC<AddStaffModalProps> = ({
       onClose();
       
       Alert.alert('Success', 'Staff member added successfully!');
-    } catch (error) {
+    } catch (error) {
       Alert.alert('Error', 'Failed to add staff member. Please try again.');
     } finally {
       setIsSubmitting(false);

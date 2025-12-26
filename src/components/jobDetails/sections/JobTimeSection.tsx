@@ -275,7 +275,7 @@ const JobTimeSection: React.FC<JobTimeSectionProps> = ({ job }) => {
                 >
                     {Array.isArray(timerData.stepTimes) && timerData.stepTimes.map((stepTime: any, index: number) => (
                         <View 
-                            key={`step-${stepTime.step}`}
+                            key={`step-${stepTime.step}-${index}`}
                             style={{
                                 flexDirection: 'row',
                                 alignItems: 'center',

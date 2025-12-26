@@ -148,7 +148,7 @@ export default function EditVehicleModal({
 
       await onUpdateVehicle(updatedVehicle)
       onClose()
-    } catch (error) {
+    } catch (error) {
       Alert.alert('Error', 'Failed to update vehicle')
     } finally {
       setIsLoading(false)

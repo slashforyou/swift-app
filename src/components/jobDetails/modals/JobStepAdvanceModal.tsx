@@ -66,20 +66,27 @@ const JobStepAdvanceModal: React.FC<JobStepAdvanceModalProps> = ({
             setIsUpdating(true);
             setSelectedStep(stepIndex);
             
-            await onAdvanceStep(stepIndex);
-            
+            // ✅ Afficher feedback immédiat
             const stepName = jobSteps[stepIndex]?.name || `Étape ${stepIndex + 1}`;
+            // TEMP_DISABLED: console.log(`🔄 [MODAL] Advancing to step ${stepIndex + 1}: ${stepName}`);
+            
+            await onAdvanceStep(stepIndex + 1); // +1 car l'index commence à 0 mais les steps à 1
+            
+            // TEMP_DISABLED: console.log(`✅ [MODAL] Successfully advanced to step ${stepIndex + 1}`);
             showSuccess('Étape mise à jour', `${stepName} activée avec succès`);
             
-            // Fermer le modal après un court délai
+            // Fermer le modal après un court délai pour voir le feedback
             setTimeout(() => {
                 onClose();
                 setSelectedStep(null);
-            }, 1000);
+            }, 1500);
             
-        } catch (error) {
-            console.error('Error advancing step:', error);
-            showError('Erreur', 'Impossible de mettre à jour l\'étape');
+        } catch (error) {
+            console.error('❌ [MODAL] Error advancing step:', error);
+            showError(
+                'Erreur de synchronisation', 
+                'Impossible de mettre à jour l\'étape. Vérifiez votre connexion.'
+            );
         } finally {
             setIsUpdating(false);
             setSelectedStep(null);

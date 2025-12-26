@@ -2,19 +2,19 @@
  * Home - Écran d'accueil moderne avec gamification et traductions
  * Architecture moderne avec Safe Areas, ProfileHeader et navigation cohérente
  */
-import React, { useState } from 'react';
-import { View, Text, Pressable } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { VStack, HStack } from '../components/primitives/Stack';
-import { Screen } from '../components/primitives/Screen';
+import React, { useState } from 'react';
+import { Pressable, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ProfileHeaderComplete from '../components/home/ProfileHeaderNewComplete';
-import ServerConnectionTest from '@/tests/server/connectionTest';
-import { useAuthCheck } from '../utils/checkAuth';
-import { DESIGN_TOKENS } from '../constants/Styles';
-import { Colors } from '../constants/Colors';
-import { useTranslation, useLocalization } from '../localization';
+import TodaySection from '../components/home/TodaySection';
+import { Screen } from '../components/primitives/Screen';
+import { HStack, VStack } from '../components/primitives/Stack';
 import LanguageSelector from '../components/ui/LanguageSelector';
+import { Colors } from '../constants/Colors';
+import { DESIGN_TOKENS } from '../constants/Styles';
+import { useLocalization, useTranslation } from '../localization';
+import { useAuthCheck } from '../utils/checkAuth';
 
 // Types et interfaces
 interface HomeScreenProps {
@@ -124,8 +124,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                     paddingBottom: insets.bottom + DESIGN_TOKENS.spacing.lg,
                 }}
             >
-                {/* Profile Header avec gamification - pleine largeur */}
-                <View style={{ marginHorizontal: -DESIGN_TOKENS.spacing.lg }}>
+                {/* Profile Header avec gamification épuré */}
+                <View style={{ 
+                    marginHorizontal: -DESIGN_TOKENS.spacing.lg,
+                }}>
                     <ProfileHeaderComplete navigation={navigation} />
                 </View>
 
@@ -133,7 +135,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                 <HStack gap="md" justify="space-between" align="center" style={{
                     paddingHorizontal: DESIGN_TOKENS.spacing.lg,
                     marginBottom: DESIGN_TOKENS.spacing.sm,
-                    marginTop: DESIGN_TOKENS.spacing.lg,
                 }}>
                     <Text style={{
                         fontSize: 22,
@@ -164,6 +165,25 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                         </Text>
                     </Pressable>
                 </HStack>
+
+                {/* Section Today - alignée avec les boutons */}
+                <View style={{ 
+                    paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+                }}>
+                    <TodaySection 
+                        onPress={() => {
+                            const today = new Date();
+                            navigation.navigate('Calendar', { 
+                                screen: 'Day',
+                                params: { 
+                                    day: today.getDate(),
+                                    month: today.getMonth() + 1,
+                                    year: today.getFullYear()
+                                }
+                            });
+                        }}
+                    />
+                </View>
 
                 {/* Navigation menu */}
                 <View style={{ 

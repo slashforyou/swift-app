@@ -11,7 +11,7 @@ import { Contractor, Employee, InviteEmployeeData, StaffMember } from '../../typ
  */
 export const fetchStaff = async (): Promise<StaffMember[]> => {
   try {
-    console.log('🌐 [staffService] Fetching all staff members...');
+    // TEMP_DISABLED: console.log('🌐 [staffService] Fetching all staff members...');
     
     const response = await apiConfig.authenticatedFetch(`${apiConfig.baseURL}/api/staff`);
 
@@ -20,10 +20,10 @@ export const fetchStaff = async (): Promise<StaffMember[]> => {
     }
 
     const data = await response.json();
-    console.log(`✅ [staffService] Retrieved ${data.staff.length} staff members`);
+    // TEMP_DISABLED: console.log(`✅ [staffService] Retrieved ${data.staff.length} staff members`);
     
     return data.staff;
-  } catch (error) {
+  } catch (error) {
     console.error('❌ [staffService] Error fetching staff:', error);
     throw new Error('Failed to fetch staff members');
   }
@@ -34,7 +34,7 @@ export const fetchStaff = async (): Promise<StaffMember[]> => {
  */
 export const fetchEmployees = async (): Promise<Employee[]> => {
   try {
-    console.log('🌐 [staffService] Fetching employees...');
+    // TEMP_DISABLED: console.log('🌐 [staffService] Fetching employees...');
     
     const response = await apiConfig.authenticatedFetch(`${apiConfig.baseURL}/api/staff/employees`);
 
@@ -43,10 +43,10 @@ export const fetchEmployees = async (): Promise<Employee[]> => {
     }
 
     const data = await response.json();
-    console.log(`✅ [staffService] Retrieved ${data.employees.length} employees`);
+    // TEMP_DISABLED: console.log(`✅ [staffService] Retrieved ${data.employees.length} employees`);
     
     return data.employees;
-  } catch (error) {
+  } catch (error) {
     console.error('❌ [staffService] Error fetching employees:', error);
     throw new Error('Failed to fetch employees');
   }
@@ -57,7 +57,7 @@ export const fetchEmployees = async (): Promise<Employee[]> => {
  */
 export const fetchContractors = async (): Promise<Contractor[]> => {
   try {
-    console.log('🌐 [staffService] Fetching contractors...');
+    // TEMP_DISABLED: console.log('🌐 [staffService] Fetching contractors...');
     
     const response = await apiConfig.authenticatedFetch(`${apiConfig.baseURL}/api/staff/contractors`);
 
@@ -66,10 +66,10 @@ export const fetchContractors = async (): Promise<Contractor[]> => {
     }
 
     const data = await response.json();
-    console.log(`✅ [staffService] Retrieved ${data.contractors.length} contractors`);
+    // TEMP_DISABLED: console.log(`✅ [staffService] Retrieved ${data.contractors.length} contractors`);
     
     return data.contractors;
-  } catch (error) {
+  } catch (error) {
     console.error('❌ [staffService] Error fetching contractors:', error);
     throw new Error('Failed to fetch contractors');
   }
@@ -80,7 +80,7 @@ export const fetchContractors = async (): Promise<Contractor[]> => {
  */
 export const inviteEmployee = async (employeeData: InviteEmployeeData): Promise<{ success: boolean; employeeId: string }> => {
   try {
-    console.log('📧 [staffService] Sending employee invitation to:', employeeData.email);
+    // TEMP_DISABLED: console.log('📧 [staffService] Sending employee invitation to:', employeeData.email);
     
     const response = await apiConfig.authenticatedFetch(`${apiConfig.baseURL}/api/staff/employees/invite`, {
       method: 'POST',
@@ -92,13 +92,13 @@ export const inviteEmployee = async (employeeData: InviteEmployeeData): Promise<
     }
 
     const data = await response.json();
-    console.log(`✅ [staffService] Employee invitation sent, ID: ${data.employeeId}`);
+    // TEMP_DISABLED: console.log(`✅ [staffService] Employee invitation sent, ID: ${data.employeeId}`);
     
     return {
       success: true,
       employeeId: data.employeeId,
     };
-  } catch (error) {
+  } catch (error) {
     console.error('❌ [staffService] Error inviting employee:', error);
     throw new Error('Failed to send employee invitation');
   }
@@ -109,7 +109,7 @@ export const inviteEmployee = async (employeeData: InviteEmployeeData): Promise<
  */
 export const searchContractors = async (searchTerm: string): Promise<Contractor[]> => {
   try {
-    console.log('🔍 [staffService] Searching contractors:', searchTerm);
+    // TEMP_DISABLED: console.log('🔍 [staffService] Searching contractors:', searchTerm);
     
     const params = new URLSearchParams({
       q: searchTerm,
@@ -123,10 +123,10 @@ export const searchContractors = async (searchTerm: string): Promise<Contractor[
     }
 
     const data = await response.json();
-    console.log(`✅ [staffService] Found ${data.results.length} contractors`);
+    // TEMP_DISABLED: console.log(`✅ [staffService] Found ${data.results.length} contractors`);
     
     return data.results;
-  } catch (error) {
+  } catch (error) {
     console.error('❌ [staffService] Error searching contractors:', error);
     throw new Error('Failed to search contractors');
   }
@@ -140,7 +140,7 @@ export const addContractorToStaff = async (
   contractStatus: Contractor['contractStatus']
 ): Promise<{ success: boolean; contractor: Contractor }> => {
   try {
-    console.log('🤝 [staffService] Adding contractor to staff:', contractorId, contractStatus);
+    // TEMP_DISABLED: console.log('🤝 [staffService] Adding contractor to staff:', contractorId, contractStatus);
     
     const response = await apiConfig.authenticatedFetch(`${apiConfig.baseURL}/api/staff/contractors/add`, {
       method: 'POST',
@@ -155,13 +155,13 @@ export const addContractorToStaff = async (
     }
 
     const data = await response.json();
-    console.log(`✅ [staffService] Contractor added to staff successfully`);
+    // TEMP_DISABLED: console.log(`✅ [staffService] Contractor added to staff successfully`);
     
     return {
       success: true,
       contractor: data.contractor,
     };
-  } catch (error) {
+  } catch (error) {
     console.error('❌ [staffService] Error adding contractor to staff:', error);
     throw new Error('Failed to add contractor to staff');
   }
@@ -175,7 +175,7 @@ export const updateStaffMember = async (
   updateData: Partial<StaffMember>
 ): Promise<{ success: boolean; member: StaffMember }> => {
   try {
-    console.log('📝 [staffService] Updating staff member:', staffId);
+    // TEMP_DISABLED: console.log('📝 [staffService] Updating staff member:', staffId);
     
     const response = await apiConfig.authenticatedFetch(`${apiConfig.baseURL}/api/staff/${staffId}`, {
       method: 'PUT',
@@ -187,13 +187,13 @@ export const updateStaffMember = async (
     }
 
     const data = await response.json();
-    console.log(`✅ [staffService] Staff member updated successfully`);
+    // TEMP_DISABLED: console.log(`✅ [staffService] Staff member updated successfully`);
     
     return {
       success: true,
       member: data.member,
     };
-  } catch (error) {
+  } catch (error) {
     console.error('❌ [staffService] Error updating staff member:', error);
     throw new Error('Failed to update staff member');
   }
@@ -204,7 +204,7 @@ export const updateStaffMember = async (
  */
 export const removeStaffMember = async (staffId: string): Promise<{ success: boolean }> => {
   try {
-    console.log('🗑️ [staffService] Removing staff member:', staffId);
+    // TEMP_DISABLED: console.log('🗑️ [staffService] Removing staff member:', staffId);
     
     const response = await apiConfig.authenticatedFetch(`${apiConfig.baseURL}/api/staff/${staffId}`, {
       method: 'DELETE',
@@ -214,10 +214,10 @@ export const removeStaffMember = async (staffId: string): Promise<{ success: boo
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    console.log(`✅ [staffService] Staff member removed successfully`);
+    // TEMP_DISABLED: console.log(`✅ [staffService] Staff member removed successfully`);
     
     return { success: true };
-  } catch (error) {
+  } catch (error) {
     console.error('❌ [staffService] Error removing staff member:', error);
     throw new Error('Failed to remove staff member');
   }

@@ -32,6 +32,15 @@ export const enTranslations: TranslationKeys = {
     home: {
         title: 'Home',
         welcome: 'Welcome back!',
+        today: {
+            title: 'Today',
+            loading: 'Loading...',
+            noJobs: 'No jobs',
+            allCompleted: 'All completed',
+            pending: 'pending',
+            totalJobs: 'jobs',
+            completed: 'completed',
+        },
         calendar: {
             title: 'Calendar',
             description: 'View and manage your schedule',

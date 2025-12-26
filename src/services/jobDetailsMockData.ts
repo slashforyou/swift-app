@@ -363,7 +363,7 @@ export function getMockJobDetails(jobId: string): Promise<JobDetailsComplete> {
   return new Promise((resolve) => {
     // Simuler un délai de réseau réaliste
     setTimeout(() => {
-      console.log(`🧪 [MOCK] Returning mock job details for ID: ${jobId}`);
+      // TEMP_DISABLED: console.log(`🧪 [MOCK] Returning mock job details for ID: ${jobId}`);
       resolve({
         ...mockJobDetailsData,
         job: {

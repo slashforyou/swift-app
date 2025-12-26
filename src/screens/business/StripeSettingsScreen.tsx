@@ -66,7 +66,7 @@ export default function StripeSettingsScreen({ navigation }: StripeSettingsScree
     try {
       // Utilise la fonction updateSettings du hook pour vraiment sauvegarder
       await updateSettings({ [key]: value })
-    } catch (error) {
+    } catch (error) {
       Alert.alert('Erreur', 'Impossible de mettre à jour les paramètres')
     }
   }
@@ -81,7 +81,7 @@ export default function StripeSettingsScreen({ navigation }: StripeSettingsScree
           text: 'Continue', 
           onPress: () => {
             // TODO: Ouvrir Stripe Connect Onboarding
-            console.log('Open Stripe Connect onboarding')
+            // TEMP_DISABLED: console.log('Open Stripe Connect onboarding')
           } 
         }
       ]
@@ -98,7 +98,7 @@ export default function StripeSettingsScreen({ navigation }: StripeSettingsScree
           text: 'Configure', 
           onPress: () => {
             // TODO: Navigation vers configuration webhooks
-            console.log('Configure webhooks')
+            // TEMP_DISABLED: console.log('Configure webhooks')
           } 
         }
       ]
@@ -115,7 +115,7 @@ export default function StripeSettingsScreen({ navigation }: StripeSettingsScree
           text: 'Create Test Payment', 
           onPress: () => {
             // TODO: Créer un paiement test
-            console.log('Create test payment')
+            // TEMP_DISABLED: console.log('Create test payment')
           } 
         }
       ]
@@ -133,7 +133,7 @@ export default function StripeSettingsScreen({ navigation }: StripeSettingsScree
           style: 'destructive',
           onPress: () => {
             // TODO: Déconnecter le compte Stripe
-            console.log('Disconnect Stripe account')
+            // TEMP_DISABLED: console.log('Disconnect Stripe account')
           } 
         }
       ]

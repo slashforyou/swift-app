@@ -56,16 +56,14 @@ interface UseJobsForDayReturn {
 
 // Fonction utilitaire pour convertir les données API vers le format local
 function convertAPIJobToLocal(apiJob: any): Job {
-  console.log('🔄 Converting API job:', JSON.stringify(apiJob, null, 2));
+  // TEMP_DISABLED: console.log('🔄 Converting API job:', JSON.stringify(apiJob, null, 2));
   
   // Utiliser les vraies données client de l'API ou fallback sur contact_name
   let firstName = 'Client';
   let lastName = 'Anonyme';
   let fullName = 'Client Anonyme';
   
-  if (apiJob.client?.firstName && apiJob.client?.lastName) {
-    // Utiliser les données client de l'API
-    firstName = apiJob.client.firstName;
+  if (apiJob.client?.firstName && apiJob.client?.lastName) {firstName = apiJob.client.firstName;
     lastName = apiJob.client.lastName;
     fullName = apiJob.client.fullName || `${firstName} ${lastName}`;
   } else if (apiJob.contact?.firstName && apiJob.contact?.lastName) {
@@ -133,7 +131,7 @@ function convertAPIJobToLocal(apiJob: any): Job {
     notes: `Code: ${jobCode}${apiJob.notes ? ' - ' + apiJob.notes : ''}`,
   };
   
-  console.log('✅ Converted job:', JSON.stringify(converted, null, 2));
+  // TEMP_DISABLED: console.log('✅ Converted job:', JSON.stringify(converted, null, 2));
   return converted;
 }
 
@@ -376,15 +374,15 @@ export const useJobsForDay = (
       const startDate = new Date(year, month - 1, day);
       const endDate = new Date(year, month - 1, day, 23, 59, 59); // Fin de journée
       
-      console.log(`📅 Fetching jobs for ${day}/${month}/${year} (${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()})`);
+      // TEMP_DISABLED: console.log(`📅 Fetching jobs for ${day}/${month}/${year} (${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()})`);
       
       const apiJobs = await fetchJobsAPI(startDate, endDate);
       
       // 🔍 DIAGNOSTIC: Analyser ce qu'on a reçu
-      console.log('🔍 [useJobsForDay] apiJobs type:', typeof apiJobs);
-      console.log('🔍 [useJobsForDay] apiJobs is array:', Array.isArray(apiJobs));
-      console.log('🔍 [useJobsForDay] apiJobs length:', apiJobs?.length);
-      console.log('🔍 [useJobsForDay] apiJobs content:', JSON.stringify(apiJobs, null, 2));
+      // TEMP_DISABLED: console.log('🔍 [useJobsForDay] apiJobs type:', typeof apiJobs);
+      // TEMP_DISABLED: console.log('🔍 [useJobsForDay] apiJobs is array:', Array.isArray(apiJobs));
+      // TEMP_DISABLED: console.log('🔍 [useJobsForDay] apiJobs length:', apiJobs?.length);
+      // TEMP_DISABLED: console.log('🔍 [useJobsForDay] apiJobs content:', JSON.stringify(apiJobs, null, 2));
       
       // Vérifier que c'est bien un tableau avant de faire .map()
       if (!Array.isArray(apiJobs)) {
@@ -395,11 +393,11 @@ export const useJobsForDay = (
       // Convertir les données API vers le format local
       const convertedJobs = apiJobs.map(convertAPIJobToLocal);
       
-      console.log(`✅ Found ${convertedJobs.length} jobs for ${day}/${month}/${year}`);
-      console.log('🔍 Jobs data:', JSON.stringify(convertedJobs, null, 2));
+      // TEMP_DISABLED: console.log(`✅ Found ${convertedJobs.length} jobs for ${day}/${month}/${year}`);
+      // TEMP_DISABLED: console.log('🔍 Jobs data:', JSON.stringify(convertedJobs, null, 2));
       
       setJobs(convertedJobs);
-    } catch (err) {
+    } catch (err) {
       console.error('Error fetching jobs:', err);
       
       // En cas d'erreur API, fallback vers les données mock avec un message d'avertissement

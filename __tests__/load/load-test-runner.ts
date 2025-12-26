@@ -60,7 +60,7 @@ export class LoadTestRunner {
         const result = await fn();
         results.push(result);
         times.push(performance.now() - startTime);
-      } catch (error) {
+      } catch (error) {
         errors++;
         times.push(performance.now() - startTime);
       }
@@ -94,7 +94,7 @@ export class LoadTestRunner {
             try {
               await fn();
               completed++;
-            } catch (error) {
+            } catch (error) {
               errors++;
             }
           }
@@ -198,7 +198,7 @@ export class LoadTestRunner {
           await fn();
           successfulRequests++;
           latencies.push(performance.now() - requestStart);
-        } catch (error) {
+        } catch (error) {
           errors.push(error instanceof Error ? error.message : 'Unknown error');
         }
         

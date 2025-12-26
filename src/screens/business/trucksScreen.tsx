@@ -4,13 +4,13 @@
  */
 import React, { useState } from 'react'
 import {
-  ActivityIndicator,
-  Alert,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    ActivityIndicator,
+    Alert,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from 'react-native'
 
 // Components
@@ -541,6 +541,7 @@ export default function TrucksScreen() {
       setIsAddModalVisible(false)
       Alert.alert(t('vehicles.alerts.addSuccess.title'), t('vehicles.alerts.addSuccess.message'))
     } catch (error) {
+
       console.error('Error creating vehicle:', error)
       Alert.alert(t('vehicles.alerts.addError.title'), t('vehicles.alerts.addError.message'))
     }
@@ -548,11 +549,10 @@ export default function TrucksScreen() {
 
   const handleVehiclePress = (vehicle: Vehicle) => {
     // TODO: Ouvrir détails du véhicule
-    console.log('View vehicle details:', vehicle.id);
+    // TEMP_DISABLED: console.log('View vehicle details:', vehicle.id);
   };
 
   const handleEditVehicle = (vehicle: Vehicle, event?: any) => {
-    // Empêcher la propagation au parent TouchableOpacity
     event?.stopPropagation?.();
     
     Alert.alert(
@@ -579,6 +579,7 @@ export default function TrucksScreen() {
               await deleteVehicleFromContext(vehicle.id)
               Alert.alert(t('vehicles.alerts.deleteSuccess.title'), t('vehicles.alerts.deleteSuccess.message'))
             } catch (error) {
+
               Alert.alert(t('vehicles.alerts.deleteError.title'), t('vehicles.alerts.deleteError.message'))
             }
           }

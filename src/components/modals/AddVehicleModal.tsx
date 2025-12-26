@@ -198,7 +198,7 @@ export default function AddVehicleModal({
         `${vehicleData.make} ${vehicleData.model} a été ajouté avec succès`
       )
       handleClose()
-    } catch (error) {
+    } catch (error) {
       Alert.alert('Erreur', 'Impossible d\'ajouter le véhicule')
     } finally {
       setIsLoading(false)

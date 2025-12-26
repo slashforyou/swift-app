@@ -12,7 +12,7 @@ const contactLink = async (link: string, type: string): Promise<void> => {
         } else {
             console.error(`The URL ${url} is not supported`);
         }
-    } catch (error) {
+    } catch (error) {
         console.error('Failed to open URL:', error);
     }
 };

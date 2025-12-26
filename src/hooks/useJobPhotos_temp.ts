@@ -20,7 +20,7 @@ const getLocalPhotos = async (jobId: string): Promise<JobPhotoAPI[]> => {
     const key = getLocalPhotosKey(jobId);
     const stored = await AsyncStorage.getItem(key);
     return stored ? JSON.parse(stored) : [];
-  } catch (error) {
+  } catch (error) {
     console.warn('Error reading local photos:', error);
     return [];
   }
@@ -30,7 +30,7 @@ const saveLocalPhotos = async (jobId: string, photos: JobPhotoAPI[]): Promise<vo
   try {
     const key = getLocalPhotosKey(jobId);
     await AsyncStorage.setItem(key, JSON.stringify(photos));
-  } catch (error) {
+  } catch (error) {
     console.warn('Error saving local photos:', error);
   }
 };
@@ -77,8 +77,8 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
       try {
         const apiPhotos = await fetchJobPhotos(jobId);
         setPhotos(apiPhotos);
-      } catch (fetchError) {
-        console.log('📸 API photos endpoint not available, loading from local storage');
+      } catch (fetchError) {
+        // TEMP_DISABLED: console.log('📸 API photos endpoint not available, loading from local storage');
         const localPhotos = await getLocalPhotos(jobId);
         setPhotos(localPhotos);
         
@@ -87,7 +87,7 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
         }
       }
       
-    } catch (err) {
+    } catch (err) {
       console.error('Error fetching job photos:', err);
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       
@@ -115,12 +115,12 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
       const newPhoto = await uploadJobPhoto(jobId, photoUri, description);
       setPhotos(prevPhotos => [newPhoto, ...prevPhotos]);
       return newPhoto;
-    } catch (err) {
+    } catch (err) {
       console.error('Error uploading photo:', err);
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       
       if (errorMessage.includes('404') || errorMessage.includes('400')) {
-        console.log('📸 API photo upload not available, saving locally');
+        // TEMP_DISABLED: console.log('📸 API photo upload not available, saving locally');
         
         const localPhoto: JobPhotoAPI = {
           id: `local-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -153,7 +153,7 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
       const newPhotos = await uploadJobPhotos(jobId, photoUris, descriptions);
       setPhotos(prevPhotos => [...newPhotos, ...prevPhotos]);
       return newPhotos;
-    } catch (err) {
+    } catch (err) {
       console.error('Error uploading multiple photos:', err);
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       setError(`Erreur lors de l'upload des photos: ${errorMessage}`);
@@ -168,7 +168,7 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
         prevPhotos.map(photo => photo.id === photoId ? updatedPhoto : photo)
       );
       return updatedPhoto;
-    } catch (err) {
+    } catch (err) {
       console.error('Error updating photo description:', err);
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       setError(`Erreur lors de la mise à jour de la description: ${errorMessage}`);
@@ -181,7 +181,7 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
       await deletePhoto(photoId);
       setPhotos(prevPhotos => prevPhotos.filter(photo => photo.id !== photoId));
       return true;
-    } catch (err) {
+    } catch (err) {
       console.error('Error deleting photo:', err);
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       setError(`Erreur lors de la suppression de la photo: ${errorMessage}`);
@@ -193,7 +193,7 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
     try {
       const url = await getPhotoServeUrl(photoId);
       return url;
-    } catch (err) {
+    } catch (err) {
       console.error('Error getting photo URL:', err);
       return null;
     }

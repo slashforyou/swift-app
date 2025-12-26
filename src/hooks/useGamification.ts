@@ -79,7 +79,7 @@ export const useGamification = (): UseGamificationReturn => {
             setIsLoading(true);
             // Pour l'instant, on utilise juste les données par défaut
             setData(defaultData);
-        } catch (err) {
+        } catch (err) {
             console.error('Erreur lors du chargement des données de gamification:', err);
             setError('Erreur lors du chargement des données');
             setData(defaultData);
@@ -92,7 +92,7 @@ export const useGamification = (): UseGamificationReturn => {
         try {
             // Pour l'instant, on sauvegarde juste en mémoire
             setData(newData);
-        } catch (err) {
+        } catch (err) {
             console.error('Erreur lors de la sauvegarde:', err);
             setError('Erreur lors de la sauvegarde');
         }
@@ -149,7 +149,7 @@ export const useGamification = (): UseGamificationReturn => {
         // Si niveau up, on pourrait déclencher une notification
         const leveledUp = levelInfo.level > data.level;
         if (leveledUp) {
-            console.log(`🎉 Level Up! Vous êtes maintenant ${levelInfo.role} niveau ${levelInfo.level}!`);
+            // TEMP_DISABLED: console.log(`🎉 Level Up! Vous êtes maintenant ${levelInfo.role} niveau ${levelInfo.level}!`);
         }
         
         saveData(newData);

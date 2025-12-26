@@ -118,12 +118,11 @@ export const StripeConnectWebView: React.FC<StripeConnectWebViewProps> = ({
   })
 
   const handleNavigationStateChange = (navState: any) => {
-    console.log('🌐 WebView navigation:', navState.url)
+    // TEMP_DISABLED: console.log('🌐 WebView navigation:', navState.url)
     
     // Détection des URLs de succès (backend configure: https://swiftapp.altivo.fr/settings/stripe/success)
     if (navState.url.includes('/settings/stripe/success') || 
         navState.url.includes('swiftapp://stripe/success')) {
-      console.log('✅ Stripe Connect Express onboarding completed successfully')
       onSuccess?.()
       onClose()
       return
@@ -132,14 +131,13 @@ export const StripeConnectWebView: React.FC<StripeConnectWebViewProps> = ({
     // Détection des URLs de refresh/retry (backend configure: https://swiftapp.altivo.fr/settings/stripe/refresh)
     if (navState.url.includes('/settings/stripe/refresh') || 
         navState.url.includes('swiftapp://stripe/refresh')) {
-      console.log('🔄 Stripe Connect refresh requested')
+      // TEMP_DISABLED: console.log('🔄 Stripe Connect refresh requested')
       webViewRef.current?.reload()
       return
     }
     
     // Détection d'erreurs Stripe
     if (navState.url.includes('error') || navState.url.includes('cancel')) {
-      console.log('❌ Stripe Connect cancelled or error')
       setError('Connexion annulée ou erreur lors de la configuration')
       return
     }
@@ -153,7 +151,7 @@ export const StripeConnectWebView: React.FC<StripeConnectWebViewProps> = ({
 
   const handleLoad = () => {
     setLoading(false)
-    console.log('✅ Stripe Connect WebView loaded successfully')
+    // TEMP_DISABLED: console.log('✅ Stripe Connect WebView loaded successfully')
   }
 
   const handleRetry = () => {

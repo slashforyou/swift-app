@@ -38,7 +38,7 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob }) => {
             } else {
                 throw new Error('Échec de l\'ajout de la note');
             }
-        } catch (error) {
+        } catch (error) {
             console.error('Error adding note:', error);
             showError('Erreur', 'Impossible d\'ajouter la note. Veuillez réessayer.');
             throw error;
@@ -55,7 +55,7 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob }) => {
             if (diffHours < 24) return `Il y a ${diffHours}h`;
             if (diffHours < 48) return "Hier";
             return date.toLocaleDateString('fr-FR');
-        } catch {
+        } catch (e) {
             return "Récemment";
         }
     };

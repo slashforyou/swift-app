@@ -135,7 +135,7 @@ describe('Network Load Testing', () => {
         for (let i = 0; i < maxRetries; i++) {
           try {
             return await fn();
-          } catch (error) {
+          } catch (error) {
             if (i === maxRetries - 1) throw error;
             
             const delay = baseDelay * Math.pow(2, i) + Math.random() * 1000;
@@ -199,7 +199,7 @@ describe('Network Load Testing', () => {
               try {
                 const result = await fn();
                 resolve(result);
-              } catch (error) {
+              } catch (error) {
                 reject(error);
               }
             });
@@ -356,7 +356,7 @@ describe('Network Load Testing', () => {
         for (let i = 0; i < 5; i++) {
           try {
             return await StripeService.checkStripeConnectionStatus();
-          } catch (error) {
+          } catch (error) {
             if (i === 4) throw error;
             await new Promise(resolve => setTimeout(resolve, 100 * (i + 1)));
           }

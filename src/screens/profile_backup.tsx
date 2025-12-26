@@ -1,37 +1,30 @@
-import React, { useState } from 'react';
-import {
-  View,
-  ScrollView,
-  Alert,
-  ActivityIndicator,
-  Text,
-  Pressable,
-  SafeAreaView,
-  TouchableOpacity,
-} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import React, { useState } from 'react';
+import {
+    ActivityIndicator,
+    Alert,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    View
+} from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Design System Components
 import {
-  useTheme,
-  Card,
-  H1,
-  H2,
-  Body,
-  Caption,
-  Label,
-  Input,
-  TextArea,
-  PrimaryButton,
-  SecondaryButton,
-  IconButton,
-  SEMANTIC_SPACING,
+    Body,
+    H2,
+    IconButton,
+    Input,
+    Label,
+    PrimaryButton,
+    SEMANTIC_SPACING,
+    TextArea,
+    useTheme
 } from '../components/ui';
 
 import { useUserProfile } from '../hooks/useUserProfile';
-import { UserType } from '../services/user';
 
 interface ProfileFormFieldProps {
   label: string;
@@ -72,22 +65,22 @@ const ProfileFormField: React.FC<ProfileFormFieldProps> = ({
 };
 
 export const ProfileScreen: React.FC = () => {
-  console.log('🔍 [PROFILE SCREEN] === PROFILE COMPONENT RENDERING ===');
+  // TEMP_DISABLED: console.log('🔍 [PROFILE SCREEN] === PROFILE COMPONENT RENDERING ===');
   
   const { colors } = useTheme();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { profile, isLoading, error, updateProfile, refreshProfile, isUpdating } = useUserProfile();
   
-  console.log('🔍 [PROFILE SCREEN] Hook state:', {
-    hasProfile: !!profile,
-    profileId: profile?.id,
-    profileName: profile ? `${profile.firstName} ${profile.lastName}` : 'null',
-    isLoading,
-    hasError: !!error,
-    errorMessage: error,
-    isUpdating
-  });
+  // TEMP_DISABLED: console.log('🔍 [PROFILE SCREEN] Hook state:', {
+    // hasProfile: !!profile,
+    // profileId: profile?.id,
+    // profileName: profile ? `${profile.firstName} ${profile.lastName}` : 'null',
+    // isLoading,
+    // hasError: !!error,
+    // errorMessage: error,
+    // isUpdating
+  // });
   
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -106,18 +99,18 @@ export const ProfileScreen: React.FC = () => {
 
   // Update form data when profile loads
   React.useEffect(() => {
-    console.log('🔍 [PROFILE SCREEN] useEffect - Profile changed:', {
-      hasProfile: !!profile,
-      profileData: profile ? {
-        id: profile.id,
-        firstName: profile.firstName,
-        lastName: profile.lastName,
-        userType: profile.userType
-      } : null
-    });
+    // TEMP_DISABLED: console.log('🔍 [PROFILE SCREEN] useEffect - Profile changed:', {
+      // hasProfile: !!profile,
+      // profileData: profile ? {
+        // id: profile.id,
+        // firstName: profile.firstName,
+        // lastName: profile.lastName,
+        // userType: profile.userType
+      // } : null
+    // });
     
     if (profile) {
-      console.log('🔍 [PROFILE SCREEN] Setting form data from profile...');
+      // TEMP_DISABLED: console.log('🔍 [PROFILE SCREEN] Setting form data from profile...');
       setFormData({
         firstName: profile.firstName || '',
         lastName: profile.lastName || '',
@@ -151,6 +144,7 @@ export const ProfileScreen: React.FC = () => {
         Alert.alert('Success', 'Profile updated successfully');
       }
     } catch (error) {
+
       Alert.alert('Error', 'Failed to update profile');
     }
   };

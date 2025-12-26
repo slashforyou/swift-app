@@ -1,13 +1,13 @@
 /**
  * ProfileHeader - Header avec gamification pour la page d'accueil
  */
-import React, { useState } from 'react';
-import { View, Text, Pressable, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { HStack, VStack } from '../primitives/Stack';
-import { useGamification } from '../../hooks/useGamification';
-import { DESIGN_TOKENS } from '../../constants/Styles';
+import React, { useState } from 'react';
+import { Animated, Pressable, Text, View } from 'react-native';
 import { Colors } from '../../constants/Colors';
+import { DESIGN_TOKENS } from '../../constants/Styles';
+import { useGamification } from '../../hooks/useGamification';
+import { VStack } from '../primitives/Stack';
 
 interface ProfileHeaderProps {
     navigation: any;
@@ -94,10 +94,9 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                     if (now - lastTapTime < 500) {
                         // Double tap détecté - bonus XP !
                         addXP(5, '🎯 Easter egg bonus!');
-                        console.log('🎉 +5 XP Easter egg!');
+                        // TEMP_DISABLED: console.log('🎉 +5 XP Easter egg!');
                     } else {
-                        // Simple tap - aller au profil
-                        setTimeout(() => {
+        setTimeout(() => {
                             if (Date.now() - now > 400) {
                                 navigation.navigate('Profile');
                             }
@@ -212,7 +211,9 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             
             {/* Bouton notifications en haut à droite */}
             <Pressable
-                onPress={() => console.log('Notifications pressed')}
+                onPress={() => {
+                    // TEMP_DISABLED: console.log('Notifications pressed');
+                }}
                 style={({ pressed }) => ({
                     position: 'absolute',
                     top: DESIGN_TOKENS.spacing.lg,

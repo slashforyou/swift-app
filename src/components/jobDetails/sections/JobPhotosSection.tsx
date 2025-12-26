@@ -69,7 +69,7 @@ const formatPhotoDate = (dateString?: string): string => {
     const minutes = date.getMinutes().toString().padStart(2, '0');
     
     return `${day}/${month}/${year} ${hours}:${minutes}`;
-  } catch (e) {
+  } catch (e) {
     return '';
   }
 };
@@ -483,15 +483,15 @@ const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete 
           setImageDimensions({ width, height });
           const aspectRatio = width / height;
           const orientation = height > width ? 'Portrait' : width > height ? 'Paysage' : 'Carré';
-          console.log(`📐 [PhotoItem ${photo.id}] Dimensions réelles:`, {
-            width,
-            height,
-            aspectRatio: aspectRatio.toFixed(2),
-            orientation,
-            filename: photo.filename,
-            displaySize: '48% width, aspectRatio: 1 (carré)',
-            resizeMode: 'cover'
-          });
+          // TEMP_DISABLED: console.log(`📐 [PhotoItem ${photo.id}] Dimensions réelles:`, {
+            // width,
+            // height,
+            // aspectRatio: aspectRatio.toFixed(2),
+            // orientation,
+            // filename: photo.filename,
+            // displaySize: '48% width, aspectRatio: 1 (carré)',
+            // resizeMode: 'cover'
+          // });
         },
         (error) => {
           console.warn(`⚠️ [PhotoItem ${photo.id}] Impossible de récupérer dimensions:`, error);
@@ -768,28 +768,23 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId }) => 
   } = useJobPhotos(jobId);
 
   const handlePhotoSelection = async (photoUri: string) => {
-    console.log('🎯 [DEBUG] handlePhotoSelection - REÇU du modal');
-    console.log('🎯 [DEBUG] photoUri reçu:', photoUri);
+    // TEMP_DISABLED: console.log('🎯 [DEBUG] handlePhotoSelection - REÇU du modal');
+    // TEMP_DISABLED: console.log('🎯 [DEBUG] photoUri reçu:', photoUri);
     
     setShowPhotoModal(false);
-    console.log('✅ [DEBUG] Modal fermé');
+    // TEMP_DISABLED: console.log('✅ [DEBUG] Modal fermé');
     
     try {
-      console.log('📤 [DEBUG] Appel uploadPhoto...');
+        const result = await uploadPhoto(photoUri, '');
       
-      const result = await uploadPhoto(photoUri, '');
+      // TEMP_DISABLED: console.log('✅ [DEBUG] uploadPhoto terminé:', result);
       
-      console.log('✅ [DEBUG] uploadPhoto terminé:', result);
-      
-      if (result) {
-        // ✅ Recharger toutes les photos depuis le serveur
-        console.log('🔄 [DEBUG] Rechargement des photos depuis le serveur...');
-        await refetch();
-        console.log('✅ [DEBUG] Photos rechargées');
+      if (result) {await refetch();
+        // TEMP_DISABLED: console.log('✅ [DEBUG] Photos rechargées');
         
         Alert.alert('Succès', 'Photo ajoutée avec succès !');
       }
-    } catch (err) {
+    } catch (err) {
       console.error('❌ [DEBUG] Erreur dans uploadPhoto:', err);
       console.error('❌ [DEBUG] Stack trace:', err instanceof Error ? err.stack : 'N/A');
       Alert.alert('Erreur', 'Erreur lors de l\'ajout de la photo');
@@ -809,7 +804,7 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId }) => 
       await refetch();
       
       Alert.alert('Succès', 'Description mise à jour !');
-    } catch (err) {
+    } catch (err) {
       Alert.alert('Erreur', 'Erreur lors de la mise à jour');
     }
   };
@@ -822,7 +817,7 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId }) => 
       await refetch();
       
       Alert.alert('Succès', 'Photo supprimée !');
-    } catch (err) {
+    } catch (err) {
       Alert.alert('Erreur', 'Erreur lors de la suppression');
     }
   };
@@ -925,7 +920,7 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId }) => 
                 numColumns={1}
                 scrollEnabled={false} // Désactiver scroll interne (on scroll la page parente)
                 onEndReached={() => {
-                  console.log('📸 [FlatList] onEndReached - hasMore:', hasMore, 'isLoadingMore:', isLoadingMore);
+                  // TEMP_DISABLED: console.log('📸 [FlatList] onEndReached - hasMore:', hasMore, 'isLoadingMore:', isLoadingMore);
                   if (hasMore && !isLoadingMore) {
                     loadMore();
                   }

@@ -77,14 +77,14 @@ export async function syncTimerToAPI(timerData: JobTimerData): Promise<any> {
   try {
     const syncData = convertTimerDataToAPI(timerData);
 
-    console.log('📤 [syncTimerToAPI] Syncing timer to API:', {
-      jobId: syncData.jobId,
-      currentStep: syncData.currentStep,
-      totalElapsedHours: (syncData.totalElapsedMs / (1000 * 60 * 60)).toFixed(2),
-      billableHours: (syncData.billableMs / (1000 * 60 * 60)).toFixed(2),
-      isRunning: syncData.isRunning,
-      stepsCount: syncData.stepHistory.length
-    });
+    // TEMP_DISABLED: console.log('📤 [syncTimerToAPI] Syncing timer to API:', {
+      // jobId: syncData.jobId,
+      // currentStep: syncData.currentStep,
+      // totalElapsedHours: (syncData.totalElapsedMs / (1000 * 60 * 60)).toFixed(2),
+      // billableHours: (syncData.billableMs / (1000 * 60 * 60)).toFixed(2),
+      // isRunning: syncData.isRunning,
+      // stepsCount: syncData.stepHistory.length
+    // });
 
     const headers = await getAuthHeaders();
     const response = await fetch(`${API}v1/job/${syncData.jobId}/timer`, {
@@ -108,10 +108,11 @@ export async function syncTimerToAPI(timerData: JobTimerData): Promise<any> {
     });
 
     const data = await response.json();
-    console.log('✅ [syncTimerToAPI] Timer synced successfully:', data);
+    // TEMP_DISABLED: console.log('✅ [syncTimerToAPI] Timer synced successfully:', data);
     return data;
 
   } catch (error: any) {
+
     console.error('❌ [syncTimerToAPI] Failed to sync timer:', error);
     console.error('❌ [syncTimerToAPI] Error details:', error.response?.data || error.message);
     // Ne pas throw - mode offline-first
@@ -122,11 +123,31 @@ export async function syncTimerToAPI(timerData: JobTimerData): Promise<any> {
 
 /**
  * 🚀 Démarrer le timer (Step 0 → 1)
+ * ✅ SESSION 9: Utilise POST /job/:id/start au lieu de /timer/start (endpoint réel du backend)
+ * 
+ * @param jobCodeOrId - Job CODE (ex: JOB-DEC-002) OU ID numérique (ex: 8)
+ *                      Le backend n'accepte QUE l'ID numérique
  */
-export async function startTimerAPI(jobCode: string): Promise<any> {
+export async function startTimerAPI(jobCodeOrId: string): Promise<any> {
   try {
-    const url = `${API}v1/job/${jobCode}/timer/start`;
-    console.log('🚀 [startTimerAPI] Starting timer for job:', jobCode);
+    // ✅ SESSION 9 FIX: Le backend veut l'ID numérique, pas le CODE
+    // Extraire ID numérique depuis CODE (JOB-DEC-002 -> 2) ou depuis ID direct (8 -> 8)
+    let numericId = jobCodeOrId;
+    
+    // Si c'est un CODE (contient des lettres), extraire l'ID
+    if (/[a-zA-Z]/.test(jobCodeOrId)) {
+      // Extraire les chiffres à la fin (JOB-DEC-002 -> 002 -> 2)
+      const match = jobCodeOrId.match(/(\d+)$/);
+      if (match) {
+        numericId = parseInt(match[1], 10).toString(); // Enlever zeros leadings: 002 -> 2
+      } else {
+        console.error('❌ [startTimerAPI] Cannot extract numeric ID from CODE:', jobCodeOrId);
+        return { success: false, error: 'Invalid job code format' };
+      }
+    }
+    
+    const url = `${API}v1/job/${numericId}/start`;
+    console.log('🚀 [startTimerAPI] Starting job timer:', jobCodeOrId, '→ numeric ID:', numericId);
     console.log('🚀 [startTimerAPI] Full URL:', url);
 
     const headers = await getAuthHeaders();
@@ -144,14 +165,15 @@ export async function startTimerAPI(jobCode: string): Promise<any> {
     
     // Vérifier si la réponse est un succès
     if (data.error || !response.ok) {
-      console.error('❌ [startTimerAPI] Timer start failed:', data);
+      console.error('❌ [startTimerAPI] Job start failed:', data);
       return { success: false, error: data.error || 'Unknown error', data };
     }
     
-    console.log('✅ [startTimerAPI] Timer started successfully:', data);
+    console.log('✅ [startTimerAPI] Job started successfully:', data);
     return { success: true, ...data };
 
   } catch (error: any) {
+
     console.error('❌ [startTimerAPI] Failed to start timer:', error);
     console.error('❌ [startTimerAPI] Error details:', error.response?.data || error.message);
     return { success: false, error: error.message };
@@ -168,12 +190,12 @@ export async function advanceStepAPI(
   stepDurationMs: number
 ): Promise<any> {
   try {
-    console.log('⏭️ [advanceStepAPI] Advancing step:', {
-      jobId,
-      fromStep,
-      toStep,
-      durationHours: (stepDurationMs / (1000 * 60 * 60)).toFixed(2)
-    });
+    // TEMP_DISABLED: console.log('⏭️ [advanceStepAPI] Advancing step:', {
+      // jobId,
+      // fromStep,
+      // toStep,
+      // durationHours: (stepDurationMs / (1000 * 60 * 60)).toFixed(2)
+    // });
 
     const headers = await getAuthHeaders();
     const response = await fetch(`${API}v1/job/${jobId}/advance-step`, {
@@ -188,10 +210,11 @@ export async function advanceStepAPI(
     });
 
     const data = await response.json();
-    console.log('✅ [advanceStepAPI] Step advanced:', data);
+    // TEMP_DISABLED: console.log('✅ [advanceStepAPI] Step advanced:', data);
     return data;
 
   } catch (error: any) {
+
     console.error('❌ [advanceStepAPI] Failed to advance step:', error);
     console.error('❌ [advanceStepAPI] Error details:', error.response?.data || error.message);
     return null;
@@ -207,11 +230,11 @@ export async function pauseTimerAPI(
   totalElapsedMs: number
 ): Promise<any> {
   try {
-    console.log('⏸️ [pauseTimerAPI] Pausing timer:', {
-      jobId,
-      currentStep,
-      elapsedHours: (totalElapsedMs / (1000 * 60 * 60)).toFixed(2)
-    });
+    // TEMP_DISABLED: console.log('⏸️ [pauseTimerAPI] Pausing timer:', {
+      // jobId,
+      // currentStep,
+      // elapsedHours: (totalElapsedMs / (1000 * 60 * 60)).toFixed(2)
+    // });
 
     const headers = await getAuthHeaders();
     const response = await fetch(`${API}v1/job/${jobId}/timer/pause`, {
@@ -225,10 +248,11 @@ export async function pauseTimerAPI(
     });
 
     const data = await response.json();
-    console.log('✅ [pauseTimerAPI] Timer paused:', data);
+    // TEMP_DISABLED: console.log('✅ [pauseTimerAPI] Timer paused:', data);
     return data;
 
   } catch (error: any) {
+
     console.error('❌ [pauseTimerAPI] Failed to pause timer:', error);
     console.error('❌ [pauseTimerAPI] Error details:', error.response?.data || error.message);
     return null;
@@ -243,10 +267,10 @@ export async function resumeTimerAPI(
   breakDurationMs: number
 ): Promise<any> {
   try {
-    console.log('▶️ [resumeTimerAPI] Resuming timer:', {
-      jobId,
-      breakHours: (breakDurationMs / (1000 * 60 * 60)).toFixed(2)
-    });
+    // TEMP_DISABLED: console.log('▶️ [resumeTimerAPI] Resuming timer:', {
+      // jobId,
+      // breakHours: (breakDurationMs / (1000 * 60 * 60)).toFixed(2)
+    // });
 
     const headers = await getAuthHeaders();
     const response = await fetch(`${API}v1/job/${jobId}/timer/resume`, {
@@ -259,10 +283,11 @@ export async function resumeTimerAPI(
     });
 
     const data = await response.json();
-    console.log('✅ [resumeTimerAPI] Timer resumed:', data);
+    // TEMP_DISABLED: console.log('✅ [resumeTimerAPI] Timer resumed:', data);
     return data;
 
   } catch (error: any) {
+
     console.error('❌ [resumeTimerAPI] Failed to resume timer:', error);
     console.error('❌ [resumeTimerAPI] Error details:', error.response?.data || error.message);
     return null;
@@ -280,12 +305,12 @@ export async function completeJobAPI(
   try {
     const syncData = convertTimerDataToAPI(timerData);
 
-    console.log('✅ [completeJobAPI] Completing job:', {
-      jobId,
-      billableHours: (syncData.billableMs / (1000 * 60 * 60)).toFixed(2),
-      breakHours: (syncData.totalBreakMs / (1000 * 60 * 60)).toFixed(2),
-      finalCost
-    });
+    // TEMP_DISABLED: console.log('✅ [completeJobAPI] Completing job:', {
+      // jobId,
+      // billableHours: (syncData.billableMs / (1000 * 60 * 60)).toFixed(2),
+      // breakHours: (syncData.totalBreakMs / (1000 * 60 * 60)).toFixed(2),
+      // finalCost
+    // });
 
     const headers = await getAuthHeaders();
     const response = await fetch(`${API}v1/job/${jobId}/complete`, {
@@ -307,10 +332,11 @@ export async function completeJobAPI(
     });
 
     const data = await response.json();
-    console.log('✅ [completeJobAPI] Job completed:', data);
+    // TEMP_DISABLED: console.log('✅ [completeJobAPI] Job completed:', data);
     return data;
 
   } catch (error: any) {
+
     console.error('❌ [completeJobAPI] Failed to complete job:', error);
     console.error('❌ [completeJobAPI] Error details:', error.response?.data || error.message);
     return null;

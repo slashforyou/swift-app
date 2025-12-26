@@ -69,7 +69,7 @@ export const useBusinessVehicles = (companyId: string = 'swift-removals-001'): U
       
       const vehiclesList = await fetchBusinessVehicles(companyId);
       setVehicles(vehiclesList);
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load vehicles';
       setError(errorMessage);
       console.error('Error loading vehicles:', err);
@@ -94,7 +94,7 @@ export const useBusinessVehicles = (companyId: string = 'swift-removals-001'): U
       setVehicles(prev => [...prev, newVehicle]);
       
       return newVehicle;
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create vehicle';
       setError(errorMessage);
       console.error('Error creating vehicle:', err);
@@ -120,7 +120,7 @@ export const useBusinessVehicles = (companyId: string = 'swift-removals-001'): U
       setVehicles(prev => [...prev, ...newVehicles]);
       
       return newVehicles;
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create vehicles';
       setError(errorMessage);
       console.error('Error creating multiple vehicles:', err);
@@ -149,7 +149,7 @@ export const useBusinessVehicles = (companyId: string = 'swift-removals-001'): U
       );
       
       return updatedVehicle;
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update vehicle';
       setError(errorMessage);
       console.error('Error updating vehicle:', err);
@@ -171,7 +171,7 @@ export const useBusinessVehicles = (companyId: string = 'swift-removals-001'): U
       
       // Retirer de la liste
       setVehicles(prev => prev.filter(v => v.id !== vehicleId));
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete vehicle';
       setError(errorMessage);
       console.error('Error deleting vehicle:', err);

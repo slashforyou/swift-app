@@ -55,7 +55,7 @@ const AnimatedInstantPayoutModal: React.FC<AnimatedInstantPayoutModalProps> = ({
       setAmount('');
       setDescription('');
       onClose();
-    } catch (error) {
+    } catch (error) {
       Alert.alert('Erreur', 'Impossible de traiter le paiement instantané');
     } finally {
       setProcessing(false);

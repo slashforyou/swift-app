@@ -32,11 +32,7 @@ const CardForm: React.FC<CardFormProps> = ({ initialCard, onCardChange, onValida
     expiry: initialCard.expiry || '',
     cvv: initialCard.cvv || '',
     name: initialCard.name || ''
-  });
-
-
-
-  // Sync with initialCard when it changes (selected card)
+  });// Sync with initialCard when it changes (selected card)
   useEffect(() => {
     const formatted = {
       number: formatCardNumber(initialCard.number || ''),

@@ -38,14 +38,41 @@
 
 #### **SEMAINE 3-4 : Finalisation Technique**
 - [x] **🔧 Intégration Stripe Elements** ✅ **TERMINÉ**
-  - [x] Installation @stripe/stripe-react-native v0.57.0
+  - [x] Installation @stripe/stripe-react-native v0.50.3 (downgrade compatibility)
   - [x] StripeProvider configuré dans App.tsx avec clé publique
   - [x] Remplacement champs TextInput par CardField natif Stripe
-  - [x] Implémentation handleCardPayment avec vraie API Stripe
+  - [x] Implémentation handleCardPayment avec useConfirmPayment
   - [x] Flux complet : Payment Intent → Confirmation → Backend sync
   - [x] Interface utilisateur adaptative avec validation temps réel
-  - [x] Intégration JobTimerContext pour calculs dynamiques
+  - [x] Intégration analytics Stripe (stripeAnalytics.ts)
+  - [x] Résolution erreur OnrampSdk (compatibilité Expo managed workflow)
+  - [x] Logger.ts corrigé pour React Native (window.addEventListener)
   - **Livrable :** Paiements 100% natifs ✅ **ACCOMPLI**
+
+- [x] **🎯 Améliorations UX Critiques** ✅ **TERMINÉ - 16 DÉC 2025**
+  - [x] **Section "Aujourd'hui" sur Page d'Accueil** ✅ **FINALISÉ**
+    - [x] Affichage date du jour avec nombre de jobs et statuts
+    - [x] Récupération données via API useJobsForDay
+    - [x] Redirection vers dayScreen au clic (navigation.navigate Calendar/Day)
+    - [x] Alignement largeur avec boutons menu principal
+    - [x] Fond couleur différenciée (Colors.light.background vs backgroundSecondary)
+    - [x] Positionnement après titre "Home" pour meilleure visibilité
+    - [x] CalendarNavigation modifié pour supporter navigation directe
+    - [x] Traductions FR/EN ajoutées (home.today.*)
+  - [x] **ProfileHeader Simplifié - Design Épuré** ✅ **FINALISÉ**
+    - [x] Layout horizontal : Avatar 90px + Infos (nom, titre, progression)
+    - [x] Badge niveau superposé sur avatar (bottom-right)
+    - [x] Barre de progression XP compacte (8px height)
+    - [x] Emoji rang dynamique selon niveau utilisateur
+    - [x] Suppression animations complexes et NotificationsPanel
+    - [x] Réduction de ~365 à ~200 lignes de code
+  - [x] **JobDetails Summary - Amélioration Interface**
+    - [x] Bouton "Play" remplacé par "Commencer" (meilleure UX française)
+    - [x] Repositionnement boutons sous la timeline (layout plus intuitif)
+    - [x] Amélioration du style des boutons (plus grands, mieux espacés)
+    - [x] Préservation logique existante (handleNextStep, handleStopTimer)
+    - [x] Tests de validation créés (__tests__/components/JobTimerDisplay.test.tsx)
+  - **Impact :** UX moderne, navigation fluide, gamification visible mais épurée ✅ **ACCOMPLI**
 
 - [x] **📱 Tests & Validation** *BLOQUANT* ✅ **TERMINÉ**
   - [x] Test suite complète E2E - Job Payment Flow, Staff Management, Business Navigation, Calendar Job Logic
@@ -53,10 +80,20 @@
   - [x] Load testing avec backend - API Load Testing avec 15+ endpoints Stripe, network resilience testing
   - **Livrable :** App validée production ✅ **ACCOMPLI**
 
-- [ ] **🔒 Audit Sécurité**
-  - Revue conformité PCI-DSS
-  - Test intrusion basic
-  - Validation flows critiques
+- [ ] **� Endpoints Backend Manquants** - À IMPLÉMENTER
+  - [ ] `POST /swift-app/v1/logs` - Réception logs frontend pour monitoring
+  - [ ] `POST /swift-app/v1/analytics/events` - Collecte événements analytics utilisateurs
+  - [ ] `PATCH /swift-app/v1/job/{id}/step` - Mise à jour progression job par étape
+  - [ ] Gestion erreurs 404 gracieuse côté frontend (✅ warnings au lieu d'erreurs)
+  - **Livrable :** 3 endpoints production-ready (logging, analytics, job progression)
+  - **Impact :** Monitoring complet app, analytics comportementaux, tracking job workflow
+  - **Priorité :** Moyenne (app fonctionne sans, mais données perdues en dev)
+  - **Status :** Frontend prêt avec fallback warnings (17 déc 2025) ✅
+
+- [ ] **�🔒 Audit Sécurité** - PRÊT À DÉMARRER
+  - [ ] Revue conformité PCI-DSS
+  - [ ] Test intrusion basic
+  - [ ] Validation flows critiques
   - **Livrable :** Certification sécurité
 
 #### **SEMAINE 5-6 : Déploiement Production**
@@ -410,6 +447,33 @@ ML Pipeline: Predictions & insights
 - [x] **Design Tokens** : Cohérence couleurs, espacement, animations
 - **Impact :** Interface utilisateur cohérente et moderne dans toute l'application ✨
 
+### 🆕 **Nouvelles Fonctionnalités UX (13 Décembre 2025)** ✅ **TERMINÉ**
+- [x] **Section "Aujourd'hui" - Page d'Accueil**
+  - [x] Affichage date du jour formatée (lundi 13 décembre)
+  - [x] Statistiques jobs en temps réel : total, en attente, terminés
+  - [x] Redirection intelligente vers DayView du calendrier
+  - [x] Réduction section profil (-50%) pour optimiser l'espace
+  - [x] Composant TodaySection.tsx réutilisable créé
+  - [x] Traductions complètes ajoutées (today.title, today.loading, etc.)
+  - **Livrable :** Dashboard quotidien intégré ✅
+
+- [x] **JobDetails Summary - Interface Redesignée**
+  - [x] Bouton "Play" → "Commencer" (terminologie française appropriée)
+  - [x] Repositionnement boutons sous timeline (UX plus intuitive)
+  - [x] Style des boutons amélioré (plus grands, centrage, espacements)
+  - [x] Architecture préservée (togglePause, handleNextStep, handleStopTimer)
+  - [x] Tests de validation intégrés (JobTimerDisplay.test.tsx)
+  - **Livrable :** Contrôles job optimisés ✅
+
+### 🔧 **Architecture Technique Renforcée** ✅ **TERMINÉ**
+- [x] **BusinessHeader** : Design de référence avec boutons circulaires et LanguageButton
+- [x] **CalendarHeader** : Unifié avec Business (LanguageButton rectangulaire → circulaire)
+- [x] **JobDetailsHeader** : Restructuré avec titre centré et RefBookMark repositionné
+- [x] **LanguageButton** : Style circulaire uniforme avec juste le drapeau 🇫🇷
+- [x] **RefBookMark** : Positionnement pixel-perfect avec angles du haut à 0px
+- [x] **Design Tokens** : Cohérence couleurs, espacement, animations
+- **Impact :** Interface utilisateur cohérente et moderne dans toute l'application ✨
+
 ### 🔧 **Architecture Technique Renforcée** ✅ **TERMINÉ**
 - [x] **TabMenu Unifié** : Support business/calendar/jobDetails avec configuration automatique
 - [x] **Theme System** : useTheme() intégré dans tous les headers
@@ -428,49 +492,103 @@ ML Pipeline: Predictions & insights
 
 ## 🚀 PROCHAINES ACTIONS IMMÉDIATES
 
-### ⚡ **Cette Semaine (9-15 Décembre 2025)** - MIS À JOUR
+### ⚡ **Cette Semaine (16-22 Décembre 2025)** - ✅ **ACCOMPLI**
 1. **🎨 UI Standardisation** ✅ **TERMINÉ**
    - [x] Unification Business/Calendar/JobDetails headers
    - [x] LanguageButton circulaire uniforme
    - [x] RefBookMark repositionnement parfait
    - [x] Design system cohérent finalisé
 
-2. **🔧 Stripe Elements Integration** - EN COURS
-   - [ ] Installation package @stripe/stripe-react-native
-   - [ ] Configuration provider dans App.tsx
-   - [ ] Intégration PaymentSheet dans PaymentWindow
-   - [ ] Tests sur iOS/Android
+2. **🎯 Home Screen Optimisations** ✅ **TERMINÉ 16 DÉC**
+   - [x] Section "Today" avec navigation vers DayView
+   - [x] ProfileHeader simplifié (layout horizontal)
+   - [x] Alignement section Today avec boutons menu
+   - [x] CalendarNavigation avec support initialRouteName dynamique
 
-3. **📱 Tests Production** - PRÊT À DÉMARRER
+3. **🔧 Stripe Elements Integration** ✅ **TERMINÉ**
+   - [x] Installation package @stripe/stripe-react-native
+   - [x] Configuration provider dans App.tsx
+   - [x] Intégration CardField dans PaymentWindow
+   - [x] Tests et corrections compatibilité Expo
+   - [x] Analytics Stripe intégrés
+
+4. **📱 Tests Production** ✅ **PARTIELLEMENT TERMINÉ**
+   - [x] Correction erreur `window.addEventListener` dans logger.ts
+   - [x] Test navigation Home → Today → DayView
    - [ ] Test complet workflow job → paiement
    - [ ] Validation des montants et commissions
    - [ ] Test gestion d'erreurs et edge cases
-   - [ ] Performance testing sur devices
 
-4. **📊 Monitoring Setup** - EN ATTENTE
+### 🎯 **Prochaines 2 Semaines (23 Déc - 5 Jan 2026)** - 🔥 **PRIORITÉ MAXIMALE**
+
+#### **🔒 Audit Sécurité & Production Readiness**
+1. **Revue Sécurité Stripe**
+   - [ ] Vérification clés API (test vs live)
+   - [ ] Validation flows paiement end-to-end
+   - [ ] Test gestion erreurs (carte refusée, timeout, etc.)
+   - [ ] Revue logs et tracking des transactions
+   - **Livrable :** Checklist sécurité complète
+
+2. **Tests Intensifs Production**
+   - [ ] Test workflow complet : Job création → Exécution → Paiement → Facturation
+   - [ ] Validation montants et commissions Stripe
+   - [ ] Test edge cases (offline, erreurs réseau, etc.)
+   - [ ] Performance testing sur vrais devices
+   - **Livrable :** App 100% validée
+
+3. **Monitoring & Analytics Setup**
    - [ ] Configuration Stripe webhooks production
-   - [ ] Setup alerts critiques (échecs paiement, etc.)
-   - [ ] Dashboard métriques business
+   - [ ] Setup alerts critiques (échecs paiement, erreurs API)
+   - [ ] Dashboard métriques business (transactions, revenus)
    - [ ] Logs structurés pour debugging
+   - **Livrable :** Observabilité complète
 
-### 🎯 **Prochaines 2 Semaines (16-29 Décembre 2025)**
-1. **🚀 Production Deployment**
+#### **🚀 Préparation Déploiement**
+4. **Configuration Production**
+   - [ ] Migration clés Stripe test → live
    - [ ] Configuration environnement production
-   - [ ] Migration des clés Stripe live
-   - [ ] Tests de charge avec backend
-   - [ ] Go-live avec monitoring intensif
+   - [ ] SSL certificates et domaine
+   - [ ] Backup et disaster recovery plan
+   - **Livrable :** Infrastructure production ready
 
-2. **📚 Documentation Finale**
-   - [ ] Guide utilisateur final
-   - [ ] Documentation déploiement
-   - [ ] Runbooks opérationnels
-   - [ ] Support client procedures
+5. **Documentation & Support**
+   - [ ] Guide utilisateur final (onboarding, paiements, jobs)
+   - [ ] Documentation technique déploiement
+   - [ ] Runbooks opérationnels (incidents, maintenance)
+   - [ ] Procédures support client
+   - **Livrable :** Documentation complète
 
-3. **🎉 Launch Preparation**
-   - [ ] Communication plan (social, email)
-   - [ ] Press kit et assets marketing
-   - [ ] Beta user feedback incorporation
-   - [ ] Soft launch avec early adopters
+### 🎯 **Janvier 2026 - Go Live** 🚀
+
+#### **Semaine 1-2 (6-19 Jan) : Soft Launch**
+- [ ] **Beta Testing avec Early Adopters**
+  - [ ] Sélection 20-50 professionnels beta
+  - [ ] Onboarding personnalisé avec support dédié
+  - [ ] Collecte feedback intensif
+  - [ ] Itérations rapides sur bugs critiques
+  - **Livrable :** Product-Market Fit validé
+
+- [ ] **Marketing Préparation**
+  - [ ] Assets marketing (screenshots, vidéos)
+  - [ ] Landing page optimisée conversion
+  - [ ] Press kit et communiqués
+  - [ ] Social media campaigns
+  - **Livrable :** Go-to-market ready
+
+#### **Semaine 3-4 (20 Jan - 2 Fév) : Public Launch**
+- [ ] **Launch Officiel**
+  - [ ] Publication App Store / Google Play
+  - [ ] Campagne marketing multi-canal
+  - [ ] PR et média coverage
+  - [ ] Monitoring intensif performance
+  - **Livrable :** App publique disponible
+
+- [ ] **Post-Launch Support**
+  - [ ] Support client 24/7 première semaine
+  - [ ] Hotfixes rapides si besoin
+  - [ ] Analytics et optimisation continue
+  - [ ] Collecte user feedback
+  - **Livrable :** Launch stabilisé
 
 ---
 

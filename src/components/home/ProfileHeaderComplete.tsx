@@ -95,7 +95,7 @@ const ProfileHeaderComplete: React.FC<ProfileHeaderProps> = ({
                 progressPercentage: percentage,
                 xpRemaining: Math.max(targetXP - currentXP, 0)
             };
-        } catch (error) {
+        } catch (error) {
             console.warn('Error calculating progress data:', error);
             return {
                 progressPercentage: 0,
@@ -237,10 +237,9 @@ const ProfileHeaderComplete: React.FC<ProfileHeaderProps> = ({
                         
                         if (now - lastTapTime < 500) {
                             // Double tap détecté - Easter egg !
-                            console.log('🎉 Easter egg bonus detected!');
+                            // TEMP_DISABLED: console.log('🎉 Easter egg bonus detected!');
                         } else {
-                            // Simple tap - aller au profil
-                            setTimeout(() => {
+        setTimeout(() => {
                                 if (Date.now() - now > 400) {
                                     navigation.navigate('Profile');
                                 }

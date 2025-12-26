@@ -50,7 +50,7 @@ function runCommand(command, description) {
     });
     log('✅ Succès!', 'green');
     return true;
-  } catch (error) {
+  } catch (error) {
     log(`❌ Erreur: ${error.message}`, 'red');
     return false;
   }

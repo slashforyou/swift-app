@@ -41,7 +41,7 @@ export function useSession() {
           setUser(null)
           setError(null)
         }
-      } catch (error) {
+      } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Session check failed'
         setIsAuthenticated(false)
         setUser(null)
@@ -75,7 +75,7 @@ export function useSession() {
         setUser(null)
         setError(null)
       }
-    } catch (error) {
+    } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Session check failed'
       setIsAuthenticated(false)
       setUser(null)

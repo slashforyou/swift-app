@@ -32,6 +32,15 @@ export const frTranslations: TranslationKeys = {
     home: {
         title: 'Accueil',
         welcome: 'Bon retour !',
+        today: {
+            title: "Aujourd'hui",
+            loading: 'Chargement...',
+            noJobs: 'Aucun travail',
+            allCompleted: 'Tout terminé',
+            pending: 'en attente',
+            totalJobs: 'travaux',
+            completed: 'terminés',
+        },
         calendar: {
             title: 'Calendrier',
             description: 'Consultez et gérez votre planning',

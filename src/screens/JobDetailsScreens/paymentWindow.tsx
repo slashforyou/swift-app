@@ -7,16 +7,16 @@ import Ionicons from '@react-native-vector-icons/ionicons';
 import { CardField, useConfirmPayment } from '@stripe/stripe-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  Animated,
-  Dimensions,
-  Modal,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View
+    ActivityIndicator,
+    Alert,
+    Animated,
+    Dimensions,
+    Modal,
+    Pressable,
+    ScrollView,
+    Text,
+    TextInput,
+    View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DESIGN_TOKENS } from '../../constants/Styles';
@@ -24,6 +24,10 @@ import { useJobTimerContext } from '../../context/JobTimerProvider';
 import { useTheme } from '../../context/ThemeProvider';
 import { useJobPayment } from '../../hooks/useJobPayment';
 import { useTranslation } from '../../localization/useLocalization';
+import {
+    trackPaymentFunnelStep,
+    trackPaymentMethodSelected
+} from '../../services/stripeAnalytics';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -66,6 +70,9 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
   
   // ✅ Hooks Stripe pour les vrais paiements
   const { confirmPayment } = useConfirmPayment();
+  
+  // Note: usePaymentSheet désactivé temporairement (incompatible avec Expo managed)
+  // const { initPaymentSheet, presentPaymentSheet, loading } = usePaymentSheet();
   
   // ✅ Utiliser le timer context pour les calculs en temps réel
   const { 
@@ -122,6 +129,12 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
 
   useEffect(() => {
     if (isVisible) {
+      // 📊 Track payment window view
+      const jobId = job?.id || job?.job?.id;
+      if (jobId) {
+        trackPaymentFunnelStep('view_payment', jobId);
+      }
+
       Animated.parallel([
         Animated.timing(backdropAnimation, {
           toValue: 1,
@@ -161,7 +174,26 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
   };
 
   const handleMethodSelect = (method: 'card' | 'cash') => {
+    // 📊 Track payment method selection
+    const jobId = job?.id || job?.job?.id;
+    if (jobId) {
+      trackPaymentMethodSelected(method, jobId);
+      trackPaymentFunnelStep('select_method', jobId, method);
+    }
+    
     updateState({ selectedMethod: method, step: method });
+  };
+
+  // ✅ Fallback pour PaymentSheet (temporairement désactivé pour compatibilité Expo)
+  const handlePaymentSheet = async () => {
+    // Redirect vers la méthode carte pour le moment
+    Alert.alert(
+      "PaymentSheet indisponible",
+      "Utilisons la méthode carte manuelle pour le moment. PaymentSheet sera activé en production.",
+      [
+        { text: "OK", onPress: () => handleMethodSelect('card') }
+      ]
+    );
   };
 
   const handleCardPayment = async () => {
@@ -177,7 +209,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
     updateState({ isProcessing: true, step: 'processing' });
     
     try {
-      console.log('🚀 [PaymentWindow] Starting REAL Stripe payment process...');
+      // TEMP_DISABLED: console.log('🚀 [PaymentWindow] Starting REAL Stripe payment process...');
       
       // ✅ 1. Créer le Payment Intent via notre backend
       const jobId = job?.id || job?.job?.id;
@@ -185,7 +217,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
         throw new Error(t('payment.errors.jobIdNotFound'));
       }
 
-      console.log(`💳 [PaymentWindow] Creating Payment Intent for job ${jobId}, amount: ${paymentAmount}`);
+      // TEMP_DISABLED: console.log(`💳 [PaymentWindow] Creating Payment Intent for job ${jobId}, amount: ${paymentAmount}`);
       
       const paymentIntent = await jobPayment.createPayment(jobId, {
         amount: Math.round(paymentAmount * 100), // Convertir en centimes
@@ -193,10 +225,10 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
         description: `Paiement job ${job?.title || jobId}`
       });
 
-      console.log(`✅ [PaymentWindow] Payment Intent created: ${paymentIntent.payment_intent_id}`);
+      // TEMP_DISABLED: console.log(`✅ [PaymentWindow] Payment Intent created: ${paymentIntent.payment_intent_id}`);
 
       // ✅ 2. Utiliser Stripe Elements pour confirmer le paiement
-      console.log('💳 [PaymentWindow] Confirming payment with Stripe...');
+      // TEMP_DISABLED: console.log('💳 [PaymentWindow] Confirming payment with Stripe...');
       
       const { error, paymentIntent: confirmedPayment } = await confirmPayment(
         paymentIntent.client_secret, 
@@ -210,10 +242,10 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
         throw new Error(error.message);
       }
 
-      console.log(`✅ [PaymentWindow] Payment confirmed by Stripe: ${confirmedPayment?.status}`);
+      // TEMP_DISABLED: console.log(`✅ [PaymentWindow] Payment confirmed by Stripe: ${confirmedPayment?.status}`);
 
       // ✅ 3. Confirmer le paiement côté backend avec le statut Stripe réel
-      console.log(`✅ [PaymentWindow] Confirming payment in backend: ${paymentIntent.payment_intent_id}`);
+      // TEMP_DISABLED: console.log(`✅ [PaymentWindow] Confirming payment in backend: ${paymentIntent.payment_intent_id}`);
       
       const backendStatus = confirmedPayment?.status === 'Succeeded' ? 'succeeded' : 'failed';
       const confirmResult = await jobPayment.confirmPayment(
@@ -222,7 +254,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
         backendStatus
       );
 
-      console.log(`✅ [PaymentWindow] Payment confirmed successfully!`, confirmResult);
+      // TEMP_DISABLED: console.log(`✅ [PaymentWindow] Payment confirmed successfully!`, confirmResult);
 
       // ✅ 4. Mettre à jour le job avec les nouvelles données
       setJob(confirmResult.job);
@@ -233,7 +265,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
         handleClose();
       }, 2000);
       
-    } catch (error) {
+    } catch (error) {
       console.error('❌ [PaymentWindow] REAL payment failed:', error);
       
       Alert.alert(
@@ -254,7 +286,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
     updateState({ isProcessing: true, step: 'processing' });
     
     try {
-      console.log('💰 [PaymentWindow] Starting REAL cash payment process...');
+      // TEMP_DISABLED: console.log('💰 [PaymentWindow] Starting REAL cash payment process...');
       
       // ✅ 1. Créer le Payment Intent pour paiement cash
       const jobId = job?.id || job?.job?.id;
@@ -262,7 +294,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
         throw new Error('ID du job non trouvé');
       }
 
-      console.log(`💰 [PaymentWindow] Creating Payment Intent for cash payment, job ${jobId}`);
+      // TEMP_DISABLED: console.log(`💰 [PaymentWindow] Creating Payment Intent for cash payment, job ${jobId}`);
       
       const paymentIntent = await jobPayment.createPayment(jobId, {
         amount: Math.round(paymentAmount * 100), // Convertir en centimes
@@ -270,13 +302,13 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
         description: `Paiement cash job ${job?.title || jobId}`
       });
 
-      console.log(`✅ [PaymentWindow] Payment Intent created for cash: ${paymentIntent.payment_intent_id}`);
+      // TEMP_DISABLED: console.log(`✅ [PaymentWindow] Payment Intent created for cash: ${paymentIntent.payment_intent_id}`);
 
       // Simuler le traitement cash (instantané)
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       // ✅ 2. Confirmer le paiement cash côté backend
-      console.log(`💰 [PaymentWindow] Confirming cash payment: ${paymentIntent.payment_intent_id}`);
+      // TEMP_DISABLED: console.log(`💰 [PaymentWindow] Confirming cash payment: ${paymentIntent.payment_intent_id}`);
       
       const confirmResult = await jobPayment.confirmPayment(
         jobId, 
@@ -284,7 +316,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
         'succeeded'
       );
 
-      console.log(`✅ [PaymentWindow] Cash payment confirmed!`, confirmResult);
+      // TEMP_DISABLED: console.log(`✅ [PaymentWindow] Cash payment confirmed!`, confirmResult);
 
       // ✅ 3. Mettre à jour le job
       setJob(confirmResult.job);
@@ -295,7 +327,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
         handleClose();
       }, 2000);
       
-    } catch (error) {
+    } catch (error) {
       console.error('❌ [PaymentWindow] REAL cash payment failed:', error);
       
       Alert.alert(
@@ -431,6 +463,52 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
       )}
 
       <View style={{ gap: DESIGN_TOKENS.spacing.md }}>
+        {/* ✅ Nouvelle option PaymentSheet pour une meilleure UX */}
+        <Pressable
+          onPress={handlePaymentSheet}
+          disabled={state.isProcessing}
+          style={({ pressed }) => ({
+            backgroundColor: pressed ? colors.backgroundTertiary : colors.backgroundSecondary,
+            borderRadius: DESIGN_TOKENS.radius.lg,
+            padding: DESIGN_TOKENS.spacing.lg,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: DESIGN_TOKENS.spacing.md,
+            borderWidth: 2,
+            borderColor: colors.tint,
+            opacity: state.isProcessing ? 0.7 : 1,
+          })}
+        >
+          <View style={{
+            backgroundColor: '#6366F1',
+            borderRadius: DESIGN_TOKENS.radius.lg,
+            padding: DESIGN_TOKENS.spacing.md,
+          }}>
+            <Ionicons name="shield-checkmark" size={24} color={colors.background} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{
+              fontSize: 18,
+              fontWeight: '600',
+              color: colors.text,
+              marginBottom: 4,
+            }}>
+              Paiement sécurisé ⚡
+            </Text>
+            <Text style={{
+              fontSize: 14,
+              color: colors.textSecondary,
+            }}>
+              Interface moderne avec Apple Pay / Google Pay
+            </Text>
+          </View>
+          {state.isProcessing ? (
+            <ActivityIndicator size="small" color={colors.tint} />
+          ) : (
+            <Ionicons name="chevron-forward" size={24} color={colors.textSecondary} />
+          )}
+        </Pressable>
+
         <Pressable
           onPress={() => handleMethodSelect('card')}
           style={({ pressed }) => ({
@@ -458,7 +536,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
               color: colors.text,
               marginBottom: 4,
             }}>
-              Carte bancaire
+              Carte bancaire (Manuel)
             </Text>
             <Text style={{
               fontSize: 14,
@@ -588,7 +666,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
             marginVertical: 4,
           }}
           onCardChange={(cardDetails) => {
-            console.log('💳 Card changed:', cardDetails);
+            // TEMP_DISABLED: console.log('💳 Card changed:', cardDetails);
             
             // ✅ Gestion simplifiée des erreurs
             let errorMessage = null;
@@ -604,7 +682,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
             });
           }}
           onFocus={(focusedField) => {
-            console.log('💳 Focused field:', focusedField);
+            // TEMP_DISABLED: console.log('💳 Focused field:', focusedField);
           }}
         />
 

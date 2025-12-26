@@ -88,9 +88,7 @@ const AddVehicleModal: React.FC<AddVehicleModalProps> = ({
     year: new Date().getFullYear().toString(),
     nextService: '',
     location: LOCATIONS[0],
-  });
-
-  // États pour les erreurs
+  });// États pour les erreurs
   const [errors, setErrors] = useState<Partial<Vehicle>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -271,9 +269,7 @@ const AddVehicleModal: React.FC<AddVehicleModalProps> = ({
       marginTop: DESIGN_TOKENS.spacing.xs,
       fontStyle: 'italic',
     },
-  });
-
-  // Mise à jour des données du formulaire
+  });// Mise à jour des données du formulaire
   const updateFormData = (field: keyof Vehicle, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     
@@ -404,7 +400,7 @@ const AddVehicleModal: React.FC<AddVehicleModalProps> = ({
       onClose();
       
       Alert.alert('Success', 'Vehicle added successfully!');
-    } catch (error) {
+    } catch (error) {
       Alert.alert('Error', 'Failed to add vehicle. Please try again.');
     } finally {
       setIsSubmitting(false);

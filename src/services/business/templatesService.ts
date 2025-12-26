@@ -162,13 +162,13 @@ export const fetchJobTemplates = async (): Promise<JobTemplate[]> => {
     const templates = (data.quotes || []).filter(quote => quote.isTemplate);
     
     if (templates.length === 0) {
-      console.log('ℹ️ No templates found in API response');
+      // TEMP_DISABLED: console.log('ℹ️ No templates found in API response');
       return __DEV__ ? mockTemplates : [];
     }
     
-    console.log(`✅ Retrieved ${templates.length} job templates from API`);
+    // TEMP_DISABLED: console.log(`✅ Retrieved ${templates.length} job templates from API`);
     return templates;
-  } catch (error) {
+  } catch (error) {
     console.error('❌ Error fetching job templates:', error);
     if (__DEV__) {
       console.warn('🔄 Using mock job templates as fallback in DEV mode');
@@ -199,7 +199,7 @@ export const fetchTemplateDetails = async (templateId: string): Promise<JobTempl
     }
 
     return data.quote;
-  } catch (error) {
+  } catch (error) {
     console.error('Error fetching template details:', error);
     throw new Error('Failed to fetch template details');
   }
@@ -254,7 +254,7 @@ export const createJobTemplate = async (templateData: TemplateCreateData): Promi
     }
 
     return data.quote;
-  } catch (error) {
+  } catch (error) {
     console.error('Error creating job template:', error);
     if (__DEV__) {
       console.warn('Creating mock job template as fallback in DEV mode');
@@ -298,7 +298,7 @@ export const updateJobTemplate = async (
     }
 
     return data.quote;
-  } catch (error) {
+  } catch (error) {
     console.error('Error updating job template:', error);
     throw new Error('Failed to update job template');
   }
@@ -322,7 +322,7 @@ export const deleteJobTemplate = async (templateId: string): Promise<void> => {
     if (!data.success) {
       throw new Error('API returned success: false');
     }
-  } catch (error) {
+  } catch (error) {
     console.error('Error deleting job template:', error);
     throw new Error('Failed to delete job template');
   }
@@ -353,7 +353,7 @@ export const duplicateJobTemplate = async (templateId: string, newName?: string)
     };
 
     return await createJobTemplate(duplicateData);
-  } catch (error) {
+  } catch (error) {
     console.error('Error duplicating job template:', error);
     throw new Error('Failed to duplicate job template');
   }

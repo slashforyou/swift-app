@@ -103,7 +103,7 @@ const testJobPayment = async () => {
     console.log(`  - Commission plateforme: ${(TEST_AMOUNT * 0.025).toFixed(2)} AUD`);
     console.log(`  - Montant net partenaire: ${(TEST_AMOUNT * 0.975).toFixed(2)} AUD`);
 
-  } catch (error) {
+  } catch (error) {
     console.error('❌ [TEST] Erreur lors des tests:', error);
     
     if (error.message.includes('401')) {

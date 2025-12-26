@@ -96,7 +96,7 @@ export const useBusinessStaff = (): UseBusinessStaffReturn => {
       
       setStaff(staffList);
       setStaffStats(stats);
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load staff';
       setError(errorMessage);
       console.error('Error loading staff:', err);
@@ -120,7 +120,7 @@ export const useBusinessStaff = (): UseBusinessStaffReturn => {
       setStaff(prev => 
         prev.map(s => s.id === staffId ? staffMember : s)
       );
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load staff details';
       setError(errorMessage);
       console.error('Error loading staff details:', err);
@@ -149,7 +149,7 @@ export const useBusinessStaff = (): UseBusinessStaffReturn => {
       setStaffStats(stats);
       
       return newStaffMember;
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create staff member';
       setError(errorMessage);
       console.error('Error creating staff member:', err);
@@ -187,7 +187,7 @@ export const useBusinessStaff = (): UseBusinessStaffReturn => {
       setStaffStats(stats);
       
       return updatedStaffMember;
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update staff member';
       setError(errorMessage);
       console.error('Error updating staff member:', err);
@@ -218,7 +218,7 @@ export const useBusinessStaff = (): UseBusinessStaffReturn => {
       // Recharger les stats
       const stats = await getStaffStats();
       setStaffStats(stats);
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete staff member';
       setError(errorMessage);
       console.error('Error deleting staff member:', err);
@@ -250,7 +250,7 @@ export const useBusinessStaff = (): UseBusinessStaffReturn => {
       // Recharger les stats
       const stats = await getStaffStats();
       setStaffStats(stats);
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to archive staff member';
       setError(errorMessage);
       console.error('Error archiving staff member:', err);
@@ -282,7 +282,7 @@ export const useBusinessStaff = (): UseBusinessStaffReturn => {
       // Recharger les stats
       const stats = await getStaffStats();
       setStaffStats(stats);
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to unarchive staff member';
       setError(errorMessage);
       console.error('Error unarchiving staff member:', err);
@@ -306,7 +306,7 @@ export const useBusinessStaff = (): UseBusinessStaffReturn => {
       
       const searchResults = await searchBusinessStaff(criteria);
       return searchResults;
-    } catch (err) {
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to search staff';
       setError(errorMessage);
       console.error('Error searching staff:', err);

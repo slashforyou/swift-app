@@ -114,7 +114,7 @@ export const useModuleAccess = () => {
       }));
 
       setModules(updatedModules);
-    } catch (err) {
+    } catch (err) {
       setError('Erreur lors du chargement des modules');
       console.error('Erreur module access:', err);
     } finally {
@@ -153,7 +153,7 @@ export const useModuleAccess = () => {
 
       setModules(updatedModules);
       return true;
-    } catch (err) {
+    } catch (err) {
       console.error('Erreur completion module:', err);
       return false;
     }
@@ -175,7 +175,7 @@ export const useModuleAccess = () => {
 
       // Simuler la sauvegarde
       await new Promise(resolve => setTimeout(resolve, 200));
-    } catch (err) {
+    } catch (err) {
       console.error('Erreur mise à jour progress:', err);
     }
   };

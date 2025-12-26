@@ -157,7 +157,7 @@ describe('Business Navigation Flow E2E', () => {
             return true;
           }
           return false;
-        } catch (error) {
+        } catch (error) {
           return false;
         }
       };

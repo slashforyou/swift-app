@@ -496,9 +496,7 @@ export const createCommonStyles = (colors: typeof Colors.light) => StyleSheet.cr
   },
   
   // Touch improvements - hitSlop sera appliqué directement sur les composants Pressable
-});
-
-// Hook pour utilisation facile
+});// Hook pour utilisation facile
 import { useTheme } from '../context/ThemeProvider';
 
 export const useCommonThemedStyles = () => {

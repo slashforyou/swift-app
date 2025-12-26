@@ -116,9 +116,7 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
     taxRate: GST_RATE,
     notes: '',
     paymentTerms: '7-days',
-  });
-
-  // États pour les erreurs et l'UI
+  });// États pour les erreurs et l'UI
   const [errors, setErrors] = useState<Partial<Record<keyof Invoice, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showServicesList, setShowServicesList] = useState(false);
@@ -459,9 +457,7 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
       marginTop: DESIGN_TOKENS.spacing.xs,
       fontStyle: 'italic',
     },
-  });
-
-  // Mise à jour des données du formulaire
+  });// Mise à jour des données du formulaire
   const updateFormData = (field: keyof Invoice, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     
@@ -587,7 +583,7 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
       onClose();
       
       Alert.alert('Success', 'Invoice created successfully!');
-    } catch (error) {
+    } catch (error) {
       Alert.alert('Error', 'Failed to create invoice. Please try again.');
     } finally {
       setIsSubmitting(false);

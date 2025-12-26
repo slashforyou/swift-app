@@ -87,9 +87,7 @@ const JobTimeLine = ({ job, onAdvanceStep }: JobTimeLineProps) => {
     const stepsRotateInterpolate = stepsRotateAnim.interpolate({
         inputRange: [0, 1],
         outputRange: ['0deg', '180deg'],
-    });
-
-    // Fonctions utilitaires pour les statuts
+    });// Fonctions utilitaires pour les statuts
     const getStatusLabel = (status: string) => {
         switch (status) {
             case 'pending': return 'En attente';

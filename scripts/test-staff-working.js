@@ -107,7 +107,7 @@ try {
   console.log('✅ Hook useStaff: Structure et fonctions validées');
   console.log('\n🎉 Suite de tests Staff fonctionnelle prête !');
   
-} catch (error) {
+} catch (error) {
   console.log('\n📋 Résumé');
   console.log('----------');
   console.log('❌ Des tests ont échoué. Détails ci-dessus.');

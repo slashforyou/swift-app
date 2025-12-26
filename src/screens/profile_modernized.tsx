@@ -66,7 +66,7 @@ const ProfileFormField: React.FC<ProfileFormFieldProps> = ({
 };
 
 export const ProfileScreen: React.FC = () => {
-  console.log('🔍 [PROFILE SCREEN] === PROFILE COMPONENT RENDERING ===');
+  // TEMP_DISABLED: console.log('🔍 [PROFILE SCREEN] === PROFILE COMPONENT RENDERING ===');
   
   const { colors } = useTheme();
   const navigation = useNavigation();
@@ -118,11 +118,11 @@ export const ProfileScreen: React.FC = () => {
     if (!profile?.id) return;
     
     try {
-      console.log('💾 Saving profile changes...', formData);
+      // TEMP_DISABLED: console.log('💾 Saving profile changes...', formData);
       await updateProfile(formData);
       setIsEditing(false);
       Alert.alert('Success', 'Profile updated successfully');
-    } catch (error) {
+    } catch (error) {
       console.error('❌ Error updating profile:', error);
       Alert.alert('Error', 'Failed to update profile');
     }

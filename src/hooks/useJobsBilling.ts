@@ -99,7 +99,7 @@ export const useJobsBilling = (): UseJobsBillingResult => {
       const startOfYear = new Date(now.getFullYear(), 0, 1);
       const endOfYear = new Date(now.getFullYear(), 11, 31);
       
-      console.log(`📋 [useJobsBilling] Fetching jobs for billing from ${startOfYear.toLocaleDateString()} to ${endOfYear.toLocaleDateString()}`);
+      // TEMP_DISABLED: console.log(`📋 [useJobsBilling] Fetching jobs for billing from ${startOfYear.toLocaleDateString()} to ${endOfYear.toLocaleDateString()}`);
       
       const apiJobs = await fetchJobs(startOfYear, endOfYear);
       
@@ -115,10 +115,10 @@ export const useJobsBilling = (): UseJobsBillingResult => {
         .map(convertToJobBilling)
         .sort((a, b) => new Date(b.time.startWindowStart).getTime() - new Date(a.time.startWindowStart).getTime());
 
-      console.log(`✅ [useJobsBilling] Loaded ${billingJobs.length} jobs for billing`);
+      // TEMP_DISABLED: console.log(`✅ [useJobsBilling] Loaded ${billingJobs.length} jobs for billing`);
       setJobs(billingJobs);
 
-    } catch (err) {
+    } catch (err) {
       console.error('❌ [useJobsBilling] Error loading jobs:', err);
       setError(err instanceof Error ? err.message : 'Erreur lors du chargement');
     } finally {
@@ -132,7 +132,7 @@ export const useJobsBilling = (): UseJobsBillingResult => {
 
   const createInvoice = async (jobId: string) => {
     try {
-      console.log(`💰 [useJobsBilling] Creating invoice for job ${jobId}`);
+      // TEMP_DISABLED: console.log(`💰 [useJobsBilling] Creating invoice for job ${jobId}`);
       
       // Simuler la création d'une facture (intégration Stripe côté serveur)
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -152,8 +152,8 @@ export const useJobsBilling = (): UseJobsBillingResult => {
         )
       );
       
-      console.log(`✅ [useJobsBilling] Invoice created for job ${jobId}`);
-    } catch (err) {
+      // TEMP_DISABLED: console.log(`✅ [useJobsBilling] Invoice created for job ${jobId}`);
+    } catch (err) {
       console.error('❌ [useJobsBilling] Error creating invoice:', err);
       throw new Error('Erreur lors de la création de la facture');
     }
@@ -161,7 +161,7 @@ export const useJobsBilling = (): UseJobsBillingResult => {
 
   const processRefund = async (jobId: string, amount: number) => {
     try {
-      console.log(`💸 [useJobsBilling] Processing refund of ${amount} for job ${jobId}`);
+      // TEMP_DISABLED: console.log(`💸 [useJobsBilling] Processing refund of ${amount} for job ${jobId}`);
       
       // Simuler le traitement du remboursement
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -184,8 +184,8 @@ export const useJobsBilling = (): UseJobsBillingResult => {
         })
       );
       
-      console.log(`✅ [useJobsBilling] Refund processed for job ${jobId}`);
-    } catch (err) {
+      // TEMP_DISABLED: console.log(`✅ [useJobsBilling] Refund processed for job ${jobId}`);
+    } catch (err) {
       console.error('❌ [useJobsBilling] Error processing refund:', err);
       throw new Error('Erreur lors du traitement du remboursement');
     }

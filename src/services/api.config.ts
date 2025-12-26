@@ -80,7 +80,7 @@ export const apiConfig = {
     try {
       const token = await AsyncStorage.getItem(apiConfig.authKeys.token);
       return token;
-    } catch (error) {
+    } catch (error) {
       console.error('❌ [apiConfig] Error getting auth token:', error);
       return null;
     }
@@ -92,8 +92,8 @@ export const apiConfig = {
   setAuthToken: async (token: string): Promise<void> => {
     try {
       await AsyncStorage.setItem(apiConfig.authKeys.token, token);
-      console.log('✅ [apiConfig] Auth token stored');
-    } catch (error) {
+      // TEMP_DISABLED: console.log('✅ [apiConfig] Auth token stored');
+    } catch (error) {
       console.error('❌ [apiConfig] Error storing auth token:', error);
     }
   },
@@ -108,8 +108,8 @@ export const apiConfig = {
         apiConfig.authKeys.refreshToken,
         apiConfig.authKeys.userId,
       ]);
-      console.log('✅ [apiConfig] Auth tokens cleared');
-    } catch (error) {
+      // TEMP_DISABLED: console.log('✅ [apiConfig] Auth tokens cleared');
+    } catch (error) {
       console.error('❌ [apiConfig] Error clearing auth tokens:', error);
     }
   },
@@ -160,7 +160,7 @@ export const apiConfig = {
       }
       
       return response;
-    } catch (error) {
+    } catch (error) {
       clearTimeout(timeoutId);
       
       if (error instanceof Error && error.name === 'AbortError') {
@@ -182,7 +182,7 @@ export const apiConfig = {
       });
       
       return response.ok;
-    } catch (error) {
+    } catch (error) {
       console.error('❌ [apiConfig] Health check failed:', error);
       return false;
     }
@@ -225,4 +225,4 @@ export type Environment = keyof typeof API_URLS;
 export type Platform = 'web' | 'mobile';
 export type APIEndpoint = keyof typeof API_ENDPOINTS;
 
-console.log(`🌐 [apiConfig] Initialized with baseURL: ${apiConfig.baseURL} (${getEnvironment()})`);
+// TEMP_DISABLED: console.log(`🌐 [apiConfig] Initialized with baseURL: ${apiConfig.baseURL} (${getEnvironment()})`);

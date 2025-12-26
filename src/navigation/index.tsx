@@ -1,24 +1,37 @@
-import React from 'react'
-import { NavigationContainer } from '@react-navigation/native'
+import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import { View, Text, Button } from 'react-native'
+import React, { useEffect, useRef } from 'react'
+import { testController } from '../services/testController'
 // Make sure the file exists at ../../screens/home.tsx or ../../screens/home/index.tsx
-import HomeScreen from '../screens/home'
-import CalendarNavigation from './calendar'
-import BusinessNavigation from './business'
-import JobDetails from '../screens/jobDetails'
-import Profile from '../screens/profile'
-import Parameters from '../screens/parameters'
 import ConnectionScreen from '../screens/connection'
 import LoginScreen from '../screens/connectionScreens/login'
 import SubscribeScreen from '../screens/connectionScreens/subscribe'
 import SubscribeMailVerification from '../screens/connectionScreens/subscribeMailVerification'
+import HomeScreen from '../screens/home'
+import JobDetails from '../screens/jobDetails'
+import Parameters from '../screens/parameters'
+import Profile from '../screens/profile'
+import BusinessNavigation from './business'
+import CalendarNavigation from './calendar'
 
 const Stack = createNativeStackNavigator()
 
 export default function Navigation() {
+  const navigationRef = useRef<NavigationContainerRef<any>>(null);
+
+  useEffect(() => {
+    // Provide navigation reference to test controller
+    if (navigationRef.current) {
+      testController.setNavigation(navigationRef.current as any);
+      
+      if (__DEV__) {
+        // TEMP_DISABLED: console.log('🧭 Navigation reference set in TestController');
+      }
+    }
+  }, []);
+
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator initialRouteName="Connection" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Connection" component={ConnectionScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />

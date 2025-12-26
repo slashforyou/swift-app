@@ -68,7 +68,7 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
     };
 
     const subscribe = async () => {
-        console.log('Subscribe function called');
+        // TEMP_DISABLED: console.log('Subscribe function called');
         
         // Validation des champs
         if (!firstName.trim()) {
@@ -130,7 +130,7 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
                 }),
             });
 
-            console.log('Response status:', response.status);
+            // TEMP_DISABLED: console.log('Response status:', response.status);
 
             if (response.status === 200) {
                 const data = await response.json();
@@ -165,7 +165,7 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
                 const data = await response.json();
                 showAlert('error', 'Une erreur s\'est produite lors de l\'inscription.', 'Erreur serveur');
             }
-        } catch (error: any) {
+        } catch (error: any) {
             console.error('Subscription error:', error);
             
             let errorMessage = 'Problème de connexion. Veuillez vérifier votre connexion internet.';

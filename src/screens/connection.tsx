@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import {
     ActivityIndicator,
     Pressable,
-    SafeAreaView,
     Text,
     View
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCommonThemedStyles } from '../hooks/useCommonStyles';
 import { ensureSession } from '../utils/session';
 
@@ -27,17 +27,18 @@ const ConnectionScreen: React.FC<ConnectionScreenProps> = ({ navigation }) => {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        console.log("ConnectionScreen mounted, checking session...");
+        // TEMP_DISABLED: console.log("ConnectionScreen mounted, checking session...");
 
         const checkSession = async () => {
             try {
                 setIsLoading(true);
-                console.log("Checking user session...");
+                // TEMP_DISABLED: console.log("Checking user session...");
                 const userLoggedIn = await ensureSession();
                 if (userLoggedIn && userLoggedIn.authenticated === true) {
                     navigation.navigate('Home');
                 }
             } catch (error) {
+
                 console.error("Error checking session:", error);
             } finally {
                 setIsLoading(false);

@@ -11,13 +11,15 @@ import { startTimerAPI } from '../services/jobTimer';
 const PENDING_CORRECTIONS_KEY = '@job_pending_corrections';
 
 export interface JobInconsistency {
-  type: 'timer_not_started' | 'timer_running_but_completed' | 'step_mismatch' | 'timer_negative' | 'completed_not_final_step' | 'final_step_not_completed' | 'timer_exceeds_reasonable' | 'break_longer_than_work';
+  type: 'timer_not_started' | 'timer_running_but_completed' | 'step_mismatch' | 'timer_negative' | 'completed_not_final_step' | 'final_step_not_completed' | 'timer_exceeds_reasonable' | 'break_longer_than_work' | 'completed_but_not_final_step' | 'no_items_loaded_step_4' | 'step_current_step_mismatch' | 'paid_but_not_completed' | 'signed_but_not_completed';
   severity: 'critical' | 'warning' | 'info';
   description: string;
   detectedAt: string;
   jobId: string | number;
   currentState: any;
   suggestedFix?: string;
+  serverCorrectable?: boolean; // ✅ NOUVEAU: Peut être corrigé par le serveur
+  correctionType?: 'reset_status' | 'advance_step' | 'create_items' | 'sync_steps' | 'mark_completed'; // ✅ NOUVEAU: Type de correction serveur
 }
 
 export interface JobValidationResult {
@@ -54,18 +56,14 @@ export async function validateJobConsistency(
   const timerTotalHours = parseFloat(jobData.timer_total_hours || '0');
   const timerIsRunning = jobData.timer_is_running === 1 || jobData.timer_is_running === true;
 
-  console.log('🔍 [JobValidation] Validating job:', {
-    jobId,
-    currentStep,
-    status,
-    timerStartedAt,
-    timerTotalHours,
-    timerIsRunning
-  });
+  // TEMP_DISABLED: console.log(`🔍 [JobValidation] Validating job: ${jobId}, Step ${currentStep}, Status ${status}, Timer running: ${timerIsRunning}`);
 
   // ============================================
   // INCOHÉRENCE 1: Étape > 1 mais timer jamais démarré
+  // ⚠️ TEMP DISABLED: Désactivé car backend ne crée pas vraiment le timer
+  // Cela créait une boucle infinie: détection → correction → reload → re-détection
   // ============================================
+  /*
   if (currentStep > 1 && !timerStartedAt) {
     const inconsistency: JobInconsistency = {
       type: 'timer_not_started',
@@ -74,20 +72,16 @@ export async function validateJobConsistency(
       detectedAt: new Date().toISOString(),
       jobId,
       currentState: { currentStep, timerStartedAt, timerTotalHours },
-      suggestedFix: 'Créer un timer rétroactif avec estimation basée sur l\'étape actuelle'
+      suggestedFix: 'Créer un timer rétroactif avec estimation basée sur l\'étape actuelle',
+      serverCorrectable: true,
+      correctionType: 'reset_status'
     };
     inconsistencies.push(inconsistency);
-
-    // Auto-correction avec jobCode
-    try {
-      const jobCode = jobData.code || String(jobId);
-      await autoCorrectTimerNotStarted(jobCode, currentStep, localTimerData);
-      autoCorrected = true;
-      corrections.push(`Timer créé rétroactivement pour étape ${currentStep}`);
-    } catch (error) {
-      console.error('❌ [JobValidation] Auto-correction failed:', error);
-    }
+    console.log('ℹ️ [JobValidation] timer_not_started détecté → Correction serveur sera appelée');
   }
+  */
+  console.log('⚠️ [JobValidation] timer_not_started detection DISABLED (backend ne corrige pas réellement)');
+  // ============================================
 
   // ============================================
   // INCOHÉRENCE 2: Job complété mais pas à l'étape finale
@@ -136,7 +130,7 @@ export async function validateJobConsistency(
 
     // Auto-correction: Arrêter le timer localement
     try {
-      console.log('🔧 [JobValidation] Auto-correction: Arrêt du timer pour job completed');
+      // TEMP_DISABLED: console.log('🔧 [JobValidation] Auto-correction: Arrêt du timer pour job completed');
       
       // Note: On ne fait PAS d'appel API ici car le job est déjà completed
       // On corrige juste l'incohérence locale
@@ -145,8 +139,9 @@ export async function validateJobConsistency(
       autoCorrected = true;
       corrections.push('Timer arrêté car job completed');
       
-      console.log('✅ [JobValidation] Timer marqué comme arrêté localement');
+      // TEMP_DISABLED: console.log('✅ [JobValidation] Timer marqué comme arrêté localement');
     } catch (error) {
+
       console.error('❌ [JobValidation] Échec arrêt timer:', error);
     }
   }
@@ -213,14 +208,117 @@ export async function validateJobConsistency(
     });
   }
 
+  // ============================================
+  // ✅ NOUVEAUX CAS - AUTO-CORRECTION SERVEUR
+  // ============================================
+
+  // INCOHÉRENCE 9: Status "completed" mais step < 5 (avec vérification paiement/signature)
+  const paymentStatus = jobData.payment_status;
+  const signatureBlob = jobData.signature_blob;
+  
+  if (status === 'completed' && currentStep < 5) {
+    inconsistencies.push({
+      type: 'completed_but_not_final_step',
+      severity: 'critical',
+      description: `Job status="completed" mais seulement à l'étape ${currentStep}/5`,
+      detectedAt: new Date().toISOString(),
+      jobId,
+      currentState: { 
+        status, 
+        currentStep, 
+        paymentStatus,
+        signatureBlob: signatureBlob ? 'present' : 'absent'
+      },
+      suggestedFix: signatureBlob && paymentStatus === 'paid' 
+        ? 'Avancer automatiquement à l\'étape 5 (job réellement terminé)'
+        : 'Reset status à "in_progress" (job pas vraiment terminé)',
+      serverCorrectable: true,
+      correctionType: signatureBlob && paymentStatus === 'paid' ? 'advance_step' : 'reset_status'
+    });
+  }
+
+  // INCOHÉRENCE 10: Étape ≥ 4 mais aucun item chargé
+  // Note: On ne peut pas vérifier les items ici (requiert query DB)
+  // Le serveur vérifiera lors de la correction
+  // On détecte si on a eu une erreur 400 "No items marked as loaded"
+  if (currentStep >= 4 && jobData._hasItemsError) {
+    inconsistencies.push({
+      type: 'no_items_loaded_step_4',
+      severity: 'critical',
+      description: `Job à l'étape ${currentStep} (déchargement) mais aucun item chargé`,
+      detectedAt: new Date().toISOString(),
+      jobId,
+      currentState: { currentStep, itemsLoaded: 0 },
+      suggestedFix: 'Créer des items par défaut ou retourner à l\'étape 3',
+      serverCorrectable: true,
+      correctionType: 'create_items'
+    });
+  }
+
+  // INCOHÉRENCE 11: Incohérence step vs current_step
+  let stepField = jobData.step;
+  
+  // Si step est un objet (peut arriver avec certaines structures de données), extraire la valeur
+  if (stepField && typeof stepField === 'object' && !Array.isArray(stepField)) {
+    // Essayer plusieurs propriétés possibles
+    stepField = stepField.value || stepField.step || stepField.current || stepField.id;
+  }
+  
+  // Convertir en nombre pour comparaison
+  const stepFieldNumber = stepField !== undefined && stepField !== null ? parseInt(String(stepField), 10) : undefined;
+  
+  if (stepFieldNumber !== undefined && !isNaN(stepFieldNumber) && stepFieldNumber !== currentStep) {
+    inconsistencies.push({
+      type: 'step_current_step_mismatch',
+      severity: 'warning',
+      description: `Colonnes désynchronisées: step=${stepFieldNumber} mais current_step=${currentStep}`,
+      detectedAt: new Date().toISOString(),
+      jobId,
+      currentState: { step: stepFieldNumber, current_step: currentStep },
+      suggestedFix: 'Synchroniser step = current_step',
+      serverCorrectable: true,
+      correctionType: 'sync_steps'
+    });
+  }
+
+  // INCOHÉRENCE 12: Job payé mais pas completed
+  if (paymentStatus === 'paid' && status !== 'completed') {
+    inconsistencies.push({
+      type: 'paid_but_not_completed',
+      severity: 'critical',
+      description: `Job payment_status="paid" mais status="${status}" (devrait être "completed")`,
+      detectedAt: new Date().toISOString(),
+      jobId,
+      currentState: { paymentStatus, status, currentStep },
+      suggestedFix: 'Marquer le job comme "completed" et avancer à l\'étape 5',
+      serverCorrectable: true,
+      correctionType: 'mark_completed'
+    });
+  }
+
+  // INCOHÉRENCE 13: Job signé mais pas completed
+  if (signatureBlob !== null && signatureBlob !== undefined && status !== 'completed') {
+    inconsistencies.push({
+      type: 'signed_but_not_completed',
+      severity: 'critical',
+      description: `Job signé (signature_blob présente) mais status="${status}" (devrait être "completed")`,
+      detectedAt: new Date().toISOString(),
+      jobId,
+      currentState: { signaturePresent: true, status, currentStep },
+      suggestedFix: 'Marquer le job comme "completed" et avancer à l\'étape 5',
+      serverCorrectable: true,
+      correctionType: 'mark_completed'
+    });
+  }
+
   const isValid = inconsistencies.length === 0;
 
-  console.log(`${isValid ? '✅' : '⚠️'} [JobValidation] Validation result:`, {
-    isValid,
-    inconsistenciesCount: inconsistencies.length,
-    autoCorrected,
-    corrections
-  });
+  // TEMP_DISABLED: console.log(`${isValid ? '✅' : '⚠️'} [JobValidation] Validation result:`, {
+    // isValid,
+    // inconsistenciesCount: inconsistencies.length,
+    // autoCorrected,
+    // corrections
+  // });
 
   if (!isValid) {
     console.warn('⚠️ [JobValidation] Inconsistencies detected:', inconsistencies);
@@ -252,26 +350,19 @@ async function autoCorrectTimerNotStarted(
   const now = Date.now();
   const estimatedStartTime = now - (24 * 60 * 60 * 1000); // 24h ago
 
-  console.log('🔧 [JobValidation] Création timer rétroactif:', {
-    jobCode,
-    estimatedStartTime: new Date(estimatedStartTime).toISOString(),
-    currentStep,
-    estimatedDuration: '~24h',
-    hasLocalTimer: !!localTimerData?.startTime
-  });
+  // TEMP_DISABLED: console.log(`🔧 [JobValidation] Création timer rétroactif: Job ${jobCode}, Step ${currentStep}, Start ${new Date(estimatedStartTime).toISOString()}`);
 
   // Tenter de synchroniser avec l'API
   try {
-    console.log('📡 [JobValidation] Calling startTimerAPI with jobCode:', jobCode);
+    // TEMP_DISABLED: console.log('📡 [JobValidation] Calling startTimerAPI with jobCode:', jobCode);
     const result = await startTimerAPI(jobCode);
-    console.log('📡 [JobValidation] startTimerAPI returned:', result);
+    // TEMP_DISABLED: console.log(`📡 [JobValidation] startTimerAPI returned success: ${!!result?.success}`);
     
     // ✅ Vérifier si l'API a vraiment réussi
     if (result && result.success) {
-      console.log('✅ [JobValidation] Timer créé et synchronisé avec l\'API');
+      // TEMP_DISABLED: console.log('✅ [JobValidation] Timer créé et synchronisé avec l\'API');
     } else {
-      // L'API a retourné une erreur
-      const errorMsg = result?.error || result?.data?.error || 'Unknown error';
+        const errorMsg = result?.error || result?.data?.error || 'Unknown error';
       console.warn('⚠️ [JobValidation] API timer start failed:', errorMsg);
       
       // Stocker localement pour sync ultérieure
@@ -284,9 +375,10 @@ async function autoCorrectTimerNotStarted(
         }
       });
       
-      console.log('💾 [JobValidation] Timer stocké localement, synchronisation en attente');
+      // TEMP_DISABLED: console.log('💾 [JobValidation] Timer stocké localement, synchronisation en attente');
     }
   } catch (error: any) {
+
     console.error('❌ [JobValidation] Échec sync API (exception):', error.message);
 
     // Hors-ligne : stocker la correction localement
@@ -299,7 +391,7 @@ async function autoCorrectTimerNotStarted(
       }
     });
 
-    console.log('💾 [JobValidation] Correction stockée localement (hors-ligne)');
+    // TEMP_DISABLED: console.log('💾 [JobValidation] Correction stockée localement (hors-ligne)');
   }
 }
 
@@ -316,9 +408,10 @@ async function savePendingCorrection(correction: PendingCorrection): Promise<voi
     if (!exists) {
       corrections.push(correction);
       await AsyncStorage.setItem(PENDING_CORRECTIONS_KEY, JSON.stringify(corrections));
-      console.log('💾 [JobValidation] Correction sauvegardée:', correction);
+      // TEMP_DISABLED: console.log('💾 [JobValidation] Correction sauvegardée:', correction);
     }
   } catch (error) {
+
     console.error('❌ [JobValidation] Erreur sauvegarde correction:', error);
   }
 }
@@ -331,6 +424,7 @@ export async function getPendingCorrections(): Promise<PendingCorrection[]> {
     const stored = await AsyncStorage.getItem(PENDING_CORRECTIONS_KEY);
     return stored ? JSON.parse(stored) : [];
   } catch (error) {
+
     console.error('❌ [JobValidation] Erreur lecture corrections:', error);
     return [];
   }
@@ -352,10 +446,11 @@ export async function applyPendingCorrections(jobId?: string | number): Promise<
       if (correction.correction.type === 'start_timer') {
         await startTimerAPI(String(correction.jobId));
         appliedCount++;
-        console.log('✅ [JobValidation] Correction appliquée:', correction.jobId);
+        // TEMP_DISABLED: console.log('✅ [JobValidation] Correction appliquée:', correction.jobId);
       }
       // Ajouter d'autres types de corrections ici
     } catch (error: any) {
+
       console.error('❌ [JobValidation] Échec application correction:', error.message);
     }
   }
@@ -366,7 +461,7 @@ export async function applyPendingCorrections(jobId?: string | number): Promise<
       jobId ? c.jobId !== jobId : !toApply.includes(c)
     );
     await AsyncStorage.setItem(PENDING_CORRECTIONS_KEY, JSON.stringify(remaining));
-    console.log(`🧹 [JobValidation] ${appliedCount} corrections appliquées, ${remaining.length} restantes`);
+    // TEMP_DISABLED: console.log(`🧹 [JobValidation] ${appliedCount} corrections appliquées, ${remaining.length} restantes`);
   }
 
   return appliedCount;
@@ -389,6 +484,7 @@ export async function checkNetworkConnectivity(): Promise<boolean> {
     clearTimeout(timeoutId);
     return response.ok;
   } catch (error) {
+
     return false;
   }
 }
@@ -405,7 +501,7 @@ export async function reconcileJobData(
   const resolution: string[] = [];
   let hadConflicts = false;
 
-  console.log('🔄 [JobValidation] Reconciliation:', { jobId, hasNetwork });
+  // TEMP_DISABLED: console.log('🔄 [JobValidation] Reconciliation:', { jobId, hasNetwork });
 
   if (!hasNetwork) {
     console.warn('⚠️ [JobValidation] Pas de réseau, utilisation données locales');

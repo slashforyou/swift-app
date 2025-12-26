@@ -4,34 +4,25 @@ import React, { useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
+    Pressable,
     ScrollView,
+    Text,
+    TextInput,
     View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-// Design System Components
-import {
-    Body,
-    Caption,
-    Card,
-    H2,
-    IconButton,
-    Input,
-    Label,
-    PrimaryButton,
-    SecondaryButton,
-    SEMANTIC_SPACING,
-    TextArea,
-    useTheme
-} from '../components/ui';
-
+// Utiliser le système unifié au lieu du design system avancé
+import LanguageButton from '../components/calendar/LanguageButton';
+import { DESIGN_TOKENS } from '../constants/Styles';
+import { useTheme } from '../context/ThemeProvider';
 import { useUserProfile } from '../hooks/useUserProfile';
 
 interface ProfileFormFieldProps {
   label: string;
   value: string;
   onChangeText: (text: string) => void;
-  keyboardType?: 'default' | 'email-address' | 'phone-pad';
+  keyboardType?: 'default' | 'email-address' | 'phone-pad' | 'numeric';
   multiline?: boolean;
   placeholder?: string;
   editable?: boolean;
@@ -46,109 +37,121 @@ const ProfileFormField: React.FC<ProfileFormFieldProps> = ({
   placeholder,
   editable = true,
 }) => {
-  const Component = multiline ? TextArea : Input;
+  const { colors } = useTheme();
   
   return (
-    <View style={{ marginBottom: SEMANTIC_SPACING.lg }}>
-      <Label style={{ marginBottom: SEMANTIC_SPACING.xs }}>
+    <View style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
+      <Text style={{
+        fontSize: 16,
+        fontWeight: '600',
+        color: colors.text,
+        marginBottom: DESIGN_TOKENS.spacing.xs
+      }}>
         {label}
-      </Label>
-      <Component
+      </Text>
+      <TextInput
+        style={{
+          backgroundColor: colors.inputBackground,
+          borderRadius: 12,
+          padding: DESIGN_TOKENS.spacing.md,
+          fontSize: 16,
+          color: colors.inputText,
+          borderWidth: 1,
+          borderColor: colors.inputBorder,
+          minHeight: multiline ? 100 : 50,
+          opacity: editable ? 1 : 0.7
+        }}
         value={value}
         onChangeText={onChangeText}
-        placeholder={placeholder || `Enter ${label.toLowerCase()}`}
         keyboardType={keyboardType}
+        multiline={multiline}
+        placeholder={placeholder}
+        placeholderTextColor={colors.inputPlaceholder}
         editable={editable}
-        variant={editable ? 'outlined' : 'filled'}
+        textAlignVertical={multiline ? 'top' : 'center'}
       />
     </View>
   );
 };
 
-export const ProfileScreen: React.FC = () => {
-  console.log('🔍 [PROFILE SCREEN] === PROFILE COMPONENT RENDERING ===');
-  
-  const { colors } = useTheme();
+const ProfileScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const { profile, isLoading, updateProfile } = useUserProfile();
   
-  const { profile, isLoading, error, updateProfile, refreshProfile, isUpdating } = useUserProfile();
-
-  // Form state
   const [isEditing, setIsEditing] = useState(false);
+
+  // Form data state - uniquement les champs utilisateur
   const [formData, setFormData] = useState({
     firstName: profile?.firstName || '',
     lastName: profile?.lastName || '',
     email: profile?.email || '',
     phone: profile?.phone || '',
-    companyName: profile?.companyName || '',
     address: profile?.address || '',
     city: profile?.city || '',
     postalCode: profile?.postalCode || '',
-    hasError: !!error,
-    errorMessage: error,
+    country: profile?.country || '',
   });
 
-  // Update form when profile loads
+  // Update form data when profile loads
   React.useEffect(() => {
+    console.log('🔍 [PROFILE SCREEN] useEffect - Profile changed:', {
+      hasProfile: !!profile,
+      profileData: profile ? {
+        id: profile.id,
+        firstName: profile.firstName,
+        email: profile.email,
+        phone: profile.phone,
+      } : null
+    });
+
     if (profile) {
       setFormData({
         firstName: profile.firstName || '',
         lastName: profile.lastName || '',
         email: profile.email || '',
         phone: profile.phone || '',
-        companyName: profile.companyName || '',
         address: profile.address || '',
         city: profile.city || '',
         postalCode: profile.postalCode || '',
-        hasError: false,
-        errorMessage: null,
+        country: profile.country || '',
       });
     }
   }, [profile]);
 
-  const updateField = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
+  // Handle form submission
   const handleSave = async () => {
-    if (!profile?.id) return;
-    
     try {
-      console.log('💾 Saving profile changes...', formData);
-      await updateProfile(formData);
-      setIsEditing(false);
-      Alert.alert('Success', 'Profile updated successfully');
+      const result = await updateProfile(formData);
+      if (result) {
+        setIsEditing(false);
+        Alert.alert('Success', 'Profile updated successfully');
+      } else {
+        Alert.alert('Error', 'Failed to update profile');
+      }
     } catch (error) {
-      console.error('❌ Error updating profile:', error);
+
+      console.error('❌ [PROFILE] Error updating profile:', error);
       Alert.alert('Error', 'Failed to update profile');
     }
   };
 
+  // Handle cancel editing
   const handleCancel = () => {
-    // Reset form to original profile data
     if (profile) {
       setFormData({
         firstName: profile.firstName || '',
         lastName: profile.lastName || '',
         email: profile.email || '',
         phone: profile.phone || '',
-        companyName: profile.companyName || '',
         address: profile.address || '',
         city: profile.city || '',
         postalCode: profile.postalCode || '',
-        hasError: false,
-        errorMessage: null,
+        country: profile.country || '',
       });
     }
     setIsEditing(false);
-  };
-
-  const isWorkerProfile = () => {
-    return profile?.userType === 'worker';
   };
 
   // Show loading state
@@ -157,330 +160,242 @@ export const ProfileScreen: React.FC = () => {
       <View style={{ 
         flex: 1, 
         backgroundColor: colors.background,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: SEMANTIC_SPACING.lg
+        justifyContent: 'center', 
+        alignItems: 'center' 
       }}>
         <ActivityIndicator size="large" color={colors.primary} />
-        <Body style={{ marginTop: SEMANTIC_SPACING.md, color: colors.text }}>
+        <Text style={{ 
+          marginTop: DESIGN_TOKENS.spacing.md, 
+          color: colors.text, 
+          fontSize: 16 
+        }}>
           Loading profile...
-        </Body>
-      </View>
-    );
-  }
-
-  // Show error state
-  if (error) {
-    return (
-      <View style={{ 
-        flex: 1, 
-        backgroundColor: colors.background,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: SEMANTIC_SPACING.lg
-      }}>
-        <Ionicons name="alert-circle" size={64} color={colors.error} />
-        <Body style={{ color: colors.error, textAlign: 'center', marginVertical: SEMANTIC_SPACING.md }}>
-          {error}
-        </Body>
-        <PrimaryButton
-          title="Retry"
-          onPress={refreshProfile}
-          style={{ marginTop: SEMANTIC_SPACING.lg }}
-        />
-      </View>
-    );
-  }
-
-  if (!profile) {
-    return (
-      <View style={{ 
-        flex: 1, 
-        backgroundColor: colors.background,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: SEMANTIC_SPACING.lg
-      }}>
-        <Body style={{ color: colors.text }}>
-          No profile data available
-        </Body>
+        </Text>
       </View>
     );
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
-      {/* Header avec bouton retour - Style uniforme avec l'app */}
+    <SafeAreaView style={{
+      flex: 1,
+      backgroundColor: colors.background,
+      paddingTop: insets.top
+    }}>
+      {/* Header avec bouton retour circulaire et LanguageButton */}
       <View style={{
-        paddingTop: insets.top + SEMANTIC_SPACING.md,
-        paddingHorizontal: SEMANTIC_SPACING.lg,
-        paddingBottom: SEMANTIC_SPACING.md,
-        backgroundColor: colors.backgroundSecondary,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+        paddingVertical: DESIGN_TOKENS.spacing.md,
+        backgroundColor: colors.backgroundTertiary,
         borderBottomWidth: 1,
-        borderBottomColor: colors.border,
-        shadowColor: '#000',
+        borderBottomColor: colors.inputBorder,
+        shadowColor: colors.shadow,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
-        elevation: 4,
-        zIndex: 10,
+        elevation: 3,
       }}>
-        <View style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}>
-          <IconButton
-            leftIcon="arrow-back"
-            onPress={() => navigation.goBack()}
-            variant="secondary"
-            size="lg"
-            iconOnly
+        <Pressable
+          style={({ pressed }) => ({
+            width: 40,
+            height: 40,
+            borderRadius: 20, // Bouton circulaire
+            backgroundColor: colors.backgroundSecondary,
+            justifyContent: 'center',
+            alignItems: 'center',
+            transform: [{ scale: pressed ? 0.95 : 1 }], // Micro-interaction
+          })}
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons 
+            name="arrow-back" 
+            size={20} 
+            color={colors.text} 
           />
-          
-          <H2 style={{ color: colors.text }}>
-            Profile
-          </H2>
-          
-          <View style={{ width: 40 }} />
-        </View>
+        </Pressable>
+
+        <Text style={{
+          fontSize: 20,
+          fontWeight: '700',
+          color: colors.text,
+          textAlign: 'center',
+          flex: 1,
+          marginHorizontal: DESIGN_TOKENS.spacing.md
+        }}>
+          Mon Profil
+        </Text>
+
+        <LanguageButton />
       </View>
 
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{
-          padding: SEMANTIC_SPACING.lg,
-          paddingTop: SEMANTIC_SPACING.xl,
-          paddingBottom: SEMANTIC_SPACING.xl,
+      <ScrollView 
+        style={{ 
+          flex: 1,
+          backgroundColor: colors.background 
         }}
-        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ 
+          padding: DESIGN_TOKENS.spacing.lg 
+        }}
       >
-        {/* Header avec avatar et informations principales */}
-        <Card variant="elevated" style={{ marginBottom: SEMANTIC_SPACING.xl }}>
-          <View style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            marginBottom: SEMANTIC_SPACING.lg,
+        {/* Card contenant tous les champs */}
+        <View style={{
+          backgroundColor: colors.backgroundTertiary,
+          borderRadius: 16,
+          padding: DESIGN_TOKENS.spacing.lg,
+          shadowColor: colors.shadow,
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.1,
+          shadowRadius: 8,
+          elevation: 4,
+          marginBottom: DESIGN_TOKENS.spacing.lg
+        }}>
+          {/* Section informations personnelles */}
+          <Text style={{
+            fontSize: 18,
+            fontWeight: '700',
+            color: colors.text,
+            marginBottom: DESIGN_TOKENS.spacing.lg
           }}>
-            <View style={{
-              alignItems: 'center',
-              marginRight: SEMANTIC_SPACING.lg,
-            }}>
-              <View style={{
-                width: 80,
-                height: 80,
-                borderRadius: 40,
-                backgroundColor: colors.primary,
-                justifyContent: 'center',
-                alignItems: 'center',
-                marginBottom: SEMANTIC_SPACING.sm,
-              }}>
-                <Body style={{ 
-                  fontSize: 24, 
-                  fontWeight: 'bold',
-                  color: colors.buttonPrimaryText 
-                }}>
-                  {(formData.firstName?.[0] || '').toUpperCase()}
-                  {(formData.lastName?.[0] || '').toUpperCase()}
-                </Body>
-              </View>
-              <IconButton
-                leftIcon="camera"
-                size="sm"
-                variant="primary"
-                iconOnly
-                onPress={() => Alert.alert('Photo', 'Photo upload coming soon')}
-              />
-            </View>
-            
-            <View style={{ flex: 1 }}>
-              <H2 style={{ color: colors.text, marginBottom: SEMANTIC_SPACING.xs }}>
-                {formData.firstName} {formData.lastName}
-              </H2>
-              <Body style={{ color: colors.textSecondary }}>
-                {formData.email}
-              </Body>
-              {formData.companyName && (
-                <Caption style={{ color: colors.textMuted, marginTop: SEMANTIC_SPACING.xs }}>
-                  {formData.companyName}
-                </Caption>
-              )}
-            </View>
-
-            <IconButton
-              leftIcon={isEditing ? 'close' : 'create'}
-              variant={isEditing ? 'secondary' : 'primary'}
-              iconOnly
-              onPress={() => isEditing ? handleCancel() : setIsEditing(true)}
-            />
-          </View>
-        </Card>
-
-        {/* Personal Information Section */}
-        <Card variant="outlined" style={{ marginBottom: SEMANTIC_SPACING.xl }}>
-          <View style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            marginBottom: SEMANTIC_SPACING.lg,
-          }}>
-            <Ionicons name="person-outline" size={20} color={colors.primary} />
-            <H2 style={{ 
-              color: colors.text, 
-              marginLeft: SEMANTIC_SPACING.sm,
-              fontSize: 16,
-              fontWeight: '600'
-            }}>
-              Personal Information
-            </H2>
-          </View>
+            Informations personnelles
+          </Text>
 
           <ProfileFormField
-            label="First Name"
+            label="Prénom"
             value={formData.firstName}
-            onChangeText={(text: string) => updateField('firstName', text)}
-            placeholder="Enter your first name"
+            onChangeText={(text) => setFormData(prev => ({ ...prev, firstName: text }))}
             editable={isEditing}
           />
 
           <ProfileFormField
-            label="Last Name"
+            label="Nom"
             value={formData.lastName}
-            onChangeText={(text: string) => updateField('lastName', text)}
-            placeholder="Enter your last name"
+            onChangeText={(text) => setFormData(prev => ({ ...prev, lastName: text }))}
             editable={isEditing}
           />
 
           <ProfileFormField
             label="Email"
             value={formData.email}
-            onChangeText={(text: string) => updateField('email', text)}
+            onChangeText={(text) => setFormData(prev => ({ ...prev, email: text }))}
             keyboardType="email-address"
-            placeholder="Enter your email"
-            editable={false} // Email is usually not editable
+            editable={isEditing}
           />
 
           <ProfileFormField
-            label="Phone"
+            label="Téléphone"
             value={formData.phone}
-            onChangeText={(text: string) => updateField('phone', text)}
+            onChangeText={(text) => setFormData(prev => ({ ...prev, phone: text }))}
             keyboardType="phone-pad"
-            placeholder="Enter your phone number"
             editable={isEditing}
           />
-        </Card>
-
-        {/* Address Section */}
-        <Card variant="outlined" style={{ marginBottom: SEMANTIC_SPACING.xl }}>
-          <View style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            marginBottom: SEMANTIC_SPACING.lg,
-          }}>
-            <Ionicons name="location-outline" size={20} color={colors.primary} />
-            <H2 style={{ 
-              color: colors.text, 
-              marginLeft: SEMANTIC_SPACING.sm,
-              fontSize: 16,
-              fontWeight: '600'
-            }}>
-              Address
-            </H2>
-          </View>
 
           <ProfileFormField
-            label="Address"
+            label="Adresse"
             value={formData.address}
-            onChangeText={(text: string) => updateField('address', text)}
-            multiline={true}
-            placeholder="Enter your address"
+            onChangeText={(text) => setFormData(prev => ({ ...prev, address: text }))}
             editable={isEditing}
           />
 
+          <ProfileFormField
+            label="Ville"
+            value={formData.city}
+            onChangeText={(text) => setFormData(prev => ({ ...prev, city: text }))}
+            editable={isEditing}
+          />
+
+          <ProfileFormField
+            label="Code Postal"
+            value={formData.postalCode}
+            onChangeText={(text) => setFormData(prev => ({ ...prev, postalCode: text }))}
+            keyboardType="numeric"
+            editable={isEditing}
+          />
+
+          <ProfileFormField
+            label="Pays"
+            value={formData.country}
+            onChangeText={(text) => setFormData(prev => ({ ...prev, country: text }))}
+            editable={isEditing}
+          />
+        </View>
+
+        {/* Boutons d'action */}
+        {isEditing ? (
           <View style={{
             flexDirection: 'row',
-            marginHorizontal: -SEMANTIC_SPACING.sm,
+            justifyContent: 'space-between',
+            marginTop: DESIGN_TOKENS.spacing.lg
           }}>
-            <View style={{
-              flex: 1,
-              marginHorizontal: SEMANTIC_SPACING.sm,
-            }}>
-              <ProfileFormField
-                label="City"
-                value={formData.city}
-                onChangeText={(text: string) => updateField('city', text)}
-                placeholder="City"
-                editable={isEditing}
-              />
-            </View>
-            <View style={{
-              flex: 1,
-              marginHorizontal: SEMANTIC_SPACING.sm,
-            }}>
-              <ProfileFormField
-                label="Postal Code"
-                value={formData.postalCode}
-                onChangeText={(text: string) => updateField('postalCode', text)}
-                keyboardType="phone-pad"
-                placeholder="Postal code"
-                editable={isEditing}
-              />
-            </View>
-          </View>
-        </Card>
-
-        {/* Company Section - If user is business */}
-        {!isWorkerProfile() && (
-          <Card variant="outlined" style={{ marginBottom: SEMANTIC_SPACING.xl }}>
-            <View style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              marginBottom: SEMANTIC_SPACING.lg,
-            }}>
-              <Ionicons name="business-outline" size={20} color={colors.primary} />
-              <H2 style={{ 
-                color: colors.text, 
-                marginLeft: SEMANTIC_SPACING.sm,
+            <Pressable
+              style={({ pressed }) => ({
+                flex: 1,
+                marginRight: DESIGN_TOKENS.spacing.sm,
+                backgroundColor: colors.buttonDisabled,
+                borderRadius: 12,
+                paddingVertical: DESIGN_TOKENS.spacing.md,
+                justifyContent: 'center',
+                alignItems: 'center',
+                transform: [{ scale: pressed ? 0.95 : 1 }],
+              })}
+              onPress={handleCancel}
+            >
+              <Text style={{
+                color: colors.text,
                 fontSize: 16,
                 fontWeight: '600'
               }}>
-                Company Information
-              </H2>
-            </View>
+                Annuler
+              </Text>
+            </Pressable>
 
-            <ProfileFormField
-              label="Company Name"
-              value={formData.companyName}
-              onChangeText={(text: string) => updateField('companyName', text)}
-              placeholder="Enter your company name"
-              editable={isEditing}
-            />
-          </Card>
-        )}
-
-        {/* Action Buttons */}
-        {isEditing && (
-          <View style={{
-            flexDirection: 'row',
-            gap: SEMANTIC_SPACING.md,
-            marginTop: SEMANTIC_SPACING.lg,
-          }}>
-            <SecondaryButton
-              title="Cancel"
-              onPress={handleCancel}
-              style={{ flex: 1 }}
-              disabled={isUpdating}
-            />
-            <PrimaryButton
-              title={isUpdating ? "Saving..." : "Save Changes"}
+            <Pressable
+              style={({ pressed }) => ({
+                flex: 1,
+                marginLeft: DESIGN_TOKENS.spacing.sm,
+                backgroundColor: colors.primary,
+                borderRadius: 12,
+                paddingVertical: DESIGN_TOKENS.spacing.md,
+                justifyContent: 'center',
+                alignItems: 'center',
+                transform: [{ scale: pressed ? 0.95 : 1 }],
+              })}
               onPress={handleSave}
-              style={{ flex: 1 }}
-              disabled={isUpdating}
-              loading={isUpdating}
-            />
+            >
+              <Text style={{
+                color: colors.buttonPrimaryText,
+                fontSize: 16,
+                fontWeight: '600'
+              }}>
+                Enregistrer
+              </Text>
+            </Pressable>
           </View>
+        ) : (
+          <Pressable
+            style={({ pressed }) => ({
+              backgroundColor: colors.primary,
+              borderRadius: 12,
+              paddingVertical: DESIGN_TOKENS.spacing.md,
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginTop: DESIGN_TOKENS.spacing.lg,
+              transform: [{ scale: pressed ? 0.95 : 1 }],
+            })}
+            onPress={() => setIsEditing(true)}
+          >
+            <Text style={{
+              color: colors.buttonPrimaryText,
+              fontSize: 16,
+              fontWeight: '600'
+            }}>
+              Modifier le profil
+            </Text>
+          </Pressable>
         )}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 

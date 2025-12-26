@@ -16,10 +16,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 // Context
+import { ServerData } from '../../constants/ServerData'
 import { DESIGN_TOKENS } from '../../constants/Styles'
 import { useTheme } from '../../context/ThemeProvider'
 import { fetchWithAuth } from '../../utils/session'
-import { ServerData } from '../../constants/ServerData'
 
 // Types
 interface PaymentData {

@@ -215,7 +215,7 @@ export default function VehicleDetailsScreen({
         } else {
           Alert.alert('Error', error || 'Unable to update vehicle')
         }
-      } catch (err) {
+      } catch (err) {
         console.error('Error updating vehicle:', err)
         Alert.alert('Error', 'An error occurred while updating the vehicle')
       }
