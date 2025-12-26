@@ -1,8 +1,8 @@
 # 📋 SUIVI DES TODOs - SWIFTAPP
 
-> **Dernière mise à jour :** 26 Décembre 2025 (Session 2)  
+> **Dernière mise à jour :** 26 Décembre 2025 (Session 3 - Stripe & Payments)  
 > **Total TODOs :** 45  
-> **Résolus cette session :** 6 (Bug signature + syncWithAPI)
+> **Résolus cette session :** 12 (6 précédents + 6 Stripe/Payments)
 
 ---
 
@@ -11,7 +11,7 @@
 | Catégorie | Count | Priorité | Notes |
 |-----------|-------|----------|-------|
 | 🔌 API Integration | 15 → 8 | 🔴 Haute | 7 vehiclesService.ts ont API existante |
-| 💳 Stripe & Paiements | 8 | 🔴 Haute | Endpoints disponibles |
+| 💳 Stripe & Paiements | 8 → 2 | ✅ Résolu | 6 implémentés, 2 AWAITING_BACKEND |
 | 🚗 Véhicules | 7 | 🟡 Moyenne | Migration interface requise |
 | 👥 Staff & Business | 5 | 🟡 Moyenne | staffService = RH, pas job crew |
 | 📸 Photos | 2 | 🟢 Basse | |
@@ -21,6 +21,20 @@
 ---
 
 ## ✅ RÉSOLUS RÉCEMMENT
+
+### 26 Décembre 2025 - Session 3 - Stripe & Payments TODOs
+- [x] **StripeService.ts - createInstantPayout** - Implémenté avec POST /stripe/payouts/create
+- [x] **StripeService.ts - bank_accounts** - Récupéré depuis external_accounts de l'API
+- [x] **usePayouts.ts - refreshPayouts** - GET /stripe/payouts + GET /stripe/balance
+- [x] **usePayouts.ts - createPayout** - POST /stripe/payouts/create
+- [x] **useStripeConnect.ts - refreshStatus** - GET /stripe/connect/status
+- [x] **useStripeConnect.ts - connectAccount** - GET /stripe/connect/onboarding
+- [x] **useStripeConnect.ts - disconnect** - DELETE /stripe/connect/disconnect
+- [x] **useStripeReports.ts - loadReportsData** - GET /payments/history
+- [x] **useStripeReports.ts - exportData** - GET /transactions-export
+- [x] **StripePaymentScreen.tsx - handlePayment** - POST /payments/create-payment-intent + /payments/confirm
+
+**Commit:** `26544d5` - feat(stripe): implement real API calls for Stripe & Payments TODOs
 
 ### 26 Décembre 2025 - Session 2 - Analyse API TODOs
 - [x] **syncWithAPI dans JobStateProvider.tsx** - Implémenté avec `fetchJobProgressFromAPI()`
@@ -47,9 +61,13 @@
 | Job Trucks | `GET/POST /job/:id/trucks` | ✅ Disponible |
 | Company Trucks | `GET/POST/PATCH/DELETE /company/:companyId/trucks` | ✅ Disponible |
 | Job Signatures | `GET /job/:jobId/signatures`, `POST /job/:jobId/signature` | ✅ Disponible |
-| Stripe Balance | `GET /stripe/balance` | ✅ Disponible |
-| Stripe Payouts | `GET /stripe/payouts`, `POST /stripe/payouts/create` | ✅ Disponible |
-| Stripe Connect | Multiple endpoints | ✅ Disponible |
+| Stripe Balance | `GET /stripe/balance` | ✅ Implémenté |
+| Stripe Payouts | `GET /stripe/payouts`, `POST /stripe/payouts/create` | ✅ Implémenté |
+| Stripe Connect | GET /status, /onboarding, DELETE /disconnect | ✅ Implémenté |
+| Payment Intent | `POST /payments/create-payment-intent` | ✅ Implémenté |
+| Payment Confirm | `POST /payments/confirm` | ✅ Implémenté |
+| Payments History | `GET /payments/history` | ✅ Implémenté |
+| Transactions Export | `GET /transactions-export` | ✅ Implémenté |
 
 ### ⚠️ Service business/vehiclesService.ts EXISTE
 
@@ -81,23 +99,18 @@ L'ancien fichier `src/services/vehiclesService.ts` (avec mocks) est encore utili
 | `src/services/business/staffService.ts` | 4 | Connecter aux endpoints Job Crew quand disponible | ℹ️ staffService = RH, Job Crew = assignation job. Concepts différents |
 | `src/context/JobStateProvider.tsx` | 298 | Appeler l'API pour sync l'état | ✅ **IMPLÉMENTÉ** - fetchJobProgressFromAPI() |
 
-### 💳 Stripe & Paiements
+### 💳 Stripe & Paiements - ✅ MAJORITÉ RÉSOLUE
 
 | Fichier | Ligne | TODO | Status |
 |---------|-------|------|--------|
-| `src/services/StripeService.ts` | 440 | Récupérer les comptes bancaires | ⏳ À implémenter |
-| `src/services/StripeService.ts` | 572 | Implémenter l'API réelle | ⏳ À implémenter |
-| `src/services/StripeService.ts` | 578 | Implémenter l'API réelle | ⏳ À implémenter |
-| `src/services/StripeService.ts` | 584 | Implémenter l'API réelle | ⏳ À implémenter |
-| `src/screens/payments/StripePaymentScreen.tsx` | 60 | Intégrer avec la vraie API Stripe | ⏳ À implémenter |
-| `src/hooks/usePayouts.ts` | 37 | Remplacer par vraie API | ⏳ En attente backend |
-| `src/hooks/usePayouts.ts` | 81 | Remplacer par vraie API | ⏳ En attente backend |
-| `src/hooks/useStripeConnect.ts` | 31 | Remplacer par vraie API | ⏳ En attente backend |
-| `src/hooks/useStripeConnect.ts` | 63 | Remplacer par vraie API | ⏳ En attente backend |
-| `src/hooks/useStripeConnect.ts` | 79 | Remplacer par vraie API | ⏳ En attente backend |
-| `src/hooks/useStripeReports.ts` | 144 | Remplacer par appel API réel Stripe | ⏳ En attente backend |
-| `src/hooks/useStripeReports.ts` | 172 | Générer et télécharger CSV | ⏳ À implémenter |
-| `src/hooks/useStripeReports.ts` | 208 | Filtre par période/dates | ⏳ À implémenter |
+| `src/services/StripeService.ts` | 440 | Récupérer les comptes bancaires | ✅ **IMPLÉMENTÉ** - external_accounts.data |
+| `src/services/StripeService.ts` | 572 | createInstantPayout | ✅ **IMPLÉMENTÉ** - POST /stripe/payouts/create |
+| `src/services/StripeService.ts` | 607 | createStripePaymentLink | ⚠️ **AWAITING_BACKEND** - Pas d'endpoint |
+| `src/services/StripeService.ts` | 613 | updateStripeAccountSettings | ⚠️ **AWAITING_BACKEND** - Pas d'endpoint |
+| `src/screens/payments/StripePaymentScreen.tsx` | 60 | Intégrer avec la vraie API Stripe | ✅ **IMPLÉMENTÉ** |
+| `src/hooks/usePayouts.ts` | 37+81 | Remplacer par vraie API | ✅ **IMPLÉMENTÉ** |
+| `src/hooks/useStripeConnect.ts` | 31+63+79 | Remplacer par vraie API | ✅ **IMPLÉMENTÉ** |
+| `src/hooks/useStripeReports.ts` | 144+172+208 | loadReportsData + exportData | ✅ **IMPLÉMENTÉ** |
 
 ---
 
