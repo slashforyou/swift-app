@@ -583,7 +583,7 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
       onClose();
       
       Alert.alert('Success', 'Invoice created successfully!');
-    } catch (error) {
+    } catch {
 
       Alert.alert('Error', 'Failed to create invoice. Please try again.');
     } finally {

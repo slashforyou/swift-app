@@ -22,7 +22,7 @@ export interface JobAPI {
     phone: string;
     email: string;
   };
-  addresses: Array<{
+  addresses: {
     type: string;
     street: string;
     city: string;
@@ -30,7 +30,7 @@ export interface JobAPI {
     zip: string;
     latitude?: number;
     longitude?: number;
-  }>;
+  }[];
   time: {
     startWindowStart: string;
     startWindowEnd: string;
@@ -393,8 +393,6 @@ export async function completeJob(jobId: string): Promise<JobAPI> {
  * Si échec, retour à l'écran précédent
  */
 export async function getJobDetails(jobCode: string): Promise<any> {
-  const startTime = performance.now();
-  
   // TEMP_DISABLED: console.log(`📡 [getJobDetails] Starting fetch for jobCode: ${jobCode}`);
   
   try {
@@ -412,7 +410,6 @@ export async function getJobDetails(jobCode: string): Promise<any> {
     }
 
     const rawData = await res.json();
-    const apiDuration = performance.now() - startTime;
     
     // TEMP_DISABLED: console.log('✅ [getJobDetails] Successfully fetched job details from /full endpoint');
     // TEMP_DISABLED: console.log('🔍 [getJobDetails] /full endpoint raw response:', JSON.stringify(rawData, null, 2));

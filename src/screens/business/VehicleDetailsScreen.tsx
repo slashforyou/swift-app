@@ -54,9 +54,11 @@ const apiToVehicle = (api: VehicleAPI): Vehicle => ({
   location: api.location,
   capacity: api.capacity || '',
   assignedTo: api.assignedStaff || '',
-  mileage: 0, // TODO: Add to API
-  purchaseDate: '', // TODO: Add to API
-  lastService: '', // TODO: Add to API
+  // Ces champs ne sont pas encore retournés par l'API - valeurs par défaut utilisées
+  // Voir BACKEND_REQUIREMENTS_27DEC2025.md pour les ajouter si nécessaire
+  mileage: (api as any).mileage || 0,
+  purchaseDate: (api as any).purchaseDate || '',
+  lastService: (api as any).lastService || '',
 })
 
 // Types
@@ -215,7 +217,8 @@ export default function VehicleDetailsScreen({
         } else {
           Alert.alert('Error', error || 'Unable to update vehicle')
         }
-      } catch (err) {
+      } catch (err) {
+
         console.error('Error updating vehicle:', err)
         Alert.alert('Error', 'An error occurred while updating the vehicle')
       }

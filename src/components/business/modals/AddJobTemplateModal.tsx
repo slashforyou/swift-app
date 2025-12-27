@@ -619,7 +619,7 @@ const AddJobTemplateModal: React.FC<AddJobTemplateModalProps> = ({
       onClose();
       
       Alert.alert('Success', 'Job template created successfully!');
-    } catch (error) {
+    } catch {
 
       Alert.alert('Error', 'Failed to create job template. Please try again.');
     } finally {
@@ -930,7 +930,7 @@ const AddJobTemplateModal: React.FC<AddJobTemplateModalProps> = ({
 
             {/* Inclusions */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>What's Included</Text>
+              <Text style={styles.sectionTitle}>{"What's Included"}</Text>
               
               {/* Liste des inclusions */}
               <View style={{ marginBottom: DESIGN_TOKENS.spacing.md }}>

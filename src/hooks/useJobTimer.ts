@@ -4,7 +4,7 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { completeJob, updateJobStep } from '../services/jobSteps';
 import { timerLogger } from '../utils/logger';
 
@@ -64,7 +64,7 @@ export const useJobTimer = (
     const [finalBillableHours, setFinalBillableHours] = useState<number | null>(null); // ✅ Heures finales freezées
 
     const totalSteps = options?.totalSteps || 6; // ✅ Par défaut 6, mais peut être changé
-    const stepNames = options?.stepNames || []; // ✅ Steps dynamiques (optionnel)
+    const stepNames = useMemo(() => options?.stepNames || [], [options?.stepNames]); // ✅ Mémorisé
     const onJobCompleted = options?.onJobCompleted; // ✅ Callback
 
     // ✅ Helper pour obtenir le nom d'un step (dynamique ou fallback)
@@ -324,7 +324,7 @@ export const useJobTimer = (
                     console.error('❌ [useJobTimer] Failed to sync step advancement:', error);
                 });
         }
-    }, [timerData, saveTimerData, totalSteps, onJobCompleted, calculateCost, jobId]);
+    }, [timerData, saveTimerData, totalSteps, onJobCompleted, calculateCost, jobId, getStepName]);
 
     // Calculer le temps total écoulé - SIMPLIFIÉ
     const getTotalElapsed = useCallback(() => {
@@ -415,7 +415,6 @@ export const useJobTimer = (
 
         timerLogger.start(jobId);
 
-        const now = Date.now();
         const updatedData: JobTimerData = {
             ...timerData,
             startTime: calculatedStartTime,
@@ -430,7 +429,7 @@ export const useJobTimer = (
 
         setTimerData(updatedData);
         saveTimerData(updatedData);
-    }, [timerData, jobId, currentStep, saveTimerData]);
+    }, [timerData, jobId, currentStep, saveTimerData, getStepName]);
 
     // ✅ FIX: Ne PAS démarrer automatiquement - laisse le contrôle explicite à l'utilisateur
     // Commenté pour éviter le démarrage automatique intempestif

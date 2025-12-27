@@ -64,7 +64,8 @@ class SessionLogger {
         const pkg = require('../../package.json');
         appVersion = pkg.version || '1.0.0';
       }
-    } catch (error) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_error) {
 
       // Fallback si le package.json n'est pas accessible
       // TEMP_DISABLED: console.log('📄 [SESSION-LOG] Unable to read app version from package.json');
@@ -87,7 +88,7 @@ class SessionLogger {
     try {
       const info = await FileSystem.getInfoAsync(path);
       return info.exists;
-    } catch (e) {
+    } catch {
       return false;
     }
   }
@@ -258,9 +259,9 @@ class SessionLogger {
           }
         });
       }
-    } catch (error) {
+    } catch {
 
-      // TEMP_DISABLED: console.log('📄 [SESSION-LOG] Unable to setup global error handler:', error);
+      // TEMP_DISABLED: console.log('📄 [SESSION-LOG] Unable to setup global error handler');
     }
 
     // Capturer les promesses rejetées non gérées (React Native)

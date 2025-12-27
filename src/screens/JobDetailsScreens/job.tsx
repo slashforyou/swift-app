@@ -137,7 +137,7 @@ const AddItemModal: React.FC<{
         setIsLoading(true);
         try {
             // Petit délai minimum pour voir le chargement
-            const [result] = await Promise.all([
+            await Promise.all([
                 onAdd(name.trim(), qty),
                 new Promise(resolve => setTimeout(resolve, 800)) // 800ms minimum
             ]);
@@ -145,7 +145,7 @@ const AddItemModal: React.FC<{
             setName('');
             setQuantity('1');
             onClose();
-        } catch (error) {
+        } catch {
 
             Alert.alert('Error', 'Unable to add item. Please try again.');
         } finally {

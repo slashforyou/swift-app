@@ -5,7 +5,7 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import React, { useCallback, useState } from 'react';
-import { Dimensions, RefreshControl, ScrollView, TouchableOpacity, View } from 'react-native';
+import { RefreshControl, ScrollView, TouchableOpacity, View } from 'react-native';
 
 // Design System
 import { useTheme } from '../../../context/ThemeProvider';
@@ -21,8 +21,6 @@ import {
 
 // Hooks business
 import { useStripePayments } from '../../../hooks/useStripe';
-
-const { width } = Dimensions.get('window');
 
 interface PaymentsDashboardProps {
   onRefresh?: () => void;

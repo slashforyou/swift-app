@@ -1,7 +1,15 @@
 /**
- * StaffService - Service API pour la gestion du personnel
- * Note: Pas d'endpoints dédiés staff, utilise structure interne avec AsyncStorage
- * TODO: Connecter aux endpoints Job Crew quand disponible
+ * StaffService - Service local pour la gestion du personnel
+ * 
+ * ⚠️ LEGACY: Ce service utilise AsyncStorage local.
+ * ✅ Utiliser plutôt `src/services/staff/staffService.ts` qui est connecté aux vraies APIs:
+ *    - GET /staff
+ *    - GET /staff/{id}
+ *    - POST /staff/invite
+ *    - POST /staff/contractors
+ *    - DELETE /staff/contractors/{id}
+ * 
+ * Ce fichier est conservé pour compatibilité avec les composants business legacy.
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -65,7 +73,8 @@ export const fetchBusinessStaff = async (): Promise<BusinessStaff[]> => {
 
     const staff: BusinessStaff[] = JSON.parse(staffData);
     return staff.filter(s => s.company_id === COMPANY_ID);
-  } catch (error) {
+  } catch (error) {
+
     console.error('Error fetching business staff:', error);
     throw new Error('Failed to fetch business staff');
   }
@@ -84,7 +93,8 @@ export const fetchStaffDetails = async (staffId: string): Promise<BusinessStaff>
     }
 
     return staff;
-  } catch (error) {
+  } catch (error) {
+
     console.error('Error fetching staff details:', error);
     throw new Error('Failed to fetch staff details');
   }
@@ -110,7 +120,8 @@ export const createBusinessStaff = async (staffData: StaffCreateData): Promise<B
     await AsyncStorage.setItem(STAFF_STORAGE_KEY, JSON.stringify(updatedStaff));
 
     return newStaff;
-  } catch (error) {
+  } catch (error) {
+
     console.error('Error creating business staff:', error);
     throw new Error('Failed to create business staff');
   }
@@ -141,7 +152,8 @@ export const updateBusinessStaff = async (
     await AsyncStorage.setItem(STAFF_STORAGE_KEY, JSON.stringify(currentStaff));
 
     return updatedStaffMember;
-  } catch (error) {
+  } catch (error) {
+
     console.error('Error updating business staff:', error);
     throw new Error('Failed to update business staff');
   }
@@ -156,7 +168,8 @@ export const deleteBusinessStaff = async (staffId: string): Promise<void> => {
     const filteredStaff = currentStaff.filter(s => s.id !== staffId);
     
     await AsyncStorage.setItem(STAFF_STORAGE_KEY, JSON.stringify(filteredStaff));
-  } catch (error) {
+  } catch (error) {
+
     console.error('Error deleting business staff:', error);
     throw new Error('Failed to delete business staff');
   }
@@ -198,7 +211,8 @@ export const searchBusinessStaff = async (searchCriteria: {
       
       return nameMatch && roleMatch && teamMatch && statusMatch;
     });
-  } catch (error) {
+  } catch (error) {
+
     console.error('Error searching business staff:', error);
     throw new Error('Failed to search business staff');
   }
@@ -240,7 +254,8 @@ export const getStaffStats = async (): Promise<{
     }
 
     return stats;
-  } catch (error) {
+  } catch (error) {
+
     console.error('Error getting staff stats:', error);
     throw new Error('Failed to get staff statistics');
   }

@@ -3,7 +3,7 @@
  * Conforme aux normes mobiles iOS/Android - Touch targets ≥44pt, 8pt grid
  */
 import Ionicons from '@react-native-vector-icons/ionicons';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Pressable, Text } from 'react-native';
 import SignatureSection from '../../components/jobDetails/sections/SignatureSection';
 import { HStack, VStack } from '../../components/primitives/Stack';
@@ -80,7 +80,8 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
                 signatureDataUrl: prev?.signatureDataUrl || jobDetails.job.signature_blob,
             }));
         }
-    }, [jobDetails?.job?.id, jobDetails?.job?.signature_blob, jobDetails?.job?.signature_date]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [jobDetails?.job?.id, jobDetails?.job?.signature_blob, jobDetails?.job?.signature_date, setJob]);
 
     const handleSignContract = () => {
         // TEMP_DISABLED: console.log('🖋️ [JobClient] handleSignContract called - Opening signature modal');
@@ -88,7 +89,7 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
     };
     
     // Fonction pour charger les données client étendues depuis l'API
-    const loadExtendedClientData = async () => {
+    const loadExtendedClientData = useCallback(async () => {
         if (!job?.client_id) return;
         
         try {
@@ -106,11 +107,11 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
         } finally {
             setIsLoadingClient(false);
         }
-    };
+    }, [job?.client_id]);
     
     useEffect(() => {
         loadExtendedClientData();
-    }, [job?.client_id]);
+    }, [loadExtendedClientData]);
     
     // Utiliser les données étendues si disponibles, sinon les données de base
     const clientData = extendedClientData || job.client;
@@ -145,7 +146,11 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
                             Client Details
                         </Text>
                         
-                        {clientInfo.map((info) => (
+                        {isLoadingClient ? (
+                            <Text style={{ color: colors.textSecondary, fontStyle: 'italic' }}>
+                                Loading client data...
+                            </Text>
+                        ) : clientInfo.map((info) => (
                             <InfoRow 
                                 key={info.label}
                                 label={info.label}

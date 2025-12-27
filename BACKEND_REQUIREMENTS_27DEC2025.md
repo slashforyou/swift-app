@@ -165,6 +165,17 @@
 }
 ```
 
+**Champs optionnels suggérés (non-bloquants) :**
+```json
+{
+  "mileage": 45000,
+  "purchase_date": "2022-03-15",
+  "last_service": "2025-06-15"
+}
+```
+> Ces champs sont utilisés dans le frontend mais pas encore implémentés côté API.
+> Le frontend utilise des valeurs par défaut en attendant.
+
 ---
 
 ## ✅ Endpoints Priorité BASSE (Implémentés)
