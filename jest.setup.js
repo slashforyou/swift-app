@@ -1,6 +1,15 @@
 // Basic setup for Jest
 // This file is referenced in jest.config.js setupFilesAfterEnv
 
+// Silence react-test-renderer deprecation warning from React 19
+const originalConsoleError = console.error;
+console.error = (...args) => {
+  if (typeof args[0] === 'string' && args[0].includes('react-test-renderer is deprecated')) {
+    return;
+  }
+  originalConsoleError.apply(console, args);
+};
+
 // Force UTF-8 encoding for Jest test environment
 // This ensures French characters (é, à, ê, etc.) render correctly
 if (typeof TextEncoder === 'undefined') {
