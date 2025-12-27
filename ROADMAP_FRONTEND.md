@@ -85,39 +85,41 @@ Cette roadmap résume les actions prioritaires pour améliorer la cohérence vis
 
 ## 🔌 2. Implémentation des Endpoints Backend
 
-### 2.1 Endpoints Logs & Analytics
-**Priorité : Haute** | **Requiert : Backend Team**
+### 2.1 Endpoints Logs & Analytics ✅
+**Priorité : Haute** | **Statut : TERMINÉ (Backend)**
 
-- [ ] Implémenter `/swift-app/v1/logs`
-- [ ] Implémenter `/swift-app/v1/analytics/events`
+- [x] Implémenter `/swift-app/v1/logs` ✅ Backend OK
+- [x] Implémenter `/swift-app/v1/analytics/events` ✅ Backend OK
 - [ ] Mettre à jour `logger.ts` pour utiliser le vrai endpoint
 - [ ] Mettre à jour `analytics.ts` pour utiliser le vrai endpoint
 - [ ] Supprimer les fallback locaux
 
-### 2.2 Endpoints Avancement des Jobs
-**Priorité : Haute** | **Requiert : Backend Team**
+### 2.2 Endpoints Avancement des Jobs ✅
+**Priorité : Haute** | **Statut : TERMINÉ (Backend)**
 
-Endpoints à implémenter :
-| Méthode | Endpoint | Description |
-|---------|----------|-------------|
-| `POST` | `/job/{id}/advance-step` | Avancer à l'étape suivante |
-| `GET` | `/job/{id}/step` | Récupérer l'étape actuelle |
-| `GET` | `/jobs/{id}/steps` | Liste des étapes du job |
-| `POST` | `/job/{id}/complete` | Marquer le job comme terminé |
+Endpoints implémentés :
+| Méthode | Endpoint | Statut |
+|---------|----------|--------|
+| `POST` | `/job/{id}/advance-step` | ✅ OK |
+| `GET` | `/job/{id}/step` | ✅ OK |
+| `GET` | `/jobs/{id}/steps` | ✅ OK |
+| `POST` | `/job/{id}/complete` | ✅ OK |
+| `GET` | `/job-steps/definitions` | ✅ OK |
 
 - [ ] Connecter ces endpoints à `jobSteps.ts`
 - [ ] Supprimer `isAvailable = true` forcé
 - [ ] Supprimer les données locales de fallback
 
-### 2.3 Améliorer apiDiscovery
-**Priorité : Moyenne**
+### 2.3 Améliorer apiDiscovery ✅
+**Priorité : Moyenne** | **Statut : TERMINÉ (Backend)**
 
-- [ ] Supporter les endpoints dynamiques (`/job/:id`)
+- [x] API Discovery disponible via `/api/discover`
+- [ ] Supporter les endpoints dynamiques (`/job/:id`) côté frontend
 - [ ] Éviter les contournements manuels
 - [ ] Améliorer le caching des découvertes
 
 ### 2.4 Harmoniser la gestion d'erreurs
-**Priorité : Moyenne**
+**Priorité : Moyenne** | **Statut : À faire**
 
 - [ ] Distinguer clairement les retours 404 (endpoint absent) des erreurs serveur
 - [ ] Remonter des messages précis à l'utilisateur
