@@ -121,7 +121,7 @@ const YearCalendarScreen = ({ navigation, route }: any) => {
                         width: 6,
                         height: 6,
                         borderRadius: 3,
-                        backgroundColor: '#FF6B6B',
+                        backgroundColor: colors.error,
                     }} />
                 )}
                 {monthStats.completed > 0 && (
@@ -129,7 +129,7 @@ const YearCalendarScreen = ({ navigation, route }: any) => {
                         width: 6,
                         height: 6,
                         borderRadius: 3,
-                        backgroundColor: '#51CF66',
+                        backgroundColor: colors.success,
                     }} />
                 )}
                 <Text style={{
@@ -311,13 +311,13 @@ const YearCalendarScreen = ({ navigation, route }: any) => {
                         <Text style={customStyles.statLabel}>{t('calendar.stats.totalJobs')}</Text>
                     </View>
                     <View style={customStyles.statItem}>
-                        <Text style={[customStyles.statValue, { color: '#FF6B6B' }]}>
+                        <Text style={[customStyles.statValue, { color: colors.error }]}>
                             {yearStats.urgentJobs}
                         </Text>
                         <Text style={customStyles.statLabel}>{t('calendar.stats.urgent')}</Text>
                     </View>
                     <View style={customStyles.statItem}>
-                        <Text style={[customStyles.statValue, { color: '#51CF66' }]}>
+                        <Text style={[customStyles.statValue, { color: colors.success }]}>
                             {yearStats.completedJobs}
                         </Text>
                         <Text style={customStyles.statLabel}>Completed</Text>

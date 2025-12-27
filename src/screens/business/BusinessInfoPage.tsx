@@ -127,17 +127,17 @@ const BusinessInfoPage: React.FC = () => {
           <StatCard
             label="Total Vehicles"
             value={businessStats?.totalVehicles || 0}
-            color="#007AFF"
+            color={colors.info}
           />
           <StatCard
             label="Active Jobs"
             value={businessStats?.activeJobs || 0}
-            color="#34C759"
+            color={colors.success}
           />
           <StatCard
             label="Completed Jobs"
             value={businessStats?.completedJobs || 0}
-            color="#FF9500"
+            color={colors.warning}
           />
         </HStack>
       </VStack>

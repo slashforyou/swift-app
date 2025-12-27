@@ -56,15 +56,15 @@ export default function PayoutDetailModal({
   const getStatusColor = (status: Payout['status']) => {
     switch (status) {
       case 'paid':
-        return '#10B981';
+        return colors.success;
       case 'in_transit':
-        return '#F59E0B';
+        return colors.warning;
       case 'pending':
-        return '#3B82F6';
+        return colors.info;
       case 'failed':
-        return '#EF4444';
+        return colors.error;
       default:
-        return '#6B7280';
+        return colors.textSecondary;
     }
   };
 
@@ -128,7 +128,7 @@ export default function PayoutDetailModal({
               <Ionicons
                 name={getStatusIcon(payout.status) as any}
                 size={16}
-                color="#FFFFFF"
+                color={colors.buttonPrimaryText}
               />
               <Text style={styles.statusText}>{getStatusLabel(payout.status)}</Text>
             </View>
@@ -272,18 +272,18 @@ const TimelineItem = ({ icon, title, subtitle, isCompleted, isLast, colors }: Ti
     <View style={styles.timelineLeft}>
       <View style={[
         styles.timelineIcon,
-        { backgroundColor: isCompleted ? '#10B981' : colors.border }
+        { backgroundColor: isCompleted ? colors.success : colors.border }
       ]}>
         <Ionicons
           name={icon as any}
           size={16}
-          color={isCompleted ? '#FFFFFF' : colors.textSecondary}
+          color={isCompleted ? colors.buttonPrimaryText : colors.textSecondary}
         />
       </View>
       {!isLast && (
         <View style={[
           styles.timelineLine,
-          { backgroundColor: isCompleted ? '#10B981' : colors.border }
+          { backgroundColor: isCompleted ? colors.success : colors.border }
         ]} />
       )}
     </View>

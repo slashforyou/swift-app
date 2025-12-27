@@ -234,7 +234,7 @@ export default function CreatePaymentLinkModal({
     createButtonText: {
       fontSize: DESIGN_TOKENS.typography.body.fontSize,
       fontWeight: '600' as const,
-      color: '#FFFFFF'
+      color: colors.buttonPrimaryText
     },
     // Success state
     successContainer: {
@@ -305,7 +305,7 @@ export default function CreatePaymentLinkModal({
     doneButtonText: {
       fontSize: DESIGN_TOKENS.typography.body.fontSize,
       fontWeight: '600' as const,
-      color: '#FFFFFF'
+      color: colors.buttonPrimaryText
     },
     errorText: {
       fontSize: DESIGN_TOKENS.typography.caption.fontSize,
@@ -463,10 +463,10 @@ export default function CreatePaymentLinkModal({
               disabled={creating || !amount}
             >
               {creating ? (
-                <ActivityIndicator color="#FFFFFF" size="small" />
+                <ActivityIndicator color={colors.buttonPrimaryText} size="small" />
               ) : (
                 <>
-                  <Ionicons name="link" size={20} color="#FFFFFF" />
+                  <Ionicons name="link" size={20} color={colors.buttonPrimaryText} />
                   <Text style={styles.createButtonText}>Create Payment Link</Text>
                 </>
               )}

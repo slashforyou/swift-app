@@ -198,14 +198,14 @@ const getTypeLabel = (type: Vehicle['type']): string => {
 };
 
 // Fonction pour obtenir la couleur selon le statut
-const getStatusColor = (status: Vehicle['status']): { bg: string; text: string } => {
-  const colors = {
-    available: { bg: '#10B981', text: '#10B981' },
-    'in-use': { bg: '#F59E0B', text: '#F59E0B' },
-    maintenance: { bg: '#EF4444', text: '#EF4444' },
-    'out-of-service': { bg: '#6B7280', text: '#6B7280' }
+const getStatusColor = (status: Vehicle['status'], themeColors: any): { bg: string; text: string } => {
+  const statusColors = {
+    available: { bg: themeColors.success, text: themeColors.success },
+    'in-use': { bg: themeColors.warning, text: themeColors.warning },
+    maintenance: { bg: themeColors.error, text: themeColors.error },
+    'out-of-service': { bg: themeColors.textSecondary, text: themeColors.textSecondary }
   };
-  return colors[status] || colors['out-of-service'];
+  return statusColors[status] || statusColors['out-of-service'];
 };
 
 // Fonction pour obtenir le label du statut
@@ -232,7 +232,7 @@ const VehicleCard: React.FC<{
   onDelete
 }) => {
   const { colors } = useTheme();
-  const statusColors = getStatusColor(vehicle.status);
+  const statusColors = getStatusColor(vehicle.status, colors);
   
   return (
     <TouchableOpacity testID={`vehicle-card-${vehicle.id}`} onPress={onPress}>
@@ -364,7 +364,7 @@ const VehicleCard: React.FC<{
               onPress={(e) => onDelete(vehicle, e)}
               style={{
                 flex: 1,
-                backgroundColor: '#FF3B3020',
+                backgroundColor: colors.error + '20',
                 paddingVertical: DESIGN_TOKENS.spacing.sm,
                 paddingHorizontal: DESIGN_TOKENS.spacing.md,
                 borderRadius: DESIGN_TOKENS.radius.sm,
@@ -372,7 +372,7 @@ const VehicleCard: React.FC<{
               }}
             >
               <Text style={{
-                color: '#FF3B30',
+                color: colors.error,
                 fontWeight: '600',
                 fontSize: 14,
               }}>
@@ -623,7 +623,7 @@ export default function TrucksScreen() {
             borderRadius: 8,
           }}
         >
-          <Text style={{ color: '#FFFFFF', fontWeight: '600' }}>{t('common.retry')}</Text>
+          <Text style={{ color: colors.buttonPrimaryText, fontWeight: '600' }}>{t('common.retry')}</Text>
         </TouchableOpacity>
       </View>
     )

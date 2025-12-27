@@ -146,20 +146,20 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
         const statusMap = {
             'pending': { 
                 label: 'En attente', 
-                color: '#F59E0B', 
-                bgColor: '#FEF3C7',
+                color: colors.warning, 
+                bgColor: colors.warning + '20',
                 icon: 'time-outline'
             },
             'partial': { 
                 label: 'Partiel', 
-                color: '#3B82F6', 
-                bgColor: '#DBEAFE',
+                color: colors.info, 
+                bgColor: colors.info + '20',
                 icon: 'card-outline'
             },
             'completed': { 
                 label: 'Payé', 
-                color: '#10B981', 
-                bgColor: '#D1FAE5',
+                color: colors.success, 
+                bgColor: colors.success + '20',
                 icon: 'checkmark-circle-outline'
             }
         };

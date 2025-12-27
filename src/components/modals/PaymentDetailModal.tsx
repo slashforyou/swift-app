@@ -56,13 +56,13 @@ export default function PaymentDetailModal({
   const getStatusColor = (status: Payment['status']) => {
     switch (status) {
       case 'succeeded':
-        return '#10B981';
+        return colors.success;
       case 'processing':
-        return '#F59E0B';
+        return colors.warning;
       case 'failed':
-        return '#EF4444';
+        return colors.error;
       default:
-        return '#6B7280';
+        return colors.textSecondary;
     }
   };
 
@@ -144,7 +144,7 @@ export default function PaymentDetailModal({
               <Ionicons
                 name={getStatusIcon(payment.status) as any}
                 size={16}
-                color="#FFFFFF"
+                color={colors.buttonPrimaryText}
               />
               <Text style={styles.statusText}>{getStatusLabel(payment.status)}</Text>
             </View>

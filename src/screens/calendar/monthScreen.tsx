@@ -194,9 +194,9 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
 
         const getIndicatorColor = () => {
             switch (job.status) {
-                case 'urgent': return '#FF6B6B';
-                case 'completed': return '#51CF66';
-                case 'pending': return '#FFD43B';
+                case 'urgent': return colors.error;
+                case 'completed': return colors.success;
+                case 'pending': return colors.warning;
                 default: return colors.primary;
             }
         };
@@ -397,25 +397,25 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
                 backgroundColor: 'transparent',
             },
             errorContainer: {
-                backgroundColor: '#ffebee',
+                backgroundColor: colors.errorBanner,
                 marginHorizontal: DESIGN_TOKENS.spacing.lg,
                 marginVertical: DESIGN_TOKENS.spacing.md,
                 padding: DESIGN_TOKENS.spacing.lg,
                 borderRadius: DESIGN_TOKENS.radius.md,
                 borderLeftWidth: 4,
-                borderLeftColor: '#f44336',
+                borderLeftColor: colors.error,
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'space-between',
             },
             errorText: {
                 fontSize: 14,
-                color: '#d32f2f',
+                color: colors.error,
                 flex: 1,
                 marginRight: DESIGN_TOKENS.spacing.md,
             },
             retryButton: {
-                backgroundColor: '#f44336',
+                backgroundColor: colors.error,
                 paddingHorizontal: DESIGN_TOKENS.spacing.md,
                 paddingVertical: DESIGN_TOKENS.spacing.sm,
                 borderRadius: DESIGN_TOKENS.radius.sm,
@@ -459,13 +459,13 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
                         <Text style={customStyles.statLabel}>{t('calendar.stats.totalJobs')}</Text>
                     </View>
                     <View style={customStyles.statItem}>
-                        <Text style={[customStyles.statValue, { color: '#FF6B6B' }]}>
+                        <Text style={[customStyles.statValue, { color: colors.error }]}>
                             {monthStats.urgentJobs}
                         </Text>
                         <Text style={customStyles.statLabel}>{t('calendar.stats.urgent')}</Text>
                     </View>
                     <View style={customStyles.statItem}>
-                        <Text style={[customStyles.statValue, { color: '#51CF66' }]}>
+                        <Text style={[customStyles.statValue, { color: colors.success }]}>
                             {monthStats.completedJobs}
                         </Text>
                         <Text style={customStyles.statLabel}>{t('calendar.stats.completed')}</Text>
