@@ -118,7 +118,7 @@ const SignatureSection: React.FC<SignatureSectionProps> = ({ job, onSignContract
                         justifyContent: 'center',
                         marginBottom: DESIGN_TOKENS.spacing.md,
                     }}>
-                        <Text style={{ fontSize: 30, color: 'white' }}>✓</Text>
+                        <Text style={{ fontSize: 30, color: colors.buttonPrimaryText }}>✓</Text>
                     </View>
                     <Text style={{
                         fontSize: 18,

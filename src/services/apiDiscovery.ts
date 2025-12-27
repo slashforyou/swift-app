@@ -33,7 +33,7 @@ export interface ApiEndpoint {
   description: string;
   authentication_required: boolean;
   parameters: {
-    path: Array<{ name: string; type: string; required: boolean }>;
+    path: { name: string; type: string; required: boolean }[];
     query: any[];
     body: any[];
   };

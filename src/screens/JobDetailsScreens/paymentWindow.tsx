@@ -265,7 +265,8 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
         handleClose();
       }, 2000);
       
-    } catch (error) {
+    } catch (error) {
+
       console.error('❌ [PaymentWindow] REAL payment failed:', error);
       
       Alert.alert(
@@ -327,7 +328,8 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
         handleClose();
       }, 2000);
       
-    } catch (error) {
+    } catch (error) {
+
       console.error('❌ [PaymentWindow] REAL cash payment failed:', error);
       
       Alert.alert(
@@ -385,16 +387,16 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
       {/* ✅ Affichage des erreurs de paiement */}
       {jobPayment.error && (
         <View style={{
-          backgroundColor: '#FEF2F2',
+          backgroundColor: colors.errorBanner,
           borderRadius: DESIGN_TOKENS.radius.md,
           padding: DESIGN_TOKENS.spacing.md,
           marginBottom: DESIGN_TOKENS.spacing.lg,
           borderLeftWidth: 3,
-          borderLeftColor: '#EF4444',
+          borderLeftColor: colors.error,
         }}>
           <Text style={{
             fontSize: 14,
-            color: '#DC2626',
+            color: colors.error,
             fontWeight: '600',
             marginBottom: 4,
           }}>
@@ -402,7 +404,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
           </Text>
           <Text style={{
             fontSize: 13,
-            color: '#B91C1C',
+            color: colors.errorBannerText,
           }}>
             {jobPayment.error}
           </Text>
@@ -480,7 +482,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
           })}
         >
           <View style={{
-            backgroundColor: '#6366F1',
+            backgroundColor: colors.tint,
             borderRadius: DESIGN_TOKENS.radius.lg,
             padding: DESIGN_TOKENS.spacing.md,
           }}>
@@ -562,7 +564,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
           })}
         >
           <View style={{
-            backgroundColor: '#10B981',
+            backgroundColor: colors.success,
             borderRadius: DESIGN_TOKENS.radius.lg,
             padding: DESIGN_TOKENS.spacing.md,
           }}>
@@ -653,7 +655,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
           }}
           cardStyle={{
             backgroundColor: colors.backgroundSecondary,
-            borderColor: state.cardError ? '#FF6B6B' : colors.border, // Couleur d'erreur fixe
+            borderColor: state.cardError ? colors.error : colors.border,
             borderWidth: 2,
             borderRadius: DESIGN_TOKENS.radius.lg,
             fontSize: 16,
@@ -863,7 +865,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
           <Text style={{
             fontSize: 16,
             fontWeight: '600',
-            color: '#10B981',
+            color: colors.success,
             textAlign: 'center',
             marginTop: DESIGN_TOKENS.spacing.sm,
           }}>
@@ -901,7 +903,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
             flex: 2,
             backgroundColor: (!state.cashAmount || parseFloat(state.cashAmount) < paymentAmount)
               ? colors.backgroundTertiary
-              : (pressed ? '#10B981DD' : '#10B981'),
+              : (pressed ? colors.successLight : colors.success),
             borderRadius: DESIGN_TOKENS.radius.lg,
             padding: DESIGN_TOKENS.spacing.md,
             alignItems: 'center',
@@ -953,12 +955,12 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
       padding: DESIGN_TOKENS.spacing.lg 
     }}>
       <View style={{
-        backgroundColor: '#D1FAE5',
+        backgroundColor: colors.success + '20',
         borderRadius: 50,
         padding: DESIGN_TOKENS.spacing.lg,
         marginBottom: DESIGN_TOKENS.spacing.lg,
       }}>
-        <Ionicons name="checkmark" size={48} color="#10B981" />
+        <Ionicons name="checkmark" size={48} color={colors.success} />
       </View>
       
       <Text style={{

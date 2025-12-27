@@ -30,14 +30,14 @@ export interface TimerSyncData {
   totalBreakMs: number;
   billableMs: number;
   isRunning: boolean;
-  stepHistory: Array<{
+  stepHistory: {
     step: number;
     stepName: string;
     startedAt: string;
     completedAt?: string;
     durationMs: number;
     breakMs?: number;
-  }>;
+  }[];
 }
 
 /**

@@ -2,15 +2,15 @@
  * Parameters - Modern settings screen with functional preferences
  * Architecture moderne avec design system, toggles interactifs et persistence
  */
-import React, { useState } from 'react';
-import { View, Text, ScrollView, Pressable, Switch, Alert } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { VStack, HStack } from '../components/primitives/Stack';
+import React, { useState } from 'react';
+import { Alert, Pressable, ScrollView, Switch, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Screen } from '../components/primitives/Screen';
-import { useAuthCheck } from '../utils/checkAuth';
+import { HStack, VStack } from '../components/primitives/Stack';
 import { DESIGN_TOKENS } from '../constants/Styles';
 import { useTheme } from '../context/ThemeProvider';
+import { useAuthCheck } from '../utils/checkAuth';
 
 // Types et interfaces
 interface ParametersProps {

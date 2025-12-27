@@ -3,8 +3,8 @@
  * Évite complètement les re-renders pour résoudre le problème de focus
  */
 
-import React, { useRef, useCallback, useEffect } from 'react';
-import { View, Text, TextInput } from 'react-native';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { Text, TextInput, View } from 'react-native';
 import { useTheme } from '../context/ThemeProvider';
 
 interface CardFormProps {
@@ -195,7 +195,7 @@ const CardForm: React.FC<CardFormProps> = ({ initialCard, onCardChange, onValida
   }, [notifyParent, checkValidationAndNotify]);
 
   return (
-    <View style={{ gap: 16, padding: 16, backgroundColor: 'white', borderRadius: 8 }}>
+    <View style={{ gap: 16, padding: 16, backgroundColor: colors.background, borderRadius: 8 }}>
       {/* Card Number */}
       <View>
         <Text style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 8 }}>
@@ -204,14 +204,16 @@ const CardForm: React.FC<CardFormProps> = ({ initialCard, onCardChange, onValida
         <TextInput
           ref={cardNumberRef}
           style={{
-            backgroundColor: '#f8f9fa',
+            backgroundColor: colors.backgroundSecondary,
             borderWidth: 1,
             borderColor: colors.border,
             borderRadius: 8,
             padding: 12,
             fontSize: 16,
+            color: colors.text,
           }}
           placeholder="1234 5678 9012 3456"
+          placeholderTextColor={colors.textMuted}
           keyboardType="numeric"
           maxLength={19}
           defaultValue={formatCardNumber(initialCard.number)}
@@ -231,14 +233,16 @@ const CardForm: React.FC<CardFormProps> = ({ initialCard, onCardChange, onValida
           <TextInput
             ref={expiryRef}
             style={{
-              backgroundColor: '#f8f9fa',
+              backgroundColor: colors.backgroundSecondary,
               borderWidth: 1,
               borderColor: colors.border,
               borderRadius: 8,
               padding: 12,
               fontSize: 16,
+              color: colors.text,
             }}
             placeholder="MM/YY"
+            placeholderTextColor={colors.textMuted}
             keyboardType="numeric"
             maxLength={5}
             defaultValue={formatExpiry(initialCard.expiry)}
@@ -256,14 +260,16 @@ const CardForm: React.FC<CardFormProps> = ({ initialCard, onCardChange, onValida
           <TextInput
             ref={cvvRef}
             style={{
-              backgroundColor: '#f8f9fa',
+              backgroundColor: colors.backgroundSecondary,
               borderWidth: 1,
               borderColor: colors.border,
               borderRadius: 8,
               padding: 12,
               fontSize: 16,
+              color: colors.text,
             }}
             placeholder="123"
+            placeholderTextColor={colors.textMuted}
             keyboardType="numeric"
             maxLength={4}
             secureTextEntry={true}
@@ -284,14 +290,16 @@ const CardForm: React.FC<CardFormProps> = ({ initialCard, onCardChange, onValida
         <TextInput
           ref={nameRef}
           style={{
-            backgroundColor: '#f8f9fa',
+            backgroundColor: colors.backgroundSecondary,
             borderWidth: 1,
             borderColor: colors.border,
             borderRadius: 8,
             padding: 12,
             fontSize: 16,
+            color: colors.text,
           }}
           placeholder="Jean Dupont"
+          placeholderTextColor={colors.textMuted}
           autoCapitalize="words"
           defaultValue={initialCard.name}
           onChangeText={handleNameChange}

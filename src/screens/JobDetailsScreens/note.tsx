@@ -38,7 +38,8 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob }) => {
             } else {
                 throw new Error('Échec de l\'ajout de la note');
             }
-        } catch (error) {
+        } catch (error) {
+
             console.error('Error adding note:', error);
             showError('Erreur', 'Impossible d\'ajouter la note. Veuillez réessayer.');
             throw error;
@@ -63,9 +64,9 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob }) => {
     const getNoteTypeInfo = (type: string) => {
         const types = {
             'general': { icon: 'document-text', color: colors.tint, label: 'Générale' },
-            'important': { icon: 'alert-circle', color: '#F59E0B', label: 'Important' },
-            'client': { icon: 'person', color: '#10B981', label: 'Client' },
-            'internal': { icon: 'shield', color: '#8B5CF6', label: 'Interne' }
+            'important': { icon: 'alert-circle', color: colors.warning, label: 'Important' },
+            'client': { icon: 'person', color: colors.success, label: 'Client' },
+            'internal': { icon: 'shield', color: colors.info, label: 'Interne' }
         };
         return types[type as keyof typeof types] || types.general;
     };

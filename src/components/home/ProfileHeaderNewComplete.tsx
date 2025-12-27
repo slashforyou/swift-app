@@ -1,6 +1,6 @@
 /**
- * ProfileHeaderComplete - Header avec gamification épuré pour la page d'accueil
- * Version simplifiée : Avatar, nom, titre, barre de progression
+ * ProfileHeaderComplete - Header avec gamification ï¿½purï¿½ pour la page d'accueil
+ * Version simplifiï¿½e : Avatar, nom, titre, barre de progression
  */
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
@@ -20,7 +20,7 @@ const ProfileHeaderComplete: React.FC<ProfileHeaderProps> = ({ navigation }) => 
     const { profile, isLoading } = useUserProfile();
     const { t } = useTranslation();
     
-    // Données utilisateur sécurisées avec fallbacks
+    // Donnï¿½es utilisateur sï¿½curisï¿½es avec fallbacks
     const safeUser = {
         firstName: profile?.firstName || 'User',
         lastName: profile?.lastName || '',
@@ -30,7 +30,7 @@ const ProfileHeaderComplete: React.FC<ProfileHeaderProps> = ({ navigation }) => 
         role: profile?.role || t('profile.defaultTitle')
     };
 
-    // Calcul du progrès XP
+    // Calcul du progrï¿½s XP
     const currentXP = safeUser.experience;
     const targetXP = safeUser.experienceToNextLevel;
     const progressPercentage = Math.min((currentXP / targetXP) * 100, 100);

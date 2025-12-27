@@ -303,7 +303,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                 }}>
                     {/* Badge de statut du job */}
                     <View style={{
-                        backgroundColor: isJobCompleted ? '#D1FAE5' : '#FEF3C7',
+                        backgroundColor: isJobCompleted ? colors.success + '20' : colors.warning + '20',
                         borderRadius: DESIGN_TOKENS.radius.lg,
                         paddingHorizontal: DESIGN_TOKENS.spacing.md,
                         paddingVertical: DESIGN_TOKENS.spacing.xs,
@@ -314,12 +314,12 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                         <Ionicons 
                             name={isJobCompleted ? 'checkmark-circle-outline' : 'time-outline'} 
                             size={16} 
-                            color={isJobCompleted ? '#10B981' : '#F59E0B'} 
+                            color={isJobCompleted ? colors.success : colors.warning} 
                         />
                         <Text style={{
                             fontSize: 14,
                             fontWeight: '600',
-                            color: isJobCompleted ? '#10B981' : '#F59E0B',
+                            color: isJobCompleted ? colors.success : colors.warning,
                         }}>
                             {isJobCompleted ? 'Job terminé' : 'Job en cours'}
                         </Text>
@@ -397,7 +397,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                             <Pressable
                                 onPress={handlePayment}
                                 style={({ pressed }) => ({
-                                    backgroundColor: pressed ? '#10B981DD' : '#10B981',
+                                    backgroundColor: pressed ? colors.successLight : colors.success,
                                     paddingHorizontal: DESIGN_TOKENS.spacing.lg,
                                     paddingVertical: DESIGN_TOKENS.spacing.md,
                                     borderRadius: DESIGN_TOKENS.radius.lg,
@@ -435,11 +435,11 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                                 <Ionicons 
                                     name="checkmark-circle" 
                                     size={16} 
-                                    color="#10B981" 
+                                    color={colors.success} 
                                 />
                                 <Text style={{
                                     fontSize: 14,
-                                    color: '#10B981',
+                                    color: colors.success,
                                     fontWeight: '600',
                                 }}>
                                     Job signé par le client
@@ -485,7 +485,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                             Temps en cours
                         </Text>
                         <View style={{
-                            backgroundColor: '#10B981',
+                            backgroundColor: colors.success,
                             borderRadius: 8,
                             paddingHorizontal: 8,
                             paddingVertical: 4,
@@ -497,12 +497,12 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                                 width: 8,
                                 height: 8,
                                 borderRadius: 4,
-                                backgroundColor: '#FFFFFF',
+                                backgroundColor: colors.buttonPrimaryText,
                             }} />
                             <Text style={{
                                 fontSize: 12,
                                 fontWeight: '600',
-                                color: '#FFFFFF',
+                                color: colors.buttonPrimaryText,
                             }}>
                                 LIVE
                             </Text>
@@ -621,7 +621,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                             <Text style={{
                                 fontSize: 18,
                                 fontWeight: '700',
-                                color: paymentInfo.status === 'completed' ? '#10B981' : colors.text,
+                                color: paymentInfo.status === 'completed' ? colors.success : colors.text,
                             }}>
                                 {formatCurrency(paymentInfo.current)}
                             </Text>
@@ -629,14 +629,14 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                         <Ionicons 
                             name={paymentInfo.status === 'completed' ? 'checkmark-circle' : 'time'} 
                             size={24} 
-                            color={paymentInfo.status === 'completed' ? '#10B981' : colors.textSecondary} 
+                            color={paymentInfo.status === 'completed' ? colors.success : colors.textSecondary} 
                         />
                     </View>
 
                     {/* Différence si applicable */}
                     {paymentInfo.current !== paymentInfo.estimated && (
                         <View style={{
-                            backgroundColor: paymentInfo.current > paymentInfo.estimated ? '#FEF3C7' : '#D1FAE5',
+                            backgroundColor: paymentInfo.current > paymentInfo.estimated ? colors.warning + '20' : colors.success + '20',
                             borderRadius: DESIGN_TOKENS.radius.lg,
                             padding: DESIGN_TOKENS.spacing.md,
                             flexDirection: 'row',
@@ -646,20 +646,20 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                             <Ionicons 
                                 name={paymentInfo.current > paymentInfo.estimated ? 'trending-up' : 'trending-down'} 
                                 size={20} 
-                                color={paymentInfo.current > paymentInfo.estimated ? '#F59E0B' : '#10B981'} 
+                                color={paymentInfo.current > paymentInfo.estimated ? colors.warning : colors.success} 
                             />
                             <View style={{ flex: 1 }}>
                                 <Text style={{
                                     fontSize: 14,
                                     fontWeight: '600',
-                                    color: paymentInfo.current > paymentInfo.estimated ? '#92400E' : '#047857',
+                                    color: paymentInfo.current > paymentInfo.estimated ? colors.warning : colors.success,
                                 }}>
                                     {paymentInfo.current > paymentInfo.estimated ? 'Coût supplémentaire' : 'Économie réalisée'}
                                 </Text>
                                 <Text style={{
                                     fontSize: 16,
                                     fontWeight: '700',
-                                    color: paymentInfo.current > paymentInfo.estimated ? '#F59E0B' : '#10B981',
+                                    color: paymentInfo.current > paymentInfo.estimated ? colors.warning : colors.success,
                                 }}>
                                     {formatCurrency(Math.abs(paymentInfo.current - paymentInfo.estimated))}
                                 </Text>
