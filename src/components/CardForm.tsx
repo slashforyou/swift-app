@@ -5,7 +5,7 @@
 
 import React, { useRef, useCallback, useEffect } from 'react';
 import { View, Text, TextInput } from 'react-native';
-import { Colors } from '../constants/Colors';
+import { useTheme } from '../context/ThemeProvider';
 
 interface CardFormProps {
   initialCard: { number: string; expiry: string; cvv: string; name: string };
@@ -20,6 +20,8 @@ interface CardFormProps {
 }
 
 const CardForm: React.FC<CardFormProps> = ({ initialCard, onCardChange, onValidationChange }) => {
+  const { colors } = useTheme();
+  
   // Refs pour les TextInput
   const cardNumberRef = useRef<TextInput>(null);
   const expiryRef = useRef<TextInput>(null);
@@ -196,7 +198,7 @@ const CardForm: React.FC<CardFormProps> = ({ initialCard, onCardChange, onValida
     <View style={{ gap: 16, padding: 16, backgroundColor: 'white', borderRadius: 8 }}>
       {/* Card Number */}
       <View>
-        <Text style={{ fontSize: 12, color: Colors.light.textSecondary, marginBottom: 8 }}>
+        <Text style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 8 }}>
           Card Number
         </Text>
         <TextInput
@@ -204,7 +206,7 @@ const CardForm: React.FC<CardFormProps> = ({ initialCard, onCardChange, onValida
           style={{
             backgroundColor: '#f8f9fa',
             borderWidth: 1,
-            borderColor: Colors.light.border,
+            borderColor: colors.border,
             borderRadius: 8,
             padding: 12,
             fontSize: 16,
@@ -223,7 +225,7 @@ const CardForm: React.FC<CardFormProps> = ({ initialCard, onCardChange, onValida
       {/* Expiration Date and CVV */}
       <View style={{ flexDirection: 'row', gap: 12 }}>
         <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 12, color: Colors.light.textSecondary, marginBottom: 8 }}>
+          <Text style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 8 }}>
             Expiry Date
           </Text>
           <TextInput
@@ -231,7 +233,7 @@ const CardForm: React.FC<CardFormProps> = ({ initialCard, onCardChange, onValida
             style={{
               backgroundColor: '#f8f9fa',
               borderWidth: 1,
-              borderColor: Colors.light.border,
+              borderColor: colors.border,
               borderRadius: 8,
               padding: 12,
               fontSize: 16,
@@ -248,7 +250,7 @@ const CardForm: React.FC<CardFormProps> = ({ initialCard, onCardChange, onValida
         </View>
         
         <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 12, color: Colors.light.textSecondary, marginBottom: 8 }}>
+          <Text style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 8 }}>
             CVV
           </Text>
           <TextInput
@@ -256,7 +258,7 @@ const CardForm: React.FC<CardFormProps> = ({ initialCard, onCardChange, onValida
             style={{
               backgroundColor: '#f8f9fa',
               borderWidth: 1,
-              borderColor: Colors.light.border,
+              borderColor: colors.border,
               borderRadius: 8,
               padding: 12,
               fontSize: 16,
@@ -276,7 +278,7 @@ const CardForm: React.FC<CardFormProps> = ({ initialCard, onCardChange, onValida
 
       {/* Cardholder Name */}
       <View>
-        <Text style={{ fontSize: 12, color: Colors.light.textSecondary, marginBottom: 8 }}>
+        <Text style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 8 }}>
           Cardholder Name
         </Text>
         <TextInput
@@ -284,7 +286,7 @@ const CardForm: React.FC<CardFormProps> = ({ initialCard, onCardChange, onValida
           style={{
             backgroundColor: '#f8f9fa',
             borderWidth: 1,
-            borderColor: Colors.light.border,
+            borderColor: colors.border,
             borderRadius: 8,
             padding: 12,
             fontSize: 16,

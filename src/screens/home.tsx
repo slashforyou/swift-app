@@ -11,8 +11,8 @@ import TodaySection from '../components/home/TodaySection';
 import { Screen } from '../components/primitives/Screen';
 import { HStack, VStack } from '../components/primitives/Stack';
 import LanguageSelector from '../components/ui/LanguageSelector';
-import { Colors } from '../constants/Colors';
 import { DESIGN_TOKENS } from '../constants/Styles';
+import { useTheme } from '../context/ThemeProvider';
 import { useLocalization, useTranslation } from '../localization';
 import { useAuthCheck } from '../utils/checkAuth';
 
@@ -21,87 +21,9 @@ interface HomeScreenProps {
     navigation: any;
 }
 
-interface MenuItemProps {
-    title: string;
-    icon: string;
-    description: string;
-    onPress: () => void;
-    color?: string;
-}
-
-// Composant MenuItem moderne
-const MenuItem: React.FC<MenuItemProps> = ({ title, icon, description, onPress, color = Colors.light.primary }) => (
-    <Pressable
-        onPress={onPress}
-        style={({ pressed }) => ({
-            backgroundColor: pressed ? Colors.light.backgroundTertiary : Colors.light.backgroundSecondary,
-            borderRadius: DESIGN_TOKENS.radius.lg,
-            padding: DESIGN_TOKENS.spacing.md,
-            marginBottom: DESIGN_TOKENS.spacing.xs,
-            shadowColor: Colors.light.shadow,
-            shadowOffset: {
-                width: 0,
-                height: 2,
-            },
-            shadowOpacity: 0.1,
-            shadowRadius: 4,
-            elevation: 3,
-            borderWidth: 1,
-            borderColor: Colors.light.border,
-            minHeight: DESIGN_TOKENS.touch.minSize + 20, // Touch target + extra space
-        })}
-    >
-        <HStack gap="md" align="center">
-            {/* Icône avec fond coloré */}
-            <View
-                style={{
-                    width: 48,
-                    height: 48,
-                    backgroundColor: color,
-                    borderRadius: DESIGN_TOKENS.radius.md,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                }}
-            >
-                <Ionicons name={icon as any} size={24} color="white" />
-            </View>
-            
-            {/* Textes */}
-            <VStack gap="xs" style={{ flex: 1 }}>
-                <Text
-                    style={{
-                        color: Colors.light.text,
-                        fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
-                        lineHeight: DESIGN_TOKENS.typography.subtitle.lineHeight,
-                        fontWeight: DESIGN_TOKENS.typography.subtitle.fontWeight,
-                    }}
-                >
-                    {title}
-                </Text>
-                <Text
-                    style={{
-                        color: Colors.light.textSecondary,
-                        fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-                        lineHeight: DESIGN_TOKENS.typography.caption.lineHeight,
-                        fontWeight: DESIGN_TOKENS.typography.caption.fontWeight,
-                    }}
-                >
-                    {description}
-                </Text>
-            </VStack>
-            
-            {/* Chevron */}
-            <Ionicons 
-                name="chevron-forward" 
-                size={20} 
-                color={Colors.light.textMuted} 
-            />
-        </HStack>
-    </Pressable>
-);
-
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     const insets = useSafeAreaInsets();
+    const { colors } = useTheme();
     const { isLoading, LoadingComponent } = useAuthCheck(navigation);
     const { t } = useTranslation();
     const { currentLanguage, getSupportedLanguages } = useLocalization();
@@ -110,11 +32,90 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     const supportedLanguages = getSupportedLanguages();
     const currentLangInfo = supportedLanguages[currentLanguage];
 
+    // Composant MenuItem interne avec accès aux couleurs du thème
+    const MenuItem = ({ 
+        title, 
+        icon, 
+        description, 
+        onPress, 
+        color = colors.primary 
+    }: {
+        title: string;
+        icon: string;
+        description: string;
+        onPress: () => void;
+        color?: string;
+    }) => (
+        <Pressable
+            onPress={onPress}
+            style={({ pressed }) => ({
+                backgroundColor: pressed ? colors.backgroundTertiary : colors.backgroundSecondary,
+                borderRadius: DESIGN_TOKENS.radius.lg,
+                padding: DESIGN_TOKENS.spacing.md,
+                marginBottom: DESIGN_TOKENS.spacing.xs,
+                shadowColor: colors.shadow,
+                shadowOffset: {
+                    width: 0,
+                    height: 2,
+                },
+                shadowOpacity: 0.1,
+                shadowRadius: 4,
+                elevation: 3,
+                borderWidth: 1,
+                borderColor: colors.border,
+                minHeight: DESIGN_TOKENS.touch.minSize + 20,
+            })}
+        >
+            <HStack gap="md" align="center">
+                <View
+                    style={{
+                        width: 48,
+                        height: 48,
+                        backgroundColor: color,
+                        borderRadius: DESIGN_TOKENS.radius.md,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}
+                >
+                    <Ionicons name={icon as any} size={24} color={colors.buttonPrimaryText} />
+                </View>
+                
+                <VStack gap="xs" style={{ flex: 1 }}>
+                    <Text
+                        style={{
+                            color: colors.text,
+                            fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
+                            lineHeight: DESIGN_TOKENS.typography.subtitle.lineHeight,
+                            fontWeight: DESIGN_TOKENS.typography.subtitle.fontWeight,
+                        }}
+                    >
+                        {title}
+                    </Text>
+                    <Text
+                        style={{
+                            color: colors.textSecondary,
+                            fontSize: DESIGN_TOKENS.typography.caption.fontSize,
+                            lineHeight: DESIGN_TOKENS.typography.caption.lineHeight,
+                            fontWeight: DESIGN_TOKENS.typography.caption.fontWeight,
+                        }}
+                    >
+                        {description}
+                    </Text>
+                </VStack>
+                
+                <Ionicons 
+                    name="chevron-forward" 
+                    size={20} 
+                    color={colors.textMuted} 
+                />
+            </HStack>
+        </Pressable>
+    );
+
     if (isLoading) return LoadingComponent;
 
     return (
         <Screen>
-            {/* Main Content */}
             <VStack 
                 gap="lg" 
                 style={{
@@ -124,14 +125,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                     paddingBottom: insets.bottom + DESIGN_TOKENS.spacing.lg,
                 }}
             >
-                {/* Profile Header avec gamification épuré */}
                 <View style={{ 
                     marginHorizontal: -DESIGN_TOKENS.spacing.lg,
                 }}>
                     <ProfileHeaderComplete navigation={navigation} />
                 </View>
 
-                {/* Header avec titre et bouton langue */}
                 <HStack gap="md" justify="space-between" align="center" style={{
                     paddingHorizontal: DESIGN_TOKENS.spacing.lg,
                     marginBottom: DESIGN_TOKENS.spacing.sm,
@@ -139,23 +138,22 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                     <Text style={{
                         fontSize: 22,
                         fontWeight: '700',
-                        color: Colors.light.text,
+                        color: colors.text,
                     }}>
                         {t('home.title')}
                     </Text>
                     
-                    {/* Bouton langue simplifié */}
                     <Pressable
                         onPress={() => setShowLanguageSelector(true)}
                         style={({ pressed }) => ({
                             width: 44,
                             height: 44,
                             borderRadius: 22,
-                            backgroundColor: Colors.light.backgroundSecondary,
+                            backgroundColor: colors.backgroundSecondary,
                             justifyContent: 'center',
                             alignItems: 'center',
                             borderWidth: 1,
-                            borderColor: Colors.light.border,
+                            borderColor: colors.border,
                             transform: [{ scale: pressed ? 0.95 : 1 }],
                         })}
                         hitSlop={DESIGN_TOKENS.touch.hitSlop}
@@ -166,7 +164,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                     </Pressable>
                 </HStack>
 
-                {/* Section Today - alignée avec les boutons */}
                 <View style={{ 
                     paddingHorizontal: DESIGN_TOKENS.spacing.lg,
                 }}>
@@ -185,7 +182,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                     />
                 </View>
 
-                {/* Navigation menu */}
                 <View style={{ 
                     paddingHorizontal: DESIGN_TOKENS.spacing.lg,
                     flex: 1,
@@ -196,7 +192,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                             icon="calendar"
                             description={t('home.calendar.description')}
                             onPress={() => navigation.navigate('Calendar')}
-                            color={Colors.light.primary}
+                            color={colors.primary}
                         />
                         
                         <MenuItem
@@ -204,7 +200,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                             icon="business"
                             description={t('home.business.description')}
                             onPress={() => navigation.navigate('Business')}
-                            color={Colors.light.success}
+                            color={colors.success}
                         />
                         
                         <MenuItem
@@ -212,14 +208,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                             icon="settings"
                             description={t('home.parameters.description')}
                             onPress={() => navigation.navigate('Parameters')}
-                            color={Colors.light.warning}
+                            color={colors.warning}
                         />
                     </VStack>
                 </View>
 
             </VStack>
             
-            {/* Bouton DevTools flottant en bas à droite */}
             {__DEV__ && (
                 <Pressable
                     onPress={() => {/* TODO: Ouvrir modal DevTools */}}
@@ -230,16 +225,16 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                         width: 56,
                         height: 56,
                         borderRadius: 28,
-                        backgroundColor: Colors.light.backgroundSecondary,
+                        backgroundColor: colors.backgroundSecondary,
                         justifyContent: 'center',
                         alignItems: 'center',
-                        shadowColor: Colors.light.shadow,
+                        shadowColor: colors.shadow,
                         shadowOffset: { width: 0, height: 4 },
                         shadowOpacity: 0.2,
                         shadowRadius: 8,
                         elevation: 8,
                         borderWidth: 1,
-                        borderColor: Colors.light.border,
+                        borderColor: colors.border,
                         transform: [{ scale: pressed ? 0.95 : 1 }],
                     })}
                     hitSlop={DESIGN_TOKENS.touch.hitSlop}
@@ -247,12 +242,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                     <Ionicons 
                         name="terminal" 
                         size={24} 
-                        color={Colors.light.textSecondary} 
+                        color={colors.textSecondary} 
                     />
                 </Pressable>
             )}
             
-            {/* Modal de sélection de langue */}
             <LanguageSelector
                 visible={showLanguageSelector}
                 onClose={() => setShowLanguageSelector(false)}

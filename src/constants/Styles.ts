@@ -5,6 +5,7 @@
  */
 
 import { Dimensions, StyleSheet } from 'react-native';
+import { useTheme } from '../context/ThemeProvider';
 import { Colors } from './Colors';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -522,7 +523,6 @@ export const createCommonStyles = (colors: typeof Colors.light) => StyleSheet.cr
   
   // Touch improvements - hitSlop sera appliqué directement sur les composants Pressable
 });// Hook pour utilisation facile
-import { useTheme } from '../context/ThemeProvider';
 
 export const useCommonThemedStyles = () => {
   const { colors } = useTheme();

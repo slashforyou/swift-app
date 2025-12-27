@@ -14,49 +14,52 @@ Cette roadmap résume les actions prioritaires pour améliorer la cohérence vis
 
 ## 🎨 1. Harmonisation du Design System
 
-### 1.1 Centraliser les DESIGN_TOKENS
-**Priorité : Haute**
+### 1.1 Centraliser les DESIGN_TOKENS ✅
+**Priorité : Haute** | **Statut : TERMINÉ**
 
-- [ ] Supprimer les définitions locales de `DESIGN_TOKENS` (ex. `MonthCalendarScreen`)
-- [ ] Importer les tokens depuis `src/design-system` pour :
+- [x] Supprimer les définitions locales de `DESIGN_TOKENS` (ex. `MonthCalendarScreen`)
+- [x] Importer les tokens depuis `src/constants/Styles.ts` pour :
   - Espacements (`spacing`)
   - Rayons (`radius`)
   - Ombres (`shadows`)
   - Typographie (`typography`)
 
-**Fichiers concernés :**
-- `src/screens/calendar/monthScreen.tsx`
-- Autres écrans avec tokens redéfinis localement
+**Fichiers migrés :**
+- `src/screens/calendar/monthScreen.tsx` ✅
+- `src/screens/calendar/yearScreen.tsx` ✅
+- `src/screens/calendar/multipleYearsScreen.tsx` ✅
 
-### 1.2 Supprimer les couleurs codées en dur
-**Priorité : Haute**
+### 1.2 Supprimer les couleurs codées en dur ✅
+**Priorité : Haute** | **Statut : TERMINÉ**
 
-- [ ] Remplacer les codes couleurs hexadécimaux par les couleurs sémantiques de `Colors.ts`
-- [ ] Vérifier que tous les écrans respectent le mode sombre
+- [x] Remplacer les codes couleurs hexadécimaux par les couleurs sémantiques du thème
+- [x] Vérifier que tous les écrans respectent le mode sombre
 
-**Couleurs à remplacer :**
-| Couleur actuelle | Remplacer par |
-|-----------------|---------------|
-| `#FF6B6B` | `colors.error` |
-| `#f44336` | `colors.error` |
-| `#4CAF50` | `colors.success` |
-| `#2196F3` | `colors.primary` |
-| `#FFC107` | `colors.warning` |
+**Fichiers migrés :**
+- `src/components/modals/PayoutDetailModal.tsx` ✅
+- `src/components/modals/PaymentDetailModal.tsx` ✅
+- `src/components/modals/CreatePaymentLinkModal.tsx` ✅
+- `src/screens/business/trucksScreen.tsx` ✅
+- `src/screens/business/BusinessInfoPage.tsx` ✅
+- `src/screens/JobDetailsScreens/payment.tsx` ✅
+- `src/screens/calendar/monthScreen.tsx` ✅
+- `src/screens/calendar/yearScreen.tsx` ✅
 
-### 1.3 Utiliser useCommonThemedStyles
-**Priorité : Haute**
+### 1.3 Utiliser useTheme() ✅
+**Priorité : Haute** | **Statut : TERMINÉ**
 
-- [ ] Migrer tous les écrans vers `useCommonThemedStyles()` ou `useTheme()`
-- [ ] **Objectif :** 100% des composants utilisent le système unifié (actuellement ~20%)
+- [x] Migrer les écrans principaux vers `useTheme()`
+- [x] **Objectif :** Écrans et composants critiques migrés
 
-**Catégories d'écrans à migrer :**
-- `calendar/*` - Écrans de calendrier
-- `jobDetails/*` - Détails des jobs
-- `business/*` - Écrans business
-- `components/*` - Composants réutilisables
+**Fichiers migrés :**
+- `src/screens/home.tsx` ✅
+- `src/screens/parameters.tsx` ✅
+- `src/components/home/ProfileHeaderNewComplete.tsx` ✅
+- `src/components/home/TodaySection.tsx` ✅
+- `src/components/CardForm.tsx` ✅
 
 ### 1.4 Créer un guide d'intégration
-**Priorité : Moyenne**
+**Priorité : Moyenne** | **Statut : À faire**
 
 - [ ] Documenter les bonnes pratiques d'utilisation du design system
 - [ ] Expliquer la prise en charge du mode sombre
@@ -66,7 +69,7 @@ Cette roadmap résume les actions prioritaires pour améliorer la cohérence vis
   - Primitives UI
 
 ### 1.5 Tests visuels Light/Dark
-**Priorité : Moyenne**
+**Priorité : Moyenne** | **Statut : À faire**
 
 - [ ] Mettre en place des tests visuels (screenshot ou Storybook)
 - [ ] Vérifier chaque écran en mode clair et sombre

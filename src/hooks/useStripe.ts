@@ -21,7 +21,7 @@ import {
     type SettingsHistoryEntry,
     type StripeAccountSettings
 } from '../services/StripeService';
-import { type PaymentStatus, type PayoutStatus, type StripePaymentLinkRequest } from '../types/stripeTypes';
+import { type PaymentStatus, type PayoutStatus } from '../types/stripeTypes';
 
 // Types pour nos hooks
 export interface Payment {

@@ -4,14 +4,13 @@
  */
 import React, { useState } from 'react';
 import { View, Text, ScrollView, Pressable, Switch, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { VStack, HStack } from '../components/primitives/Stack';
 import { Screen } from '../components/primitives/Screen';
 import { useAuthCheck } from '../utils/checkAuth';
 import { DESIGN_TOKENS } from '../constants/Styles';
-import { Colors } from '../constants/Colors';
+import { useTheme } from '../context/ThemeProvider';
 
 // Types et interfaces
 interface ParametersProps {
@@ -42,6 +41,7 @@ interface SettingSectionProps {
     title: string;
     icon: string;
     children: React.ReactNode;
+    colors: any;
 }
 
 interface SettingItemProps {
@@ -51,19 +51,20 @@ interface SettingItemProps {
     value: boolean;
     onToggle: (value: boolean) => void;
     color?: string;
+    colors: any;
 }
 
 // Composant SettingSection
-const SettingSection: React.FC<SettingSectionProps> = ({ title, icon, children }) => (
+const SettingSection: React.FC<SettingSectionProps> = ({ title, icon, children, colors }) => (
     <VStack
         gap="md"
         style={{
-            backgroundColor: Colors.light.backgroundSecondary,
+            backgroundColor: colors.backgroundSecondary,
             padding: DESIGN_TOKENS.spacing.lg,
             borderRadius: DESIGN_TOKENS.radius.lg,
             borderWidth: 1,
-            borderColor: Colors.light.border,
-            shadowColor: Colors.light.shadow,
+            borderColor: colors.border,
+            shadowColor: colors.shadow,
             shadowOffset: {
                 width: 0,
                 height: 2,
@@ -74,10 +75,10 @@ const SettingSection: React.FC<SettingSectionProps> = ({ title, icon, children }
         }}
     >
         <HStack gap="sm" align="center">
-            <Ionicons name={icon as any} size={24} color={Colors.light.primary} />
+            <Ionicons name={icon as any} size={24} color={colors.primary} />
             <Text
                 style={{
-                    color: Colors.light.text,
+                    color: colors.text,
                     fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
                     fontWeight: DESIGN_TOKENS.typography.subtitle.fontWeight,
                 }}
@@ -96,18 +97,21 @@ const SettingItem: React.FC<SettingItemProps> = ({
     icon, 
     value, 
     onToggle, 
-    color = Colors.light.primary 
-}) => (
+    color,
+    colors
+}) => {
+    const accentColor = color || colors.primary;
+    return (
     <HStack
         gap="md"
         align="center"
         justify="space-between"
         style={{
-            backgroundColor: Colors.light.background,
+            backgroundColor: colors.background,
             padding: DESIGN_TOKENS.spacing.md,
             borderRadius: DESIGN_TOKENS.radius.md,
             borderWidth: 1,
-            borderColor: Colors.light.border,
+            borderColor: colors.border,
             minHeight: DESIGN_TOKENS.touch.minSize + 10,
         }}
     >
@@ -116,19 +120,19 @@ const SettingItem: React.FC<SettingItemProps> = ({
                 style={{
                     width: 36,
                     height: 36,
-                    backgroundColor: `${color}15`,
+                    backgroundColor: `${accentColor}15`,
                     borderRadius: DESIGN_TOKENS.radius.sm,
                     justifyContent: 'center',
                     alignItems: 'center',
                 }}
             >
-                <Ionicons name={icon as any} size={20} color={color} />
+                <Ionicons name={icon as any} size={20} color={accentColor} />
             </View>
             
             <VStack gap="xs" style={{ flex: 1 }}>
                 <Text
                     style={{
-                        color: Colors.light.text,
+                        color: colors.text,
                         fontSize: DESIGN_TOKENS.typography.body.fontSize,
                         fontWeight: '500',
                     }}
@@ -137,7 +141,7 @@ const SettingItem: React.FC<SettingItemProps> = ({
                 </Text>
                 <Text
                     style={{
-                        color: Colors.light.textSecondary,
+                        color: colors.textSecondary,
                         fontSize: DESIGN_TOKENS.typography.caption.fontSize,
                         lineHeight: DESIGN_TOKENS.typography.caption.lineHeight,
                     }}
@@ -152,17 +156,19 @@ const SettingItem: React.FC<SettingItemProps> = ({
             value={value}
             onValueChange={onToggle}
             trackColor={{ 
-                false: Colors.light.backgroundTertiary, 
-                true: `${color}40` 
+                false: colors.backgroundTertiary, 
+                true: `${accentColor}40` 
             }}
-            thumbColor={value ? color : Colors.light.textMuted}
-            ios_backgroundColor={Colors.light.backgroundTertiary}
+            thumbColor={value ? accentColor : colors.textMuted}
+            ios_backgroundColor={colors.backgroundTertiary}
         />
     </HStack>
-);
+    );
+};
 
 const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
     const insets = useSafeAreaInsets();
+    const { colors } = useTheme();
     const { isLoading, LoadingComponent } = useAuthCheck(navigation);
     const [settings, setSettings] = useState<AppSettings>({
         notifications: {
@@ -248,28 +254,28 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
                 paddingTop: insets.top + DESIGN_TOKENS.spacing.sm,
                 paddingHorizontal: DESIGN_TOKENS.spacing.lg,
                 paddingBottom: DESIGN_TOKENS.spacing.sm,
-                backgroundColor: Colors.light.background,
+                backgroundColor: colors.background,
             }}>
                 <HStack gap="md" align="center" justify="space-between">
                     <Pressable
                         onPress={() => navigation?.goBack()}
                         style={({ pressed }) => ({
-                            backgroundColor: pressed ? Colors.light.backgroundTertiary : Colors.light.backgroundSecondary,
+                            backgroundColor: pressed ? colors.backgroundTertiary : colors.backgroundSecondary,
                             width: DESIGN_TOKENS.touch.minSize,
                             height: DESIGN_TOKENS.touch.minSize,
                             borderRadius: DESIGN_TOKENS.radius.md,
                             justifyContent: 'center',
                             alignItems: 'center',
                             borderWidth: 1,
-                            borderColor: Colors.light.border,
+                            borderColor: colors.border,
                         })}
                     >
-                        <Ionicons name="arrow-back" size={24} color={Colors.light.text} />
+                        <Ionicons name="arrow-back" size={24} color={colors.text} />
                     </Pressable>
                     
                     <Text
                         style={{
-                            color: Colors.light.text,
+                            color: colors.text,
                             fontSize: DESIGN_TOKENS.typography.title.fontSize,
                             fontWeight: DESIGN_TOKENS.typography.title.fontWeight,
                         }}
@@ -280,12 +286,12 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
                     <Pressable
                         onPress={resetSettings}
                         style={({ pressed }) => ({
-                            backgroundColor: pressed ? Colors.light.errorLight : 'transparent',
+                            backgroundColor: pressed ? colors.errorLight : 'transparent',
                             padding: DESIGN_TOKENS.spacing.xs,
                             borderRadius: DESIGN_TOKENS.radius.sm,
                         })}
                     >
-                        <Ionicons name="refresh" size={24} color={Colors.light.error} />
+                        <Ionicons name="refresh" size={24} color={colors.error} />
                     </Pressable>
                 </HStack>
             </View>
@@ -302,102 +308,102 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
             >
                 <VStack gap="lg">
                     {/* Notifications Section */}
-                    <SettingSection title="Notifications" icon="notifications-outline">
-                        <SettingItem
+                    <SettingSection colors={colors} title="Notifications" icon="notifications-outline">
+                        <SettingItem colors={colors}
                             label="Push Notifications"
                             description="Receive push notifications for important updates"
                             icon="phone-portrait-outline"
                             value={settings.notifications.pushNotifications}
                             onToggle={(value) => updateSetting('notifications', 'pushNotifications', value)}
-                            color={Colors.light.primary}
+                            color={colors.primary}
                         />
-                        <SettingItem
+                        <SettingItem colors={colors}
                             label="Email Notifications"
                             description="Get notified via email about task assignments"
                             icon="mail-outline"
                             value={settings.notifications.emailNotifications}
                             onToggle={(value) => updateSetting('notifications', 'emailNotifications', value)}
-                            color={Colors.light.info}
+                            color={colors.info}
                         />
-                        <SettingItem
+                        <SettingItem colors={colors}
                             label="SMS Notifications"
                             description="Receive SMS alerts for urgent tasks"
                             icon="chatbox-outline"
                             value={settings.notifications.smsNotifications}
                             onToggle={(value) => updateSetting('notifications', 'smsNotifications', value)}
-                            color={Colors.light.warning}
+                            color={colors.warning}
                         />
-                        <SettingItem
+                        <SettingItem colors={colors}
                             label="Task Reminders"
                             description="Get reminded about upcoming task deadlines"
                             icon="alarm-outline"
                             value={settings.notifications.taskReminders}
                             onToggle={(value) => updateSetting('notifications', 'taskReminders', value)}
-                            color={Colors.light.success}
+                            color={colors.success}
                         />
                     </SettingSection>
 
                     {/* Preferences Section */}
-                    <SettingSection title="Preferences" icon="options-outline">
-                        <SettingItem
+                    <SettingSection colors={colors} title="Preferences" icon="options-outline">
+                        <SettingItem colors={colors}
                             label="Dark Mode"
                             description="Switch to dark theme for better night viewing"
                             icon="moon-outline"
                             value={settings.preferences.darkMode}
                             onToggle={(value) => updateSetting('preferences', 'darkMode', value)}
-                            color={Colors.light.textSecondary}
+                            color={colors.textSecondary}
                         />
-                        <SettingItem
+                        <SettingItem colors={colors}
                             label="Auto Sync"
                             description="Automatically sync data when connected"
                             icon="sync-outline"
                             value={settings.preferences.autoSync}
                             onToggle={(value) => updateSetting('preferences', 'autoSync', value)}
-                            color={Colors.light.primary}
+                            color={colors.primary}
                         />
-                        <SettingItem
+                        <SettingItem colors={colors}
                             label="Offline Mode"
                             description="Allow app to work without internet connection"
                             icon="cloud-offline-outline"
                             value={settings.preferences.offlineMode}
                             onToggle={(value) => updateSetting('preferences', 'offlineMode', value)}
-                            color={Colors.light.warning}
+                            color={colors.warning}
                         />
-                        <SettingItem
+                        <SettingItem colors={colors}
                             label="Sound Effects"
                             description="Play sounds for app interactions and notifications"
                             icon="volume-high-outline"
                             value={settings.preferences.soundEnabled}
                             onToggle={(value) => updateSetting('preferences', 'soundEnabled', value)}
-                            color={Colors.light.info}
+                            color={colors.info}
                         />
                     </SettingSection>
 
                     {/* Privacy Section */}
-                    <SettingSection title="Privacy & Security" icon="shield-outline">
-                        <SettingItem
+                    <SettingSection colors={colors} title="Privacy & Security" icon="shield-outline">
+                        <SettingItem colors={colors}
                             label="Share Location"
                             description="Allow app to access and share your location data"
                             icon="location-outline"
                             value={settings.privacy.shareLocation}
                             onToggle={(value) => updateSetting('privacy', 'shareLocation', value)}
-                            color={Colors.light.error}
+                            color={colors.error}
                         />
-                        <SettingItem
+                        <SettingItem colors={colors}
                             label="Analytics"
                             description="Share usage analytics to help improve the app"
                             icon="analytics-outline"
                             value={settings.privacy.shareAnalytics}
                             onToggle={(value) => updateSetting('privacy', 'shareAnalytics', value)}
-                            color={Colors.light.info}
+                            color={colors.info}
                         />
-                        <SettingItem
+                        <SettingItem colors={colors}
                             label="Biometric Authentication"
                             description="Use fingerprint or face ID for secure access"
                             icon="finger-print-outline"
                             value={settings.privacy.biometricAuth}
                             onToggle={(value) => updateSetting('privacy', 'biometricAuth', value)}
-                            color={Colors.light.success}
+                            color={colors.success}
                         />
                     </SettingSection>
                 </VStack>
