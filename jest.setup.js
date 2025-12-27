@@ -31,16 +31,16 @@ global.fetch = jest.fn();
 jest.mock('react-native/Libraries/Utilities/DevSettings', () => ({
   addMenuItem: jest.fn(),
   reload: jest.fn(),
-}));
+}), { virtual: true });
 
-// Mock NativeDevMenu
+// Mock NativeDevMenu (virtual: true car le module peut ne pas exister)
 jest.mock('react-native/src/private/specs_DEPRECATED/modules/NativeDevMenu', () => ({
   show: jest.fn(),
   reload: jest.fn(),
   debugRemotely: jest.fn(),
   setProfilingEnabled: jest.fn(),
   setHotLoadingEnabled: jest.fn(),
-}));
+}), { virtual: true });
 
 // Mock src/services/api if it doesn't exist
 jest.mock('./src/services/api', () => ({
