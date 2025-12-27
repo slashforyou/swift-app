@@ -8,8 +8,10 @@ export const ServerData = {
     
     /**
      * The API key is used to authenticate the user with the server.
+     * ⚠️ NOTE: This is a placeholder. In production, API keys should be:
+     * - Stored in environment variables (.env)
+     * - Never committed to version control
+     * - Managed via secure secrets management
      */
-
-    // TODO - Replace 'your-api-key-here' with your actual API key.
     apiKey: 'your-api-key-here',
 };

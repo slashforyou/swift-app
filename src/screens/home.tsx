@@ -217,7 +217,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             
             {__DEV__ && (
                 <Pressable
-                    onPress={() => {/* TODO: Ouvrir modal DevTools */}}
+                    onPress={() => {
+                        // DevTools button - placeholder for future dev tooling
+                        console.log('🔧 DevTools button pressed');
+                    }}
                     style={({ pressed }) => ({
                         position: 'absolute',
                         bottom: insets.bottom + DESIGN_TOKENS.spacing.lg,

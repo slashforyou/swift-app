@@ -55,7 +55,7 @@ function convertTimerDataToAPI(timerData: JobTimerData): TimerSyncData {
     startedAt: new Date(step.startTime).toISOString(),
     completedAt: step.endTime ? new Date(step.endTime).toISOString() : undefined,
     durationMs: step.duration || 0,
-    breakMs: 0 // TODO: Calculer breaks par step si nécessaire
+    breakMs: 0 // Note: Breaks per step not implemented (deprecated service)
   }));
 
   return {

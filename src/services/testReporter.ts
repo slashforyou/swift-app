@@ -4,9 +4,19 @@
  * Capture screenshots, logs et métriques des tests automatisés
  */
 
+import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { simpleSessionLogger } from './simpleSessionLogger';
 import { TestEvent, TestResult, TestSession } from './testController';
+
+// Helper pour obtenir la version de l'app de manière sécurisée
+const getAppVersion = (): string => {
+  try {
+    return Constants.expoConfig?.version || Constants.manifest?.version || '1.0.0';
+  } catch {
+    return '1.0.0';
+  }
+};
 
 interface TestReport {
   sessionId: string;
@@ -61,7 +71,7 @@ class TestReporter {
       sessionId: session.sessionId,
       startTime: session.startTime,
       platform: Platform.OS,
-      appVersion: '1.0.0', // TODO: Get from package.json safely
+      appVersion: getAppVersion(),
       totalCommands: 0,
       successfulCommands: 0,
       failedCommands: 0,
@@ -223,7 +233,8 @@ class TestReporter {
       simpleSessionLogger.logInfo(`Screenshot captured: ${description || screenshotPath}`, 'screenshot');
       
       return screenshotPath;
-    } catch (error: any) {
+    } catch (error: any) {
+
       simpleSessionLogger.logError('Failed to capture screenshot', error, 'screenshot');
       throw error;
     }

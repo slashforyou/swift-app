@@ -273,7 +273,13 @@ export const useStripeReports = (filters: ReportsFilters) => {
         return false;
       }
 
-      // TODO: Filtre par période/dates
+      // Filtre par période/dates
+      if (filters.startDate && new Date(transaction.createdAt) < filters.startDate) {
+        return false;
+      }
+      if (filters.endDate && new Date(transaction.createdAt) > filters.endDate) {
+        return false;
+      }
       
       return true;
     });

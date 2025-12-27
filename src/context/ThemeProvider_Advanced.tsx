@@ -8,8 +8,8 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Appearance, ColorSchemeName } from 'react-native';
 import { Colors } from '../constants/Colors';
 
-// Utilisation direct des couleurs existantes pour éviter les conflits
-// TODO: Refactoriser quand le système de couleurs sera unifié
+// ✅ Système de couleurs unifié via DESIGN_TOKENS et Colors
+// Voir DESIGN_SYSTEM_GUIDE.md pour la documentation complète
 
 // ============================================================================
 // TYPES
@@ -284,7 +284,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (savedMode && ['light', 'dark', 'auto'].includes(savedMode)) {
           setThemeMode(savedMode as ThemeMode);
         }
-      } catch (error) {
+      } catch (error) {
+
         console.warn('Failed to load theme from storage:', error);
       }
     };
@@ -306,7 +307,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setThemeMode(mode);
     try {
       await AsyncStorage.setItem(STORAGE_KEY, mode);
-    } catch (error) {
+    } catch (error) {
+
       console.warn('Failed to save theme to storage:', error);
     }
   };

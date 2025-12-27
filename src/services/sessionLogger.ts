@@ -309,11 +309,14 @@ class SessionLogger {
         throw new Error('No log file to share');
       }
 
-      // Sur Android/iOS, on peut utiliser Share ou autre méthode
-      // Pour l'instant, on log juste le chemin
-      // TEMP_DISABLED: console.log('📄 [SESSION-LOG] Log file available at:', this.logFilePath);
+      // Log file path pour debug
+      console.log('📄 [SESSION-LOG] Log file available at:', this.logFilePath);
       
-      // TODO: Implémenter sharing avec react-native-share ou expo-sharing
+      // Note: Pour implémenter le partage, installer expo-sharing:
+      // npx expo install expo-sharing
+      // import * as Sharing from 'expo-sharing';
+      // await Sharing.shareAsync(this.logFilePath);
+      
       return;
     } catch (error) {
 

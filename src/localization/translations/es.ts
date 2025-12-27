@@ -322,7 +322,7 @@ export const esTranslations = {
         },
     },
 
-    // TODO: Add complete translations
+    // Note: Spanish translations are partial - extend as needed for full i18n support
     payment: {
         missingInfo: { title: 'Información faltante', message: 'Complete todos los campos.' },
         errors: { 

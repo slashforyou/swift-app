@@ -300,11 +300,17 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
             
             // Mise à jour des données avec les vraies données de l'API transformées
             setJob((prevJob: any) => {
+                // Déterminer le template basé sur les données du job
                 let jobTemplate = JobTemplate.SIMPLE_MOVE; // Par défaut
                 
-                // TODO: Logique pour déterminer le template depuis l'API
-                // Exemple: if (jobDetails.job?.has_storage) jobTemplate = JobTemplate.WITH_STORAGE;
-                // Exemple: if (jobDetails.addresses?.length > 2) jobTemplate = JobTemplate.MULTI_STOP;
+                // Template avec stockage si has_storage est true
+                if (jobDetails.job?.has_storage) {
+                    jobTemplate = JobTemplate.WITH_STORAGE;
+                }
+                // Template multi-stop si plus de 2 adresses
+                else if (jobDetails.addresses && jobDetails.addresses.length > 2) {
+                    jobTemplate = JobTemplate.MULTI_STOP;
+                }
                 
                 const dynamicSteps = getTemplateSteps(jobTemplate);
                 
