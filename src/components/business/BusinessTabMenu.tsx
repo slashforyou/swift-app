@@ -111,7 +111,7 @@ const BusinessTabMenu: React.FC<BusinessTabMenuProps> = ({
       lineHeight: 14,
     },
     tabLabelActive: {
-      color: '#FF9500', // Orange pour cohérence avec JobDetails
+      color: colors.primary,
     },
     tabLabelInactive: {
       color: colors.textSecondary,
@@ -146,7 +146,7 @@ const BusinessTabMenu: React.FC<BusinessTabMenuProps> = ({
               <Ionicons
                 name={tab.icon as any}
                 size={24}
-                color={isActive ? '#FF9500' : colors.textSecondary}
+                color={isActive ? colors.primary : colors.textSecondary}
               />
             </View>
             <Text

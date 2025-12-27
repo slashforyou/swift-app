@@ -133,7 +133,7 @@ const AddVehicleModal: React.FC<AddVehicleModalProps> = ({
       marginBottom: DESIGN_TOKENS.spacing.sm,
     },
     requiredStar: {
-      color: colors.error || '#EF4444',
+      color: colors.error,
     },
     input: {
       borderWidth: 1,
@@ -146,11 +146,11 @@ const AddVehicleModal: React.FC<AddVehicleModalProps> = ({
       backgroundColor: colors.background,
     },
     inputError: {
-      borderColor: colors.error || '#EF4444',
+      borderColor: colors.error,
     },
     errorText: {
       fontSize: 12,
-      color: colors.error || '#EF4444',
+      color: colors.error,
       marginTop: DESIGN_TOKENS.spacing.xs,
     },
     typeCard: {

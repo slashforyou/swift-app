@@ -104,11 +104,11 @@ export default function StaffCrewScreen() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return '#10B981'
+        return colors.success
       case 'inactive':
-        return '#6B7280'
+        return colors.textMuted
       case 'pending':
-        return '#F59E0B'
+        return colors.warning
       default:
         return colors.textSecondary
     }
@@ -180,7 +180,7 @@ export default function StaffCrewScreen() {
               </Text>
             </View>
             <View style={styles.statItem}>
-              <Ionicons name="person" size={24} color="#10B981" />
+              <Ionicons name="person" size={24} color={colors.success} />
               <Text testID="stat-employees-value" style={[styles.statValue, { color: colors.text }]}>
                 {totalEmployees}
               </Text>
@@ -189,7 +189,7 @@ export default function StaffCrewScreen() {
               </Text>
             </View>
             <View style={styles.statItem}>
-              <Ionicons name="briefcase" size={24} color="#8B5CF6" />
+              <Ionicons name="briefcase" size={24} color={colors.info} />
               <Text testID="stat-contractors-value" style={[styles.statValue, { color: colors.text }]}>
                 {totalContractors}
               </Text>
@@ -198,7 +198,7 @@ export default function StaffCrewScreen() {
               </Text>
             </View>
             <View style={styles.statItem}>
-              <Ionicons name="cash" size={24} color="#F59E0B" />
+              <Ionicons name="cash" size={24} color={colors.warning} />
               <Text testID="stat-avgrate-value" style={[styles.statValue, { color: colors.text }]}>
                 ${averageEmployeeRate.toFixed(0)}
               </Text>
@@ -215,7 +215,7 @@ export default function StaffCrewScreen() {
           style={[styles.addButton, { backgroundColor: colors.primary }]}
           onPress={handleAddStaff}
         >
-          <Ionicons name="add-circle" size={24} color="#FFFFFF" />
+          <Ionicons name="add-circle" size={24} color={colors.buttonPrimaryText} />
           <Text style={styles.addButtonText}>{t('staff.actions.add')}</Text>
         </Pressable>
 
@@ -234,7 +234,7 @@ export default function StaffCrewScreen() {
               style={[
                 styles.filterButtonText,
                 { color: colors.text },
-                filterType === 'all' && { color: '#FFFFFF' },
+                filterType === 'all' && { color: colors.buttonPrimaryText },
               ]}
             >
               {t('staff.filters.all')} ({staff.length})
@@ -253,7 +253,7 @@ export default function StaffCrewScreen() {
               style={[
                 styles.filterButtonText,
                 { color: colors.text },
-                filterType === 'employee' && { color: '#FFFFFF' },
+                filterType === 'employee' && { color: colors.buttonPrimaryText },
               ]}
             >
               {t('staff.filters.employees')} ({totalEmployees})
@@ -272,7 +272,7 @@ export default function StaffCrewScreen() {
               style={[
                 styles.filterButtonText,
                 { color: colors.text },
-                filterType === 'contractor' && { color: '#FFFFFF' },
+                filterType === 'contractor' && { color: colors.buttonPrimaryText },
               ]}
             >
               {t('staff.filters.contractors')} ({totalContractors})
@@ -282,8 +282,8 @@ export default function StaffCrewScreen() {
 
         {/* Message d'erreur */}
         {error && (
-          <View testID="error-message" style={[styles.errorContainer, { backgroundColor: '#FEE2E2' }]}>
-            <Ionicons name="alert-circle" size={20} color="#DC2626" />
+          <View testID="error-message" style={[styles.errorContainer, { backgroundColor: colors.errorBanner }]}>
+            <Ionicons name="alert-circle" size={20} color={colors.error} />
             <Text style={styles.errorText}>{error}</Text>
           </View>
         )}
@@ -315,14 +315,14 @@ export default function StaffCrewScreen() {
                         styles.staffTypeIcon,
                         {
                           backgroundColor:
-                            member.type === 'employee' ? '#10B98120' : '#8B5CF620',
+                            member.type === 'employee' ? colors.success + '20' : colors.info + '20',
                         },
                       ]}
                     >
                       <Ionicons
                         name={getTypeIcon(member.type)}
                         size={20}
-                        color={member.type === 'employee' ? '#10B981' : '#8B5CF6'}
+                        color={member.type === 'employee' ? colors.success : colors.info}
                       />
                     </View>
                     <View>
@@ -431,11 +431,11 @@ export default function StaffCrewScreen() {
                   </Pressable>
                   <Pressable
                     testID={`remove-button-${member.id}`}
-                    style={[styles.actionButton, { backgroundColor: '#DC262620' }]}
+                    style={[styles.actionButton, { backgroundColor: colors.error + '20' }]}
                     onPress={() => handleRemoveStaff(member)}
                   >
-                    <Ionicons name="trash-outline" size={20} color="#DC2626" />
-                    <Text style={[styles.actionButtonText, { color: '#DC2626' }]}>
+                    <Ionicons name="trash-outline" size={20} color={colors.error} />
+                    <Text style={[styles.actionButtonText, { color: colors.error }]}>
                       {t('staff.actions.remove')}
                     </Text>
                   </Pressable>

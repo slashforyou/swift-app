@@ -184,7 +184,7 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
       marginBottom: DESIGN_TOKENS.spacing.sm,
     },
     requiredStar: {
-      color: colors.error || '#EF4444',
+      color: colors.error,
     },
     input: {
       borderWidth: 1,
@@ -201,11 +201,11 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
       textAlignVertical: 'top',
     },
     inputError: {
-      borderColor: colors.error || '#EF4444',
+      borderColor: colors.error,
     },
     errorText: {
       fontSize: 12,
-      color: colors.error || '#EF4444',
+      color: colors.error,
       marginTop: DESIGN_TOKENS.spacing.xs,
     },
     jobTypeButton: {
@@ -321,7 +321,7 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
     },
     deleteButtonText: {
       fontSize: 18,
-      color: colors.error || '#EF4444',
+      color: colors.error,
       fontWeight: '600',
     },
     addItemButton: {
