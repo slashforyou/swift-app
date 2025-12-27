@@ -155,13 +155,13 @@ export default function VehicleDetailsScreen({
   }
 
   const getStatusColor = (status: Vehicle['status']): { bg: string; text: string } => {
-    const colors = {
-      available: { bg: '#10B981', text: '#10B981' },
-      'in-use': { bg: '#F59E0B', text: '#F59E0B' },
-      maintenance: { bg: '#EF4444', text: '#EF4444' },
-      'out-of-service': { bg: '#6B7280', text: '#6B7280' },
+    const statusColors = {
+      available: { bg: colors.success, text: colors.success },
+      'in-use': { bg: colors.warning, text: colors.warning },
+      maintenance: { bg: colors.error, text: colors.error },
+      'out-of-service': { bg: colors.textSecondary, text: colors.textSecondary },
     }
-    return colors[status] || colors['out-of-service']
+    return statusColors[status] || statusColors['out-of-service']
   }
 
   const getStatusLabel = (status: Vehicle['status']): string => {
@@ -185,13 +185,13 @@ export default function VehicleDetailsScreen({
   }
 
   const getMaintenanceTypeColor = (type: MaintenanceRecord['type']): string => {
-    const colors = {
-      routine: '#10B981',
-      repair: '#EF4444',
-      inspection: '#F59E0B',
-      emergency: '#DC2626',
+    const maintenanceColors: Record<string, string> = {
+      routine: colors.success,
+      repair: colors.error,
+      inspection: colors.warning,
+      emergency: colors.error,
     }
-    return colors[type] || '#6B7280'
+    return maintenanceColors[type] || colors.textSecondary
   }
 
   const handleUpdateVehicle = async (data: VehicleEditData) => {
@@ -319,7 +319,7 @@ export default function VehicleDetailsScreen({
             borderRadius: 8,
           }}
         >
-          <Text style={{ color: '#FFFFFF', fontWeight: '600' }}>Retry</Text>
+          <Text style={{ color: colors.background, fontWeight: '600' }}>Retry</Text>
         </Pressable>
       </View>
     )
@@ -542,8 +542,8 @@ export default function VehicleDetailsScreen({
               style={[styles.actionCard, { backgroundColor: colors.backgroundSecondary }]}
               onPress={handleDelete}
             >
-              <Ionicons name="trash-outline" size={24} color="#EF4444" />
-              <Text style={[styles.actionText, { color: '#EF4444' }]}>Delete</Text>
+              <Ionicons name="trash-outline" size={24} color={colors.error} />
+              <Text style={[styles.actionText, { color: colors.error }]}>Delete</Text>
             </Pressable>
           </View>
         </View>

@@ -169,7 +169,7 @@ export default function EditStaffModal({
             style={[styles.saveButton, { backgroundColor: colors.primary }]}
           >
             {isLoading ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
+              <ActivityIndicator size="small" color={colors.background} />
             ) : (
               <Text style={styles.saveButtonText}>Enregistrer</Text>
             )}
@@ -179,15 +179,15 @@ export default function EditStaffModal({
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
           {/* Type indicator */}
           <View style={[styles.typeIndicator, { 
-            backgroundColor: member.type === 'employee' ? '#10B98120' : '#8B5CF620' 
+            backgroundColor: member.type === 'employee' ? `${colors.success}20` : `${colors.info}20` 
           }]}>
             <Ionicons 
               name={member.type === 'employee' ? 'person' : 'briefcase'} 
               size={24} 
-              color={member.type === 'employee' ? '#10B981' : '#8B5CF6'} 
+              color={member.type === 'employee' ? colors.success : colors.info} 
             />
             <Text style={[styles.typeText, { 
-              color: member.type === 'employee' ? '#10B981' : '#8B5CF6' 
+              color: member.type === 'employee' ? colors.success : colors.info 
             }]}>
               {member.type === 'employee' ? 'Employé (TFN)' : 'Prestataire (ABN)'}
             </Text>
@@ -283,7 +283,7 @@ export default function EditStaffModal({
                   style={[
                     styles.optionChipText,
                     { color: colors.text },
-                    role === r && { color: '#FFFFFF' },
+                    role === r && { color: colors.background },
                   ]}
                 >
                   {r}
@@ -312,7 +312,7 @@ export default function EditStaffModal({
                   style={[
                     styles.optionChipText,
                     { color: colors.text },
-                    team === t && { color: '#FFFFFF' },
+                    team === t && { color: colors.background },
                   ]}
                 >
                   {t}
@@ -333,16 +333,16 @@ export default function EditStaffModal({
                   styles.statusChip,
                   { backgroundColor: colors.backgroundSecondary },
                   status === s && { 
-                    backgroundColor: s === 'active' ? '#10B98120' : 
-                                     s === 'pending' ? '#F59E0B20' : '#6B728020'
+                    backgroundColor: s === 'active' ? `${colors.success}20` : 
+                                     s === 'pending' ? `${colors.warning}20` : `${colors.textSecondary}20`
                   },
                 ]}
                 onPress={() => setStatus(s)}
               >
                 <View style={[
                   styles.statusDot,
-                  { backgroundColor: s === 'active' ? '#10B981' : 
-                                    s === 'pending' ? '#F59E0B' : '#6B7280' }
+                  { backgroundColor: s === 'active' ? colors.success : 
+                                    s === 'pending' ? colors.warning : colors.textSecondary }
                 ]} />
                 <Text
                   style={[
@@ -434,7 +434,7 @@ export default function EditStaffModal({
                     style={[
                       styles.statusChip,
                       { backgroundColor: colors.backgroundSecondary },
-                      contractStatus === cs && { backgroundColor: '#8B5CF620' },
+                      contractStatus === cs && { backgroundColor: `${colors.info}20` },
                     ]}
                     onPress={() => setContractStatus(cs)}
                   >
@@ -442,7 +442,7 @@ export default function EditStaffModal({
                       style={[
                         styles.statusChipText,
                         { color: colors.text },
-                        contractStatus === cs && { color: '#8B5CF6' },
+                        contractStatus === cs && { color: colors.info },
                       ]}
                     >
                       {cs === 'standard' ? 'Standard' : 

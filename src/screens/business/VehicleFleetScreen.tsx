@@ -123,7 +123,7 @@ const VehicleFleetScreen: React.FC = () => {
               styles.filterText,
               { 
                 color: selectedFilter === filter.key 
-                  ? '#FFFFFF'
+                  ? colors.background
                   : colors.text 
               }
             ]}>
@@ -151,7 +151,7 @@ const VehicleFleetScreen: React.FC = () => {
         </View>
         
         <View style={[styles.statCard, { backgroundColor: colors.backgroundSecondary }]}>
-          <Text style={[styles.statNumber, { color: '#28a745' }]}>
+          <Text style={[styles.statNumber, { color: colors.success }]}>
             {displayStats.available}
           </Text>
           <Text style={[styles.statLabel, { color: colors.text }]}>
@@ -162,7 +162,7 @@ const VehicleFleetScreen: React.FC = () => {
 
       <HStack style={styles.statsRow}>
         <View style={[styles.statCard, { backgroundColor: colors.backgroundSecondary }]}>
-          <Text style={[styles.statNumber, { color: '#ffc107' }]}>
+          <Text style={[styles.statNumber, { color: colors.warning }]}>
             {displayStats.maintenance}
           </Text>
           <Text style={[styles.statLabel, { color: colors.text }]}>
@@ -171,7 +171,7 @@ const VehicleFleetScreen: React.FC = () => {
         </View>
         
         <View style={[styles.statCard, { backgroundColor: colors.backgroundSecondary }]}>
-          <Text style={[styles.statNumber, { color: '#6c757d' }]}>
+          <Text style={[styles.statNumber, { color: colors.textSecondary }]}>
             {displayStats.outOfService}
           </Text>
           <Text style={[styles.statLabel, { color: colors.text }]}>
@@ -186,12 +186,13 @@ const VehicleFleetScreen: React.FC = () => {
    * Composant de véhicule
    */
   const renderVehicle = (vehicle: BusinessVehicle) => {
-    const statusColor = {
-      'available': '#28a745',
-      'in-use': '#007bff', 
-      'maintenance': '#ffc107',
-      'out-of-service': '#6c757d'
-    }[vehicle.status];
+    const statusColorMap: Record<string, string> = {
+      'available': colors.success,
+      'in-use': colors.info, 
+      'maintenance': colors.warning,
+      'out-of-service': colors.textSecondary
+    };
+    const statusColor = statusColorMap[vehicle.status] || colors.textSecondary;
 
     return (
       <View key={vehicle.id} style={[styles.vehicleCard, { backgroundColor: colors.backgroundSecondary }]}>
@@ -267,7 +268,7 @@ const VehicleFleetScreen: React.FC = () => {
           onPress={handleAddVehicle}
           disabled={isCreating}
         >
-          <Text style={[styles.addButtonText, { color: '#FFFFFF' }]}>
+          <Text style={[styles.addButtonText, { color: colors.background }]}>
             {isCreating ? 'Adding...' : '+ Add Vehicle'}
           </Text>
         </TouchableOpacity>

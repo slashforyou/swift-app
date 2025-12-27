@@ -148,7 +148,8 @@ export default function EditVehicleModal({
 
       await onUpdateVehicle(updatedVehicle)
       onClose()
-    } catch (error) {
+    } catch (error) {
+
       Alert.alert('Error', 'Failed to update vehicle')
     } finally {
       setIsLoading(false)
@@ -246,7 +247,7 @@ export default function EditVehicleModal({
                       style={[
                         styles.optionText,
                         { color: colors.text },
-                        selectedMake === make && { color: '#FFFFFF' },
+                        selectedMake === make && { color: colors.background },
                       ]}
                     >
                       {make}
@@ -271,7 +272,7 @@ export default function EditVehicleModal({
                 {
                   backgroundColor: colors.backgroundSecondary,
                   color: colors.text,
-                  borderColor: errors.model ? '#EF4444' : 'transparent',
+                  borderColor: errors.model ? colors.error : 'transparent',
                 },
               ]}
               placeholder="Enter model"
@@ -298,7 +299,7 @@ export default function EditVehicleModal({
                 {
                   backgroundColor: colors.backgroundSecondary,
                   color: colors.text,
-                  borderColor: errors.year ? '#EF4444' : 'transparent',
+                  borderColor: errors.year ? colors.error : 'transparent',
                 },
               ]}
               placeholder="YYYY"
@@ -327,7 +328,7 @@ export default function EditVehicleModal({
                 {
                   backgroundColor: colors.backgroundSecondary,
                   color: colors.text,
-                  borderColor: errors.registration ? '#EF4444' : 'transparent',
+                  borderColor: errors.registration ? colors.error : 'transparent',
                 },
               ]}
               placeholder="Enter registration number"
@@ -378,7 +379,7 @@ export default function EditVehicleModal({
                 {
                   backgroundColor: colors.backgroundSecondary,
                   color: colors.text,
-                  borderColor: errors.nextService ? '#EF4444' : 'transparent',
+                  borderColor: errors.nextService ? colors.error : 'transparent',
                 },
               ]}
               placeholder="YYYY-MM-DD"
@@ -424,7 +425,7 @@ export default function EditVehicleModal({
                       style={[
                         styles.optionText,
                         { color: colors.text },
-                        selectedLocation === location && { color: '#FFFFFF' },
+                        selectedLocation === location && { color: colors.background },
                       ]}
                     >
                       {location}
@@ -459,7 +460,7 @@ export default function EditVehicleModal({
             disabled={isLoading}
           >
             {isLoading ? (
-              <ActivityIndicator color="#FFFFFF" />
+              <ActivityIndicator color={colors.background} />
             ) : (
               <Text style={styles.submitButtonText}>Update Vehicle</Text>
             )}
