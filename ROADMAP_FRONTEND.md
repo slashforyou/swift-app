@@ -58,15 +58,17 @@ Cette roadmap résume les actions prioritaires pour améliorer la cohérence vis
 - `src/components/home/TodaySection.tsx` ✅
 - `src/components/CardForm.tsx` ✅
 
-### 1.4 Créer un guide d'intégration
-**Priorité : Moyenne** | **Statut : À faire**
+### 1.4 Créer un guide d'intégration ✅
+**Priorité : Moyenne** | **Statut : TERMINÉ**
 
-- [ ] Documenter les bonnes pratiques d'utilisation du design system
-- [ ] Expliquer la prise en charge du mode sombre
-- [ ] Créer des exemples de code pour :
+- [x] Documenter les bonnes pratiques d'utilisation du design system
+- [x] Expliquer la prise en charge du mode sombre
+- [x] Créer des exemples de code pour :
   - Utilisation des tokens
   - Hooks de thème
   - Primitives UI
+
+**Document créé :** `DESIGN_SYSTEM_INTEGRATION_GUIDE.md`
 
 ### 1.5 Tests visuels Light/Dark
 **Priorité : Moyenne** | **Statut : À faire**
