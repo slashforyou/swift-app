@@ -5,7 +5,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useEffect, useState } from 'react';
-import { completeJob, startJob, updateJobStep } from '../services/jobSteps'; // ✅ FIX: Utiliser les endpoints qui fonctionnent
+import { completeJob, updateJobStep } from '../services/jobSteps';
 import { timerLogger } from '../utils/logger';
 
 export interface JobStepTime {
@@ -122,8 +122,8 @@ export const useJobTimer = (
                         
                         setTimerData(correctedTimer);
                         
-                        // Sync to API - utiliser startJob qui fonctionne
-                        startJob(jobId)
+                        // Sync to API - utiliser updateJobStep pour démarrer
+                        updateJobStep(jobId, 1, 'Timer auto-started')
                             .then(() => {
                                 // TEMP_DISABLED: console.log('✅ [useJobTimer] Timer auto-started and synced to API');
                             })
@@ -201,8 +201,8 @@ export const useJobTimer = (
         setTimerData(updatedData);
         saveTimerData(updatedData);
 
-        // ✅ FIX: Synchroniser le démarrage avec startJob qui fonctionne
-        startJob(jobId)
+        // ✅ FIX: Synchroniser le démarrage avec updateJobStep
+        updateJobStep(jobId, 1, 'Timer started')
             .then(() => {
                 // TEMP_DISABLED: console.log('✅ [useJobTimer] Timer started and synced to API');
             })
@@ -307,10 +307,7 @@ export const useJobTimer = (
         // ✅ NOUVEAU: Synchroniser avec l'API
         if (isLastStep) {
             // Si c'est la dernière étape, compléter le job
-            const costData = calculateCost(Math.max(0, finalElapsedTime - (timerData.totalBreakTime || 0)));
-            const notes = `Job terminé - ${costData.hours.toFixed(2)}h facturables - ${costData.cost}€`;
-            
-            completeJob(jobId, notes)
+            completeJob(jobId)
                 .then(() => {
                     // TEMP_DISABLED: console.log('✅ [useJobTimer] Job completed and synced to API');
                 })

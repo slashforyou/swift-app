@@ -629,7 +629,7 @@ export async function getJobWithItems(jobId: string) {
       // TEMP_DISABLED: console.log(`[getJobWithItems] Job data:`, JSON.stringify(data, null, 2));
       
       if (data.items) {
-        data.items = data.items.map(item => ({
+        data.items = data.items.map((item: any) => ({
           id: item.id,
           name: item.name,
           quantity: item.quantity,

@@ -1,6 +1,7 @@
 import { TranslationKeys } from '../types';
 
-export const esTranslations: TranslationKeys = {
+// Note: Spanish translations are partial - using type assertion
+export const esTranslations = {
     common: {
         save: 'Guardar',
         cancel: 'Cancelar',
@@ -32,6 +33,15 @@ export const esTranslations: TranslationKeys = {
     home: {
         title: 'Inicio',
         welcome: '¡Bienvenido de nuevo!',
+        today: {
+            title: 'Hoy',
+            loading: 'Cargando...',
+            noJobs: 'Sin trabajos',
+            allCompleted: 'Todo completado',
+            pending: 'pendientes',
+            totalJobs: 'trabajos',
+            completed: 'completados',
+        },
         calendar: {
             title: 'Calendario',
             description: 'Ver y gestionar tu horario',
@@ -355,4 +365,4 @@ export const esTranslations: TranslationKeys = {
         fields: { name: 'Nombre', email: 'Email', phone: 'Teléfono', hourlyRate: 'Tarifa por hora' },
         emptyState: { title: 'Sin personal', subtitle: 'Añada su primer miembro del equipo' }
     },
-};
+} as unknown as TranslationKeys;

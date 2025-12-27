@@ -209,7 +209,7 @@ export default function CalendarNavigation({ navigation, route }: CalendarNaviga
           <CalendarStack.Screen 
             name="Day" 
             component={DayScreen}
-            initialParams={initialRouteName === 'Day' ? initialParams : undefined}
+            initialParams={initialRouteName === 'Day' ? initialParams as any : undefined}
             options={{
               title: t('calendar.navigation.dailyView'),
             }}
