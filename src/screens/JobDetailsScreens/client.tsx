@@ -145,9 +145,9 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
                             Client Details
                         </Text>
                         
-                        {clientInfo.map((info, index) => (
+                        {clientInfo.map((info) => (
                             <InfoRow 
-                                key={index}
+                                key={info.label}
                                 label={info.label}
                                 value={info.value}
                                 colors={colors}

@@ -385,7 +385,7 @@ const YearCalendarScreen = ({ navigation, route }: any) => {
                         
                         return (
                             <Pressable
-                                key={i}
+                                key={month}
                                 style={({ pressed }) => ({
                                     ...(isCurrentMonth ? customStyles.monthCardCurrent : customStyles.monthCard),
                                     opacity: pressed ? 0.8 : 1,

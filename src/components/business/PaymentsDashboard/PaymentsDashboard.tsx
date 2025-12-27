@@ -193,7 +193,7 @@ const QuickActionsCard: React.FC = () => {
         }}>
           {actions.map((action, index) => (
             <QuickActionButton 
-              key={index}
+              key={action.action || `action-${index}`}
               icon={action.icon}
               label={action.label}
               onPress={() => console.log(`Action: ${action.action}`)}
@@ -308,7 +308,7 @@ export const PaymentsDashboardSkeleton: React.FC = () => {
     <View style={{ padding: tokens.spacing.lg }}>
       {Array.from({ length: 3 }).map((_, index) => (
         <View
-          key={index}
+          key={`skeleton-${index}`}
           style={{
             height: 120,
             backgroundColor: colors.backgroundSecondary,

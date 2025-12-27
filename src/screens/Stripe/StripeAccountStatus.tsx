@@ -120,7 +120,7 @@ const StripeAccountStatus: React.FC<StripeAccountStatusProps> = ({
           
           {requirements.slice(0, 3).map((req, index) => (
             <Text
-              key={index}
+              key={req.description || `req-${index}`}
               style={{
                 fontSize: DESIGN_TOKENS.typography.fontSize.sm,
                 color: colors.text,

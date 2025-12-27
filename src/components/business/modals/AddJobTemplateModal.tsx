@@ -619,7 +619,8 @@ const AddJobTemplateModal: React.FC<AddJobTemplateModalProps> = ({
       onClose();
       
       Alert.alert('Success', 'Job template created successfully!');
-    } catch (error) {
+    } catch (error) {
+
       Alert.alert('Error', 'Failed to create job template. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -934,7 +935,7 @@ const AddJobTemplateModal: React.FC<AddJobTemplateModalProps> = ({
               {/* Liste des inclusions */}
               <View style={{ marginBottom: DESIGN_TOKENS.spacing.md }}>
                 {formData.inclusions.map((inclusion, index) => (
-                  <View key={index} style={styles.inclusionItem}>
+                  <View key={`inclusion-${inclusion}-${index}`} style={styles.inclusionItem}>
                     <Text style={styles.inclusionText}>{inclusion}</Text>
                     <TouchableOpacity
                       style={styles.removeButton}

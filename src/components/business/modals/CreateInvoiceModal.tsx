@@ -583,7 +583,8 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
       onClose();
       
       Alert.alert('Success', 'Invoice created successfully!');
-    } catch (error) {
+    } catch (error) {
+
       Alert.alert('Error', 'Failed to create invoice. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -940,7 +941,7 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
               <ScrollView>
                 {COMMON_SERVICES.map((service, index) => (
                   <TouchableOpacity
-                    key={index}
+                    key={service.description || `service-${index}`}
                     style={styles.serviceItem}
                     onPress={() => addItem(service)}
                   >

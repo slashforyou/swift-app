@@ -57,7 +57,7 @@ const AddressesSection: React.FC<AddressesSectionProps> = ({ job }) => {
                 <View>
                     {job.addresses.map((address: any, index: number) => (
                         <Pressable 
-                            key={index}
+                            key={address.id || `${address.street}-${index}`}
                             onPress={() => openMap(address.street, address.latitude, address.longitude)}
                             style={{
                                 padding: DESIGN_TOKENS.spacing.md,

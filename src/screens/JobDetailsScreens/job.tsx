@@ -145,7 +145,8 @@ const AddItemModal: React.FC<{
             setName('');
             setQuantity('1');
             onClose();
-        } catch (error) {
+        } catch (error) {
+
             Alert.alert('Error', 'Unable to add item. Please try again.');
         } finally {
             setIsLoading(false);
@@ -595,7 +596,8 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
                     completedQuantity: item.completedQuantity || 0
                 });
                 // TEMP_DISABLED: console.log(`[handleItemToggle] Successfully updated item ${item.id} in API`);
-            } catch (error) {
+            } catch (error) {
+
                 console.error(`[handleItemToggle] Failed to update item ${item.id} in API:`, error);
             } finally {
                 setSyncingItems(prev => {
@@ -629,7 +631,8 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
                     is_checked: item.item_checked || item.checked || false
                 });
                 // TEMP_DISABLED: console.log(`[handleQuantitySync] Successfully updated quantity for item ${item.id} in API`);
-            } catch (error) {
+            } catch (error) {
+
                 console.error(`[handleQuantitySync] Failed to update quantity for item ${item.id} in API:`, error);
             } finally {
                 setSyncingItems(prev => {
@@ -676,7 +679,8 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
             setJob(updatedJob);
             
             Alert.alert('Success', 'Item added successfully');
-        } catch (error) {
+        } catch (error) {
+
             console.error('Error adding item via API:', error);
             
             // Fallback: ajouter localement même si l'API échoue
@@ -727,12 +731,12 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
                         
                         {job.items && job.items.length > 0 ? (
                             job.items.map((item: any, index: number) => {
-                                const itemKey = `${index}-${item.id}`;
+                                const itemKey = `${index}-${item.id || item.name}`;
                                 const isSyncing = syncingItems.has(itemKey);
                                 
                                 return (
                                     <ItemRow
-                                        key={index}
+                                        key={itemKey}
                                         item={item}
                                         index={index}
                                         onToggle={handleItemToggle}
