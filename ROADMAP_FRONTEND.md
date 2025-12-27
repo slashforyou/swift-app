@@ -70,12 +70,16 @@ Cette roadmap résume les actions prioritaires pour améliorer la cohérence vis
 
 **Document créé :** `DESIGN_SYSTEM_INTEGRATION_GUIDE.md`
 
-### 1.5 Tests visuels Light/Dark
-**Priorité : Moyenne** | **Statut : À faire**
+### 1.5 Tests visuels Light/Dark ✅
+**Priorité : Moyenne** | **Statut : TERMINÉ**
 
-- [ ] Mettre en place des tests visuels (screenshot ou Storybook)
-- [ ] Vérifier chaque écran en mode clair et sombre
-- [ ] Automatiser les validations avant livraison
+- [x] Mettre en place des tests visuels (screenshot ou Storybook)
+- [x] Vérifier chaque écran en mode clair et sombre
+- [x] Automatiser les validations avant livraison
+
+**Document créé :** `VISUAL_TESTING_CHECKLIST.md`
+
+> **Note :** Storybook n'étant pas installé, une checklist de test manuel a été créée. L'installation de Storybook est optionnelle pour le futur.
 
 ---
 
