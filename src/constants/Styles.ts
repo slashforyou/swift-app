@@ -65,6 +65,31 @@ const DESIGN_TOKENS = {
     xl: 20, // Pour les modales et grandes cartes
   },
   
+  // Shadow presets - Aliasés pour compatibilité avec les écrans calendar
+  shadows: {
+    sm: {
+      shadowColor: '#020617',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.08,
+      shadowRadius: 2,
+      elevation: 1,
+    },
+    md: {
+      shadowColor: '#020617',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.12,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    lg: {
+      shadowColor: '#020617',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.16,
+      shadowRadius: 8,
+      elevation: 5,
+    },
+  },
+  
   // Touch targets - Conformité aux guidelines Apple/Material
   touch: {
     minSize: 44, // minimum pour accessibilité

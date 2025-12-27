@@ -14,43 +14,11 @@ import {
     View
 } from 'react-native';
 import CalendarHeader from '../../components/calendar/CalendarHeader';
+import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 import { useJobsForMonth } from '../../hooks/useJobsForMonth';
 import { useTranslation } from '../../localization';
 import { JobAPI } from '../../services/jobs';
-
-// Design tokens for consistent spacing and styling
-const DESIGN_TOKENS = {
-    spacing: {
-        xs: 4,
-        sm: 8,
-        md: 16,
-        lg: 24,
-        xl: 32,
-    },
-    radius: {
-        sm: 4,
-        md: 8,
-        lg: 12,
-        xl: 16,
-    },
-    shadows: {
-        sm: {
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.1,
-            shadowRadius: 2,
-            elevation: 2,
-        },
-        md: {
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.1,
-            shadowRadius: 4,
-            elevation: 3,
-        },
-    },
-};
 
 // Adapter pour normaliser les données de l'API
 const normalizeJob = (rawJob: any): JobAPI => {
@@ -147,7 +115,8 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
         // selectedMonth: selectedMonthIndex + 1,
         // jobsCount: jobs.length,
         // isLoading,
-        // hasError: !!error;
+        // hasError: !!error
+;
     // });
     
     const selectedMonth = monthList[month - 1] || new Date().toLocaleString('default', { month: 'long' });

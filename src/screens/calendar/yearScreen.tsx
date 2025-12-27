@@ -14,41 +14,9 @@ import {
     View
 } from 'react-native';
 import CalendarHeader from '../../components/calendar/CalendarHeader';
+import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 import { useTranslation } from '../../localization';
-
-// Design tokens for consistent styling
-const DESIGN_TOKENS = {
-    spacing: {
-        xs: 4,
-        sm: 8,
-        md: 16,
-        lg: 24,
-        xl: 32,
-    },
-    radius: {
-        sm: 4,
-        md: 8,
-        lg: 12,
-        xl: 16,
-    },
-    shadows: {
-        sm: {
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.1,
-            shadowRadius: 2,
-            elevation: 2,
-        },
-        md: {
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.1,
-            shadowRadius: 4,
-            elevation: 3,
-        },
-    },
-};
 
 // Mock function to get jobs statistics for a month
 const getMonthJobsStats = (month: number, year: string) => {
