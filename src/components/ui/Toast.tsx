@@ -91,33 +91,33 @@ const Toast: React.FC<ToastProps> = ({
         switch (type) {
             case 'success':
                 return {
-                    backgroundColor: '#10B981',
+                    backgroundColor: colors.success,
                     icon: 'checkmark-circle',
-                    iconColor: '#FFFFFF',
+                    iconColor: colors.background,
                 };
             case 'error':
                 return {
-                    backgroundColor: '#EF4444',
+                    backgroundColor: colors.error,
                     icon: 'alert-circle',
-                    iconColor: '#FFFFFF',
+                    iconColor: colors.background,
                 };
             case 'warning':
                 return {
-                    backgroundColor: '#F59E0B',
+                    backgroundColor: colors.warning,
                     icon: 'warning',
-                    iconColor: '#FFFFFF',
+                    iconColor: colors.background,
                 };
             case 'info':
                 return {
-                    backgroundColor: '#3B82F6',
+                    backgroundColor: colors.info,
                     icon: 'information-circle',
-                    iconColor: '#FFFFFF',
+                    iconColor: colors.background,
                 };
             default:
                 return {
                     backgroundColor: colors.primary,
                     icon: 'information-circle',
-                    iconColor: '#FFFFFF',
+                    iconColor: colors.background,
                 };
         }
     };
@@ -139,7 +139,7 @@ const Toast: React.FC<ToastProps> = ({
             flexDirection: 'row',
             alignItems: 'center',
             minHeight: 60,
-            shadowColor: '#000',
+            shadowColor: colors.text,
             shadowOffset: {
                 width: 0,
                 height: 2,
@@ -157,12 +157,12 @@ const Toast: React.FC<ToastProps> = ({
         title: {
             fontSize: 16,
             fontWeight: '700',
-            color: '#FFFFFF',
+            color: colors.background,
             marginBottom: message ? 2 : 0,
         },
         message: {
             fontSize: 14,
-            color: '#FFFFFF',
+            color: colors.background,
             opacity: 0.9,
         },
         closeButton: {
@@ -206,7 +206,7 @@ const Toast: React.FC<ToastProps> = ({
                     <Ionicons
                         name="close"
                         size={20}
-                        color="#FFFFFF"
+                        color={colors.background}
                     />
                 </Pressable>
             </Animated.View>

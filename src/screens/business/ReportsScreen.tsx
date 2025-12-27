@@ -85,7 +85,7 @@ export const ReportsScreen: React.FC<ReportsScreenProps> = ({ onBack }) => {
       alignItems: 'center' as const,
     },
     primaryButtonText: {
-      color: '#FFFFFF',
+      color: colors.background,
       fontSize: DESIGN_TOKENS.typography.body.fontSize,
       fontWeight: '600' as const,
     },
@@ -124,7 +124,8 @@ export const ReportsScreen: React.FC<ReportsScreenProps> = ({ onBack }) => {
       );
       await exportData(format);
       Alert.alert('Succès', `Rapport ${format.toUpperCase()} généré avec succès`);
-    } catch (error) {
+    } catch (error) {
+
       Alert.alert('Erreur', 'Impossible de générer le rapport');
     }
   }, [exportData]);
@@ -381,7 +382,7 @@ export const ReportsScreen: React.FC<ReportsScreenProps> = ({ onBack }) => {
                       <Text style={{
                         fontSize: 32,
                         fontWeight: '800',
-                        color: '#10B981', // Vert succès
+                        color: colors.success,
                         marginBottom: DESIGN_TOKENS.spacing.xs
                       }}>
                         {(reportsData.metrics.totalRevenue / 100).toFixed(0)}€
@@ -402,14 +403,14 @@ export const ReportsScreen: React.FC<ReportsScreenProps> = ({ onBack }) => {
                       </Text>
                     </View>
                     <View style={{
-                      backgroundColor: '#10B981',
+                      backgroundColor: colors.success,
                       borderRadius: 20,
                       width: 40,
                       height: 40,
                       justifyContent: 'center',
                       alignItems: 'center'
                     }}>
-                      <Ionicons name="trending-up" size={20} color="#FFFFFF" />
+                      <Ionicons name="trending-up" size={20} color={colors.background} />
                     </View>
                   </View>
                 </View>
@@ -461,7 +462,7 @@ export const ReportsScreen: React.FC<ReportsScreenProps> = ({ onBack }) => {
                       justifyContent: 'center',
                       alignItems: 'center'
                     }}>
-                      <Ionicons name="card" size={20} color="#FFFFFF" />
+                      <Ionicons name="card" size={20} color={colors.background} />
                     </View>
                   </View>
                 </View>
@@ -492,7 +493,7 @@ export const ReportsScreen: React.FC<ReportsScreenProps> = ({ onBack }) => {
                       <Text style={{
                         fontSize: 32,
                         fontWeight: '800',
-                        color: '#8B5CF6', // Violet
+                        color: colors.info,
                         marginBottom: DESIGN_TOKENS.spacing.xs
                       }}>
                         {reportsData.metrics.successRate.toFixed(0)}%
@@ -513,14 +514,14 @@ export const ReportsScreen: React.FC<ReportsScreenProps> = ({ onBack }) => {
                       </Text>
                     </View>
                     <View style={{
-                      backgroundColor: '#8B5CF6',
+                      backgroundColor: colors.info,
                       borderRadius: 20,
                       width: 40,
                       height: 40,
                       justifyContent: 'center',
                       alignItems: 'center'
                     }}>
-                      <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
+                      <Ionicons name="checkmark-circle" size={20} color={colors.background} />
                     </View>
                   </View>
                 </View>
@@ -544,7 +545,7 @@ export const ReportsScreen: React.FC<ReportsScreenProps> = ({ onBack }) => {
                       <Text style={{
                         fontSize: 32,
                         fontWeight: '800',
-                        color: '#F59E0B', // Orange
+                        color: colors.warning,
                         marginBottom: DESIGN_TOKENS.spacing.xs
                       }}>
                         {(reportsData.metrics.averageAmount / 100).toFixed(0)}€
@@ -565,14 +566,14 @@ export const ReportsScreen: React.FC<ReportsScreenProps> = ({ onBack }) => {
                       </Text>
                     </View>
                     <View style={{
-                      backgroundColor: '#F59E0B',
+                      backgroundColor: colors.warning,
                       borderRadius: 20,
                       width: 40,
                       height: 40,
                       justifyContent: 'center',
                       alignItems: 'center'
                     }}>
-                      <Ionicons name="stats-chart" size={20} color="#FFFFFF" />
+                      <Ionicons name="stats-chart" size={20} color={colors.background} />
                     </View>
                   </View>
                 </View>
@@ -599,7 +600,7 @@ export const ReportsScreen: React.FC<ReportsScreenProps> = ({ onBack }) => {
                     <Text style={{
                       fontSize: 24,
                       fontWeight: '700',
-                      color: '#F59E0B',
+                      color: colors.warning,
                       marginBottom: DESIGN_TOKENS.spacing.xs
                     }}>
                       {(reportsData.metrics.pendingAmount / 100).toFixed(2)}€ en attente
@@ -613,14 +614,14 @@ export const ReportsScreen: React.FC<ReportsScreenProps> = ({ onBack }) => {
                     </Text>
                   </View>
                   <View style={{
-                    backgroundColor: '#F59E0B',
+                    backgroundColor: colors.warning,
                     borderRadius: 20,
                     width: 40,
                     height: 40,
                     justifyContent: 'center',
                     alignItems: 'center'
                   }}>
-                    <Ionicons name="time" size={20} color="#FFFFFF" />
+                    <Ionicons name="time" size={20} color={colors.background} />
                   </View>
                 </View>
               )}
