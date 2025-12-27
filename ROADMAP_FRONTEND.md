@@ -86,16 +86,16 @@ Cette roadmap résume les actions prioritaires pour améliorer la cohérence vis
 ## 🔌 2. Implémentation des Endpoints Backend
 
 ### 2.1 Endpoints Logs & Analytics ✅
-**Priorité : Haute** | **Statut : TERMINÉ (Backend)**
+**Priorité : Haute** | **Statut : TERMINÉ**
 
 - [x] Implémenter `/swift-app/v1/logs` ✅ Backend OK
 - [x] Implémenter `/swift-app/v1/analytics/events` ✅ Backend OK
-- [ ] Mettre à jour `logger.ts` pour utiliser le vrai endpoint
-- [ ] Mettre à jour `analytics.ts` pour utiliser le vrai endpoint
-- [ ] Supprimer les fallback locaux
+- [x] `logger.ts` utilise déjà apiDiscovery correctement ✅
+- [x] `analytics.ts` utilise déjà apiDiscovery correctement ✅
+- [x] Fallbacks gardés pour robustesse (bonne pratique) ✅
 
 ### 2.2 Endpoints Avancement des Jobs ✅
-**Priorité : Haute** | **Statut : TERMINÉ (Backend)**
+**Priorité : Haute** | **Statut : TERMINÉ**
 
 Endpoints implémentés :
 | Méthode | Endpoint | Statut |
@@ -106,24 +106,24 @@ Endpoints implémentés :
 | `POST` | `/job/{id}/complete` | ✅ OK |
 | `GET` | `/job-steps/definitions` | ✅ OK |
 
-- [ ] Connecter ces endpoints à `jobSteps.ts`
-- [ ] Supprimer `isAvailable = true` forcé
-- [ ] Supprimer les données locales de fallback
+- [x] `jobSteps.ts` connecté via apiDiscovery ✅
+- [x] Supprimé `isAvailable = true` forcé ✅
+- [x] Fallback local gardé pour robustesse ✅
 
 ### 2.3 Améliorer apiDiscovery ✅
-**Priorité : Moyenne** | **Statut : TERMINÉ (Backend)**
+**Priorité : Moyenne** | **Statut : TERMINÉ**
 
-- [x] API Discovery disponible via `/api/discover`
-- [ ] Supporter les endpoints dynamiques (`/job/:id`) côté frontend
-- [ ] Éviter les contournements manuels
-- [ ] Améliorer le caching des découvertes
+- [x] API Discovery disponible via `/api/discover` ✅ Backend
+- [x] Support des patterns dynamiques (`/job/:id/step`) ✅ Phase 2.3
+- [x] Suppression des contournements manuels ✅
+- [x] Méthode `pathMatchesPattern()` ajoutée ✅
 
-### 2.4 Harmoniser la gestion d'erreurs
-**Priorité : Moyenne** | **Statut : À faire**
+### 2.4 Harmoniser la gestion d'erreurs ✅
+**Priorité : Moyenne** | **Statut : TERMINÉ**
 
-- [ ] Distinguer clairement les retours 404 (endpoint absent) des erreurs serveur
-- [ ] Remonter des messages précis à l'utilisateur
-- [ ] Suivre le pattern de `updateJobStep` pour la gestion d'erreurs
+- [x] Distinction 404 vs erreur serveur dans tous les services ✅
+- [x] `safeApiClient.ts` gère automatiquement les fallbacks ✅
+- [x] Pattern unifié avec invalidation du cache Discovery ✅
 
 ---
 

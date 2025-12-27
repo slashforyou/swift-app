@@ -222,24 +222,48 @@ class ApiDiscoveryService {
   }
 
   /**
+   * Convertit un path avec valeurs concrètes en pattern regex pour matcher les endpoints dynamiques
+   * Ex: "/job/123/step" → matche "/job/:id/step" ou "/job/:job_id/step"
+   */
+  private pathMatchesPattern(concretePath: string, patternPath: string): boolean {
+    // Normaliser les paths
+    const normConcrete = concretePath.replace(/^https?:\/\/[^\/]+/, '');
+    const normPattern = patternPath.replace(/^https?:\/\/[^\/]+/, '');
+    
+    // Convertir le pattern (:id, :job_id, etc.) en regex
+    // /job/:id/step → /job/[^/]+/step
+    const regexPattern = normPattern.replace(/:[a-zA-Z_]+/g, '[^/]+');
+    const regex = new RegExp(`^${regexPattern}$`);
+    
+    return regex.test(normConcrete);
+  }
+
+  /**
    * Recherche un endpoint spécifique par son path
-   * @param path - Path de l'endpoint (ex: "/swift-app/v1/jobs/:job_id/payment/create")
+   * @param path - Path de l'endpoint (ex: "/swift-app/v1/job/123/step")
    * @returns Endpoint trouvé ou null
+   * 
+   * ✅ Phase 2.3: Supporte les patterns dynamiques (/job/:id/step matche /job/123/step)
    */
   async findEndpoint(path: string): Promise<ApiEndpoint | null> {
     try {
       const endpoints = await this.getAllEndpoints();
       
-      // Recherche exacte
+      // 1. Recherche exacte
       let found = endpoints.find(e => e.path === path);
       if (found) return found;
 
-      // Recherche avec normalisation (avec/sans base URL)
+      // 2. Recherche avec normalisation (avec/sans base URL)
       const normalizedPath = path.replace(/^https?:\/\/[^\/]+/, '');
       found = endpoints.find(e => {
         const endpointNormalizedPath = e.path.replace(/^https?:\/\/[^\/]+/, '');
         return endpointNormalizedPath === normalizedPath;
       });
+      if (found) return found;
+      
+      // 3. ✅ Phase 2.3: Recherche par pattern dynamique
+      // Ex: "/job/123/step" matche "/job/:id/step"
+      found = endpoints.find(e => this.pathMatchesPattern(path, e.path));
       
       return found || null;
     } catch (error) {

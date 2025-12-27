@@ -43,13 +43,9 @@ export const updateJobStep = async (
       }
     }
     
-    // ✅ SESSION 9: Endpoint /advance-step existe (vérifié via test-endpoints-fixed.js)
-    // On skip l'API Discovery car il ne gère pas bien les patterns /:id/ vs /JOB-CODE/
+    // ✅ Phase 2.3: Utiliser API Discovery avec support des patterns dynamiques
     const endpoint = `/swift-app/v1/job/${numericId}/advance-step`;
-    
-    // TODO Session 10: Améliorer API Discovery pour supporter patterns /:id/
-    // const isAvailable = await apiDiscovery.isEndpointAvailable(endpoint, 'POST');
-    const isAvailable = true; // Force true car endpoint vérifié manuellement
+    const isAvailable = await apiDiscovery.isEndpointAvailable(endpoint, 'POST');
     
     if (!isAvailable) {
       console.debug(`📊 [UPDATE JOB STEP] Endpoint not available, step saved locally only`, {
