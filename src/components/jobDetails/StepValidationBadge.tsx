@@ -74,7 +74,8 @@ export const StepValidationBadge: React.FC<StepValidationBadgeProps> = ({
                 showError(result.message);
             }
             
-        } catch (error) {
+        } catch (error) {
+
             console.error('❌ [STEP VALIDATION] Error correcting:', error);
             showError('Erreur lors de la correction du step');
         } finally {
@@ -84,9 +85,9 @@ export const StepValidationBadge: React.FC<StepValidationBadgeProps> = ({
 
     const getBadgeColor = () => {
         switch (validation.severity) {
-            case 'critical': return '#DC2626'; // Rouge
-            case 'warning': return '#F59E0B';  // Orange
-            default: return '#3B82F6';         // Bleu
+            case 'critical': return colors.error;
+            case 'warning': return colors.warning;
+            default: return colors.info;
         }
     };
 
@@ -118,7 +119,7 @@ export const StepValidationBadge: React.FC<StepValidationBadgeProps> = ({
                     disabled={isCorrect}
                 >
                     {isCorrect ? (
-                        <ActivityIndicator size="small" color="#FFFFFF" />
+                        <ActivityIndicator size="small" color={colors.background} />
                     ) : (
                         <>
                             <Text style={styles.buttonText}>🔧 Corriger automatiquement</Text>

@@ -246,8 +246,8 @@ export default function AddStaffModal({
           ]}
           onPress={() => handleSelectType('employee')}
         >
-          <View style={[styles.typeIconContainer, { backgroundColor: '#10B98120' }]}>
-            <Ionicons name="person" size={32} color="#10B981" />
+          <View style={[styles.typeIconContainer, { backgroundColor: `${colors.success}20` }]}>
+            <Ionicons name="person" size={32} color={colors.success} />
           </View>
           <Text style={[styles.typeOptionTitle, { color: colors.text }]}>
             Employé (TFN)
@@ -257,19 +257,19 @@ export default function AddStaffModal({
           </Text>
           <View style={styles.typeOptionFeatures}>
             <View style={styles.featureItem}>
-              <Ionicons name="checkmark-circle" size={16} color="#10B981" />
+              <Ionicons name="checkmark-circle" size={16} color={colors.success} />
               <Text style={[styles.featureText, { color: colors.textSecondary }]}>
                 Contrat d'employé
               </Text>
             </View>
             <View style={styles.featureItem}>
-              <Ionicons name="checkmark-circle" size={16} color="#10B981" />
+              <Ionicons name="checkmark-circle" size={16} color={colors.success} />
               <Text style={[styles.featureText, { color: colors.textSecondary }]}>
                 Taux horaire fixe
               </Text>
             </View>
             <View style={styles.featureItem}>
-              <Ionicons name="checkmark-circle" size={16} color="#10B981" />
+              <Ionicons name="checkmark-circle" size={16} color={colors.success} />
               <Text style={[styles.featureText, { color: colors.textSecondary }]}>
                 Gestion des congés
               </Text>
@@ -284,8 +284,8 @@ export default function AddStaffModal({
           ]}
           onPress={() => handleSelectType('contractor')}
         >
-          <View style={[styles.typeIconContainer, { backgroundColor: '#8B5CF620' }]}>
-            <Ionicons name="briefcase" size={32} color="#8B5CF6" />
+          <View style={[styles.typeIconContainer, { backgroundColor: `${colors.info}20` }]}>
+            <Ionicons name="briefcase" size={32} color={colors.info} />
           </View>
           <Text style={[styles.typeOptionTitle, { color: colors.text }]}>
             Prestataire (ABN)
@@ -295,19 +295,19 @@ export default function AddStaffModal({
           </Text>
           <View style={styles.typeOptionFeatures}>
             <View style={styles.featureItem}>
-              <Ionicons name="checkmark-circle" size={16} color="#8B5CF6" />
+              <Ionicons name="checkmark-circle" size={16} color={colors.info} />
               <Text style={[styles.featureText, { color: colors.textSecondary }]}>
                 Contrat flexible
               </Text>
             </View>
             <View style={styles.featureItem}>
-              <Ionicons name="checkmark-circle" size={16} color="#8B5CF6" />
+              <Ionicons name="checkmark-circle" size={16} color={colors.info} />
               <Text style={[styles.featureText, { color: colors.textSecondary }]}>
                 Taux négociable
               </Text>
             </View>
             <View style={styles.featureItem}>
-              <Ionicons name="checkmark-circle" size={16} color="#8B5CF6" />
+              <Ionicons name="checkmark-circle" size={16} color={colors.info} />
               <Text style={[styles.featureText, { color: colors.textSecondary }]}>
                 Facturation externe
               </Text>
@@ -428,11 +428,11 @@ export default function AddStaffModal({
         disabled={isLoading}
       >
         {isLoading ? (
-          <ActivityIndicator color="#FFFFFF" />
+          <ActivityIndicator color={colors.background} />
         ) : (
           <>
-            <Ionicons name="mail" size={20} color="#FFFFFF" />
-            <Text style={styles.submitButtonText}>Envoyer l'invitation</Text>
+            <Ionicons name="mail" size={20} color={colors.background} />
+            <Text style={styles.submitButtonText}>Envoyer l&apos;invitation</Text>
           </>
         )}
       </Pressable>
@@ -470,9 +470,9 @@ export default function AddStaffModal({
           disabled={isLoading}
         >
           {isLoading ? (
-            <ActivityIndicator color="#FFFFFF" />
+            <ActivityIndicator color={colors.background} />
           ) : (
-            <Ionicons name="search" size={24} color="#FFFFFF" />
+            <Ionicons name="search" size={24} color={colors.background} />
           )}
         </Pressable>
       </View>
@@ -530,8 +530,8 @@ export default function AddStaffModal({
               onPress={() => handleAddContractor(contractor)}
             >
               <View style={styles.resultCardHeader}>
-                <View style={[styles.contractorIcon, { backgroundColor: '#8B5CF620' }]}>
-                  <Ionicons name="briefcase" size={24} color="#8B5CF6" />
+                <View style={[styles.contractorIcon, { backgroundColor: `${colors.info}20` }]}>
+                  <Ionicons name="briefcase" size={24} color={colors.info} />
                 </View>
                 <View style={styles.resultCardInfo}>
                   <Text style={[styles.resultCardName, { color: colors.text }]}>
@@ -542,7 +542,7 @@ export default function AddStaffModal({
                   </Text>
                 </View>
                 {contractor.isVerified && (
-                  <Ionicons name="checkmark-circle" size={24} color="#10B981" />
+                  <Ionicons name="checkmark-circle" size={24} color={colors.success} />
                 )}
               </View>
               <View style={styles.resultCardDetails}>
@@ -647,11 +647,11 @@ export default function AddStaffModal({
         disabled={isLoading}
       >
         {isLoading ? (
-          <ActivityIndicator color="#FFFFFF" />
+          <ActivityIndicator color={colors.background} />
         ) : (
           <>
-            <Ionicons name="mail" size={20} color="#FFFFFF" />
-            <Text style={styles.submitButtonText}>Envoyer l'invitation</Text>
+            <Ionicons name="mail" size={20} color={colors.background} />
+            <Text style={styles.submitButtonText}>Envoyer l&apos;invitation</Text>
           </>
         )}
       </Pressable>
