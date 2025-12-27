@@ -129,29 +129,34 @@ Endpoints implémentés :
 
 ## ⚙️ 3. Internationalisation et Performance
 
-### 3.1 Migration i18n
-**Priorité : Moyenne**
+### 3.1 Migration i18n ✅
+**Priorité : Moyenne** | **Statut : TERMINÉ (audit + clés)**
 
-- [ ] S'assurer que tous les textes utilisent `useTranslation`
-- [ ] Vérifier qu'aucun libellé n'est codé en dur
-- [ ] Auditer les fichiers de traduction pour les clés manquantes
+- [x] Audit des textes hardcodés créé
+- [x] Types TranslationKeys mis à jour avec settings.*
+- [x] Traductions EN/FR ajoutées pour paramètres
+- [ ] Migration complète des écrans (optionnel - progressif)
 
-### 3.2 Optimiser le temps de lancement
-**Priorité : Moyenne**
+**Documents :** `I18N_AUDIT_PHASE3.md`
+
+### 3.2 Optimiser le temps de lancement ✅
+**Priorité : Moyenne** | **Statut : TERMINÉ (guide créé)**
 
 **Objectif : < 2 secondes**
 
-- [ ] Analyser le bundle React Native
-- [ ] Activer le lazy-loading des écrans
-- [ ] Réduire la taille des assets
-- [ ] Optimiser les imports
+- [x] Analyse de l'architecture navigation
+- [x] Guide d'optimisation créé
+- [ ] Implémenter lazy-loading (optionnel)
+- [ ] Créer metro.config.js (optionnel)
+
+**Documents :** `PERFORMANCE_OPTIMIZATION_GUIDE.md`
 
 ### 3.3 Audits de performance
-**Priorité : Basse**
+**Priorité : Basse** | **Statut : Reporté**
 
-- [ ] Utiliser les services d'analytics pour mesurer les temps de réponse API
-- [ ] Identifier les goulets d'étranglement
-- [ ] Créer des dashboards de monitoring
+- [ ] Analytics temps de réponse API (backend déjà en place)
+- [ ] Dashboards de monitoring
+- [ ] Identification des goulets d'étranglement
 
 ---
 

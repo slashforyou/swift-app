@@ -314,6 +314,49 @@ export interface TranslationKeys {
             enabled: string;
             disabled: string;
         };
+        // Phase 3.1: Added settings sections, items, alerts
+        sections: {
+            notifications: string;
+            security: string;
+            appearance: string;
+            data: string;
+        };
+        items: {
+            pushNotifications: string;
+            pushDescription: string;
+            emailNotifications: string;
+            emailDescription: string;
+            soundEnabled: string;
+            soundDescription: string;
+            biometricEnabled: string;
+            biometricDescription: string;
+            darkMode: string;
+            darkModeDescription: string;
+            autoSync: string;
+            autoSyncDescription: string;
+            offlineMode: string;
+            offlineModeDescription: string;
+        };
+        alerts: {
+            biometricEnabled: {
+                title: string;
+                message: string;
+            };
+            resetSettings: {
+                title: string;
+                message: string;
+                cancel: string;
+                confirm: string;
+            };
+            resetSuccess: {
+                title: string;
+                message: string;
+            };
+        };
+        actions: {
+            resetSettings: string;
+            logout: string;
+        };
     };
 
     // Business Management

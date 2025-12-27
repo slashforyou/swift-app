@@ -286,6 +286,49 @@ export const frTranslations: TranslationKeys = {
             enabled: 'Activées',
             disabled: 'Désactivées',
         },
+        // Phase 3.1: Clés ajoutées pour parameters.tsx
+        sections: {
+            notifications: 'Notifications',
+            security: 'Sécurité',
+            appearance: 'Apparence',
+            data: 'Données et stockage',
+        },
+        items: {
+            pushNotifications: 'Notifications push',
+            pushDescription: 'Recevoir des alertes et mises à jour',
+            emailNotifications: 'Notifications par email',
+            emailDescription: 'Recevoir des notifications par email',
+            soundEnabled: 'Son',
+            soundDescription: 'Jouer des sons pour les notifications',
+            biometricEnabled: 'Authentification biométrique',
+            biometricDescription: 'Utiliser Face ID ou empreinte digitale',
+            darkMode: 'Mode sombre',
+            darkModeDescription: 'Utiliser le thème sombre',
+            autoSync: 'Synchronisation auto',
+            autoSyncDescription: 'Synchroniser automatiquement les données',
+            offlineMode: 'Mode hors ligne',
+            offlineModeDescription: 'Enregistrer les données pour une utilisation hors ligne',
+        },
+        alerts: {
+            biometricEnabled: {
+                title: 'Authentification biométrique',
+                message: 'L\'authentification biométrique a été activée pour une sécurité renforcée.',
+            },
+            resetSettings: {
+                title: 'Réinitialiser les paramètres',
+                message: 'Êtes-vous sûr de vouloir réinitialiser tous les paramètres aux valeurs par défaut ?',
+                cancel: 'Annuler',
+                confirm: 'Réinitialiser',
+            },
+            resetSuccess: {
+                title: 'Paramètres réinitialisés',
+                message: 'Tous les paramètres ont été réinitialisés aux valeurs par défaut.',
+            },
+        },
+        actions: {
+            resetSettings: 'Réinitialiser tous les paramètres',
+            logout: 'Déconnexion',
+        },
     },
 
     business: {

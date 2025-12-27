@@ -286,6 +286,49 @@ export const enTranslations: TranslationKeys = {
             enabled: 'Enabled',
             disabled: 'Disabled',
         },
+        // Phase 3.1: Added missing settings keys
+        sections: {
+            notifications: 'Notifications',
+            security: 'Security',
+            appearance: 'Appearance',
+            data: 'Data & Storage',
+        },
+        items: {
+            pushNotifications: 'Push Notifications',
+            pushDescription: 'Receive alerts and updates',
+            emailNotifications: 'Email Notifications',
+            emailDescription: 'Receive notifications by email',
+            soundEnabled: 'Sound',
+            soundDescription: 'Play sounds for notifications',
+            biometricEnabled: 'Biometric Authentication',
+            biometricDescription: 'Use Face ID or fingerprint',
+            darkMode: 'Dark Mode',
+            darkModeDescription: 'Use dark theme',
+            autoSync: 'Auto Sync',
+            autoSyncDescription: 'Automatically sync data',
+            offlineMode: 'Offline Mode',
+            offlineModeDescription: 'Save data for offline use',
+        },
+        alerts: {
+            biometricEnabled: {
+                title: 'Biometric Authentication',
+                message: 'Biometric authentication has been enabled for enhanced security.',
+            },
+            resetSettings: {
+                title: 'Reset Settings',
+                message: 'Are you sure you want to reset all settings to default values?',
+                cancel: 'Cancel',
+                confirm: 'Reset',
+            },
+            resetSuccess: {
+                title: 'Settings Reset',
+                message: 'All settings have been reset to default values.',
+            },
+        },
+        actions: {
+            resetSettings: 'Reset All Settings',
+            logout: 'Logout',
+        },
     },
 
     business: {
