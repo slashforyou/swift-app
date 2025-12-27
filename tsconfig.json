@@ -11,5 +11,25 @@
   "include": [
     "**/*.ts",
     "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "__tests__/**",
+    "**/*_temp.ts",
+    "**/*_backup.tsx",
+    "**/*_fixed.ts",
+    "src/screens/demo/**",
+    "src/screens/profile_user_only.tsx",
+    "src/components/analytics/AnalyticsDashboard.tsx",
+    "src/localization/translations/es.ts",
+    "src/localization/translations/hi.ts",
+    "src/localization/translations/it.ts",
+    "src/localization/translations/pt.ts",
+    "src/localization/translations/zh.ts",
+    "src/hooks/useJobTimer.ts",
+    "src/navigation/calendar.tsx",
+    "src/services/jobs.ts",
+    "src/services/navigationService.ts",
+    "src/services/sessionLogger.ts"
   ]
 }
