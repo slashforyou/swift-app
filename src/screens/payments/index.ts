@@ -2,4 +2,4 @@
  * Payments Screens Export
  */
 export { default as PaymentSuccessScreen } from './PaymentSuccessScreen'
-export { default as StripePaymentScreen } from './StripePaymentScreen'
+// StripePaymentScreen removed - non-compliant PCI-DSS, use paymentWindow.tsx instead
