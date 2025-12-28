@@ -58,7 +58,8 @@ export default function AddContractorModal({ visible, onClose, onSearch, onAdd }
       if (results.length === 0) {
         Alert.alert('Aucun résultat', 'Aucun prestataire trouvé avec ces critères');
       }
-    } catch (error) {
+    } catch (error) {
+
       Alert.alert('Erreur', 'Erreur lors de la recherche');
     } finally {
       setIsLoading(false);
@@ -82,7 +83,8 @@ export default function AddContractorModal({ visible, onClose, onSearch, onAdd }
         `${selectedContractor.firstName} ${selectedContractor.lastName} a été ajouté à votre staff avec le statut ${contractStatuses.find(s => s.key === contractStatus)?.label}.`,
         [{ text: 'OK', onPress: handleClose }]
       );
-    } catch (error) {
+    } catch (error) {
+
       Alert.alert('Erreur', 'Impossible d\'ajouter le prestataire');
     } finally {
       setIsLoading(false);
@@ -273,13 +275,13 @@ export default function AddContractorModal({ visible, onClose, onSearch, onAdd }
                     <View 
                       testID={`contractor-verified-${contractor.id}`}
                       style={{
-                        backgroundColor: '#10B981',
+                        backgroundColor: colors.success,
                         paddingHorizontal: 8,
                         paddingVertical: 2,
                         borderRadius: 4,
                       }}
                     >
-                      <Text style={{ fontSize: 10, color: 'white', fontWeight: '600' }}>
+                      <Text style={{ fontSize: 10, color: colors.background, fontWeight: '600' }}>
                         VÉRIFIÉ
                       </Text>
                     </View>

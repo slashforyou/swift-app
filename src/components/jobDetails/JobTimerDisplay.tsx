@@ -278,8 +278,8 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({ job, onOpenSignatureM
                             paddingVertical: DESIGN_TOKENS.spacing.md,
                             borderRadius: DESIGN_TOKENS.radius.md,
                             backgroundColor: pressed 
-                                ? (isRunning ? colors.warning + 'DD' : '#10B981DD')
-                                : (isRunning ? colors.warning : '#10B981'),
+                                ? (isRunning ? colors.warning + 'DD' : colors.success + 'DD')
+                                : (isRunning ? colors.warning : colors.success),
                             flexDirection: 'row',
                             alignItems: 'center',
                             gap: 8,
@@ -381,7 +381,7 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({ job, onOpenSignatureM
                                 flex: 1,
                                 paddingVertical: DESIGN_TOKENS.spacing.md,
                                 borderRadius: DESIGN_TOKENS.radius.lg,
-                                backgroundColor: pressed ? '#10B981DD' : '#10B981',
+                                backgroundColor: pressed ? colors.success + 'DD' : colors.success,
                                 flexDirection: 'row',
                                 alignItems: 'center',
                                 justifyContent: 'center',

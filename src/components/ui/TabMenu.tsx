@@ -99,7 +99,7 @@ const TabMenu: React.FC<TabMenuProps> = ({
       lineHeight: 14,
     },
     tabLabelActive: {
-      color: '#FF9500', // Orange pour le texte actif
+      color: colors.primary, // Couleur thème pour le texte actif
     },
     tabLabelInactive: {
       color: colors.textSecondary,
@@ -108,7 +108,7 @@ const TabMenu: React.FC<TabMenuProps> = ({
       position: 'absolute',
       top: -6,
       right: -8,
-      backgroundColor: '#FF9500', // Orange pour les notifications
+      backgroundColor: colors.primary, // Couleur thème pour les notifications
       borderRadius: 10,
       minWidth: 18,
       height: 18,
@@ -158,7 +158,7 @@ const TabMenu: React.FC<TabMenuProps> = ({
               <Ionicons
                 name={item.icon as any}
                 size={24}
-                color={isActive ? '#FF9500' : colors.textSecondary} // Orange pour l'icône active
+                color={isActive ? colors.primary : colors.textSecondary} // Couleur thème pour l'icône active
               />
               {renderNotificationBadge(item.notifications)}
             </View>

@@ -104,9 +104,9 @@ export const StepValidationBadge: React.FC<StepValidationBadgeProps> = ({
             <View style={[styles.badge, { backgroundColor: getBadgeColor() }]}>
                 <Text style={styles.icon}>{getIcon()}</Text>
                 <View style={styles.textContainer}>
-                    <Text style={styles.title}>Incohérence détectée</Text>
-                    <Text style={styles.message}>{validation.reason}</Text>
-                    <Text style={styles.suggestion}>
+                    <Text style={[styles.title, { color: colors.background }]}>Incohérence détectée</Text>
+                    <Text style={[styles.message, { color: colors.background }]}>{validation.reason}</Text>
+                    <Text style={[styles.suggestion, { color: colors.background }]}>
                         Suggestion: Passer au step {validation.expectedStep}/{job?.steps?.length || 5}
                     </Text>
                 </View>
@@ -114,7 +114,7 @@ export const StepValidationBadge: React.FC<StepValidationBadgeProps> = ({
 
             {validation.shouldCorrect && (
                 <Pressable 
-                    style={[styles.button, isCorrect && styles.buttonDisabled]}
+                    style={[styles.button, { backgroundColor: colors.text }, isCorrect && styles.buttonDisabled]}
                     onPress={handleCorrect}
                     disabled={isCorrect}
                 >
@@ -122,7 +122,7 @@ export const StepValidationBadge: React.FC<StepValidationBadgeProps> = ({
                         <ActivityIndicator size="small" color={colors.background} />
                     ) : (
                         <>
-                            <Text style={styles.buttonText}>🔧 Corriger automatiquement</Text>
+                            <Text style={[styles.buttonText, { color: colors.background }]}>🔧 Corriger automatiquement</Text>
                         </>
                     )}
                 </Pressable>

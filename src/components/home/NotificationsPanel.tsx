@@ -2,9 +2,10 @@
  * NotificationsPanel - Modal PLEIN ÉCRAN simple
  */
 import React, { useState, useEffect } from 'react';
-import { View, Text, Pressable, Animated, Dimensions, Modal, StyleSheet, StatusBar, ScrollView } from 'react-native';
+import { View, Text, Pressable, Animated, Dimensions, Modal, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { DESIGN_TOKENS } from '../../constants/Styles';
+import { useTheme } from '../../context/ThemeProvider';
 
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('screen'); // 'screen' au lieu de 'window'
 
@@ -26,8 +27,120 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
     onClose, 
     notifications: initialNotifications 
 }) => {
+    const { colors } = useTheme();
     const [slideAnimation] = useState(new Animated.Value(0));
     const [notifications, setNotifications] = useState(initialNotifications);
+
+    // Styles dynamiques basés sur le thème
+    const styles = {
+        modalPanel: {
+            position: 'absolute' as const,
+            top: 0,
+            left: 0,
+            right: 0,
+            backgroundColor: colors.background,
+            borderBottomLeftRadius: 16,
+            borderBottomRightRadius: 16,
+            overflow: 'hidden' as const,
+            shadowColor: colors.text,
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.3,
+            shadowRadius: 8,
+            elevation: 10,
+        },
+        safeArea: {
+            height: 50,
+            backgroundColor: colors.background,
+        },
+        header: {
+            flexDirection: 'row' as const,
+            justifyContent: 'space-between' as const,
+            alignItems: 'center' as const,
+            padding: 20,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.border,
+            backgroundColor: colors.background,
+        },
+        title: {
+            fontSize: 20,
+            fontWeight: '700' as const,
+            color: colors.text,
+        },
+        closeButton: {
+            padding: 8,
+            borderRadius: 20,
+        },
+        content: {
+            flex: 1,
+            backgroundColor: colors.background,
+        },
+        emptyState: {
+            padding: 40,
+            alignItems: 'center' as const,
+            backgroundColor: colors.background,
+        },
+        emptyText: {
+            fontSize: 16,
+            color: colors.textSecondary,
+            textAlign: 'center' as const,
+        },
+        notificationItem: {
+            flexDirection: 'row' as const,
+            alignItems: 'flex-start' as const,
+            padding: 20,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.border,
+            backgroundColor: colors.background,
+            position: 'relative' as const,
+        },
+        newBadge: {
+            position: 'absolute' as const,
+            top: 12,
+            right: 50,
+            backgroundColor: colors.success,
+            paddingHorizontal: 8,
+            paddingVertical: 4,
+            borderRadius: 12,
+        },
+        newBadgeText: {
+            fontSize: 10,
+            fontWeight: '700' as const,
+            color: colors.background,
+            letterSpacing: 0.5,
+        },
+        notificationIcon: {
+            fontSize: 24,
+            marginRight: 16,
+            marginTop: 2,
+        },
+        notificationContent: {
+            flex: 1,
+            paddingRight: 40,
+        },
+        notificationTitle: {
+            fontSize: 15,
+            fontWeight: '700' as const,
+            color: colors.text,
+            marginBottom: 4,
+        },
+        notificationMessage: {
+            fontSize: 14,
+            color: colors.textSecondary,
+            marginBottom: 6,
+            lineHeight: 20,
+        },
+        notificationTime: {
+            fontSize: 12,
+            color: colors.textMuted || colors.textSecondary,
+        },
+        deleteButton: {
+            position: 'absolute' as const,
+            top: 12,
+            right: 12,
+            padding: 6,
+            borderRadius: 15,
+        },
+    };
 
     useEffect(() => {
         if (isVisible) {
@@ -158,114 +271,6 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
     );
 };
 
-const styles = StyleSheet.create({
-    modalPanel: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        backgroundColor: '#FFFFFF',
-        borderBottomLeftRadius: 16,
-        borderBottomRightRadius: 16,
-        overflow: 'hidden',
-        shadowColor: '#000000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 10,
-    },
-    safeArea: {
-        height: 50,
-        backgroundColor: '#FFFFFF',
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: 20,
-        borderBottomWidth: 1,
-        borderBottomColor: '#E5E5E5',
-        backgroundColor: '#FFFFFF',
-    },
-    title: {
-        fontSize: 20,
-        fontWeight: '700',
-        color: '#000000',
-    },
-    closeButton: {
-        padding: 8,
-        borderRadius: 20,
-    },
-    content: {
-        flex: 1,
-        backgroundColor: '#FFFFFF',
-    },
-    emptyState: {
-        padding: 40,
-        alignItems: 'center',
-        backgroundColor: '#FFFFFF',
-    },
-    emptyText: {
-        fontSize: 16,
-        color: '#666666',
-        textAlign: 'center',
-    },
-    notificationItem: {
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-        padding: 20,
-        borderBottomWidth: 1,
-        borderBottomColor: '#E5E5E5',
-        backgroundColor: '#FFFFFF',
-        position: 'relative',
-    },
-    newBadge: {
-        position: 'absolute',
-        top: 12,
-        right: 50, // Décalé pour laisser place au bouton de suppression
-        backgroundColor: '#4CAF50',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 12,
-    },
-    newBadgeText: {
-        fontSize: 10,
-        fontWeight: '700',
-        color: 'white',
-        letterSpacing: 0.5,
-    },
-    notificationIcon: {
-        fontSize: 24,
-        marginRight: 16,
-        marginTop: 2,
-    },
-    notificationContent: {
-        flex: 1,
-        paddingRight: 40,
-    },
-    notificationTitle: {
-        fontSize: 15,
-        fontWeight: '700',
-        color: '#000000',
-        marginBottom: 4,
-    },
-    notificationMessage: {
-        fontSize: 14,
-        color: '#666666',
-        marginBottom: 6,
-        lineHeight: 20,
-    },
-    notificationTime: {
-        fontSize: 12,
-        color: '#999999',
-    },
-    deleteButton: {
-        position: 'absolute',
-        top: 12,
-        right: 12,
-        padding: 6,
-        borderRadius: 15,
-    },
-});
+
 
 export default NotificationsPanel;

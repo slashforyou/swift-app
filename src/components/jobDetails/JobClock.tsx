@@ -208,7 +208,7 @@ const JobClock: React.FC<JobClockProps> = ({ job, onOpenSignatureModal }) => {
                         onPress={togglePause}
                         style={({ pressed }: { pressed: boolean }) => ({
                             backgroundColor: isOnBreak 
-                                ? (pressed ? '#10B981DD' : '#10B981') 
+                                ? (pressed ? colors.success + 'DD' : colors.success) 
                                 : (pressed ? colors.warning + 'DD' : colors.warning),
                             paddingHorizontal: DESIGN_TOKENS.spacing.lg,
                             paddingVertical: DESIGN_TOKENS.spacing.sm,
@@ -293,7 +293,7 @@ const JobClock: React.FC<JobClockProps> = ({ job, onOpenSignatureModal }) => {
                             onPress={handleStopTimer}
                             style={({ pressed }: { pressed: boolean }) => ({
                                 flex: currentStep < totalSteps ? 1 : undefined,
-                                backgroundColor: pressed ? '#EF4444DD' : '#EF4444',
+                                backgroundColor: pressed ? colors.error + 'DD' : colors.error,
                                 paddingHorizontal: DESIGN_TOKENS.spacing.lg,
                                 paddingVertical: DESIGN_TOKENS.spacing.sm,
                                 borderRadius: DESIGN_TOKENS.radius.lg,

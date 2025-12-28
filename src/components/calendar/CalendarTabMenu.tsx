@@ -110,7 +110,7 @@ const CalendarTabMenu: React.FC<CalendarTabMenuProps> = ({
       lineHeight: 14,
     },
     tabLabelActive: {
-      color: '#FF9500', // Orange pour cohérence avec Business
+      color: colors.primary, // Couleur thème pour cohérence
     },
     tabLabelInactive: {
       color: colors.textSecondary,
@@ -145,7 +145,7 @@ const CalendarTabMenu: React.FC<CalendarTabMenuProps> = ({
               <Ionicons
                 name={tab.icon as any}
                 size={24}
-                color={isActive ? '#FF9500' : colors.textSecondary}
+                color={isActive ? colors.primary : colors.textSecondary}
               />
             </View>
             <Text

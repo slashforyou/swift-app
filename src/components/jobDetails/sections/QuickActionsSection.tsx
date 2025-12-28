@@ -176,7 +176,7 @@ const QuickActionsSection: React.FC<QuickActionsSectionProps> = ({
             id: 'photo',
             icon: 'camera',
             label: 'Photo',
-            color: '#8B5CF6',
+            color: colors.info,
             onPress: handleTakePhoto,
         },
     ];

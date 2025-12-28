@@ -71,7 +71,7 @@ const ImprovedNoteModal: React.FC<ImprovedNoteModalProps> = ({
             label: 'Note interne',
             description: 'Note interne pour l\'équipe',
             icon: 'shield',
-            color: '#8B5CF6',
+            color: colors.info,
         },
     ];
 
@@ -94,7 +94,8 @@ const ImprovedNoteModal: React.FC<ImprovedNoteModalProps> = ({
             
             // Toast de succès (à implémenter)
             Alert.alert('Succès', 'Note ajoutée avec succès !');
-        } catch (error) {
+        } catch (error) {
+
             console.error('Error adding note:', error);
             Alert.alert('Erreur', 'Impossible d\'ajouter la note. Veuillez réessayer.');
         } finally {

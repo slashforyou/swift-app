@@ -34,8 +34,8 @@ const AlertsPanel: React.FC = () => {
   const getSeverityColor = (severity: 'low' | 'medium' | 'high' | 'critical') => {
     switch (severity) {
       case 'critical': return colors.error;
-      case 'high': return '#FF6B35';
-      case 'medium': return colors.warning;
+      case 'high': return colors.warning; // Orange tone from warning
+      case 'medium': return colors.info;
       case 'low': return colors.primary;
       default: return colors.textSecondary;
     }

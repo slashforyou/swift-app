@@ -86,7 +86,7 @@ const AlertMessage: React.FC<AlertMessageProps> = ({
         ]}>
             <View style={styles.content}>
                 <View style={[styles.iconContainer, { backgroundColor: alertColors.border }]}>
-                    <Text style={[styles.icon, { color: '#FFFFFF' }]}>
+                    <Text style={[styles.icon, { color: colors.background }]}>
                         {alertColors.icon}
                     </Text>
                 </View>

@@ -88,7 +88,7 @@ const JobMenu: React.FC<JobMenuProps> = ({ jobPanel, setJobPanel }) => {
                 paddingBottom: Math.max(insets.bottom, DESIGN_TOKENS.spacing.sm),
                 paddingTop: DESIGN_TOKENS.spacing.sm,
                 paddingHorizontal: DESIGN_TOKENS.spacing.sm,
-                shadowColor: '#020617',
+                shadowColor: colors.text,
                 shadowOffset: { width: 0, height: -2 },
                 shadowOpacity: 0.12,
                 shadowRadius: 4,
