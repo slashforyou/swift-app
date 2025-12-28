@@ -1,12 +1,12 @@
 /**
  * QuickActionsSection - Section d'actions rapides pour le job
  */
-import React, { useState } from 'react';
-import { Text, View, Pressable, Linking, Alert } from 'react-native';
-import { useTheme } from '../../../context/ThemeProvider';
-import { DESIGN_TOKENS } from '../../../constants/Styles';
-import SectionCard from '../SectionCard';
 import Ionicons from '@react-native-vector-icons/ionicons';
+import React from 'react';
+import { Alert, Linking, Pressable, Text, View } from 'react-native';
+import { DESIGN_TOKENS } from '../../../constants/Styles';
+import { useTheme } from '../../../context/ThemeProvider';
+import SectionCard from '../SectionCard';
 
 interface QuickActionsSectionProps {
     job: any;

@@ -3,9 +3,9 @@
  * Supporte différents types: success, error, warning, info
  */
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { useTheme } from '../../context/ThemeProvider';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { DESIGN_TOKENS } from '../../constants/Styles';
+import { useTheme } from '../../context/ThemeProvider';
 
 interface AlertMessageProps {
     type: 'success' | 'error' | 'warning' | 'info';

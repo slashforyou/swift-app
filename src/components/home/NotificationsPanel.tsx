@@ -1,10 +1,9 @@
 /**
  * NotificationsPanel - Modal PLEIN ÉCRAN simple
  */
-import React, { useState, useEffect } from 'react';
-import { View, Text, Pressable, Animated, Dimensions, Modal, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { DESIGN_TOKENS } from '../../constants/Styles';
+import React, { useEffect, useState } from 'react';
+import { Animated, Dimensions, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { useTheme } from '../../context/ThemeProvider';
 
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('screen'); // 'screen' au lieu de 'window'
@@ -12,14 +11,14 @@ const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('screen');
 interface NotificationsPanelProps {
     isVisible: boolean;
     onClose: () => void;
-    notifications: Array<{
+    notifications: {
         id: string;
         title: string;
         message: string;
         time: string;
         type: 'job' | 'bonus' | 'call' | 'system';
         isRead: boolean;
-    }>;
+    }[];
 }
 
 const NotificationsPanel: React.FC<NotificationsPanelProps> = ({ 

@@ -1,10 +1,10 @@
+import Ionicons from '@react-native-vector-icons/ionicons';
 import React from 'react';
 import { Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { HStack, VStack } from './primitives/Stack';
 import { DESIGN_TOKENS } from '../constants/Styles';
 import { useCommonThemedStyles } from '../hooks/useCommonStyles';
-import Ionicons from '@react-native-vector-icons/ionicons';
+import { HStack } from './primitives/Stack';
 
 interface JobMenuProps {
     jobPanel: number;
