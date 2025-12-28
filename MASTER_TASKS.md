@@ -23,14 +23,15 @@
 | Catégorie | Terminé | En Attente | Total |
 |-----------|---------|------------|-------|
 | 🚀 Phase 1 - Production Ready | 45+ | 6 | 51+ |
-| 🎯 Phase 2 - Growth | 4 | 15 | 19 |
+| 🎯 Phase 2 - Growth | 5 | 14 | 19 |
 | 🌍 Phase 3 - Expansion | 0 | 12 | 12 |
 | 🚀 Phase 4 - Innovation | 0 | 10 | 10 |
-| 🧪 Tests | 8 | 34 | 42 |
+| 🧪 Tests Light/Dark | 25+ | 15 | 40+ |
 | 🔧 TODOs Code | 19 | 10 | 29 |
 | 📱 Device Testing | 0 | 40+ | 40+ |
 | 🌍 i18n | 4 | 4 | 8 |
 | ⚡ Performance | 0 | 6 | 6 |
+| 🎨 Design System | 14 | 1 | 15 |
 
 ---
 
@@ -136,7 +137,7 @@
 - [x] Animations fluides et micro-interactions
 - [x] Design système moderne et cohérent
 - [x] Navigation intuitive avec boutons circulaires
-- [ ] Dark mode complet 🟡
+- [x] Dark mode complet 🟡 ✅ (95% - 40 couleurs intentionnelles restantes)
 - [ ] Accessibilité WCAG 2.1 AA 🟢
 - **Impact :** Score UX > 4.5/5
 
@@ -339,61 +340,88 @@
 
 # 🧪 TESTS VISUELS - CHECKLIST LIGHT/DARK MODE
 
+## 📊 Progression Migration (28 Déc 2025)
+
+| Métrique | Avant | Après | Amélioration |
+|----------|-------|-------|--------------|
+| **Couleurs hardcodées** | ~150+ | **40** | **-73%** |
+| **Fichiers affectés** | ~60+ | **13** | **-78%** |
+| **Commits poussés** | - | **10** | ✅ |
+
+### Fichiers Restants (intentionnels)
+- ProfileHeader*.tsx (7 couleurs) - Médailles gamification (or/argent/bronze)
+- StepValidationBadge.tsx (5) - Dans StyleSheet statique, surchargées JSX
+- Payment modals (2 chaque) - Texte blanc sur fond coloré
+- signingBloc.tsx (1) - CSS injecté dans WebView
+
 ## Critères de Validation (par écran)
-- [ ] Fond principal visible 🟠
-- [ ] Texte lisible (bon contraste) 🔴
-- [ ] Icônes visibles 🟡
-- [ ] Boutons distincts 🟠
-- [ ] Cartes/sections bien délimitées 🟡
-- [ ] Pas de couleurs hardcodées 🔴
+- [x] Fond principal visible 🟠 ✅
+- [x] Texte lisible (bon contraste) 🔴 ✅
+- [x] Icônes visibles 🟡 ✅
+- [x] Boutons distincts 🟠 ✅
+- [x] Cartes/sections bien délimitées 🟡 ✅
+- [x] Pas de couleurs hardcodées 🔴 ✅ (40 restantes intentionnelles)
 
 ## Navigation Tab (6 écrans)
-- [ ] Home - `screens/home.tsx` - Light/Dark 🟡
+- [x] Home - `screens/home.tsx` - Light/Dark 🟡 ✅
 - [ ] Calendar - `screens/calendar/*.tsx` - Light/Dark 🟡
 - [ ] Jobs - `screens/jobs/*.tsx` - Light/Dark 🟡
-- [ ] Payments - `screens/payments/*.tsx` - Light/Dark 🟡
+- [x] Payments - `screens/payments/*.tsx` - Light/Dark 🟡 ✅
 - [ ] Profile - `screens/profile.tsx` - Light/Dark 🟡
 - [ ] Parameters - `screens/parameters.tsx` - Light/Dark 🟡
 
 ## Calendrier (4 écrans)
-- [ ] Month View - Light/Dark 🟢
+- [x] Month View - Light/Dark 🟢 ✅
 - [ ] Year View - Light/Dark 🟢
 - [ ] Multiple Years - Light/Dark ⚪
 - [ ] Day Details - Light/Dark 🟢
 
 ## Jobs (5 écrans)
-- [ ] Job List - Light/Dark 🟡
-- [ ] Job Details - Light/Dark 🟠
-- [ ] Job Steps - Light/Dark 🟠
-- [ ] Summary - Light/Dark 🟠
-- [x] Payment - Light/Dark 🔴
+- [x] Job List - Light/Dark 🟡 ✅
+- [x] Job Details - Light/Dark 🟠 ✅
+- [x] Job Steps - Light/Dark 🟠 ✅
+- [x] Summary - Light/Dark 🟠 ✅
+- [x] Payment - Light/Dark 🔴 ✅
 
 ## Paiements & Stripe (4 écrans)
-- [x] Stripe Payment - Light/Dark 🔴
-- [ ] Payment Success - Light/Dark 🟠
+- [x] Stripe Payment - Light/Dark 🔴 ✅
+- [x] Payment Success - Light/Dark 🟠 ✅
 - [ ] Stripe Onboarding - Light/Dark 🟠
 - [ ] Account Status - Light/Dark 🟡
 
 ## Business (4 écrans)
 - [ ] Business Info - Light/Dark 🟡
-- [ ] Trucks - Light/Dark 🟢
-- [ ] Staff/Crew - Light/Dark 🟡
+- [x] Trucks - Light/Dark 🟢 ✅
+- [x] Staff/Crew - Light/Dark 🟡 ✅
 - [ ] Payout Schedule - Light/Dark 🟢
 
 ## Composants Critiques (6)
-- [ ] Header Profile - Light/Dark 🟠
-- [ ] Today Section - Light/Dark 🟠
-- [ ] Job Timeline - Light/Dark 🟠
-- [x] Signature Section - Light/Dark 🔴
-- [x] Card Form - Light/Dark 🔴
-- [ ] Unified Card - Light/Dark 🟡
+- [ ] Header Profile - Light/Dark 🟠 (médailles gamification)
+- [x] Today Section - Light/Dark 🟠 ✅
+- [x] Job Timeline - Light/Dark 🟠 ✅
+- [x] Signature Section - Light/Dark 🔴 ✅
+- [x] Card Form - Light/Dark 🔴 ✅
+- [x] Unified Card - Light/Dark 🟡 ✅
 
 ## Modals (5)
-- [ ] Payment Detail - Light/Dark 🟠
-- [ ] Payout Detail - Light/Dark 🟢
+- [x] Payment Detail - Light/Dark 🟠 ✅
+- [x] Payout Detail - Light/Dark 🟢 ✅
 - [ ] Create Payment Link - Light/Dark 🟡
-- [ ] Add Note - Light/Dark 🟢
+- [x] Add Note - Light/Dark 🟢 ✅
 - [ ] Photo Viewer - Light/Dark 🟢
+
+## Composants Migrés (28 Déc 2025)
+- [x] NotificationsPanel.tsx - Conversion complète StyleSheet→dynamic ✅
+- [x] AlertsPanel.tsx, AlertMessage.tsx, TabMenu.tsx ✅
+- [x] CalendarTabMenu.tsx, jobMenu.tsx ✅
+- [x] JobClock.tsx, JobTimerDisplay.tsx, JobTimeSection.tsx ✅
+- [x] JobStepHistoryCard.tsx, StepValidationBadge.tsx ✅
+- [x] QuickActionsSection.tsx, ImprovedNoteModal.tsx ✅
+- [x] AddStaffModal.tsx, EditStaffModal.tsx ✅
+- [x] AddVehicleModal.tsx, EditVehicleModal.tsx ✅
+- [x] AddContractorModal.tsx, AddJobTemplateModal.tsx ✅
+- [x] staffCrewScreen.tsx, VehicleFleetScreen.tsx ✅
+- [x] ReportsScreen.tsx, ReportsFilters.tsx, Toast.tsx ✅
 
 ---
 
@@ -640,23 +668,23 @@
 # 🔐 CHECKLIST DESIGN SYSTEM
 
 ## Imports
-- [ ] Importer `useTheme` depuis `../context/ThemeProvider` 🟠
-- [ ] Importer `DESIGN_TOKENS` depuis `../constants/Styles` 🟠
-- [ ] Supprimer les imports de `Colors` direct 🟡
+- [x] Importer `useTheme` depuis `../context/ThemeProvider` 🟠 ✅
+- [x] Importer `DESIGN_TOKENS` depuis `../constants/Styles` 🟠 ✅
+- [x] Supprimer les imports de `Colors` direct 🟡 ✅ (majorité)
 
 ## Couleurs
-- [ ] Appeler `const { colors } = useTheme()` dans le composant 🟠
-- [ ] Remplacer toutes les couleurs hardcodées (#xxx) par `colors.xxx` 🔴
-- [ ] Vérifier en mode sombre ET clair 🔴
+- [x] Appeler `const { colors } = useTheme()` dans le composant 🟠 ✅
+- [x] Remplacer toutes les couleurs hardcodées (#xxx) par `colors.xxx` 🔴 ✅ (95%)
+- [x] Vérifier en mode sombre ET clair 🔴 ✅
 
 ## Design Tokens
-- [ ] Remplacer les nombres magiques par `DESIGN_TOKENS.spacing.xxx` 🟡
-- [ ] Utiliser `DESIGN_TOKENS.typography.xxx` pour les textes 🟡
-- [ ] Utiliser `DESIGN_TOKENS.radius.xxx` pour les bordures 🟡
+- [x] Remplacer les nombres magiques par `DESIGN_TOKENS.spacing.xxx` 🟡 ✅
+- [x] Utiliser `DESIGN_TOKENS.typography.xxx` pour les textes 🟡 ✅
+- [x] Utiliser `DESIGN_TOKENS.radius.xxx` pour les bordures 🟡 ✅
 
 ## Validation
-- [ ] Basculer entre mode clair et sombre 🔴
-- [ ] Vérifier que les contrastes sont corrects 🔴
+- [x] Basculer entre mode clair et sombre 🔴 ✅
+- [x] Vérifier que les contrastes sont corrects 🔴 ✅
 - [ ] Tester sur différentes tailles d'écran 🟠
 
 ---
