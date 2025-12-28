@@ -366,7 +366,7 @@ const AddJobTemplateModal: React.FC<AddJobTemplateModalProps> = ({
       borderRadius: DESIGN_TOKENS.radius.md,
     },
     addButtonText: {
-      color: 'white',
+      color: colors.background,
       fontSize: 14,
       fontWeight: '600',
     },
@@ -397,7 +397,7 @@ const AddJobTemplateModal: React.FC<AddJobTemplateModalProps> = ({
       color: colors.textSecondary,
     },
     submitButtonText: {
-      color: 'white',
+      color: colors.background,
     },
     disabledButton: {
       backgroundColor: colors.textSecondary + '40',
@@ -893,7 +893,7 @@ const AddJobTemplateModal: React.FC<AddJobTemplateModalProps> = ({
                       formData.requirements.vehicles.includes(vehicle) && styles.checkedBox
                     ]}>
                       {formData.requirements.vehicles.includes(vehicle) && (
-                        <Text style={{ color: 'white', fontSize: 12, fontWeight: '600' }}>✓</Text>
+                        <Text style={{ color: colors.background, fontSize: 12, fontWeight: '600' }}>✓</Text>
                       )}
                     </View>
                     <Text style={styles.checkboxText}>{vehicle}</Text>
@@ -915,7 +915,7 @@ const AddJobTemplateModal: React.FC<AddJobTemplateModalProps> = ({
                       formData.requirements.equipment.includes(equipment) && styles.checkedBox
                     ]}>
                       {formData.requirements.equipment.includes(equipment) && (
-                        <Text style={{ color: 'white', fontSize: 12, fontWeight: '600' }}>✓</Text>
+                        <Text style={{ color: colors.background, fontSize: 12, fontWeight: '600' }}>✓</Text>
                       )}
                     </View>
                     <Text style={styles.checkboxText}>{equipment}</Text>

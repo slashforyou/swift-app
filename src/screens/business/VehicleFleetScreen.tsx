@@ -96,7 +96,7 @@ const VehicleFleetScreen: React.FC = () => {
    * Composant de filtres
    */
   const renderFilters = () => {
-    const filters: Array<{key: BusinessVehicle['status'] | 'all', label: string}> = [
+    const filters: {key: BusinessVehicle['status'] | 'all', label: string}[] = [
       { key: 'all', label: 'All' },
       { key: 'available', label: 'Available' },
       { key: 'in-use', label: 'In Use' },

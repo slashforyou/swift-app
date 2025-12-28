@@ -100,20 +100,20 @@ const JobTimeLine = ({ job, onAdvanceStep }: JobTimeLineProps) => {
 
     const getStatusBadgeStyle = (status: string) => {
         switch (status) {
-            case 'pending': return { backgroundColor: '#FEF3C7' };
+            case 'pending': return { backgroundColor: `${colors.warning}30` };
             case 'in-progress': return { backgroundColor: colors.primary };
-            case 'completed': return { backgroundColor: '#D1FAE5' };
-            case 'cancelled': return { backgroundColor: '#FEE2E2' };
+            case 'completed': return { backgroundColor: `${colors.success}30` };
+            case 'cancelled': return { backgroundColor: `${colors.error}30` };
             default: return { backgroundColor: colors.border };
         }
     };
 
     const getStatusTextStyle = (status: string) => {
         switch (status) {
-            case 'pending': return { color: '#D97706' };
+            case 'pending': return { color: colors.warning };
             case 'in-progress': return { color: colors.background };
-            case 'completed': return { color: '#065F46' };
-            case 'cancelled': return { color: '#DC2626' };
+            case 'completed': return { color: colors.success };
+            case 'cancelled': return { color: colors.error };
             default: return { color: colors.textSecondary };
         }
     };

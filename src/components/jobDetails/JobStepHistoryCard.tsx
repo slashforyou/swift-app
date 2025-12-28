@@ -6,7 +6,8 @@
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
+import { useTheme } from '../../context/ThemeProvider';
 
 export interface JobStepHistory {
   step: number;
@@ -31,7 +32,186 @@ interface JobStepHistoryCardProps {
 }
 
 export const JobStepHistoryCard: React.FC<JobStepHistoryCardProps> = ({ timerInfo }) => {
+  const { colors } = useTheme();
   const { step_history, timer_billable_hours, timer_break_hours, timer_is_running } = timerInfo;
+
+  // Styles dynamiques basés sur le thème
+  const styles = {
+    container: {
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 12,
+      padding: 16,
+      marginVertical: 8,
+      marginHorizontal: 16,
+      shadowColor: colors.text,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    header: {
+      flexDirection: 'row' as const,
+      justifyContent: 'space-between' as const,
+      alignItems: 'center' as const,
+      marginBottom: 16,
+    },
+    title: {
+      fontSize: 18,
+      fontWeight: 'bold' as const,
+      color: colors.text,
+    },
+    runningBadge: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      backgroundColor: `${colors.success}20`,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 12,
+    },
+    pulseDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: colors.success,
+      marginRight: 6,
+    },
+    runningText: {
+      fontSize: 12,
+      color: colors.success,
+      fontWeight: '600' as const,
+    },
+    stepList: {
+      gap: 12,
+    },
+    stepItem: {
+      backgroundColor: colors.backgroundTertiary || colors.backgroundSecondary,
+      borderRadius: 8,
+      padding: 12,
+      borderLeftWidth: 3,
+      borderLeftColor: colors.textSecondary,
+    },
+    stepItemCurrent: {
+      backgroundColor: `${colors.warning}20`,
+      borderLeftColor: colors.warning,
+    },
+    stepItemCompleted: {
+      backgroundColor: `${colors.success}20`,
+      borderLeftColor: colors.success,
+    },
+    stepHeader: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      marginBottom: 8,
+    },
+    stepNumberContainer: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: colors.background,
+      alignItems: 'center' as const,
+      justifyContent: 'center' as const,
+      marginRight: 12,
+    },
+    stepNumber: {
+      fontSize: 16,
+      fontWeight: 'bold' as const,
+      color: colors.text,
+    },
+    stepInfo: {
+      flex: 1,
+    },
+    stepName: {
+      fontSize: 15,
+      fontWeight: '600' as const,
+      color: colors.text,
+      marginBottom: 2,
+    },
+    currentLabel: {
+      fontSize: 12,
+      color: colors.warning,
+      fontWeight: '500' as const,
+    },
+    completedLabel: {
+      fontSize: 12,
+      color: colors.success,
+      fontWeight: '500' as const,
+    },
+    durationRow: {
+      flexDirection: 'row' as const,
+      justifyContent: 'space-between' as const,
+      marginTop: 4,
+    },
+    durationLabel: {
+      fontSize: 13,
+      color: colors.textSecondary,
+    },
+    durationValue: {
+      fontSize: 13,
+      fontWeight: '600' as const,
+      color: colors.text,
+    },
+    timestampRow: {
+      flexDirection: 'row' as const,
+      justifyContent: 'space-between' as const,
+      marginTop: 2,
+    },
+    timestampLabel: {
+      fontSize: 11,
+      color: colors.textMuted || colors.textSecondary,
+    },
+    timestampValue: {
+      fontSize: 11,
+      color: colors.textSecondary,
+    },
+    emptyState: {
+      alignItems: 'center' as const,
+      paddingVertical: 32,
+    },
+    emptyText: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      marginBottom: 4,
+    },
+    emptyHint: {
+      fontSize: 12,
+      color: colors.textMuted || colors.textSecondary,
+    },
+    footer: {
+      marginTop: 16,
+      paddingTop: 16,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    summaryRow: {
+      flexDirection: 'row' as const,
+      justifyContent: 'space-between' as const,
+      marginBottom: 8,
+    },
+    summaryLabel: {
+      fontSize: 13,
+      color: colors.textSecondary,
+    },
+    summaryValue: {
+      fontSize: 13,
+      fontWeight: '500' as const,
+      color: colors.text,
+    },
+    summaryLabelBold: {
+      fontSize: 14,
+      fontWeight: 'bold' as const,
+      color: colors.text,
+    },
+    summaryValueBold: {
+      fontSize: 14,
+      fontWeight: 'bold' as const,
+      color: colors.warning,
+    },
+    separatorLine: {
+      height: 1,
+      backgroundColor: colors.border,
+      marginVertical: 8,
+    },
+  };
 
   const formatDuration = (hours: number | null) => {
     if (hours === null || hours === 0) return '-';
@@ -163,180 +343,3 @@ export const JobStepHistoryCard: React.FC<JobStepHistoryCardProps> = ({ timerInf
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginVertical: 8,
-    marginHorizontal: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
-  },
-  runningBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#E8F5E9',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  pulseDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#4CAF50',
-    marginRight: 6,
-  },
-  runningText: {
-    fontSize: 12,
-    color: '#2E7D32',
-    fontWeight: '600',
-  },
-  stepList: {
-    gap: 12,
-  },
-  stepItem: {
-    backgroundColor: '#F5F5F5',
-    borderRadius: 8,
-    padding: 12,
-    borderLeftWidth: 3,
-    borderLeftColor: '#9E9E9E',
-  },
-  stepItemCurrent: {
-    backgroundColor: '#FFF3E0',
-    borderLeftColor: '#FF9800',
-  },
-  stepItemCompleted: {
-    backgroundColor: '#E8F5E9',
-    borderLeftColor: '#4CAF50',
-  },
-  stepHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  stepNumberContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  stepNumber: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
-  },
-  stepInfo: {
-    flex: 1,
-  },
-  stepName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#1a1a1a',
-    marginBottom: 2,
-  },
-  currentLabel: {
-    fontSize: 12,
-    color: '#F57C00',
-    fontWeight: '500',
-  },
-  completedLabel: {
-    fontSize: 12,
-    color: '#2E7D32',
-    fontWeight: '500',
-  },
-  durationRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 4,
-  },
-  durationLabel: {
-    fontSize: 13,
-    color: '#757575',
-  },
-  durationValue: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#1a1a1a',
-  },
-  timestampRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 2,
-  },
-  timestampLabel: {
-    fontSize: 11,
-    color: '#9E9E9E',
-  },
-  timestampValue: {
-    fontSize: 11,
-    color: '#757575',
-  },
-  emptyState: {
-    alignItems: 'center',
-    paddingVertical: 32,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: '#757575',
-    marginBottom: 4,
-  },
-  emptyHint: {
-    fontSize: 12,
-    color: '#9E9E9E',
-  },
-  footer: {
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  summaryLabel: {
-    fontSize: 13,
-    color: '#757575',
-  },
-  summaryValue: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#1a1a1a',
-  },
-  summaryLabelBold: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
-  },
-  summaryValueBold: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#FF9800',
-  },
-  separatorLine: {
-    height: 1,
-    backgroundColor: '#E0E0E0',
-    marginVertical: 8,
-  },
-});

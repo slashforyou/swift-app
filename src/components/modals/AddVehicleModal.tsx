@@ -198,7 +198,8 @@ export default function AddVehicleModal({
         `${vehicleData.make} ${vehicleData.model} a été ajouté avec succès`
       )
       handleClose()
-    } catch (error) {
+    } catch (error) {
+
       Alert.alert('Erreur', 'Impossible d\'ajouter le véhicule')
     } finally {
       setIsLoading(false)
@@ -292,7 +293,7 @@ export default function AddVehicleModal({
                 <Text style={[
                   styles.makeOptionText,
                   { color: colors.text },
-                  vehicleData.make === make && { color: '#FFFFFF' }
+                  vehicleData.make === make && { color: colors.background }
                 ]}>
                   {make}
                 </Text>
@@ -374,7 +375,7 @@ export default function AddVehicleModal({
                 <Text style={[
                   styles.makeOptionText,
                   { color: colors.text },
-                  vehicleData.location === location && { color: '#FFFFFF' }
+                  vehicleData.location === location && { color: colors.background }
                 ]}>
                   {location}
                 </Text>
@@ -409,10 +410,10 @@ export default function AddVehicleModal({
         disabled={isLoading}
       >
         {isLoading ? (
-          <ActivityIndicator color="#FFFFFF" />
+          <ActivityIndicator color={colors.background} />
         ) : (
           <>
-            <Ionicons name="add-circle" size={20} color="#FFFFFF" />
+            <Ionicons name="add-circle" size={20} color={colors.background} />
             <Text style={styles.submitButtonText}>Ajouter le véhicule</Text>
           </>
         )}

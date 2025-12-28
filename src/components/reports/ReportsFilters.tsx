@@ -28,11 +28,11 @@ const PERIOD_OPTIONS = [
   { value: 'custom', label: 'Personnalisé' }
 ] as const;
 
-const STATUS_OPTIONS: readonly ({ value: 'all' | 'succeeded' | 'pending' | 'failed'; label: string; icon: string; color?: string })[] = [
+const STATUS_OPTIONS: readonly ({ value: 'all' | 'succeeded' | 'pending' | 'failed'; label: string; icon: string; colorKey?: 'success' | 'warning' | 'error' })[] = [
   { value: 'all', label: 'Tous les statuts', icon: 'apps' },
-  { value: 'succeeded', label: 'Réussis', icon: 'checkmark-circle', color: '#10B981' },
-  { value: 'pending', label: 'En attente', icon: 'time', color: '#F59E0B' },
-  { value: 'failed', label: 'Échoués', icon: 'close-circle', color: '#EF4444' }
+  { value: 'succeeded', label: 'Réussis', icon: 'checkmark-circle', colorKey: 'success' },
+  { value: 'pending', label: 'En attente', icon: 'time', colorKey: 'warning' },
+  { value: 'failed', label: 'Échoués', icon: 'close-circle', colorKey: 'error' }
 ] as const;
 
 const PAYMENT_METHOD_OPTIONS = [
@@ -171,7 +171,7 @@ export const ReportsFilters: React.FC<ReportsFiltersProps> = ({
                     size={16} 
                     color={filters.status === option.value 
                       ? colors.primary 
-                      : (option.color || colors.textSecondary)
+                      : (option.colorKey ? colors[option.colorKey] : colors.textSecondary)
                     }
                     style={{ marginRight: DESIGN_TOKENS.spacing.xs }}
                   />
