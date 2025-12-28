@@ -26,7 +26,7 @@
 | 🎯 Phase 2 - Growth | 5 | 14 | 19 |
 | 🌍 Phase 3 - Expansion | 0 | 12 | 12 |
 | 🚀 Phase 4 - Innovation | 0 | 10 | 10 |
-| 🧪 Tests Light/Dark | 30+ | 10 | 40+ |
+| 🧪 Tests Light/Dark | 32+ | 8 | 40+ |
 | 🔧 TODOs Code | 19 | 10 | 29 |
 | 📱 Device Testing | 0 | 40+ | 40+ |
 | 🌍 i18n | 4 | 4 | 8 |
@@ -344,15 +344,16 @@
 
 | Métrique | Avant | Après | Amélioration |
 |----------|-------|-------|--------------|
-| **Couleurs hardcodées** | ~150+ | **40** | **-73%** |
+| **Couleurs hardcodées** | ~150+ | **39** | **-74%** |
 | **Fichiers affectés** | ~60+ | **13** | **-78%** |
-| **Commits poussés** | - | **10** | ✅ |
+| **Commits poussés** | - | **13** | ✅ |
 
-### Fichiers Restants (intentionnels)
-- ProfileHeader*.tsx (7 couleurs) - Médailles gamification (or/argent/bronze)
-- StepValidationBadge.tsx (5) - Dans StyleSheet statique, surchargées JSX
-- Payment modals (2 chaque) - Texte blanc sur fond coloré
-- signingBloc.tsx (1) - CSS injecté dans WebView
+### Fichiers Restants (intentionnels ou surchargés JSX)
+- ProfileHeader*.tsx (20 couleurs) - Médailles gamification (or/argent/bronze) - INTENTIONNEL
+- StepValidationBadge.tsx (5) - Dans StyleSheet statique, surchargées en JSX ✅
+- Payment modals (4 total) - Surchargées en JSX avec colors.buttonPrimaryText ✅
+- Staff/Vehicle modals (8 total) - Surchargées en JSX ✅
+- signingBloc.tsx (1) - CSS injecté dans WebView - INTENTIONNEL
 
 ## Critères de Validation (par écran)
 - [x] Fond principal visible 🟠 ✅
@@ -422,6 +423,7 @@
 - [x] AddContractorModal.tsx, AddJobTemplateModal.tsx ✅
 - [x] staffCrewScreen.tsx, VehicleFleetScreen.tsx ✅
 - [x] ReportsScreen.tsx, ReportsFilters.tsx, Toast.tsx ✅
+- [x] PaymentDetailModal.tsx, PayoutDetailModal.tsx ✅ (colors.buttonPrimaryText)
 
 ---
 
