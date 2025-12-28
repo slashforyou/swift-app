@@ -1,22 +1,36 @@
 {
   "expo": {
-    "name": "swift-app",
+    "name": "Swift App",
     "slug": "swiftapp",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
     "scheme": "swiftapp",
     "userInterfaceStyle": "automatic",
     "entryPoint": "App.tsx",
     "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#7E3AF2"
+    },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.slash4u.swiftapp",
+      "buildNumber": "1"
     },
     "android": {
       "edgeToEdgeEnabled": true,
-      "package": "com.slash4u.swiftapp"
+      "package": "com.slash4u.swiftapp",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#7E3AF2"
+      }
     },
     "web": {
-      "bundler": "metro"
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {
@@ -26,7 +40,14 @@
     "plugins": [
       "expo-secure-store",
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": "merchant.com.slash4u.swiftapp",
+          "enableGooglePay": true
+        }
+      ]
     ],
     "owner": "slash4u"
   }

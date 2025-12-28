@@ -3,6 +3,7 @@ import { StripeProvider } from '@stripe/stripe-react-native'
 import React, { useEffect } from 'react'
 import { View } from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
+import { STRIPE_PUBLISHABLE_KEY, ENV } from './config/environment'
 import { ThemeProvider } from './context/ThemeProvider'
 import { ToastProvider } from './context/ToastProvider'
 import { VehiclesProvider } from './context/VehiclesProvider'
@@ -12,9 +13,6 @@ import { logInfo, simpleSessionLogger } from './services/simpleSessionLogger'
 import './services/testCommunication'; // Initialize test communication
 import './services/testReporter'; // Initialize test reporter
 
-// Configuration Stripe (test keys pour le développement)
-const STRIPE_PUBLISHABLE_KEY = 'pk_test_51OsLQ8DYjI2sE1B1Gxw8SJ9xqJBAFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF'; // Remplacer par vraie clé test
-
 export default function App() {
   useEffect(() => {
     // Initialiser le session logger au démarrage
@@ -22,7 +20,8 @@ export default function App() {
     logInfo('SwiftApp started successfully', 'app-startup');
     
     // Log des informations de démarrage utiles
-    logInfo(`Stripe Provider initialized with key: ${STRIPE_PUBLISHABLE_KEY.substring(0, 20)}...`, 'stripe-init');
+    logInfo(`Environment: ${ENV.name}`, 'env-init');
+    logInfo(`Stripe Provider initialized with key: ${STRIPE_PUBLISHABLE_KEY.substring(0, 12)}...`, 'stripe-init');
     
     // Signal to Copilot that app is ready for testing
     if (__DEV__) {
