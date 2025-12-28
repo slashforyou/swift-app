@@ -26,7 +26,7 @@
 | 🎯 Phase 2 - Growth | 5 | 14 | 19 |
 | 🌍 Phase 3 - Expansion | 0 | 12 | 12 |
 | 🚀 Phase 4 - Innovation | 0 | 10 | 10 |
-| 🧪 Tests Light/Dark | 25+ | 15 | 40+ |
+| 🧪 Tests Light/Dark | 30+ | 10 | 40+ |
 | 🔧 TODOs Code | 19 | 10 | 29 |
 | 📱 Device Testing | 0 | 40+ | 40+ |
 | 🌍 i18n | 4 | 4 | 8 |
@@ -364,17 +364,17 @@
 
 ## Navigation Tab (6 écrans)
 - [x] Home - `screens/home.tsx` - Light/Dark 🟡 ✅
-- [ ] Calendar - `screens/calendar/*.tsx` - Light/Dark 🟡
+- [x] Calendar - `screens/calendar/*.tsx` - Light/Dark 🟡 ✅ (useCommonThemedStyles)
 - [ ] Jobs - `screens/jobs/*.tsx` - Light/Dark 🟡
 - [x] Payments - `screens/payments/*.tsx` - Light/Dark 🟡 ✅
-- [ ] Profile - `screens/profile.tsx` - Light/Dark 🟡
-- [ ] Parameters - `screens/parameters.tsx` - Light/Dark 🟡
+- [x] Profile - `screens/profile.tsx` - Light/Dark 🟡 ✅ (useTheme)
+- [x] Parameters - `screens/parameters.tsx` - Light/Dark 🟡 ✅ (useTheme)
 
 ## Calendrier (4 écrans)
 - [x] Month View - Light/Dark 🟢 ✅
-- [ ] Year View - Light/Dark 🟢
-- [ ] Multiple Years - Light/Dark ⚪
-- [ ] Day Details - Light/Dark 🟢
+- [x] Year View - Light/Dark 🟢 ✅ (useCommonThemedStyles)
+- [x] Multiple Years - Light/Dark ⚪ ✅ (useCommonThemedStyles)
+- [x] Day Details - Light/Dark 🟢 ✅ (useCommonThemedStyles)
 
 ## Jobs (5 écrans)
 - [x] Job List - Light/Dark 🟡 ✅
