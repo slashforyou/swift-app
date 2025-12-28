@@ -216,7 +216,7 @@ export default function StaffCrewScreen() {
           onPress={handleAddStaff}
         >
           <Ionicons name="add-circle" size={24} color={colors.buttonPrimaryText} />
-          <Text style={styles.addButtonText}>{t('staff.actions.add')}</Text>
+          <Text style={[styles.addButtonText, { color: colors.buttonPrimaryText }]}>{t('staff.actions.add')}</Text>
         </Pressable>
 
         {/* Filtres */}
@@ -284,7 +284,7 @@ export default function StaffCrewScreen() {
         {error && (
           <View testID="error-message" style={[styles.errorContainer, { backgroundColor: colors.errorBanner }]}>
             <Ionicons name="alert-circle" size={20} color={colors.error} />
-            <Text style={styles.errorText}>{error}</Text>
+            <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>
           </View>
         )}
 

@@ -414,7 +414,7 @@ export default function AddVehicleModal({
         ) : (
           <>
             <Ionicons name="add-circle" size={20} color={colors.background} />
-            <Text style={styles.submitButtonText}>Ajouter le véhicule</Text>
+            <Text style={[styles.submitButtonText, { color: colors.background }]}>Ajouter le véhicule</Text>
           </>
         )}
       </Pressable>

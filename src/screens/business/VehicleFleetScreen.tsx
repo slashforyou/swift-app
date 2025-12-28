@@ -207,7 +207,7 @@ const VehicleFleetScreen: React.FC = () => {
           </VStack>
           
           <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
-            <Text style={styles.statusText}>
+            <Text style={[styles.statusText, { color: colors.background }]}>
               {vehicle.status.toUpperCase()}
             </Text>
           </View>

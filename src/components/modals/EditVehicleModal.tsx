@@ -462,7 +462,7 @@ export default function EditVehicleModal({
             {isLoading ? (
               <ActivityIndicator color={colors.background} />
             ) : (
-              <Text style={styles.submitButtonText}>Update Vehicle</Text>
+              <Text style={[styles.submitButtonText, { color: colors.background }]}>Update Vehicle</Text>
             )}
           </Pressable>
         </View>

@@ -171,7 +171,7 @@ export default function EditStaffModal({
             {isLoading ? (
               <ActivityIndicator size="small" color={colors.background} />
             ) : (
-              <Text style={styles.saveButtonText}>Enregistrer</Text>
+              <Text style={[styles.saveButtonText, { color: colors.background }]}>Enregistrer</Text>
             )}
           </Pressable>
         </View>

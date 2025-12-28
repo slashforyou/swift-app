@@ -225,7 +225,7 @@ const JobTimeSection: React.FC<JobTimeSectionProps> = ({ job }) => {
                         onPress={togglePause}
                         style={({ pressed }: { pressed: boolean }) => ({
                             backgroundColor: isOnBreak 
-                                ? (pressed ? '#10B981DD' : '#10B981') 
+                                ? (pressed ? colors.success + 'DD' : colors.success) 
                                 : (pressed ? colors.warning + 'DD' : colors.warning),
                             paddingHorizontal: DESIGN_TOKENS.spacing.lg,
                             paddingVertical: DESIGN_TOKENS.spacing.md,

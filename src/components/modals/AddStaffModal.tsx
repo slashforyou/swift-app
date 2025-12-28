@@ -432,7 +432,7 @@ export default function AddStaffModal({
         ) : (
           <>
             <Ionicons name="mail" size={20} color={colors.background} />
-            <Text style={styles.submitButtonText}>Envoyer l&apos;invitation</Text>
+            <Text style={[styles.submitButtonText, { color: colors.background }]}>Envoyer l&apos;invitation</Text>
           </>
         )}
       </Pressable>
@@ -651,7 +651,7 @@ export default function AddStaffModal({
         ) : (
           <>
             <Ionicons name="mail" size={20} color={colors.background} />
-            <Text style={styles.submitButtonText}>Envoyer l&apos;invitation</Text>
+            <Text style={[styles.submitButtonText, { color: colors.background }]}>Envoyer l&apos;invitation</Text>
           </>
         )}
       </Pressable>

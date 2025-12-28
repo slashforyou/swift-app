@@ -227,7 +227,7 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
                     <View style={styles.header}>
                         <Text style={styles.title}>🔔 Notifications</Text>
                         <Pressable onPress={onClose} style={styles.closeButton}>
-                            <Ionicons name="close" size={24} color="#666666" />
+                            <Ionicons name="close" size={24} color={colors.textSecondary} />
                         </Pressable>
                     </View>
 
@@ -259,7 +259,7 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
                                         onPress={() => removeNotification(notif.id)}
                                         style={styles.deleteButton}
                                     >
-                                        <Ionicons name="close" size={18} color="#999999" />
+                                        <Ionicons name="close" size={18} color={colors.textMuted} />
                                     </Pressable>
                                 </View>
                             ))
