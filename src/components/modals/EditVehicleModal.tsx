@@ -220,7 +220,7 @@ export default function EditVehicleModal({
           {/* Make Selection */}
           <View style={styles.section}>
             <Text style={[styles.label, { color: colors.text }]}>
-              Vehicle Make <Text style={styles.required}>*</Text>
+              Vehicle Make <Text style={[styles.required, { color: colors.error }]}>*</Text>
             </Text>
             <ScrollView
               horizontal
@@ -257,14 +257,14 @@ export default function EditVehicleModal({
               </View>
             </ScrollView>
             {errors.make && (
-              <Text style={styles.errorText}>{errors.make}</Text>
+              <Text style={[styles.errorText, { color: colors.error }]}>{errors.make}</Text>
             )}
           </View>
 
           {/* Model Input */}
           <View style={styles.section}>
             <Text style={[styles.label, { color: colors.text }]}>
-              Model <Text style={styles.required}>*</Text>
+              Model <Text style={[styles.required, { color: colors.error }]}>*</Text>
             </Text>
             <TextInput
               style={[
@@ -284,14 +284,14 @@ export default function EditVehicleModal({
               }}
             />
             {errors.model && (
-              <Text style={styles.errorText}>{errors.model}</Text>
+              <Text style={[styles.errorText, { color: colors.error }]}>{errors.model}</Text>
             )}
           </View>
 
           {/* Year Input */}
           <View style={styles.section}>
             <Text style={[styles.label, { color: colors.text }]}>
-              Year <Text style={styles.required}>*</Text>
+              Year <Text style={[styles.required, { color: colors.error }]}>*</Text>
             </Text>
             <TextInput
               style={[
@@ -313,14 +313,14 @@ export default function EditVehicleModal({
               maxLength={4}
             />
             {errors.year && (
-              <Text style={styles.errorText}>{errors.year}</Text>
+              <Text style={[styles.errorText, { color: colors.error }]}>{errors.year}</Text>
             )}
           </View>
 
           {/* Registration Input */}
           <View style={styles.section}>
             <Text style={[styles.label, { color: colors.text }]}>
-              Registration <Text style={styles.required}>*</Text>
+              Registration <Text style={[styles.required, { color: colors.error }]}>*</Text>
             </Text>
             <TextInput
               style={[
@@ -344,7 +344,7 @@ export default function EditVehicleModal({
               Format: ABC-123 or AB-12-CD
             </Text>
             {errors.registration && (
-              <Text style={styles.errorText}>{errors.registration}</Text>
+              <Text style={[styles.errorText, { color: colors.error }]}>{errors.registration}</Text>
             )}
           </View>
 
@@ -371,7 +371,7 @@ export default function EditVehicleModal({
           {/* Next Service Date */}
           <View style={styles.section}>
             <Text style={[styles.label, { color: colors.text }]}>
-              Next Service Date <Text style={styles.required}>*</Text>
+              Next Service Date <Text style={[styles.required, { color: colors.error }]}>*</Text>
             </Text>
             <TextInput
               style={[
@@ -391,14 +391,14 @@ export default function EditVehicleModal({
               }}
             />
             {errors.nextService && (
-              <Text style={styles.errorText}>{errors.nextService}</Text>
+              <Text style={[styles.errorText, { color: colors.error }]}>{errors.nextService}</Text>
             )}
           </View>
 
           {/* Location Selection */}
           <View style={styles.section}>
             <Text style={[styles.label, { color: colors.text }]}>
-              Depot Location <Text style={styles.required}>*</Text>
+              Depot Location <Text style={[styles.required, { color: colors.error }]}>*</Text>
             </Text>
             <ScrollView
               horizontal
@@ -435,7 +435,7 @@ export default function EditVehicleModal({
               </View>
             </ScrollView>
             {errors.location && (
-              <Text style={styles.errorText}>{errors.location}</Text>
+              <Text style={[styles.errorText, { color: colors.error }]}>{errors.location}</Text>
             )}
           </View>
         </ScrollView>
