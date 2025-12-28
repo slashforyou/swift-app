@@ -121,7 +121,7 @@ export default function PayoutDetailModal({
           {/* Amount Card */}
           <View style={[styles.amountCard, { backgroundColor: colors.primary }]}>
             <Text style={styles.amountLabel}>Amount</Text>
-            <Text style={styles.amountValue}>
+            <Text style={[styles.amountValue, { color: colors.buttonPrimaryText }]}>
               {formatCurrency(payout.amount, payout.currency)}
             </Text>
             <View style={[styles.statusBadge, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
@@ -130,7 +130,7 @@ export default function PayoutDetailModal({
                 size={16}
                 color={colors.buttonPrimaryText}
               />
-              <Text style={styles.statusText}>{getStatusLabel(payout.status)}</Text>
+              <Text style={[styles.statusText, { color: colors.buttonPrimaryText }]}>{getStatusLabel(payout.status)}</Text>
             </View>
           </View>
 

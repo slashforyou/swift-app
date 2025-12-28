@@ -137,7 +137,7 @@ export default function PaymentDetailModal({
           {/* Amount Card */}
           <View style={[styles.amountCard, { backgroundColor: getStatusColor(payment.status) }]}>
             <Text style={styles.amountLabel}>Amount Paid</Text>
-            <Text style={styles.amountValue}>
+            <Text style={[styles.amountValue, { color: colors.buttonPrimaryText }]}>
               {formatCurrency(payment.amount, payment.currency)}
             </Text>
             <View style={[styles.statusBadge, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
@@ -146,7 +146,7 @@ export default function PaymentDetailModal({
                 size={16}
                 color={colors.buttonPrimaryText}
               />
-              <Text style={styles.statusText}>{getStatusLabel(payment.status)}</Text>
+              <Text style={[styles.statusText, { color: colors.buttonPrimaryText }]}>{getStatusLabel(payment.status)}</Text>
             </View>
           </View>
 
