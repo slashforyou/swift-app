@@ -98,10 +98,10 @@
 ## ⏳ Semaine 5-6 : Déploiement Production
 
 ### Audit Sécurité
-- [ ] Revue conformité PCI-DSS 🔴
-- [ ] Test intrusion basic 🟠
-- [ ] Validation flows critiques 🔴
-- **Livrable :** Certification sécurité
+- [x] Revue conformité PCI-DSS 🔴 ✅ (SECURITY_AUDIT_28DEC2025.md)
+- [x] Test intrusion basic 🟠 ✅ (Pas de XSS, inputs validés)
+- [x] Validation flows critiques 🔴 ✅ (Auth + Paiement sécurisés)
+- **Livrable :** ✅ Certification sécurité - Score 93/100
 
 ### Configuration Production
 - [ ] Setup Stripe live keys 🔴
