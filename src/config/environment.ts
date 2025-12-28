@@ -7,10 +7,20 @@
  * 1. Remplacer les clés Stripe par les vraies clés live
  * 2. Vérifier les URLs de production
  * 3. Ne jamais committer les clés secrètes (sk_*)
+ * 
+ * UTILISATION AVEC EAS BUILD:
+ * - eas build --profile development → APP_ENV=development
+ * - eas build --profile preview → APP_ENV=staging  
+ * - eas build --profile production → APP_ENV=production
  */
+
+import Constants from 'expo-constants';
 
 // Détection de l'environnement
 const IS_DEV = __DEV__;
+
+// Variable d'environnement EAS (définie dans eas.json)
+const APP_ENV = Constants.expoConfig?.extra?.APP_ENV || process.env.APP_ENV || (IS_DEV ? 'development' : 'production');
 
 // Configuration par environnement
 interface EnvironmentConfig {
@@ -54,19 +64,28 @@ const productionConfig: EnvironmentConfig = {
 /**
  * Obtient la configuration selon l'environnement actuel
  * 
- * En développement (__DEV__ = true) → developmentConfig
- * En production (__DEV__ = false) → productionConfig
+ * Priorité de détection:
+ * 1. Variable APP_ENV (EAS Build)
+ * 2. __DEV__ flag (développement local)
  * 
- * Pour utiliser staging, modifier cette fonction ou utiliser une variable d'env
+ * EAS Build profiles:
+ * - development → developmentConfig
+ * - preview/staging → stagingConfig
+ * - production → productionConfig
  */
 export function getEnvironmentConfig(): EnvironmentConfig {
-  if (IS_DEV) {
-    return developmentConfig;
+  // Utiliser APP_ENV si défini (via EAS Build)
+  switch (APP_ENV) {
+    case 'development':
+      return developmentConfig;
+    case 'staging':
+      return stagingConfig;
+    case 'production':
+      return productionConfig;
+    default:
+      // Fallback sur __DEV__
+      return IS_DEV ? developmentConfig : productionConfig;
   }
-  
-  // En production, on pourrait détecter staging via une variable d'environnement
-  // Pour l'instant, on retourne directement la config production
-  return productionConfig;
 }
 
 // Export de la configuration active

@@ -33,6 +33,7 @@
       "favicon": "./assets/favicon.png"
     },
     "extra": {
+      "APP_ENV": "development",
       "eas": {
         "projectId": "197a33fd-1b2f-4c2e-b51b-b3ff8f976a80"
       }
