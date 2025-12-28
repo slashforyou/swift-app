@@ -26,12 +26,12 @@
 | 🎯 Phase 2 - Growth | 5 | 14 | 19 |
 | 🌍 Phase 3 - Expansion | 0 | 12 | 12 |
 | 🚀 Phase 4 - Innovation | 0 | 10 | 10 |
-| 🧪 Tests Light/Dark | 32+ | 8 | 40+ |
+| 🧪 Tests Light/Dark | 40+ | 0 | 40+ |
 | 🔧 TODOs Code | 19 | 10 | 29 |
 | 📱 Device Testing | 0 | 40+ | 40+ |
 | 🌍 i18n | 4 | 4 | 8 |
 | ⚡ Performance | 0 | 6 | 6 |
-| 🎨 Design System | 14 | 1 | 15 |
+| 🎨 Design System | 15 | 0 | 15 |
 
 ---
 
@@ -366,7 +366,7 @@
 ## Navigation Tab (6 écrans)
 - [x] Home - `screens/home.tsx` - Light/Dark 🟡 ✅
 - [x] Calendar - `screens/calendar/*.tsx` - Light/Dark 🟡 ✅ (useCommonThemedStyles)
-- [ ] Jobs - `screens/jobs/*.tsx` - Light/Dark 🟡
+- [x] Jobs - `screens/JobDetailsScreens/*.tsx` - Light/Dark 🟡 ✅ (useTheme/useCommonThemedStyles)
 - [x] Payments - `screens/payments/*.tsx` - Light/Dark 🟡 ✅
 - [x] Profile - `screens/profile.tsx` - Light/Dark 🟡 ✅ (useTheme)
 - [x] Parameters - `screens/parameters.tsx` - Light/Dark 🟡 ✅ (useTheme)
@@ -387,17 +387,17 @@
 ## Paiements & Stripe (4 écrans)
 - [x] Stripe Payment - Light/Dark 🔴 ✅
 - [x] Payment Success - Light/Dark 🟠 ✅
-- [ ] Stripe Onboarding - Light/Dark 🟠
-- [ ] Account Status - Light/Dark 🟡
+- [x] Stripe Onboarding - Light/Dark 🟠 ✅ (useTheme)
+- [x] Account Status - Light/Dark 🟡 ✅ (useTheme)
 
 ## Business (4 écrans)
-- [ ] Business Info - Light/Dark 🟡
+- [x] Business Info - Light/Dark 🟡 ✅ (useTheme + useCommonThemedStyles)
 - [x] Trucks - Light/Dark 🟢 ✅
 - [x] Staff/Crew - Light/Dark 🟡 ✅
-- [ ] Payout Schedule - Light/Dark 🟢
+- [x] Payout Schedule - Light/Dark 🟢 ✅ (PayoutsScreen - useTheme)
 
 ## Composants Critiques (6)
-- [ ] Header Profile - Light/Dark 🟠 (médailles gamification)
+- [x] Header Profile - Light/Dark 🟠 ✅ (médailles gamification - couleurs intentionnelles)
 - [x] Today Section - Light/Dark 🟠 ✅
 - [x] Job Timeline - Light/Dark 🟠 ✅
 - [x] Signature Section - Light/Dark 🔴 ✅
@@ -407,9 +407,9 @@
 ## Modals (5)
 - [x] Payment Detail - Light/Dark 🟠 ✅
 - [x] Payout Detail - Light/Dark 🟢 ✅
-- [ ] Create Payment Link - Light/Dark 🟡
+- [x] Create Payment Link - Light/Dark 🟡 ✅ (useTheme)
 - [x] Add Note - Light/Dark 🟢 ✅
-- [ ] Photo Viewer - Light/Dark 🟢
+- [x] Photo Viewer - Light/Dark 🟢 ✅ (PhotoSelectionModal - useTheme)
 
 ## Composants Migrés (28 Déc 2025)
 - [x] NotificationsPanel.tsx - Conversion complète StyleSheet→dynamic ✅
