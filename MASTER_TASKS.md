@@ -18,7 +18,7 @@
 
 ---
 
-## 📊 Résumé
+## 📊 Résumé (Mise à jour 30 Déc 2025)
 
 | Catégorie | Terminé | En Attente | Total |
 |-----------|---------|------------|-------|
@@ -29,11 +29,13 @@
 | 🧪 Tests Light/Dark | 40+ | 0 | 40+ |
 | 🔐 Audit Sécurité | 3 | 0 | 3 |
 | 🔧 Config Production | **6** | 0 | 6 |
-| 🔧 TODOs Code | 19 | 10 | 29 |
+| 🔧 TODOs Code | **34** | 5 | 39 |
 | 📱 Device Testing | 0 | 40+ | 40+ |
 | 🌍 i18n | 4 | 4 | 8 |
 | ⚡ Performance | 0 | 6 | 6 |
 | 🎨 Design System | 15 | 0 | 15 |
+
+**Note :** 15 TODOs marqués "en attente" étaient déjà implémentés dans le code (audit 30 déc)
 
 ---
 
@@ -303,38 +305,41 @@
 | `StripeService.ts` | createStripePaymentLink | ⚠️ Pas d'endpoint backend |
 | `StripeService.ts` | updateStripeAccountSettings | ⚠️ Pas d'endpoint backend |
 
-## ⏳ Priorité Moyenne - Staff & Business (5)
+## ✅ Priorité Moyenne - Staff & Business (5) - TOUS RÉSOLUS
 
-- [ ] `AddStaffModal.tsx` - Implémenter l'invitation de prestataire 🟡
-- [ ] `staffCrewScreen.tsx` - Implémenter la suppression 🟡
-- [ ] `staffCrewScreen.tsx` - Implement edit functionality 🟡
-- [ ] `PayoutsScreen.tsx` - Navigation vers le détail du payout 🟢
-- [ ] `PaymentsListScreen.tsx` - Navigation vers le détail du paiement 🟢
+- [x] `AddStaffModal.tsx` - Implémenter l'invitation de prestataire 🟡 ✅ (staffService.inviteContractor)
+- [x] `staffCrewScreen.tsx` - Implémenter la suppression 🟡 ✅ (handleRemoveStaff + removeStaff API)
+- [x] `staffCrewScreen.tsx` - Implement edit functionality 🟡 ✅ (handleEditStaff + updateStaff API)
+- [x] `PayoutsScreen.tsx` - Navigation vers le détail du payout 🟢 ✅ (PayoutDetailModal)
+- [x] `PaymentsListScreen.tsx` - Navigation vers le détail du paiement 🟢 ✅ (PaymentDetailModal)
 
-## ⏳ Priorité Moyenne - Vehicles (4)
+## ⏳ En Attente Backend - Vehicles (3)
 
-- [ ] `VehicleDetailsScreen.tsx` - Add mileage to API (backend) 🟢
-- [ ] `VehicleDetailsScreen.tsx` - Add purchaseDate to API (backend) 🟢
-- [ ] `VehicleDetailsScreen.tsx` - Add lastService to API (backend) 🟢
-- [ ] `trucksScreen.tsx` - Ouvrir détails du véhicule 🟡
+- [ ] `VehicleDetailsScreen.tsx` - Add mileage to API (backend) 🟢 ⚠️ Frontend prêt
+- [ ] `VehicleDetailsScreen.tsx` - Add purchaseDate to API (backend) 🟢 ⚠️ Frontend prêt
+- [ ] `VehicleDetailsScreen.tsx` - Add lastService to API (backend) 🟢 ⚠️ Frontend prêt
 
-## ⏳ Priorité Moyenne - Stripe Settings (4)
+## ✅ Priorité Moyenne - Vehicles Navigation (1) - RÉSOLU
 
-- [ ] `StripeSettingsScreen.tsx` - Ouvrir Stripe Connect Onboarding 🟠
-- [ ] `StripeSettingsScreen.tsx` - Navigation vers configuration webhooks 🟢
-- [ ] `StripeSettingsScreen.tsx` - Créer un paiement test 🟢
-- [ ] `StripeSettingsScreen.tsx` - Déconnecter le compte Stripe 🟢
+- [x] `trucksScreen.tsx` - Ouvrir détails du véhicule 🟡 ✅ (VehicleDetailsScreen + selectedVehicle)
 
-## ⏳ Priorité Moyenne - Stripe Hub (3)
+## ✅ Priorité Moyenne - Stripe Settings (4) - TOUS RÉSOLUS
 
-- [ ] `StripeHub.tsx` - Ouvrir modal de création de lien de paiement 🟡
-- [ ] `StripeHub.tsx` - Créer un lien de paiement rapide 🟡
-- [ ] `StripeHub.tsx` - Navigation vers création personnalisée 🟢
+- [x] `StripeSettingsScreen.tsx` - Ouvrir Stripe Connect Onboarding 🟠 ✅ (getStripeConnectOnboardingLink)
+- [x] `StripeSettingsScreen.tsx` - Navigation vers configuration webhooks 🟢 ✅ (handleWebhooksSetup)
+- [x] `StripeSettingsScreen.tsx` - Créer un paiement test 🟢 ✅ (handleTestPayment)
+- [x] `StripeSettingsScreen.tsx` - Déconnecter le compte Stripe 🟢 ✅ (handleDisconnect)
 
-## ⏳ Priorité Basse - Photos (2)
+## ✅ Priorité Moyenne - Stripe Hub (3) - TOUS RÉSOLUS
 
-- [ ] `PhotoSelectionModal.tsx` - Code pour prendre la photo manquant 🟠
-- [ ] `PhotoSelectionModal.tsx` - Code pour sélectionner la photo manquant 🟠
+- [x] `StripeHub.tsx` - Ouvrir modal de création de lien de paiement 🟡 ✅ (CreatePaymentLinkModal)
+- [x] `StripeHub.tsx` - Créer un lien de paiement rapide 🟡 ✅ (handleCreatePaymentLink)
+- [x] `StripeHub.tsx` - Navigation vers création personnalisée 🟢 ✅ (navigation intégrée)
+
+## ✅ Priorité Basse - Photos (2) - TOUS RÉSOLUS
+
+- [x] `PhotoSelectionModal.tsx` - Code pour prendre la photo 🟠 ✅ (ImagePicker.launchCameraAsync)
+- [x] `PhotoSelectionModal.tsx` - Code pour sélectionner la photo 🟠 ✅ (ImagePicker.launchImageLibraryAsync)
 
 ## ⏳ Priorité Basse - Traductions (1)
 
