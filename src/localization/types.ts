@@ -435,11 +435,24 @@ export interface TranslationKeys {
             processing: string;
             confirm: string;
             retry: string;
+            continue: string;
+            download: string;
+            email: string;
+            backToDashboard: string;
         };
         status: {
             processing: string;
             success: string;
             failed: string;
+        };
+        success: {
+            title: string;
+            subtitle: string;
+            amount: string;
+            paymentId: string;
+            description: string;
+            jobId: string;
+            dateTime: string;
         };
     };
 

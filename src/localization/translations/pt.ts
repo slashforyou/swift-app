@@ -457,6 +457,36 @@ export const ptTranslations = {
         },
     },
 
+    payment: {
+        missingInfo: { title: 'Informação faltando', message: 'Preencha todos os campos.' },
+        errors: { 
+            jobIdNotFound: 'ID do trabalho não encontrado',
+            paymentError: 'Erro de pagamento',
+            generic: 'Erro',
+            processingFailed: 'Erro ao processar o pagamento.',
+            networkError: 'Erro de conexão'
+        },
+        buttons: { 
+            processing: 'Processando...', 
+            confirm: 'Confirmar pagamento', 
+            retry: 'Tentar novamente',
+            continue: 'Continuar',
+            download: 'Baixar',
+            email: 'Email',
+            backToDashboard: 'Voltar ao painel'
+        },
+        status: { processing: 'Processando...', success: 'Pagamento bem-sucedido', failed: 'Pagamento falhou' },
+        success: {
+            title: 'Pagamento bem-sucedido!',
+            subtitle: 'Seu pagamento foi processado com segurança',
+            amount: 'Valor',
+            paymentId: 'ID do pagamento',
+            description: 'Descrição',
+            jobId: 'ID do trabalho',
+            dateTime: 'Data e hora'
+        },
+    },
+
     stripe: {
         hub: {
             title: 'Stripe Hub',

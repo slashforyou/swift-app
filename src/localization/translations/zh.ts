@@ -469,6 +469,36 @@ export const zhTranslations = {
         },
     },
 
+    payment: {
+        missingInfo: { title: '信息缺失', message: '请填写所有字段。' },
+        errors: { 
+            jobIdNotFound: '未找到工作ID',
+            paymentError: '支付错误',
+            generic: '错误',
+            processingFailed: '处理付款时出错。',
+            networkError: '连接错误'
+        },
+        buttons: { 
+            processing: '处理中...', 
+            confirm: '确认付款', 
+            retry: '重试',
+            continue: '继续',
+            download: '下载',
+            email: '邮件',
+            backToDashboard: '返回仪表板'
+        },
+        status: { processing: '处理中...', success: '支付成功', failed: '支付失败' },
+        success: {
+            title: '支付成功！',
+            subtitle: '您的付款已安全处理',
+            amount: '金额',
+            paymentId: '付款ID',
+            description: '描述',
+            jobId: '工作ID',
+            dateTime: '日期和时间'
+        },
+    },
+
     stripe: {
         hub: {
             title: 'Stripe 中心',

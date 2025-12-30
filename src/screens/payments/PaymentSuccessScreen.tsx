@@ -17,6 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 // Context
 import { DESIGN_TOKENS } from '../../constants/Styles'
 import { useTheme } from '../../context/ThemeProvider'
+import { useTranslation } from '../../localization/useLocalization'
 
 // Types
 interface PaymentSuccessData {
@@ -43,6 +44,7 @@ export const PaymentSuccessScreen: React.FC<PaymentSuccessScreenProps> = ({
   onSendReceipt
 }) => {
   const { colors } = useTheme()
+  const { t } = useTranslation()
   const scaleValue = React.useRef(new Animated.Value(0)).current
 
   // Animation d'entrée du cercle de succès
@@ -205,40 +207,40 @@ export const PaymentSuccessScreen: React.FC<PaymentSuccessScreenProps> = ({
 
         {/* Textes de confirmation */}
         <View style={{ alignItems: 'center' }}>
-          <Text style={styles.headerText}>Payment Successful!</Text>
+          <Text style={styles.headerText}>{t('payment.success.title')}</Text>
           <Text style={styles.subHeaderText}>
-            Your payment has been processed securely
+            {t('payment.success.subtitle')}
           </Text>
         </View>
 
         {/* Détails du paiement */}
         <View style={styles.detailsCard}>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Amount</Text>
+            <Text style={styles.detailLabel}>{t('payment.success.amount')}</Text>
             <Text style={[styles.detailValue, styles.amountValue]}>
               {formatCurrency(paymentData.amount, paymentData.currency)}
             </Text>
           </View>
 
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Payment ID</Text>
+            <Text style={styles.detailLabel}>{t('payment.success.paymentId')}</Text>
             <Text style={styles.detailValue}>{paymentData.paymentId}</Text>
           </View>
 
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Description</Text>
+            <Text style={styles.detailLabel}>{t('payment.success.description')}</Text>
             <Text style={styles.detailValue}>{paymentData.description}</Text>
           </View>
 
           {paymentData.jobId && (
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Job ID</Text>
+              <Text style={styles.detailLabel}>{t('payment.success.jobId')}</Text>
               <Text style={styles.detailValue}>{paymentData.jobId}</Text>
             </View>
           )}
 
           <View style={[styles.detailRow, styles.detailRowLast]}>
-            <Text style={styles.detailLabel}>Date & Time</Text>
+            <Text style={styles.detailLabel}>{t('payment.success.dateTime')}</Text>
             <Text style={styles.detailValue}>{formatDate(paymentData.timestamp)}</Text>
           </View>
         </View>
@@ -256,7 +258,7 @@ export const PaymentSuccessScreen: React.FC<PaymentSuccessScreenProps> = ({
                 >
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <Ionicons name="download-outline" size={18} color={colors.text} />
-                    <Text style={styles.secondaryButtonText}>Download</Text>
+                    <Text style={styles.secondaryButtonText}>{t('payment.buttons.download')}</Text>
                   </View>
                 </TouchableOpacity>
               )}
@@ -269,7 +271,7 @@ export const PaymentSuccessScreen: React.FC<PaymentSuccessScreenProps> = ({
                 >
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <Ionicons name="mail-outline" size={18} color={colors.text} />
-                    <Text style={styles.secondaryButtonText}>Email</Text>
+                    <Text style={styles.secondaryButtonText}>{t('payment.buttons.email')}</Text>
                   </View>
                 </TouchableOpacity>
               )}
@@ -282,7 +284,7 @@ export const PaymentSuccessScreen: React.FC<PaymentSuccessScreenProps> = ({
             onPress={onContinue}
             accessibilityLabel="Continue to next screen"
           >
-            <Text style={styles.primaryButtonText}>Continue</Text>
+            <Text style={styles.primaryButtonText}>{t('payment.buttons.continue')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -290,7 +292,7 @@ export const PaymentSuccessScreen: React.FC<PaymentSuccessScreenProps> = ({
             onPress={onContinue}
             accessibilityLabel="Back to dashboard"
           >
-            <Text style={styles.tertiaryButtonText}>Back to Dashboard</Text>
+            <Text style={styles.tertiaryButtonText}>{t('payment.buttons.backToDashboard')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

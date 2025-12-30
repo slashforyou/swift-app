@@ -404,8 +404,25 @@ export const esTranslations = {
             processingFailed: 'Error al procesar el pago.',
             networkError: 'Error de conexión'
         },
-        buttons: { processing: 'Procesando...', confirm: 'Confirmar pago', retry: 'Reintentar' },
+        buttons: { 
+            processing: 'Procesando...', 
+            confirm: 'Confirmar pago', 
+            retry: 'Reintentar',
+            continue: 'Continuar',
+            download: 'Descargar',
+            email: 'Email',
+            backToDashboard: 'Volver al panel'
+        },
         status: { processing: 'Procesando...', success: 'Pago exitoso', failed: 'Pago fallido' },
+        success: {
+            title: '¡Pago exitoso!',
+            subtitle: 'Su pago ha sido procesado de forma segura',
+            amount: 'Monto',
+            paymentId: 'ID de pago',
+            description: 'Descripción',
+            jobId: 'ID del trabajo',
+            dateTime: 'Fecha y hora'
+        },
         summary: { total: 'Total', tax: 'Impuesto', subtotal: 'Subtotal' }
     },
 

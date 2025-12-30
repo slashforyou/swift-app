@@ -469,6 +469,36 @@ export const hiTranslations = {
         },
     },
 
+    payment: {
+        missingInfo: { title: 'जानकारी गायब', message: 'कृपया सभी फ़ील्ड भरें।' },
+        errors: { 
+            jobIdNotFound: 'कार्य ID नहीं मिला',
+            paymentError: 'भुगतान त्रुटि',
+            generic: 'त्रुटि',
+            processingFailed: 'भुगतान प्रक्रिया में त्रुटि।',
+            networkError: 'कनेक्शन त्रुटि'
+        },
+        buttons: { 
+            processing: 'प्रोसेसिंग...', 
+            confirm: 'भुगतान की पुष्टि करें', 
+            retry: 'पुनः प्रयास करें',
+            continue: 'जारी रखें',
+            download: 'डाउनलोड',
+            email: 'ईमेल',
+            backToDashboard: 'डैशबोर्ड पर वापस जाएं'
+        },
+        status: { processing: 'प्रोसेसिंग...', success: 'भुगतान सफल', failed: 'भुगतान विफल' },
+        success: {
+            title: 'भुगतान सफल!',
+            subtitle: 'आपका भुगतान सुरक्षित रूप से संसाधित किया गया है',
+            amount: 'राशि',
+            paymentId: 'भुगतान ID',
+            description: 'विवरण',
+            jobId: 'कार्य ID',
+            dateTime: 'दिनांक और समय'
+        },
+    },
+
     stripe: {
         hub: {
             title: 'Stripe Hub',
