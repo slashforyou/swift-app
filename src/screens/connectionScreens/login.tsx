@@ -13,6 +13,7 @@ import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 import { login } from '../../utils/auth';
 import AlertMessage from '../../components/ui/AlertMessage';
 import AnimatedBackground from '../../components/ui/AnimatedBackground';
+import { useTranslation } from '../../localization';
 
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 type RootStackParamList = {
@@ -27,6 +28,7 @@ interface LoginScreenProps {
 
 const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     const { colors, styles } = useCommonThemedStyles();
+    const { t } = useTranslation();
     
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -58,19 +60,19 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     const handleLogin = async () => {
         // Validation des champs
         if (!email.trim()) {
-            showAlert('warning', 'Veuillez saisir votre adresse email.', 'Email requis');
+            showAlert('warning', t('auth.validation.emailRequired'), t('auth.login.email'));
             return;
         }
 
         if (!password.trim()) {
-            showAlert('warning', 'Veuillez saisir votre mot de passe.', 'Mot de passe requis');
+            showAlert('warning', t('auth.validation.passwordRequired'), t('auth.login.password'));
             return;
         }
 
         // Validation format email basique
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            showAlert('error', 'Veuillez saisir une adresse email valide.', 'Format invalide');
+            showAlert('error', t('auth.validation.emailInvalid'), t('common.error'));
             return;
         }
 
@@ -78,46 +80,47 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
         try {
             await login(email, password);
-            showAlert('success', 'Connexion réussie ! Redirection en cours...', 'Bienvenue');
+            showAlert('success', t('auth.success.loginSuccess'), t('auth.success.welcome'));
             
             // Délai pour voir le message de succès
             setTimeout(() => {
                 navigation.navigate('Home');
             }, 1500);
             
-        } catch (error: any) {
+        } catch (error: any) {
+
             console.error('Login error:', error);
             
             // Messages d'erreur personnalisés basés sur les nouveaux codes
-            let errorMessage = 'Une erreur inattendue s\'est produite.';
-            let errorTitle = 'Erreur de connexion';
+            let errorMessage = t('auth.errors.generic');
+            let errorTitle = t('common.error');
             
             if (error.message) {
                 switch (error.message) {
                     case 'unauthorized':
                     case 'invalid_credentials':
-                        errorMessage = 'Email ou mot de passe incorrect. Veuillez vérifier vos identifiants.';
-                        errorTitle = 'Identifiants incorrects';
+                        errorMessage = t('auth.errors.invalidCredentials');
+                        errorTitle = t('common.error');
                         break;
                     case 'device_info_unavailable':
-                        errorMessage = 'Impossible de récupérer les informations de votre appareil.';
-                        errorTitle = 'Erreur technique';
+                        errorMessage = t('auth.errors.deviceInfoUnavailable');
+                        errorTitle = t('common.error');
                         break;
                     case 'server_error':
-                        errorMessage = 'Le serveur rencontre un problème temporaire. Veuillez réessayer plus tard.';
-                        errorTitle = 'Erreur serveur';
+                        errorMessage = t('auth.errors.serverError');
+                        errorTitle = t('common.error');
                         break;
                     case 'invalid_login_response':
-                        errorMessage = 'Réponse du serveur incorrecte. Veuillez contacter le support.';
-                        errorTitle = 'Erreur technique';
+                        errorMessage = t('auth.errors.invalidResponse');
+                        errorTitle = t('common.error');
                         break;
                     default:
                         if (error.message.includes('network') || error.message.includes('Network')) {
-                            errorMessage = 'Problème de connexion réseau. Veuillez vérifier votre connexion internet.';
-                            errorTitle = 'Problème réseau';
+                            errorMessage = t('auth.errors.networkError');
+                            errorTitle = t('common.error');
                         } else if (error.message.includes('timeout')) {
-                            errorMessage = 'La connexion a pris trop de temps. Veuillez réessayer.';
-                            errorTitle = 'Timeout';
+                            errorMessage = t('auth.errors.timeout');
+                            errorTitle = t('common.error');
                         } else {
                             errorMessage = error.message;
                         }
@@ -168,7 +171,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                         </View>
                         
                         <Text style={[styles.title, { marginBottom: 8 }]}>
-                            Connexion
+                            {t('auth.login.title')}
                         </Text>
                         
                         <Text style={[styles.body, { 
@@ -176,7 +179,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                             textAlign: 'center',
                             paddingHorizontal: 20
                         }]}>
-                            Connectez-vous à votre compte Swift
+                            {t('auth.login.subtitle')}
                         </Text>
                     </View>
 
@@ -193,11 +196,11 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                     <View style={{ flex: 1, justifyContent: 'center', paddingVertical: 20 }}>
                         <View style={{ marginBottom: 20 }}>
                             <Text style={[styles.subtitle, { marginBottom: 8 }]}>
-                                Email
+                                {t('auth.login.email')}
                             </Text>
                             <TextInput
                                 style={styles.inputBase}
-                                placeholder="votre@email.com"
+                                placeholder={t('auth.login.emailPlaceholder')}
                                 placeholderTextColor={colors.textSecondary}
                                 value={email}
                                 onChangeText={setEmail}
@@ -210,11 +213,11 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
                         <View style={{ marginBottom: 30 }}>
                             <Text style={[styles.subtitle, { marginBottom: 8 }]}>
-                                Mot de passe
+                                {t('auth.login.password')}
                             </Text>
                             <TextInput
                                 style={styles.inputBase}
-                                placeholder="••••••••"
+                                placeholder={t('auth.login.passwordPlaceholder')}
                                 placeholderTextColor={colors.textSecondary}
                                 value={password}
                                 onChangeText={setPassword}
@@ -232,7 +235,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                             disabled={isLoading}
                         >
                             <Text style={styles.buttonPrimaryText}>
-                                {isLoading ? 'Connexion...' : 'Se connecter'}
+                                {isLoading ? t('auth.login.submitting') : t('auth.login.submit')}
                             </Text>
                         </Pressable>
                     </View>
@@ -245,7 +248,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                             disabled={isLoading}
                         >
                             <Text style={styles.buttonSecondaryText}>
-                                Créer un compte
+                                {t('auth.login.createAccount')}
                             </Text>
                         </Pressable>
 
@@ -267,7 +270,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                                 color: colors.primary, 
                                 fontWeight: '600' 
                             }]}>
-                                ← Retour
+                                ← {t('auth.login.back')}
                             </Text>
                         </Pressable>
                     </View>

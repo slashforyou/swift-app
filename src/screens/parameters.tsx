@@ -10,6 +10,7 @@ import { Screen } from '../components/primitives/Screen';
 import { HStack, VStack } from '../components/primitives/Stack';
 import { DESIGN_TOKENS } from '../constants/Styles';
 import { useTheme } from '../context/ThemeProvider';
+import { useTranslation } from '../localization/useLocalization';
 import { useAuthCheck } from '../utils/checkAuth';
 
 // Types et interfaces
@@ -169,6 +170,7 @@ const SettingItem: React.FC<SettingItemProps> = ({
 const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
     const insets = useSafeAreaInsets();
     const { colors } = useTheme();
+    const { t } = useTranslation();
     const { isLoading, LoadingComponent } = useAuthCheck(navigation);
     const [settings, setSettings] = useState<AppSettings>({
         notifications: {
@@ -204,21 +206,21 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
         // Show feedback for important changes
         if (key === 'biometricAuth' && value) {
             Alert.alert(
-                "Biometric Authentication", 
-                "Biometric authentication has been enabled for enhanced security.",
-                [{ text: "OK" }]
+                t('settings.alerts.biometricEnabled.title'), 
+                t('settings.alerts.biometricEnabled.message'),
+                [{ text: t('common.ok') }]
             );
         }
     };
 
     const resetSettings = () => {
         Alert.alert(
-            "Reset Settings",
-            "Are you sure you want to reset all settings to default values?",
+            t('settings.alerts.resetSettings.title'),
+            t('settings.alerts.resetSettings.message'),
             [
-                { text: "Cancel", style: "cancel" },
+                { text: t('settings.alerts.resetSettings.cancel'), style: "cancel" },
                 { 
-                    text: "Reset", 
+                    text: t('settings.alerts.resetSettings.confirm'), 
                     style: "destructive", 
                     onPress: () => {
                         setSettings({
@@ -240,7 +242,7 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
                                 biometricAuth: false,
                             },
                         });
-                        Alert.alert("Settings Reset", "All settings have been reset to default values.");
+                        Alert.alert(t('settings.alerts.resetSuccess.title'), t('settings.alerts.resetSuccess.message'));
                     }
                 }
             ]
@@ -280,7 +282,7 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
                             fontWeight: DESIGN_TOKENS.typography.title.fontWeight,
                         }}
                     >
-                        Settings
+                        {t('settings.title')}
                     </Text>
                     
                     <Pressable
@@ -308,34 +310,34 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
             >
                 <VStack gap="lg">
                     {/* Notifications Section */}
-                    <SettingSection colors={colors} title="Notifications" icon="notifications-outline">
+                    <SettingSection colors={colors} title={t('settings.sections.notifications')} icon="notifications-outline">
                         <SettingItem colors={colors}
-                            label="Push Notifications"
-                            description="Receive push notifications for important updates"
+                            label={t('settings.items.pushNotifications')}
+                            description={t('settings.items.pushDescription')}
                             icon="phone-portrait-outline"
                             value={settings.notifications.pushNotifications}
                             onToggle={(value) => updateSetting('notifications', 'pushNotifications', value)}
                             color={colors.primary}
                         />
                         <SettingItem colors={colors}
-                            label="Email Notifications"
-                            description="Get notified via email about task assignments"
+                            label={t('settings.items.emailNotifications')}
+                            description={t('settings.items.emailDescription')}
                             icon="mail-outline"
                             value={settings.notifications.emailNotifications}
                             onToggle={(value) => updateSetting('notifications', 'emailNotifications', value)}
                             color={colors.info}
                         />
                         <SettingItem colors={colors}
-                            label="SMS Notifications"
-                            description="Receive SMS alerts for urgent tasks"
+                            label={t('settings.items.smsNotifications')}
+                            description={t('settings.items.smsDescription')}
                             icon="chatbox-outline"
                             value={settings.notifications.smsNotifications}
                             onToggle={(value) => updateSetting('notifications', 'smsNotifications', value)}
                             color={colors.warning}
                         />
                         <SettingItem colors={colors}
-                            label="Task Reminders"
-                            description="Get reminded about upcoming task deadlines"
+                            label={t('settings.items.taskReminders')}
+                            description={t('settings.items.taskRemindersDescription')}
                             icon="alarm-outline"
                             value={settings.notifications.taskReminders}
                             onToggle={(value) => updateSetting('notifications', 'taskReminders', value)}
@@ -344,34 +346,34 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
                     </SettingSection>
 
                     {/* Preferences Section */}
-                    <SettingSection colors={colors} title="Preferences" icon="options-outline">
+                    <SettingSection colors={colors} title={t('settings.sections.preferences')} icon="options-outline">
                         <SettingItem colors={colors}
-                            label="Dark Mode"
-                            description="Switch to dark theme for better night viewing"
+                            label={t('settings.items.darkMode')}
+                            description={t('settings.items.darkModeDescription')}
                             icon="moon-outline"
                             value={settings.preferences.darkMode}
                             onToggle={(value) => updateSetting('preferences', 'darkMode', value)}
                             color={colors.textSecondary}
                         />
                         <SettingItem colors={colors}
-                            label="Auto Sync"
-                            description="Automatically sync data when connected"
+                            label={t('settings.items.autoSync')}
+                            description={t('settings.items.autoSyncDescription')}
                             icon="sync-outline"
                             value={settings.preferences.autoSync}
                             onToggle={(value) => updateSetting('preferences', 'autoSync', value)}
                             color={colors.primary}
                         />
                         <SettingItem colors={colors}
-                            label="Offline Mode"
-                            description="Allow app to work without internet connection"
+                            label={t('settings.items.offlineMode')}
+                            description={t('settings.items.offlineModeDescription')}
                             icon="cloud-offline-outline"
                             value={settings.preferences.offlineMode}
                             onToggle={(value) => updateSetting('preferences', 'offlineMode', value)}
                             color={colors.warning}
                         />
                         <SettingItem colors={colors}
-                            label="Sound Effects"
-                            description="Play sounds for app interactions and notifications"
+                            label={t('settings.items.soundEnabled')}
+                            description={t('settings.items.soundDescription')}
                             icon="volume-high-outline"
                             value={settings.preferences.soundEnabled}
                             onToggle={(value) => updateSetting('preferences', 'soundEnabled', value)}
@@ -380,26 +382,26 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
                     </SettingSection>
 
                     {/* Privacy Section */}
-                    <SettingSection colors={colors} title="Privacy & Security" icon="shield-outline">
+                    <SettingSection colors={colors} title={t('settings.sections.privacy')} icon="shield-outline">
                         <SettingItem colors={colors}
-                            label="Share Location"
-                            description="Allow app to access and share your location data"
+                            label={t('settings.items.shareLocation')}
+                            description={t('settings.items.shareLocationDescription')}
                             icon="location-outline"
                             value={settings.privacy.shareLocation}
                             onToggle={(value) => updateSetting('privacy', 'shareLocation', value)}
                             color={colors.error}
                         />
                         <SettingItem colors={colors}
-                            label="Analytics"
-                            description="Share usage analytics to help improve the app"
+                            label={t('settings.items.analytics')}
+                            description={t('settings.items.analyticsDescription')}
                             icon="analytics-outline"
                             value={settings.privacy.shareAnalytics}
                             onToggle={(value) => updateSetting('privacy', 'shareAnalytics', value)}
                             color={colors.info}
                         />
                         <SettingItem colors={colors}
-                            label="Biometric Authentication"
-                            description="Use fingerprint or face ID for secure access"
+                            label={t('settings.items.biometricEnabled')}
+                            description={t('settings.items.biometricDescription')}
                             icon="finger-print-outline"
                             value={settings.privacy.biometricAuth}
                             onToggle={(value) => updateSetting('privacy', 'biometricAuth', value)}

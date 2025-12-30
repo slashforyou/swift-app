@@ -8,6 +8,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCommonThemedStyles } from '../hooks/useCommonStyles';
 import { ensureSession } from '../utils/session';
+import { useTranslation } from '../localization';
 
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
@@ -24,6 +25,7 @@ interface ConnectionScreenProps {
 
 const ConnectionScreen: React.FC<ConnectionScreenProps> = ({ navigation }) => {
     const { colors, styles } = useCommonThemedStyles();
+    const { t } = useTranslation();
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -52,7 +54,7 @@ const ConnectionScreen: React.FC<ConnectionScreenProps> = ({ navigation }) => {
             <SafeAreaView style={styles.containerCentered}>
                 <ActivityIndicator size="large" color={colors.primary} />
                 <Text style={[styles.body, { color: colors.textSecondary, marginTop: 16, textAlign: 'center' }]}>
-                    Vérification de la connexion...
+                    {t('common.loading')}
                 </Text>
             </SafeAreaView>
         );
@@ -84,7 +86,7 @@ const ConnectionScreen: React.FC<ConnectionScreenProps> = ({ navigation }) => {
                 
                 {/* Welcome Text */}
                 <Text style={[styles.title, { marginBottom: 8, textAlign: 'center' }]}>
-                    Bienvenue
+                    {t('auth.connection.title')}
                 </Text>
                 
                 <Text style={[styles.body, { 
@@ -93,7 +95,7 @@ const ConnectionScreen: React.FC<ConnectionScreenProps> = ({ navigation }) => {
                     marginBottom: 40,
                     paddingHorizontal: 20 
                 }]}>
-                    Gérez vos déménagements en toute simplicité
+                    {t('auth.connection.subtitle')}
                 </Text>
 
                 {/* Action Buttons */}
@@ -102,14 +104,14 @@ const ConnectionScreen: React.FC<ConnectionScreenProps> = ({ navigation }) => {
                         style={[styles.buttonPrimary, { width: '100%' }]}
                         onPress={() => navigation.navigate('Login')}
                     >
-                        <Text style={styles.buttonPrimaryText}>Se connecter</Text>
+                        <Text style={styles.buttonPrimaryText}>{t('auth.connection.loginButton')}</Text>
                     </Pressable>
                     
                     <Pressable
                         style={[styles.buttonSecondary, { width: '100%' }]}
                         onPress={() => navigation.navigate('Subscribe')}
                     >
-                        <Text style={styles.buttonSecondaryText}>Créer un compte</Text>
+                        <Text style={styles.buttonSecondaryText}>{t('auth.connection.registerButton')}</Text>
                     </Pressable>
                 </View>
 
@@ -128,7 +130,7 @@ const ConnectionScreen: React.FC<ConnectionScreenProps> = ({ navigation }) => {
                             <Text style={{ color: colors.success, fontSize: 16 }}>✓</Text>
                         </View>
                         <Text style={[styles.body, { color: colors.textSecondary }]}>
-                            Planification simplifiée
+                            {t('auth.connection.features.planning')}
                         </Text>
                     </View>
                     
@@ -145,7 +147,7 @@ const ConnectionScreen: React.FC<ConnectionScreenProps> = ({ navigation }) => {
                             <Text style={{ color: colors.info, fontSize: 16 }}>📱</Text>
                         </View>
                         <Text style={[styles.body, { color: colors.textSecondary }]}>
-                            Suivi en temps réel
+                            {t('auth.connection.features.realtime')}
                         </Text>
                     </View>
                     
@@ -162,7 +164,7 @@ const ConnectionScreen: React.FC<ConnectionScreenProps> = ({ navigation }) => {
                             <Text style={{ color: colors.warning, fontSize: 16 }}>🚛</Text>
                         </View>
                         <Text style={[styles.body, { color: colors.textSecondary }]}>
-                            Gestion complète
+                            {t('auth.connection.features.management')}
                         </Text>
                     </View>
                 </View>

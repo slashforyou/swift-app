@@ -251,6 +251,26 @@ export interface TranslationKeys {
         experience: string;
         toNextLevel: string;
         defaultTitle: string;
+        loading: string;
+        fields: {
+            firstName: string;
+            lastName: string;
+            email: string;
+            phone: string;
+            address: string;
+            city: string;
+            postalCode: string;
+            country: string;
+        };
+        actions: {
+            edit: string;
+            save: string;
+            cancel: string;
+        };
+        messages: {
+            updateSuccess: string;
+            updateError: string;
+        };
     };
 
     // Job Details
@@ -317,6 +337,8 @@ export interface TranslationKeys {
         // Phase 3.1: Added settings sections, items, alerts
         sections: {
             notifications: string;
+            preferences: string;
+            privacy: string;
             security: string;
             appearance: string;
             data: string;
@@ -326,6 +348,10 @@ export interface TranslationKeys {
             pushDescription: string;
             emailNotifications: string;
             emailDescription: string;
+            smsNotifications: string;
+            smsDescription: string;
+            taskReminders: string;
+            taskRemindersDescription: string;
             soundEnabled: string;
             soundDescription: string;
             biometricEnabled: string;
@@ -336,6 +362,10 @@ export interface TranslationKeys {
             autoSyncDescription: string;
             offlineMode: string;
             offlineModeDescription: string;
+            shareLocation: string;
+            shareLocationDescription: string;
+            analytics: string;
+            analyticsDescription: string;
         };
         alerts: {
             biometricEnabled: {
@@ -512,6 +542,144 @@ export interface TranslationKeys {
             updated: string;
             created: string;
         };
+    };
+
+    // Authentication
+    auth: {
+        login: {
+            title: string;
+            subtitle: string;
+            email: string;
+            emailPlaceholder: string;
+            password: string;
+            passwordPlaceholder: string;
+            submit: string;
+            submitting: string;
+            createAccount: string;
+            back: string;
+            forgotPassword: string;
+        };
+        register: {
+            title: string;
+            subtitle: string;
+            firstName: string;
+            firstNamePlaceholder: string;
+            lastName: string;
+            lastNamePlaceholder: string;
+            email: string;
+            emailPlaceholder: string;
+            password: string;
+            passwordPlaceholder: string;
+            confirmPassword: string;
+            confirmPasswordPlaceholder: string;
+            phone: string;
+            phonePlaceholder: string;
+            submit: string;
+            submitting: string;
+            alreadyHaveAccount: string;
+            termsAgree: string;
+            termsLink: string;
+        };
+        validation: {
+            emailRequired: string;
+            emailInvalid: string;
+            passwordRequired: string;
+            passwordTooShort: string;
+            passwordMismatch: string;
+            firstNameRequired: string;
+            lastNameRequired: string;
+        };
+        errors: {
+            invalidCredentials: string;
+            deviceInfoUnavailable: string;
+            serverError: string;
+            invalidResponse: string;
+            networkError: string;
+            timeout: string;
+            generic: string;
+        };
+        success: {
+            loginSuccess: string;
+            registerSuccess: string;
+            welcome: string;
+        };
+        connection: {
+            title: string;
+            subtitle: string;
+            loginButton: string;
+            registerButton: string;
+            or: string;
+            features: {
+                planning: string;
+                realtime: string;
+                management: string;
+            };
+        };
+    };
+
+    // Stripe & Payments
+    stripe: {
+        hub: {
+            title: string;
+            subtitle: string;
+            balance: string;
+            availableBalance: string;
+            pendingBalance: string;
+            recentPayments: string;
+            viewAll: string;
+            noPayments: string;
+            accountStatus: string;
+            onboarding: string;
+            completeSetup: string;
+        };
+        settings: {
+            title: string;
+            subtitle: string;
+            accountInfo: string;
+            payoutSchedule: string;
+            bankAccount: string;
+            updateAccount: string;
+        };
+        payments: {
+            title: string;
+            filterAll: string;
+            filterPending: string;
+            filterCompleted: string;
+            filterFailed: string;
+            noPayments: string;
+            amount: string;
+            date: string;
+            status: string;
+        };
+        payouts: {
+            title: string;
+            subtitle: string;
+            requestPayout: string;
+            noPayouts: string;
+            processing: string;
+            completed: string;
+            failed: string;
+        };
+        status: {
+            connected: string;
+            pending: string;
+            restricted: string;
+            notConnected: string;
+        };
+    };
+
+    // Reports
+    reports: {
+        title: string;
+        subtitle: string;
+        dateRange: string;
+        generate: string;
+        download: string;
+        noData: string;
+        revenue: string;
+        expenses: string;
+        profit: string;
+        jobsCompleted: string;
     };
 }
 

@@ -19,6 +19,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { DESIGN_TOKENS } from '../../constants/Styles'
 import { useTheme } from '../../context/ThemeProvider'
 import { useStripeConnection } from '../../hooks/useStripeConnection'
+import { useTranslation } from '../../localization'
 // Components
 import CreatePaymentLinkModal from '../../components/modals/CreatePaymentLinkModal'
 import { StripeConnectWebView } from '../../components/stripe/StripeConnectWebView'
@@ -47,6 +48,7 @@ interface StripeAccount {
 
 export default function StripeHub({ navigation }: StripeHubProps) {
   const { colors } = useTheme()
+  const { t } = useTranslation()
   const [isLoading, setIsLoading] = useState(false)
   const [showPaymentLinkModal, setShowPaymentLinkModal] = useState(false)
 
@@ -168,8 +170,8 @@ export default function StripeHub({ navigation }: StripeHubProps) {
 
       console.error('❌ Error creating Stripe Connect Express account:', error);
       Alert.alert(
-        'Erreur de Connexion', 
-        'Impossible de créer votre compte Stripe Connect. Veuillez réessayer plus tard.'
+        t('common.error'), 
+        t('auth.errors.networkError')
       );
     }
   };
@@ -187,17 +189,17 @@ export default function StripeHub({ navigation }: StripeHubProps) {
     // Refresh connection status
     stripeConnection.refresh()
     Alert.alert(
-      'Connexion Réussie!',
-      'Votre compte Stripe Connect a été configuré avec succès.',
-      [{ text: 'OK', style: 'default' }]
+      t('common.success'),
+      t('stripe.status.connected'),
+      [{ text: t('common.ok'), style: 'default' }]
     )
   }
 
   const handleWebViewError = (error: string) => {
     console.error('❌ Stripe Connect WebView error:', error)
     Alert.alert(
-      'Erreur',
-      'Une erreur s\'est produite lors de la configuration Stripe.',
+      t('common.error'),
+      t('auth.errors.generic'),
       [{ text: 'OK', style: 'default' }]
     )
   }
@@ -401,7 +403,7 @@ export default function StripeHub({ navigation }: StripeHubProps) {
               </View>
               
               <Text style={[styles.title, { textAlign: 'center', marginBottom: 10 }]}>
-                Activez les Paiements Stripe
+                {t('stripe.hub.completeSetup')}
               </Text>
               
               <Text style={{
@@ -410,8 +412,7 @@ export default function StripeHub({ navigation }: StripeHubProps) {
                 lineHeight: 22,
                 fontSize: 14 
               }}>
-                Créez votre compte Stripe Connect pour accepter des paiements via notre plateforme. 
-                Vos données restent sécurisées et vous gardez le contrôle total.
+                {t('stripe.hub.subtitle')}
               </Text>
             </View>
 
@@ -432,7 +433,7 @@ export default function StripeHub({ navigation }: StripeHubProps) {
                   fontWeight: '600',
                   marginLeft: 10
                 }]}>
-                  Créer mon Compte Stripe
+                  {t('stripe.hub.onboarding')}
                 </Text>
               </TouchableOpacity>
 
@@ -451,7 +452,7 @@ export default function StripeHub({ navigation }: StripeHubProps) {
                   color: colors.textSecondary,
                   fontSize: 14 
                 }]}>
-                  Retester la Connexion
+                  {t('common.retry')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -494,7 +495,7 @@ export default function StripeHub({ navigation }: StripeHubProps) {
       >
         {/* Header avec statut du compte */}
         <View style={styles.header}>
-          <Text style={styles.title}>Stripe Payments</Text>
+          <Text style={styles.title}>{t('stripe.hub.title')}</Text>
           <View
             style={[
               styles.statusBadge,

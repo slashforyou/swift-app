@@ -17,6 +17,7 @@ import LanguageButton from '../components/calendar/LanguageButton';
 import { DESIGN_TOKENS } from '../constants/Styles';
 import { useTheme } from '../context/ThemeProvider';
 import { useUserProfile } from '../hooks/useUserProfile';
+import { useTranslation } from '../localization/useLocalization';
 
 interface ProfileFormFieldProps {
   label: string;
@@ -77,6 +78,7 @@ const ProfileFormField: React.FC<ProfileFormFieldProps> = ({
 const ProfileScreen: React.FC = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { profile, isLoading, updateProfile } = useUserProfile();
   
@@ -126,14 +128,14 @@ const ProfileScreen: React.FC = () => {
       const result = await updateProfile(formData);
       if (result) {
         setIsEditing(false);
-        Alert.alert('Success', 'Profile updated successfully');
+        Alert.alert(t('common.success'), t('profile.messages.updateSuccess'));
       } else {
-        Alert.alert('Error', 'Failed to update profile');
+        Alert.alert(t('common.error'), t('profile.messages.updateError'));
       }
     } catch (error) {
 
       console.error('❌ [PROFILE] Error updating profile:', error);
-      Alert.alert('Error', 'Failed to update profile');
+      Alert.alert(t('common.error'), t('profile.messages.updateError'));
     }
   };
 
@@ -169,7 +171,7 @@ const ProfileScreen: React.FC = () => {
           color: colors.text, 
           fontSize: 16 
         }}>
-          Loading profile...
+          {t('profile.loading')}
         </Text>
       </View>
     );
@@ -224,7 +226,7 @@ const ProfileScreen: React.FC = () => {
           flex: 1,
           marginHorizontal: DESIGN_TOKENS.spacing.md
         }}>
-          Mon Profil
+          {t('profile.title')}
         </Text>
 
         <LanguageButton />
@@ -258,25 +260,25 @@ const ProfileScreen: React.FC = () => {
             color: colors.text,
             marginBottom: DESIGN_TOKENS.spacing.lg
           }}>
-            Informations personnelles
+            {t('profile.personalInfo')}
           </Text>
 
           <ProfileFormField
-            label="Prénom"
+            label={t('profile.fields.firstName')}
             value={formData.firstName}
             onChangeText={(text) => setFormData(prev => ({ ...prev, firstName: text }))}
             editable={isEditing}
           />
 
           <ProfileFormField
-            label="Nom"
+            label={t('profile.fields.lastName')}
             value={formData.lastName}
             onChangeText={(text) => setFormData(prev => ({ ...prev, lastName: text }))}
             editable={isEditing}
           />
 
           <ProfileFormField
-            label="Email"
+            label={t('profile.fields.email')}
             value={formData.email}
             onChangeText={(text) => setFormData(prev => ({ ...prev, email: text }))}
             keyboardType="email-address"
@@ -284,7 +286,7 @@ const ProfileScreen: React.FC = () => {
           />
 
           <ProfileFormField
-            label="Téléphone"
+            label={t('profile.fields.phone')}
             value={formData.phone}
             onChangeText={(text) => setFormData(prev => ({ ...prev, phone: text }))}
             keyboardType="phone-pad"
@@ -292,21 +294,21 @@ const ProfileScreen: React.FC = () => {
           />
 
           <ProfileFormField
-            label="Adresse"
+            label={t('profile.fields.address')}
             value={formData.address}
             onChangeText={(text) => setFormData(prev => ({ ...prev, address: text }))}
             editable={isEditing}
           />
 
           <ProfileFormField
-            label="Ville"
+            label={t('profile.fields.city')}
             value={formData.city}
             onChangeText={(text) => setFormData(prev => ({ ...prev, city: text }))}
             editable={isEditing}
           />
 
           <ProfileFormField
-            label="Code Postal"
+            label={t('profile.fields.postalCode')}
             value={formData.postalCode}
             onChangeText={(text) => setFormData(prev => ({ ...prev, postalCode: text }))}
             keyboardType="numeric"
@@ -314,7 +316,7 @@ const ProfileScreen: React.FC = () => {
           />
 
           <ProfileFormField
-            label="Pays"
+            label={t('profile.fields.country')}
             value={formData.country}
             onChangeText={(text) => setFormData(prev => ({ ...prev, country: text }))}
             editable={isEditing}
@@ -346,7 +348,7 @@ const ProfileScreen: React.FC = () => {
                 fontSize: 16,
                 fontWeight: '600'
               }}>
-                Annuler
+                {t('profile.actions.cancel')}
               </Text>
             </Pressable>
 
@@ -368,7 +370,7 @@ const ProfileScreen: React.FC = () => {
                 fontSize: 16,
                 fontWeight: '600'
               }}>
-                Enregistrer
+                {t('profile.actions.save')}
               </Text>
             </Pressable>
           </View>
@@ -390,7 +392,7 @@ const ProfileScreen: React.FC = () => {
               fontSize: 16,
               fontWeight: '600'
             }}>
-              Modifier le profil
+              {t('profile.actions.edit')}
             </Text>
           </Pressable>
         )}

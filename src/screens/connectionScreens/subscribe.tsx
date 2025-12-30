@@ -14,6 +14,7 @@ import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 import { ServerData } from '@/src/constants/ServerData';
 import AlertMessage from '../../components/ui/AlertMessage';
 import AnimatedBackground from '../../components/ui/AnimatedBackground';
+import { useTranslation } from '../../localization';
 
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
@@ -36,6 +37,7 @@ interface SubscribeScreenProps {
 
 const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
     const { colors, styles } = useCommonThemedStyles();
+    const { t } = useTranslation();
     
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -72,45 +74,45 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
         
         // Validation des champs
         if (!firstName.trim()) {
-            showAlert('warning', 'Veuillez saisir votre prénom.', 'Prénom requis');
+            showAlert('warning', t('auth.validation.firstNameRequired'), t('auth.register.firstName'));
             return;
         }
 
         if (!lastName.trim()) {
-            showAlert('warning', 'Veuillez saisir votre nom.', 'Nom requis');
+            showAlert('warning', t('auth.validation.lastNameRequired'), t('auth.register.lastName'));
             return;
         }
 
         if (!email.trim()) {
-            showAlert('warning', 'Veuillez saisir votre adresse email.', 'Email requis');
+            showAlert('warning', t('auth.validation.emailRequired'), t('auth.register.email'));
             return;
         }
 
         if (!password.trim()) {
-            showAlert('warning', 'Veuillez saisir un mot de passe.', 'Mot de passe requis');
+            showAlert('warning', t('auth.validation.passwordRequired'), t('auth.register.password'));
             return;
         }
 
         if (!confirmPassword.trim()) {
-            showAlert('warning', 'Veuillez confirmer votre mot de passe.', 'Confirmation requise');
+            showAlert('warning', t('auth.validation.passwordRequired'), t('auth.register.confirmPassword'));
             return;
         }
 
         // Validation format email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            showAlert('error', 'Veuillez saisir une adresse email valide.', 'Format invalide');
+            showAlert('error', t('auth.validation.emailInvalid'), t('common.error'));
             return;
         }
 
         // Validation mot de passe
         if (password.length < 6) {
-            showAlert('error', 'Le mot de passe doit contenir au moins 6 caractères.', 'Mot de passe trop court');
+            showAlert('error', t('auth.validation.passwordTooShort'), t('common.error'));
             return;
         }
 
         if (password !== confirmPassword) {
-            showAlert('error', 'Les mots de passe ne correspondent pas.', 'Erreur de confirmation');
+            showAlert('error', t('auth.validation.passwordMismatch'), t('common.error'));
             return;
         }
 
@@ -135,7 +137,7 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
             if (response.status === 200) {
                 const data = await response.json();
                 if (data.success) {
-                    showAlert('success', 'Compte créé ! Vérifiez votre email pour la confirmation.', 'Inscription réussie');
+                    showAlert('success', t('auth.success.registerSuccess'), t('common.success'));
                     
                     setTimeout(() => {
                         navigation.navigate('SubscribeMailVerification', {
@@ -147,13 +149,13 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
                     }, 1500);
                     
                 } else {
-                    let errorMessage = 'Une erreur s\'est produite lors de l\'inscription.';
-                    let errorTitle = 'Erreur d\'inscription';
+                    let errorMessage = t('auth.errors.generic');
+                    let errorTitle = t('common.error');
                     
                     if (data.message) {
                         if (data.message.includes('email') || data.message.includes('mail')) {
-                            errorMessage = 'Cette adresse email est déjà utilisée.';
-                            errorTitle = 'Email déjà pris';
+                            errorMessage = t('auth.errors.invalidCredentials');
+                            errorTitle = t('common.error');
                         } else {
                             errorMessage = data.message;
                         }
@@ -162,18 +164,19 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
                     showAlert('error', errorMessage, errorTitle);
                 }
             } else {
-                const data = await response.json();
-                showAlert('error', 'Une erreur s\'est produite lors de l\'inscription.', 'Erreur serveur');
+                await response.json();
+                showAlert('error', t('auth.errors.serverError'), t('common.error'));
             }
-        } catch (error: any) {
+        } catch (error: any) {
+
             console.error('Subscription error:', error);
             
-            let errorMessage = 'Problème de connexion. Veuillez vérifier votre connexion internet.';
+            let errorMessage = t('auth.errors.networkError');
             if (error.message?.includes('timeout')) {
-                errorMessage = 'La connexion a pris trop de temps. Veuillez réessayer.';
+                errorMessage = t('auth.errors.timeout');
             }
             
-            showAlert('error', errorMessage, 'Erreur réseau');
+            showAlert('error', errorMessage, t('common.error'));
         } finally {
             setIsLoading(false);
         }
@@ -219,7 +222,7 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
                                 color: colors.primary, 
                                 fontWeight: '600' 
                             }]}>
-                                ← Retour
+                                ← {t('auth.login.back')}
                             </Text>
                         </Pressable>
                     </View>
@@ -246,7 +249,7 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
                         </View>
                         
                         <Text style={[styles.title, { marginBottom: 8 }]}>
-                            Créer un compte
+                            {t('auth.register.title')}
                         </Text>
                         
                         <Text style={[styles.body, { 
@@ -254,7 +257,7 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
                             textAlign: 'center',
                             paddingHorizontal: 20
                         }]}>
-                            Rejoignez Swift pour gérer vos déménagements
+                            {t('auth.register.subtitle')}
                         </Text>
                     </View>
 
@@ -271,11 +274,11 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
                     <View style={{ flex: 1, paddingVertical: 20 }}>
                         <View style={{ marginBottom: 20 }}>
                             <Text style={[styles.subtitle, { marginBottom: 8 }]}>
-                                Prénom
+                                {t('auth.register.firstName')}
                             </Text>
                             <TextInput
                                 style={styles.inputBase}
-                                placeholder="Votre prénom"
+                                placeholder={t('auth.register.firstNamePlaceholder')}
                                 placeholderTextColor={colors.textSecondary}
                                 value={firstName}
                                 onChangeText={setFirstName}
@@ -286,11 +289,11 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
 
                         <View style={{ marginBottom: 20 }}>
                             <Text style={[styles.subtitle, { marginBottom: 8 }]}>
-                                Nom
+                                {t('auth.register.lastName')}
                             </Text>
                             <TextInput
                                 style={styles.inputBase}
-                                placeholder="Votre nom"
+                                placeholder={t('auth.register.lastNamePlaceholder')}
                                 placeholderTextColor={colors.textSecondary}
                                 value={lastName}
                                 onChangeText={setLastName}
@@ -301,11 +304,11 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
 
                         <View style={{ marginBottom: 20 }}>
                             <Text style={[styles.subtitle, { marginBottom: 8 }]}>
-                                Email
+                                {t('auth.register.email')}
                             </Text>
                             <TextInput
                                 style={styles.inputBase}
-                                placeholder="votre@email.com"
+                                placeholder={t('auth.register.emailPlaceholder')}
                                 placeholderTextColor={colors.textSecondary}
                                 value={email}
                                 onChangeText={setEmail}
@@ -318,11 +321,11 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
 
                         <View style={{ marginBottom: 20 }}>
                             <Text style={[styles.subtitle, { marginBottom: 8 }]}>
-                                Mot de passe
+                                {t('auth.register.password')}
                             </Text>
                             <TextInput
                                 style={styles.inputBase}
-                                placeholder="Au moins 6 caractères"
+                                placeholder={t('auth.register.passwordPlaceholder')}
                                 placeholderTextColor={colors.textSecondary}
                                 value={password}
                                 onChangeText={setPassword}
@@ -333,11 +336,11 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
 
                         <View style={{ marginBottom: 30 }}>
                             <Text style={[styles.subtitle, { marginBottom: 8 }]}>
-                                Confirmer le mot de passe
+                                {t('auth.register.confirmPassword')}
                             </Text>
                             <TextInput
                                 style={styles.inputBase}
-                                placeholder="Confirmer votre mot de passe"
+                                placeholder={t('auth.register.confirmPasswordPlaceholder')}
                                 placeholderTextColor={colors.textSecondary}
                                 value={confirmPassword}
                                 onChangeText={setConfirmPassword}
@@ -355,7 +358,7 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
                             disabled={isLoading}
                         >
                             <Text style={styles.buttonPrimaryText}>
-                                {isLoading ? 'Création du compte...' : 'Créer mon compte'}
+                                {isLoading ? t('auth.register.submitting') : t('auth.register.submit')}
                             </Text>
                         </Pressable>
                     </View>
@@ -368,7 +371,7 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
                             disabled={isLoading}
                         >
                             <Text style={styles.buttonSecondaryText}>
-                                J'ai déjà un compte
+                                {t('auth.register.alreadyHaveAccount')}
                             </Text>
                         </Pressable>
                     </View>
