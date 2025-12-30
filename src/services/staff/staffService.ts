@@ -23,7 +23,8 @@ export const fetchStaff = async (): Promise<StaffMember[]> => {
     // TEMP_DISABLED: console.log(`✅ [staffService] Retrieved ${data.staff.length} staff members`);
     
     return data.staff;
-  } catch (error) {
+  } catch (error) {
+
     console.error('❌ [staffService] Error fetching staff:', error);
     throw new Error('Failed to fetch staff members');
   }
@@ -46,7 +47,8 @@ export const fetchEmployees = async (): Promise<Employee[]> => {
     // TEMP_DISABLED: console.log(`✅ [staffService] Retrieved ${data.employees.length} employees`);
     
     return data.employees;
-  } catch (error) {
+  } catch (error) {
+
     console.error('❌ [staffService] Error fetching employees:', error);
     throw new Error('Failed to fetch employees');
   }
@@ -69,7 +71,8 @@ export const fetchContractors = async (): Promise<Contractor[]> => {
     // TEMP_DISABLED: console.log(`✅ [staffService] Retrieved ${data.contractors.length} contractors`);
     
     return data.contractors;
-  } catch (error) {
+  } catch (error) {
+
     console.error('❌ [staffService] Error fetching contractors:', error);
     throw new Error('Failed to fetch contractors');
   }
@@ -98,7 +101,8 @@ export const inviteEmployee = async (employeeData: InviteEmployeeData): Promise<
       success: true,
       employeeId: data.employeeId,
     };
-  } catch (error) {
+  } catch (error) {
+
     console.error('❌ [staffService] Error inviting employee:', error);
     throw new Error('Failed to send employee invitation');
   }
@@ -126,7 +130,8 @@ export const searchContractors = async (searchTerm: string): Promise<Contractor[
     // TEMP_DISABLED: console.log(`✅ [staffService] Found ${data.results.length} contractors`);
     
     return data.results;
-  } catch (error) {
+  } catch (error) {
+
     console.error('❌ [staffService] Error searching contractors:', error);
     throw new Error('Failed to search contractors');
   }
@@ -161,7 +166,8 @@ export const addContractorToStaff = async (
       success: true,
       contractor: data.contractor,
     };
-  } catch (error) {
+  } catch (error) {
+
     console.error('❌ [staffService] Error adding contractor to staff:', error);
     throw new Error('Failed to add contractor to staff');
   }
@@ -193,7 +199,8 @@ export const updateStaffMember = async (
       success: true,
       member: data.member,
     };
-  } catch (error) {
+  } catch (error) {
+
     console.error('❌ [staffService] Error updating staff member:', error);
     throw new Error('Failed to update staff member');
   }
@@ -217,9 +224,45 @@ export const removeStaffMember = async (staffId: string): Promise<{ success: boo
     // TEMP_DISABLED: console.log(`✅ [staffService] Staff member removed successfully`);
     
     return { success: true };
-  } catch (error) {
+  } catch (error) {
+
     console.error('❌ [staffService] Error removing staff member:', error);
     throw new Error('Failed to remove staff member');
+  }
+};
+
+/**
+ * Envoie une invitation à un prestataire (contractor)
+ * Le prestataire recevra un email pour créer un compte avec son ABN
+ */
+export const inviteContractor = async (
+  email: string, 
+  firstName: string, 
+  lastName: string
+): Promise<{ success: boolean; message: string }> => {
+  try {
+    // TEMP_DISABLED: console.log('📧 [staffService] Sending contractor invitation to:', email);
+    
+    const response = await apiConfig.authenticatedFetch(`${apiConfig.baseURL}/api/staff/contractors/invite`, {
+      method: 'POST',
+      body: JSON.stringify({ email, firstName, lastName }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    // TEMP_DISABLED: console.log(`✅ [staffService] Contractor invitation sent to: ${email}`);
+    
+    return {
+      success: true,
+      message: data.message || `Invitation envoyée à ${email}`,
+    };
+  } catch (error) {
+
+    console.error('❌ [staffService] Error inviting contractor:', error);
+    throw new Error('Failed to send contractor invitation');
   }
 };
 
@@ -229,6 +272,7 @@ export const staffService = {
   fetchEmployees,
   fetchContractors,
   inviteEmployee,
+  inviteContractor,
   searchContractors,
   addContractorToStaff,
   updateStaffMember,

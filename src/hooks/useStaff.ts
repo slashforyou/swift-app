@@ -372,10 +372,9 @@ export const useStaff = (): UseStaffResult => {
         // En mode mock, on simule juste l'envoi
         return { success: true, message: `Invitation envoyée à ${email}` };
       } else {
-        // En mode API, utiliser un endpoint dédié si disponible
-        // Pour l'instant, on simule
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        return { success: true, message: `Invitation envoyée à ${email}` };
+        // Utiliser l'API réelle
+        const result = await staffService.inviteContractor(email, firstName, lastName);
+        return result;
       }
     } catch (err) {
       console.error('❌ [useStaff] Error inviting contractor:', err);
