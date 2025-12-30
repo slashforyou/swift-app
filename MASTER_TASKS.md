@@ -31,7 +31,7 @@
 | 🔧 Config Production | **6** | 0 | 6 |
 | 🔧 TODOs Code | **34** | 5 | 39 |
 | 📱 Device Testing | 0 | 40+ | 40+ |
-| 🌍 i18n | 4 | 4 | 8 |
+| 🌍 i18n | 11 | 8 | 19 |
 | ⚡ Performance | 0 | 6 | 6 |
 | 🎨 Design System | 15 | 0 | 15 |
 
@@ -514,12 +514,28 @@
 - [x] Traductions EN ajoutées
 - [x] Traductions FR ajoutées
 - [x] Écrans critiques identifiés
+- [x] Sections auth, settings, profile, payment ajoutées
 
-## Migration des Écrans ⏳
-- [ ] Migrer `parameters.tsx` vers `settings.*` 🟡
-- [ ] Créer clés `auth.*` pour `login.tsx` 🟡
-- [ ] Créer clés `stripe.*` pour écrans Stripe 🟠
-- [ ] Vérifier traductions partielles (es, it, pt, zh, hi) 🟢
+## Migration des Écrans ✅ En Cours
+- [x] Migrer `parameters.tsx` vers `settings.*` ✅ FAIT
+- [x] Créer clés `auth.*` pour `login.tsx` ✅ FAIT
+- [x] Migrer `login.tsx` ✅ FAIT
+- [x] Migrer `subscribe.tsx` ✅ FAIT
+- [x] Migrer `connection.tsx` ✅ FAIT
+- [x] Migrer `profile.tsx` ✅ FAIT
+- [x] Migrer `PaymentSuccessScreen.tsx` ✅ FAIT
+- [ ] Créer clés `stripe.*` pour écrans Stripe 🟠 Partiellement
+- [x] Vérifier traductions partielles (es, it, pt, zh, hi) ✅ FAIT
+
+## Migration Restante 🟡
+- [ ] StripeSettingsScreen.tsx 🟡
+- [ ] BusinessInfoPage.tsx 🟢
+- [ ] PaymentsListScreen.tsx 🟢
+- [ ] PayoutsScreen.tsx 🟢
+- [ ] ReportsScreen.tsx 🟢
+- [ ] VehicleFleetScreen.tsx 🟢
+- [ ] VehicleDetailsScreen.tsx 🟢
+- [ ] JobDetailsScreens (client, job, note, summary) 🟢
 
 ---
 
