@@ -29,21 +29,21 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob }) => {
     const handleAddNote = async (content: string, note_type: 'general' | 'important' | 'client' | 'internal' = 'general', title?: string) => {
         try {
             const result = await addNote({ 
-                title: title || `Note du ${new Date().toLocaleDateString()}`,
+                title: title || `${t('jobDetails.defaultNote')} ${new Date().toLocaleDateString()}`,
                 content, 
                 note_type 
             });
             if (result) {
-                showSuccess('Note ajoutée', 'La note a été enregistrée avec succès');
+                showSuccess(t('jobDetails.messages.noteAdded'), t('jobDetails.messages.noteAddedSuccess'));
                 await refetch(); // Actualiser la liste des notes
                 return Promise.resolve();
             } else {
-                throw new Error('Échec de l\'ajout de la note');
+                throw new Error(t('jobDetails.messages.noteAddError'));
             }
         } catch (error) {
 
             console.error('Error adding note:', error);
-            showError('Erreur', 'Impossible d\'ajouter la note. Veuillez réessayer.');
+            showError(t('jobDetails.messages.noteAddError'), t('jobDetails.messages.noteAddErrorMessage'));
             throw error;
         }
     };

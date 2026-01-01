@@ -513,6 +513,8 @@ export interface TranslationKeys {
                 error: string;
                 success: string;
                 information: string;
+                quickNote: string;
+                addNoteToJob: string;
             };
             signature: {
                 verifying: string;
@@ -921,6 +923,33 @@ export interface TranslationKeys {
             loginSuccess: string;
             registerSuccess: string;
             welcome: string;
+        };
+        emailVerification: {
+            title: string;
+            subtitle: string;
+            codePlaceholder: string;
+            verify: string;
+            verifying: string;
+            resendCode: string;
+            codeRequired: string;
+            codeInvalidFormat: string;
+            emailMissing: string;
+            emailInvalid: string;
+            verificationSuccess: string;
+            verificationFailed: string;
+            codeIncorrect: string;
+            codeExpired: string;
+            codeInvalid: string;
+            serverError: string;
+            networkError: string;
+            timeoutError: string;
+            backToRegister: string;
+            checkEmail: string;
+            sentCodeTo: string;
+            enterCode: string;
+            didNotReceive: string;
+            checkSpam: string;
+            restartRegistration: string;
         };
         connection: {
             title: string;

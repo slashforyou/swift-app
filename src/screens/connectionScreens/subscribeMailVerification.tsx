@@ -14,6 +14,7 @@ import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 import { ServerData } from '@/src/constants/ServerData';
 import AlertMessage from '../../components/ui/AlertMessage';
 import AnimatedBackground from '../../components/ui/AnimatedBackground';
+import { useLocalization } from '../../localization/useLocalization';
 
 type RootStackParamList = {
     Subscribe: undefined;
@@ -24,6 +25,7 @@ type RootStackParamList = {
 const SubscribeMailVerification = ({ route }: any) => {
     const navigation = useNavigation<any>();
     const { colors, styles } = useCommonThemedStyles();
+    const { t } = useLocalization();
     const { id, mail, firstName, lastName } = route.params;
 
     const [verificationCode, setVerificationCode] = useState('');
@@ -57,22 +59,22 @@ const SubscribeMailVerification = ({ route }: any) => {
 
         // Validation des champs
         if (!verificationCode.trim()) {
-            showAlert('warning', 'Veuillez saisir le code de vérification.', 'Code requis');
+            showAlert('warning', t('auth.emailVerification.codeRequired'), t('auth.emailVerification.codeRequired'));
             return;
         }
 
         if (!verificationCode.match(/^\d{6}$/)) {
-            showAlert('error', 'Le code de vérification doit être composé de 6 chiffres.', 'Format invalide');
+            showAlert('error', t('auth.emailVerification.codeInvalidFormat'), t('auth.emailVerification.codeInvalid'));
             return;
         }
 
         if (!mail) {
-            showAlert('error', 'L\'email est manquant. Veuillez recommencer l\'inscription.', 'Email manquant');
+            showAlert('error', t('auth.emailVerification.emailMissing'), t('auth.emailVerification.emailMissing'));
             return;
         }
 
         if (!mail.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-            showAlert('error', 'Le format de l\'email est invalide.', 'Email invalide');
+            showAlert('error', t('auth.emailVerification.emailInvalid'), t('auth.emailVerification.emailInvalid'));
             return;
         }
 
@@ -94,22 +96,22 @@ const SubscribeMailVerification = ({ route }: any) => {
             if (response.status === 200) {
                 const data = await response.json();
                 if (data.success) {
-                    showAlert('success', 'Email vérifié avec succès ! Vous pouvez maintenant vous connecter.', 'Vérification réussie');
+                    showAlert('success', t('auth.emailVerification.verificationSuccess'), t('auth.emailVerification.title'));
                     
                     setTimeout(() => {
                         navigation.navigate('Login');
                     }, 1500);
                 } else {
-                    let errorMessage = 'La vérification a échoué. Veuillez vérifier le code.';
-                    let errorTitle = 'Code incorrect';
+                    let errorMessage = t('auth.emailVerification.verificationFailed');
+                    let errorTitle = t('auth.emailVerification.codeIncorrect');
                     
                     if (data.message) {
                         if (data.message.includes('expired')) {
-                            errorMessage = 'Le code a expiré. Veuillez recommencer l\'inscription.';
-                            errorTitle = 'Code expiré';
+                            errorMessage = t('auth.emailVerification.codeExpired');
+                            errorTitle = t('auth.emailVerification.codeExpired');
                         } else if (data.message.includes('invalid')) {
-                            errorMessage = 'Le code saisi est incorrect. Vérifiez votre email.';
-                            errorTitle = 'Code invalide';
+                            errorMessage = t('auth.emailVerification.codeInvalid');
+                            errorTitle = t('auth.emailVerification.codeInvalid');
                         } else {
                             errorMessage = data.message;
                         }
@@ -118,17 +120,18 @@ const SubscribeMailVerification = ({ route }: any) => {
                     showAlert('error', errorMessage, errorTitle);
                 }
             } else {
-                showAlert('error', 'Une erreur serveur s\'est produite. Veuillez réessayer.', 'Erreur serveur');
+                showAlert('error', t('auth.emailVerification.serverError'), t('auth.emailVerification.serverError'));
             }
-        } catch (error: any) {
+        } catch (error: any) {
+
             console.error('Verification error:', error);
             
-            let errorMessage = 'Problème de connexion. Veuillez vérifier votre connexion internet.';
+            let errorMessage = t('auth.emailVerification.networkError');
             if (error.message?.includes('timeout')) {
-                errorMessage = 'La connexion a pris trop de temps. Veuillez réessayer.';
+                errorMessage = t('auth.emailVerification.timeoutError');
             }
             
-            showAlert('error', errorMessage, 'Erreur réseau');
+            showAlert('error', errorMessage, t('auth.emailVerification.networkError'));
         } finally {
             setIsLoading(false);
         }
@@ -174,7 +177,7 @@ const SubscribeMailVerification = ({ route }: any) => {
                                 color: colors.primary, 
                                 fontWeight: '600' 
                             }]}>
-                                ← Retour à l'inscription
+                                {t('auth.emailVerification.backToRegister')}
                             </Text>
                         </Pressable>
                     </View>
@@ -201,7 +204,7 @@ const SubscribeMailVerification = ({ route }: any) => {
                         </View>
                         
                         <Text style={[styles.title, { marginBottom: 8 }]}>
-                            Vérifiez votre email
+                            {t('auth.emailVerification.checkEmail')}
                         </Text>
                         
                         <Text style={[styles.body, { 
@@ -210,7 +213,7 @@ const SubscribeMailVerification = ({ route }: any) => {
                             paddingHorizontal: 20,
                             marginBottom: 8
                         }]}>
-                            Nous avons envoyé un code de vérification à :
+                            {t('auth.emailVerification.sentCodeTo')}
                         </Text>
 
                         <Text style={[styles.subtitle, { 
@@ -227,7 +230,7 @@ const SubscribeMailVerification = ({ route }: any) => {
                             marginTop: 8,
                             fontSize: 14
                         }]}>
-                            Vérifiez aussi votre dossier spam si vous ne le trouvez pas.
+                            {t('auth.emailVerification.checkSpam')}
                         </Text>
                     </View>
 
@@ -244,7 +247,7 @@ const SubscribeMailVerification = ({ route }: any) => {
                     <View style={{ flex: 1, justifyContent: 'center', paddingVertical: 20 }}>
                         <View style={{ marginBottom: 30 }}>
                             <Text style={[styles.subtitle, { marginBottom: 8, textAlign: 'center' }]}>
-                                Code de vérification
+                                {t('auth.emailVerification.enterCode')}
                             </Text>
                             <TextInput
                                 style={[styles.inputBase, { 
@@ -273,7 +276,7 @@ const SubscribeMailVerification = ({ route }: any) => {
                             disabled={isLoading}
                         >
                             <Text style={styles.buttonPrimaryText}>
-                                {isLoading ? 'Vérification...' : 'Vérifier mon compte'}
+                                {isLoading ? t('auth.emailVerification.verifying') : t('auth.emailVerification.verify')}
                             </Text>
                         </Pressable>
 
@@ -283,9 +286,9 @@ const SubscribeMailVerification = ({ route }: any) => {
                             marginTop: 20,
                             fontSize: 14
                         }]}>
-                            Vous n'avez pas reçu le code ? Vérifiez votre dossier spam ou{' '}
+                            {t('auth.emailVerification.didNotReceive')} {t('auth.emailVerification.checkSpam')}{' '}
                             <Text style={{ color: colors.primary, fontWeight: '600' }}>
-                                recommencez l'inscription
+                                {t('auth.emailVerification.restartRegistration')}
                             </Text>.
                         </Text>
                     </View>

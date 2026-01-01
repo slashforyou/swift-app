@@ -120,8 +120,8 @@ const QuickActionsSection: React.FC<QuickActionsSectionProps> = ({
             onShowNoteModal();
         } else {
             Alert.prompt(
-                'Note Rapide',
-                'Ajouter une note au job:',
+                t('jobDetails.components.quickActions.quickNote'),
+                t('jobDetails.components.quickActions.addNoteToJob'),
                 (text) => {
                     if (text && text.trim()) {
                         onAddNote?.(text.trim(), 'general');
