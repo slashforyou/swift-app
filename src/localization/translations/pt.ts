@@ -911,6 +911,14 @@ export const ptTranslations = {
             paymentSheetFallbackMessage: 'Vamos usar o método de cartão manual por enquanto. PaymentSheet será ativado em produção.',
             cardNamePlaceholder: 'João Silva',
         },
+        stripeConnect: {
+            title: 'Criar sua Conta Stripe',
+            loading: 'Carregando Stripe Connect...',
+            connectionError: 'Erro de Conexão',
+            loadError: 'Erro ao carregar Stripe. Verifique sua conexão com a internet.',
+            canceledOrError: 'Conexão cancelada ou erro durante a configuração',
+            retry: 'Tentar novamente',
+        },
     },
 
     stripe: {

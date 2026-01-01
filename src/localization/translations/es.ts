@@ -823,6 +823,14 @@ export const esTranslations = {
             paymentSheetFallbackMessage: 'Usemos el método de tarjeta manual por ahora. PaymentSheet se activará en producción.',
             cardNamePlaceholder: 'Juan García',
         },
+        stripeConnect: {
+            title: 'Crear tu Cuenta Stripe',
+            loading: 'Cargando Stripe Connect...',
+            connectionError: 'Error de Conexión',
+            loadError: 'Error al cargar Stripe. Verifica tu conexión a internet.',
+            canceledOrError: 'Conexión cancelada o error durante la configuración',
+            retry: 'Reintentar',
+        },
     },
 
     vehicles: {

@@ -823,6 +823,14 @@ export const enTranslations: TranslationKeys = {
             paymentSheetFallbackMessage: 'Let\'s use the manual card method for now. PaymentSheet will be activated in production.',
             cardNamePlaceholder: 'John Doe',
         },
+        stripeConnect: {
+            title: 'Create Your Stripe Account',
+            loading: 'Loading Stripe Connect...',
+            connectionError: 'Connection Error',
+            loadError: 'Error loading Stripe. Please check your internet connection.',
+            canceledOrError: 'Connection canceled or error during setup',
+            retry: 'Retry',
+        },
     },
 
     vehicles: {

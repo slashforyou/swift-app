@@ -13,6 +13,7 @@ import {
 import { WebView } from 'react-native-webview'
 import { DESIGN_TOKENS } from '../../constants/Styles'
 import { useTheme } from '../../context/ThemeProvider'
+import { useLocalization } from '../../localization/useLocalization'
 
 interface StripeConnectWebViewProps {
   visible: boolean
@@ -30,6 +31,7 @@ export const StripeConnectWebView: React.FC<StripeConnectWebViewProps> = ({
   accountLinkUrl
 }) => {
   const { colors } = useTheme()
+  const { t } = useLocalization()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const webViewRef = useRef<WebView>(null)
@@ -138,14 +140,14 @@ export const StripeConnectWebView: React.FC<StripeConnectWebViewProps> = ({
     
     // Détection d'erreurs Stripe
     if (navState.url.includes('error') || navState.url.includes('cancel')) {
-      setError('Connexion annulée ou erreur lors de la configuration')
+      setError(t('payment.stripeConnect.canceledOrError'))
       return
     }
   }
 
   const handleError = (error: any) => {
     console.error('❌ WebView error:', error)
-    setError('Erreur lors du chargement de Stripe. Vérifiez votre connexion internet.')
+    setError(t('payment.stripeConnect.loadError'))
     onError?.('WebView loading error')
   }
 
@@ -177,7 +179,7 @@ export const StripeConnectWebView: React.FC<StripeConnectWebViewProps> = ({
           </TouchableOpacity>
           
           <Text style={styles.headerTitle}>
-            Création de votre Compte Stripe
+            {t('payment.stripeConnect.title')}
           </Text>
           
           <View style={{ width: 40 }}>
@@ -194,11 +196,11 @@ export const StripeConnectWebView: React.FC<StripeConnectWebViewProps> = ({
               color={colors.error} 
               style={styles.errorIcon}
             />
-            <Text style={styles.errorTitle}>Erreur de Connexion</Text>
+            <Text style={styles.errorTitle}>{t('payment.stripeConnect.connectionError')}</Text>
             <Text style={styles.errorText}>{error}</Text>
             
             <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
-              <Text style={styles.retryButtonText}>Réessayer</Text>
+              <Text style={styles.retryButtonText}>{t('payment.stripeConnect.retry')}</Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -208,7 +210,7 @@ export const StripeConnectWebView: React.FC<StripeConnectWebViewProps> = ({
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color={colors.primary} />
                 <Text style={styles.loadingText}>
-                  Chargement de Stripe Connect...
+                  {t('payment.stripeConnect.loading')}
                 </Text>
               </View>
             )}

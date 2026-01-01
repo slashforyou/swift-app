@@ -865,6 +865,14 @@ export interface TranslationKeys {
             paymentSheetFallbackMessage: string;
             cardNamePlaceholder: string;
         };
+        stripeConnect: {
+            title: string;
+            loading: string;
+            connectionError: string;
+            loadError: string;
+            canceledOrError: string;
+            retry: string;
+        };
     };
 
     // Vehicles

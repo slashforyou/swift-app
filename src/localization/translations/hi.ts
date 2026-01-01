@@ -923,6 +923,14 @@ export const hiTranslations = {
             paymentSheetFallbackMessage: 'अभी के लिए मैनुअल कार्ड विधि का उपयोग करें। PaymentSheet उत्पादन में सक्रिय होगा।',
             cardNamePlaceholder: 'राज कुमार',
         },
+        stripeConnect: {
+            title: 'अपना Stripe खाता बनाएं',
+            loading: 'Stripe Connect लोड हो रहा है...',
+            connectionError: 'कनेक्शन त्रुटि',
+            loadError: 'Stripe लोड करने में त्रुटि। कृपया अपना इंटरनेट कनेक्शन जांचें।',
+            canceledOrError: 'कनेक्शन रद्द या सेटअप के दौरान त्रुटि',
+            retry: 'पुनः प्रयास करें',
+        },
     },
 
     stripe: {

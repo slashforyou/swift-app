@@ -923,6 +923,14 @@ export const itTranslations = {
             paymentSheetFallbackMessage: 'Usiamo il metodo carta manuale per ora. PaymentSheet sarà attivato in produzione.',
             cardNamePlaceholder: 'Mario Rossi',
         },
+        stripeConnect: {
+            title: 'Crea il tuo Account Stripe',
+            loading: 'Caricamento Stripe Connect...',
+            connectionError: 'Errore di Connessione',
+            loadError: 'Errore durante il caricamento di Stripe. Controlla la tua connessione internet.',
+            canceledOrError: 'Connessione annullata o errore durante la configurazione',
+            retry: 'Riprova',
+        },
     },
 
     stripe: {

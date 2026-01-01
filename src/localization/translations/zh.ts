@@ -923,6 +923,14 @@ export const zhTranslations = {
             paymentSheetFallbackMessage: '现在使用手动卡片方式。PaymentSheet 将在生产环境中激活。',
             cardNamePlaceholder: '张三',
         },
+        stripeConnect: {
+            title: '创建您的 Stripe 账户',
+            loading: '正在加载 Stripe Connect...',
+            connectionError: '连接错误',
+            loadError: '加载 Stripe 时出错。请检查您的网络连接。',
+            canceledOrError: '连接已取消或配置过程中出错',
+            retry: '重试',
+        },
     },
 
     stripe: {

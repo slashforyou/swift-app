@@ -823,6 +823,14 @@ export const frTranslations: TranslationKeys = {
             paymentSheetFallbackMessage: 'Utilisons la méthode carte manuelle pour le moment. PaymentSheet sera activé en production.',
             cardNamePlaceholder: 'Jean Dupont',
         },
+        stripeConnect: {
+            title: 'Création de votre Compte Stripe',
+            loading: 'Chargement de Stripe Connect...',
+            connectionError: 'Erreur de Connexion',
+            loadError: 'Erreur lors du chargement de Stripe. Vérifiez votre connexion internet.',
+            canceledOrError: 'Connexion annulée ou erreur lors de la configuration',
+            retry: 'Réessayer',
+        },
     },
 
     vehicles: {
