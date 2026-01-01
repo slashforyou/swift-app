@@ -11,6 +11,7 @@ import { HStack, VStack } from '../../components/primitives/Stack';
 import { Card } from '../../components/ui/Card';
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
+import { useLocalization } from '../../localization/useLocalization';
 import contactLink from '../../services/contactLink';
 import { addJobItem, updateJobItem } from '../../services/jobs';
 
@@ -118,19 +119,20 @@ const AddItemModal: React.FC<{
     onAdd: (name: string, quantity: number) => void;
 }> = ({ visible, onClose, onAdd }) => {
     const { colors } = useCommonThemedStyles();
+    const { t } = useLocalization();
     const [name, setName] = useState('');
     const [quantity, setQuantity] = useState('1');
     const [isLoading, setIsLoading] = useState(false);
 
     const handleAdd = async () => {
         if (!name.trim()) {
-            Alert.alert('Error', 'Please enter an item name');
+            Alert.alert(t('jobDetails.job.error'), t('jobDetails.job.errorItemName'));
             return;
         }
 
         const qty = parseInt(quantity);
         if (isNaN(qty) || qty < 1) {
-            Alert.alert('Error', 'Please enter a valid quantity');
+            Alert.alert(t('jobDetails.job.error'), t('jobDetails.job.errorQuantity'));
             return;
         }
 
@@ -147,7 +149,7 @@ const AddItemModal: React.FC<{
             onClose();
         } catch {
 
-            Alert.alert('Error', 'Unable to add item. Please try again.');
+            Alert.alert(t('jobDetails.job.error'), t('jobDetails.job.errorItemName'));
         } finally {
             setIsLoading(false);
         }
@@ -185,7 +187,7 @@ const AddItemModal: React.FC<{
                         fontWeight: '600',
                         color: colors.text
                     }}>
-                        Add Item
+                        {t('jobDetails.job.addItemTitle')}
                     </Text>
                     <Pressable onPress={onClose} hitSlop={8}>
                         <Ionicons name="close" size={24} color={colors.textSecondary} />
@@ -199,12 +201,12 @@ const AddItemModal: React.FC<{
                             fontWeight: '500',
                             color: colors.text
                         }}>
-                            Item Name *
+                            {t('jobDetails.job.itemName')} *
                         </Text>
                         <TextInput
                             value={name}
                             onChangeText={setName}
-                            placeholder="Ex: 3-seat sofa"
+                            placeholder={t('jobDetails.job.itemNamePlaceholder')}
                             placeholderTextColor={colors.textSecondary}
                             style={{
                                 borderWidth: 1,
@@ -224,7 +226,7 @@ const AddItemModal: React.FC<{
                             fontWeight: '500',
                             color: colors.text
                         }}>
-                            Quantity *
+                            {t('jobDetails.job.quantity')} *
                         </Text>
                         <TextInput
                             value={quantity}
@@ -261,7 +263,7 @@ const AddItemModal: React.FC<{
                                 fontWeight: '500',
                                 color: colors.textSecondary
                             }}>
-                                Cancel
+                                {t('jobDetails.job.cancel')}
                             </Text>
                         </Pressable>
 
@@ -290,7 +292,7 @@ const AddItemModal: React.FC<{
                                 fontWeight: '600',
                                 color: colors.background
                             }}>
-                                {isLoading ? 'Adding...' : 'Add Item'}
+                                {isLoading ? t('jobDetails.job.adding') : t('jobDetails.job.addItem')}
                             </Text>
                         </Pressable>
                     </HStack>
@@ -562,6 +564,7 @@ const ItemRow: React.FC<ItemRowProps> = ({ item, index, onToggle, onQuantityChan
 
 const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
     const { colors } = useCommonThemedStyles();
+    const { t } = useLocalization();
     const [showAddItemModal, setShowAddItemModal] = useState(false);
     const [syncingItems, setSyncingItems] = useState<Set<string>>(new Set());
     
@@ -725,7 +728,7 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
                     <VStack gap="sm">
                         <SectionHeader 
                             icon="list-outline" 
-                            title="Job Items" 
+                            title={t('jobDetails.job.jobItems')} 
                             badge={itemsCount > 0 ? `${checkedItems}/${itemsCount}` : undefined}
                         />
                         
@@ -754,7 +757,7 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
                                 textAlign: 'center',
                                 paddingVertical: DESIGN_TOKENS.spacing.lg
                             }}>
-                                Aucun item pour le moment
+                                {t('jobDetails.job.noItems')}
                             </Text>
                         )}
                         
@@ -781,7 +784,7 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
                                 color: colors.primary,
                                 marginLeft: DESIGN_TOKENS.spacing.xs
                             }}>
-                                Add Item
+                                {t('jobDetails.job.addItem')}
                             </Text>
                         </Pressable>
                     </VStack>
@@ -795,20 +798,20 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
                     <VStack gap="sm">
                         <SectionHeader 
                             icon="information-circle-outline" 
-                            title="Job Information" 
+                            title={t('jobDetails.job.jobInformation')} 
                         />
                         
                         {job.type && (
-                            <InfoRow label="Job Type" value={job.type} />
+                            <InfoRow label={t('jobDetails.job.jobType')} value={job.type} />
                         )}
                         
                         <InfoRow 
-                            label="Number of Items" 
+                            label={t('jobDetails.job.numberOfItems')} 
                             value={String(job.itemsCount || job.items?.length || 0)} 
                         />
                         
                         {job.status && (
-                            <InfoRow label="Status" value={job.status} badge />
+                            <InfoRow label={t('jobDetails.job.status')} value={job.status} badge />
                         )}
                     </VStack>
                 </Card>
@@ -824,20 +827,20 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
                         <VStack gap="sm">
                             <SectionHeader 
                                 icon="business-outline" 
-                                title="Contractor" 
+                                title={t('jobDetails.job.contractor')} 
                             />
                             
                             {job.contractor.Name && (
-                                <InfoRow label="Company Name" value={job.contractor.Name} />
+                                <InfoRow label={t('jobDetails.job.companyName')} value={job.contractor.Name} />
                             )}
                             
                             {job.contractor.ContactName && (
-                                <InfoRow label="Contact Person" value={job.contractor.ContactName} />
+                                <InfoRow label={t('jobDetails.job.contactPerson')} value={job.contractor.ContactName} />
                             )}
                             
                             {job.contractor.Phone && (
                                 <ContactRow
-                                    label="Phone"
+                                    label={t('jobDetails.client.phone')}
                                     value={job.contractor.Phone}
                                     contactType="tel"
                                     icon="call"
@@ -846,7 +849,7 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
                             
                             {job.contractor.Email && (
                                 <ContactRow
-                                    label="Email"
+                                    label={t('jobDetails.client.email')}
                                     value={job.contractor.Email}
                                     contactType="mailto"
                                     icon="mail"
@@ -867,20 +870,20 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
                         <VStack gap="sm">
                             <SectionHeader 
                                 icon="people-outline" 
-                                title="Contractee" 
+                                title={t('jobDetails.job.contractee')} 
                             />
                             
                             {job.contractee.Name && (
-                                <InfoRow label="Company Name" value={job.contractee.Name} />
+                                <InfoRow label={t('jobDetails.job.companyName')} value={job.contractee.Name} />
                             )}
                             
                             {job.contractee.ContactName && (
-                                <InfoRow label="Contact Person" value={job.contractee.ContactName} />
+                                <InfoRow label={t('jobDetails.job.contactPerson')} value={job.contractee.ContactName} />
                             )}
                             
                             {job.contractee.Phone && (
                                 <ContactRow
-                                    label="Phone"
+                                    label={t('jobDetails.client.phone')}
                                     value={job.contractee.Phone}
                                     contactType="tel"
                                     icon="call"
@@ -889,7 +892,7 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
                             
                             {job.contractee.Email && (
                                 <ContactRow
-                                    label="Email"
+                                    label={t('jobDetails.client.email')}
                                     value={job.contractee.Email}
                                     contactType="mailto"
                                     icon="mail"

@@ -12,6 +12,7 @@ import { Card } from '../../components/ui/Card';
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 import { useJobDetails } from '../../hooks/useJobDetails';
+import { useLocalization } from '../../localization/useLocalization';
 import { ClientAPI, fetchClientById } from '../../services/clients';
 import contactLink from '../../services/contactLink';
 import { isLoggedIn } from '../../utils/auth';
@@ -27,7 +28,7 @@ interface InfoRowProps {
 }
 
 // Composant réutilisable pour afficher les informations client
-const InfoRow: React.FC<InfoRowProps & { colors: any }> = ({ label, value, colors }) => (
+const InfoRow: React.FC<InfoRowProps & { colors: any; notSpecifiedText: string }> = ({ label, value, colors, notSpecifiedText }) => (
     <VStack gap="xs" style={{ paddingVertical: DESIGN_TOKENS.spacing.sm }}>
         <Text 
             style={{
@@ -47,13 +48,14 @@ const InfoRow: React.FC<InfoRowProps & { colors: any }> = ({ label, value, color
                 color: colors.text,
             }}
         >
-            {value || 'Not specified'}
+            {value || notSpecifiedText}
         </Text>
     </VStack>
 );
 
 const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
     const { colors } = useCommonThemedStyles();
+    const { t } = useLocalization();
     const [extendedClientData, setExtendedClientData] = useState<ClientAPI | null>(null);
     const [isLoadingClient, setIsLoadingClient] = useState(false);
     const [isSigningVisible, setIsSigningVisible] = useState(false);
@@ -118,14 +120,14 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
     
     // Données client pour éviter la répétition
     const clientInfo = [
-        { label: 'Prénom', value: clientData?.firstName },
-        { label: 'Nom', value: clientData?.lastName },
-        { label: 'Téléphone', value: clientData?.phone },
-        { label: 'Email', value: clientData?.email },
-        { label: 'Entreprise', value: clientData?.company },
-        { label: 'Adresse', value: clientData?.address ? 
+        { label: t('jobDetails.client.firstName'), value: clientData?.firstName },
+        { label: t('jobDetails.client.lastName'), value: clientData?.lastName },
+        { label: t('jobDetails.client.phone'), value: clientData?.phone },
+        { label: t('jobDetails.client.email'), value: clientData?.email },
+        { label: t('jobDetails.client.company'), value: clientData?.company },
+        { label: t('jobDetails.client.address'), value: clientData?.address ? 
             `${clientData.address.street}, ${clientData.address.city} ${clientData.address.zip}` : null },
-        { label: 'Notes', value: clientData?.notes },
+        { label: t('jobDetails.client.notes'), value: clientData?.notes },
     ].filter(item => item.value); // Ne montre que les champs renseignés
 
     return (
@@ -143,12 +145,12 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
                                 marginBottom: DESIGN_TOKENS.spacing.sm,
                             }}
                         >
-                            Client Details
+                            {t('jobDetails.client.title')}
                         </Text>
                         
                         {isLoadingClient ? (
                             <Text style={{ color: colors.textSecondary, fontStyle: 'italic' }}>
-                                Loading client data...
+                                {t('jobDetails.client.loading')}
                             </Text>
                         ) : clientInfo.map((info) => (
                             <InfoRow 
@@ -156,6 +158,7 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
                                 label={info.label}
                                 value={info.value}
                                 colors={colors}
+                                notSpecifiedText={t('jobDetails.client.notSpecified')}
                             />
                         ))}
                     </VStack>
@@ -172,7 +175,7 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
                                 color: colors.text,
                             }}
                         >
-                            Quick Actions
+                            {t('jobDetails.client.quickActions')}
                         </Text>
                         
                         <VStack gap="sm">
@@ -215,7 +218,7 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
                                                 marginLeft: DESIGN_TOKENS.spacing.xs,
                                             }}
                                         >
-                                            Call
+                                            {t('jobDetails.client.call')}
                                         </Text>
                                     </Pressable>
                                     
@@ -255,7 +258,7 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
                                                 marginLeft: DESIGN_TOKENS.spacing.xs,
                                             }}
                                         >
-                                            SMS
+                                            {t('jobDetails.client.sms')}
                                         </Text>
                                     </Pressable>
                                 </HStack>
@@ -298,7 +301,7 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
                                             marginLeft: DESIGN_TOKENS.spacing.xs,
                                         }}
                                     >
-                                        Email
+                                        {t('jobDetails.client.emailAction')}
                                     </Text>
                                 </Pressable>
                             )}

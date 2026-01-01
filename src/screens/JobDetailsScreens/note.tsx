@@ -9,6 +9,7 @@ import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useTheme } from '../../context/ThemeProvider';
 import { useToast } from '../../context/ToastProvider';
 import { useJobNotes } from '../../hooks/useJobNotes';
+import { useLocalization } from '../../localization/useLocalization';
 
 interface JobNoteProps {
   job: any;
@@ -17,6 +18,7 @@ interface JobNoteProps {
 
 const JobNote: React.FC<JobNoteProps> = ({ job, setJob }) => {
     const { colors } = useTheme();
+    const { t } = useLocalization();
     const [isNoteModalVisible, setIsNoteModalVisible] = useState(false);
     
     // Hooks pour la gestion des notes
@@ -52,21 +54,21 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob }) => {
             const now = new Date();
             const diffHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
             
-            if (diffHours < 1) return "À l'instant";
-            if (diffHours < 24) return `Il y a ${diffHours}h`;
-            if (diffHours < 48) return "Hier";
+            if (diffHours < 1) return t('jobDetails.notes.time.justNow');
+            if (diffHours < 24) return `${diffHours}h ${t('jobDetails.notes.time.hoursAgo')}`;
+            if (diffHours < 48) return t('jobDetails.notes.time.yesterday');
             return date.toLocaleDateString('fr-FR');
-        } catch (e) {
-            return "Récemment";
+        } catch {
+            return t('jobDetails.notes.time.recently');
         }
     };
 
     const getNoteTypeInfo = (type: string) => {
         const types = {
-            'general': { icon: 'document-text', color: colors.tint, label: 'Générale' },
-            'important': { icon: 'alert-circle', color: colors.warning, label: 'Important' },
-            'client': { icon: 'person', color: colors.success, label: 'Client' },
-            'internal': { icon: 'shield', color: colors.info, label: 'Interne' }
+            'general': { icon: 'document-text', color: colors.tint, label: t('jobDetails.notes.types.general') },
+            'important': { icon: 'alert-circle', color: colors.warning, label: t('jobDetails.notes.types.important') },
+            'client': { icon: 'person', color: colors.success, label: t('jobDetails.notes.types.client') },
+            'internal': { icon: 'shield', color: colors.info, label: t('jobDetails.notes.types.internal') }
         };
         return types[type as keyof typeof types] || types.general;
     };
@@ -84,7 +86,7 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob }) => {
                     color: colors.textSecondary,
                     marginBottom: DESIGN_TOKENS.spacing.md 
                 }}>
-                    Chargement des notes...
+                    {t('jobDetails.notes.loading')}
                 </Text>
             </View>
         );
@@ -121,7 +123,7 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob }) => {
                             color: colors.tint,
                             flex: 1,
                         }}>
-                            Certaines notes sont sauvegardées localement et seront synchronisées plus tard.
+                            {t('jobDetails.notes.localSyncInfo')}
                         </Text>
                     </View>
                 )}
@@ -145,13 +147,13 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob }) => {
                                 color: colors.text,
                                 marginBottom: DESIGN_TOKENS.spacing.xs,
                             }}>
-                                Notes du Job
+                                {t('jobDetails.notes.title')}
                             </Text>
                             <Text style={{
                                 fontSize: 14,
                                 color: colors.textSecondary,
                             }}>
-                                {notes.length} note{notes.length !== 1 ? 's' : ''}
+                                {notes.length} {notes.length !== 1 ? t('jobDetails.notes.countPlural') : t('jobDetails.notes.count')}
                             </Text>
                         </View>
 
@@ -173,7 +175,7 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob }) => {
                                 fontWeight: '600',
                                 fontSize: 14,
                             }}>
-                                Ajouter
+                                {t('jobDetails.notes.add')}
                             </Text>
                         </Pressable>
                     </View>
@@ -300,7 +302,7 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob }) => {
                             textAlign: 'center',
                             marginBottom: DESIGN_TOKENS.spacing.sm,
                         }}>
-                            Aucune note
+                            {t('jobDetails.notes.noNotes')}
                         </Text>
                         
                         <Text style={{
@@ -310,7 +312,7 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob }) => {
                             maxWidth: 250,
                             marginBottom: DESIGN_TOKENS.spacing.xl,
                         }}>
-                            Commencez à documenter les informations importantes de ce job
+                            {t('jobDetails.notes.noNotesDescription')}
                         </Text>
 
                         <Pressable
@@ -331,7 +333,7 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob }) => {
                                 fontWeight: '600',
                                 color: colors.background,
                             }}>
-                                Ajouter la première note
+                                {t('jobDetails.notes.addFirstNote')}
                             </Text>
                         </Pressable>
                     </View>

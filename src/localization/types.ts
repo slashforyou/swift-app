@@ -297,6 +297,75 @@ export interface TranslationKeys {
         };
         client: {
             firstTimeClient: string;
+            // Client screen labels
+            title: string;
+            loading: string;
+            firstName: string;
+            lastName: string;
+            phone: string;
+            email: string;
+            company: string;
+            address: string;
+            notes: string;
+            notSpecified: string;
+            quickActions: string;
+            call: string;
+            sms: string;
+            emailAction: string;
+        };
+        // Job page labels
+        job: {
+            jobItems: string;
+            noItems: string;
+            addItem: string;
+            addItemTitle: string;
+            itemName: string;
+            itemNamePlaceholder: string;
+            quantity: string;
+            cancel: string;
+            adding: string;
+            completed: string;
+            local: string;
+            sync: string;
+            jobInformation: string;
+            jobType: string;
+            numberOfItems: string;
+            status: string;
+            contractor: string;
+            contractee: string;
+            companyName: string;
+            contactPerson: string;
+            error: string;
+            errorItemName: string;
+            errorQuantity: string;
+            success: string;
+            itemAdded: string;
+            itemAddedLocally: string;
+            itemAddedLocallyMessage: string;
+        };
+        // Notes page labels
+        notes: {
+            title: string;
+            loading: string;
+            add: string;
+            addFirstNote: string;
+            noNotes: string;
+            noNotesDescription: string;
+            count: string;
+            countPlural: string;
+            localSyncInfo: string;
+            types: {
+                general: string;
+                important: string;
+                client: string;
+                internal: string;
+            };
+            time: {
+                justNow: string;
+                hoursAgo: string;
+                yesterday: string;
+                recently: string;
+            };
         };
         defaultNote: string;
         messages: {
