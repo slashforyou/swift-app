@@ -422,6 +422,57 @@ export const enTranslations: TranslationKeys = {
                 hours: 'hours',
             },
         },
+        components: {
+            stepValidation: {
+                inconsistencyDetected: 'Inconsistency detected',
+                suggestion: 'Suggestion: Go to step {expectedStep}/{totalSteps}',
+                stepCorrected: 'Step corrected: {currentStep} → {newStep}',
+                correctionError: 'Error correcting step',
+                autoCorrect: '🔧 Auto-correct',
+            },
+            truckDetails: {
+                title: '🚛 Vehicle Information',
+                subtitle: 'Vehicle assigned to this job',
+                primaryVehicle: 'Primary vehicle',
+            },
+            timeWindows: {
+                title: '⏰ Time Windows',
+                subtitle: 'Scheduled time slots for this job',
+                missionStart: '📍 Mission Start',
+            },
+            jobProgress: {
+                percentComplete: '{percentage}% complete',
+                detailedTracking: 'Detailed status and progress tracking',
+            },
+            jobTime: {
+                chronoWillStart: 'Timer will start when job begins',
+                inProgress: 'IN PROGRESS',
+                finished: 'FINISHED',
+                currentStep: 'Current step',
+                stepDetails: 'Step details',
+                costCalculation: 'Cost Calculation',
+            },
+            quickActions: {
+                startJob: '🚀 Start job',
+                arrivedAtClient: '📍 Arrived at client',
+                jobFinished: '✅ Job finished',
+                advanceStep: 'Advance step',
+                goToStep: 'Go to: {stepName}',
+                stepActivated: '{stepName} activated!',
+                jobAlreadyFinished: 'Job already finished',
+                noPhoneAvailable: 'No phone number available',
+                noteAdded: 'Note added!',
+                error: 'Error',
+                success: 'Success',
+                information: 'Information',
+            },
+            signature: {
+                verifying: 'Verifying signature...',
+                contractSigned: 'Contract Signed!',
+                clientValidated: 'Client has validated and signed the contract',
+                contractMustBeSigned: 'Contract must be signed by client',
+            },
+        },
     },
 
     settings: {

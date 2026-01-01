@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { DESIGN_TOKENS } from '../../../constants/Styles';
 import { useTheme } from '../../../context/ThemeProvider';
+import { useLocalization } from '../../../localization/useLocalization';
 import { checkJobSignatureExists } from '../../../services/jobDetails';
 import { Button } from '../../ui/Button';
 import SectionCard from '../SectionCard';
@@ -16,6 +17,7 @@ interface SignatureSectionProps {
 
 const SignatureSection: React.FC<SignatureSectionProps> = ({ job, onSignContract }) => {
     const { colors } = useTheme();
+    const { t } = useLocalization();
     const [isLoading, setIsLoading] = useState(true);
     const [signatureFromServer, setSignatureFromServer] = useState<{
         exists: boolean;
@@ -97,7 +99,7 @@ const SignatureSection: React.FC<SignatureSectionProps> = ({ job, onSignContract
                         color: colors.textSecondary,
                         marginTop: DESIGN_TOKENS.spacing.sm,
                     }}>
-                        Vérification de la signature...
+                        {t('jobDetails.components.signature.verifying')}
                     </Text>
                 </View>
             ) : isContractSigned ? (
@@ -127,14 +129,14 @@ const SignatureSection: React.FC<SignatureSectionProps> = ({ job, onSignContract
                         textAlign: 'center',
                         marginBottom: 4,
                     }}>
-                        Contrat Signé !
+                        {t('jobDetails.components.signature.contractSigned')}
                     </Text>
                     <Text style={{
                         fontSize: 14,
                         color: colors.textSecondary,
                         textAlign: 'center',
                     }}>
-                        Le client a validé et signé le contrat
+                        {t('jobDetails.components.signature.clientValidated')}
                     </Text>
                 </View>
             ) : (
@@ -175,7 +177,7 @@ const SignatureSection: React.FC<SignatureSectionProps> = ({ job, onSignContract
                             textAlign: 'center',
                             marginBottom: DESIGN_TOKENS.spacing.md,
                         }}>
-                            Le contrat doit être signé par le client
+                            {t('jobDetails.components.signature.contractMustBeSigned')}
                         </Text>
                     </View>
                     

@@ -414,6 +414,57 @@ export const zhTranslations = {
                 hours: '小时',
             },
         },
+        components: {
+            stepValidation: {
+                inconsistencyDetected: '检测到不一致',
+                suggestion: '建议：转到步骤 {{expectedStep}}/{{totalSteps}}',
+                stepCorrected: '步骤已更正：{{currentStep}} → {{newStep}}',
+                correctionError: '更正步骤时出错',
+                autoCorrect: '🔧 自动更正',
+            },
+            truckDetails: {
+                title: '🚛 车辆信息',
+                subtitle: '分配给此任务的车辆',
+                primaryVehicle: '主车辆',
+            },
+            timeWindows: {
+                title: '⏰ 时间窗口',
+                subtitle: '此工作的计划时间段',
+                missionStart: '📍 任务开始',
+            },
+            jobProgress: {
+                percentComplete: '{{percentage}}% 已完成',
+                detailedTracking: '详细的状态和进度跟踪',
+            },
+            jobTime: {
+                chronoWillStart: '工作开始时计时器将启动',
+                inProgress: '进行中',
+                finished: '已完成',
+                currentStep: '当前步骤',
+                stepDetails: '步骤详情',
+                costCalculation: '成本计算',
+            },
+            quickActions: {
+                startJob: '🚀 开始工作',
+                arrivedAtClient: '📍 已到达客户处',
+                jobFinished: '✅ 工作完成',
+                advanceStep: '前进步骤',
+                goToStep: '转到：{{stepName}}',
+                stepActivated: '{{stepName}} 已激活！',
+                jobAlreadyFinished: '工作已完成',
+                noPhoneAvailable: '没有可用的电话号码',
+                noteAdded: '备注已添加！',
+                error: '错误',
+                success: '成功',
+                information: '信息',
+            },
+            signature: {
+                verifying: '正在验证签名...',
+                contractSigned: '合同已签署！',
+                clientValidated: '客户已验证并签署合同',
+                contractMustBeSigned: '合同必须由客户签署',
+            },
+        },
     },
 
     settings: {

@@ -422,6 +422,57 @@ export const frTranslations: TranslationKeys = {
                 hours: 'heures',
             },
         },
+        components: {
+            stepValidation: {
+                inconsistencyDetected: 'Incohérence détectée',
+                suggestion: 'Suggestion: Passer au step {{expectedStep}}/{{totalSteps}}',
+                stepCorrected: 'Step corrigé: {{currentStep}} → {{newStep}}',
+                correctionError: 'Erreur lors de la correction du step',
+                autoCorrect: '🔧 Corriger automatiquement',
+            },
+            truckDetails: {
+                title: '🚛 Informations Véhicule',
+                subtitle: 'Véhicule assigné à cette mission',
+                primaryVehicle: 'Véhicule principal',
+            },
+            timeWindows: {
+                title: '⏰ Créneaux Horaires',
+                subtitle: 'Plages horaires planifiées pour ce job',
+                missionStart: '📍 Début de Mission',
+            },
+            jobProgress: {
+                percentComplete: '{{percentage}}% complété',
+                detailedTracking: 'Suivi détaillé du statut et de l\'avancement',
+            },
+            jobTime: {
+                chronoWillStart: 'Le chronométrage démarrera dès le lancement du job',
+                inProgress: 'EN COURS',
+                finished: 'TERMINÉ',
+                currentStep: 'Étape actuelle',
+                stepDetails: 'Détail par étapes',
+                costCalculation: 'Calcul de Coût',
+            },
+            quickActions: {
+                startJob: '🚀 Démarrer le job',
+                arrivedAtClient: '📍 Arrivé chez le client',
+                jobFinished: '✅ Job terminé',
+                advanceStep: 'Avancer l\'étape',
+                goToStep: 'Passer à: {{stepName}}',
+                stepActivated: '{{stepName}} activée !',
+                jobAlreadyFinished: 'Job déjà terminé',
+                noPhoneAvailable: 'Aucun numéro de téléphone disponible',
+                noteAdded: 'Note ajoutée !',
+                error: 'Erreur',
+                success: 'Succès',
+                information: 'Information',
+            },
+            signature: {
+                verifying: 'Vérification de la signature...',
+                contractSigned: 'Contrat Signé !',
+                clientValidated: 'Le client a validé et signé le contrat',
+                contractMustBeSigned: 'Le contrat doit être signé par le client',
+            },
+        },
     },
 
     settings: {

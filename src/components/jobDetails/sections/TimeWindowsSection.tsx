@@ -5,6 +5,7 @@ import React from 'react';
 import { Text, View } from 'react-native';
 import { useTheme } from '../../../context/ThemeProvider';
 import { DESIGN_TOKENS } from '../../../constants/Styles';
+import { useLocalization } from '../../../localization/useLocalization';
 import SectionCard from '../SectionCard';
 
 interface TimeWindowsSectionProps {
@@ -13,6 +14,7 @@ interface TimeWindowsSectionProps {
 
 const TimeWindowsSection: React.FC<TimeWindowsSectionProps> = ({ job }) => {
     const { colors } = useTheme();
+    const { t } = useLocalization();
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
@@ -41,14 +43,14 @@ const TimeWindowsSection: React.FC<TimeWindowsSectionProps> = ({ job }) => {
                     color: colors.text,
                     marginBottom: DESIGN_TOKENS.spacing.xs,
                 }}>
-                    ⏰ Créneaux Horaires
+                    {t('jobDetails.components.timeWindows.title')}
                 </Text>
                 <Text style={{
                     fontSize: 14,
                     color: colors.textSecondary,
                     marginBottom: DESIGN_TOKENS.spacing.lg,
                 }}>
-                    Plages horaires planifiées pour ce job
+                    {t('jobDetails.components.timeWindows.subtitle')}
                 </Text>
             </View>
 
@@ -63,7 +65,7 @@ const TimeWindowsSection: React.FC<TimeWindowsSectionProps> = ({ job }) => {
                         textTransform: 'uppercase',
                         letterSpacing: 0.5,
                     }}>
-                        📍 Début de Mission
+                        {t('jobDetails.components.timeWindows.missionStart')}
                     </Text>
                     <View style={{ 
                         backgroundColor: colors.backgroundTertiary,

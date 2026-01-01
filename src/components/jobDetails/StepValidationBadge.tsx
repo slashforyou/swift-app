@@ -7,6 +7,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useTheme } from '../../context/ThemeProvider';
 import { useToast } from '../../context/ToastProvider';
+import { useLocalization } from '../../localization/useLocalization';
 import {
     correctJobStep,
     validateJobStep,
@@ -26,6 +27,7 @@ export const StepValidationBadge: React.FC<StepValidationBadgeProps> = ({
 }) => {
     const { colors } = useTheme();
     const { showSuccess, showError } = useToast();
+    const { t } = useLocalization();
     const [validation, setValidation] = useState<StepValidationResult | null>(null);
     const [isCorrect, setIsCorrect] = useState(false);
 
@@ -64,7 +66,7 @@ export const StepValidationBadge: React.FC<StepValidationBadgeProps> = ({
             const result = await correctJobStep(jobCode, validation);
             
             if (result.success && result.newStep !== undefined) {
-                showSuccess(`Step corrigé: ${validation.currentStep} → ${result.newStep}`);
+                showSuccess(t('jobDetails.components.stepValidation.stepCorrected', { currentStep: validation.currentStep, newStep: result.newStep }));
                 
                 // Notifier le parent du changement
                 if (onStepCorrected) {
@@ -77,7 +79,7 @@ export const StepValidationBadge: React.FC<StepValidationBadgeProps> = ({
         } catch (error) {
 
             console.error('❌ [STEP VALIDATION] Error correcting:', error);
-            showError('Erreur lors de la correction du step');
+            showError(t('jobDetails.components.stepValidation.correctionError'));
         } finally {
             setIsCorrect(false);
         }
@@ -104,10 +106,10 @@ export const StepValidationBadge: React.FC<StepValidationBadgeProps> = ({
             <View style={[styles.badge, { backgroundColor: getBadgeColor() }]}>
                 <Text style={styles.icon}>{getIcon()}</Text>
                 <View style={styles.textContainer}>
-                    <Text style={[styles.title, { color: colors.background }]}>Incohérence détectée</Text>
+                    <Text style={[styles.title, { color: colors.background }]}>{t('jobDetails.components.stepValidation.inconsistencyDetected')}</Text>
                     <Text style={[styles.message, { color: colors.background }]}>{validation.reason}</Text>
                     <Text style={[styles.suggestion, { color: colors.background }]}>
-                        Suggestion: Passer au step {validation.expectedStep}/{job?.steps?.length || 5}
+                        {t('jobDetails.components.stepValidation.suggestion', { expectedStep: validation.expectedStep, totalSteps: job?.steps?.length || 5 })}
                     </Text>
                 </View>
             </View>
@@ -122,7 +124,7 @@ export const StepValidationBadge: React.FC<StepValidationBadgeProps> = ({
                         <ActivityIndicator size="small" color={colors.background} />
                     ) : (
                         <>
-                            <Text style={[styles.buttonText, { color: colors.background }]}>🔧 Corriger automatiquement</Text>
+                            <Text style={[styles.buttonText, { color: colors.background }]}>{t('jobDetails.components.stepValidation.autoCorrect')}</Text>
                         </>
                     )}
                 </Pressable>

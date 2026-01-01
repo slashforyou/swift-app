@@ -5,6 +5,7 @@ import React from 'react';
 import { Text, View } from 'react-native';
 import { useTheme } from '../../../context/ThemeProvider';
 import { DESIGN_TOKENS } from '../../../constants/Styles';
+import { useLocalization } from '../../../localization/useLocalization';
 import SectionCard from '../SectionCard';
 
 interface TruckDetailsSectionProps {
@@ -13,6 +14,7 @@ interface TruckDetailsSectionProps {
 
 const TruckDetailsSection: React.FC<TruckDetailsSectionProps> = ({ job }) => {
     const { colors } = useTheme();
+    const { t } = useLocalization();
 
     return (
         <SectionCard level="tertiary">
@@ -23,14 +25,14 @@ const TruckDetailsSection: React.FC<TruckDetailsSectionProps> = ({ job }) => {
                     color: colors.text,
                     marginBottom: DESIGN_TOKENS.spacing.xs,
                 }}>
-                    🚛 Informations Véhicule
+                    {t('jobDetails.components.truckDetails.title')}
                 </Text>
                 <Text style={{
                     fontSize: 14,
                     color: colors.textSecondary,
                     marginBottom: DESIGN_TOKENS.spacing.lg,
                 }}>
-                    Véhicule assigné à cette mission
+                    {t('jobDetails.components.truckDetails.subtitle')}
                 </Text>
             </View>
 
@@ -73,7 +75,7 @@ const TruckDetailsSection: React.FC<TruckDetailsSectionProps> = ({ job }) => {
                             fontSize: 14,
                             color: colors.textSecondary,
                         }}>
-                            Véhicule principal
+                            {t('jobDetails.components.truckDetails.primaryVehicle')}
                         </Text>
                     </View>
                 </View>

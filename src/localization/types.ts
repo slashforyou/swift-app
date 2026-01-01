@@ -460,6 +460,58 @@ export interface TranslationKeys {
                 hours: string;
             };
         };
+        // JobDetails components
+        components: {
+            stepValidation: {
+                inconsistencyDetected: string;
+                suggestion: string;
+                stepCorrected: string;
+                correctionError: string;
+                autoCorrect: string;
+            };
+            truckDetails: {
+                title: string;
+                subtitle: string;
+                primaryVehicle: string;
+            };
+            timeWindows: {
+                title: string;
+                subtitle: string;
+                missionStart: string;
+            };
+            jobProgress: {
+                percentComplete: string;
+                detailedTracking: string;
+            };
+            jobTime: {
+                chronoWillStart: string;
+                inProgress: string;
+                finished: string;
+                currentStep: string;
+                stepDetails: string;
+                costCalculation: string;
+            };
+            quickActions: {
+                startJob: string;
+                arrivedAtClient: string;
+                jobFinished: string;
+                advanceStep: string;
+                goToStep: string;
+                stepActivated: string;
+                jobAlreadyFinished: string;
+                noPhoneAvailable: string;
+                noteAdded: string;
+                error: string;
+                success: string;
+                information: string;
+            };
+            signature: {
+                verifying: string;
+                contractSigned: string;
+                clientValidated: string;
+                contractMustBeSigned: string;
+            };
+        };
     };
 
     // Settings

@@ -6,6 +6,7 @@ import React from 'react';
 import { Alert, Linking, Pressable, Text, View } from 'react-native';
 import { DESIGN_TOKENS } from '../../../constants/Styles';
 import { useTheme } from '../../../context/ThemeProvider';
+import { useLocalization } from '../../../localization/useLocalization';
 import SectionCard from '../SectionCard';
 
 interface QuickActionsSectionProps {
@@ -28,6 +29,7 @@ const QuickActionsSection: React.FC<QuickActionsSectionProps> = ({
     onShowStepAdvanceModal
 }) => {
     const { colors } = useTheme();
+    const { t } = useLocalization();
 
     // Action handlers
     const handleCallClient = () => {
@@ -37,7 +39,7 @@ const QuickActionsSection: React.FC<QuickActionsSectionProps> = ({
             const cleanNumber = phoneNumber.replace(/[^\d+]/g, '');
             Linking.openURL(`tel:${cleanNumber}`);
         } else {
-            Alert.alert('Erreur', 'Aucun numéro de téléphone disponible');
+            Alert.alert(t('jobDetails.components.quickActions.error'), t('jobDetails.components.quickActions.noPhoneAvailable'));
         }
     };
 
@@ -61,16 +63,16 @@ const QuickActionsSection: React.FC<QuickActionsSectionProps> = ({
             // Utilise Google Maps au lieu de l'app Maps native
             Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`);
         } else {
-            Alert.alert('Erreur', 'Adresse non disponible');
+            Alert.alert(t('jobDetails.components.quickActions.error'), 'Adresse non disponible');
         }
     };
 
     const getStepNames = () => [
-        '🚀 Démarrer le job',
+        t('jobDetails.components.quickActions.startJob'),
         '🚗 Je suis en route', 
-        '📍 Arrivé chez le client',
+        t('jobDetails.components.quickActions.arrivedAtClient'),
         '🚛 En route prochaine adresse',
-        '✅ Job terminé'
+        t('jobDetails.components.quickActions.jobFinished')
     ];
 
     const handleAdvanceStep = () => {
@@ -87,8 +89,8 @@ const QuickActionsSection: React.FC<QuickActionsSectionProps> = ({
                 const nextStepName = stepNames[currentStep] || `Étape ${currentStep + 1}`;
                 
                 Alert.alert(
-                    'Avancer l\'étape',
-                    `Passer à: ${nextStepName}`,
+                    t('jobDetails.components.quickActions.advanceStep'),
+                    t('jobDetails.components.quickActions.goToStep', { stepName: nextStepName }),
                     [
                         { text: 'Annuler', style: 'cancel' },
                         { 
@@ -101,13 +103,13 @@ const QuickActionsSection: React.FC<QuickActionsSectionProps> = ({
                                         actualStep: currentStep + 1
                                     }
                                 }));
-                                Alert.alert('Succès', `${nextStepName} activée !`);
+                                Alert.alert(t('jobDetails.components.quickActions.success'), t('jobDetails.components.quickActions.stepActivated', { stepName: nextStepName }));
                             }
                         }
                     ]
                 );
             } else {
-                Alert.alert('Information', 'Job déjà terminé');
+                Alert.alert(t('jobDetails.components.quickActions.information'), t('jobDetails.components.quickActions.jobAlreadyFinished'));
             }
         }
     };
@@ -123,7 +125,7 @@ const QuickActionsSection: React.FC<QuickActionsSectionProps> = ({
                 (text) => {
                     if (text && text.trim()) {
                         onAddNote?.(text.trim(), 'general');
-                        Alert.alert('Succès', 'Note ajoutée !');
+                        Alert.alert(t('jobDetails.components.quickActions.success'), t('jobDetails.components.quickActions.noteAdded'));
                     }
                 },
                 'plain-text'

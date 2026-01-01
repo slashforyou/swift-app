@@ -8,6 +8,7 @@ import { Animated, Pressable, Text, View } from 'react-native';
 import { DESIGN_TOKENS } from '../../../constants/Styles';
 import { useJobTimerContext } from '../../../context/JobTimerProvider';
 import { useTheme } from '../../../context/ThemeProvider';
+import { useLocalization } from '../../../localization/useLocalization';
 import JobTimeLine from '../../ui/jobPage/jobTimeLine';
 import SectionCard from '../SectionCard';
 
@@ -18,6 +19,7 @@ interface JobProgressSectionProps {
 
 const JobProgressSection: React.FC<JobProgressSectionProps> = ({ job, onAdvanceStep }) => {
     const { colors } = useTheme();
+    const { t } = useLocalization();
     const [isExpanded, setIsExpanded] = useState(false); // Rétracté par défaut
     const [rotateAnim] = useState(new Animated.Value(isExpanded ? 1 : 0));
     
@@ -71,7 +73,7 @@ const JobProgressSection: React.FC<JobProgressSectionProps> = ({ job, onAdvanceS
                                 fontWeight: '600',
                                 color: colors.primary,
                             }}>
-                                {progressPercentage}% complété
+                                {t('jobDetails.components.jobProgress.percentComplete', { percentage: progressPercentage })}
                             </Text>
                         </View>
                     )}
@@ -80,7 +82,7 @@ const JobProgressSection: React.FC<JobProgressSectionProps> = ({ job, onAdvanceS
                             fontSize: 14,
                             color: colors.textSecondary,
                         }}>
-                            Suivi détaillé du statut et de l'avancement
+                            {t('jobDetails.components.jobProgress.detailedTracking')}
                         </Text>
                     )}
                 </View>
