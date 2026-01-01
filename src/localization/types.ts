@@ -490,6 +490,15 @@ export interface TranslationKeys {
                 currentStep: string;
                 stepDetails: string;
                 costCalculation: string;
+                timeTracking: string;
+                total: string;
+                billable: string;
+                onBreak: string;
+                resumeWork: string;
+                takeBreak: string;
+                totalTime: string;
+                breakTime: string;
+                billableTime: string;
             };
             quickActions: {
                 startJob: string;

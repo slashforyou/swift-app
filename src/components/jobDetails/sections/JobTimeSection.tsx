@@ -9,6 +9,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { DESIGN_TOKENS } from '../../../constants/Styles';
 import { useCommonThemedStyles } from '../../../hooks/useCommonStyles';
 import { useJobTimer } from '../../../hooks/useJobTimer';
+import { useLocalization } from '../../../localization/useLocalization';
 
 interface JobTimeSectionProps {
     job: any;
@@ -16,6 +17,7 @@ interface JobTimeSectionProps {
 
 const JobTimeSection: React.FC<JobTimeSectionProps> = ({ job }) => {
     const { colors } = useCommonThemedStyles();
+    const { t } = useLocalization();
     const jobId = job?.job?.code || job?.code || 'unknown';
     const currentStep = job?.job?.current_step || job?.current_step || 0;
     
@@ -66,7 +68,7 @@ const JobTimeSection: React.FC<JobTimeSectionProps> = ({ job }) => {
                         color: colors.text,
                         flex: 1
                     }}>
-                        Suivi du Temps
+                        {t('jobDetails.components.jobTime.timeTracking')}
                     </Text>
                 </View>
                 
@@ -76,7 +78,7 @@ const JobTimeSection: React.FC<JobTimeSectionProps> = ({ job }) => {
                     textAlign: 'center',
                     fontStyle: 'italic'
                 }}>
-                    Le chronométrage démarrera dès le lancement du job
+                    {t('jobDetails.components.jobTime.chronoWillStart')}
                 </Text>
             </View>
         );
@@ -112,7 +114,7 @@ const JobTimeSection: React.FC<JobTimeSectionProps> = ({ job }) => {
                     color: colors.text,
                     flex: 1
                 }}>
-                    Suivi du Temps
+                    {t('jobDetails.components.jobTime.timeTracking')}
                 </Text>
                 <View style={{
                     backgroundColor: isRunning ? colors.primary : colors.textSecondary,
@@ -125,7 +127,7 @@ const JobTimeSection: React.FC<JobTimeSectionProps> = ({ job }) => {
                         fontWeight: '600',
                         color: colors.background,
                     }}>
-                        {isRunning ? 'EN COURS' : 'TERMINÉ'}
+                        {isRunning ? t('jobDetails.components.jobTime.inProgress') : t('jobDetails.components.jobTime.finished')}
                     </Text>
                 </View>
             </View>
@@ -173,7 +175,7 @@ const JobTimeSection: React.FC<JobTimeSectionProps> = ({ job }) => {
                             color: colors.textSecondary,
                             marginBottom: 2,
                         }}>
-                            Étape actuelle
+                            {t('jobDetails.components.jobTime.currentStep')}
                         </Text>
                         <Text style={{
                             fontSize: 16,
@@ -193,13 +195,13 @@ const JobTimeSection: React.FC<JobTimeSectionProps> = ({ job }) => {
                         fontSize: 12,
                         color: colors.textSecondary,
                     }}>
-                        Total: {formatTime(totalElapsed)}
+                        {t('jobDetails.components.jobTime.total')}: {formatTime(totalElapsed)}
                     </Text>
                     <Text style={{
                         fontSize: 12,
                         color: colors.textSecondary,
                     }}>
-                        Facturable: {formatTime(billableTime)}
+                        {t('jobDetails.components.jobTime.billable')} {formatTime(billableTime)}
                     </Text>
                 </View>
                 {isOnBreak && (
@@ -210,7 +212,7 @@ const JobTimeSection: React.FC<JobTimeSectionProps> = ({ job }) => {
                         marginTop: DESIGN_TOKENS.spacing.xs,
                         fontWeight: '600',
                     }}>
-                        ⏸️ En pause (non facturable)
+                        ⏸️ {t('jobDetails.components.jobTime.onBreak')}
                     </Text>
                 )}
             </View>
@@ -247,7 +249,7 @@ const JobTimeSection: React.FC<JobTimeSectionProps> = ({ job }) => {
                             fontWeight: '700',
                             fontSize: 16,
                         }}>
-                            {isOnBreak ? 'Reprendre travail' : 'Prendre une pause'}
+                            {isOnBreak ? t('jobDetails.components.jobTime.resumeWork') : t('jobDetails.components.jobTime.takeBreak')}
                         </Text>
                     </Pressable>
                 </View>
@@ -266,7 +268,7 @@ const JobTimeSection: React.FC<JobTimeSectionProps> = ({ job }) => {
                     color: colors.text,
                     marginBottom: DESIGN_TOKENS.spacing.md,
                 }}>
-                    Détail par étapes
+                    {t('jobDetails.components.jobTime.stepDetails')}
                 </Text>
                 
                 <ScrollView 
@@ -352,7 +354,7 @@ const JobTimeSection: React.FC<JobTimeSectionProps> = ({ job }) => {
                         fontWeight: '600',
                         color: colors.text,
                     }}>
-                        Calcul de Coût
+                        {t('jobDetails.components.jobTime.costCalculation')}
                     </Text>
                 </View>
 
@@ -363,7 +365,7 @@ const JobTimeSection: React.FC<JobTimeSectionProps> = ({ job }) => {
                         alignItems: 'center',
                     }}>
                         <Text style={{ fontSize: 14, color: colors.textSecondary }}>
-                            Temps total
+                            {t('jobDetails.components.jobTime.totalTime')}
                         </Text>
                         <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
                             {(totalElapsed / (1000 * 60 * 60)).toFixed(2)}h
@@ -376,7 +378,7 @@ const JobTimeSection: React.FC<JobTimeSectionProps> = ({ job }) => {
                         alignItems: 'center',
                     }}>
                         <Text style={{ fontSize: 14, color: colors.textSecondary }}>
-                            Temps pauses
+                            {t('jobDetails.components.jobTime.breakTime')}
                         </Text>
                         <Text style={{ fontSize: 14, fontWeight: '600', color: colors.textSecondary }}>
                             -{((totalElapsed - billableTime) / (1000 * 60 * 60)).toFixed(2)}h
@@ -389,7 +391,7 @@ const JobTimeSection: React.FC<JobTimeSectionProps> = ({ job }) => {
                         alignItems: 'center',
                     }}>
                         <Text style={{ fontSize: 14, color: colors.textSecondary }}>
-                            Temps facturable
+                            {t('jobDetails.components.jobTime.billableTime')}
                         </Text>
                         <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
                             {(billableTime / (1000 * 60 * 60)).toFixed(2)}h

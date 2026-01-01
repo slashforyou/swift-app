@@ -3,8 +3,8 @@
  */
 import React from 'react';
 import { Text, View } from 'react-native';
-import { useTheme } from '../../../context/ThemeProvider';
 import { DESIGN_TOKENS } from '../../../constants/Styles';
+import { useTheme } from '../../../context/ThemeProvider';
 import { useLocalization } from '../../../localization/useLocalization';
 import SectionCard from '../SectionCard';
 
