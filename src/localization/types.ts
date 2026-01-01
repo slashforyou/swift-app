@@ -360,11 +360,31 @@ export interface TranslationKeys {
                 client: string;
                 internal: string;
             };
+            typeDescriptions: {
+                general: string;
+                important: string;
+                client: string;
+                internal: string;
+            };
             time: {
                 justNow: string;
                 hoursAgo: string;
                 yesterday: string;
                 recently: string;
+            };
+            modal: {
+                title: string;
+                subtitle: string;
+                typeLabel: string;
+                titleLabel: string;
+                titleOptional: string;
+                contentLabel: string;
+                titlePlaceholder: string;
+                contentPlaceholder: string;
+                cancel: string;
+                submit: string;
+                submitting: string;
+                emptyContentError: string;
             };
         };
         defaultNote: string;

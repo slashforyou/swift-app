@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { DESIGN_TOKENS } from '../../../constants/Styles';
 import { useTheme } from '../../../context/ThemeProvider';
+import { useLocalization } from '../../../localization';
 
 interface NoteType {
     id: 'general' | 'important' | 'client' | 'internal';
@@ -38,6 +39,7 @@ const ImprovedNoteModal: React.FC<ImprovedNoteModalProps> = ({
     jobId
 }) => {
     const { colors } = useTheme();
+    const { t } = useLocalization();
     const [noteTitle, setNoteTitle] = useState('');
     const [noteContent, setNoteContent] = useState('');
     const [selectedType, setSelectedType] = useState<'general' | 'important' | 'client' | 'internal'>('general');
@@ -47,29 +49,29 @@ const ImprovedNoteModal: React.FC<ImprovedNoteModalProps> = ({
     const noteTypes: NoteType[] = [
         {
             id: 'general',
-            label: 'Note générale',
-            description: 'Information générale sur le job',
+            label: t('jobDetails.notes.types.general'),
+            description: t('jobDetails.notes.typeDescriptions.general'),
             icon: 'document-text',
             color: colors.tint,
         },
         {
             id: 'important',
-            label: 'Important',
-            description: 'Information importante à retenir',
+            label: t('jobDetails.notes.types.important'),
+            description: t('jobDetails.notes.typeDescriptions.important'),
             icon: 'alert-circle',
             color: colors.warning,
         },
         {
             id: 'client',
-            label: 'Note client',
-            description: 'Information concernant le client',
+            label: t('jobDetails.notes.types.client'),
+            description: t('jobDetails.notes.typeDescriptions.client'),
             icon: 'person',
             color: colors.success,
         },
         {
             id: 'internal',
-            label: 'Note interne',
-            description: 'Note interne pour l\'équipe',
+            label: t('jobDetails.notes.types.internal'),
+            description: t('jobDetails.notes.typeDescriptions.internal'),
             icon: 'shield',
             color: colors.info,
         },
@@ -77,7 +79,7 @@ const ImprovedNoteModal: React.FC<ImprovedNoteModalProps> = ({
 
     const handleSubmit = async () => {
         if (!noteContent.trim()) {
-            Alert.alert('Erreur', 'Veuillez saisir le contenu de la note.');
+            Alert.alert(t('jobDetails.messages.noteAddError'), t('jobDetails.notes.modal.emptyContentError'));
             return;
         }
 
@@ -93,11 +95,11 @@ const ImprovedNoteModal: React.FC<ImprovedNoteModalProps> = ({
             onClose();
             
             // Toast de succès (à implémenter)
-            Alert.alert('Succès', 'Note ajoutée avec succès !');
+            Alert.alert(t('jobDetails.messages.noteAdded'), t('jobDetails.messages.noteAddedSuccess'));
         } catch (error) {
 
             console.error('Error adding note:', error);
-            Alert.alert('Erreur', 'Impossible d\'ajouter la note. Veuillez réessayer.');
+            Alert.alert(t('jobDetails.messages.noteAddError'), t('jobDetails.messages.noteAddErrorMessage'));
         } finally {
             setIsSubmitting(false);
         }
@@ -308,15 +310,15 @@ const ImprovedNoteModal: React.FC<ImprovedNoteModalProps> = ({
                                 <View style={styles.headerIcon}>
                                     <Ionicons name="create" size={28} color={colors.tint} />
                                 </View>
-                                <Text style={styles.title}>Ajouter une Note</Text>
+                                <Text style={styles.title}>{t('jobDetails.notes.modal.title')}</Text>
                                 <Text style={styles.subtitle}>
-                                    Sélectionnez le type et rédigez votre note
+                                    {t('jobDetails.notes.modal.subtitle')}
                                 </Text>
                             </View>
 
                             {/* Type Selection */}
                             <View style={styles.section}>
-                                <Text style={styles.sectionTitle}>Type de note</Text>
+                                <Text style={styles.sectionTitle}>{t('jobDetails.notes.modal.typeLabel')}</Text>
                                 <View style={styles.typeGrid}>
                                     {noteTypes.map((type) => (
                                         <Pressable
@@ -372,12 +374,12 @@ const ImprovedNoteModal: React.FC<ImprovedNoteModalProps> = ({
 
                             {/* Note Title */}
                             <View style={styles.section}>
-                                <Text style={styles.sectionTitle}>Titre de la note (optionnel)</Text>
+                                <Text style={styles.sectionTitle}>{t('jobDetails.notes.modal.titleOptional')}</Text>
                                 <TextInput
                                     style={[styles.textInput, { height: 50 }]}
                                     value={noteTitle}
                                     onChangeText={setNoteTitle}
-                                    placeholder="Titre de la note..."
+                                    placeholder={t('jobDetails.notes.modal.titlePlaceholder')}
                                     placeholderTextColor={colors.textSecondary}
                                     autoFocus
                                 />
@@ -385,12 +387,12 @@ const ImprovedNoteModal: React.FC<ImprovedNoteModalProps> = ({
 
                             {/* Note Content */}
                             <View style={styles.section}>
-                                <Text style={styles.sectionTitle}>Contenu de la note</Text>
+                                <Text style={styles.sectionTitle}>{t('jobDetails.notes.modal.contentLabel')}</Text>
                                 <TextInput
                                     style={styles.textInput}
                                     value={noteContent}
                                     onChangeText={setNoteContent}
-                                    placeholder="Décrivez la situation, le problème ou l'information à noter..."
+                                    placeholder={t('jobDetails.notes.modal.contentPlaceholder')}
                                     placeholderTextColor={colors.textSecondary}
                                     multiline
                                 />
@@ -408,7 +410,7 @@ const ImprovedNoteModal: React.FC<ImprovedNoteModalProps> = ({
                                 ]}
                                 disabled={isSubmitting}
                             >
-                                <Text style={styles.cancelText}>Annuler</Text>
+                                <Text style={styles.cancelText}>{t('jobDetails.notes.modal.cancel')}</Text>
                             </Pressable>
 
                             <Pressable
@@ -424,7 +426,7 @@ const ImprovedNoteModal: React.FC<ImprovedNoteModalProps> = ({
                                     styles.submitText,
                                     (isSubmitting || !noteContent.trim()) && styles.submitTextDisabled,
                                 ]}>
-                                    {isSubmitting ? 'Enregistrement...' : 'Ajouter la Note'}
+                                    {isSubmitting ? t('jobDetails.notes.modal.submitting') : t('jobDetails.notes.modal.submit')}
                                 </Text>
                             </Pressable>
                         </View>

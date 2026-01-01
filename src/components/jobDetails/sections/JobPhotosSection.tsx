@@ -6,18 +6,18 @@ import Ionicons from '@react-native-vector-icons/ionicons';
 import { Image as ExpoImage } from 'expo-image';
 import React, { useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  Animated,
-  Dimensions,
-  FlatList,
-  Image,
-  Modal,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View
+    ActivityIndicator,
+    Alert,
+    Animated,
+    Dimensions,
+    FlatList,
+    Image,
+    Modal,
+    Pressable,
+    ScrollView,
+    Text,
+    TextInput,
+    View
 } from 'react-native';
 import { DESIGN_TOKENS } from '../../../constants/Styles';
 import { useCommonThemedStyles } from '../../../hooks/useCommonStyles';
