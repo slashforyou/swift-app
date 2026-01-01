@@ -77,9 +77,15 @@ export default function StaffCrewScreen() {
           onPress: async () => {
             try {
               await removeStaff(member.id)
-              Alert.alert('Succès', `${member.firstName} ${member.lastName} a été supprimé`)
+              Alert.alert(
+                t('staff.alerts.removeSuccess.title'), 
+                t('staff.alerts.removeSuccess.message', { memberName: `${member.firstName} ${member.lastName}` })
+              )
             } catch (error) {
-              Alert.alert('Erreur', 'Impossible de supprimer ce membre')
+              Alert.alert(
+                t('staff.alerts.removeError.title'), 
+                t('staff.alerts.removeError.message')
+              )
             }
           },
         },

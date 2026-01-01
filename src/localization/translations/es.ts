@@ -920,7 +920,26 @@ export const esTranslations = {
         role: { employee: 'Empleado', contractor: 'Contratista' },
         status: { active: 'Activo', inactive: 'Inactivo', pending: 'Pendiente' },
         fields: { name: 'Nombre', email: 'Email', phone: 'Teléfono', hourlyRate: 'Tarifa por hora' },
-        emptyState: { title: 'Sin personal', subtitle: 'Añada su primer miembro del equipo' }
+        emptyState: { title: 'Sin personal', subtitle: 'Añada su primer miembro del equipo' },
+        actions: { cancel: 'Cancelar', remove: 'Eliminar' },
+        alerts: {
+            removeConfirm: {
+                title: 'Eliminar del personal',
+                message: '¿Está seguro de que desea eliminar a {{memberName}}?',
+            },
+            removeSuccess: {
+                title: 'Éxito',
+                message: '{{memberName}} ha sido eliminado',
+            },
+            removeError: {
+                title: 'Error',
+                message: 'No se puede eliminar este miembro',
+            },
+        },
+        empty: {
+            title: 'Sin miembros del personal',
+            subtitle: 'Añada su primer empleado o contratista',
+        },
     },
 
     auth: {

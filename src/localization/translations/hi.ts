@@ -750,6 +750,35 @@ export const hiTranslations = {
         },
     },
 
+    staff: {
+        title: 'कर्मचारी',
+        addEmployee: 'कर्मचारी जोड़ें',
+        addContractor: 'ठेकेदार जोड़ें',
+        invite: 'आमंत्रित करें',
+        role: { employee: 'कर्मचारी', contractor: 'ठेकेदार' },
+        status: { active: 'सक्रिय', inactive: 'निष्क्रिय', pending: 'लंबित' },
+        fields: { name: 'नाम', email: 'ईमेल', phone: 'फोन', hourlyRate: 'प्रति घंटा दर' },
+        actions: { cancel: 'रद्द करें', remove: 'हटाएं' },
+        alerts: {
+            removeConfirm: {
+                title: 'कर्मचारी से हटाएं',
+                message: 'क्या आप वाकई {{memberName}} को हटाना चाहते हैं?',
+            },
+            removeSuccess: {
+                title: 'सफलता',
+                message: '{{memberName}} को हटा दिया गया है',
+            },
+            removeError: {
+                title: 'त्रुटि',
+                message: 'इस सदस्य को हटाने में असमर्थ',
+            },
+        },
+        empty: {
+            title: 'कोई कर्मचारी नहीं',
+            subtitle: 'अपना पहला कर्मचारी या ठेकेदार जोड़ें',
+        },
+    },
+
     messages: {
         errors: {
             network: 'नेटवर्क कनेक्शन त्रुटि',

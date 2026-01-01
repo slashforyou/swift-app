@@ -993,6 +993,14 @@ export interface TranslationKeys {
                 title: string;
                 message: string;
             };
+            removeSuccess: {
+                title: string;
+                message: string;
+            };
+            removeError: {
+                title: string;
+                message: string;
+            };
         };
         empty: {
             title: string;

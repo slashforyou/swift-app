@@ -949,6 +949,14 @@ export const frTranslations: TranslationKeys = {
                 title: 'Retirer du staff',
                 message: 'Êtes-vous sûr de vouloir retirer {{memberName}} ?',
             },
+            removeSuccess: {
+                title: 'Succès',
+                message: '{{memberName}} a été supprimé',
+            },
+            removeError: {
+                title: 'Erreur',
+                message: 'Impossible de supprimer ce membre',
+            },
         },
         empty: {
             title: 'Aucun membre du personnel',

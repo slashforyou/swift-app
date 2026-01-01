@@ -738,6 +738,35 @@ export const ptTranslations = {
         },
     },
 
+    staff: {
+        title: 'Pessoal',
+        addEmployee: 'Adicionar funcionário',
+        addContractor: 'Adicionar contratado',
+        invite: 'Convidar',
+        role: { employee: 'Funcionário', contractor: 'Contratado' },
+        status: { active: 'Ativo', inactive: 'Inativo', pending: 'Pendente' },
+        fields: { name: 'Nome', email: 'E-mail', phone: 'Telefone', hourlyRate: 'Taxa horária' },
+        actions: { cancel: 'Cancelar', remove: 'Remover' },
+        alerts: {
+            removeConfirm: {
+                title: 'Remover do pessoal',
+                message: 'Tem certeza de que deseja remover {{memberName}}?',
+            },
+            removeSuccess: {
+                title: 'Sucesso',
+                message: '{{memberName}} foi removido',
+            },
+            removeError: {
+                title: 'Erro',
+                message: 'Não foi possível remover este membro',
+            },
+        },
+        empty: {
+            title: 'Sem membros da equipe',
+            subtitle: 'Adicione seu primeiro funcionário ou contratado',
+        },
+    },
+
     messages: {
         errors: {
             network: 'Erro de conexão de rede',

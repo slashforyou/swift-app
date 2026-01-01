@@ -750,6 +750,35 @@ export const zhTranslations = {
         },
     },
 
+    staff: {
+        title: '员工',
+        addEmployee: '添加员工',
+        addContractor: '添加承包商',
+        invite: '邀请',
+        role: { employee: '员工', contractor: '承包商' },
+        status: { active: '活跃', inactive: '非活跃', pending: '待处理' },
+        fields: { name: '姓名', email: '电子邮件', phone: '电话', hourlyRate: '时薪' },
+        actions: { cancel: '取消', remove: '移除' },
+        alerts: {
+            removeConfirm: {
+                title: '从员工中移除',
+                message: '您确定要移除 {{memberName}} 吗？',
+            },
+            removeSuccess: {
+                title: '成功',
+                message: '{{memberName}} 已被移除',
+            },
+            removeError: {
+                title: '错误',
+                message: '无法移除此成员',
+            },
+        },
+        empty: {
+            title: '没有员工',
+            subtitle: '添加您的第一个员工或承包商',
+        },
+    },
+
     messages: {
         errors: {
             network: '网络连接错误',

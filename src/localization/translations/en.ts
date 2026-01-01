@@ -949,6 +949,14 @@ export const enTranslations: TranslationKeys = {
                 title: 'Remove from staff',
                 message: 'Are you sure you want to remove {{memberName}}?',
             },
+            removeSuccess: {
+                title: 'Success',
+                message: '{{memberName}} has been removed',
+            },
+            removeError: {
+                title: 'Error',
+                message: 'Unable to remove this member',
+            },
         },
         empty: {
             title: 'No staff members',

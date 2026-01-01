@@ -750,6 +750,35 @@ export const itTranslations = {
         },
     },
 
+    staff: {
+        title: 'Personale',
+        addEmployee: 'Aggiungi dipendente',
+        addContractor: 'Aggiungi appaltatore',
+        invite: 'Invita',
+        role: { employee: 'Dipendente', contractor: 'Appaltatore' },
+        status: { active: 'Attivo', inactive: 'Inattivo', pending: 'In attesa' },
+        fields: { name: 'Nome', email: 'E-mail', phone: 'Telefono', hourlyRate: 'Tariffa oraria' },
+        actions: { cancel: 'Annulla', remove: 'Rimuovi' },
+        alerts: {
+            removeConfirm: {
+                title: 'Rimuovi dal personale',
+                message: 'Sei sicuro di voler rimuovere {{memberName}}?',
+            },
+            removeSuccess: {
+                title: 'Successo',
+                message: '{{memberName}} è stato rimosso',
+            },
+            removeError: {
+                title: 'Errore',
+                message: 'Impossibile rimuovere questo membro',
+            },
+        },
+        empty: {
+            title: 'Nessun membro del personale',
+            subtitle: 'Aggiungi il tuo primo dipendente o appaltatore',
+        },
+    },
+
     messages: {
         errors: {
             network: 'Errore di connessione di rete',
