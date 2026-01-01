@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
-import { 
-    View, 
-    Text, 
-    Pressable, 
-    TextInput, 
-    ScrollView, 
-    KeyboardAvoidingView, 
+import {
+    KeyboardAvoidingView,
     Platform,
-    SafeAreaView 
+    Pressable,
+    SafeAreaView,
+    ScrollView,
+    Text,
+    TextInput,
+    View
 } from 'react-native';
-import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
-import { login } from '../../utils/auth';
 import AlertMessage from '../../components/ui/AlertMessage';
 import AnimatedBackground from '../../components/ui/AnimatedBackground';
+import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 import { useTranslation } from '../../localization';
+import { login } from '../../utils/auth';
 
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 type RootStackParamList = {

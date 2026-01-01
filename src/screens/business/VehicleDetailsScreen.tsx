@@ -17,6 +17,7 @@ import EditVehicleModal, { VehicleEditData } from '../../components/modals/EditV
 import { DESIGN_TOKENS } from '../../constants/Styles'
 import { useTheme } from '../../context/ThemeProvider'
 import { useVehicleDetails } from '../../hooks/useVehicles'
+import { useTranslation } from '../../localization/useLocalization'
 import { VehicleAPI } from '../../services/vehiclesService'
 
 // =====================================
@@ -107,6 +108,7 @@ export default function VehicleDetailsScreen({
   onDelete,
 }: VehicleDetailsScreenProps) {
   const { colors } = useTheme()
+  const { t } = useTranslation()
   const [isEditModalVisible, setIsEditModalVisible] = useState(false)
 
   // Use hook if vehicleId is provided
@@ -143,15 +145,15 @@ export default function VehicleDetailsScreen({
   }
 
   const getTypeLabel = (type: Vehicle['type']): string => {
-    const labels = {
-      'moving-truck': 'Moving Truck',
-      'van': 'Van',
-      'trailer': 'Trailer',
-      'ute': 'Ute',
-      'dolly': 'Dolly',
-      'tools': 'Tools/Equipment',
+    const labels: Record<Vehicle['type'], string> = {
+      'moving-truck': t('vehicles.types.movingTruck'),
+      'van': t('vehicles.types.van'),
+      'trailer': t('vehicles.types.trailer'),
+      'ute': t('vehicles.types.ute'),
+      'dolly': t('vehicles.types.dolly'),
+      'tools': t('vehicles.types.tools'),
     }
-    return labels[type] || 'Vehicle'
+    return labels[type] || t('vehicles.types.vehicle')
   }
 
   const getStatusColor = (status: Vehicle['status']): { bg: string; text: string } => {
@@ -165,13 +167,13 @@ export default function VehicleDetailsScreen({
   }
 
   const getStatusLabel = (status: Vehicle['status']): string => {
-    const labels = {
-      available: 'Available',
-      'in-use': 'In Use',
-      maintenance: 'Maintenance',
-      'out-of-service': 'Out of Service',
+    const labels: Record<Vehicle['status'], string> = {
+      available: t('vehicles.available'),
+      'in-use': t('vehicles.inUse'),
+      maintenance: t('vehicles.maintenance'),
+      'out-of-service': t('vehicles.outOfService'),
     }
-    return labels[status] || 'Unknown'
+    return labels[status] || status
   }
 
   const getMaintenanceTypeIcon = (type: MaintenanceRecord['type']): string => {
@@ -212,15 +214,15 @@ export default function VehicleDetailsScreen({
         
         if (result) {
           setIsEditModalVisible(false)
-          Alert.alert('Success', 'Vehicle updated successfully! 🎉')
+          Alert.alert(t('common.success'), t('vehicles.updateSuccess'))
           await refetch() // Refresh data
         } else {
-          Alert.alert('Error', error || 'Unable to update vehicle')
+          Alert.alert(t('common.error'), error || t('vehicles.updateError'))
         }
       } catch (err) {
 
         console.error('Error updating vehicle:', err)
-        Alert.alert('Error', 'An error occurred while updating the vehicle')
+        Alert.alert(t('common.error'), t('vehicles.alerts.addError.message'))
       }
     } else if (onUpdate) {
       // Legacy mode: use callback
@@ -244,12 +246,12 @@ export default function VehicleDetailsScreen({
     if (!vehicle || !onDelete) return
     
     Alert.alert(
-      'Delete Vehicle',
-      `Are you sure you want to delete ${vehicle.name}?`,
+      t('vehicles.deleteTitle'),
+      t('vehicles.alerts.deleteConfirm.message', { vehicleName: vehicle.name }),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('vehicles.actions.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('vehicles.actions.delete'),
           style: 'destructive',
           onPress: () => onDelete(vehicle),
         },
@@ -261,24 +263,24 @@ export default function VehicleDetailsScreen({
     if (!vehicle || !onUpdate) return
     
     Alert.alert(
-      'Change Status',
-      'Select new status',
+      t('vehicles.changeStatus'),
+      t('vehicles.selectNewStatus'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('vehicles.actions.cancel'), style: 'cancel' },
         {
-          text: 'Available',
+          text: t('vehicles.available'),
           onPress: () => onUpdate({ ...vehicle, status: 'available' }),
         },
         {
-          text: 'In Use',
+          text: t('vehicles.inUse'),
           onPress: () => onUpdate({ ...vehicle, status: 'in-use' }),
         },
         {
-          text: 'Maintenance',
+          text: t('vehicles.maintenance'),
           onPress: () => onUpdate({ ...vehicle, status: 'maintenance' }),
         },
         {
-          text: 'Out of Service',
+          text: t('vehicles.outOfService'),
           onPress: () => onUpdate({ ...vehicle, status: 'out-of-service' }),
         },
       ]
@@ -286,11 +288,11 @@ export default function VehicleDetailsScreen({
   }
 
   const handleScheduleService = () => {
-    Alert.alert('Schedule Service', 'This feature will be available soon')
+    Alert.alert(t('vehicles.scheduleService'), t('vehicles.featureComingSoon'))
   }
 
   const handleAssignStaff = () => {
-    Alert.alert('Assign Staff', 'This feature will be available soon')
+    Alert.alert(t('vehicles.assignStaff'), t('vehicles.featureComingSoon'))
   }
 
   // Loading state
@@ -298,7 +300,7 @@ export default function VehicleDetailsScreen({
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={{ marginTop: 16, color: colors.textSecondary }}>Loading vehicle details...</Text>
+        <Text style={{ marginTop: 16, color: colors.textSecondary }}>{t('vehicles.loadingDetails')}</Text>
       </View>
     )
   }
@@ -308,7 +310,7 @@ export default function VehicleDetailsScreen({
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background, padding: 20 }}>
         <Text style={{ fontSize: 48, marginBottom: 16 }}>⚠️</Text>
-        <Text style={{ fontSize: 18, fontWeight: '600', color: colors.text, marginBottom: 8 }}>Error loading vehicle</Text>
+        <Text style={{ fontSize: 18, fontWeight: '600', color: colors.text, marginBottom: 8 }}>{t('vehicles.errors.loadingTitle')}</Text>
         <Text style={{ color: colors.textSecondary, textAlign: 'center', marginBottom: 20 }}>{error}</Text>
         <Pressable
           onPress={refetch}
@@ -319,7 +321,7 @@ export default function VehicleDetailsScreen({
             borderRadius: 8,
           }}
         >
-          <Text style={{ color: colors.background, fontWeight: '600' }}>Retry</Text>
+          <Text style={{ color: colors.background, fontWeight: '600' }}>{t('common.retry')}</Text>
         </Pressable>
       </View>
     )
@@ -330,7 +332,7 @@ export default function VehicleDetailsScreen({
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
         <Text style={{ fontSize: 48, marginBottom: 16 }}>🚛</Text>
-        <Text style={{ fontSize: 18, fontWeight: '600', color: colors.text }}>Vehicle not found</Text>
+        <Text style={{ fontSize: 18, fontWeight: '600', color: colors.text }}>{t('vehicles.notFound')}</Text>
       </View>
     )
   }
@@ -345,7 +347,7 @@ export default function VehicleDetailsScreen({
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </Pressable>
         <Text style={[styles.headerTitle, { color: colors.text }]}>
-          Vehicle Details
+          {t('vehicles.details')}
         </Text>
         <View style={styles.headerSpacer} />
       </View>
@@ -385,7 +387,7 @@ export default function VehicleDetailsScreen({
                 <Ionicons name="card-outline" size={20} color={colors.textSecondary} />
                 <View style={styles.detailContent}>
                   <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
-                    Registration
+                    {t('vehicles.registration')}
                   </Text>
                   <Text style={[styles.detailValue, { color: colors.text }]}>
                     {vehicle.registration}
@@ -397,7 +399,7 @@ export default function VehicleDetailsScreen({
                 <Ionicons name="calendar-outline" size={20} color={colors.textSecondary} />
                 <View style={styles.detailContent}>
                   <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
-                    Year
+                    {t('vehicles.year')}
                   </Text>
                   <Text style={[styles.detailValue, { color: colors.text }]}>
                     {vehicle.year}
@@ -411,7 +413,7 @@ export default function VehicleDetailsScreen({
                 <Ionicons name="business-outline" size={20} color={colors.textSecondary} />
                 <View style={styles.detailContent}>
                   <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
-                    Make
+                    {t('vehicles.make')}
                   </Text>
                   <Text style={[styles.detailValue, { color: colors.text }]}>
                     {vehicle.make}
@@ -423,7 +425,7 @@ export default function VehicleDetailsScreen({
                 <Ionicons name="car-sport-outline" size={20} color={colors.textSecondary} />
                 <View style={styles.detailContent}>
                   <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
-                    Model
+                    {t('vehicles.model')}
                   </Text>
                   <Text style={[styles.detailValue, { color: colors.text }]}>
                     {vehicle.model}
@@ -438,7 +440,7 @@ export default function VehicleDetailsScreen({
                   <Ionicons name="cube-outline" size={20} color={colors.textSecondary} />
                   <View style={styles.detailContent}>
                     <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
-                      Capacity
+                      {t('vehicles.capacity')}
                     </Text>
                     <Text style={[styles.detailValue, { color: colors.text }]}>
                       {vehicle.capacity}
@@ -453,7 +455,7 @@ export default function VehicleDetailsScreen({
                 <Ionicons name="location-outline" size={20} color={colors.textSecondary} />
                 <View style={styles.detailContent}>
                   <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
-                    Location
+                    {t('vehicles.location')}
                   </Text>
                   <Text style={[styles.detailValue, { color: colors.text }]}>
                     {vehicle.location}
@@ -467,7 +469,7 @@ export default function VehicleDetailsScreen({
                 <Ionicons name="build-outline" size={20} color={colors.textSecondary} />
                 <View style={styles.detailContent}>
                   <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
-                    Next Service
+                    {t('vehicles.nextService')}
                   </Text>
                   <Text style={[styles.detailValue, { color: colors.text }]}>
                     {vehicle.nextService}
@@ -482,7 +484,7 @@ export default function VehicleDetailsScreen({
                   <Ionicons name="person-outline" size={20} color={colors.primary} />
                   <View style={styles.detailContent}>
                     <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
-                      Assigned To
+                      {t('vehicles.assignedTo')}
                     </Text>
                     <Text style={[styles.detailValue, { color: colors.primary }]}>
                       {vehicle.assignedTo}
@@ -497,7 +499,7 @@ export default function VehicleDetailsScreen({
         {/* Quick Actions */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Quick Actions
+            {t('vehicles.quickActions')}
           </Text>
           <View style={styles.actionsGrid}>
             <Pressable
@@ -505,7 +507,7 @@ export default function VehicleDetailsScreen({
               onPress={() => setIsEditModalVisible(true)}
             >
               <Ionicons name="create-outline" size={24} color={colors.primary} />
-              <Text style={[styles.actionText, { color: colors.text }]}>Edit</Text>
+              <Text style={[styles.actionText, { color: colors.text }]}>{t('vehicles.actions.edit')}</Text>
             </Pressable>
 
             <Pressable
@@ -514,7 +516,7 @@ export default function VehicleDetailsScreen({
             >
               <Ionicons name="swap-horizontal-outline" size={24} color={colors.primary} />
               <Text style={[styles.actionText, { color: colors.text }]}>
-                Change Status
+                {t('vehicles.changeStatus')}
               </Text>
             </Pressable>
 
@@ -524,7 +526,7 @@ export default function VehicleDetailsScreen({
             >
               <Ionicons name="calendar-outline" size={24} color={colors.primary} />
               <Text style={[styles.actionText, { color: colors.text }]}>
-                Schedule Service
+                {t('vehicles.scheduleService')}
               </Text>
             </Pressable>
 
@@ -534,7 +536,7 @@ export default function VehicleDetailsScreen({
             >
               <Ionicons name="people-outline" size={24} color={colors.primary} />
               <Text style={[styles.actionText, { color: colors.text }]}>
-                Assign Staff
+                {t('vehicles.assignStaff')}
               </Text>
             </Pressable>
 
@@ -543,7 +545,7 @@ export default function VehicleDetailsScreen({
               onPress={handleDelete}
             >
               <Ionicons name="trash-outline" size={24} color={colors.error} />
-              <Text style={[styles.actionText, { color: colors.error }]}>Delete</Text>
+              <Text style={[styles.actionText, { color: colors.error }]}>{t('vehicles.actions.delete')}</Text>
             </Pressable>
           </View>
         </View>
@@ -551,7 +553,7 @@ export default function VehicleDetailsScreen({
         {/* Maintenance History */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Maintenance History
+            {t('vehicles.maintenanceHistory')}
           </Text>
           <View style={styles.maintenanceList}>
             {maintenanceHistory.map((record) => (

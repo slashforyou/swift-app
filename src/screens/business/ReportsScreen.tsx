@@ -9,6 +9,7 @@ import { Alert, Dimensions, RefreshControl, ScrollView, Text, TouchableOpacity, 
 
 // Hooks et services
 import { useStripeReports } from '../../hooks/useStripeReports';
+import { useTranslation } from '../../localization/useLocalization';
 
 // Composants spécialisés
 import { ReportsFilters as ReportsFiltersComponent } from '../../components/reports/ReportsFilters';
@@ -34,6 +35,7 @@ export interface ReportsFilters {
 
 export const ReportsScreen: React.FC<ReportsScreenProps> = ({ onBack }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const screenWidth = Dimensions.get('window').width;
   
   // Styles locaux utilisant le thème
@@ -119,16 +121,16 @@ export const ReportsScreen: React.FC<ReportsScreenProps> = ({ onBack }) => {
   const handleExport = useCallback(async (format: 'csv' | 'pdf') => {
     try {
       Alert.alert(
-        'Export en cours',
-        `Génération du rapport ${format.toUpperCase()}...`
+        t('reports.exportInProgress'),
+        `${t('reports.generate')} ${format.toUpperCase()}...`
       );
       await exportData(format);
-      Alert.alert('Succès', `Rapport ${format.toUpperCase()} généré avec succès`);
-    } catch (error) {
+      Alert.alert(t('reports.exportSuccess'), `${format.toUpperCase()} ${t('reports.exportSuccess').toLowerCase()}`);
+    } catch {
 
-      Alert.alert('Erreur', 'Impossible de générer le rapport');
+      Alert.alert(t('common.error'), t('reports.exportError'));
     }
-  }, [exportData]);
+  }, [exportData, t]);
 
   useEffect(() => {
     // Chargement initial des données
@@ -140,17 +142,17 @@ export const ReportsScreen: React.FC<ReportsScreenProps> = ({ onBack }) => {
         <View style={businessStyles.centerContainer}>
           <Ionicons name="warning" size={48} color={colors.error} />
           <Text style={[businessStyles.title, { marginTop: DESIGN_TOKENS.spacing.md }]}>
-            Erreur de chargement
+            {t('reports.loadError')}
           </Text>
           <Text style={[businessStyles.subtitle, { textAlign: 'center', marginTop: DESIGN_TOKENS.spacing.sm }]}>
-            Impossible de charger les rapports Stripe.{'\n'}
-            Vérifiez votre connexion.
+            {t('reports.loadError')}{'\n'}
+            {t('common.checkConnection')}
           </Text>
           <TouchableOpacity
             style={[businessStyles.primaryButton, { marginTop: DESIGN_TOKENS.spacing.lg }]}
             onPress={onRefresh}
           >
-            <Text style={businessStyles.primaryButtonText}>Réessayer</Text>
+            <Text style={businessStyles.primaryButtonText}>{t('reports.retry')}</Text>
           </TouchableOpacity>
         </View>
         
@@ -176,7 +178,7 @@ export const ReportsScreen: React.FC<ReportsScreenProps> = ({ onBack }) => {
               borderColor: colors.border,
             }}
             onPress={onBack}
-            accessibilityLabel="Retour"
+            accessibilityLabel={t('common.back')}
           >
             <Ionicons name="chevron-back" size={24} color={colors.text} />
           </TouchableOpacity>
@@ -209,7 +211,7 @@ export const ReportsScreen: React.FC<ReportsScreenProps> = ({ onBack }) => {
                 marginRight: DESIGN_TOKENS.spacing.md,
                 padding: DESIGN_TOKENS.spacing.sm,
               }}
-              accessibilityLabel="Retour"
+              accessibilityLabel={t('common.back')}
             >
               <Ionicons name="chevron-back" size={28} color={colors.primary} />
             </TouchableOpacity>
@@ -222,7 +224,7 @@ export const ReportsScreen: React.FC<ReportsScreenProps> = ({ onBack }) => {
               fontWeight: '600',
               color: colors.text,
             }}>
-              Rapports
+              {t('reports.title')}
             </Text>
           </View>
           
@@ -282,7 +284,7 @@ export const ReportsScreen: React.FC<ReportsScreenProps> = ({ onBack }) => {
                 color: colors.textSecondary,
                 fontWeight: '500'
               }}>
-                Revenus
+                {t('reports.revenue')}
               </Text>
             </View>
             
@@ -299,7 +301,7 @@ export const ReportsScreen: React.FC<ReportsScreenProps> = ({ onBack }) => {
                 color: colors.textSecondary,
                 fontWeight: '500'
               }}>
-                Transactions
+                {t('reports.transactions')}
               </Text>
             </View>
             
@@ -316,7 +318,7 @@ export const ReportsScreen: React.FC<ReportsScreenProps> = ({ onBack }) => {
                 color: colors.textSecondary,
                 fontWeight: '500'
               }}>
-                Succès
+                {t('reports.successRate')}
               </Text>
             </View>
           </View>
@@ -352,7 +354,7 @@ export const ReportsScreen: React.FC<ReportsScreenProps> = ({ onBack }) => {
             fontSize: 20,
             fontWeight: '600'
           }]}>
-            📈 Métriques détaillées
+            📈 {t('reports.detailedMetrics')}
           </Text>
           
           {reportsData ? (
@@ -392,14 +394,14 @@ export const ReportsScreen: React.FC<ReportsScreenProps> = ({ onBack }) => {
                         color: colors.textSecondary,
                         fontWeight: '500'
                       }}>
-                        Revenus totaux
+                        {t('reports.totalRevenue')}
                       </Text>
                       <Text style={{
                         fontSize: 12,
                         color: colors.textMuted,
                         marginTop: DESIGN_TOKENS.spacing.xs
                       }}>
-                        Ce mois
+                        {t('reports.thisMonth')}
                       </Text>
                     </View>
                     <View style={{
@@ -444,14 +446,14 @@ export const ReportsScreen: React.FC<ReportsScreenProps> = ({ onBack }) => {
                         color: colors.textSecondary,
                         fontWeight: '500'
                       }}>
-                        Transactions
+                        {t('reports.transactions')}
                       </Text>
                       <Text style={{
                         fontSize: 12,
                         color: colors.textMuted,
                         marginTop: DESIGN_TOKENS.spacing.xs
                       }}>
-                        Total
+                        {t('reports.total')}
                       </Text>
                     </View>
                     <View style={{
@@ -503,14 +505,14 @@ export const ReportsScreen: React.FC<ReportsScreenProps> = ({ onBack }) => {
                         color: colors.textSecondary,
                         fontWeight: '500'
                       }}>
-                        Taux de succès
+                        {t('reports.successRate')}
                       </Text>
                       <Text style={{
                         fontSize: 12,
                         color: colors.textMuted,
                         marginTop: DESIGN_TOKENS.spacing.xs
                       }}>
-                        Performance
+                        {t('reports.performance')}
                       </Text>
                     </View>
                     <View style={{
@@ -555,14 +557,14 @@ export const ReportsScreen: React.FC<ReportsScreenProps> = ({ onBack }) => {
                         color: colors.textSecondary,
                         fontWeight: '500'
                       }}>
-                        Montant moyen
+                        {t('reports.avgAmount')}
                       </Text>
                       <Text style={{
                         fontSize: 12,
                         color: colors.textMuted,
                         marginTop: DESIGN_TOKENS.spacing.xs
                       }}>
-                        Par transaction
+                        {t('stripe.payments.perTransaction')}
                       </Text>
                     </View>
                     <View style={{
@@ -603,14 +605,14 @@ export const ReportsScreen: React.FC<ReportsScreenProps> = ({ onBack }) => {
                       color: colors.warning,
                       marginBottom: DESIGN_TOKENS.spacing.xs
                     }}>
-                      {(reportsData.metrics.pendingAmount / 100).toFixed(2)}€ en attente
+                      {(reportsData.metrics.pendingAmount / 100).toFixed(2)}€ {t('stripe.payouts.pending').toLowerCase()}
                     </Text>
                     <Text style={{
                       fontSize: 14,
                       color: colors.textSecondary,
                       fontWeight: '500'
                     }}>
-                      Paiements en cours de traitement
+                      {t('stripe.payments.processing')}
                     </Text>
                   </View>
                   <View style={{
@@ -643,7 +645,7 @@ export const ReportsScreen: React.FC<ReportsScreenProps> = ({ onBack }) => {
                 fontSize: 16,
                 fontWeight: '500'
               }}>
-                Chargement des métriques...
+                {t('common.loading')}...
               </Text>
             </View>
           )}

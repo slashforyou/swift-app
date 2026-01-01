@@ -85,9 +85,9 @@ const BusinessInfoPage: React.FC = () => {
   // Gestion des erreurs
   React.useEffect(() => {
     if (error) {
-      Alert.alert('Erreur', error)
+      Alert.alert(t('common.error'), error)
     }
-  }, [error])
+  }, [error, t])
 
   // État de chargement
   if (isLoading) {
@@ -106,7 +106,7 @@ const BusinessInfoPage: React.FC = () => {
     return (
       <View style={[styles.emptyContainer, { backgroundColor: colors.background }]}>
         <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-          No business information available
+          {t('business.info.noDataAvailable')}
         </Text>
       </View>
     )
@@ -120,22 +120,22 @@ const BusinessInfoPage: React.FC = () => {
       {/* Section des statistiques */}
       <VStack style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>
-          Statistics Overview
+          {t('business.info.statisticsOverview')}
         </Text>
         
         <HStack style={styles.statsRow}>
           <StatCard
-            label="Total Vehicles"
+            label={t('business.info.totalVehicles')}
             value={businessStats?.totalVehicles || 0}
             color={colors.info}
           />
           <StatCard
-            label="Active Jobs"
+            label={t('business.info.activeJobs')}
             value={businessStats?.activeJobs || 0}
             color={colors.success}
           />
           <StatCard
-            label="Completed Jobs"
+            label={t('business.info.completedJobs')}
             value={businessStats?.completedJobs || 0}
             color={colors.warning}
           />
@@ -145,32 +145,32 @@ const BusinessInfoPage: React.FC = () => {
       {/* Section des informations générales */}
       <VStack style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>
-          Company Information
+          {t('business.info.companyInformation')}
         </Text>
         
         <View style={[styles.infoCard, { backgroundColor: colors.backgroundSecondary }]}>
           <InfoRow
             icon="🏢"
-            label="Company Name"
+            label={t('business.info.companyName')}
             value={businessData.name || 'Swift Removals'}
           />
           
           <InfoRow
             icon="🆔"
-            label="ABN (Australian Business Number)"
-            value={businessData.abn || 'Not specified'}
+            label={t('business.info.abn')}
+            value={businessData.abn || t('business.info.notSpecified')}
           />
           
           <InfoRow
             icon="📅"
-            label="Established Date"
+            label={t('business.info.establishedDate')}
             value={new Date(businessData.created_at).toLocaleDateString('en-AU')}
           />
           
           <InfoRow
             icon="💼"
-            label="Business Type"
-            value={businessData.businessType || 'Moving Services'}
+            label={t('business.info.businessType')}
+            value={businessData.businessType || t('business.info.movingServices')}
           />
         </View>
       </VStack>
@@ -178,25 +178,25 @@ const BusinessInfoPage: React.FC = () => {
       {/* Section des coordonnées */}
       <VStack style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>
-          Contact Details
+          {t('business.info.contactDetails')}
         </Text>
         
         <View style={[styles.infoCard, { backgroundColor: colors.backgroundSecondary }]}>
           <InfoRow
             icon="📱"
-            label="Phone"
+            label={t('business.info.phone')}
             value={businessData.phone || '+61 2 9000 0000'}
           />
           
           <InfoRow
             icon="✉️"
-            label="Email"
+            label={t('business.info.email')}
             value={businessData.email || 'info@swiftremoval.com.au'}
           />
           
           <InfoRow
             icon="🌐"
-            label="Website"
+            label={t('business.info.website')}
             value={businessData.website || 'www.swiftremoval.com.au'}
           />
         </View>
@@ -205,31 +205,31 @@ const BusinessInfoPage: React.FC = () => {
       {/* Section de l'adresse */}
       <VStack style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>
-          Business Address
+          {t('business.info.businessAddress')}
         </Text>
         
         <View style={[styles.infoCard, { backgroundColor: colors.backgroundSecondary }]}>
           <InfoRow
             icon="📍"
-            label="Street Address"
+            label={t('business.info.streetAddress')}
             value={businessData.address || '123 Business Street'}
           />
           
           <InfoRow
             icon="🏙️"
-            label="City"
+            label={t('business.info.city')}
             value={businessData.city || 'Sydney'}
           />
           
           <InfoRow
             icon="🗺️"
-            label="State"
+            label={t('business.info.state')}
             value={businessData.state || 'NSW'}
           />
           
           <InfoRow
             icon="📮"
-            label="Postcode"
+            label={t('business.info.postcode')}
             value={businessData.postcode || '2000'}
           />
         </View>

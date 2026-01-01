@@ -22,6 +22,7 @@ import PaymentDetailModal from '../../components/modals/PaymentDetailModal'
 import { DESIGN_TOKENS } from '../../constants/Styles'
 import { useTheme } from '../../context/ThemeProvider'
 import { useStripePayments, type Payment } from '../../hooks/useStripe'
+import { useTranslation } from '../../localization/useLocalization'
 
 interface PaymentsListScreenProps {
   navigation?: any
@@ -29,6 +30,7 @@ interface PaymentsListScreenProps {
 
 export default function PaymentsListScreen({ navigation }: PaymentsListScreenProps) {
   const { colors } = useTheme()
+  const { t } = useTranslation()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'succeeded' | 'processing' | 'failed'>('all')
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null)
@@ -125,7 +127,7 @@ export default function PaymentsListScreen({ navigation }: PaymentsListScreenPro
         <View style={styles.detailRow}>
           <Ionicons name="person-outline" size={16} color={colors.textSecondary} />
           <Text style={[styles.detailText, { color: colors.textSecondary }]}>
-            {item.customer || 'Anonymous'}
+            {item.customer || t('stripe.payments.anonymous')}
           </Text>
         </View>
         <View style={styles.detailRow}>
@@ -137,7 +139,7 @@ export default function PaymentsListScreen({ navigation }: PaymentsListScreenPro
         <View style={styles.detailRow}>
           <Ionicons name="card-outline" size={16} color={colors.textSecondary} />
           <Text style={[styles.detailText, { color: colors.textSecondary }]}>
-            {item.method === 'card' ? 'Credit Card' : 'Bank Transfer'}
+            {item.method === 'card' ? t('stripe.payments.creditCard') : t('stripe.payments.bankTransfer')}
           </Text>
         </View>
       </View>
@@ -293,7 +295,7 @@ export default function PaymentsListScreen({ navigation }: PaymentsListScreenPro
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.title}>Payments</Text>
+        <Text style={styles.title}>{t('stripe.payments.title')}</Text>
       </View>
 
       {/* Barre de recherche et filtres */}
@@ -307,7 +309,7 @@ export default function PaymentsListScreen({ navigation }: PaymentsListScreenPro
           />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search payments..."
+            placeholder={t('stripe.payments.searchPlaceholder')}
             placeholderTextColor={colors.textSecondary}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -315,22 +317,27 @@ export default function PaymentsListScreen({ navigation }: PaymentsListScreenPro
         </View>
 
         <View style={styles.filtersContainer}>
-          {['all', 'succeeded', 'processing', 'failed'].map((filter) => (
+          {[
+            { key: 'all', label: t('stripe.payments.filterAll') },
+            { key: 'succeeded', label: t('stripe.payments.filterSucceeded') },
+            { key: 'processing', label: t('stripe.payments.filterProcessing') },
+            { key: 'failed', label: t('stripe.payments.filterFailed') },
+          ].map((filter) => (
             <TouchableOpacity
-              key={filter}
+              key={filter.key}
               style={[
                 styles.filterButton,
-                selectedFilter === filter && styles.filterButtonActive
+                selectedFilter === filter.key && styles.filterButtonActive
               ]}
-              onPress={() => setSelectedFilter(filter as typeof selectedFilter)}
+              onPress={() => setSelectedFilter(filter.key as typeof selectedFilter)}
             >
               <Text
                 style={[
                   styles.filterText,
-                  selectedFilter === filter && styles.filterTextActive
+                  selectedFilter === filter.key && styles.filterTextActive
                 ]}
               >
-                {filter.charAt(0).toUpperCase() + filter.slice(1)}
+                {filter.label}
               </Text>
             </TouchableOpacity>
           ))}
@@ -344,8 +351,8 @@ export default function PaymentsListScreen({ navigation }: PaymentsListScreenPro
             <Ionicons name="receipt-outline" size={64} color={colors.textSecondary} />
             <Text style={styles.emptyText}>
               {searchQuery || selectedFilter !== 'all'
-                ? 'No payments found matching your criteria'
-                : 'No payments yet'
+                ? t('stripe.payments.noPaymentsFound')
+                : t('stripe.payments.noPaymentsYet')
               }
             </Text>
           </View>

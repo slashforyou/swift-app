@@ -20,6 +20,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { DESIGN_TOKENS } from '../../constants/Styles'
 import { useTheme } from '../../context/ThemeProvider'
 import { useStripeAccount, useStripeSettings } from '../../hooks/useStripe'
+import { useTranslation } from '../../localization/useLocalization'
 import { getStripeConnectOnboardingLink } from '../../services/StripeService'
 
 // Types
@@ -44,6 +45,7 @@ interface StripeSettingsScreenProps {
 
 export default function StripeSettingsScreen({ navigation }: StripeSettingsScreenProps) {
   const { colors } = useTheme()
+  const { t } = useTranslation()
   const [isProcessing, setIsProcessing] = useState(false)
 
   // Utilisation du hook Stripe pour récupérer les vraies données
@@ -72,20 +74,20 @@ export default function StripeSettingsScreen({ navigation }: StripeSettingsScree
     try {
       // Utilise la fonction updateSettings du hook pour vraiment sauvegarder
       await updateSettings({ [key]: value })
-    } catch (error) {
+    } catch (_error) {
 
-      Alert.alert('Erreur', 'Impossible de mettre à jour les paramètres')
+      Alert.alert(t('common.error'), t('stripe.settings.alerts.errorUpdate'))
     }
   }
 
   const handleAccountSetup = async () => {
     Alert.alert(
-      'Setup Stripe Account',
-      'You will be redirected to Stripe to complete your account setup.',
+      t('stripe.settings.alerts.setupTitle'),
+      t('stripe.settings.alerts.setupMessage'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         { 
-          text: 'Continue', 
+          text: t('common.continue'), 
           onPress: async () => {
             try {
               setIsProcessing(true)
@@ -93,8 +95,8 @@ export default function StripeSettingsScreen({ navigation }: StripeSettingsScree
               if (onboardingUrl) {
                 await Linking.openURL(onboardingUrl)
               }
-            } catch (err) {
-              Alert.alert('Error', 'Could not open Stripe onboarding. Please try again.')
+            } catch (_err) {
+              Alert.alert(t('common.error'), t('stripe.settings.alerts.setupMessage'))
             } finally {
               setIsProcessing(false)
             }
@@ -106,22 +108,22 @@ export default function StripeSettingsScreen({ navigation }: StripeSettingsScree
 
   const handleWebhooksSetup = () => {
     Alert.alert(
-      'Webhook Configuration',
-      'Webhooks are automatically configured by the server. Contact support if you need custom webhook endpoints.',
+      t('stripe.settings.alerts.webhookTitle'),
+      t('stripe.settings.alerts.webhookMessage'),
       [
-        { text: 'OK' }
+        { text: t('common.ok') }
       ]
     )
   }
 
   const handleTestPayment = () => {
     Alert.alert(
-      'Test Payment',
-      'To test your Stripe integration, create a Payment Link from the Stripe Hub and complete a test payment.',
+      t('stripe.settings.alerts.testPaymentTitle'),
+      t('stripe.settings.alerts.testPaymentMessage'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         { 
-          text: 'Create Test Payment', 
+          text: t('stripe.settings.alerts.createTestPayment'), 
           onPress: () => {
             // Navigation vers StripeHub pour créer un lien de paiement
             if (navigation?.navigate) {
@@ -135,10 +137,10 @@ export default function StripeSettingsScreen({ navigation }: StripeSettingsScree
 
   const handleDisconnect = () => {
     Alert.alert(
-      'Disconnect Stripe',
-      'This feature requires contacting support. Your Stripe account must be disconnected through the admin portal.',
+      t('stripe.settings.alerts.disconnectTitle'),
+      t('stripe.settings.alerts.disconnectMessage'),
       [
-        { text: 'OK' }
+        { text: t('common.ok') }
       ]
     )
   }
@@ -332,7 +334,7 @@ export default function StripeSettingsScreen({ navigation }: StripeSettingsScree
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <Text style={[styles.settingTitle, { textAlign: 'center' }]}>
-          {isLoading ? 'Chargement...' : 'Aucune donnée de compte disponible'}
+          {isLoading ? t('stripe.settings.loading') : t('stripe.settings.noAccountData')}
         </Text>
       </View>
     )
@@ -348,7 +350,7 @@ export default function StripeSettingsScreen({ navigation }: StripeSettingsScree
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.title}>Stripe Settings</Text>
+        <Text style={styles.title}>{t('stripe.settings.title')}</Text>
       </View>
 
       <ScrollView style={styles.content}>
@@ -387,18 +389,18 @@ export default function StripeSettingsScreen({ navigation }: StripeSettingsScree
                   }
                 ]}
               >
-                {config.isLive ? 'Live' : 'Test'}
+                {config.isLive ? t('stripe.settings.liveMode') : t('stripe.settings.testMode')}
               </Text>
             </View>
           </View>
 
           <View style={styles.accountDetails}>
             <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>Country</Text>
+              <Text style={styles.detailLabel}>{t('stripe.settings.country')}</Text>
               <Text style={styles.detailValue}>{config.country}</Text>
             </View>
             <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>Currency</Text>
+              <Text style={styles.detailLabel}>{t('stripe.settings.currency')}</Text>
               <Text style={styles.detailValue}>{config.currency}</Text>
             </View>
           </View>
@@ -407,20 +409,20 @@ export default function StripeSettingsScreen({ navigation }: StripeSettingsScree
         {/* Account Setup */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Account Setup</Text>
+            <Text style={styles.sectionTitle}>{t('stripe.settings.sections.accountSetup')}</Text>
           </View>
           
           <SettingRow
-            title="Complete Account Setup"
-            subtitle="Finish your Stripe Connect onboarding"
+            title={t('stripe.settings.completeSetup')}
+            subtitle={t('stripe.settings.completeSetupDesc')}
             icon="settings"
             type="button"
             onPress={handleAccountSetup}
           />
           
           <SettingRow
-            title="Test Integration"
-            subtitle="Create a test payment to verify setup"
+            title={t('stripe.settings.testIntegration')}
+            subtitle={t('stripe.settings.testIntegrationDesc')}
             icon="flash"
             type="button"
             onPress={handleTestPayment}
@@ -430,28 +432,28 @@ export default function StripeSettingsScreen({ navigation }: StripeSettingsScree
         {/* Payment Settings */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Payment Settings</Text>
+            <Text style={styles.sectionTitle}>{t('stripe.settings.sections.paymentSettings')}</Text>
           </View>
           
           <SettingRow
-            title="Instant Payouts"
-            subtitle="Receive payments within minutes (fees apply)"
+            title={t('stripe.settings.instantPayouts')}
+            subtitle={t('stripe.settings.instantPayoutsDesc')}
             icon="flash"
             value={config.instantPayouts}
             onValueChange={(value) => handleToggleSwitch('instantPayouts', value)}
           />
           
           <SettingRow
-            title="Email Receipts"
-            subtitle="Send automatic receipts to customers"
+            title={t('stripe.settings.emailReceipts')}
+            subtitle={t('stripe.settings.emailReceiptsDesc')}
             icon="mail"
             value={config.emailReceipts}
             onValueChange={(value) => handleToggleSwitch('emailReceipts', value)}
           />
           
           <SettingRow
-            title="SMS Notifications"
-            subtitle="Get notified of payments via SMS"
+            title={t('stripe.settings.smsNotifications')}
+            subtitle={t('stripe.settings.smsNotificationsDesc')}
             icon="chatbubble"
             value={config.smsNotifications}
             onValueChange={(value) => handleToggleSwitch('smsNotifications', value)}
@@ -461,20 +463,20 @@ export default function StripeSettingsScreen({ navigation }: StripeSettingsScree
         {/* Developer Settings */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Developer Settings</Text>
+            <Text style={styles.sectionTitle}>{t('stripe.settings.sections.developerSettings')}</Text>
           </View>
           
           <SettingRow
-            title="Webhooks"
-            subtitle="Configure real-time event notifications"
+            title={t('stripe.settings.webhooks')}
+            subtitle={t('stripe.settings.webhooksDesc')}
             icon="globe"
             value={config.webhooksEnabled}
             onValueChange={(value) => handleToggleSwitch('webhooksEnabled', value)}
           />
           
           <SettingRow
-            title="Webhook Configuration"
-            subtitle="Manage webhook endpoints and events"
+            title={t('stripe.settings.webhookConfig')}
+            subtitle={t('stripe.settings.webhookConfigDesc')}
             icon="code-slash"
             type="button"
             onPress={handleWebhooksSetup}
@@ -484,12 +486,12 @@ export default function StripeSettingsScreen({ navigation }: StripeSettingsScree
         {/* Danger Zone */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Danger Zone</Text>
+            <Text style={styles.sectionTitle}>{t('stripe.settings.sections.dangerZone')}</Text>
           </View>
           
           <SettingRow
-            title="Disconnect Account"
-            subtitle="Remove Stripe integration from your app"
+            title={t('stripe.settings.disconnectAccount')}
+            subtitle={t('stripe.settings.disconnectAccountDesc')}
             icon="unlink"
             type="button"
             onPress={handleDisconnect}

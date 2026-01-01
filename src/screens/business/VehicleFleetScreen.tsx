@@ -21,12 +21,14 @@ import { HStack, VStack } from '../../components/primitives/Stack';
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useTheme } from '../../context/ThemeProvider';
 import { useBusinessVehicles, type BusinessVehicle } from '../../hooks/business';
+import { useTranslation } from '../../localization/useLocalization';
 
 /**
  * Composant principal - Écran de gestion de flotte
  */
 const VehicleFleetScreen: React.FC = () => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   
   // Hook business vehicles
   const {
@@ -45,9 +47,9 @@ const VehicleFleetScreen: React.FC = () => {
   // Gestion d'erreurs
   React.useEffect(() => {
     if (error) {
-      Alert.alert('Error', error);
+      Alert.alert(t('common.error'), error);
     }
-  }, [error]);
+  }, [error, t]);
 
   // Ajout d'un véhicule
   const handleAddVehicle = useCallback(async () => {
@@ -66,9 +68,9 @@ const VehicleFleetScreen: React.FC = () => {
     
     const vehicle = await createVehicle(vehicleData);
     if (vehicle) {
-      Alert.alert('Success', 'Vehicle added successfully');
+      Alert.alert(t('vehicles.alerts.addSuccess.title'), t('vehicles.alerts.addSuccess.message'));
     }
-  }, [createVehicle, vehicles.length]);
+  }, [createVehicle, vehicles.length, t]);
 
   // Rafraîchissement
   const onRefresh = useCallback(async () => {
@@ -97,11 +99,11 @@ const VehicleFleetScreen: React.FC = () => {
    */
   const renderFilters = () => {
     const filters: {key: BusinessVehicle['status'] | 'all', label: string}[] = [
-      { key: 'all', label: 'All' },
-      { key: 'available', label: 'Available' },
-      { key: 'in-use', label: 'In Use' },
-      { key: 'maintenance', label: 'Maintenance' },
-      { key: 'out-of-service', label: 'Out of Service' }
+      { key: 'all', label: t('vehicles.all') },
+      { key: 'available', label: t('vehicles.available') },
+      { key: 'in-use', label: t('vehicles.inUse') },
+      { key: 'maintenance', label: t('vehicles.maintenance') },
+      { key: 'out-of-service', label: t('vehicles.outOfService') }
     ];
 
     return (
@@ -146,7 +148,7 @@ const VehicleFleetScreen: React.FC = () => {
             {displayStats.total}
           </Text>
           <Text style={[styles.statLabel, { color: colors.text }]}>
-            Total Vehicles
+            {t('vehicles.totalVehicles')}
           </Text>
         </View>
         
@@ -155,7 +157,7 @@ const VehicleFleetScreen: React.FC = () => {
             {displayStats.available}
           </Text>
           <Text style={[styles.statLabel, { color: colors.text }]}>
-            Available
+            {t('vehicles.available')}
           </Text>
         </View>
       </HStack>
@@ -166,7 +168,7 @@ const VehicleFleetScreen: React.FC = () => {
             {displayStats.maintenance}
           </Text>
           <Text style={[styles.statLabel, { color: colors.text }]}>
-            Maintenance
+            {t('vehicles.maintenance')}
           </Text>
         </View>
         
@@ -175,7 +177,7 @@ const VehicleFleetScreen: React.FC = () => {
             {displayStats.outOfService}
           </Text>
           <Text style={[styles.statLabel, { color: colors.text }]}>
-            Out of Service
+            {t('vehicles.outOfService')}
           </Text>
         </View>
       </HStack>
@@ -216,7 +218,7 @@ const VehicleFleetScreen: React.FC = () => {
         <VStack style={styles.vehicleDetails}>
           <HStack style={styles.detailRow}>
             <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
-              Year:
+              {t('vehicles.year')}:
             </Text>
             <Text style={[styles.detailValue, { color: colors.text }]}>
               {vehicle.year}
@@ -225,7 +227,7 @@ const VehicleFleetScreen: React.FC = () => {
 
           <HStack style={styles.detailRow}>
             <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
-              Capacity:
+              {t('vehicles.capacity')}:
             </Text>
             <Text style={[styles.detailValue, { color: colors.text }]}>
               {vehicle.capacity || 'N/A'}
@@ -234,7 +236,7 @@ const VehicleFleetScreen: React.FC = () => {
 
           <HStack style={styles.detailRow}>
             <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
-              Next Service:
+              {t('vehicles.nextService')}:
             </Text>
             <Text style={[styles.detailValue, { color: colors.text }]}>
               {vehicle.nextService ? new Date(vehicle.nextService).toLocaleDateString() : 'N/A'}
@@ -250,7 +252,7 @@ const VehicleFleetScreen: React.FC = () => {
       <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.primary} />
         <Text style={[styles.loadingText, { color: colors.text }]}>
-          Loading vehicles...
+          {t('vehicles.loading')}
         </Text>
       </View>
     );
@@ -261,7 +263,7 @@ const VehicleFleetScreen: React.FC = () => {
       {/* Header avec bouton d'ajout */}
       <View style={styles.header}>
         <Text style={[styles.title, { color: colors.text }]}>
-          Vehicle Fleet
+          {t('vehicles.fleet')}
         </Text>
         <TouchableOpacity
           style={[styles.addButton, { backgroundColor: colors.primary }]}
@@ -269,7 +271,7 @@ const VehicleFleetScreen: React.FC = () => {
           disabled={isCreating}
         >
           <Text style={[styles.addButtonText, { color: colors.background }]}>
-            {isCreating ? 'Adding...' : '+ Add Vehicle'}
+            {isCreating ? t('vehicles.adding') : t('vehicles.addVehicle')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -298,8 +300,8 @@ const VehicleFleetScreen: React.FC = () => {
             <View style={styles.emptyState}>
               <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
                 {selectedFilter === 'all' 
-                  ? 'No vehicles found. Add your first vehicle to get started.'
-                  : `No ${selectedFilter} vehicles found.`
+                  ? t('vehicles.noVehicles')
+                  : t('vehicles.noFilteredVehicles', { status: selectedFilter })
                 }
               </Text>
             </View>

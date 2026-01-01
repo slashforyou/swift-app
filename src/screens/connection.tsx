@@ -7,8 +7,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCommonThemedStyles } from '../hooks/useCommonStyles';
-import { ensureSession } from '../utils/session';
 import { useTranslation } from '../localization';
+import { ensureSession } from '../utils/session';
 
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 

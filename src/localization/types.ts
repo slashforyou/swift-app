@@ -403,6 +403,32 @@ export interface TranslationKeys {
         info: {
             title: string;
             placeholder: string;
+            noDataAvailable: string;
+            // Sections
+            statisticsOverview: string;
+            companyInformation: string;
+            contactDetails: string;
+            businessAddress: string;
+            // Stats
+            totalVehicles: string;
+            activeJobs: string;
+            completedJobs: string;
+            // Company fields
+            companyName: string;
+            abn: string;
+            establishedDate: string;
+            businessType: string;
+            notSpecified: string;
+            movingServices: string;
+            // Contact fields
+            phone: string;
+            email: string;
+            website: string;
+            // Address fields
+            streetAddress: string;
+            city: string;
+            state: string;
+            postcode: string;
         };
         staff: {
             title: string;
@@ -458,6 +484,48 @@ export interface TranslationKeys {
 
     // Vehicles
     vehicles: {
+        fleet: string;
+        addVehicle: string;
+        adding: string;
+        totalVehicles: string;
+        available: string;
+        inUse: string;
+        maintenance: string;
+        outOfService: string;
+        all: string;
+        loading: string;
+        year: string;
+        capacity: string;
+        nextService: string;
+        noVehicles: string;
+        noFilteredVehicles: string;
+        details: string;
+        registration: string;
+        make: string;
+        model: string;
+        location: string;
+        assignedTo: string;
+        notFound: string;
+        loadingDetails: string;
+        quickActions: string;
+        changeStatus: string;
+        scheduleService: string;
+        assignStaff: string;
+        selectNewStatus: string;
+        featureComingSoon: string;
+        maintenanceHistory: string;
+        deleteTitle: string;
+        updateSuccess: string;
+        updateError: string;
+        types: {
+            movingTruck: string;
+            van: string;
+            trailer: string;
+            ute: string;
+            dolly: string;
+            tools: string;
+            vehicle: string;
+        };
         actions: {
             edit: string;
             delete: string;
@@ -652,6 +720,53 @@ export interface TranslationKeys {
             payoutSchedule: string;
             bankAccount: string;
             updateAccount: string;
+            // Sections
+            sections: {
+                accountSetup: string;
+                paymentSettings: string;
+                developerSettings: string;
+                dangerZone: string;
+            };
+            // Account labels
+            country: string;
+            currency: string;
+            liveMode: string;
+            testMode: string;
+            loading: string;
+            noAccountData: string;
+            // Account Setup items
+            completeSetup: string;
+            completeSetupDesc: string;
+            testIntegration: string;
+            testIntegrationDesc: string;
+            // Payment Settings items
+            instantPayouts: string;
+            instantPayoutsDesc: string;
+            emailReceipts: string;
+            emailReceiptsDesc: string;
+            smsNotifications: string;
+            smsNotificationsDesc: string;
+            // Developer Settings items
+            webhooks: string;
+            webhooksDesc: string;
+            webhookConfig: string;
+            webhookConfigDesc: string;
+            // Danger Zone items
+            disconnectAccount: string;
+            disconnectAccountDesc: string;
+            // Alerts
+            alerts: {
+                setupTitle: string;
+                setupMessage: string;
+                webhookTitle: string;
+                webhookMessage: string;
+                testPaymentTitle: string;
+                testPaymentMessage: string;
+                disconnectTitle: string;
+                disconnectMessage: string;
+                errorUpdate: string;
+                createTestPayment: string;
+            };
         };
         payments: {
             title: string;
@@ -659,19 +774,37 @@ export interface TranslationKeys {
             filterPending: string;
             filterCompleted: string;
             filterFailed: string;
+            filterSucceeded: string;
+            filterProcessing: string;
             noPayments: string;
+            noPaymentsYet: string;
+            noPaymentsFound: string;
             amount: string;
             date: string;
             status: string;
+            searchPlaceholder: string;
+            anonymous: string;
+            creditCard: string;
+            bankTransfer: string;
         };
         payouts: {
             title: string;
             subtitle: string;
             requestPayout: string;
             noPayouts: string;
+            noPayoutsFound: string;
             processing: string;
             completed: string;
             failed: string;
+            pending: string;
+            inTransit: string;
+            filterAll: string;
+            filterPending: string;
+            filterCompleted: string;
+            bankAccount: string;
+            created: string;
+            arrival: string;
+            feesIncluded: string;
         };
         status: {
             connected: string;
@@ -693,6 +826,23 @@ export interface TranslationKeys {
         expenses: string;
         profit: string;
         jobsCompleted: string;
+        // Additional keys
+        loadingError: string;
+        unableToLoad: string;
+        checkConnection: string;
+        retry: string;
+        exportInProgress: string;
+        exportSuccess: string;
+        exportError: string;
+        detailedMetrics: string;
+        totalRevenue: string;
+        transactions: string;
+        successRate: string;
+        averageAmount: string;
+        thisMonth: string;
+        total: string;
+        performance: string;
+        perTransaction: string;
     };
 }
 

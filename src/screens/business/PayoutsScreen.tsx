@@ -21,6 +21,7 @@ import PayoutDetailModal from '../../components/modals/PayoutDetailModal'
 import { DESIGN_TOKENS } from '../../constants/Styles'
 import { useTheme } from '../../context/ThemeProvider'
 import { useStripePayouts, type Payout } from '../../hooks/useStripe'
+import { useTranslation } from '../../localization/useLocalization'
 
 // Types
 interface PayoutsScreenProps {
@@ -29,6 +30,7 @@ interface PayoutsScreenProps {
 
 export default function PayoutsScreen({ navigation }: PayoutsScreenProps) {
   const { colors } = useTheme()
+  const { t } = useTranslation()
   const [selectedTab, setSelectedTab] = useState<'all' | 'pending' | 'completed'>('all')
   const [selectedPayout, setSelectedPayout] = useState<Payout | null>(null)
 
@@ -83,13 +85,13 @@ export default function PayoutsScreen({ navigation }: PayoutsScreenProps) {
   const getStatusLabel = (status: Payout['status']) => {
     switch (status) {
       case 'paid':
-        return 'Completed'
+        return t('stripe.payouts.completed')
       case 'in_transit':
-        return 'In Transit'
+        return t('stripe.payouts.inTransit')
       case 'pending':
-        return 'Pending'
+        return t('stripe.payouts.pending')
       case 'failed':
-        return 'Failed'
+        return t('stripe.payouts.failed')
       default:
         return status
     }
@@ -134,7 +136,7 @@ export default function PayoutsScreen({ navigation }: PayoutsScreenProps) {
             {formatCurrency(item.amount, item.currency)}
           </Text>
           <Text style={[styles.payoutBank, { color: colors.textSecondary }]}>
-            Compte bancaire (depuis type)
+            {t('stripe.payouts.bankAccount')}
           </Text>
         </View>
         <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) + '20' }]}>
@@ -153,19 +155,19 @@ export default function PayoutsScreen({ navigation }: PayoutsScreenProps) {
         <View style={styles.detailRow}>
           <Ionicons name="calendar-outline" size={16} color={colors.textSecondary} />
           <Text style={[styles.detailText, { color: colors.textSecondary }]}>
-            Created: {formatDate(item.date)}
+            {t('stripe.payouts.created')}: {formatDate(item.date)}
           </Text>
         </View>
         <View style={styles.detailRow}>
           <Ionicons name="time-outline" size={16} color={colors.textSecondary} />
           <Text style={[styles.detailText, { color: colors.textSecondary }]}>
-            Arrival: {formatDate(item.arrivalDate)}
+            {t('stripe.payouts.arrival')}: {formatDate(item.arrivalDate)}
           </Text>
         </View>
         <View style={styles.detailRow}>
           <Ionicons name="receipt-outline" size={16} color={colors.textSecondary} />
           <Text style={[styles.detailText, { color: colors.textSecondary }]}>
-            Frais inclus
+            {t('stripe.payouts.feesIncluded')}
           </Text>
         </View>
       </View>
@@ -329,7 +331,7 @@ export default function PayoutsScreen({ navigation }: PayoutsScreenProps) {
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.title}>Payouts</Text>
+        <Text style={styles.title}>{t('stripe.payouts.title')}</Text>
       </View>
 
       {/* Résumé et onglets */}
@@ -339,21 +341,21 @@ export default function PayoutsScreen({ navigation }: PayoutsScreenProps) {
             <Text style={styles.summaryAmount}>
               {formatCurrency(totalPending)}
             </Text>
-            <Text style={styles.summaryLabel}>Pending</Text>
+            <Text style={styles.summaryLabel}>{t('stripe.payouts.pending')}</Text>
           </View>
           <View style={styles.summaryCard}>
             <Text style={styles.summaryAmount}>
               {formatCurrency(totalCompleted)}
             </Text>
-            <Text style={styles.summaryLabel}>Completed</Text>
+            <Text style={styles.summaryLabel}>{t('stripe.payouts.completed')}</Text>
           </View>
         </View>
 
         <View style={styles.tabsContainer}>
           {[
-            { key: 'all', label: 'All' },
-            { key: 'pending', label: 'Pending' },
-            { key: 'completed', label: 'Completed' }
+            { key: 'all', label: t('stripe.payouts.filterAll') },
+            { key: 'pending', label: t('stripe.payouts.filterPending') },
+            { key: 'completed', label: t('stripe.payouts.filterCompleted') }
           ].map((tab) => (
             <TouchableOpacity
               key={tab.key}
@@ -382,7 +384,7 @@ export default function PayoutsScreen({ navigation }: PayoutsScreenProps) {
           <View style={styles.emptyContainer}>
             <Ionicons name="wallet-outline" size={64} color={colors.textSecondary} />
             <Text style={styles.emptyText}>
-              No payouts found for this category
+              {t('stripe.payouts.noPayoutsFound')}
             </Text>
           </View>
         ) : (
