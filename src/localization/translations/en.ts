@@ -226,6 +226,13 @@ export const enTranslations: TranslationKeys = {
         toNextLevel: 'to Level',
         defaultTitle: 'Driver',
         loading: 'Loading profile...',
+        ranks: {
+            master: 'Master Driver',
+            expert: 'Expert Driver',
+            senior: 'Senior Driver',
+            driver: 'Driver',
+            rookie: 'Rookie Driver',
+        },
         fields: {
             firstName: 'First Name',
             lastName: 'Last Name',

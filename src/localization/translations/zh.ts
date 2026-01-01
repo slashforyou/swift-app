@@ -218,6 +218,13 @@ export const zhTranslations = {
         toNextLevel: '到下一级',
         defaultTitle: '司机',
         loading: '加载个人资料中...',
+        ranks: {
+            master: '大师司机',
+            expert: '专家司机',
+            senior: '高级司机',
+            driver: '司机',
+            rookie: '新手司机',
+        },
         fields: {
             firstName: '名',
             lastName: '姓',

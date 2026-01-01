@@ -79,7 +79,7 @@ const ProfileHeaderComplete: React.FC<ProfileHeaderProps> = ({
                     fontSize: 14,
                     marginTop: 8,
                 }}>
-                    Loading profile... ⚡
+                    {t('profile.loading')} ⚡
                 </Text>
             </View>
         );
@@ -95,7 +95,8 @@ const ProfileHeaderComplete: React.FC<ProfileHeaderProps> = ({
                 progressPercentage: percentage,
                 xpRemaining: Math.max(targetXP - currentXP, 0)
             };
-        } catch (error) {
+        } catch (error) {
+
             console.warn('Error calculating progress data:', error);
             return {
                 progressPercentage: 0,
@@ -117,11 +118,11 @@ const ProfileHeaderComplete: React.FC<ProfileHeaderProps> = ({
 
     // Fonction pour obtenir le rang basé sur le niveau
     const getRankInfo = (level: number = 1) => {
-        if (level >= 19) return { emoji: '👑', title: 'Master Driver', color: '#FFD700' };
-        if (level >= 13) return { emoji: '💎', title: 'Expert Driver', color: '#40E0D0' };
-        if (level >= 8) return { emoji: '🥇', title: 'Senior Driver', color: '#FFD700' };
-        if (level >= 4) return { emoji: '🥈', title: 'Driver', color: '#C0C0C0' };
-        return { emoji: '🥉', title: 'Rookie Driver', color: '#CD7F32' };
+        if (level >= 19) return { emoji: '👑', title: t('profile.ranks.master'), color: '#FFD700' };
+        if (level >= 13) return { emoji: '💎', title: t('profile.ranks.expert'), color: '#40E0D0' };
+        if (level >= 8) return { emoji: '🥇', title: t('profile.ranks.senior'), color: '#FFD700' };
+        if (level >= 4) return { emoji: '🥈', title: t('profile.ranks.driver'), color: '#C0C0C0' };
+        return { emoji: '🥉', title: t('profile.ranks.rookie'), color: '#CD7F32' };
     };
 
     const rankInfo = getRankInfo(safeUser.level);

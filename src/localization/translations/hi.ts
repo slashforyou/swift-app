@@ -218,6 +218,13 @@ export const hiTranslations = {
         toNextLevel: 'अगले स्तर तक',
         defaultTitle: 'ड्राइवर',
         loading: 'प्रोफ़ाइल लोड हो रही है...',
+        ranks: {
+            master: 'मास्टर ड्राइवर',
+            expert: 'विशेषज्ञ ड्राइवर',
+            senior: 'वरिष्ठ ड्राइवर',
+            driver: 'ड्राइवर',
+            rookie: 'नौसिखिया ड्राइवर',
+        },
         fields: {
             firstName: 'पहला नाम',
             lastName: 'उपनाम',

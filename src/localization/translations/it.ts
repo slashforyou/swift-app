@@ -218,6 +218,13 @@ export const itTranslations = {
         toNextLevel: 'al Livello',
         defaultTitle: 'Autista',
         loading: 'Caricamento profilo...',
+        ranks: {
+            master: 'Autista Maestro',
+            expert: 'Autista Esperto',
+            senior: 'Autista Senior',
+            driver: 'Autista',
+            rookie: 'Autista Principiante',
+        },
         fields: {
             firstName: 'Nome',
             lastName: 'Cognome',

@@ -226,6 +226,13 @@ export const frTranslations: TranslationKeys = {
         toNextLevel: 'vers le Niveau',
         defaultTitle: 'Chauffeur',
         loading: 'Chargement du profil...',
+        ranks: {
+            master: 'Chauffeur Maître',
+            expert: 'Chauffeur Expert',
+            senior: 'Chauffeur Confirmé',
+            driver: 'Chauffeur',
+            rookie: 'Chauffeur Débutant',
+        },
         fields: {
             firstName: 'Prénom',
             lastName: 'Nom',

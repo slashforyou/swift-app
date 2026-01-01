@@ -252,6 +252,13 @@ export interface TranslationKeys {
         toNextLevel: string;
         defaultTitle: string;
         loading: string;
+        ranks: {
+            master: string;
+            expert: string;
+            senior: string;
+            driver: string;
+            rookie: string;
+        };
         fields: {
             firstName: string;
             lastName: string;

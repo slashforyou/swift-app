@@ -114,6 +114,13 @@ export const ptTranslations = {
         toNextLevel: 'para o Nível',
         defaultTitle: 'Motorista',
         loading: 'Carregando perfil...',
+        ranks: {
+            master: 'Motorista Mestre',
+            expert: 'Motorista Especialista',
+            senior: 'Motorista Sênior',
+            driver: 'Motorista',
+            rookie: 'Motorista Iniciante',
+        },
         fields: {
             firstName: 'Nome',
             lastName: 'Sobrenome',

@@ -215,6 +215,13 @@ export const esTranslations = {
         toNextLevel: 'al Nivel',
         defaultTitle: 'Conductor',
         loading: 'Cargando perfil...',
+        ranks: {
+            master: 'Conductor Maestro',
+            expert: 'Conductor Experto',
+            senior: 'Conductor Senior',
+            driver: 'Conductor',
+            rookie: 'Conductor Novato',
+        },
         fields: {
             firstName: 'Nombre',
             lastName: 'Apellido',
