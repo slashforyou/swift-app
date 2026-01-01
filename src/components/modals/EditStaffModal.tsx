@@ -19,6 +19,7 @@ import {
 } from 'react-native';
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useTheme } from '../../context/ThemeProvider';
+import { useLocalization } from '../../localization/useLocalization';
 import { Contractor, Employee, StaffMember } from '../../types/staff';
 
 interface EditStaffModalProps {
@@ -35,6 +36,7 @@ export default function EditStaffModal({
   onSave,
 }: EditStaffModalProps) {
   const { colors } = useTheme();
+  const { t } = useLocalization();
   const [isLoading, setIsLoading] = useState(false);
 
   // Champs communs
@@ -80,15 +82,15 @@ export default function EditStaffModal({
     if (!member) return;
 
     if (!firstName || !lastName) {
-      Alert.alert('Erreur', 'Veuillez renseigner le nom et prénom');
+      Alert.alert(t('staffModals.editStaff.validation.error'), t('staffModals.editStaff.validation.nameRequired'));
       return;
     }
     if (!email) {
-      Alert.alert('Erreur', 'Veuillez renseigner l\'email');
+      Alert.alert(t('staffModals.editStaff.validation.error'), t('staffModals.editStaff.validation.emailRequired'));
       return;
     }
     if (!role) {
-      Alert.alert('Erreur', 'Veuillez renseigner le poste');
+      Alert.alert(t('staffModals.editStaff.validation.error'), t('staffModals.editStaff.validation.positionRequired'));
       return;
     }
 
@@ -113,10 +115,10 @@ export default function EditStaffModal({
       }
 
       await onSave(member.id, updateData);
-      Alert.alert('Succès', 'Le membre a été mis à jour');
+      Alert.alert(t('staffModals.editStaff.success.title'), t('staffModals.editStaff.success.memberUpdated'));
       onClose();
     } catch (error) {
-      Alert.alert('Erreur', 'Impossible de mettre à jour le membre');
+      Alert.alert(t('staffModals.editStaff.error.title'), t('staffModals.editStaff.error.updateFailed'));
     } finally {
       setIsLoading(false);
     }

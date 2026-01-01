@@ -1271,5 +1271,21 @@ export const zhTranslations = {
                 submitting: '发送中...',
             },
         },
+        editStaff: {
+            validation: {
+                error: '错误',
+                nameRequired: '请输入姓名',
+                emailRequired: '请输入电子邮件',
+                positionRequired: '请输入职位',
+            },
+            success: {
+                title: '成功',
+                message: '成员已更新',
+            },
+            error: {
+                title: '错误',
+                message: '无法更新成员',
+            },
+        },
     },
 } as unknown as TranslationKeys;

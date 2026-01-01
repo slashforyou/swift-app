@@ -1275,5 +1275,21 @@ export const esTranslations = {
                 submitting: 'Enviando...',
             },
         },
+        editStaff: {
+            validation: {
+                error: 'Error',
+                nameRequired: 'Por favor ingrese nombre y apellido',
+                emailRequired: 'Por favor ingrese el email',
+                positionRequired: 'Por favor ingrese el puesto',
+            },
+            success: {
+                title: 'Éxito',
+                message: 'El miembro ha sido actualizado',
+            },
+            error: {
+                title: 'Error',
+                message: 'No se puede actualizar el miembro',
+            },
+        },
     },
 } as unknown as TranslationKeys;

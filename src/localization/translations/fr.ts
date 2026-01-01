@@ -1314,5 +1314,21 @@ export const frTranslations: TranslationKeys = {
                 submitting: 'Envoi en cours...',
             },
         },
+        editStaff: {
+            validation: {
+                error: 'Erreur',
+                nameRequired: 'Veuillez renseigner le nom et prénom',
+                emailRequired: 'Veuillez renseigner l\'email',
+                positionRequired: 'Veuillez renseigner le poste',
+            },
+            success: {
+                title: 'Succès',
+                message: 'Le membre a été mis à jour',
+            },
+            error: {
+                title: 'Erreur',
+                message: 'Impossible de mettre à jour le membre',
+            },
+        },
     },
 };

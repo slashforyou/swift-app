@@ -1271,5 +1271,21 @@ export const hiTranslations = {
                 submitting: 'भेजा जा रहा है...',
             },
         },
+        editStaff: {
+            validation: {
+                error: 'त्रुटि',
+                nameRequired: 'कृपया नाम और उपनाम दर्ज करें',
+                emailRequired: 'कृपया ईमेल दर्ज करें',
+                positionRequired: 'कृपया पद दर्ज करें',
+            },
+            success: {
+                title: 'सफलता',
+                message: 'सदस्य अपडेट किया गया',
+            },
+            error: {
+                title: 'त्रुटि',
+                message: 'सदस्य को अपडेट करने में असमर्थ',
+            },
+        },
     },
 } as unknown as TranslationKeys;

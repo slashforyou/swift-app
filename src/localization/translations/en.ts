@@ -1314,5 +1314,21 @@ export const enTranslations: TranslationKeys = {
                 submitting: 'Sending...',
             },
         },
+        editStaff: {
+            validation: {
+                error: 'Error',
+                nameRequired: 'Please enter first and last name',
+                emailRequired: 'Please enter email',
+                positionRequired: 'Please enter position',
+            },
+            success: {
+                title: 'Success',
+                message: 'Member has been updated',
+            },
+            error: {
+                title: 'Error',
+                message: 'Unable to update member',
+            },
+        },
     },
 };

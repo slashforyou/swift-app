@@ -1370,6 +1370,22 @@ export interface TranslationKeys {
                 submitting: string;
             };
         };
+        editStaff: {
+            validation: {
+                error: string;
+                nameRequired: string;
+                emailRequired: string;
+                positionRequired: string;
+            };
+            success: {
+                title: string;
+                message: string;
+            };
+            error: {
+                title: string;
+                message: string;
+            };
+        };
     };
 }
 
