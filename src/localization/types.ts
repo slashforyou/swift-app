@@ -598,6 +598,32 @@ export interface TranslationKeys {
                 confirm: string;
                 goToStep: string;
             };
+            jobTimeline: {
+                noJobData: string;
+                stepOf: string;
+                currentStep: string;
+                hideDetails: string;
+                showDetails: string;
+                startedAt: string;
+                endedAt: string;
+                duration: string;
+                notStarted: string;
+                inProgress: string;
+                status: {
+                    pending: string;
+                    inProgress: string;
+                    completed: string;
+                    cancelled: string;
+                    unknown: string;
+                };
+                statusDescription: {
+                    pending: string;
+                    inProgress: string;
+                    completed: string;
+                    cancelled: string;
+                    unknown: string;
+                };
+            };
         };
     };
 

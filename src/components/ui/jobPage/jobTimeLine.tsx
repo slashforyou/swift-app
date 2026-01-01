@@ -8,6 +8,7 @@ import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { DESIGN_TOKENS } from '../../../constants/Styles';
 import { useJobTimerContext } from '../../../context/JobTimerProvider';
 import { useTheme } from '../../../context/ThemeProvider';
+import { useLocalization } from '../../../localization/useLocalization';
 
 interface JobTimeLineProps {
     job: any;
@@ -16,6 +17,7 @@ interface JobTimeLineProps {
 
 const JobTimeLine = ({ job, onAdvanceStep }: JobTimeLineProps) => {
     const { colors } = useTheme();
+    const { t } = useLocalization();
     const progressAnimation = useRef(new Animated.Value(0)).current;
     const truckAnimation = useRef(new Animated.Value(0)).current;
     const [isStepsExpanded, setIsStepsExpanded] = useState(false); // Rétracté par défaut
@@ -28,7 +30,7 @@ const JobTimeLine = ({ job, onAdvanceStep }: JobTimeLineProps) => {
     if (!job) {
         return (
             <View style={{ padding: 16, alignItems: 'center' }}>
-                <Text style={{ color: colors.textSecondary }}>No job data available</Text>
+                <Text style={{ color: colors.textSecondary }}>{t('jobDetails.components.jobTimeline.noJobData')}</Text>
             </View>
         );
     }
@@ -90,11 +92,11 @@ const JobTimeLine = ({ job, onAdvanceStep }: JobTimeLineProps) => {
     });// Fonctions utilitaires pour les statuts
     const getStatusLabel = (status: string) => {
         switch (status) {
-            case 'pending': return 'En attente';
-            case 'in-progress': return 'En cours';
-            case 'completed': return 'Terminé';
-            case 'cancelled': return 'Annulé';
-            default: return 'Statut inconnu';
+            case 'pending': return t('jobDetails.components.jobTimeline.status.pending');
+            case 'in-progress': return t('jobDetails.components.jobTimeline.status.inProgress');
+            case 'completed': return t('jobDetails.components.jobTimeline.status.completed');
+            case 'cancelled': return t('jobDetails.components.jobTimeline.status.cancelled');
+            default: return t('jobDetails.components.jobTimeline.status.unknown');
         }
     };
 
@@ -120,11 +122,11 @@ const JobTimeLine = ({ job, onAdvanceStep }: JobTimeLineProps) => {
 
     const getStepDescription = (status: string) => {
         switch (status) {
-            case 'pending': return 'Le job est en attente de traitement. L\'équipe va bientôt se rendre sur place.';
-            case 'in-progress': return 'L\'équipe est actuellement en train de travailler sur ce job.';
-            case 'completed': return 'Le job a été terminé avec succès.';
-            case 'cancelled': return 'Ce job a été annulé.';
-            default: return 'Statut du job non défini.';
+            case 'pending': return t('jobDetails.components.jobTimeline.statusDescription.pending');
+            case 'in-progress': return t('jobDetails.components.jobTimeline.statusDescription.inProgress');
+            case 'completed': return t('jobDetails.components.jobTimeline.statusDescription.completed');
+            case 'cancelled': return t('jobDetails.components.jobTimeline.statusDescription.cancelled');
+            default: return t('jobDetails.components.jobTimeline.statusDescription.unknown');
         }
     };
 
@@ -413,7 +415,7 @@ const JobTimeLine = ({ job, onAdvanceStep }: JobTimeLineProps) => {
             {/* Progress Info */}
             <View style={styles.progressInfo}>
                 <Text style={styles.progressText}>
-                    Step {currentStep} of {steps.length}
+                    {t('jobDetails.components.jobTimeline.stepOf', { current: currentStep, total: steps.length })}
                 </Text>
                 <Text style={styles.progressPercentage}>
                     {displayPercentage}%
@@ -503,7 +505,7 @@ const JobTimeLine = ({ job, onAdvanceStep }: JobTimeLineProps) => {
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: DESIGN_TOKENS.spacing.sm }}>
                     <View style={{ flex: 1 }}>
                         <Text style={styles.currentStepTitle}>
-                            {steps[currentStep - 1]?.title || 'Étape en cours'}
+                            {steps[currentStep - 1]?.title || t('jobDetails.components.jobTimeline.currentStep')}
                         </Text>
                     </View>
                     
@@ -523,7 +525,7 @@ const JobTimeLine = ({ job, onAdvanceStep }: JobTimeLineProps) => {
                         })}
                     >
                         <Text style={{ fontSize: 12, color: colors.primary, fontWeight: '600' }}>
-                            {isStepsExpanded ? 'Masquer' : 'Voir détails'}
+                            {isStepsExpanded ? t('jobDetails.components.jobTimeline.hideDetails') : t('jobDetails.components.jobTimeline.showDetails')}
                         </Text>
                         <Animated.View style={{ transform: [{ rotate: stepsRotateInterpolate }] }}>
                             <Ionicons 
@@ -609,29 +611,29 @@ const JobTimeLine = ({ job, onAdvanceStep }: JobTimeLineProps) => {
                                                 <Text style={{ fontSize: 11, color: colors.textSecondary, marginTop: 2 }}>
                                                     {stepTime.startTime && (
                                                         <>
-                                                            Commencé à {formatTimestamp(stepTime.startTime)}
-                                                            {stepTime.endTime && ` • Terminé à ${formatTimestamp(stepTime.endTime)}`}
+                                                            {t('jobDetails.components.jobTimeline.startedAt')} {formatTimestamp(stepTime.startTime)}
+                                                            {stepTime.endTime && ` • ${t('jobDetails.components.jobTimeline.endedAt')} ${formatTimestamp(stepTime.endTime)}`}
                                                         </>
                                                     )}
                                                     {stepTime.duration > 0 && (
                                                         <Text style={{ fontWeight: '600', color: colors.primary }}>
-                                                            {' • Durée: '}
+                                                            {` • ${t('jobDetails.components.jobTimeline.duration')} `}
                                                             <Text style={{ color: colors.text }}>
                                                                 {formatDuration(stepTime.duration)}
                                                             </Text>
                                                         </Text>
                                                     )}
-                                                    {!stepTime.startTime && 'Pas encore commencé'}
+                                                    {!stepTime.startTime && t('jobDetails.components.jobTimeline.notStarted')}
                                                 </Text>
                                             )}
                                             {!stepTime && isCurrent && (
                                                 <Text style={{ fontSize: 11, color: colors.primary, marginTop: 2, fontWeight: '600' }}>
-                                                    ⏱️ En cours...
+                                                    {t('jobDetails.components.jobTimeline.inProgress')}
                                                 </Text>
                                             )}
                                             {!stepTime && !isCurrent && !isCompleted && (
                                                 <Text style={{ fontSize: 11, color: colors.textSecondary, marginTop: 2 }}>
-                                                    Pas encore commencé
+                                                    {t('jobDetails.components.jobTimeline.notStarted')}
                                                 </Text>
                                             )}
                                         </View>
