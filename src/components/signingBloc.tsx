@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Signature, { SignatureViewRef } from 'react-native-signature-canvas';
 import { useThemeColors } from '../../hooks/useThemeColor';
 import { DESIGN_TOKENS } from '../constants/Styles';
+import { useLocalization } from '../localization/useLocalization';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -37,6 +38,7 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
 }) => {
   const insets = useSafeAreaInsets();
   const colors = useThemeColors();
+  const { t } = useLocalization();
   const signatureRef = useRef<SignatureViewRef>(null);
   const [ready, setReady] = useState(false);
   const [isSigning, setIsSigning] = useState(false);
@@ -435,18 +437,18 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
           }, 500);
           
           Alert.alert(
-            "✅ Signature Mise à Jour",
-            "Votre signature a été mise à jour localement. Une signature existait déjà sur le serveur.",
-            [{ text: "OK" }]
+            t('jobDetails.components.signature.signatureUpdated'),
+            t('jobDetails.components.signature.signatureUpdatedMessage'),
+            [{ text: t('jobDetails.components.signature.ok') }]
           );
           return; // ✅ Continuer malgré erreur backend (signature existe = pas grave)
         }
         
         // Autres erreurs (réseau, etc.)
         Alert.alert(
-          'Erreur Serveur',
-          `La signature n'a pas pu être enregistrée sur le serveur: ${uploadResult.message}`,
-          [{ text: "OK" }]
+          t('jobDetails.components.signature.serverError'),
+          t('jobDetails.components.signature.serverErrorMessage', { message: uploadResult.message || 'Unknown error' }),
+          [{ text: t('jobDetails.components.signature.ok') }]
         );
         return;
       }
@@ -478,20 +480,20 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
       
       // Confirmation moderne
       Alert.alert(
-        "✅ Signature Enregistrée",
-        "Votre signature a été enregistrée avec succès sur le serveur.",
-        [{ text: "Parfait !" }]
+        t('jobDetails.components.signature.signatureSaved'),
+        t('jobDetails.components.signature.signatureSavedMessage'),
+        [{ text: t('jobDetails.components.signature.perfect') }]
       );
     } catch (error) {
 
       console.error('❌ [SigningBloc] Signature save error:', error);
       Alert.alert(
-        'Erreur de Sauvegarde',
-        "Impossible d'enregistrer la signature. Veuillez réessayer.",
-        [{ text: "OK" }]
+        t('jobDetails.components.signature.saveError'),
+        t('jobDetails.components.signature.saveErrorMessage'),
+        [{ text: t('jobDetails.components.signature.ok') }]
       );
     } finally {
-      setIsSaving(false);
+      setIsSaving(false)
     }
   };
 
@@ -580,8 +582,8 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
                   <Ionicons name="document-text" size={24} color={colors.primary} />
                 </View>
                 <View>
-                  <Text style={styles.title}>Contract Signature</Text>
-                  <Text style={styles.subtitle}>Job #{job.id}</Text>
+                  <Text style={styles.title}>{t('jobDetails.components.signature.title')}</Text>
+                  <Text style={styles.subtitle}>{t('jobDetails.components.signature.subtitle', { id: job.id })}</Text>
                 </View>
               </View>
               
@@ -606,14 +608,13 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
             <View style={styles.contractBloc}>
               <View style={styles.contractHeader}>
                 <Ionicons name="shield-checkmark" size={20} color={colors.success} />
-                <Text style={styles.contractTitle}>Service Agreement</Text>
+                <Text style={styles.contractTitle}>{t('jobDetails.components.signature.contractTitle')}</Text>
               </View>
               <Text style={styles.contractBlocContent}>
-                This service agreement outlines the terms and conditions for the moving and transportation services provided by Swift Moving Services. 
-                The contractor agrees to handle all items with professional care and follow industry safety standards.
+                {t('jobDetails.components.signature.contractContent')}
               </Text>
               <Text style={styles.lastLine}>
-                By signing below, you acknowledge receipt of services and agree to the terms of this contract.
+                {t('jobDetails.components.signature.contractAcknowledge')}
               </Text>
             </View>
 
@@ -621,7 +622,7 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
             <View style={styles.signingBloc}>
               <View style={styles.signingHeader}>
                 <Ionicons name="create" size={22} color={colors.primary} />
-                <Text style={styles.signingTitle}>Digital Signature</Text>
+                <Text style={styles.signingTitle}>{t('jobDetails.components.signature.digitalSignature')}</Text>
                 {ready && (
                   <View style={{
                     backgroundColor: colors.success + '20',
@@ -633,7 +634,7 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
                       color: colors.success,
                       fontSize: 12,
                       fontWeight: '600',
-                    }}>Ready</Text>
+                    }}>{t('jobDetails.components.signature.ready')}</Text>
                   </View>
                 )}
               </View>
@@ -668,7 +669,7 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
                       key={isVisible ? 'open' : 'closed'}
                       ref={signatureRef}
                       onOK={handleSignatureOK}
-                      onEmpty={() => Alert.alert('Empty Signature', 'Please provide a signature before saving.')}
+                      onEmpty={() => Alert.alert(t('jobDetails.components.signature.emptySignature'), t('jobDetails.components.signature.emptySignatureMessage'))}
                       onBegin={() => setIsSigning(true)}
                       onEnd={() => setIsSigning(false)}
                       autoClear={false}
@@ -689,7 +690,7 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
                 {!ready && (
                   <View style={styles.savingBar}>
                     <ActivityIndicator size="small" color={colors.primary} />
-                    <Text style={styles.hint}>Initializing signature pad...</Text>
+                    <Text style={styles.hint}>{t('jobDetails.components.signature.initializing')}</Text>
                   </View>
                 )}
                 
@@ -697,7 +698,7 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
                   <View style={[styles.savingBar, { backgroundColor: colors.primary + '10' }]}>
                     <Ionicons name="create" size={16} color={colors.primary} />
                     <Text style={[styles.hint, { color: colors.primary, fontWeight: '600' }]}>
-                      ✨ Signing in progress...
+                      {t('jobDetails.components.signature.signingInProgress')}
                     </Text>
                   </View>
                 )}
@@ -713,7 +714,7 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
               disabled={isSaving}
             >
               <Ionicons name="refresh" size={16} color={colors.text} style={{ marginRight: 6 }} />
-              <Text style={[styles.btnText, styles.btnTextSecondary]}>Clear</Text>
+              <Text style={[styles.btnText, styles.btnTextSecondary]}>{t('jobDetails.components.signature.clear')}</Text>
             </Pressable>
 
             <Pressable 
@@ -727,7 +728,7 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
                 <Ionicons name="checkmark" size={16} color="white" style={{ marginRight: 6 }} />
               )}
               <Text style={[styles.btnText, styles.btnTextPrimary]}>
-                {isSaving ? 'Saving...' : 'Save Signature'}
+                {isSaving ? t('jobDetails.components.signature.saving') : t('jobDetails.components.signature.save')}
               </Text>
             </Pressable>
 
@@ -736,7 +737,7 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
               style={[styles.btn, styles.btnSecondary, isSaving && styles.btnDisabled]} 
               disabled={isSaving}
             >
-              <Text style={[styles.btnText, styles.btnTextSecondary]}>Cancel</Text>
+              <Text style={[styles.btnText, styles.btnTextSecondary]}>{t('jobDetails.components.signature.cancel')}</Text>
             </Pressable>
           </View>
         </Animated.View>

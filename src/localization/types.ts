@@ -548,6 +548,30 @@ export interface TranslationKeys {
                 contractSigned: string;
                 clientValidated: string;
                 contractMustBeSigned: string;
+                // Signing modal
+                title: string;
+                subtitle: string;
+                contractTitle: string;
+                digitalSignature: string;
+                ready: string;
+                initializing: string;
+                signingInProgress: string;
+                clear: string;
+                save: string;
+                saving: string;
+                cancel: string;
+                emptySignature: string;
+                emptySignatureMessage: string;
+                signatureUpdated: string;
+                signatureUpdatedMessage: string;
+                signatureSaved: string;
+                signatureSavedMessage: string;
+                serverError: string;
+                serverErrorMessage: string;
+                saveError: string;
+                saveErrorMessage: string;
+                ok: string;
+                perfect: string;
             };
             photos: {
                 title: string;
@@ -566,6 +590,8 @@ export interface TranslationKeys {
                 withoutDescription: string;
                 nonImageFile: string;
                 loadError: string;
+                loading: string;
+                loadingPhotos: string;
                 stages: {
                     pickup: string;
                     delivery: string;
