@@ -19,6 +19,7 @@ import {
 } from 'react-native'
 import { DESIGN_TOKENS } from '../../constants/Styles'
 import { useTheme } from '../../context/ThemeProvider'
+import { useLocalization } from '../../localization/useLocalization'
 import { Contractor, InviteEmployeeData } from '../../types/staff'
 
 interface AddStaffModalProps {
@@ -42,6 +43,7 @@ export default function AddStaffModal({
   onInviteContractor,
 }: AddStaffModalProps) {
   const { colors } = useTheme()
+  const { t } = useLocalization()
   const [step, setStep] = useState<Step>('type')
   const [staffType, setStaffType] = useState<StaffType>('employee')
   const [isLoading, setIsLoading] = useState(false)
@@ -102,27 +104,27 @@ export default function AddStaffModal({
   const handleInviteEmployee = async () => {
     // Validation
     if (!employeeData.firstName || !employeeData.lastName) {
-      Alert.alert('Erreur', 'Veuillez renseigner le nom et prénom')
+      Alert.alert(t('staffModals.addStaff.validation.error'), t('staffModals.addStaff.validation.nameRequired'))
       return
     }
     if (!employeeData.email) {
-      Alert.alert('Erreur', 'Veuillez renseigner l\'email')
+      Alert.alert(t('staffModals.addStaff.validation.error'), t('staffModals.addStaff.validation.emailRequired'))
       return
     }
     if (!employeeData.phone) {
-      Alert.alert('Erreur', 'Veuillez renseigner le téléphone')
+      Alert.alert(t('staffModals.addStaff.validation.error'), t('staffModals.addStaff.validation.phoneRequired'))
       return
     }
     if (!employeeData.role) {
-      Alert.alert('Erreur', 'Veuillez sélectionner un poste')
+      Alert.alert(t('staffModals.addStaff.validation.error'), t('staffModals.addStaff.validation.positionRequired'))
       return
     }
     if (!employeeData.team) {
-      Alert.alert('Erreur', 'Veuillez sélectionner une équipe')
+      Alert.alert(t('staffModals.addStaff.validation.error'), t('staffModals.addStaff.validation.teamRequired'))
       return
     }
     if (employeeData.hourlyRate <= 0) {
-      Alert.alert('Erreur', 'Veuillez renseigner un taux horaire valide')
+      Alert.alert(t('staffModals.addStaff.validation.error'), t('staffModals.addStaff.validation.hourlyRateRequired'))
       return
     }
 
@@ -130,13 +132,13 @@ export default function AddStaffModal({
     try {
       await onInviteEmployee(employeeData)
       Alert.alert(
-        'Invitation envoyée',
-        `Une invitation a été envoyée à ${employeeData.email}. L'employé devra créer un compte et renseigner son TFN.`
+        t('staffModals.addStaff.success.invitationSent'),
+        t('staffModals.addStaff.success.invitationSentMessage', { email: employeeData.email })
       )
       handleClose()
     } catch (error) {
 
-      Alert.alert('Erreur', 'Impossible d\'envoyer l\'invitation')
+      Alert.alert(t('staffModals.addStaff.validation.error'), t('staffModals.addStaff.validation.emailRequired'))
     } finally {
       setIsLoading(false)
     }
@@ -144,7 +146,7 @@ export default function AddStaffModal({
 
   const handleSearchContractor = async () => {
     if (!searchTerm.trim()) {
-      Alert.alert('Erreur', 'Veuillez entrer un nom ou un ABN')
+      Alert.alert(t('staffModals.addStaff.validation.error'), t('staffModals.addStaff.contractorSearch.placeholder'))
       return
     }
 
@@ -155,7 +157,7 @@ export default function AddStaffModal({
       setStep('contractor-results')
     } catch (error) {
 
-      Alert.alert('Erreur', 'Erreur lors de la recherche')
+      Alert.alert(t('staffModals.addStaff.validation.error'), t('staffModals.addStaff.validation.error'))
     } finally {
       setIsLoading(false)
     }
@@ -163,24 +165,24 @@ export default function AddStaffModal({
 
   const handleAddContractor = async (contractor: Contractor) => {
     Alert.alert(
-      'Ajouter un prestataire',
-      `Voulez-vous ajouter ${contractor.firstName} ${contractor.lastName} à votre équipe ?`,
+      t('staffModals.addStaff.confirm.addContractor'),
+      t('staffModals.addStaff.confirm.addContractorMessage', { name: `${contractor.firstName} ${contractor.lastName}` }),
       [
-        { text: 'Annuler', style: 'cancel' },
+        { text: t('staffModals.addStaff.confirm.cancel'), style: 'cancel' },
         {
-          text: 'Ajouter',
+          text: t('staffModals.addStaff.confirm.add'),
           onPress: async () => {
             setIsLoading(true)
             try {
               await onAddContractor(contractor.id, 'standard')
               Alert.alert(
-                'Prestataire ajouté',
-                `${contractor.firstName} ${contractor.lastName} a été ajouté à votre équipe`
+                t('staffModals.addStaff.success.contractorAdded'),
+                t('staffModals.addStaff.success.contractorAddedMessage', { name: `${contractor.firstName} ${contractor.lastName}` })
               )
               handleClose()
             } catch (error) {
 
-              Alert.alert('Erreur', 'Impossible d\'ajouter le prestataire')
+              Alert.alert(t('staffModals.addStaff.validation.error'), t('staffModals.addStaff.validation.error'))
             } finally {
               setIsLoading(false)
             }
@@ -197,11 +199,11 @@ export default function AddStaffModal({
 
   const handleSendContractorInvite = async () => {
     if (!contractorInviteData.email) {
-      Alert.alert('Erreur', 'Veuillez renseigner l\'email')
+      Alert.alert(t('staffModals.addStaff.validation.error'), t('staffModals.addStaff.validation.contractorEmailRequired'))
       return
     }
     if (!contractorInviteData.firstName || !contractorInviteData.lastName) {
-      Alert.alert('Erreur', 'Veuillez renseigner le nom et prénom')
+      Alert.alert(t('staffModals.addStaff.validation.error'), t('staffModals.addStaff.validation.contractorNameRequired'))
       return
     }
 
@@ -213,17 +215,17 @@ export default function AddStaffModal({
           contractorInviteData.firstName,
           contractorInviteData.lastName
         )
-        Alert.alert('Invitation envoyée', result.message)
+        Alert.alert(t('staffModals.addStaff.success.invitationSent'), result.message)
       } else {
         // Fallback si pas de handler
         Alert.alert(
-          'Invitation envoyée',
-          `Un email d'invitation a été envoyé à ${contractorInviteData.email}`
+          t('staffModals.addStaff.success.invitationSent'),
+          t('staffModals.addStaff.success.invitationSentMessage', { email: contractorInviteData.email })
         )
       }
       handleClose()
     } catch (error) {
-      Alert.alert('Erreur', 'Impossible d\'envoyer l\'invitation')
+      Alert.alert(t('staffModals.addStaff.validation.error'), t('staffModals.addStaff.validation.error'))
     } finally {
       setIsLoading(false)
     }
@@ -232,10 +234,10 @@ export default function AddStaffModal({
   const renderStepType = () => (
     <View style={styles.stepContainer}>
       <Text style={[styles.stepTitle, { color: colors.text }]}>
-        Type de membre
+        {t('staffModals.addStaff.typeStep.title')}
       </Text>
       <Text style={[styles.stepSubtitle, { color: colors.textSecondary }]}>
-        Choisissez le type de membre à ajouter
+        {t('staffModals.addStaff.typeStep.subtitle')}
       </Text>
 
       <View style={styles.typeOptions}>
@@ -250,28 +252,28 @@ export default function AddStaffModal({
             <Ionicons name="person" size={32} color={colors.success} />
           </View>
           <Text style={[styles.typeOptionTitle, { color: colors.text }]}>
-            Employé (TFN)
+            {t('staffModals.addStaff.typeStep.employee.title')}
           </Text>
           <Text style={[styles.typeOptionDescription, { color: colors.textSecondary }]}>
-            Invitez un employé à créer un compte et renseigner son Tax File Number
+            {t('staffModals.addStaff.typeStep.employee.description')}
           </Text>
           <View style={styles.typeOptionFeatures}>
             <View style={styles.featureItem}>
               <Ionicons name="checkmark-circle" size={16} color={colors.success} />
               <Text style={[styles.featureText, { color: colors.textSecondary }]}>
-                Contrat d'employé
+                {t('staffModals.addStaff.typeStep.employee.feature1')}
               </Text>
             </View>
             <View style={styles.featureItem}>
               <Ionicons name="checkmark-circle" size={16} color={colors.success} />
               <Text style={[styles.featureText, { color: colors.textSecondary }]}>
-                Taux horaire fixe
+                {t('staffModals.addStaff.typeStep.employee.feature2')}
               </Text>
             </View>
             <View style={styles.featureItem}>
               <Ionicons name="checkmark-circle" size={16} color={colors.success} />
               <Text style={[styles.featureText, { color: colors.textSecondary }]}>
-                Gestion des congés
+                {t('staffModals.addStaff.typeStep.employee.feature3')}
               </Text>
             </View>
           </View>
@@ -288,28 +290,28 @@ export default function AddStaffModal({
             <Ionicons name="briefcase" size={32} color={colors.info} />
           </View>
           <Text style={[styles.typeOptionTitle, { color: colors.text }]}>
-            Prestataire (ABN)
+            {t('staffModals.addStaff.typeStep.contractor.title')}
           </Text>
           <Text style={[styles.typeOptionDescription, { color: colors.textSecondary }]}>
-            Recherchez un prestataire existant ou invitez-en un à créer un compte avec son ABN
+            {t('staffModals.addStaff.typeStep.contractor.description')}
           </Text>
           <View style={styles.typeOptionFeatures}>
             <View style={styles.featureItem}>
               <Ionicons name="checkmark-circle" size={16} color={colors.info} />
               <Text style={[styles.featureText, { color: colors.textSecondary }]}>
-                Contrat flexible
+                {t('staffModals.addStaff.typeStep.contractor.feature1')}
               </Text>
             </View>
             <View style={styles.featureItem}>
               <Ionicons name="checkmark-circle" size={16} color={colors.info} />
               <Text style={[styles.featureText, { color: colors.textSecondary }]}>
-                Taux négociable
+                {t('staffModals.addStaff.typeStep.contractor.feature2')}
               </Text>
             </View>
             <View style={styles.featureItem}>
               <Ionicons name="checkmark-circle" size={16} color={colors.info} />
               <Text style={[styles.featureText, { color: colors.textSecondary }]}>
-                Facturation externe
+                {t('staffModals.addStaff.typeStep.contractor.feature3')}
               </Text>
             </View>
           </View>
@@ -328,16 +330,16 @@ export default function AddStaffModal({
       </Pressable>
 
       <Text style={[styles.stepTitle, { color: colors.text }]}>
-        Inviter un employé
+        {t('staffModals.addStaff.employeeForm.title')}
       </Text>
       <Text style={[styles.stepSubtitle, { color: colors.textSecondary }]}>
-        L'employé recevra une invitation par email pour créer son compte
+        {t('staffModals.addStaff.typeStep.employee.description')}
       </Text>
 
       <View style={styles.form}>
         <View style={styles.formRow}>
           <View style={[styles.formGroup, { flex: 1 }]}>
-            <Text style={[styles.label, { color: colors.text }]}>Prénom *</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t('staffModals.addStaff.employeeForm.firstName')}</Text>
             <TextInput
               style={[styles.input, { backgroundColor: colors.backgroundSecondary, color: colors.text }]}
               value={employeeData.firstName}
@@ -347,7 +349,7 @@ export default function AddStaffModal({
             />
           </View>
           <View style={[styles.formGroup, { flex: 1 }]}>
-            <Text style={[styles.label, { color: colors.text }]}>Nom *</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t('staffModals.addStaff.employeeForm.lastName')}</Text>
             <TextInput
               style={[styles.input, { backgroundColor: colors.backgroundSecondary, color: colors.text }]}
               value={employeeData.lastName}
@@ -359,7 +361,7 @@ export default function AddStaffModal({
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>Email *</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{t('staffModals.addStaff.employeeForm.email')}</Text>
           <TextInput
             style={[styles.input, { backgroundColor: colors.backgroundSecondary, color: colors.text }]}
             value={employeeData.email}
@@ -372,7 +374,7 @@ export default function AddStaffModal({
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>Téléphone *</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{t('staffModals.addStaff.employeeForm.phone')}</Text>
           <TextInput
             style={[styles.input, { backgroundColor: colors.backgroundSecondary, color: colors.text }]}
             value={employeeData.phone}
@@ -384,7 +386,7 @@ export default function AddStaffModal({
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>Poste *</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{t('staffModals.addStaff.employeeForm.position')}</Text>
           <TextInput
             style={[styles.input, { backgroundColor: colors.backgroundSecondary, color: colors.text }]}
             value={employeeData.role}
@@ -395,7 +397,7 @@ export default function AddStaffModal({
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>Équipe *</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{t('staffModals.addStaff.employeeForm.team')}</Text>
           <TextInput
             style={[styles.input, { backgroundColor: colors.backgroundSecondary, color: colors.text }]}
             value={employeeData.team}
@@ -406,7 +408,7 @@ export default function AddStaffModal({
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>Taux horaire ($) *</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{t('staffModals.addStaff.employeeForm.hourlyRate')}</Text>
           <TextInput
             style={[styles.input, { backgroundColor: colors.backgroundSecondary, color: colors.text }]}
             value={employeeData.hourlyRate > 0 ? String(employeeData.hourlyRate) : ''}
@@ -432,7 +434,7 @@ export default function AddStaffModal({
         ) : (
           <>
             <Ionicons name="mail" size={20} color={colors.background} />
-            <Text style={[styles.submitButtonText, { color: colors.background }]}>Envoyer l&apos;invitation</Text>
+            <Text style={[styles.submitButtonText, { color: colors.background }]}>{t('staffModals.addStaff.employeeForm.submit')}</Text>
           </>
         )}
       </Pressable>
@@ -449,10 +451,10 @@ export default function AddStaffModal({
       </Pressable>
 
       <Text style={[styles.stepTitle, { color: colors.text }]}>
-        Rechercher un prestataire
+        {t('staffModals.addStaff.contractorSearch.title')}
       </Text>
       <Text style={[styles.stepSubtitle, { color: colors.textSecondary }]}>
-        Recherchez un prestataire par nom ou numéro ABN
+        {t('staffModals.addStaff.contractorSearch.placeholder')}
       </Text>
 
       <View style={styles.searchContainer}>
@@ -460,7 +462,7 @@ export default function AddStaffModal({
           style={[styles.searchInput, { backgroundColor: colors.backgroundSecondary, color: colors.text }]}
           value={searchTerm}
           onChangeText={setSearchTerm}
-          placeholder="Nom ou ABN du prestataire"
+          placeholder={t('staffModals.addStaff.contractorSearch.placeholder')}
           placeholderTextColor={colors.textSecondary}
           onSubmitEditing={handleSearchContractor}
         />
@@ -479,7 +481,7 @@ export default function AddStaffModal({
 
       <View style={styles.divider}>
         <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
-        <Text style={[styles.dividerText, { color: colors.textSecondary }]}>OU</Text>
+        <Text style={[styles.dividerText, { color: colors.textSecondary }]}>{t('staffModals.addStaff.contractorSearch.or').toUpperCase()}</Text>
         <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
       </View>
 
@@ -489,7 +491,7 @@ export default function AddStaffModal({
       >
         <Ionicons name="person-add" size={24} color={colors.primary} />
         <Text style={[styles.inviteButtonText, { color: colors.text }]}>
-          Inviter un nouveau prestataire
+          {t('staffModals.addStaff.contractorSearch.inviteNew')}
         </Text>
       </Pressable>
     </View>
@@ -505,20 +507,20 @@ export default function AddStaffModal({
       </Pressable>
 
       <Text style={[styles.stepTitle, { color: colors.text }]}>
-        Résultats de recherche
+        {t('staffModals.addStaff.contractorResults.title')}
       </Text>
       <Text style={[styles.stepSubtitle, { color: colors.textSecondary }]}>
-        {searchResults.length} prestataire{searchResults.length > 1 ? 's' : ''} trouvé{searchResults.length > 1 ? 's' : ''}
+        {searchResults.length} {searchResults.length > 1 ? 'contractors' : 'contractor'}
       </Text>
 
       {searchResults.length === 0 ? (
         <View style={styles.emptyResults}>
           <Ionicons name="search-outline" size={64} color={colors.textSecondary} />
           <Text style={[styles.emptyResultsText, { color: colors.text }]}>
-            Aucun prestataire trouvé
+            {t('staffModals.addStaff.contractorResults.noResults')}
           </Text>
           <Text style={[styles.emptyResultsSubtext, { color: colors.textSecondary }]}>
-            Essayez une autre recherche ou invitez un nouveau prestataire
+            {t('staffModals.addStaff.contractorResults.noResultsSubtext')}
           </Text>
         </View>
       ) : (
@@ -549,13 +551,13 @@ export default function AddStaffModal({
                 <View style={styles.detailItem}>
                   <Ionicons name="document-outline" size={16} color={colors.textSecondary} />
                   <Text style={[styles.detailText, { color: colors.textSecondary }]}>
-                    ABN: {contractor.abn}
+                    {t('staffModals.addStaff.contractorResults.abn')}: {contractor.abn}
                   </Text>
                 </View>
                 <View style={styles.detailItem}>
                   <Ionicons name="cash-outline" size={16} color={colors.textSecondary} />
                   <Text style={[styles.detailText, { color: colors.textSecondary }]}>
-                    ${contractor.rate}/{contractor.rateType === 'hourly' ? 'h' : 'projet'}
+                    ${contractor.rate}/{contractor.rateType === 'hourly' ? 'h' : 'project'}
                   </Text>
                 </View>
               </View>
@@ -576,14 +578,14 @@ export default function AddStaffModal({
       </Pressable>
 
       <Text style={[styles.stepTitle, { color: colors.text }]}>
-        Inviter un prestataire
+        {t('staffModals.addStaff.contractorInvite.title')}
       </Text>
       <Text style={[styles.stepSubtitle, { color: colors.textSecondary }]}>
-        Envoyez une invitation par email pour créer un compte avec son ABN
+        {t('staffModals.addStaff.typeStep.contractor.description')}
       </Text>
 
       <View style={styles.formGroup}>
-        <Text style={[styles.label, { color: colors.textSecondary }]}>Prénom *</Text>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>{t('staffModals.addStaff.contractorInvite.firstName')}</Text>
         <TextInput
           style={[styles.input, { 
             backgroundColor: colors.backgroundSecondary,
@@ -592,13 +594,13 @@ export default function AddStaffModal({
           }]}
           value={contractorInviteData.firstName}
           onChangeText={(text) => setContractorInviteData(prev => ({ ...prev, firstName: text }))}
-          placeholder="Prénom du prestataire"
+          placeholder="John"
           placeholderTextColor={colors.textSecondary}
         />
       </View>
 
       <View style={styles.formGroup}>
-        <Text style={[styles.label, { color: colors.textSecondary }]}>Nom *</Text>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>{t('staffModals.addStaff.contractorInvite.lastName')}</Text>
         <TextInput
           style={[styles.input, { 
             backgroundColor: colors.backgroundSecondary,
@@ -607,13 +609,13 @@ export default function AddStaffModal({
           }]}
           value={contractorInviteData.lastName}
           onChangeText={(text) => setContractorInviteData(prev => ({ ...prev, lastName: text }))}
-          placeholder="Nom du prestataire"
+          placeholder="Smith"
           placeholderTextColor={colors.textSecondary}
         />
       </View>
 
       <View style={styles.formGroup}>
-        <Text style={[styles.label, { color: colors.textSecondary }]}>Email *</Text>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>{t('staffModals.addStaff.contractorInvite.email')}</Text>
         <TextInput
           style={[styles.input, { 
             backgroundColor: colors.backgroundSecondary,
@@ -622,7 +624,7 @@ export default function AddStaffModal({
           }]}
           value={contractorInviteData.email}
           onChangeText={(text) => setContractorInviteData(prev => ({ ...prev, email: text }))}
-          placeholder="email@exemple.com"
+          placeholder="john@example.com"
           placeholderTextColor={colors.textSecondary}
           keyboardType="email-address"
           autoCapitalize="none"
@@ -632,8 +634,7 @@ export default function AddStaffModal({
       <View style={[styles.infoBox, { backgroundColor: colors.backgroundSecondary }]}>
         <Ionicons name="information-circle" size={24} color={colors.primary} />
         <Text style={[styles.infoBoxText, { color: colors.textSecondary }]}>
-          Le prestataire recevra un email pour créer son compte et renseigner son ABN.
-          Une fois inscrit, il apparaîtra dans votre liste de prestataires.
+          {t('staffModals.addStaff.contractorInvite.infoText')}
         </Text>
       </View>
 
@@ -651,7 +652,7 @@ export default function AddStaffModal({
         ) : (
           <>
             <Ionicons name="mail" size={20} color={colors.background} />
-            <Text style={[styles.submitButtonText, { color: colors.background }]}>Envoyer l&apos;invitation</Text>
+            <Text style={[styles.submitButtonText, { color: colors.background }]}>{t('staffModals.addStaff.contractorInvite.submit')}</Text>
           </>
         )}
       </Pressable>
@@ -671,7 +672,7 @@ export default function AddStaffModal({
       >
         <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
           <Text style={[styles.modalTitle, { color: colors.text }]}>
-            Ajouter un membre
+            {t('staffModals.addStaff.title')}
           </Text>
           <Pressable onPress={handleClose}>
             <Ionicons name="close" size={28} color={colors.text} />

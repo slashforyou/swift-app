@@ -1213,6 +1213,105 @@ export interface TranslationKeys {
         performance: string;
         perTransaction: string;
     };
+
+    // Staff Modals
+    staffModals: {
+        addStaff: {
+            title: string;
+            close: string;
+            back: string;
+            // Validation errors
+            validation: {
+                error: string;
+                nameRequired: string;
+                emailRequired: string;
+                phoneRequired: string;
+                positionRequired: string;
+                teamRequired: string;
+                hourlyRateRequired: string;
+                contractorNameRequired: string;
+                contractorEmailRequired: string;
+                contractorPhoneRequired: string;
+            };
+            // Success messages
+            success: {
+                invitationSent: string;
+                invitationSentMessage: string;
+                contractorAdded: string;
+                contractorAddedMessage: string;
+            };
+            // Confirm dialogs
+            confirm: {
+                addContractor: string;
+                addContractorMessage: string;
+                cancel: string;
+                add: string;
+            };
+            // Step: Member type selection
+            typeStep: {
+                title: string;
+                subtitle: string;
+                employee: {
+                    title: string;
+                    description: string;
+                    feature1: string;
+                    feature2: string;
+                    feature3: string;
+                };
+                contractor: {
+                    title: string;
+                    description: string;
+                    feature1: string;
+                    feature2: string;
+                    feature3: string;
+                };
+            };
+            // Step: Employee form
+            employeeForm: {
+                title: string;
+                firstName: string;
+                lastName: string;
+                email: string;
+                phone: string;
+                position: string;
+                team: string;
+                hourlyRate: string;
+                submit: string;
+                submitting: string;
+            };
+            // Step: Contractor search
+            contractorSearch: {
+                title: string;
+                placeholder: string;
+                search: string;
+                or: string;
+                inviteNew: string;
+            };
+            // Step: Contractor results
+            contractorResults: {
+                title: string;
+                noResults: string;
+                noResultsSubtext: string;
+                add: string;
+                abn: string;
+                email: string;
+                phone: string;
+            };
+            // Step: Contractor invite
+            contractorInvite: {
+                title: string;
+                firstName: string;
+                lastName: string;
+                email: string;
+                phone: string;
+                abn: string;
+                abnPlaceholder: string;
+                infoText: string;
+                submit: string;
+                submitting: string;
+            };
+        };
+    };
 }
 
 export type TranslationFunction = (key: string, params?: Record<string, string | number>) => string;
