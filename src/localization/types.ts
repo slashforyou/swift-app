@@ -572,6 +572,25 @@ export interface TranslationKeys {
                     daysAgo: string;
                 };
             };
+            jobClock: {
+                jobInProgress: string;
+                jobFinished: string;
+                stepNumber: string;
+                onPause: string;
+                totalElapsedTime: string;
+                signatureRequired: string;
+                signatureRequiredMessage: string;
+                signNow: string;
+                finishJob: string;
+                finishJobConfirm: string;
+                finish: string;
+                nextStep: string;
+                signatureModalUnavailable: string;
+                cancel: string;
+                error: string;
+                confirm: string;
+                goToStep: string;
+            };
         };
     };
 

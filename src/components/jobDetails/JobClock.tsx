@@ -11,6 +11,7 @@ import { Alert, Pressable, Text, View } from 'react-native';
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useJobTimerContext } from '../../context/JobTimerProvider';
 import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
+import { useLocalization } from '../../localization/useLocalization';
 
 interface JobClockProps {
     job: any;
@@ -19,6 +20,7 @@ interface JobClockProps {
 
 const JobClock: React.FC<JobClockProps> = ({ job, onOpenSignatureModal }) => {
     const { colors } = useCommonThemedStyles();
+    const { t } = useLocalization();
     
     // ✅ Utiliser le context au lieu du hook direct
     const { 
@@ -48,17 +50,17 @@ const JobClock: React.FC<JobClockProps> = ({ job, onOpenSignatureModal }) => {
         
         if (!hasSignature) {
             Alert.alert(
-                '✍️ Signature requise',
-                'Vous devez faire signer le client avant de finaliser le job et déclencher la facturation.',
+                t('jobDetails.components.jobClock.signatureRequired'),
+                t('jobDetails.components.jobClock.signatureRequiredMessage'),
                 [
-                    { text: 'Annuler', style: 'cancel' },
+                    { text: t('jobDetails.components.jobClock.cancel'), style: 'cancel' },
                     { 
-                        text: 'Signer maintenant', 
+                        text: t('jobDetails.components.jobClock.signNow'), 
                         onPress: () => {
                             if (onOpenSignatureModal) {
                                 onOpenSignatureModal();
                             } else {
-                                Alert.alert('Erreur', 'Le modal de signature n\'est pas disponible');
+                                Alert.alert(t('jobDetails.components.jobClock.error'), t('jobDetails.components.jobClock.signatureModalUnavailable'));
                             }
                         },
                         style: 'default'
@@ -70,12 +72,12 @@ const JobClock: React.FC<JobClockProps> = ({ job, onOpenSignatureModal }) => {
 
         // Signature OK, confirmer l'arrêt
         Alert.alert(
-            '🏁 Terminer le job',
-            'Êtes-vous sûr de vouloir terminer ce job ? Le timer sera arrêté et la facturation sera déclenchée immédiatement.',
+            t('jobDetails.components.jobClock.finishJob'),
+            t('jobDetails.components.jobClock.finishJobConfirm'),
             [
-                { text: 'Annuler', style: 'cancel' },
+                { text: t('jobDetails.components.jobClock.cancel'), style: 'cancel' },
                 { 
-                    text: 'Terminer', 
+                    text: t('jobDetails.components.jobClock.finish'), 
                     onPress: stopTimer,
                     style: 'destructive'
                 }
@@ -125,7 +127,7 @@ const JobClock: React.FC<JobClockProps> = ({ job, onOpenSignatureModal }) => {
                         fontWeight: '600',
                         color: colors.text,
                     }}>
-                        {isRunning ? 'Job en cours' : 'Job terminé'}
+                        {isRunning ? t('jobDetails.components.jobClock.jobInProgress') : t('jobDetails.components.jobClock.jobFinished')}
                     </Text>
                 </View>
                 
@@ -155,7 +157,7 @@ const JobClock: React.FC<JobClockProps> = ({ job, onOpenSignatureModal }) => {
                     }}>
                         {currentStepConfig 
                             ? `${currentStepConfig.shortName || currentStepConfig.name} (${currentStep + 1}/${totalSteps})`
-                            : `Étape ${currentStep + 1}/${totalSteps}`
+                            : `${t('jobDetails.components.jobClock.stepNumber')} ${currentStep + 1}/${totalSteps}`
                         }
                     </Text>
                 </View>
@@ -194,7 +196,7 @@ const JobClock: React.FC<JobClockProps> = ({ job, onOpenSignatureModal }) => {
                     color: colors.textSecondary,
                     marginTop: 4,
                 }}>
-                    {isOnBreak ? '⏸️ En pause' : 'Temps total écoulé'}
+                    {isOnBreak ? t('jobDetails.components.jobClock.onPause') : t('jobDetails.components.jobClock.totalElapsedTime')}
                 </Text>
             </View>
 
@@ -248,12 +250,12 @@ const JobClock: React.FC<JobClockProps> = ({ job, onOpenSignatureModal }) => {
                         <Pressable
                             onPress={() => {
                                 Alert.alert(
-                                    'Étape suivante',
-                                    `Passer à l'étape ${currentStep + 1}/${totalSteps} ?`,
+                                    t('jobDetails.components.jobClock.nextStep'),
+                                    t('jobDetails.components.jobClock.goToStep', { current: currentStep + 1, total: totalSteps }),
                                     [
-                                        { text: 'Annuler', style: 'cancel' },
+                                        { text: t('jobDetails.components.jobClock.cancel'), style: 'cancel' },
                                         { 
-                                            text: 'Confirmer', 
+                                            text: t('jobDetails.components.jobClock.confirm'), 
                                             onPress: nextStep,
                                             style: 'default'
                                         }
@@ -282,7 +284,7 @@ const JobClock: React.FC<JobClockProps> = ({ job, onOpenSignatureModal }) => {
                                 fontWeight: '600',
                                 fontSize: 14,
                             }}>
-                                Étape suivante
+                                {t('jobDetails.components.jobClock.nextStep')}
                             </Text>
                         </Pressable>
                     )}
@@ -313,7 +315,7 @@ const JobClock: React.FC<JobClockProps> = ({ job, onOpenSignatureModal }) => {
                                 fontWeight: '600',
                                 fontSize: 14,
                             }}>
-                                Terminer
+                                {t('jobDetails.components.jobClock.finish')}
                             </Text>
                         </Pressable>
                     )}
