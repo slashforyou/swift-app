@@ -88,7 +88,8 @@ const JobSummary = ({ job, setJob, onOpenPaymentPanel } : { job: any, setJob: Re
             } else {
                 throw new Error(t('jobDetails.messages.noteAddErrorMessage'));
             }
-        } catch (error) {
+        } catch (error) {
+
             track.error('api_error', `Failed to add note: ${error}`, { 
                 jobId: job?.id, 
                 note_type: note_type 
@@ -117,7 +118,8 @@ const JobSummary = ({ job, setJob, onOpenPaymentPanel } : { job: any, setJob: Re
             } else {
                 throw new Error(t('jobDetails.messages.photoAddErrorMessage'));
             }
-        } catch (error) {
+        } catch (error) {
+
             console.error('Error uploading photo:', error);
             showError(t('jobDetails.messages.photoAddError'), t('jobDetails.messages.photoAddErrorMessage'));
         }
@@ -171,18 +173,19 @@ const JobSummary = ({ job, setJob, onOpenPaymentPanel } : { job: any, setJob: Re
             } else {
                 console.error('❌ [SUMMARY] API returned error:', response.error);
                 showError(
-                    'Erreur de synchronisation',
-                    response.error || 'La mise à jour de l\'étape a échoué.'
+                    t('jobDetails.messages.syncError'),
+                    response.error || t('jobDetails.messages.syncErrorMessage')
                 );
                 throw new Error(response.error);
             }
             
             return Promise.resolve();
-        } catch (error) {
+        } catch (error) {
+
             console.error('❌ [SUMMARY] Error advancing step:', error);
             showError(
-                'Erreur',
-                'Impossible de mettre à jour l\'étape. Vérifiez votre connexion.'
+                t('jobDetails.messages.stepUpdateError'),
+                t('jobDetails.messages.stepUpdateErrorMessage')
             );
             throw error;
         }
@@ -199,7 +202,8 @@ const JobSummary = ({ job, setJob, onOpenPaymentPanel } : { job: any, setJob: Re
                 
                 // Synchroniser avec l'API
                 await handleAdvanceStep(targetStep);
-            } catch (error) {
+            } catch (error) {
+
                 console.error('Failed to advance step:', error);
             }
         }
@@ -241,13 +245,14 @@ const JobSummary = ({ job, setJob, onOpenPaymentPanel } : { job: any, setJob: Re
                                     signatureDataUrl: signature, // Garder aussi la data URL locale
                                     signatureFileUri: '' // Sera mis à jour par signingBloc
                                 });
-                                showSuccess('Signature enregistrée avec succès!');
+                                showSuccess(t('jobDetails.messages.signatureSaved'));
                             } else {
-                                showError('Erreur', result.message || 'Impossible de sauvegarder la signature');
+                                showError(t('jobDetails.messages.signatureSaveError'), result.message || t('jobDetails.messages.signatureSaveErrorMessage'));
                             }
-                        } catch (error) {
+                        } catch (error) {
+
                             console.error('Erreur lors de la sauvegarde de la signature:', error);
-                            showError('Erreur', 'Une erreur est survenue lors de la sauvegarde');
+                            showError(t('jobDetails.messages.signatureSaveError'), t('jobDetails.messages.signatureSaveErrorMessage'));
                         }
                     }}
                     job={job} 

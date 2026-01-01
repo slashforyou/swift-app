@@ -24,6 +24,7 @@ export const frTranslations: TranslationKeys = {
         continue: 'Continuer',
         skip: 'Passer',
         retry: 'Réessayer',
+        confirm: 'Confirmer',
         refresh: 'Actualiser',
         settings: 'Paramètres',
         language: 'Langue',
@@ -377,6 +378,13 @@ export const frTranslations: TranslationKeys = {
             photoDescription: 'Photo du job',
             nextStep: 'Étape suivante',
             advancedToStep: 'Passé à l\'étape',
+            syncError: 'Erreur de synchronisation',
+            syncErrorMessage: 'La mise à jour de l\'étape a échoué.',
+            stepUpdateError: 'Erreur',
+            stepUpdateErrorMessage: 'Impossible de mettre à jour l\'étape. Vérifiez votre connexion.',
+            signatureSaved: 'Signature enregistrée avec succès!',
+            signatureSaveError: 'Erreur',
+            signatureSaveErrorMessage: 'Impossible de sauvegarder la signature.',
         },
         // Payment page
         payment: {
@@ -830,6 +838,13 @@ export const frTranslations: TranslationKeys = {
             loadError: 'Erreur lors du chargement de Stripe. Vérifiez votre connexion internet.',
             canceledOrError: 'Connexion annulée ou erreur lors de la configuration',
             retry: 'Réessayer',
+        },
+        stripeOnboarding: {
+            onboardingInterrupted: 'Onboarding interrompu ou échoué',
+            loadError: 'Erreur lors du chargement de la page d\'onboarding',
+            loading: 'Chargement de l\'onboarding Stripe...',
+            retry: 'Réessayer',
+            close: 'Fermer',
         },
     },
 

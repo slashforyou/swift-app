@@ -25,6 +25,7 @@ export const zhTranslations = {
         continue: '继续',
         skip: '跳过',
         retry: '重试',
+        confirm: '确认',
         refresh: '刷新',
         settings: '设置',
         language: '语言',
@@ -369,6 +370,13 @@ export const zhTranslations = {
             photoDescription: '工作照片',
             nextStep: '下一步',
             advancedToStep: '已进入步骤',
+            syncError: '同步错误',
+            syncErrorMessage: '步骤更新失败。',
+            stepUpdateError: '错误',
+            stepUpdateErrorMessage: '无法更新步骤。请检查您的连接。',
+            signatureSaved: '签名保存成功！',
+            signatureSaveError: '错误',
+            signatureSaveErrorMessage: '无法保存签名。',
         },
         // Payment page
         payment: {
@@ -959,6 +967,13 @@ export const zhTranslations = {
             loadError: '加载 Stripe 时出错。请检查您的网络连接。',
             canceledOrError: '连接已取消或配置过程中出错',
             retry: '重试',
+        },
+        stripeOnboarding: {
+            onboardingInterrupted: '入门流程中断或失败',
+            loadError: '加载入门页面时出错',
+            loading: '正在加载 Stripe 入门...',
+            retry: '重试',
+            close: '关闭',
         },
     },
 

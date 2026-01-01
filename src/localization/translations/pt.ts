@@ -25,6 +25,7 @@ export const ptTranslations = {
         continue: 'Continuar',
         skip: 'Pular',
         retry: 'Tentar novamente',
+        confirm: 'Confirmar',
         refresh: 'Atualizar',
         settings: 'Configurações',
         language: 'Idioma',
@@ -430,6 +431,13 @@ export const ptTranslations = {
             photoDescription: 'Foto do trabalho',
             nextStep: 'Próxima Etapa',
             advancedToStep: 'Avançado para a etapa',
+            syncError: 'Erro de sincronização',
+            syncErrorMessage: 'A atualização da etapa falhou.',
+            stepUpdateError: 'Erro',
+            stepUpdateErrorMessage: 'Não foi possível atualizar a etapa. Verifique sua conexão.',
+            signatureSaved: 'Assinatura salva com sucesso!',
+            signatureSaveError: 'Erro',
+            signatureSaveErrorMessage: 'Não foi possível salvar a assinatura.',
         },
         // Payment page
         payment: {
@@ -947,6 +955,13 @@ export const ptTranslations = {
             loadError: 'Erro ao carregar Stripe. Verifique sua conexão com a internet.',
             canceledOrError: 'Conexão cancelada ou erro durante a configuração',
             retry: 'Tentar novamente',
+        },
+        stripeOnboarding: {
+            onboardingInterrupted: 'Onboarding interrompido ou falhou',
+            loadError: 'Erro ao carregar a página de onboarding',
+            loading: 'Carregando onboarding do Stripe...',
+            retry: 'Tentar novamente',
+            close: 'Fechar',
         },
     },
 

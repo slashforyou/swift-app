@@ -45,6 +45,7 @@ export interface TranslationKeys {
         continue: string;
         skip: string;
         retry: string;
+        confirm: string;
         refresh: string;
         settings: string;
         language: string;
@@ -407,6 +408,13 @@ export interface TranslationKeys {
             photoDescription: string;
             nextStep: string;
             advancedToStep: string;
+            syncError: string;
+            syncErrorMessage: string;
+            stepUpdateError: string;
+            stepUpdateErrorMessage: string;
+            signatureSaved: string;
+            signatureSaveError: string;
+            signatureSaveErrorMessage: string;
         };
         // Payment page labels
         payment: {
@@ -872,6 +880,13 @@ export interface TranslationKeys {
             loadError: string;
             canceledOrError: string;
             retry: string;
+        };
+        stripeOnboarding: {
+            onboardingInterrupted: string;
+            loadError: string;
+            loading: string;
+            retry: string;
+            close: string;
         };
     };
 

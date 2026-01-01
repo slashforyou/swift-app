@@ -25,6 +25,7 @@ export const esTranslations = {
         continue: 'Continuar',
         skip: 'Saltar',
         retry: 'Reintentar',
+        confirm: 'Confirmar',
         refresh: 'Actualizar',
         settings: 'Configuración',
         language: 'Idioma',
@@ -366,6 +367,13 @@ export const esTranslations = {
             photoDescription: 'Foto del trabajo',
             nextStep: 'Siguiente Paso',
             advancedToStep: 'Avanzado al paso',
+            syncError: 'Error de sincronización',
+            syncErrorMessage: 'La actualización del paso falló.',
+            stepUpdateError: 'Error',
+            stepUpdateErrorMessage: 'No se pudo actualizar el paso. Verifica tu conexión.',
+            signatureSaved: '¡Firma guardada exitosamente!',
+            signatureSaveError: 'Error',
+            signatureSaveErrorMessage: 'No se pudo guardar la firma.',
         },
         // Payment page
         payment: {
@@ -830,6 +838,13 @@ export const esTranslations = {
             loadError: 'Error al cargar Stripe. Verifica tu conexión a internet.',
             canceledOrError: 'Conexión cancelada o error durante la configuración',
             retry: 'Reintentar',
+        },
+        stripeOnboarding: {
+            onboardingInterrupted: 'Incorporación interrumpida o fallida',
+            loadError: 'Error al cargar la página de incorporación',
+            loading: 'Cargando incorporación de Stripe...',
+            retry: 'Reintentar',
+            close: 'Cerrar',
         },
     },
 

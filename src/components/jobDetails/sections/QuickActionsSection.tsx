@@ -92,9 +92,9 @@ const QuickActionsSection: React.FC<QuickActionsSectionProps> = ({
                     t('jobDetails.components.quickActions.advanceStep'),
                     t('jobDetails.components.quickActions.goToStep', { stepName: nextStepName }),
                     [
-                        { text: 'Annuler', style: 'cancel' },
+                        { text: t('common.cancel'), style: 'cancel' },
                         { 
-                            text: 'Confirmer', 
+                            text: t('common.confirm'), 
                             onPress: () => {
                                 setJob((prevJob: any) => ({
                                     ...prevJob,

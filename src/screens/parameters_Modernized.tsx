@@ -19,6 +19,7 @@ import {
 } from '../design-system/components';
 
 // Hooks et utilitaires
+import { useLocalization } from '../localization/useLocalization';
 import { useAuthCheck } from '../utils/checkAuth';
 
 interface ParametersProps {
@@ -80,6 +81,7 @@ interface SettingPickerProps {
 const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
     const { isLoading, LoadingComponent } = useAuthCheck(navigation);
     const { colors } = useTheme();
+    const { t } = useLocalization();
     
     const [settings, setSettings] = useState<AppSettings>({
         notifications: {
@@ -298,12 +300,12 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
 
     const resetSettings = () => {
         Alert.alert(
-            'Réinitialiser les paramètres',
-            'Êtes-vous sûr de vouloir remettre tous les paramètres à leur valeur par défaut ?',
+            t('settings.dialogs.resetSettings.title'),
+            t('settings.dialogs.resetSettings.message'),
             [
-                { text: 'Annuler', style: 'cancel' },
+                { text: t('settings.dialogs.resetSettings.cancel'), style: 'cancel' },
                 { 
-                    text: 'Réinitialiser', 
+                    text: t('settings.dialogs.resetSettings.confirm'), 
                     style: 'destructive',
                     onPress: () => {
                         setSettings({
@@ -332,7 +334,7 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
                                 developerMode: false,
                             },
                         });
-                        Alert.alert('Succès', 'Les paramètres ont été réinitialisés');
+                        Alert.alert(t('settings.dialogs.resetSuccess.title'), t('settings.dialogs.resetSuccess.message'));
                     }
                 },
             ]

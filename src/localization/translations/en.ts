@@ -24,6 +24,7 @@ export const enTranslations: TranslationKeys = {
         continue: 'Continue',
         skip: 'Skip',
         retry: 'Retry',
+        confirm: 'Confirm',
         refresh: 'Refresh',
         settings: 'Settings',
         language: 'Language',
@@ -377,6 +378,13 @@ export const enTranslations: TranslationKeys = {
             photoDescription: 'Job photo',
             nextStep: 'Next Step',
             advancedToStep: 'Advanced to step',
+            syncError: 'Sync Error',
+            syncErrorMessage: 'Step update failed.',
+            stepUpdateError: 'Error',
+            stepUpdateErrorMessage: 'Unable to update the step. Check your connection.',
+            signatureSaved: 'Signature saved successfully!',
+            signatureSaveError: 'Error',
+            signatureSaveErrorMessage: 'Unable to save signature.',
         },
         // Payment page
         payment: {
@@ -830,6 +838,13 @@ export const enTranslations: TranslationKeys = {
             loadError: 'Error loading Stripe. Please check your internet connection.',
             canceledOrError: 'Connection canceled or error during setup',
             retry: 'Retry',
+        },
+        stripeOnboarding: {
+            onboardingInterrupted: 'Onboarding interrupted or failed',
+            loadError: 'Error loading the onboarding page',
+            loading: 'Loading Stripe onboarding...',
+            retry: 'Retry',
+            close: 'Close',
         },
     },
 

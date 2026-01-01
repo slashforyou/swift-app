@@ -4,6 +4,7 @@ import { WebView } from 'react-native-webview';
 import { useTheme } from '../../context/ThemeProvider_Advanced';
 import { Button } from '../../design-system/components';
 import { DESIGN_TOKENS } from '../../design-system/tokens';
+import { useLocalization } from '../../localization/useLocalization';
 
 interface StripeOnboardingWebViewProps {
   url: string;
@@ -19,6 +20,7 @@ const StripeOnboardingWebView: React.FC<StripeOnboardingWebViewProps> = ({
   onClose,
 }) => {
   const { colors } = useTheme();
+  const { t } = useLocalization();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,7 +28,7 @@ const StripeOnboardingWebView: React.FC<StripeOnboardingWebViewProps> = ({
     if (navState.url.includes('success') || navState.url.includes('complete')) {
       onComplete();
     } else if (navState.url.includes('error') || navState.url.includes('cancel')) {
-      onError('Onboarding interrompu ou échoué');
+      onError(t('payment.stripeOnboarding.onboardingInterrupted'));
     }
   };
 
@@ -36,7 +38,7 @@ const StripeOnboardingWebView: React.FC<StripeOnboardingWebViewProps> = ({
 
   const handleError = () => {
     setLoading(false);
-    setError('Erreur lors du chargement de la page d\'onboarding');
+    setError(t('payment.stripeOnboarding.loadError'));
   };
 
   if (error) {
@@ -57,7 +59,7 @@ const StripeOnboardingWebView: React.FC<StripeOnboardingWebViewProps> = ({
           {error}
         </Text>
         <Button
-          title="Réessayer"
+          title={t('payment.stripeOnboarding.retry')}
           variant="primary"
           onPress={() => {
             setError(null);
@@ -65,7 +67,7 @@ const StripeOnboardingWebView: React.FC<StripeOnboardingWebViewProps> = ({
           }}
         />
         <Button
-          title="Fermer"
+          title={t('payment.stripeOnboarding.close')}
           variant="secondary"
           onPress={onClose}
           style={{ marginTop: DESIGN_TOKENS.spacing.md }}
@@ -94,7 +96,7 @@ const StripeOnboardingWebView: React.FC<StripeOnboardingWebViewProps> = ({
             color: colors.textSecondary,
             textAlign: 'center',
           }}>
-            Chargement de l'onboarding Stripe...
+            {t('payment.stripeOnboarding.loading')}
           </Text>
         </View>
       )}

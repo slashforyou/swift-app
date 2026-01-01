@@ -25,6 +25,7 @@ export const hiTranslations = {
         continue: 'जारी रखें',
         skip: 'छोड़ें',
         retry: 'पुनः प्रयास करें',
+        confirm: 'पुष्टि करें',
         refresh: 'ताज़ा करें',
         settings: 'सेटिंग्स',
         language: 'भाषा',
@@ -369,6 +370,13 @@ export const hiTranslations = {
             photoDescription: 'नौकरी की फ़ोटो',
             nextStep: 'अगला चरण',
             advancedToStep: 'चरण पर आगे बढ़ा',
+            syncError: 'सिंक त्रुटि',
+            syncErrorMessage: 'चरण अपडेट विफल।',
+            stepUpdateError: 'त्रुटि',
+            stepUpdateErrorMessage: 'चरण अपडेट नहीं हो सका। अपना कनेक्शन जांचें।',
+            signatureSaved: 'हस्ताक्षर सफलतापूर्वक सहेजा गया!',
+            signatureSaveError: 'त्रुटि',
+            signatureSaveErrorMessage: 'हस्ताक्षर सहेजा नहीं जा सका।',
         },
         // Payment page
         payment: {
@@ -959,6 +967,13 @@ export const hiTranslations = {
             loadError: 'Stripe लोड करने में त्रुटि। कृपया अपना इंटरनेट कनेक्शन जांचें।',
             canceledOrError: 'कनेक्शन रद्द या सेटअप के दौरान त्रुटि',
             retry: 'पुनः प्रयास करें',
+        },
+        stripeOnboarding: {
+            onboardingInterrupted: 'ऑनबोर्डिंग बाधित या विफल',
+            loadError: 'ऑनबोर्डिंग पेज लोड करने में त्रुटि',
+            loading: 'Stripe ऑनबोर्डिंग लोड हो रहा है...',
+            retry: 'पुनः प्रयास करें',
+            close: 'बंद करें',
         },
     },
 

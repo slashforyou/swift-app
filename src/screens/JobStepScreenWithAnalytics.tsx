@@ -7,6 +7,7 @@ import React, { useEffect, useState } from 'react';
 import { Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../context/ThemeProvider';
 import { useAnalytics } from '../hooks/useAnalytics';
+import { useLocalization } from '../localization/useLocalization';
 import { updateJobStep } from '../services/jobSteps';
 import { logger } from '../services/logger';
 
@@ -24,6 +25,7 @@ interface JobStepScreenProps {
 export default function JobStepScreen({ route, navigation }: JobStepScreenProps) {
   const { jobId, currentStep: initialStep, totalSteps } = route.params;
   const { colors } = useTheme();
+  const { t } = useLocalization();
   const analytics = useAnalytics('JobStepScreen', 'JobList');
   
   const [currentStep, setCurrentStep] = useState(initialStep);
@@ -105,7 +107,8 @@ export default function JobStepScreen({ route, navigation }: JobStepScreenProps)
         }, 1500);
       }
 
-    } catch (error) {
+    } catch (error) {
+
       logger.error('Failed to update job step', {
         error: error instanceof Error ? error.message : 'Unknown error',
         jobId,
@@ -122,9 +125,9 @@ export default function JobStepScreen({ route, navigation }: JobStepScreenProps)
       });
 
       Alert.alert(
-        'Erreur',
-        'Impossible de mettre à jour l\'étape. Veuillez réessayer.',
-        [{ text: 'OK' }]
+        t('common.error'),
+        t('jobDetails.components.stepAdvanceModal.syncErrorMessage'),
+        [{ text: t('common.ok') }]
       );
     } finally {
       setIsUpdating(false);
