@@ -16,6 +16,7 @@ import { DESIGN_TOKENS } from '../../../constants/Styles';
 import { useJobTimerContext } from '../../../context/JobTimerProvider';
 import { useTheme } from '../../../context/ThemeProvider';
 import { useToast } from '../../../context/ToastProvider';
+import { useLocalization } from '../../../localization/useLocalization';
 
 interface JobStepAdvanceModalProps {
     isVisible: boolean;
@@ -31,6 +32,7 @@ const JobStepAdvanceModal: React.FC<JobStepAdvanceModalProps> = ({
     onAdvanceStep
 }) => {
     const { colors } = useTheme();
+    const { t } = useLocalization();
     const { showSuccess, showError } = useToast();
     const [isUpdating, setIsUpdating] = useState(false);
     const [selectedStep, setSelectedStep] = useState<number | null>(null);
@@ -73,7 +75,10 @@ const JobStepAdvanceModal: React.FC<JobStepAdvanceModalProps> = ({
             await onAdvanceStep(stepIndex + 1); // +1 car l'index commence à 0 mais les steps à 1
             
             // TEMP_DISABLED: console.log(`✅ [MODAL] Successfully advanced to step ${stepIndex + 1}`);
-            showSuccess('Étape mise à jour', `${stepName} activée avec succès`);
+            showSuccess(
+                t('jobDetails.components.stepAdvanceModal.stepUpdated'), 
+                t('jobDetails.components.stepAdvanceModal.stepUpdatedMessage', { stepName })
+            );
             
             // Fermer le modal après un court délai pour voir le feedback
             setTimeout(() => {
@@ -81,11 +86,12 @@ const JobStepAdvanceModal: React.FC<JobStepAdvanceModalProps> = ({
                 setSelectedStep(null);
             }, 1500);
             
-        } catch (error) {
+        } catch (error) {
+
             console.error('❌ [MODAL] Error advancing step:', error);
             showError(
-                'Erreur de synchronisation', 
-                'Impossible de mettre à jour l\'étape. Vérifiez votre connexion.'
+                t('jobDetails.components.stepAdvanceModal.syncError'), 
+                t('jobDetails.components.stepAdvanceModal.syncErrorMessage')
             );
         } finally {
             setIsUpdating(false);
@@ -284,10 +290,10 @@ const JobStepAdvanceModal: React.FC<JobStepAdvanceModalProps> = ({
 
     const getStatusLabel = (status: string) => {
         switch (status) {
-            case 'completed': return 'Terminé';
-            case 'current': return 'En cours';
-            case 'pending': return 'En attente';
-            default: return 'En attente';
+            case 'completed': return t('jobDetails.components.stepAdvanceModal.statusCompleted');
+            case 'current': return t('jobDetails.components.stepAdvanceModal.statusCurrent');
+            case 'pending': return t('jobDetails.components.stepAdvanceModal.statusPending');
+            default: return t('jobDetails.components.stepAdvanceModal.statusPending');
         }
     };
 
@@ -307,9 +313,9 @@ const JobStepAdvanceModal: React.FC<JobStepAdvanceModalProps> = ({
                         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
                             {/* Header */}
                             <View style={styles.header}>
-                                <Text style={styles.title}>Avancement du Job</Text>
+                                <Text style={styles.title}>{t('jobDetails.components.stepAdvanceModal.title')}</Text>
                                 <Text style={styles.subtitle}>
-                                    Gérer les étapes de progression
+                                    {t('jobDetails.components.stepAdvanceModal.subtitle')}
                                 </Text>
                             </View>
 
@@ -317,7 +323,7 @@ const JobStepAdvanceModal: React.FC<JobStepAdvanceModalProps> = ({
                             <View style={styles.progressOverview}>
                                 <View style={styles.progressInfo}>
                                     <Text style={styles.progressTitle}>
-                                        Étape {currentStep} sur {jobSteps.length}
+                                        {t('jobDetails.components.stepAdvanceModal.stepProgress', { current: currentStep, total: jobSteps.length })}
                                     </Text>
                                     <Text style={styles.progressSubtitle}>
                                         Job {job?.code || job?.id}
@@ -373,9 +379,9 @@ const JobStepAdvanceModal: React.FC<JobStepAdvanceModalProps> = ({
                                                 </View>
 
                                                 <View style={styles.stepInfo}>
-                                                    <Text style={styles.stepName}>{step.name || `Étape ${index + 1}`}</Text>
+                                                    <Text style={styles.stepName}>{step.name || t('jobDetails.steps.intermediate')}</Text>
                                                     <Text style={styles.stepDescription}>
-                                                        {step.description || 'Aucune description'}
+                                                        {step.description || t('jobDetails.components.stepAdvanceModal.noDescription')}
                                                     </Text>
                                                 </View>
 
@@ -401,7 +407,7 @@ const JobStepAdvanceModal: React.FC<JobStepAdvanceModalProps> = ({
                                                             disabled={isUpdating}
                                                         >
                                                             <Text style={styles.advanceButtonText}>
-                                                                {isProcessing ? 'En cours...' : 'Avancer'}
+                                                                {isProcessing ? t('jobDetails.components.stepAdvanceModal.advancing') : t('jobDetails.components.stepAdvanceModal.advance')}
                                                             </Text>
                                                         </Pressable>
                                                     )}
@@ -419,7 +425,7 @@ const JobStepAdvanceModal: React.FC<JobStepAdvanceModalProps> = ({
                             onPress={onClose}
                             disabled={isUpdating}
                         >
-                            <Text style={styles.cancelText}>Fermer</Text>
+                            <Text style={styles.cancelText}>{t('jobDetails.components.stepAdvanceModal.close')}</Text>
                         </Pressable>
 
                         {/* Loading Overlay */}
@@ -435,7 +441,7 @@ const JobStepAdvanceModal: React.FC<JobStepAdvanceModalProps> = ({
                                     color: colors.text,
                                     fontWeight: '600'
                                 }}>
-                                    Mise à jour en cours...
+                                    {t('jobDetails.components.stepAdvanceModal.updating')}
                                 </Text>
                             </View>
                         )}

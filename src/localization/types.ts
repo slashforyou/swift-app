@@ -650,6 +650,23 @@ export interface TranslationKeys {
                     unknown: string;
                 };
             };
+            stepAdvanceModal: {
+                title: string;
+                subtitle: string;
+                stepProgress: string;
+                stepUpdated: string;
+                stepUpdatedMessage: string;
+                syncError: string;
+                syncErrorMessage: string;
+                statusCompleted: string;
+                statusCurrent: string;
+                statusPending: string;
+                noDescription: string;
+                advancing: string;
+                advance: string;
+                close: string;
+                updating: string;
+            };
         };
     };
 
