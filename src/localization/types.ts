@@ -522,6 +522,36 @@ export interface TranslationKeys {
                 clientValidated: string;
                 contractMustBeSigned: string;
             };
+            photos: {
+                title: string;
+                deleteConfirm: string;
+                deleteTitle: string;
+                cancel: string;
+                delete: string;
+                added: string;
+                addedSuccess: string;
+                descriptionUpdated: string;
+                updateError: string;
+                deleted: string;
+                error: string;
+                success: string;
+                noDescription: string;
+                withoutDescription: string;
+                nonImageFile: string;
+                loadError: string;
+                stages: {
+                    pickup: string;
+                    delivery: string;
+                    other: string;
+                    before: string;
+                    after: string;
+                };
+                time: {
+                    minutesAgo: string;
+                    hoursAgo: string;
+                    daysAgo: string;
+                };
+            };
         };
     };
 

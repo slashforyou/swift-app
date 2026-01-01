@@ -22,6 +22,7 @@ import {
 import { DESIGN_TOKENS } from '../../../constants/Styles';
 import { useCommonThemedStyles } from '../../../hooks/useCommonStyles';
 import { useJobPhotos } from '../../../hooks/useJobPhotos';
+import { useLocalization } from '../../../localization/useLocalization';
 import { JobPhotoAPI } from '../../../services/jobPhotos';
 import { HStack, VStack } from '../../primitives/Stack';
 import { Card } from '../../ui/Card';
@@ -69,7 +70,8 @@ const formatPhotoDate = (dateString?: string): string => {
     const minutes = date.getMinutes().toString().padStart(2, '0');
     
     return `${day}/${month}/${year} ${hours}:${minutes}`;
-  } catch (e) {
+  } catch (e) {
+
     return '';
   }
 };
@@ -158,6 +160,7 @@ const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
   onDelete 
 }) => {
   const { colors } = useCommonThemedStyles();
+  const { t } = useLocalization();
   const [editMode, setEditMode] = useState(false);
   const [description, setDescription] = useState('');
   const screenWidth = Dimensions.get('window').width;
@@ -204,12 +207,12 @@ const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
   const handleDelete = () => {
     if (photo) {
       Alert.alert(
-        'Supprimer la photo',
-        'Êtes-vous sûr de vouloir supprimer cette photo ?',
+        t('jobDetails.components.photos.deleteTitle'),
+        t('jobDetails.components.photos.deleteConfirm'),
         [
-          { text: 'Annuler', style: 'cancel' },
+          { text: t('jobDetails.components.photos.cancel'), style: 'cancel' },
           { 
-            text: 'Supprimer', 
+            text: t('jobDetails.components.photos.delete'), 
             style: 'destructive',
             onPress: () => {
               onDelete(String(photo.id));
@@ -424,7 +427,7 @@ const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
                   fontSize: 16,
                   lineHeight: 24
                 }}>
-                  {photo.description || 'Aucune description'}
+                  {photo.description || t('jobDetails.components.photos.noDescription')}
                 </Text>
               </VStack>
             )}
@@ -437,6 +440,7 @@ const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
 
 const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete }) => {
   const { colors } = useCommonThemedStyles();
+  const { t } = useLocalization();
   const [imageError, setImageError] = React.useState(false);
   const [showEditModal, setShowEditModal] = React.useState(false);
   const [editDescription, setEditDescription] = React.useState(photo.description || '');
@@ -481,17 +485,7 @@ const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete 
         photoUrl,
         (width, height) => {
           setImageDimensions({ width, height });
-          const aspectRatio = width / height;
-          const orientation = height > width ? 'Portrait' : width > height ? 'Paysage' : 'Carré';
-          // TEMP_DISABLED: console.log(`📐 [PhotoItem ${photo.id}] Dimensions réelles:`, {
-            // width,
-            // height,
-            // aspectRatio: aspectRatio.toFixed(2),
-            // orientation,
-            // filename: photo.filename,
-            // displaySize: '48% width, aspectRatio: 1 (carré)',
-            // resizeMode: 'cover'
-          // });
+          // Debug code disabled
         },
         (error) => {
           console.warn(`⚠️ [PhotoItem ${photo.id}] Impossible de récupérer dimensions:`, error);
@@ -562,7 +556,7 @@ const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete 
               textAlign: 'center',
               paddingHorizontal: 8
             }}>
-              {!isValidImageFile ? 'Fichier non-image' : 'Erreur chargement'}
+              {!isValidImageFile ? t('jobDetails.components.photos.nonImageFile') : t('jobDetails.components.photos.loadError')}
             </Text>
           </View>
         ) : (
@@ -629,7 +623,7 @@ const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete 
                 lineHeight: 14
               }}
             >
-              {photo.description || 'Sans description'}
+              {photo.description || t('jobDetails.components.photos.withoutDescription')}
             </Text>
             <Pressable 
               onPress={(e) => {
@@ -747,6 +741,7 @@ const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete 
 
 export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId }) => {
   const { colors } = useCommonThemedStyles();
+  const { t } = useLocalization();
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<JobPhotoAPI | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
@@ -782,12 +777,13 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId }) => 
       if (result) {await refetch();
         // TEMP_DISABLED: console.log('✅ [DEBUG] Photos rechargées');
         
-        Alert.alert('Succès', 'Photo ajoutée avec succès !');
+        Alert.alert(t('jobDetails.components.photos.success'), t('jobDetails.components.photos.addedSuccess'));
       }
-    } catch (err) {
+    } catch (err) {
+
       console.error('❌ [DEBUG] Erreur dans uploadPhoto:', err);
       console.error('❌ [DEBUG] Stack trace:', err instanceof Error ? err.stack : 'N/A');
-      Alert.alert('Erreur', 'Erreur lors de l\'ajout de la photo');
+      Alert.alert(t('jobDetails.components.photos.error'), t('jobDetails.components.photos.updateError'));
     }
   };
 
@@ -803,9 +799,10 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId }) => 
       // ✅ Recharger toutes les photos depuis le serveur
       await refetch();
       
-      Alert.alert('Succès', 'Description mise à jour !');
-    } catch (err) {
-      Alert.alert('Erreur', 'Erreur lors de la mise à jour');
+      Alert.alert(t('jobDetails.components.photos.success'), t('jobDetails.components.photos.descriptionUpdated'));
+    } catch (err) {
+
+      Alert.alert(t('jobDetails.components.photos.error'), t('jobDetails.components.photos.updateError'));
     }
   };
 
@@ -816,9 +813,10 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId }) => 
       // ✅ Recharger toutes les photos depuis le serveur
       await refetch();
       
-      Alert.alert('Succès', 'Photo supprimée !');
-    } catch (err) {
-      Alert.alert('Erreur', 'Erreur lors de la suppression');
+      Alert.alert(t('jobDetails.components.photos.success'), t('jobDetails.components.photos.deleted'));
+    } catch (err) {
+
+      Alert.alert(t('jobDetails.components.photos.error'), t('jobDetails.components.photos.updateError'));
     }
   };
 

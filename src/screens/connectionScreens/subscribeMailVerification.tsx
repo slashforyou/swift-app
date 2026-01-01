@@ -1,19 +1,19 @@
+import { ServerData } from '@/src/constants/ServerData';
+import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { 
-    View, 
-    Text, 
-    Pressable, 
-    TextInput, 
+import {
+    KeyboardAvoidingView,
+    Platform,
+    Pressable,
     SafeAreaView,
     ScrollView,
-    KeyboardAvoidingView,
-    Platform 
+    Text,
+    TextInput,
+    View
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
-import { ServerData } from '@/src/constants/ServerData';
 import AlertMessage from '../../components/ui/AlertMessage';
 import AnimatedBackground from '../../components/ui/AnimatedBackground';
+import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 import { useLocalization } from '../../localization/useLocalization';
 
 type RootStackParamList = {
