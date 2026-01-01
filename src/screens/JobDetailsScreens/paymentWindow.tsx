@@ -188,8 +188,8 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
   const handlePaymentSheet = async () => {
     // Redirect vers la méthode carte pour le moment
     Alert.alert(
-      "PaymentSheet indisponible",
-      "Utilisons la méthode carte manuelle pour le moment. PaymentSheet sera activé en production.",
+      t('payment.window.paymentSheetUnavailable'),
+      t('payment.window.paymentSheetFallbackMessage'),
       [
         { text: "OK", onPress: () => handleMethodSelect('card') }
       ]
@@ -280,7 +280,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
   const handleCashPayment = async () => {
     const cashValue = parseFloat(state.cashAmount);
     if (!cashValue || cashValue < paymentAmount) {
-      Alert.alert("Montant incorrect", `Le montant doit être au moins ${formatCurrency(paymentAmount)}`);
+      Alert.alert(t('payment.window.incorrectAmount'), t('payment.window.incorrectAmountMessage', { amount: formatCurrency(paymentAmount) }));
       return;
     }
 
@@ -372,7 +372,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
         textAlign: 'center',
         marginBottom: DESIGN_TOKENS.spacing.xs,
       }}>
-        Choisir le mode de paiement
+        {t('payment.window.chooseMethod')}
       </Text>
       
       <Text style={{
@@ -381,7 +381,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
         textAlign: 'center',
         marginBottom: DESIGN_TOKENS.spacing.sm,
       }}>
-        Montant à payer : {formatCurrency(paymentAmount)}
+        {t('payment.window.amountToPay')} {formatCurrency(paymentAmount)}
       </Text>
 
       {/* ✅ Affichage des erreurs de paiement */}
@@ -400,7 +400,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
             fontWeight: '600',
             marginBottom: 4,
           }}>
-            ⚠️ Erreur de paiement
+            {t('payment.window.paymentError')}
           </Text>
           <Text style={{
             fontSize: 13,
@@ -495,7 +495,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
               color: colors.text,
               marginBottom: 4,
             }}>
-              Paiement sécurisé ⚡
+              {t('payment.window.securePayment')}
             </Text>
             <Text style={{
               fontSize: 14,
@@ -538,13 +538,13 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
               color: colors.text,
               marginBottom: 4,
             }}>
-              Carte bancaire (Manuel)
+              {t('payment.window.cardManualTitle')}
             </Text>
             <Text style={{
               fontSize: 14,
               color: colors.textSecondary,
             }}>
-              Paiement sécurisé par carte
+              {t('payment.window.secureCardPayment')}
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={24} color={colors.textSecondary} />
@@ -577,13 +577,13 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
               color: colors.text,
               marginBottom: 4,
             }}>
-              Espèces
+              {t('payment.window.cashPayment')}
             </Text>
             <Text style={{
               fontSize: 14,
               color: colors.textSecondary,
             }}>
-              Paiement en liquide
+              {t('payment.window.cashPayment')}
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={24} color={colors.textSecondary} />
@@ -601,7 +601,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
         textAlign: 'center',
         marginBottom: DESIGN_TOKENS.spacing.xs,
       }}>
-        Informations de la carte
+        {t('payment.window.cardInfo')}
       </Text>
       
       <Text style={{
@@ -720,7 +720,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
               borderColor: colors.border,
               height: 50, // Même hauteur que CardField
             }}
-            placeholder="Jean Dupont"
+            placeholder={t('payment.window.cardNamePlaceholder')}
             placeholderTextColor={colors.textSecondary}
             value={state.newCard.name}
             onChangeText={(text) => updateState({ 
@@ -798,7 +798,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
         textAlign: 'center',
         marginBottom: DESIGN_TOKENS.spacing.xs,
       }}>
-        Paiement en espèces
+        {t('payment.window.cashPaymentTitle')}
       </Text>
       
       <Text style={{
@@ -807,7 +807,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
         textAlign: 'center',
         marginBottom: DESIGN_TOKENS.spacing.sm,
       }}>
-        Montant à payer : {formatCurrency(paymentAmount)}
+        {t('payment.window.amountToPay')} {formatCurrency(paymentAmount)}
       </Text>
 
       {/* ✅ Afficher le détail du calcul */}
@@ -819,13 +819,13 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
           marginBottom: DESIGN_TOKENS.spacing.lg,
         }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
-            <Text style={{ fontSize: 12, color: colors.textSecondary }}>Temps facturable</Text>
+            <Text style={{ fontSize: 12, color: colors.textSecondary }}>{t('jobDetails.payment.liveTracking.billableTime')}</Text>
             <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text }}>
               {formatTime(billableTime)}
             </Text>
           </View>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-            <Text style={{ fontSize: 12, color: colors.textSecondary }}>Taux horaire</Text>
+            <Text style={{ fontSize: 12, color: colors.textSecondary }}>{t('jobDetails.payment.billingBreakdown.hourlyRate')}</Text>
             <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text }}>
               {costData.hours.toFixed(2)}h × {HOURLY_RATE_AUD} AUD/h
             </Text>
@@ -840,7 +840,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
           color: colors.text,
           marginBottom: DESIGN_TOKENS.spacing.xs,
         }}>
-          Montant reçu
+          {t('payment.window.amountReceived')}
         </Text>
         <TextInput
           style={{
@@ -942,7 +942,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
         marginTop: DESIGN_TOKENS.spacing.lg,
         textAlign: 'center',
       }}>
-        Traitement du paiement...
+        {t('payment.window.processingPayment')}
       </Text>
     </View>
   );
@@ -970,7 +970,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
         textAlign: 'center',
         marginBottom: DESIGN_TOKENS.spacing.sm,
       }}>
-        Paiement réussi !
+        {t('payment.window.paymentSuccess')}
       </Text>
       
       <Text style={{
@@ -978,7 +978,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
         color: colors.textSecondary,
         textAlign: 'center',
       }}>
-        Le paiement de {formatCurrency(paymentAmount)} a été traité avec succès.
+        {t('payment.window.paymentSuccessMessage', { amount: formatCurrency(paymentAmount) })}
       </Text>
     </View>
   );

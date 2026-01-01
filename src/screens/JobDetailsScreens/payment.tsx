@@ -10,6 +10,7 @@ import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useJobTimerContext } from '../../context/JobTimerProvider';
 import { useTheme } from '../../context/ThemeProvider';
 import { useJobDetails } from '../../hooks/useJobDetails';
+import { useLocalization } from '../../localization/useLocalization';
 import { checkJobSignatureExists } from '../../services/jobDetails';
 import PaymentWindow from './paymentWindow';
 
@@ -21,6 +22,7 @@ interface PaymentProps {
 
 const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
     const { colors } = useTheme();
+    const { t } = useLocalization();
     const [paymentWindowVisible, setPaymentWindowVisible] = useState<string | null>(null);
     const [isSigningVisible, setIsSigningVisible] = useState(false);
     
@@ -145,19 +147,19 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
     const getStatusInfo = (status: string) => {
         const statusMap = {
             'pending': { 
-                label: 'En attente', 
+                label: t('jobDetails.payment.status.pending'), 
                 color: colors.warning, 
                 bgColor: colors.warning + '20',
                 icon: 'time-outline'
             },
             'partial': { 
-                label: 'Partiel', 
+                label: t('jobDetails.payment.status.partial'), 
                 color: colors.info, 
                 bgColor: colors.info + '20',
                 icon: 'card-outline'
             },
             'completed': { 
-                label: 'Payé', 
+                label: t('jobDetails.payment.status.completed'), 
                 color: colors.success, 
                 bgColor: colors.success + '20',
                 icon: 'checkmark-circle-outline'
@@ -224,17 +226,17 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
 
     const handlePayment = () => {
         if (!isJobCompleted) {
-            Alert.alert("Job en cours", "Le paiement ne sera disponible qu'une fois le job terminé.");
+            Alert.alert(t('jobDetails.payment.alerts.jobInProgress'), t('jobDetails.payment.alerts.jobInProgressMessage'));
             return;
         }
         
         if (!hasSignature) {
             Alert.alert(
-                "Signature requise",
-                "Le client doit signer avant de procéder au paiement.",
+                t('jobDetails.payment.alerts.signatureRequired'),
+                t('jobDetails.payment.alerts.signatureRequiredMessage'),
                 [
-                    { text: 'Annuler', style: 'cancel' },
-                    { text: 'Signer maintenant', onPress: handleOpenSignature }
+                    { text: t('jobDetails.payment.alerts.cancel'), style: 'cancel' },
+                    { text: t('jobDetails.payment.alerts.signNow'), onPress: handleOpenSignature }
                 ]
             );
             return;
@@ -291,7 +293,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                     color: colors.text,
                     marginBottom: DESIGN_TOKENS.spacing.md,
                 }}>
-                    Paiement du Job
+                    {t('jobDetails.payment.title')}
                 </Text>
                 
                 {/* Badges de statut */}
@@ -321,7 +323,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                             fontWeight: '600',
                             color: isJobCompleted ? colors.success : colors.warning,
                         }}>
-                            {isJobCompleted ? 'Job terminé' : 'Job en cours'}
+                            {isJobCompleted ? t('jobDetails.payment.jobStatus.completed') : t('jobDetails.payment.jobStatus.inProgress')}
                         </Text>
                     </View>
                     
@@ -360,7 +362,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                             }}>
                                 <ActivityIndicator size="small" color={colors.primary} />
                                 <Text style={{ color: colors.textSecondary, fontSize: 14 }}>
-                                    Vérification de la signature...
+                                    {t('jobDetails.payment.signature.verifying')}
                                 </Text>
                             </View>
                         ) : !hasSignature ? (
@@ -389,7 +391,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                                     fontWeight: '700',
                                     fontSize: 16,
                                 }}>
-                                    Signer le job
+                                    {t('jobDetails.payment.signature.signJob')}
                                 </Text>
                             </Pressable>
                         ) : (
@@ -418,7 +420,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                                     fontWeight: '700',
                                     fontSize: 16,
                                 }}>
-                                    Payer maintenant
+                                    {t('jobDetails.payment.signature.payNow')}
                                 </Text>
                             </Pressable>
                         )}
@@ -442,7 +444,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                                     color: colors.success,
                                     fontWeight: '600',
                                 }}>
-                                    Job signé par le client
+                                    {t('jobDetails.payment.signature.jobSignedByClient')}
                                 </Text>
                             </View>
                         )}
@@ -482,7 +484,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                             color: colors.text,
                             flex: 1
                         }}>
-                            Temps en cours
+                            {t('jobDetails.payment.liveTracking.title')}
                         </Text>
                         <View style={{
                             backgroundColor: colors.success,
@@ -504,7 +506,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                                 fontWeight: '600',
                                 color: colors.buttonPrimaryText,
                             }}>
-                                LIVE
+                                {t('jobDetails.payment.liveTracking.live')}
                             </Text>
                         </View>
                     </View>
@@ -516,7 +518,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                             alignItems: 'center',
                         }}>
                             <Text style={{ fontSize: 14, color: colors.textSecondary }}>
-                                Temps total écoulé
+                                {t('jobDetails.payment.liveTracking.totalTimeElapsed')}
                             </Text>
                             <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text }}>
                                 {formatTime(paymentInfo.totalTime)}
@@ -529,7 +531,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                             alignItems: 'center',
                         }}>
                             <Text style={{ fontSize: 14, color: colors.textSecondary }}>
-                                Temps facturable
+                                {t('jobDetails.payment.liveTracking.billableTime')}
                             </Text>
                             <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text }}>
                                 {formatTime(paymentInfo.actualTime)}
@@ -542,7 +544,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                             alignItems: 'center',
                         }}>
                             <Text style={{ fontSize: 14, color: colors.textSecondary }}>
-                                Coût en cours
+                                {t('jobDetails.payment.liveTracking.currentCost')}
                             </Text>
                             <Text style={{ 
                                 fontSize: 18, 
@@ -569,7 +571,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                     color: colors.text,
                     marginBottom: DESIGN_TOKENS.spacing.lg,
                 }}>
-                    Résumé Financier
+                    {t('jobDetails.payment.financialSummary.title')}
                 </Text>
 
                 <View style={{ gap: DESIGN_TOKENS.spacing.lg }}>
@@ -588,7 +590,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                                 color: colors.textSecondary,
                                 marginBottom: 4,
                             }}>
-                                Coût estimé
+                                {t('jobDetails.payment.financialSummary.estimatedCost')}
                             </Text>
                             <Text style={{
                                 fontSize: 16,
@@ -616,7 +618,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                                 color: colors.textSecondary,
                                 marginBottom: 4,
                             }}>
-                                {paymentInfo.status === 'completed' ? 'Coût final' : 'Coût actuel'}
+                                {paymentInfo.status === 'completed' ? t('jobDetails.payment.financialSummary.finalCost') : t('jobDetails.payment.financialSummary.currentCost')}
                             </Text>
                             <Text style={{
                                 fontSize: 18,
@@ -654,7 +656,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                                     fontWeight: '600',
                                     color: paymentInfo.current > paymentInfo.estimated ? colors.warning : colors.success,
                                 }}>
-                                    {paymentInfo.current > paymentInfo.estimated ? 'Coût supplémentaire' : 'Économie réalisée'}
+                                    {paymentInfo.current > paymentInfo.estimated ? t('jobDetails.payment.financialSummary.additionalCost') : t('jobDetails.payment.financialSummary.savings')}
                                 </Text>
                                 <Text style={{
                                     fontSize: 16,
@@ -700,7 +702,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                         color: colors.text,
                         flex: 1
                     }}>
-                        Détail de Facturation
+                        {t('jobDetails.payment.billingBreakdown.title')}
                     </Text>
                 </View>
 
@@ -714,7 +716,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                         paddingBottom: DESIGN_TOKENS.spacing.sm,
                     }}>
                         <Text style={{ fontSize: 14, color: colors.text }}>
-                            Temps de travail réel
+                            {t('jobDetails.payment.billingBreakdown.actualWorkTime')}
                         </Text>
                         <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text }}>
                             {formatTime(paymentInfo.totalTime)}
@@ -730,7 +732,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                             paddingBottom: DESIGN_TOKENS.spacing.sm,
                         }}>
                             <Text style={{ fontSize: 14, color: colors.textSecondary }}>
-                                Pauses (non facturables)
+                                {t('jobDetails.payment.billingBreakdown.pausesNotBillable')}
                             </Text>
                             <Text style={{ fontSize: 14, fontWeight: '500', color: colors.warning }}>
                                 -{formatTime(paymentInfo.totalTime - paymentInfo.actualTime)}
@@ -749,7 +751,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                         paddingBottom: DESIGN_TOKENS.spacing.sm,
                     }}>
                         <Text style={{ fontSize: 14, color: colors.text, fontWeight: '600' }}>
-                            Temps facturable brut
+                            {t('jobDetails.payment.billingBreakdown.grossBillableTime')}
                         </Text>
                         <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
                             {formatTime(paymentInfo.actualTime)}
@@ -764,10 +766,10 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                     }}>
                         <View style={{ flex: 1 }}>
                             <Text style={{ fontSize: 14, color: colors.text }}>
-                                Minimum facturable
+                                {t('jobDetails.payment.billingBreakdown.minimumBillable')}
                             </Text>
                             <Text style={{ fontSize: 11, color: colors.textSecondary }}>
-                                (Politique des 2 heures)
+                                {t('jobDetails.payment.billingBreakdown.minimumPolicy')}
                             </Text>
                         </View>
                         <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text }}>
@@ -783,10 +785,10 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                     }}>
                         <View style={{ flex: 1 }}>
                             <Text style={{ fontSize: 14, color: colors.text }}>
-                                Call-out fee
+                                {t('jobDetails.payment.billingBreakdown.callOutFee')}
                             </Text>
                             <Text style={{ fontSize: 11, color: colors.textSecondary }}>
-                                (Frais de déplacement)
+                                {t('jobDetails.payment.billingBreakdown.travelFee')}
                             </Text>
                         </View>
                         <Text style={{ fontSize: 14, fontWeight: '500', color: colors.primary }}>
@@ -803,14 +805,14 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                     }}>
                         <View style={{ flex: 1 }}>
                             <Text style={{ fontSize: 14, color: colors.text }}>
-                                Arrondi demi-heure
+                                {t('jobDetails.payment.billingBreakdown.halfHourRounding')}
                             </Text>
                             <Text style={{ fontSize: 11, color: colors.textSecondary }}>
-                                (Règle des 7 minutes)
+                                {t('jobDetails.payment.billingBreakdown.sevenMinuteRule')}
                             </Text>
                         </View>
                         <Text style={{ fontSize: 14, fontWeight: '500', color: colors.primary }}>
-                            Auto
+                            {t('jobDetails.payment.billingBreakdown.auto')}
                         </Text>
                     </View>
 
@@ -828,7 +830,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                         marginBottom: DESIGN_TOKENS.spacing.sm,
                     }}>
                         <Text style={{ fontSize: 15, color: colors.text, fontWeight: '700' }}>
-                            Total heures facturables
+                            {t('jobDetails.payment.billingBreakdown.totalBillableHours')}
                         </Text>
                         <Text style={{ fontSize: 16, fontWeight: '700', color: colors.primary }}>
                             {paymentInfo.billableHours}h
@@ -843,7 +845,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                         paddingBottom: DESIGN_TOKENS.spacing.md,
                     }}>
                         <Text style={{ fontSize: 14, color: colors.textSecondary }}>
-                            Taux horaire
+                            {t('jobDetails.payment.billingBreakdown.hourlyRate')}
                         </Text>
                         <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text }}>
                             {formatCurrency(HOURLY_RATE_AUD)}/h
@@ -865,7 +867,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                         borderColor: colors.primary + '30',
                     }}>
                         <Text style={{ fontSize: 17, color: colors.text, fontWeight: '700' }}>
-                            MONTANT FINAL
+                            {t('jobDetails.payment.billingBreakdown.finalAmount')}
                         </Text>
                         <Text style={{ fontSize: 22, fontWeight: '700', color: colors.primary }}>
                             {formatCurrency(paymentInfo.current)}
@@ -888,9 +890,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                         }}>
                             <Ionicons name="information-circle" size={18} color={colors.primary} style={{ marginTop: 2 }} />
                             <Text style={{ fontSize: 12, color: colors.textSecondary, flex: 1, lineHeight: 18 }}>
-                                Le calcul inclut un minimum de 2 heures, un call-out fee de 30 minutes, 
-                                et un arrondi à la demi-heure supérieure selon la règle des 7 minutes 
-                                (≥7min arrondis à 30min, &lt;7min arrondis à 0min).
+                                {t('jobDetails.payment.billingBreakdown.explanatoryNote')}
                             </Text>
                         </View>
                     </View>
@@ -924,7 +924,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                             fontWeight: '600',
                             color: colors.textSecondary,
                         }}>
-                            Détails de facturation
+                            {t('jobDetails.payment.jobDetailsSection.billingDetails')}
                         </Text>
                     </View>
                     
@@ -934,7 +934,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                             justifyContent: 'space-between',
                         }}>
                             <Text style={{ fontSize: 12, color: colors.textSecondary }}>
-                                Heures facturables:
+                                {t('jobDetails.payment.jobDetailsSection.billableHours')}
                             </Text>
                             <Text style={{ fontSize: 12, fontWeight: '500', color: colors.text }}>
                                 {paymentInfo.billableHours.toFixed(1)}h
@@ -946,7 +946,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                             justifyContent: 'space-between',
                         }}>
                             <Text style={{ fontSize: 12, color: colors.textSecondary }}>
-                                Taux horaire:
+                                {t('jobDetails.payment.jobDetailsSection.hourlyRate')}
                             </Text>
                             <Text style={{ fontSize: 12, fontWeight: '500', color: colors.text }}>
                                 {formatCurrency(HOURLY_RATE_AUD)}/h
@@ -968,7 +968,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                     color: colors.text,
                     marginBottom: DESIGN_TOKENS.spacing.lg,
                 }}>
-                    Détails du Job
+                    {t('jobDetails.payment.jobDetailsSection.title')}
                 </Text>
 
                 <View style={{ gap: DESIGN_TOKENS.spacing.md }}>
@@ -978,13 +978,13 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                             color: colors.textSecondary,
                             marginBottom: 4,
                         }}>
-                            Titre
+                            {t('jobDetails.payment.jobDetailsSection.jobTitle')}
                         </Text>
                         <Text style={{
                             fontSize: 16,
                             color: colors.text,
                         }}>
-                            {job?.job?.title || job?.title || 'Job sans titre'}
+                            {job?.job?.title || job?.title || t('jobDetails.payment.jobDetailsSection.untitledJob')}
                         </Text>
                     </View>
 
@@ -995,7 +995,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                                 color: colors.textSecondary,
                                 marginBottom: 4,
                             }}>
-                                Client
+                                {t('jobDetails.payment.jobDetailsSection.client')}
                             </Text>
                             <Text style={{
                                 fontSize: 16,
@@ -1012,13 +1012,13 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                             color: colors.textSecondary,
                             marginBottom: 4,
                         }}>
-                            Durée estimée
+                            {t('jobDetails.payment.jobDetailsSection.estimatedDuration')}
                         </Text>
                         <Text style={{
                             fontSize: 16,
                             color: colors.text,
                         }}>
-                            {job?.job?.estimatedDuration ? `${Math.round(job.job.estimatedDuration / 60)} heures` : 'Non définie'}
+                            {job?.job?.estimatedDuration ? `${Math.round(job.job.estimatedDuration / 60)} ${t('jobDetails.payment.jobDetailsSection.hours')}` : t('jobDetails.payment.jobDetailsSection.notDefined')}
                         </Text>
                     </View>
                 </View>

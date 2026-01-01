@@ -381,6 +381,85 @@ export interface TranslationKeys {
             nextStep: string;
             advancedToStep: string;
         };
+        // Payment page labels
+        payment: {
+            title: string;
+            // Status
+            status: {
+                pending: string;
+                partial: string;
+                completed: string;
+            };
+            // Job status
+            jobStatus: {
+                completed: string;
+                inProgress: string;
+            };
+            // Alerts
+            alerts: {
+                jobInProgress: string;
+                jobInProgressMessage: string;
+                signatureRequired: string;
+                signatureRequiredMessage: string;
+                cancel: string;
+                signNow: string;
+            };
+            // Signature section
+            signature: {
+                verifying: string;
+                signJob: string;
+                payNow: string;
+                jobSignedByClient: string;
+            };
+            // Live tracking section
+            liveTracking: {
+                title: string;
+                live: string;
+                totalTimeElapsed: string;
+                billableTime: string;
+                currentCost: string;
+            };
+            // Financial summary section
+            financialSummary: {
+                title: string;
+                estimatedCost: string;
+                finalCost: string;
+                currentCost: string;
+                additionalCost: string;
+                savings: string;
+            };
+            // Billing breakdown section
+            billingBreakdown: {
+                title: string;
+                actualWorkTime: string;
+                pausesNotBillable: string;
+                grossBillableTime: string;
+                minimumBillable: string;
+                minimumPolicy: string;
+                callOutFee: string;
+                travelFee: string;
+                halfHourRounding: string;
+                sevenMinuteRule: string;
+                auto: string;
+                totalBillableHours: string;
+                hourlyRate: string;
+                finalAmount: string;
+                explanatoryNote: string;
+            };
+            // Job details section
+            jobDetailsSection: {
+                title: string;
+                billingDetails: string;
+                billableHours: string;
+                hourlyRate: string;
+                jobTitle: string;
+                client: string;
+                estimatedDuration: string;
+                untitledJob: string;
+                notDefined: string;
+                hours: string;
+            };
+        };
     };
 
     // Settings
@@ -548,6 +627,35 @@ export interface TranslationKeys {
             description: string;
             jobId: string;
             dateTime: string;
+        };
+        // PaymentWindow specific keys
+        window: {
+            chooseMethod: string;
+            amountToPay: string;
+            paymentError: string;
+            paymentIntentCreated: string;
+            securePayment: string;
+            secureCardPayment: string;
+            cashPayment: string;
+            cashPaymentTitle: string;
+            processingPayment: string;
+            paymentSuccess: string;
+            paymentSuccessMessage: string;
+            cashCollected: string;
+            changeToReturn: string;
+            amountReceived: string;
+            enterAmountReceived: string;
+            minimumAmount: string;
+            toPay: string;
+            returnToPaymentMethod: string;
+            close: string;
+            cardManualTitle: string;
+            cardInfo: string;
+            incorrectAmount: string;
+            incorrectAmountMessage: string;
+            paymentSheetUnavailable: string;
+            paymentSheetFallbackMessage: string;
+            cardNamePlaceholder: string;
         };
     };
 
