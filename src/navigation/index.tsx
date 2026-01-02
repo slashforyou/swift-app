@@ -2,17 +2,21 @@ import { NavigationContainer, NavigationContainerRef } from '@react-navigation/n
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import React, { useEffect, useRef } from 'react'
 import { testController } from '../services/testController'
-// Make sure the file exists at ../../screens/home.tsx or ../../screens/home/index.tsx
+import { lazyScreen } from '../utils/lazyLoading'
+
+// Critical screens - loaded immediately
 import ConnectionScreen from '../screens/connection'
-import LoginScreen from '../screens/connectionScreens/login'
-import SubscribeScreen from '../screens/connectionScreens/subscribe'
-import SubscribeMailVerification from '../screens/connectionScreens/subscribeMailVerification'
 import HomeScreen from '../screens/home'
-import JobDetails from '../screens/jobDetails'
-import Parameters from '../screens/parameters'
-import Profile from '../screens/profile'
-import BusinessNavigation from './business'
-import CalendarNavigation from './calendar'
+
+// Secondary screens - lazy loaded for faster initial load
+const LoginScreen = lazyScreen(() => import('../screens/connectionScreens/login'))
+const SubscribeScreen = lazyScreen(() => import('../screens/connectionScreens/subscribe'))
+const SubscribeMailVerification = lazyScreen(() => import('../screens/connectionScreens/subscribeMailVerification'))
+const JobDetails = lazyScreen(() => import('../screens/jobDetails'))
+const Profile = lazyScreen(() => import('../screens/profile'))
+const Parameters = lazyScreen(() => import('../screens/parameters'))
+const BusinessNavigation = lazyScreen(() => import('./business'))
+const CalendarNavigation = lazyScreen(() => import('./calendar'))
 
 const Stack = createNativeStackNavigator()
 
