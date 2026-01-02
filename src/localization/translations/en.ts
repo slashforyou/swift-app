@@ -1336,6 +1336,7 @@ export const enTranslations: TranslationKeys = {
             },
             employeeForm: {
                 title: 'Invite employee',
+                description: 'The employee will receive an invitation email and will need to complete their information (TFN, date of birth) to access their account linked to the company.',
                 firstName: 'First name *',
                 lastName: 'Last name *',
                 email: 'Email *',
@@ -1343,6 +1344,8 @@ export const enTranslations: TranslationKeys = {
                 position: 'Position *',
                 team: 'Team *',
                 hourlyRate: 'Hourly rate ($) *',
+                selectPosition: 'Select a position',
+                selectTeam: 'Select a team',
                 submit: 'Send invitation',
                 submitting: 'Sending...',
             },

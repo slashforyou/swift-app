@@ -1389,6 +1389,7 @@ export interface TranslationKeys {
             // Step: Employee form
             employeeForm: {
                 title: string;
+                description: string;
                 firstName: string;
                 lastName: string;
                 email: string;
@@ -1396,6 +1397,8 @@ export interface TranslationKeys {
                 position: string;
                 team: string;
                 hourlyRate: string;
+                selectPosition: string;
+                selectTeam: string;
                 submit: string;
                 submitting: string;
             };

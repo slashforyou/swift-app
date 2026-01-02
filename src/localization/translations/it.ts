@@ -1297,6 +1297,7 @@ export const itTranslations = {
             },
             employeeForm: {
                 title: 'Invita dipendente',
+                description: 'Il dipendente riceverà un\'email di invito e dovrà completare le sue informazioni (TFN, data di nascita) per accedere al suo account collegato all\'azienda.',
                 firstName: 'Nome *',
                 lastName: 'Cognome *',
                 email: 'Email *',
@@ -1304,6 +1305,8 @@ export const itTranslations = {
                 position: 'Posizione *',
                 team: 'Team *',
                 hourlyRate: 'Tariffa oraria ($) *',
+                selectPosition: 'Seleziona una posizione',
+                selectTeam: 'Seleziona un team',
                 submit: 'Invia invito',
                 submitting: 'Invio in corso...',
             },

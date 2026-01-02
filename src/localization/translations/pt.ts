@@ -1285,6 +1285,7 @@ export const ptTranslations = {
             },
             employeeForm: {
                 title: 'Convidar funcionário',
+                description: 'O funcionário receberá um email de convite e precisará completar suas informações (TFN, data de nascimento) para acessar sua conta vinculada à empresa.',
                 firstName: 'Nome *',
                 lastName: 'Sobrenome *',
                 email: 'Email *',
@@ -1292,6 +1293,8 @@ export const ptTranslations = {
                 position: 'Cargo *',
                 team: 'Equipe *',
                 hourlyRate: 'Taxa horária ($) *',
+                selectPosition: 'Selecionar um cargo',
+                selectTeam: 'Selecionar uma equipe',
                 submit: 'Enviar convite',
                 submitting: 'Enviando...',
             },

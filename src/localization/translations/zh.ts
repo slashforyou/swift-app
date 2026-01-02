@@ -1293,6 +1293,7 @@ export const zhTranslations = {
             },
             employeeForm: {
                 title: '邀请员工',
+                description: '员工将收到邀请邮件，需要完成其信息（TFN、出生日期）才能访问与公司关联的账户。',
                 firstName: '名字 *',
                 lastName: '姓氏 *',
                 email: '电子邮件 *',
@@ -1300,6 +1301,8 @@ export const zhTranslations = {
                 position: '职位 *',
                 team: '团队 *',
                 hourlyRate: '时薪 ($) *',
+                selectPosition: '选择职位',
+                selectTeam: '选择团队',
                 submit: '发送邀请',
                 submitting: '发送中...',
             },

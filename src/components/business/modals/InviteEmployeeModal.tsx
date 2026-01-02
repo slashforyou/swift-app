@@ -149,7 +149,7 @@ export default function InviteEmployeeModal({ visible, onClose, onSubmit }: Invi
                   fontWeight: '600',
                   color: colors.text,
                 }}>
-                  Inviter un Employé
+                  {t('staffModals.addStaff.employeeForm.title')}
                 </Text>
                 <TouchableOpacity testID="close-button" onPress={onClose}>
                   <Text style={{ fontSize: 24, color: colors.textSecondary }}>×</Text>
@@ -161,7 +161,7 @@ export default function InviteEmployeeModal({ visible, onClose, onSubmit }: Invi
                 color: colors.textSecondary,
                 lineHeight: 20,
               }}>
-                L'employé recevra un email d'invitation et devra compléter ses informations (TFN, date de naissance) pour accéder à son compte lié à l'entreprise.
+                {t('staffModals.addStaff.employeeForm.description')}
               </Text>
 
               {/* Formulaire */}
@@ -169,7 +169,7 @@ export default function InviteEmployeeModal({ visible, onClose, onSubmit }: Invi
                 <HStack gap="md">
                   <VStack gap="xs" style={{ flex: 1 }}>
                     <Text testID="firstname-label" style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
-                      Prénom *
+                      {t('staffModals.addStaff.employeeForm.firstName')}
                     </Text>
                     <TextInput
                       testID="firstname-input"
@@ -189,7 +189,7 @@ export default function InviteEmployeeModal({ visible, onClose, onSubmit }: Invi
 
                   <VStack gap="xs" style={{ flex: 1 }}>
                     <Text testID="lastname-label" style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
-                      Nom *
+                      {t('staffModals.addStaff.employeeForm.lastName')}
                     </Text>
                     <TextInput
                       testID="lastname-input"
@@ -210,7 +210,7 @@ export default function InviteEmployeeModal({ visible, onClose, onSubmit }: Invi
 
                 <VStack gap="xs">
                   <Text testID="email-label" style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
-                    Email *
+                    {t('staffModals.addStaff.employeeForm.email')}
                   </Text>
                   <TextInput
                     testID="email-input"
@@ -232,7 +232,7 @@ export default function InviteEmployeeModal({ visible, onClose, onSubmit }: Invi
 
                 <VStack gap="xs">
                   <Text testID="phone-label" style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
-                    Téléphone *
+                    {t('staffModals.addStaff.employeeForm.phone')}
                   </Text>
                   <TextInput
                     testID="phone-input"
@@ -253,7 +253,7 @@ export default function InviteEmployeeModal({ visible, onClose, onSubmit }: Invi
 
                 <VStack gap="xs">
                   <Text testID="role-label" style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
-                    Rôle *
+                    {t('staffModals.addStaff.employeeForm.position')}
                   </Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     <HStack gap="sm">
@@ -284,7 +284,7 @@ export default function InviteEmployeeModal({ visible, onClose, onSubmit }: Invi
 
                 <VStack gap="xs">
                   <Text testID="team-label" style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
-                    Équipe *
+                    {t('staffModals.addStaff.employeeForm.team')}
                   </Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     <HStack gap="sm">
@@ -315,7 +315,7 @@ export default function InviteEmployeeModal({ visible, onClose, onSubmit }: Invi
 
                 <VStack gap="xs">
                   <Text testID="hourlyrate-label" style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
-                    Taux horaire (AUD) *
+                    {t('staffModals.addStaff.employeeForm.hourlyRate')}
                   </Text>
                   <TextInput
                     testID="hourlyrate-input"
@@ -349,7 +349,7 @@ export default function InviteEmployeeModal({ visible, onClose, onSubmit }: Invi
                   }}
                 >
                   <Text style={{ color: colors.text, fontSize: 16, fontWeight: '600' }}>
-                    Annuler
+                    {t('common.cancel')}
                   </Text>
                 </TouchableOpacity>
 
@@ -370,7 +370,7 @@ export default function InviteEmployeeModal({ visible, onClose, onSubmit }: Invi
                     <ActivityIndicator testID="loading-indicator" size="small" color={colors.background} />
                   ) : (
                     <Text style={{ color: colors.background, fontSize: 16, fontWeight: '600' }}>
-                      Envoyer l'invitation
+                      {t('staffModals.addStaff.employeeForm.submit')}
                     </Text>
                   )}
                 </TouchableOpacity>

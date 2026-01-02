@@ -1293,6 +1293,7 @@ export const hiTranslations = {
             },
             employeeForm: {
                 title: 'कर्मचारी को आमंत्रित करें',
+                description: 'कर्मचारी को एक आमंत्रण ईमेल प्राप्त होगा और उन्हें कंपनी से जुड़े अपने खाते तक पहुंचने के लिए अपनी जानकारी (TFN, जन्म तिथि) पूरी करनी होगी।',
                 firstName: 'पहला नाम *',
                 lastName: 'अंतिम नाम *',
                 email: 'ईमेल *',
@@ -1300,6 +1301,8 @@ export const hiTranslations = {
                 position: 'पद *',
                 team: 'टीम *',
                 hourlyRate: 'प्रति घंटा दर ($) *',
+                selectPosition: 'पद चुनें',
+                selectTeam: 'टीम चुनें',
                 submit: 'आमंत्रण भेजें',
                 submitting: 'भेजा जा रहा है...',
             },

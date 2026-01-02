@@ -1297,6 +1297,7 @@ export const esTranslations = {
             },
             employeeForm: {
                 title: 'Invitar empleado',
+                description: 'El empleado recibirá un correo de invitación y deberá completar su información (TFN, fecha de nacimiento) para acceder a su cuenta vinculada a la empresa.',
                 firstName: 'Nombre *',
                 lastName: 'Apellido *',
                 email: 'Correo electrónico *',
@@ -1304,6 +1305,8 @@ export const esTranslations = {
                 position: 'Puesto *',
                 team: 'Equipo *',
                 hourlyRate: 'Tarifa por hora ($) *',
+                selectPosition: 'Seleccionar un puesto',
+                selectTeam: 'Seleccionar un equipo',
                 submit: 'Enviar invitación',
                 submitting: 'Enviando...',
             },
