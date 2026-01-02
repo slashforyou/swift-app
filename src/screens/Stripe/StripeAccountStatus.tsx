@@ -7,7 +7,7 @@ import { Text, View } from 'react-native';
 import { useTheme } from '../../context/ThemeProvider_Advanced';
 import { Button, Card } from '../../design-system/components';
 import { DESIGN_TOKENS } from '../../design-system/tokens';
-import { useLocalization, formatDate } from '../../localization';
+import { formatDate, useLocalization } from '../../localization';
 import type { StripeAccount, StripeRequirement } from '../../types/stripe';
 
 interface StripeAccountStatusProps {

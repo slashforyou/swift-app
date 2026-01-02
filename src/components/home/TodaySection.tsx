@@ -8,7 +8,7 @@ import { Pressable, Text, View } from 'react-native';
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useTheme } from '../../context/ThemeProvider';
 import { useJobsForDay } from '../../hooks/useJobsForDay';
-import { useLocalization, formatDateWithDay } from '../../localization';
+import { formatDateWithDay, useLocalization } from '../../localization';
 import { HStack, VStack } from '../primitives/Stack';
 
 interface TodaySectionProps {

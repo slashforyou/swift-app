@@ -7,7 +7,7 @@ import React, { useEffect, useRef } from 'react';
 import { Animated, Text, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../../context/ThemeProvider_Advanced';
 import { DESIGN_TOKENS } from '../../design-system/tokens';
-import { useLocalization, formatCurrency, formatDateShort } from '../../localization';
+import { formatCurrency, formatDateShort, useLocalization } from '../../localization';
 import type { Payout } from '../../types/payouts';
 
 interface AnimatedPayoutListItemProps {

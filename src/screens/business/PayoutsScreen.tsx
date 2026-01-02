@@ -21,7 +21,7 @@ import PayoutDetailModal from '../../components/modals/PayoutDetailModal'
 import { DESIGN_TOKENS } from '../../constants/Styles'
 import { useTheme } from '../../context/ThemeProvider'
 import { useStripePayouts, type Payout } from '../../hooks/useStripe'
-import { useLocalization, formatCurrency as formatLocalizedCurrency, formatDateShort } from '../../localization'
+import { formatDateShort, formatCurrency as formatLocalizedCurrency, useLocalization } from '../../localization'
 
 // Types
 interface PayoutsScreenProps {

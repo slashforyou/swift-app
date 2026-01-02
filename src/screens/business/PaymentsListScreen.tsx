@@ -22,7 +22,7 @@ import PaymentDetailModal from '../../components/modals/PaymentDetailModal'
 import { DESIGN_TOKENS } from '../../constants/Styles'
 import { useTheme } from '../../context/ThemeProvider'
 import { useStripePayments, type Payment } from '../../hooks/useStripe'
-import { useLocalization, formatCurrency as formatLocalizedCurrency, formatDateTime } from '../../localization'
+import { formatDateTime, formatCurrency as formatLocalizedCurrency, useLocalization } from '../../localization'
 
 interface PaymentsListScreenProps {
   navigation?: any

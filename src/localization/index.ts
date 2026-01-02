@@ -2,18 +2,10 @@
  * Export principal du système de localisation
  */
 
-export { LocalizationProvider, useLocalization, useTranslation } from './useLocalization';
-export { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from './config';
-export { 
-    LOCALE_MAP,
-    getLocale,
-    formatDate,
-    formatDateShort,
-    formatDateWithDay,
-    formatTime,
-    formatDateTime,
-    formatNumber,
-    formatCurrency,
-    formatAmount,
+export { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from './config';
+export {
+    LOCALE_MAP, formatAmount, formatCurrency, formatDate,
+    formatDateShort, formatDateTime, formatDateWithDay, formatNumber, formatTime, getLocale
 } from './formatters';
-export type { SupportedLanguage, LanguageInfo, TranslationKeys, TranslationKey } from './types';
+export type { LanguageInfo, SupportedLanguage, TranslationKey, TranslationKeys } from './types';
+export { LocalizationProvider, useLocalization, useTranslation } from './useLocalization';

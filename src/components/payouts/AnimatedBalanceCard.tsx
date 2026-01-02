@@ -7,7 +7,7 @@ import { Animated, Text, View } from 'react-native';
 import { useTheme } from '../../context/ThemeProvider_Advanced';
 import { Card } from '../../design-system/components';
 import { DESIGN_TOKENS } from '../../design-system/tokens';
-import { useLocalization, formatCurrency } from '../../localization';
+import { formatCurrency, useLocalization } from '../../localization';
 import type { PayoutBalance } from '../../types/payouts';
 
 interface AnimatedBalanceCardProps {

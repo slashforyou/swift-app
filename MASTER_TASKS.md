@@ -1,7 +1,7 @@
 # 📋 MASTER TASKS - Swift App
 
 > **Fichier consolidé de toutes les tâches du projet**  
-> **Dernière mise à jour :** 28 Décembre 2025  
+> **Dernière mise à jour :** 2 Janvier 2026  
 > **Source :** Consolidation de tous les fichiers .md avec checkboxes
 
 ---
@@ -22,7 +22,8 @@
 
 | Catégorie | Terminé | En Attente | Total |
 |-----------|---------|------------|-------|
-| 🚀 Phase 1 - Production Ready | **51+** | 0 | 51+ |
+| � **BUGS CRITIQUES** | **0** | **27** | **27** |
+| �🚀 Phase 1 - Production Ready | **51+** | 0 | 51+ |
 | 🎯 Phase 2 - Growth | 5 | 14 | 19 |
 | 🌍 Phase 3 - Expansion | 0 | 12 | 12 |
 | 🚀 Phase 4 - Innovation | 0 | 10 | 10 |
@@ -35,7 +36,316 @@
 | ⚡ Performance | **6** | 0 | 6 |
 | 🎨 Design System | 15 | 0 | 15 |
 
-**Note :** i18n 100% complété. Performance 100% complété. TODOs: 36/39 résolus (3 en attente backend).
+**⚠️ ALERTE :** Tests sur appareil du 2 Jan 2026 révèlent 27 problèmes critiques à résoudre avant production.
+
+---
+
+# 🚨 BUGS CRITIQUES - TESTS APPAREIL (2 Jan 2026)
+
+> **Ces problèmes BLOQUENT le lancement en production**  
+> **Priorité ABSOLUE - À traiter avant toute autre tâche**
+
+## 📊 Résumé par Catégorie
+
+| Catégorie | Critiques 🔴 | Hauts 🟠 | Moyens 🟡 | Total |
+|-----------|-------------|---------|----------|-------|
+| Authentification | 1 | 0 | 0 | 1 |
+| Jobs & Timer | 6 | 1 | 0 | 7 |
+| Gestion Personnel | 1 | 3 | 0 | 4 |
+| Véhicules | 3 | 1 | 0 | 4 |
+| Facturation/Stripe | 6 | 0 | 0 | 6 |
+| Paramètres | 2 | 2 | 1 | 5 |
+| **TOTAL** | **19** | **7** | **1** | **27** |
+
+---
+
+## 🔐 1. AUTHENTIFICATION (1 problème)
+
+### Bouton de Déconnexion Manquant 🔴
+- [ ] **AUTH-01** : Ajouter un bouton de déconnexion dans l'écran Paramètres
+  - **Fichier :** `src/screens/parameters.tsx`
+  - **Action :** Ajouter bouton "Se déconnecter" avec confirmation
+  - **Complexité :** Faible (1-2h)
+  - **Impact :** Bloquant UX - L'utilisateur ne peut pas se déconnecter
+
+---
+
+## 📋 2. JOBS & TIMER (7 problèmes)
+
+### Création de Job Impossible 🔴
+- [ ] **JOB-01** : Implémenter la création d'un nouveau job
+  - **Fichier :** Nouveau écran `src/screens/jobs/CreateJobScreen.tsx`
+  - **Action :** Modal/écran de création avec champs: client, adresse, date, description
+  - **Endpoint :** `POST /jobs` (à vérifier si existe)
+  - **Complexité :** Haute (8-12h)
+  - **Impact :** Fonctionnalité CORE manquante
+
+### Modification de Job Impossible 🔴
+- [ ] **JOB-02** : Implémenter la modification d'un job existant
+  - **Fichier :** `src/screens/JobDetailsScreens/jobDetails.tsx` ou nouveau modal
+  - **Action :** Permettre édition: heure, adresse, client, description
+  - **Endpoint :** `PUT /jobs/{id}` (à vérifier si existe)
+  - **Complexité :** Moyenne (4-6h)
+  - **Impact :** Fonctionnalité CORE manquante
+
+### Suppression de Job Impossible 🔴
+- [ ] **JOB-03** : Implémenter la suppression d'un job
+  - **Fichier :** `src/screens/JobDetailsScreens/jobDetails.tsx`
+  - **Action :** Ajouter bouton supprimer avec confirmation
+  - **Endpoint :** `DELETE /jobs/{id}` (à vérifier si existe)
+  - **Complexité :** Faible (2-3h)
+  - **Impact :** Fonctionnalité CORE manquante
+
+### Ajout de Note - Erreur 🔴
+- [ ] **JOB-04** : Corriger l'erreur lors de l'ajout d'une note
+  - **Fichier :** `src/components/modals/ImprovedNoteModal.tsx`, `src/services/jobNotes.ts`
+  - **Action :** Debug et corriger l'endpoint/la logique
+  - **Endpoint :** `POST /jobs/{id}/notes` (vérifier format)
+  - **Complexité :** Moyenne (3-4h)
+  - **Impact :** Bloquant - Fonctionnalité cassée
+
+### Photos Non Sauvegardées 🔴
+- [ ] **JOB-05** : Les photos prises ne sont pas sauvegardées/affichées
+  - **Fichier :** `src/components/modals/PhotoSelectionModal.tsx`, `src/services/jobPhotos.ts`
+  - **Action :** Implémenter upload vers backend + affichage dans job
+  - **Endpoint :** `POST /jobs/{id}/photos` (à créer si n'existe pas)
+  - **Complexité :** Haute (6-8h)
+  - **Impact :** Fonctionnalité cassée
+
+### Timer - Boucle Infinie au Démarrage 🔴
+- [ ] **JOB-06** : Corriger la boucle infinie lors du démarrage du timer
+  - **Fichier :** `src/hooks/useJobTimer.ts`, `src/context/JobTimerProvider.tsx`
+  - **Action :** Debug useEffect, vérifier dépendances, éviter re-renders
+  - **Complexité :** Moyenne (3-5h)
+  - **Impact :** BLOQUANT - Empêche l'utilisation des jobs
+
+### Timer - Boucle Infinie à l'Avancement 🔴
+- [ ] **JOB-07** : Corriger la boucle infinie lors de l'avancement des étapes
+  - **Fichier :** `src/hooks/useJobTimer.ts` (fonction `advanceStep`)
+  - **Action :** Debug la synchronisation avec le backend
+  - **Complexité :** Moyenne (3-5h)
+  - **Impact :** BLOQUANT - Empêche la progression du job
+
+---
+
+## 👥 3. GESTION DU PERSONNEL (4 problèmes)
+
+### Assignation Employé à Job Impossible 🔴
+- [ ] **STAFF-01** : Implémenter l'assignation d'un employé à un job
+  - **Fichier :** `src/screens/JobDetailsScreens/jobDetails.tsx` ou création modal
+  - **Action :** Dropdown/modal pour sélectionner un employé existant
+  - **Endpoint :** `PUT /jobs/{id}/assign` ou `PATCH /jobs/{id}` (à vérifier)
+  - **Complexité :** Moyenne (4-5h)
+  - **Impact :** Fonctionnalité CORE manquante pour équipes
+
+### Gestion des Équipes Inexistante 🟠
+- [ ] **STAFF-02** : Créer le système de gestion des équipes
+  - **Fichier :** Nouveau écran `src/screens/TeamsScreen.tsx`
+  - **Action :** CRUD équipes (créer, modifier, supprimer, assigner membres)
+  - **Endpoint :** `GET/POST/PUT/DELETE /teams` (à créer backend)
+  - **Complexité :** Haute (10-15h)
+  - **Impact :** Fonctionnalité Phase 2
+
+### Système de Rôles/Permissions Inexistant 🟠
+- [ ] **STAFF-03** : Implémenter le système de rôles et permissions
+  - **Fichier :** `src/services/staffService.ts`, `src/types/staff.ts`
+  - **Action :** Définir rôles (Admin, Manager, Tech, Viewer) + UI
+  - **Endpoint :** Backend + Frontend
+  - **Complexité :** Haute (12-16h)
+  - **Impact :** Fonctionnalité Phase 2 - Enterprise
+
+### Vérification Serveur Staff (Mock actif) 🟠
+- [ ] **STAFF-04** : Valider que les opérations Staff fonctionnent en données réelles
+  - **Fichier :** `src/hooks/useStaff.ts`
+  - **Action :** Tester sans mock, corriger si erreurs
+  - **Complexité :** Faible (2-3h)
+  - **Impact :** Validation production
+
+---
+
+## 🚗 4. VÉHICULES (4 problèmes)
+
+### Modal d'Ajout de Véhicule Manquant 🔴
+- [ ] **VEH-01** : Le bouton et modal d'ajout de véhicule n'existent pas
+  - **Fichier :** `src/screens/business/trucksScreen.tsx`
+  - **Action :** Ajouter FAB + `AddVehicleModal` fonctionnel
+  - **Endpoint :** `POST /vehicles` (vérifier si existe)
+  - **Complexité :** Moyenne (3-4h)
+  - **Impact :** Fonctionnalité CORE manquante
+
+### Modification de Véhicule - Seulement une Alerte 🔴
+- [ ] **VEH-02** : La modification affiche seulement une alerte au lieu d'un formulaire
+  - **Fichier :** `src/screens/business/VehicleDetailsScreen.tsx`
+  - **Action :** Remplacer Alert par `EditVehicleModal` fonctionnel
+  - **Endpoint :** `PUT /vehicles/{id}` (vérifier si existe)
+  - **Complexité :** Moyenne (3-4h)
+  - **Impact :** Fonctionnalité cassée
+
+### Interface Prise Photo Véhicule Manquante 🔴
+- [ ] **VEH-03** : Aucune interface pour prendre une photo du véhicule
+  - **Fichier :** `src/screens/business/VehicleDetailsScreen.tsx`
+  - **Action :** Ajouter bouton photo + PhotoSelectionModal + upload
+  - **Endpoint :** `POST /vehicles/{id}/photo` (à créer)
+  - **Complexité :** Moyenne (4-5h)
+  - **Impact :** Fonctionnalité manquante
+
+### Données Véhicules en Mock 🟠
+- [ ] **VEH-04** : Valider que les véhicules fonctionnent en données réelles
+  - **Fichier :** `src/hooks/useVehicles.ts`
+  - **Action :** Tester sans mock, corriger si erreurs
+  - **Complexité :** Faible (2-3h)
+  - **Impact :** Validation production
+
+---
+
+## 💰 5. FACTURATION & STRIPE (6 problèmes)
+
+### Connexion Stripe Non Fonctionnelle 🔴
+- [ ] **STRIPE-01** : Stripe Connect n'est pas correctement configuré
+  - **Fichier :** `src/services/StripeService.ts`, configuration backend
+  - **Action :** Vérifier onboarding, clés API, webhooks
+  - **Complexité :** Haute (8-12h)
+  - **Impact :** BLOQUANT - Pas de paiements possibles
+
+### Liste Jobs à Facturer Non Accessible 🔴
+- [ ] **STRIPE-02** : Impossible de voir les jobs à facturer
+  - **Fichier :** `src/hooks/useJobsBilling.ts`
+  - **Action :** Debug la récupération des jobs + statuts paiement
+  - **Complexité :** Moyenne (3-4h)
+  - **Impact :** Fonctionnalité CORE cassée
+
+### Création de Facture Impossible 🔴
+- [ ] **STRIPE-03** : Impossible de créer une facture
+  - **Fichier :** `src/services/StripeService.ts`
+  - **Action :** Vérifier endpoint `POST /invoices` + Stripe API
+  - **Complexité :** Moyenne (4-6h)
+  - **Impact :** Fonctionnalité CORE cassée
+
+### Détails Paiement Non Accessibles 🔴
+- [ ] **STRIPE-04** : Impossible de voir les détails d'un paiement
+  - **Fichier :** `src/components/modals/PaymentDetailModal.tsx`
+  - **Action :** Vérifier récupération données depuis Stripe
+  - **Complexité :** Faible (2-3h)
+  - **Impact :** Fonctionnalité cassée
+
+### Statuts de Paiement Non Affichés 🔴
+- [ ] **STRIPE-05** : Les statuts (pending, paid, overdue) ne s'affichent pas
+  - **Fichier :** `src/screens/payments/PaymentsListScreen.tsx`
+  - **Action :** Mapper correctement les statuts Stripe
+  - **Complexité :** Faible (2-3h)
+  - **Impact :** UX cassée
+
+### Export/Téléchargement Facture Impossible 🔴
+- [ ] **STRIPE-06** : Impossible de télécharger une facture
+  - **Fichier :** `src/components/modals/PaymentDetailModal.tsx`
+  - **Action :** Implémenter téléchargement PDF via Stripe
+  - **Endpoint :** `GET /invoices/{id}/pdf` ou Stripe direct
+  - **Complexité :** Moyenne (4-5h)
+  - **Impact :** Fonctionnalité attendue
+
+---
+
+## ⚙️ 6. PARAMÈTRES (5 problèmes)
+
+### Modification Profil - Erreur 🔴
+- [ ] **SETTINGS-01** : Erreur lors de la modification du profil utilisateur
+  - **Fichier :** `src/screens/profile.tsx` ou modal profil
+  - **Action :** Debug et corriger la sauvegarde profil
+  - **Endpoint :** `PUT /users/me` ou `PATCH /users/{id}`
+  - **Complexité :** Moyenne (3-4h)
+  - **Impact :** Fonctionnalité cassée
+
+### Système de Notifications Inactif 🔴
+- [ ] **SETTINGS-02** : Les notifications push ne fonctionnent pas
+  - **Fichier :** `src/services/notificationService.ts` (à créer si n'existe pas)
+  - **Action :** Implémenter expo-notifications + backend push
+  - **Complexité :** Haute (8-12h)
+  - **Impact :** Fonctionnalité Phase 2 mais attendue
+
+### Thème Clair/Sombre via Système uniquement 🟠
+- [ ] **SETTINGS-03** : Pas de toggle manuel pour le thème
+  - **Fichier :** `src/screens/parameters.tsx`
+  - **Action :** Ajouter toggle Dark/Light/System
+  - **Complexité :** Faible (2-3h)
+  - **Impact :** Amélioration UX
+
+### Paramètres de Paiement Inexistants 🟠
+- [ ] **SETTINGS-04** : Pas d'écran pour gérer les paramètres de paiement
+  - **Fichier :** Créer ou améliorer `src/screens/payments/StripeSettingsScreen.tsx`
+  - **Action :** Interface pour paramètres Stripe (devises, notifications, etc.)
+  - **Complexité :** Moyenne (4-6h)
+  - **Impact :** Amélioration UX
+
+### Infos Entreprise mal placées 🟡
+- [ ] **SETTINGS-05** : Les infos entreprise ne sont pas dans les paramètres
+  - **Fichier :** `src/screens/parameters.tsx`
+  - **Action :** Ajouter lien vers Business Info dans paramètres
+  - **Complexité :** Faible (1h)
+  - **Impact :** Navigation améliorée
+
+---
+
+## 📅 PLAN D'ACTION RECOMMANDÉ
+
+### Sprint 1 - Semaine 1 : BLOCKERS CRITIQUES (40h estimées)
+**Objectif :** Rendre l'app utilisable pour les jobs
+
+| Priorité | Tâche | Estimation |
+|----------|-------|------------|
+| 1 | JOB-06 - Timer boucle démarrage | 4h |
+| 2 | JOB-07 - Timer boucle avancement | 4h |
+| 3 | JOB-04 - Notes erreur | 4h |
+| 4 | JOB-05 - Photos non sauvées | 6h |
+| 5 | AUTH-01 - Bouton déconnexion | 2h |
+| 6 | SETTINGS-01 - Profil erreur | 4h |
+| 7 | JOB-01 - Création job | 10h |
+| 8 | JOB-02 - Modification job | 6h |
+
+### Sprint 2 - Semaine 2 : CRUD COMPLET (35h estimées)
+**Objectif :** CRUD complet pour Jobs, Véhicules
+
+| Priorité | Tâche | Estimation |
+|----------|-------|------------|
+| 1 | JOB-03 - Suppression job | 3h |
+| 2 | VEH-01 - Modal ajout véhicule | 4h |
+| 3 | VEH-02 - Modification véhicule | 4h |
+| 4 | VEH-03 - Photo véhicule | 5h |
+| 5 | STAFF-01 - Assignation employé | 5h |
+| 6 | VEH-04 - Validation véhicules réels | 3h |
+| 7 | STAFF-04 - Validation staff réel | 3h |
+| 8 | SETTINGS-03 - Toggle thème | 3h |
+| 9 | SETTINGS-05 - Lien infos entreprise | 1h |
+
+### Sprint 3 - Semaine 3 : STRIPE & PAIEMENTS (30h estimées)
+**Objectif :** Facturation fonctionnelle
+
+| Priorité | Tâche | Estimation |
+|----------|-------|------------|
+| 1 | STRIPE-01 - Connexion Stripe | 10h |
+| 2 | STRIPE-02 - Liste jobs facturer | 4h |
+| 3 | STRIPE-03 - Création facture | 5h |
+| 4 | STRIPE-04 - Détails paiement | 3h |
+| 5 | STRIPE-05 - Statuts paiement | 3h |
+| 6 | STRIPE-06 - Export facture | 5h |
+
+### Sprint 4 - Semaine 4 : FONCTIONNALITÉS AVANCÉES (35h estimées)
+**Objectif :** Features enterprise
+
+| Priorité | Tâche | Estimation |
+|----------|-------|------------|
+| 1 | STAFF-02 - Gestion équipes | 12h |
+| 2 | STAFF-03 - Rôles/permissions | 15h |
+| 3 | SETTINGS-02 - Notifications | 8h |
+
+---
+
+## 🎯 CRITÈRES DE VALIDATION
+
+Pour chaque bug résolu :
+- [ ] Test manuel sur appareil réel
+- [ ] Pas d'erreur console
+- [ ] Données persistées après redémarrage app
+- [ ] Test en mode avion (pour sync offline si applicable)
 
 ---
 

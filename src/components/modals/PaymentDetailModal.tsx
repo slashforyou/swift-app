@@ -14,8 +14,8 @@ import {
 } from 'react-native';
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useTheme } from '../../context/ThemeProvider';
-import { useLocalization, formatCurrency as formatLocalizedCurrency, formatDateWithDay, formatTime as formatLocalizedTime } from '../../localization';
 import type { Payment } from '../../hooks/useStripe';
+import { formatDateWithDay, formatCurrency as formatLocalizedCurrency, formatTime as formatLocalizedTime, useLocalization } from '../../localization';
 
 interface PaymentDetailModalProps {
   visible: boolean;

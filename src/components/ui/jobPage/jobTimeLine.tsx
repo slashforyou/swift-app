@@ -8,7 +8,7 @@ import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { DESIGN_TOKENS } from '../../../constants/Styles';
 import { useJobTimerContext } from '../../../context/JobTimerProvider';
 import { useTheme } from '../../../context/ThemeProvider';
-import { useLocalization, formatTime } from '../../../localization';
+import { formatTime, useLocalization } from '../../../localization';
 
 interface JobTimeLineProps {
     job: any;

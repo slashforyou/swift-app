@@ -22,8 +22,8 @@
  */
 
 import { useEffect, useRef } from 'react';
-import { performanceMonitor } from '../utils/performanceMonitoring';
 import { analytics } from '../services/analytics';
+import { performanceMonitor } from '../utils/performanceMonitoring';
 
 interface PerformanceMetricsResult {
     /**

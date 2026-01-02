@@ -7,7 +7,7 @@ import { Alert, Modal, Text, View } from 'react-native';
 import { useTheme } from '../../context/ThemeProvider_Advanced';
 import { Button, Card, Input } from '../../design-system/components';
 import { DESIGN_TOKENS } from '../../design-system/tokens';
-import { useLocalization, formatCurrency } from '../../localization';
+import { formatCurrency, useLocalization } from '../../localization';
 import type { PayoutRequest } from '../../types/payouts';
 
 interface AnimatedInstantPayoutModalProps {

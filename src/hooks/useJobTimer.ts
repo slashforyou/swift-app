@@ -5,11 +5,11 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { 
-    completeJob, 
-    getTimerFromBackend, 
-    syncStepToBackend, 
-    updateJobStep 
+import {
+    completeJob,
+    getTimerFromBackend,
+    syncStepToBackend,
+    updateJobStep
 } from '../services/jobSteps';
 import { timerLogger } from '../utils/logger';
 
