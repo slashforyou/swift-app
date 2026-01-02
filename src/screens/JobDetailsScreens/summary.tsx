@@ -72,7 +72,7 @@ const JobSummary = ({ job, setJob, onOpenPaymentPanel } : { job: any, setJob: Re
             });
             
             const result = await addNote({ 
-                title: title || `Note du ${new Date().toLocaleDateString()}`,
+                title: title || `${t('jobDetails.defaultNote')} ${new Date().toLocaleDateString()}`,
                 content, 
                 note_type 
             });

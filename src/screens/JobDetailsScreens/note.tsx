@@ -18,8 +18,19 @@ interface JobNoteProps {
 
 const JobNote: React.FC<JobNoteProps> = ({ job, setJob }) => {
     const { colors } = useTheme();
-    const { t } = useLocalization();
+    const { t, currentLanguage } = useLocalization();
     const [isNoteModalVisible, setIsNoteModalVisible] = useState(false);
+    
+    // Map des locales pour le formatage des dates
+    const DATE_LOCALES: Record<string, string> = {
+        en: 'en-US',
+        fr: 'fr-FR',
+        es: 'es-ES',
+        pt: 'pt-BR',
+        it: 'it-IT',
+        zh: 'zh-CN',
+        hi: 'hi-IN',
+    };
     
     // Hooks pour la gestion des notes
     const { notes, isLoading, addNote, refetch } = useJobNotes(job?.id);
@@ -57,7 +68,7 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob }) => {
             if (diffHours < 1) return t('jobDetails.notes.time.justNow');
             if (diffHours < 24) return `${diffHours}h ${t('jobDetails.notes.time.hoursAgo')}`;
             if (diffHours < 48) return t('jobDetails.notes.time.yesterday');
-            return date.toLocaleDateString('fr-FR');
+            return date.toLocaleDateString(DATE_LOCALES[currentLanguage] || 'en-US');
         } catch {
             return t('jobDetails.notes.time.recently');
         }
