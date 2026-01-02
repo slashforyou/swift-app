@@ -31,7 +31,7 @@
 | 🔧 Config Production | **6** | 0 | 6 |
 | 🔧 TODOs Code | **34** | 5 | 39 |
 | 📱 Device Testing | 0 | 40+ | 40+ |
-| 🌍 i18n | 14 | 5 | 19 |
+| 🌍 i18n | 16 | 3 | 19 |
 | ⚡ Performance | 0 | 6 | 6 |
 | 🎨 Design System | 15 | 0 | 15 |
 
@@ -538,7 +538,9 @@
 - [x] PhotoSelectionModal.tsx ✅ MIGRÉ - Session courante
 - [x] JobPhotosSection.tsx ✅ MIGRÉ - Session courante
 - [x] jobDetails.tsx (toasts) ✅ MIGRÉ - Session courante
-- [ ] JobDetailsScreens (client, job, note, summary) 🟢 À vérifier
+- [x] note.tsx ✅ MIGRÉ - Date locale dynamique
+- [x] summary.tsx ✅ MIGRÉ - Note title localisé
+- [ ] Internationaliser les formats de date (6 fichiers restants) 🟢
 
 ---
 
