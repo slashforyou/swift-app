@@ -1,594 +1,594 @@
-﻿# ðŸ“‹ MASTER TASKS - Swift App
+# 📋 MASTER TASKS - Swift App
 
-> **Fichier consolidÃ© de toutes les tÃ¢ches du projet**  
-> **DerniÃ¨re mise Ã  jour :** 2 Janvier 2026  
+> **Fichier consolidé de toutes les tâches du projet**  
+> **Dernière mise à jour :** 2 Janvier 2026  
 > **Source :** Consolidation de tous les fichiers .md avec checkboxes
 
 ---
 
-## ðŸŽ¯ LÃ©gende des PrioritÃ©s
+## 🎯 Légende des Priorités
 
 | Emoji | Niveau | Description |
 |-------|--------|-------------|
-| ðŸ”´ | **URGENT** | Bloquant pour production, Ã  faire immÃ©diatement |
-| ðŸŸ  | **HAUTE** | Important pour le lancement, prioritÃ© haute |
-| ðŸŸ¡ | **MOYENNE** | NÃ©cessaire mais peut attendre aprÃ¨s lancement |
-| ðŸŸ¢ | **BASSE** | Nice-to-have, amÃ©lioration future |
-| âšª | **OPTIONNELLE** | Peut Ãªtre ignorÃ© ou reportÃ© indÃ©finiment |
+| 🔴 | **URGENT** | Bloquant pour production, à faire immédiatement |
+| 🟠 | **HAUTE** | Important pour le lancement, priorité haute |
+| 🟡 | **MOYENNE** | Nécessaire mais peut attendre après lancement |
+| 🟢 | **BASSE** | Nice-to-have, amélioration future |
+| ⚪ | **OPTIONNELLE** | Peut être ignoré ou reporté indéfiniment |
 
 ---
 
-## ðŸ“Š RÃ©sumÃ© (Mise Ã  jour 2 Jan 2026)
+## 📊 Résumé (Mise à jour 2 Jan 2026)
 
-| CatÃ©gorie | TerminÃ© | En Attente | Total |
+| Catégorie | Terminé | En Attente | Total |
 |-----------|---------|------------|-------|
-| ï¿🚨 **BUGS CRITIQUES** | **2** | **25** | **27** |
-| ï¿½ðŸš€ Phase 1 - Production Ready | **51+** | 0 | 51+ |
-| ðŸŽ¯ Phase 2 - Growth | 5 | 14 | 19 |
-| ðŸŒ Phase 3 - Expansion | 0 | 12 | 12 |
-| ðŸš€ Phase 4 - Innovation | 0 | 10 | 10 |
-| ðŸ§ª Tests Light/Dark | 40+ | 0 | 40+ |
-| ðŸ” Audit SÃ©curitÃ© | 3 | 0 | 3 |
-| ðŸ”§ Config Production | **6** | 0 | 6 |
-| ðŸ”§ TODOs Code | **36** | 3 | 39 |
-| ðŸ“± Device Testing | 0 | 40+ | 40+ |
-| ðŸŒ i18n | **19** | 0 | 19 |
-| âš¡ Performance | **6** | 0 | 6 |
-| ðŸŽ¨ Design System | 15 | 0 | 15 |
+| �?? **BUGS CRITIQUES** | **2** | **25** | **27** |
+| �🚀 Phase 1 - Production Ready | **51+** | 0 | 51+ |
+| 🎯 Phase 2 - Growth | 5 | 14 | 19 |
+| 🌍 Phase 3 - Expansion | 0 | 12 | 12 |
+| 🚀 Phase 4 - Innovation | 0 | 10 | 10 |
+| 🧪 Tests Light/Dark | 40+ | 0 | 40+ |
+| 🔐 Audit Sécurité | 3 | 0 | 3 |
+| 🔧 Config Production | **6** | 0 | 6 |
+| 🔧 TODOs Code | **36** | 3 | 39 |
+| 📱 Device Testing | 0 | 40+ | 40+ |
+| 🌍 i18n | **19** | 0 | 19 |
+| ⚡ Performance | **6** | 0 | 6 |
+| 🎨 Design System | 15 | 0 | 15 |
 
-**âš ï¸ ALERTE :** Tests sur appareil du 2 Jan 2026 rÃ©vÃ¨lent 27 problÃ¨mes critiques Ã  rÃ©soudre avant production.
+**⚠️ ALERTE :** Tests sur appareil du 2 Jan 2026 révèlent 27 problèmes critiques à résoudre avant production.
 
 ---
 
-# ðŸš¨ BUGS CRITIQUES - TESTS APPAREIL (2 Jan 2026)
+# 🚨 BUGS CRITIQUES - TESTS APPAREIL (2 Jan 2026)
 
-> **Ces problÃ¨mes BLOQUENT le lancement en production**  
-> **PrioritÃ© ABSOLUE - Ã€ traiter avant toute autre tÃ¢che**
+> **Ces problèmes BLOQUENT le lancement en production**  
+> **Priorité ABSOLUE - À traiter avant toute autre tâche**
 
-## ðŸ“Š RÃ©sumÃ© par CatÃ©gorie
+## 📊 Résumé par Catégorie
 
-| CatÃ©gorie | Critiques ðŸ”´ | Hauts ðŸŸ  | Moyens ðŸŸ¡ | Total |
+| Catégorie | Critiques 🔴 | Hauts 🟠 | Moyens 🟡 | Total |
 |-----------|-------------|---------|----------|-------|
 | Authentification | 1 | 0 | 0 | 1 |
 | Jobs & Timer | 6 | 1 | 0 | 7 |
 | Gestion Personnel | 1 | 3 | 0 | 4 |
-| VÃ©hicules | 3 | 1 | 0 | 4 |
+| Véhicules | 3 | 1 | 0 | 4 |
 | Facturation/Stripe | 6 | 0 | 0 | 6 |
-| ParamÃ¨tres | 2 | 2 | 1 | 5 |
+| Paramètres | 2 | 2 | 1 | 5 |
 | **TOTAL** | **19** | **7** | **1** | **25** |
 
 ---
 
-## ðŸ” 1. AUTHENTIFICATION (1 problÃ¨me)
+## 🔐 1. AUTHENTIFICATION (1 problème)
 
-### Bouton de DÃ©connexion Manquant ðŸ”´
-- [x] **AUTH-01** : Ajouter un bouton de dÃ©connexion dans l'Ã©cran ParamÃ¨tres
+### Bouton de Déconnexion Manquant 🔴
+- [x] **AUTH-01** : Ajouter un bouton de déconnexion dans l'écran Paramètres
   - **Fichier :** `src/screens/parameters.tsx`
-  - **Action :** Ajouter bouton "Se dÃ©connecter" avec confirmation
-  - **ComplexitÃ© :** Faible (1-2h)
-  - **Impact :** Bloquant UX - L'utilisateur ne peut pas se dÃ©connecter
+  - **Action :** Ajouter bouton "Se déconnecter" avec confirmation
+  - **Complexité :** Faible (1-2h)
+  - **Impact :** Bloquant UX - L'utilisateur ne peut pas se déconnecter
 
 ---
 
-## ðŸ“‹ 2. JOBS & TIMER (7 problÃ¨mes)
+## 📋 2. JOBS & TIMER (7 problèmes)
 
-### CrÃ©ation de Job Impossible ðŸ”´
-- [ ] **JOB-01** : ImplÃ©menter la crÃ©ation d'un nouveau job
-  - **Fichier :** Nouveau Ã©cran `src/screens/jobs/CreateJobScreen.tsx`
-  - **Action :** Modal/Ã©cran de crÃ©ation avec champs: client, adresse, date, description
-  - **Endpoint :** `POST /jobs` (Ã  vÃ©rifier si existe)
-  - **ComplexitÃ© :** Haute (8-12h)
-  - **Impact :** FonctionnalitÃ© CORE manquante
+### Création de Job Impossible 🔴
+- [x] **JOB-01** : Implémenter la création d'un nouveau job
+  - **Fichier :** Nouveau écran `src/screens/jobs/CreateJobScreen.tsx`
+  - **Action :** Modal/écran de création avec champs: client, adresse, date, description
+  - **Endpoint :** `POST /jobs` (à vérifier si existe)
+  - **Complexité :** Haute (8-12h)
+  - **Impact :** Fonctionnalité CORE manquante
 
-### Modification de Job Impossible ðŸ”´
-- [ ] **JOB-02** : ImplÃ©menter la modification d'un job existant
+### Modification de Job Impossible 🔴
+- [x] **JOB-02** : Implémenter la modification d'un job existant
   - **Fichier :** `src/screens/JobDetailsScreens/jobDetails.tsx` ou nouveau modal
-  - **Action :** Permettre Ã©dition: heure, adresse, client, description
-  - **Endpoint :** `PUT /jobs/{id}` (Ã  vÃ©rifier si existe)
-  - **ComplexitÃ© :** Moyenne (4-6h)
-  - **Impact :** FonctionnalitÃ© CORE manquante
+  - **Action :** Permettre édition: heure, adresse, client, description
+  - **Endpoint :** `PUT /jobs/{id}` (à vérifier si existe)
+  - **Complexité :** Moyenne (4-6h)
+  - **Impact :** Fonctionnalité CORE manquante
 
-### Suppression de Job Impossible ðŸ”´
-- [ ] **JOB-03** : ImplÃ©menter la suppression d'un job
+### Suppression de Job Impossible 🔴
+- [x] **JOB-03** : Implémenter la suppression d'un job
   - **Fichier :** `src/screens/JobDetailsScreens/jobDetails.tsx`
   - **Action :** Ajouter bouton supprimer avec confirmation
-  - **Endpoint :** `DELETE /jobs/{id}` (Ã  vÃ©rifier si existe)
-  - **ComplexitÃ© :** Faible (2-3h)
-  - **Impact :** FonctionnalitÃ© CORE manquante
+  - **Endpoint :** `DELETE /jobs/{id}` (à vérifier si existe)
+  - **Complexité :** Faible (2-3h)
+  - **Impact :** Fonctionnalité CORE manquante
 
-### Ajout de Note - Erreur ðŸ”´
+### Ajout de Note - Erreur 🔴
 - [x] **JOB-04** : Corriger l'erreur lors de l'ajout d'une note
   - **Fichier :** `src/components/modals/ImprovedNoteModal.tsx`, `src/services/jobNotes.ts`
   - **Action :** Debug et corriger l'endpoint/la logique
-  - **Endpoint :** `POST /jobs/{id}/notes` (vÃ©rifier format)
-  - **ComplexitÃ© :** Moyenne (3-4h)
-  - **Impact :** Bloquant - FonctionnalitÃ© cassÃ©e
+  - **Endpoint :** `POST /jobs/{id}/notes` (vérifier format)
+  - **Complexité :** Moyenne (3-4h)
+  - **Impact :** Bloquant - Fonctionnalité cassée
 
-### Photos Non SauvegardÃ©es ðŸ”´
-- [x] **JOB-05** : Les photos prises ne sont pas sauvegardÃ©es/affichÃ©es
+### Photos Non Sauvegardées 🔴
+- [x] **JOB-05** : Les photos prises ne sont pas sauvegardées/affichées
   - **Fichier :** `src/components/modals/PhotoSelectionModal.tsx`, `src/services/jobPhotos.ts`
-  - **Action :** ImplÃ©menter upload vers backend + affichage dans job
-  - **Endpoint :** `POST /jobs/{id}/photos` (Ã  crÃ©er si n'existe pas)
-  - **ComplexitÃ© :** Haute (6-8h)
-  - **Impact :** FonctionnalitÃ© cassÃ©e
+  - **Action :** Implémenter upload vers backend + affichage dans job
+  - **Endpoint :** `POST /jobs/{id}/photos` (à créer si n'existe pas)
+  - **Complexité :** Haute (6-8h)
+  - **Impact :** Fonctionnalité cassée
 
-### âœ… Timer - Boucle Infinie au DÃ©marrage ðŸ”´ (RÃ‰SOLU 2 Jan 2026)
-- [x] **JOB-06** : Corriger la boucle infinie lors du dÃ©marrage du timer
+### ✅ Timer - Boucle Infinie au Démarrage 🔴 (RÉSOLU 2 Jan 2026)
+- [x] **JOB-06** : Corriger la boucle infinie lors du démarrage du timer
   - **Fichier :** `src/hooks/useJobTimer.ts`, `src/context/JobTimerProvider.tsx`
-  - **Solution :** Ajout refs pour Ã©viter chargements multiples (isLoadingRef, hasLoadedRef, currentStepRef)
+  - **Solution :** Ajout refs pour éviter chargements multiples (isLoadingRef, hasLoadedRef, currentStepRef)
   - **Commit :** `db3008d`
 
-### âœ… Timer - Boucle Infinie Ã  l'Avancement ðŸ”´ (RÃ‰SOLU 2 Jan 2026)
-- [x] **JOB-07** : Corriger la boucle infinie lors de l'avancement des Ã©tapes
+### ✅ Timer - Boucle Infinie à l'Avancement 🔴 (RÉSOLU 2 Jan 2026)
+- [x] **JOB-07** : Corriger la boucle infinie lors de l'avancement des étapes
   - **Fichier :** `src/hooks/useJobTimer.ts`, `src/context/JobTimerProvider.tsx`, `summary.tsx`, `JobTimeSection.tsx`
   - **Solution :** Guards dans useEffect sync, suppression double appel API, migration JobTimeSection vers context
   - **Commit :** `db3008d`
 
 ---
 
-## ðŸ‘¥ 3. GESTION DU PERSONNEL (4 problÃ¨mes)
+## 👥 3. GESTION DU PERSONNEL (4 problèmes)
 
-### Assignation EmployÃ© Ã  Job Impossible ðŸ”´
-- [ ] **STAFF-01** : ImplÃ©menter l'assignation d'un employÃ© Ã  un job
-  - **Fichier :** `src/screens/JobDetailsScreens/jobDetails.tsx` ou crÃ©ation modal
-  - **Action :** Dropdown/modal pour sÃ©lectionner un employÃ© existant
-  - **Endpoint :** `PUT /jobs/{id}/assign` ou `PATCH /jobs/{id}` (Ã  vÃ©rifier)
-  - **ComplexitÃ© :** Moyenne (4-5h)
-  - **Impact :** FonctionnalitÃ© CORE manquante pour Ã©quipes
+### Assignation Employé à Job Impossible 🔴
+- [ ] **STAFF-01** : Implémenter l'assignation d'un employé à un job
+  - **Fichier :** `src/screens/JobDetailsScreens/jobDetails.tsx` ou création modal
+  - **Action :** Dropdown/modal pour sélectionner un employé existant
+  - **Endpoint :** `PUT /jobs/{id}/assign` ou `PATCH /jobs/{id}` (à vérifier)
+  - **Complexité :** Moyenne (4-5h)
+  - **Impact :** Fonctionnalité CORE manquante pour équipes
 
-### Gestion des Ã‰quipes Inexistante ðŸŸ 
-- [ ] **STAFF-02** : CrÃ©er le systÃ¨me de gestion des Ã©quipes
-  - **Fichier :** Nouveau Ã©cran `src/screens/TeamsScreen.tsx`
-  - **Action :** CRUD Ã©quipes (crÃ©er, modifier, supprimer, assigner membres)
-  - **Endpoint :** `GET/POST/PUT/DELETE /teams` (Ã  crÃ©er backend)
-  - **ComplexitÃ© :** Haute (10-15h)
-  - **Impact :** FonctionnalitÃ© Phase 2
+### Gestion des Équipes Inexistante 🟠
+- [ ] **STAFF-02** : Créer le système de gestion des équipes
+  - **Fichier :** Nouveau écran `src/screens/TeamsScreen.tsx`
+  - **Action :** CRUD équipes (créer, modifier, supprimer, assigner membres)
+  - **Endpoint :** `GET/POST/PUT/DELETE /teams` (à créer backend)
+  - **Complexité :** Haute (10-15h)
+  - **Impact :** Fonctionnalité Phase 2
 
-### SystÃ¨me de RÃ´les/Permissions Inexistant ðŸŸ 
-- [ ] **STAFF-03** : ImplÃ©menter le systÃ¨me de rÃ´les et permissions
+### Système de Rôles/Permissions Inexistant 🟠
+- [ ] **STAFF-03** : Implémenter le système de rôles et permissions
   - **Fichier :** `src/services/staffService.ts`, `src/types/staff.ts`
-  - **Action :** DÃ©finir rÃ´les (Admin, Manager, Tech, Viewer) + UI
+  - **Action :** Définir rôles (Admin, Manager, Tech, Viewer) + UI
   - **Endpoint :** Backend + Frontend
-  - **ComplexitÃ© :** Haute (12-16h)
-  - **Impact :** FonctionnalitÃ© Phase 2 - Enterprise
+  - **Complexité :** Haute (12-16h)
+  - **Impact :** Fonctionnalité Phase 2 - Enterprise
 
-### VÃ©rification Serveur Staff (Mock actif) ðŸŸ 
-- [ ] **STAFF-04** : Valider que les opÃ©rations Staff fonctionnent en donnÃ©es rÃ©elles
+### Vérification Serveur Staff (Mock actif) 🟠
+- [ ] **STAFF-04** : Valider que les opérations Staff fonctionnent en données réelles
   - **Fichier :** `src/hooks/useStaff.ts`
   - **Action :** Tester sans mock, corriger si erreurs
-  - **ComplexitÃ© :** Faible (2-3h)
+  - **Complexité :** Faible (2-3h)
   - **Impact :** Validation production
 
 ---
 
-## ðŸš— 4. VÃ‰HICULES (4 problÃ¨mes)
+## 🚗 4. VÉHICULES (4 problèmes)
 
-### Modal d'Ajout de VÃ©hicule Manquant ðŸ”´
-- [x] **VEH-01** : Le bouton et modal d'ajout de vÃ©hicule n'existent pas
+### Modal d'Ajout de Véhicule Manquant 🔴
+- [x] **VEH-01** : Le bouton et modal d'ajout de véhicule n'existent pas
   - **Fichier :** `src/screens/business/trucksScreen.tsx`
   - **Action :** Ajouter FAB + `AddVehicleModal` fonctionnel
-  - **Endpoint :** `POST /vehicles` (vÃ©rifier si existe)
-  - **ComplexitÃ© :** Moyenne (3-4h)
-  - **Impact :** FonctionnalitÃ© CORE manquante
+  - **Endpoint :** `POST /vehicles` (vérifier si existe)
+  - **Complexité :** Moyenne (3-4h)
+  - **Impact :** Fonctionnalité CORE manquante
 
-### Modification de VÃ©hicule - Seulement une Alerte ðŸ”´
+### Modification de Véhicule - Seulement une Alerte 🔴
 - [x] **VEH-02** : La modification affiche seulement une alerte au lieu d'un formulaire
   - **Fichier :** `src/screens/business/VehicleDetailsScreen.tsx`
   - **Action :** Remplacer Alert par `EditVehicleModal` fonctionnel
-  - **Endpoint :** `PUT /vehicles/{id}` (vÃ©rifier si existe)
-  - **ComplexitÃ© :** Moyenne (3-4h)
-  - **Impact :** FonctionnalitÃ© cassÃ©e
+  - **Endpoint :** `PUT /vehicles/{id}` (vérifier si existe)
+  - **Complexité :** Moyenne (3-4h)
+  - **Impact :** Fonctionnalité cassée
 
-### Interface Prise Photo VÃ©hicule Manquante ðŸ”´
-- [ ] **VEH-03** : Aucune interface pour prendre une photo du vÃ©hicule
+### Interface Prise Photo Véhicule Manquante 🔴
+- [ ] **VEH-03** : Aucune interface pour prendre une photo du véhicule
   - **Fichier :** `src/screens/business/VehicleDetailsScreen.tsx`
   - **Action :** Ajouter bouton photo + PhotoSelectionModal + upload
-  - **Endpoint :** `POST /vehicles/{id}/photo` (Ã  crÃ©er)
-  - **ComplexitÃ© :** Moyenne (4-5h)
-  - **Impact :** FonctionnalitÃ© manquante
+  - **Endpoint :** `POST /vehicles/{id}/photo` (à créer)
+  - **Complexité :** Moyenne (4-5h)
+  - **Impact :** Fonctionnalité manquante
 
-### DonnÃ©es VÃ©hicules en Mock ðŸŸ 
-- [x] **VEH-04** : Valider que les vÃ©hicules fonctionnent en donnÃ©es rÃ©elles
+### Données Véhicules en Mock 🟠
+- [x] **VEH-04** : Valider que les véhicules fonctionnent en données réelles
   - **Fichier :** `src/hooks/useVehicles.ts`
   - **Action :** Tester sans mock, corriger si erreurs
-  - **ComplexitÃ© :** Faible (2-3h)
+  - **Complexité :** Faible (2-3h)
   - **Impact :** Validation production
 
 ---
 
-## ðŸ’° 5. FACTURATION & STRIPE (6 problÃ¨mes)
+## 💰 5. FACTURATION & STRIPE (6 problèmes)
 
-### Connexion Stripe Non Fonctionnelle ðŸ”´
-- [ ] **STRIPE-01** : Stripe Connect n'est pas correctement configurÃ©
+### Connexion Stripe Non Fonctionnelle 🔴
+- [ ] **STRIPE-01** : Stripe Connect n'est pas correctement configuré
   - **Fichier :** `src/services/StripeService.ts`, configuration backend
-  - **Action :** VÃ©rifier onboarding, clÃ©s API, webhooks
-  - **ComplexitÃ© :** Haute (8-12h)
+  - **Action :** Vérifier onboarding, clés API, webhooks
+  - **Complexité :** Haute (8-12h)
   - **Impact :** BLOQUANT - Pas de paiements possibles
 
-### Liste Jobs Ã  Facturer Non Accessible ðŸ”´
-- [ ] **STRIPE-02** : Impossible de voir les jobs Ã  facturer
+### Liste Jobs à Facturer Non Accessible 🔴
+- [ ] **STRIPE-02** : Impossible de voir les jobs à facturer
   - **Fichier :** `src/hooks/useJobsBilling.ts`
-  - **Action :** Debug la rÃ©cupÃ©ration des jobs + statuts paiement
-  - **ComplexitÃ© :** Moyenne (3-4h)
-  - **Impact :** FonctionnalitÃ© CORE cassÃ©e
+  - **Action :** Debug la récupération des jobs + statuts paiement
+  - **Complexité :** Moyenne (3-4h)
+  - **Impact :** Fonctionnalité CORE cassée
 
-### CrÃ©ation de Facture Impossible ðŸ”´
-- [ ] **STRIPE-03** : Impossible de crÃ©er une facture
+### Création de Facture Impossible 🔴
+- [ ] **STRIPE-03** : Impossible de créer une facture
   - **Fichier :** `src/services/StripeService.ts`
-  - **Action :** VÃ©rifier endpoint `POST /invoices` + Stripe API
-  - **ComplexitÃ© :** Moyenne (4-6h)
-  - **Impact :** FonctionnalitÃ© CORE cassÃ©e
+  - **Action :** Vérifier endpoint `POST /invoices` + Stripe API
+  - **Complexité :** Moyenne (4-6h)
+  - **Impact :** Fonctionnalité CORE cassée
 
-### DÃ©tails Paiement Non Accessibles ðŸ”´
-- [ ] **STRIPE-04** : Impossible de voir les dÃ©tails d'un paiement
+### Détails Paiement Non Accessibles 🔴
+- [ ] **STRIPE-04** : Impossible de voir les détails d'un paiement
   - **Fichier :** `src/components/modals/PaymentDetailModal.tsx`
-  - **Action :** VÃ©rifier rÃ©cupÃ©ration donnÃ©es depuis Stripe
-  - **ComplexitÃ© :** Faible (2-3h)
-  - **Impact :** FonctionnalitÃ© cassÃ©e
+  - **Action :** Vérifier récupération données depuis Stripe
+  - **Complexité :** Faible (2-3h)
+  - **Impact :** Fonctionnalité cassée
 
-### Statuts de Paiement Non AffichÃ©s ðŸ”´
+### Statuts de Paiement Non Affichés 🔴
 - [ ] **STRIPE-05** : Les statuts (pending, paid, overdue) ne s'affichent pas
   - **Fichier :** `src/screens/payments/PaymentsListScreen.tsx`
   - **Action :** Mapper correctement les statuts Stripe
-  - **ComplexitÃ© :** Faible (2-3h)
-  - **Impact :** UX cassÃ©e
+  - **Complexité :** Faible (2-3h)
+  - **Impact :** UX cassée
 
-### Export/TÃ©lÃ©chargement Facture Impossible ðŸ”´
-- [ ] **STRIPE-06** : Impossible de tÃ©lÃ©charger une facture
+### Export/Téléchargement Facture Impossible 🔴
+- [ ] **STRIPE-06** : Impossible de télécharger une facture
   - **Fichier :** `src/components/modals/PaymentDetailModal.tsx`
-  - **Action :** ImplÃ©menter tÃ©lÃ©chargement PDF via Stripe
+  - **Action :** Implémenter téléchargement PDF via Stripe
   - **Endpoint :** `GET /invoices/{id}/pdf` ou Stripe direct
-  - **ComplexitÃ© :** Moyenne (4-5h)
-  - **Impact :** FonctionnalitÃ© attendue
+  - **Complexité :** Moyenne (4-5h)
+  - **Impact :** Fonctionnalité attendue
 
 ---
 
-## âš™ï¸ 6. PARAMÃˆTRES (5 problÃ¨mes)
+## ⚙️ 6. PARAMÈTRES (5 problèmes)
 
-### Modification Profil - Erreur ðŸ”´
+### Modification Profil - Erreur 🔴
 - [x] **SETTINGS-01** : Erreur lors de la modification du profil utilisateur
   - **Fichier :** `src/screens/profile.tsx` ou modal profil
   - **Action :** Debug et corriger la sauvegarde profil
   - **Endpoint :** `PUT /users/me` ou `PATCH /users/{id}`
-  - **ComplexitÃ© :** Moyenne (3-4h)
-  - **Impact :** FonctionnalitÃ© cassÃ©e
+  - **Complexité :** Moyenne (3-4h)
+  - **Impact :** Fonctionnalité cassée
 
-### SystÃ¨me de Notifications Inactif ðŸ”´
+### Système de Notifications Inactif 🔴
 - [ ] **SETTINGS-02** : Les notifications push ne fonctionnent pas
-  - **Fichier :** `src/services/notificationService.ts` (Ã  crÃ©er si n'existe pas)
-  - **Action :** ImplÃ©menter expo-notifications + backend push
-  - **ComplexitÃ© :** Haute (8-12h)
-  - **Impact :** FonctionnalitÃ© Phase 2 mais attendue
+  - **Fichier :** `src/services/notificationService.ts` (à créer si n'existe pas)
+  - **Action :** Implémenter expo-notifications + backend push
+  - **Complexité :** Haute (8-12h)
+  - **Impact :** Fonctionnalité Phase 2 mais attendue
 
-### ThÃ¨me Clair/Sombre via SystÃ¨me uniquement ðŸŸ 
-- [ ] **SETTINGS-03** : Pas de toggle manuel pour le thÃ¨me
+### Thème Clair/Sombre via Système uniquement 🟠
+- [ ] **SETTINGS-03** : Pas de toggle manuel pour le thème
   - **Fichier :** `src/screens/parameters.tsx`
   - **Action :** Ajouter toggle Dark/Light/System
-  - **ComplexitÃ© :** Faible (2-3h)
-  - **Impact :** AmÃ©lioration UX
+  - **Complexité :** Faible (2-3h)
+  - **Impact :** Amélioration UX
 
-### ParamÃ¨tres de Paiement Inexistants ðŸŸ 
-- [ ] **SETTINGS-04** : Pas d'Ã©cran pour gÃ©rer les paramÃ¨tres de paiement
-  - **Fichier :** CrÃ©er ou amÃ©liorer `src/screens/payments/StripeSettingsScreen.tsx`
-  - **Action :** Interface pour paramÃ¨tres Stripe (devises, notifications, etc.)
-  - **ComplexitÃ© :** Moyenne (4-6h)
-  - **Impact :** AmÃ©lioration UX
+### Paramètres de Paiement Inexistants 🟠
+- [ ] **SETTINGS-04** : Pas d'écran pour gérer les paramètres de paiement
+  - **Fichier :** Créer ou améliorer `src/screens/payments/StripeSettingsScreen.tsx`
+  - **Action :** Interface pour paramètres Stripe (devises, notifications, etc.)
+  - **Complexité :** Moyenne (4-6h)
+  - **Impact :** Amélioration UX
 
-### Infos Entreprise mal placÃ©es ðŸŸ¡
-- [ ] **SETTINGS-05** : Les infos entreprise ne sont pas dans les paramÃ¨tres
+### Infos Entreprise mal placées 🟡
+- [ ] **SETTINGS-05** : Les infos entreprise ne sont pas dans les paramètres
   - **Fichier :** `src/screens/parameters.tsx`
-  - **Action :** Ajouter lien vers Business Info dans paramÃ¨tres
-  - **ComplexitÃ© :** Faible (1h)
-  - **Impact :** Navigation amÃ©liorÃ©e
+  - **Action :** Ajouter lien vers Business Info dans paramètres
+  - **Complexité :** Faible (1h)
+  - **Impact :** Navigation améliorée
 
 ---
 
-## ðŸ“… PLAN D'ACTION RECOMMANDÃ‰
+## 📅 PLAN D'ACTION RECOMMANDÉ
 
-### Sprint 1 - Semaine 1 : BLOCKERS CRITIQUES (40h estimÃ©es)
+### Sprint 1 - Semaine 1 : BLOCKERS CRITIQUES (40h estimées)
 **Objectif :** Rendre l'app utilisable pour les jobs
 
-| PrioritÃ© | TÃ¢che | Estimation |
+| Priorité | Tâche | Estimation |
 |----------|-------|------------|
-| 1 | JOB-06 - Timer boucle dÃ©marrage | 4h |
+| 1 | JOB-06 - Timer boucle démarrage | 4h |
 | 2 | JOB-07 - Timer boucle avancement | 4h |
 | 3 | JOB-04 - Notes erreur | 4h |
-| 4 | JOB-05 - Photos non sauvÃ©es | 6h |
-| 5 | AUTH-01 - Bouton dÃ©connexion | 2h |
+| 4 | JOB-05 - Photos non sauvées | 6h |
+| 5 | AUTH-01 - Bouton déconnexion | 2h |
 | 6 | SETTINGS-01 - Profil erreur | 4h |
-| 7 | JOB-01 - CrÃ©ation job | 10h |
+| 7 | JOB-01 - Création job | 10h |
 | 8 | JOB-02 - Modification job | 6h |
 
-### Sprint 2 - Semaine 2 : CRUD COMPLET (35h estimÃ©es)
-**Objectif :** CRUD complet pour Jobs, VÃ©hicules
+### Sprint 2 - Semaine 2 : CRUD COMPLET (35h estimées)
+**Objectif :** CRUD complet pour Jobs, Véhicules
 
-| PrioritÃ© | TÃ¢che | Estimation |
+| Priorité | Tâche | Estimation |
 |----------|-------|------------|
 | 1 | JOB-03 - Suppression job | 3h |
-| 2 | VEH-01 - Modal ajout vÃ©hicule | 4h |
-| 3 | VEH-02 - Modification vÃ©hicule | 4h |
-| 4 | VEH-03 - Photo vÃ©hicule | 5h |
-| 5 | STAFF-01 - Assignation employÃ© | 5h |
-| 6 | VEH-04 - Validation vÃ©hicules rÃ©els | 3h |
-| 7 | STAFF-04 - Validation staff rÃ©el | 3h |
-| 8 | SETTINGS-03 - Toggle thÃ¨me | 3h |
+| 2 | VEH-01 - Modal ajout véhicule | 4h |
+| 3 | VEH-02 - Modification véhicule | 4h |
+| 4 | VEH-03 - Photo véhicule | 5h |
+| 5 | STAFF-01 - Assignation employé | 5h |
+| 6 | VEH-04 - Validation véhicules réels | 3h |
+| 7 | STAFF-04 - Validation staff réel | 3h |
+| 8 | SETTINGS-03 - Toggle thème | 3h |
 | 9 | SETTINGS-05 - Lien infos entreprise | 1h |
 
-### Sprint 3 - Semaine 3 : STRIPE & PAIEMENTS (30h estimÃ©es)
+### Sprint 3 - Semaine 3 : STRIPE & PAIEMENTS (30h estimées)
 **Objectif :** Facturation fonctionnelle
 
-| PrioritÃ© | TÃ¢che | Estimation |
+| Priorité | Tâche | Estimation |
 |----------|-------|------------|
 | 1 | STRIPE-01 - Connexion Stripe | 10h |
 | 2 | STRIPE-02 - Liste jobs facturer | 4h |
-| 3 | STRIPE-03 - CrÃ©ation facture | 5h |
-| 4 | STRIPE-04 - DÃ©tails paiement | 3h |
+| 3 | STRIPE-03 - Création facture | 5h |
+| 4 | STRIPE-04 - Détails paiement | 3h |
 | 5 | STRIPE-05 - Statuts paiement | 3h |
 | 6 | STRIPE-06 - Export facture | 5h |
 
-### Sprint 4 - Semaine 4 : FONCTIONNALITÃ‰S AVANCÃ‰ES (35h estimÃ©es)
+### Sprint 4 - Semaine 4 : FONCTIONNALITÉS AVANCÉES (35h estimées)
 **Objectif :** Features enterprise
 
-| PrioritÃ© | TÃ¢che | Estimation |
+| Priorité | Tâche | Estimation |
 |----------|-------|------------|
-| 1 | STAFF-02 - Gestion Ã©quipes | 12h |
-| 2 | STAFF-03 - RÃ´les/permissions | 15h |
+| 1 | STAFF-02 - Gestion équipes | 12h |
+| 2 | STAFF-03 - Rôles/permissions | 15h |
 | 3 | SETTINGS-02 - Notifications | 8h |
 
 ---
 
-## ðŸŽ¯ CRITÃˆRES DE VALIDATION
+## 🎯 CRITÈRES DE VALIDATION
 
-Pour chaque bug rÃ©solu :
-- [ ] Test manuel sur appareil rÃ©el
+Pour chaque bug résolu :
+- [ ] Test manuel sur appareil réel
 - [ ] Pas d'erreur console
-- [ ] DonnÃ©es persistÃ©es aprÃ¨s redÃ©marrage app
+- [ ] Données persistées après redémarrage app
 - [ ] Test en mode avion (pour sync offline si applicable)
 
 ---
 
-# ðŸš€ PHASE 1 - PRODUCTION READY (DÃ©c 2025 - Jan 2026)
+# 🚀 PHASE 1 - PRODUCTION READY (Déc 2025 - Jan 2026)
 
-## âœ… Semaine 1-2 : StabilitÃ© Critique
+## ✅ Semaine 1-2 : Stabilité Critique
 
-### Migration Mock Data â†’ API RÃ©elle
+### Migration Mock Data → API Réelle
 - [x] Remplacer mockStaff par API Staff Management (useStaff.ts)
 - [x] Connecter useJobsBilling aux vrais endpoints Stripe
 - [x] Finaliser templatesService avec API Quote Management
 - [x] Remplacer mockBusinessInfo par Business Stats API
-- **Livrable :** âœ… 0% mock data en production
+- **Livrable :** ✅ 0% mock data en production
 
-### Migration Design System ComplÃ¨te
-- [x] Audit composants utilisant ancien systÃ¨me
+### Migration Design System Complète
+- [x] Audit composants utilisant ancien système
 - [x] Harmonisation design tokens globaux
 - [x] Migration LanguageButton vers style circulaire uniforme
-- [x] Unification headers avec mÃªme pattern design
-- [x] JobDetailsHeader restructurÃ© avec RefBookMark positionnÃ©
-- **Livrable :** âœ… Design system unifiÃ© 100%
+- [x] Unification headers avec même pattern design
+- [x] JobDetailsHeader restructuré avec RefBookMark positionné
+- **Livrable :** ✅ Design system unifié 100%
 
 ### API Integration Critique
 - [x] Endpoints Stripe backend complets (payments, refunds, invoices)
 - [x] API Staff CRUD (invite, add, manage contractors)
 - [x] Business Statistics API (dashboard metrics)
 - [x] Quote Templates Management API
-- **Livrable :** âœ… APIs production-ready
+- **Livrable :** ✅ APIs production-ready
 
-## âœ… Semaine 3-4 : Finalisation Technique
+## ✅ Semaine 3-4 : Finalisation Technique
 
-### IntÃ©gration Stripe Elements
+### Intégration Stripe Elements
 - [x] Installation @stripe/stripe-react-native v0.50.3
-- [x] StripeProvider configurÃ© dans App.tsx
+- [x] StripeProvider configuré dans App.tsx
 - [x] Remplacement champs TextInput par CardField natif Stripe
-- [x] ImplÃ©mentation handleCardPayment avec useConfirmPayment
-- [x] Flux complet : Payment Intent â†’ Confirmation â†’ Backend sync
-- [x] Interface utilisateur adaptative avec validation temps rÃ©el
-- [x] IntÃ©gration analytics Stripe (stripeAnalytics.ts)
-- [x] RÃ©solution erreur OnrampSdk (compatibilitÃ© Expo)
-- [x] Logger.ts corrigÃ© pour React Native
-- **Livrable :** âœ… Paiements 100% natifs
+- [x] Implémentation handleCardPayment avec useConfirmPayment
+- [x] Flux complet : Payment Intent → Confirmation → Backend sync
+- [x] Interface utilisateur adaptative avec validation temps réel
+- [x] Intégration analytics Stripe (stripeAnalytics.ts)
+- [x] Résolution erreur OnrampSdk (compatibilité Expo)
+- [x] Logger.ts corrigé pour React Native
+- **Livrable :** ✅ Paiements 100% natifs
 
-### AmÃ©liorations UX Critiques
+### Améliorations UX Critiques
 - [x] Section "Aujourd'hui" sur Page d'Accueil
-- [x] ProfileHeader SimplifiÃ© - Design Ã‰purÃ©
-- [x] JobDetails Summary - AmÃ©lioration Interface
-- **Impact :** âœ… UX moderne, navigation fluide
+- [x] ProfileHeader Simplifié - Design Épuré
+- [x] JobDetails Summary - Amélioration Interface
+- **Impact :** ✅ UX moderne, navigation fluide
 
 ### Tests & Validation
-- [x] Test suite complÃ¨te E2E
-- [x] Validation UX sur devices rÃ©els
+- [x] Test suite complète E2E
+- [x] Validation UX sur devices réels
 - [x] Load testing avec backend
-- **Livrable :** âœ… App validÃ©e production
+- **Livrable :** ✅ App validée production
 
 ### Endpoints Backend
-- [x] `POST /swift-app/v1/logs` - RÃ©ception logs frontend
-- [x] `POST /swift-app/v1/analytics/events` - Collecte Ã©vÃ©nements
-- [x] `POST /job/{id}/advance-step` - Avancement Ã©tape job
-- [x] `GET /job/{id}/step` - RÃ©cupÃ©rer Ã©tape actuelle
+- [x] `POST /swift-app/v1/logs` - Réception logs frontend
+- [x] `POST /swift-app/v1/analytics/events` - Collecte événements
+- [x] `POST /job/{id}/advance-step` - Avancement étape job
+- [x] `GET /job/{id}/step` - Récupérer étape actuelle
 - [x] Gestion erreurs 404 gracieuse
-- **Livrable :** âœ… Tous les endpoints production-ready
+- **Livrable :** ✅ Tous les endpoints production-ready
 
-## â³ Semaine 5-6 : DÃ©ploiement Production
+## ⏳ Semaine 5-6 : Déploiement Production
 
-### Audit SÃ©curitÃ©
-- [x] Revue conformitÃ© PCI-DSS ðŸ”´ âœ… (SECURITY_AUDIT_28DEC2025.md)
-- [x] Test intrusion basic ðŸŸ  âœ… (Pas de XSS, inputs validÃ©s)
-- [x] Validation flows critiques ðŸ”´ âœ… (Auth + Paiement sÃ©curisÃ©s)
-- **Livrable :** âœ… Certification sÃ©curitÃ© - Score 93/100
+### Audit Sécurité
+- [x] Revue conformité PCI-DSS 🔴 ✅ (SECURITY_AUDIT_28DEC2025.md)
+- [x] Test intrusion basic 🟠 ✅ (Pas de XSS, inputs validés)
+- [x] Validation flows critiques 🔴 ✅ (Auth + Paiement sécurisés)
+- **Livrable :** ✅ Certification sécurité - Score 93/100
 
 ### Configuration Production
-- [x] Setup Stripe live keys ðŸ”´ âœ… (environment.ts prÃªt, en attente clÃ© live)
-- [x] Configuration domaine production ðŸ”´ âœ… (altivo.fr configurÃ©)
-- [x] SSL certificates et sÃ©curitÃ© ðŸ”´ âœ… (HTTPS partout)
-- [x] Guide de dÃ©ploiement crÃ©Ã© âœ… (PRODUCTION_DEPLOYMENT_GUIDE.md)
-- [x] app.json configurÃ© v1.0.0 âœ…
-- **Livrable :** âœ… Infrastructure prÃªte - En attente clÃ© Stripe Live
+- [x] Setup Stripe live keys 🔴 ✅ (environment.ts prêt, en attente clé live)
+- [x] Configuration domaine production 🔴 ✅ (altivo.fr configuré)
+- [x] SSL certificates et sécurité 🔴 ✅ (HTTPS partout)
+- [x] Guide de déploiement créé ✅ (PRODUCTION_DEPLOYMENT_GUIDE.md)
+- [x] app.json configuré v1.0.0 ✅
+- **Livrable :** ✅ Infrastructure prête - En attente clé Stripe Live
 
 ### Monitoring & Analytics
-- [ ] Dashboard Stripe opÃ©rationnel ðŸŸ 
-- [ ] Alerts critiques configurÃ©es ðŸŸ 
-- [ ] Logs centralisÃ©s ðŸŸ¡
-- **Livrable :** ObservabilitÃ© complÃ¨te
+- [ ] Dashboard Stripe opérationnel 🟠
+- [ ] Alerts critiques configurées 🟠
+- [ ] Logs centralisés 🟡
+- **Livrable :** Observabilité complète
 
 ### Documentation Finale
-- [x] Guide dÃ©ploiement ðŸŸ  âœ… (PRODUCTION_DEPLOYMENT_GUIDE.md)
-- [ ] Runbooks opÃ©rationnels ðŸŸ¡
-- [ ] Support utilisateurs ðŸŸ¡
+- [x] Guide déploiement 🟠 ✅ (PRODUCTION_DEPLOYMENT_GUIDE.md)
+- [ ] Runbooks opérationnels 🟡
+- [ ] Support utilisateurs 🟡
 - **Livrable :** Documentation ops (en cours)
 
 ---
 
-# ðŸŽ¯ PHASE 2 - GROWTH & OPTIMIZATION (FÃ©v - Avr 2026)
+# 🎯 PHASE 2 - GROWTH & OPTIMIZATION (Fév - Avr 2026)
 
 ## Mois 1 : Performance & UX
 
 ### Optimisations Performance
-- [ ] Bundle splitting et lazy loading ðŸŸ¡
-- [ ] Cache strategies optimisÃ©es ðŸŸ¡
-- [ ] RÃ©duction temps chargement < 1s ðŸŸ 
+- [ ] Bundle splitting et lazy loading 🟡
+- [ ] Cache strategies optimisées 🟡
+- [ ] Réduction temps chargement < 1s 🟠
 - **Impact :** +20% retention utilisateurs
 
 ### UX Enhancements
 - [x] Animations fluides et micro-interactions
-- [x] Design systÃ¨me moderne et cohÃ©rent
+- [x] Design système moderne et cohérent
 - [x] Navigation intuitive avec boutons circulaires
-- [x] Dark mode complet ðŸŸ¡ âœ… (95% - 40 couleurs intentionnelles restantes)
-- [ ] AccessibilitÃ© WCAG 2.1 AA ðŸŸ¢
+- [x] Dark mode complet 🟡 ✅ (95% - 40 couleurs intentionnelles restantes)
+- [ ] Accessibilité WCAG 2.1 AA 🟢
 - **Impact :** Score UX > 4.5/5
 
 ### Native Features
-- [ ] Push notifications intelligentes ðŸŸ 
-- [ ] Synchronisation offline ðŸŸ¡
-- [ ] Biometric authentication ðŸŸ¢
+- [ ] Push notifications intelligentes 🟠
+- [ ] Synchronisation offline 🟡
+- [ ] Biometric authentication 🟢
 - **Impact :** Engagement +30%
 
 ## Mois 2-3 : Business Features
 
-### SystÃ¨me de Gamification Complet
-- [ ] Points et niveaux utilisateur (7 niveaux) ðŸŸ¢
-- [ ] 25+ badges de rÃ©alisation ðŸŸ¢
-- [ ] Leaderboards Ã©quipes/individuels ðŸŸ¢
-- [ ] RÃ©compenses concrÃ¨tes par niveau âšª
-- **Impact :** +40% engagement, +25% rÃ©tention
+### Système de Gamification Complet
+- [ ] Points et niveaux utilisateur (7 niveaux) 🟢
+- [ ] 25+ badges de réalisation 🟢
+- [ ] Leaderboards équipes/individuels 🟢
+- [ ] Récompenses concrètes par niveau ⚪
+- **Impact :** +40% engagement, +25% rétention
 
-### SystÃ¨me de RÃ´les et Permissions Enterprise
-- [ ] 4 forfaits : Fournisseur, Entreprise, Prestataire, EmployÃ© ðŸŸ¡
-- [ ] Architecture User â†” Company sÃ©parÃ©e ðŸŸ¡
-- [ ] Permissions granulaires par action ðŸŸ¡
-- [ ] Middleware de sÃ©curitÃ© backend + UI adaptive ðŸŸ¡
-- **Impact :** SaaS B2B scalable, â‚¬1.18M ARR potential
+### Système de Rôles et Permissions Enterprise
+- [ ] 4 forfaits : Fournisseur, Entreprise, Prestataire, Employé 🟡
+- [ ] Architecture User ↔ Company séparée 🟡
+- [ ] Permissions granulaires par action 🟡
+- [ ] Middleware de sécurité backend + UI adaptive 🟡
+- **Impact :** SaaS B2B scalable, €1.18M ARR potential
 
-### Analytics AvancÃ©es
-- [ ] Dashboard exÃ©cutif temps rÃ©el ðŸŸ¢
-- [ ] PrÃ©dictions revenus IA âšª
-- [ ] Benchmarks sectoriels âšª
+### Analytics Avancées
+- [ ] Dashboard exécutif temps réel 🟢
+- [ ] Prédictions revenus IA ⚪
+- [ ] Benchmarks sectoriels ⚪
 - **Impact :** Insights business critiques
 
 ### Automation Workflows
-- [ ] Facturation automatique ðŸŸ¡
-- [ ] Relances clients intelligentes ðŸŸ¢
-- [ ] Rapports programmÃ©s ðŸŸ¢
-- **Impact :** -50% tÃ¢ches manuelles
+- [ ] Facturation automatique 🟡
+- [ ] Relances clients intelligentes 🟢
+- [ ] Rapports programmés 🟢
+- **Impact :** -50% tâches manuelles
 
-### IntÃ©grations Business
-- [ ] Xero/MYOB comptabilitÃ© ðŸŸ¢
-- [ ] Google Calendar sync ðŸŸ¢
-- [ ] Slack notifications âšª
-- **Impact :** ProductivitÃ© +40%
+### Intégrations Business
+- [ ] Xero/MYOB comptabilité 🟢
+- [ ] Google Calendar sync 🟢
+- [ ] Slack notifications ⚪
+- **Impact :** Productivité +40%
 
 ---
 
-# ðŸŒ PHASE 3 - EXPANSION (Mai - AoÃ»t 2026)
+# 🌍 PHASE 3 - EXPANSION (Mai - Août 2026)
 
-## Expansion GÃ©ographique
+## Expansion Géographique
 
-### Union EuropÃ©enne
-- [ ] Support EUR, multi-langues âšª
-- [ ] ConformitÃ© GDPR complÃ¨te ðŸŸ¢
-- [ ] Taxation locale automatique âšª
+### Union Européenne
+- [ ] Support EUR, multi-langues ⚪
+- [ ] Conformité GDPR complète 🟢
+- [ ] Taxation locale automatique ⚪
 - **Target :** 5 pays EU en 3 mois
 
-### MarchÃ© AmÃ©ricain
-- [ ] Support USD, rÃ©glementation US âšª
-- [ ] Partenariats locaux âšª
-- [ ] Marketing digital ciblÃ© âšª
-- **Target :** 3 Ã©tats US pilotes
+### Marché Américain
+- [ ] Support USD, réglementation US ⚪
+- [ ] Partenariats locaux ⚪
+- [ ] Marketing digital ciblé ⚪
+- **Target :** 3 états US pilotes
 
 ### Royaume-Uni
-- [ ] Post-Brexit compliance âšª
-- [ ] Partenaires distribution âšª
-- [ ] Pricing local optimisÃ© âšª
+- [ ] Post-Brexit compliance ⚪
+- [ ] Partenaires distribution ⚪
+- [ ] Pricing local optimisé ⚪
 - **Target :** 1000 users UK
 
 ## Expansion Sectorielle
 
-### Nouveaux MÃ©tiers
-- [ ] Ã‰lectriciens, jardiniers, nettoyage âšª
-- [ ] Templates mÃ©tiers spÃ©cifiques âšª
-- [ ] Workflows optimisÃ©s par secteur âšª
+### Nouveaux Métiers
+- [ ] Électriciens, jardiniers, nettoyage ⚪
+- [ ] Templates métiers spécifiques ⚪
+- [ ] Workflows optimisés par secteur ⚪
 - **Target :** 10 secteurs couverts
 
 ### Enterprise Segment
-- [ ] Multi-teams et permissions âšª
-- [ ] Reporting consolidÃ© âšª
-- [ ] API entreprise âšª
-- **Target :** 100 entreprises > 50 employÃ©s
+- [ ] Multi-teams et permissions ⚪
+- [ ] Reporting consolidé ⚪
+- [ ] API entreprise ⚪
+- **Target :** 100 entreprises > 50 employés
 
 ---
 
-# ðŸš€ PHASE 4 - INNOVATION & PLATFORM (Sep - DÃ©c 2026)
+# 🚀 PHASE 4 - INNOVATION & PLATFORM (Sep - Déc 2026)
 
 ## Intelligence Artificielle
 
 ### AI-Powered Features
-- [ ] PrÃ©diction coÃ»ts jobs via ML âšª
-- [ ] Optimisation planning automatique âšª
-- [ ] DÃ©tection fraude avancÃ©e âšª
-- [ ] Assistant virtuel business âšª
+- [ ] Prédiction coûts jobs via ML ⚪
+- [ ] Optimisation planning automatique ⚪
+- [ ] Détection fraude avancée ⚪
+- [ ] Assistant virtuel business ⚪
 
 ### Predictive Analytics
-- [ ] Forecasting revenus âšª
-- [ ] Identification opportunitÃ©s cross-sell âšª
-- [ ] Optimisation pricing dynamique âšª
-- [ ] Alertes business intelligentes âšª
+- [ ] Forecasting revenus ⚪
+- [ ] Identification opportunités cross-sell ⚪
+- [ ] Optimisation pricing dynamique ⚪
+- [ ] Alertes business intelligentes ⚪
 
 ## Platform Economy
 
 ### API Publique
-- [ ] Developer portal avec docs âšª
-- [ ] SDK mobile pour intÃ©grations âšª
-- [ ] Marketplace d'apps tierces âšª
-- [ ] Revenue sharing partenaires âšª
+- [ ] Developer portal avec docs ⚪
+- [ ] SDK mobile pour intégrations ⚪
+- [ ] Marketplace d'apps tierces ⚪
+- [ ] Revenue sharing partenaires ⚪
 
-### Marketplace IntÃ©grÃ©
-- [ ] Catalogue produits partenaires âšª
-- [ ] Commission sur ventes âšª
-- [ ] Gestion stock automatisÃ©e âšª
-- [ ] Logistique intÃ©grÃ©e âšª
+### Marketplace Intégré
+- [ ] Catalogue produits partenaires ⚪
+- [ ] Commission sur ventes ⚪
+- [ ] Gestion stock automatisée ⚪
+- [ ] Logistique intégrée ⚪
 
 ### White-Label Solutions
-- [ ] Branding custom pour partenaires âšª
-- [ ] Multi-tenant architecture âšª
-- [ ] Pricing diffÃ©renciÃ© âšª
-- [ ] Support dÃ©diÃ© enterprise âšª
+- [ ] Branding custom pour partenaires ⚪
+- [ ] Multi-tenant architecture ⚪
+- [ ] Pricing différencié ⚪
+- [ ] Support dédié enterprise ⚪
 
 ---
 
-# ðŸŽ¯ STRATÃ‰GIES D'ACQUISITION
+# 🎯 STRATÉGIES D'ACQUISITION
 
 ### Marketing Digital
-- [ ] **SEO/SEM :** Dominer "logiciel plombier", "app facturation" ðŸŸ¢
-- [ ] **Content Marketing :** Blog, guides, Ã©tudes sectorielles ðŸŸ¢
+- [ ] **SEO/SEM :** Dominer "logiciel plombier", "app facturation" 🟢
+- [ ] **Content Marketing :** Blog, guides, études sectorielles 🟢
 
 ---
 
-# ðŸ”§ TODOs DANS LE CODE SOURCE
+# 🔧 TODOs DANS LE CODE SOURCE
 
-## âœ… RÃ©solus (21)
+## ✅ Résolus (21)
 
-### 26-27 DÃ©cembre 2025
-- [x] **useVehicles.ts** - MigrÃ© vers API rÃ©elle via business/vehiclesService.ts
+### 26-27 Décembre 2025
+- [x] **useVehicles.ts** - Migré vers API réelle via business/vehiclesService.ts
 - [x] **StripeService.ts - createInstantPayout** - POST /stripe/payouts/create
-- [x] **StripeService.ts - bank_accounts** - RÃ©cupÃ©rÃ© depuis external_accounts
+- [x] **StripeService.ts - bank_accounts** - Récupéré depuis external_accounts
 - [x] **usePayouts.ts - refreshPayouts** - GET /stripe/payouts + GET /stripe/balance
 - [x] **usePayouts.ts - createPayout** - POST /stripe/payouts/create
 - [x] **useStripeConnect.ts - refreshStatus** - GET /stripe/connect/status
@@ -598,361 +598,361 @@ Pour chaque bug rÃ©solu :
 - [x] **useStripeReports.ts - exportData** - GET /transactions-export
 - [x] **StripePaymentScreen.tsx - handlePayment** - POST /payments/create-payment-intent
 - [x] **syncWithAPI dans JobStateProvider.tsx** - fetchJobProgressFromAPI()
-- [x] **ThemeProvider_Advanced.tsx** - SupprimÃ© TODO obsolÃ¨te
-- [x] **ServerData.ts** - DocumentÃ© comme placeholder sÃ©curitÃ©
-- [x] **useStripeReports.ts** - Filtrage par dates implÃ©mentÃ©
+- [x] **ThemeProvider_Advanced.tsx** - Supprimé TODO obsolète
+- [x] **ServerData.ts** - Documenté comme placeholder sécurité
+- [x] **useStripeReports.ts** - Filtrage par dates implémenté
 - [x] **home.tsx** - DevTools logs dans console (dev-only)
-- [x] **jobTimer.ts** - DocumentÃ© comme service deprecated
-- [x] **sessionLogger.ts** - Instructions expo-sharing documentÃ©es
+- [x] **jobTimer.ts** - Documenté comme service deprecated
+- [x] **sessionLogger.ts** - Instructions expo-sharing documentées
 - [x] **testReporter.ts** - Version via expo-constants
 
 ### 2 Janvier 2026
-- [x] **PaymentDetailModal.tsx - Download Receipt** - Alert "Coming Soon" âœ…
-- [x] **PaymentDetailModal.tsx - Issue Refund** - Alert vers Stripe Dashboard âœ…
+- [x] **PaymentDetailModal.tsx - Download Receipt** - Alert "Coming Soon" ✅
+- [x] **PaymentDetailModal.tsx - Issue Refund** - Alert vers Stripe Dashboard ✅
 
-## â³ En Attente Backend (2)
+## ⏳ En Attente Backend (2)
 
 | Fichier | TODO | Status |
 |---------|------|--------|
-| `StripeService.ts` | createStripePaymentLink | âš ï¸ Pas d'endpoint backend |
-| `StripeService.ts` | updateStripeAccountSettings | âš ï¸ Pas d'endpoint backend |
+| `StripeService.ts` | createStripePaymentLink | ⚠️ Pas d'endpoint backend |
+| `StripeService.ts` | updateStripeAccountSettings | ⚠️ Pas d'endpoint backend |
 
-## âœ… PrioritÃ© Moyenne - Staff & Business (5) - TOUS RÃ‰SOLUS
+## ✅ Priorité Moyenne - Staff & Business (5) - TOUS RÉSOLUS
 
-- [x] `AddStaffModal.tsx` - ImplÃ©menter l'invitation de prestataire ðŸŸ¡ âœ… (staffService.inviteContractor)
-- [x] `staffCrewScreen.tsx` - ImplÃ©menter la suppression ðŸŸ¡ âœ… (handleRemoveStaff + removeStaff API)
-- [x] `staffCrewScreen.tsx` - Implement edit functionality ðŸŸ¡ âœ… (handleEditStaff + updateStaff API)
-- [x] `PayoutsScreen.tsx` - Navigation vers le dÃ©tail du payout ðŸŸ¢ âœ… (PayoutDetailModal)
-- [x] `PaymentsListScreen.tsx` - Navigation vers le dÃ©tail du paiement ðŸŸ¢ âœ… (PaymentDetailModal)
+- [x] `AddStaffModal.tsx` - Implémenter l'invitation de prestataire 🟡 ✅ (staffService.inviteContractor)
+- [x] `staffCrewScreen.tsx` - Implémenter la suppression 🟡 ✅ (handleRemoveStaff + removeStaff API)
+- [x] `staffCrewScreen.tsx` - Implement edit functionality 🟡 ✅ (handleEditStaff + updateStaff API)
+- [x] `PayoutsScreen.tsx` - Navigation vers le détail du payout 🟢 ✅ (PayoutDetailModal)
+- [x] `PaymentsListScreen.tsx` - Navigation vers le détail du paiement 🟢 ✅ (PaymentDetailModal)
 
-## â³ En Attente Backend - Vehicles (3)
+## ⏳ En Attente Backend - Vehicles (3)
 
-- [ ] `VehicleDetailsScreen.tsx` - Add mileage to API (backend) ðŸŸ¢ âš ï¸ Frontend prÃªt
-- [ ] `VehicleDetailsScreen.tsx` - Add purchaseDate to API (backend) ðŸŸ¢ âš ï¸ Frontend prÃªt
-- [ ] `VehicleDetailsScreen.tsx` - Add lastService to API (backend) ðŸŸ¢ âš ï¸ Frontend prÃªt
+- [ ] `VehicleDetailsScreen.tsx` - Add mileage to API (backend) 🟢 ⚠️ Frontend prêt
+- [ ] `VehicleDetailsScreen.tsx` - Add purchaseDate to API (backend) 🟢 ⚠️ Frontend prêt
+- [ ] `VehicleDetailsScreen.tsx` - Add lastService to API (backend) 🟢 ⚠️ Frontend prêt
 
-## âœ… PrioritÃ© Moyenne - Vehicles Navigation (1) - RÃ‰SOLU
+## ✅ Priorité Moyenne - Vehicles Navigation (1) - RÉSOLU
 
-- [x] `trucksScreen.tsx` - Ouvrir dÃ©tails du vÃ©hicule ðŸŸ¡ âœ… (VehicleDetailsScreen + selectedVehicle)
+- [x] `trucksScreen.tsx` - Ouvrir détails du véhicule 🟡 ✅ (VehicleDetailsScreen + selectedVehicle)
 
-## âœ… PrioritÃ© Moyenne - Stripe Settings (4) - TOUS RÃ‰SOLUS
+## ✅ Priorité Moyenne - Stripe Settings (4) - TOUS RÉSOLUS
 
-- [x] `StripeSettingsScreen.tsx` - Ouvrir Stripe Connect Onboarding ðŸŸ  âœ… (getStripeConnectOnboardingLink)
-- [x] `StripeSettingsScreen.tsx` - Navigation vers configuration webhooks ðŸŸ¢ âœ… (handleWebhooksSetup)
-- [x] `StripeSettingsScreen.tsx` - CrÃ©er un paiement test ðŸŸ¢ âœ… (handleTestPayment)
-- [x] `StripeSettingsScreen.tsx` - DÃ©connecter le compte Stripe ðŸŸ¢ âœ… (handleDisconnect)
+- [x] `StripeSettingsScreen.tsx` - Ouvrir Stripe Connect Onboarding 🟠 ✅ (getStripeConnectOnboardingLink)
+- [x] `StripeSettingsScreen.tsx` - Navigation vers configuration webhooks 🟢 ✅ (handleWebhooksSetup)
+- [x] `StripeSettingsScreen.tsx` - Créer un paiement test 🟢 ✅ (handleTestPayment)
+- [x] `StripeSettingsScreen.tsx` - Déconnecter le compte Stripe 🟢 ✅ (handleDisconnect)
 
-## âœ… PrioritÃ© Moyenne - Stripe Hub (3) - TOUS RÃ‰SOLUS
+## ✅ Priorité Moyenne - Stripe Hub (3) - TOUS RÉSOLUS
 
-- [x] `StripeHub.tsx` - Ouvrir modal de crÃ©ation de lien de paiement ðŸŸ¡ âœ… (CreatePaymentLinkModal)
-- [x] `StripeHub.tsx` - CrÃ©er un lien de paiement rapide ðŸŸ¡ âœ… (handleCreatePaymentLink)
-- [x] `StripeHub.tsx` - Navigation vers crÃ©ation personnalisÃ©e ðŸŸ¢ âœ… (navigation intÃ©grÃ©e)
+- [x] `StripeHub.tsx` - Ouvrir modal de création de lien de paiement 🟡 ✅ (CreatePaymentLinkModal)
+- [x] `StripeHub.tsx` - Créer un lien de paiement rapide 🟡 ✅ (handleCreatePaymentLink)
+- [x] `StripeHub.tsx` - Navigation vers création personnalisée 🟢 ✅ (navigation intégrée)
 
-## âœ… PrioritÃ© Basse - Photos (2) - TOUS RÃ‰SOLUS
+## ✅ Priorité Basse - Photos (2) - TOUS RÉSOLUS
 
-- [x] `PhotoSelectionModal.tsx` - Code pour prendre la photo ðŸŸ  âœ… (ImagePicker.launchCameraAsync)
-- [x] `PhotoSelectionModal.tsx` - Code pour sÃ©lectionner la photo ðŸŸ  âœ… (ImagePicker.launchImageLibraryAsync)
+- [x] `PhotoSelectionModal.tsx` - Code pour prendre la photo 🟠 ✅ (ImagePicker.launchCameraAsync)
+- [x] `PhotoSelectionModal.tsx` - Code pour sélectionner la photo 🟠 ✅ (ImagePicker.launchImageLibraryAsync)
 
-## â³ PrioritÃ© Basse - Traductions (1)
+## ⏳ Priorité Basse - Traductions (1)
 
-- [ ] `es.ts` - Add complete Spanish translations (optionnel) âšª
+- [ ] `es.ts` - Add complete Spanish translations (optionnel) ⚪
 
 ---
 
-# ðŸ§ª TESTS VISUELS - CHECKLIST LIGHT/DARK MODE
+# 🧪 TESTS VISUELS - CHECKLIST LIGHT/DARK MODE
 
-## ðŸ“Š Progression Migration (28 DÃ©c 2025)
+## 📊 Progression Migration (28 Déc 2025)
 
-| MÃ©trique | Avant | AprÃ¨s | AmÃ©lioration |
+| Métrique | Avant | Après | Amélioration |
 |----------|-------|-------|--------------|
-| **Couleurs hardcodÃ©es** | ~150+ | **39** | **-74%** |
-| **Fichiers affectÃ©s** | ~60+ | **13** | **-78%** |
-| **Commits poussÃ©s** | - | **13** | âœ… |
+| **Couleurs hardcodées** | ~150+ | **39** | **-74%** |
+| **Fichiers affectés** | ~60+ | **13** | **-78%** |
+| **Commits poussés** | - | **13** | ✅ |
 
-### Fichiers Restants (intentionnels ou surchargÃ©s JSX)
-- ProfileHeader*.tsx (20 couleurs) - MÃ©dailles gamification (or/argent/bronze) - INTENTIONNEL
-- StepValidationBadge.tsx (5) - Dans StyleSheet statique, surchargÃ©es en JSX âœ…
-- Payment modals (4 total) - SurchargÃ©es en JSX avec colors.buttonPrimaryText âœ…
-- Staff/Vehicle modals (8 total) - SurchargÃ©es en JSX âœ…
-- signingBloc.tsx (1) - CSS injectÃ© dans WebView - INTENTIONNEL
+### Fichiers Restants (intentionnels ou surchargés JSX)
+- ProfileHeader*.tsx (20 couleurs) - Médailles gamification (or/argent/bronze) - INTENTIONNEL
+- StepValidationBadge.tsx (5) - Dans StyleSheet statique, surchargées en JSX ✅
+- Payment modals (4 total) - Surchargées en JSX avec colors.buttonPrimaryText ✅
+- Staff/Vehicle modals (8 total) - Surchargées en JSX ✅
+- signingBloc.tsx (1) - CSS injecté dans WebView - INTENTIONNEL
 
-## CritÃ¨res de Validation (par Ã©cran)
-- [x] Fond principal visible ðŸŸ  âœ…
-- [x] Texte lisible (bon contraste) ðŸ”´ âœ…
-- [x] IcÃ´nes visibles ðŸŸ¡ âœ…
-- [x] Boutons distincts ðŸŸ  âœ…
-- [x] Cartes/sections bien dÃ©limitÃ©es ðŸŸ¡ âœ…
-- [x] Pas de couleurs hardcodÃ©es ðŸ”´ âœ… (40 restantes intentionnelles)
+## Critères de Validation (par écran)
+- [x] Fond principal visible 🟠 ✅
+- [x] Texte lisible (bon contraste) 🔴 ✅
+- [x] Icônes visibles 🟡 ✅
+- [x] Boutons distincts 🟠 ✅
+- [x] Cartes/sections bien délimitées 🟡 ✅
+- [x] Pas de couleurs hardcodées 🔴 ✅ (40 restantes intentionnelles)
 
-## Navigation Tab (6 Ã©crans)
-- [x] Home - `screens/home.tsx` - Light/Dark ðŸŸ¡ âœ…
-- [x] Calendar - `screens/calendar/*.tsx` - Light/Dark ðŸŸ¡ âœ… (useCommonThemedStyles)
-- [x] Jobs - `screens/JobDetailsScreens/*.tsx` - Light/Dark ðŸŸ¡ âœ… (useTheme/useCommonThemedStyles)
-- [x] Payments - `screens/payments/*.tsx` - Light/Dark ðŸŸ¡ âœ…
-- [x] Profile - `screens/profile.tsx` - Light/Dark ðŸŸ¡ âœ… (useTheme)
-- [x] Parameters - `screens/parameters.tsx` - Light/Dark ðŸŸ¡ âœ… (useTheme)
+## Navigation Tab (6 écrans)
+- [x] Home - `screens/home.tsx` - Light/Dark 🟡 ✅
+- [x] Calendar - `screens/calendar/*.tsx` - Light/Dark 🟡 ✅ (useCommonThemedStyles)
+- [x] Jobs - `screens/JobDetailsScreens/*.tsx` - Light/Dark 🟡 ✅ (useTheme/useCommonThemedStyles)
+- [x] Payments - `screens/payments/*.tsx` - Light/Dark 🟡 ✅
+- [x] Profile - `screens/profile.tsx` - Light/Dark 🟡 ✅ (useTheme)
+- [x] Parameters - `screens/parameters.tsx` - Light/Dark 🟡 ✅ (useTheme)
 
-## Calendrier (4 Ã©crans)
-- [x] Month View - Light/Dark ðŸŸ¢ âœ…
-- [x] Year View - Light/Dark ðŸŸ¢ âœ… (useCommonThemedStyles)
-- [x] Multiple Years - Light/Dark âšª âœ… (useCommonThemedStyles)
-- [x] Day Details - Light/Dark ðŸŸ¢ âœ… (useCommonThemedStyles)
+## Calendrier (4 écrans)
+- [x] Month View - Light/Dark 🟢 ✅
+- [x] Year View - Light/Dark 🟢 ✅ (useCommonThemedStyles)
+- [x] Multiple Years - Light/Dark ⚪ ✅ (useCommonThemedStyles)
+- [x] Day Details - Light/Dark 🟢 ✅ (useCommonThemedStyles)
 
-## Jobs (5 Ã©crans)
-- [x] Job List - Light/Dark ðŸŸ¡ âœ…
-- [x] Job Details - Light/Dark ðŸŸ  âœ…
-- [x] Job Steps - Light/Dark ðŸŸ  âœ…
-- [x] Summary - Light/Dark ðŸŸ  âœ…
-- [x] Payment - Light/Dark ðŸ”´ âœ…
+## Jobs (5 écrans)
+- [x] Job List - Light/Dark 🟡 ✅
+- [x] Job Details - Light/Dark 🟠 ✅
+- [x] Job Steps - Light/Dark 🟠 ✅
+- [x] Summary - Light/Dark 🟠 ✅
+- [x] Payment - Light/Dark 🔴 ✅
 
-## Paiements & Stripe (4 Ã©crans)
-- [x] Stripe Payment - Light/Dark ðŸ”´ âœ…
-- [x] Payment Success - Light/Dark ðŸŸ  âœ…
-- [x] Stripe Onboarding - Light/Dark ðŸŸ  âœ… (useTheme)
-- [x] Account Status - Light/Dark ðŸŸ¡ âœ… (useTheme)
+## Paiements & Stripe (4 écrans)
+- [x] Stripe Payment - Light/Dark 🔴 ✅
+- [x] Payment Success - Light/Dark 🟠 ✅
+- [x] Stripe Onboarding - Light/Dark 🟠 ✅ (useTheme)
+- [x] Account Status - Light/Dark 🟡 ✅ (useTheme)
 
-## Business (4 Ã©crans)
-- [x] Business Info - Light/Dark ðŸŸ¡ âœ… (useTheme + useCommonThemedStyles)
-- [x] Trucks - Light/Dark ðŸŸ¢ âœ…
-- [x] Staff/Crew - Light/Dark ðŸŸ¡ âœ…
-- [x] Payout Schedule - Light/Dark ðŸŸ¢ âœ… (PayoutsScreen - useTheme)
+## Business (4 écrans)
+- [x] Business Info - Light/Dark 🟡 ✅ (useTheme + useCommonThemedStyles)
+- [x] Trucks - Light/Dark 🟢 ✅
+- [x] Staff/Crew - Light/Dark 🟡 ✅
+- [x] Payout Schedule - Light/Dark 🟢 ✅ (PayoutsScreen - useTheme)
 
 ## Composants Critiques (6)
-- [x] Header Profile - Light/Dark ðŸŸ  âœ… (mÃ©dailles gamification - couleurs intentionnelles)
-- [x] Today Section - Light/Dark ðŸŸ  âœ…
-- [x] Job Timeline - Light/Dark ðŸŸ  âœ…
-- [x] Signature Section - Light/Dark ðŸ”´ âœ…
-- [x] Card Form - Light/Dark ðŸ”´ âœ…
-- [x] Unified Card - Light/Dark ðŸŸ¡ âœ…
+- [x] Header Profile - Light/Dark 🟠 ✅ (médailles gamification - couleurs intentionnelles)
+- [x] Today Section - Light/Dark 🟠 ✅
+- [x] Job Timeline - Light/Dark 🟠 ✅
+- [x] Signature Section - Light/Dark 🔴 ✅
+- [x] Card Form - Light/Dark 🔴 ✅
+- [x] Unified Card - Light/Dark 🟡 ✅
 
 ## Modals (5)
-- [x] Payment Detail - Light/Dark ðŸŸ  âœ…
-- [x] Payout Detail - Light/Dark ðŸŸ¢ âœ…
-- [x] Create Payment Link - Light/Dark ðŸŸ¡ âœ… (useTheme)
-- [x] Add Note - Light/Dark ðŸŸ¢ âœ…
-- [x] Photo Viewer - Light/Dark ðŸŸ¢ âœ… (PhotoSelectionModal - useTheme)
+- [x] Payment Detail - Light/Dark 🟠 ✅
+- [x] Payout Detail - Light/Dark 🟢 ✅
+- [x] Create Payment Link - Light/Dark 🟡 ✅ (useTheme)
+- [x] Add Note - Light/Dark 🟢 ✅
+- [x] Photo Viewer - Light/Dark 🟢 ✅ (PhotoSelectionModal - useTheme)
 
-## Composants MigrÃ©s (28 DÃ©c 2025)
-- [x] NotificationsPanel.tsx - Conversion complÃ¨te StyleSheetâ†’dynamic âœ…
-- [x] AlertsPanel.tsx, AlertMessage.tsx, TabMenu.tsx âœ…
-- [x] CalendarTabMenu.tsx, jobMenu.tsx âœ…
-- [x] JobClock.tsx, JobTimerDisplay.tsx, JobTimeSection.tsx âœ…
-- [x] JobStepHistoryCard.tsx, StepValidationBadge.tsx âœ…
-- [x] QuickActionsSection.tsx, ImprovedNoteModal.tsx âœ…
-- [x] AddStaffModal.tsx, EditStaffModal.tsx âœ…
-- [x] AddVehicleModal.tsx, EditVehicleModal.tsx âœ…
-- [x] AddContractorModal.tsx, AddJobTemplateModal.tsx âœ…
-- [x] staffCrewScreen.tsx, VehicleFleetScreen.tsx âœ…
-- [x] ReportsScreen.tsx, ReportsFilters.tsx, Toast.tsx âœ…
-- [x] PaymentDetailModal.tsx, PayoutDetailModal.tsx âœ… (colors.buttonPrimaryText)
+## Composants Migrés (28 Déc 2025)
+- [x] NotificationsPanel.tsx - Conversion complète StyleSheet→dynamic ✅
+- [x] AlertsPanel.tsx, AlertMessage.tsx, TabMenu.tsx ✅
+- [x] CalendarTabMenu.tsx, jobMenu.tsx ✅
+- [x] JobClock.tsx, JobTimerDisplay.tsx, JobTimeSection.tsx ✅
+- [x] JobStepHistoryCard.tsx, StepValidationBadge.tsx ✅
+- [x] QuickActionsSection.tsx, ImprovedNoteModal.tsx ✅
+- [x] AddStaffModal.tsx, EditStaffModal.tsx ✅
+- [x] AddVehicleModal.tsx, EditVehicleModal.tsx ✅
+- [x] AddContractorModal.tsx, AddJobTemplateModal.tsx ✅
+- [x] staffCrewScreen.tsx, VehicleFleetScreen.tsx ✅
+- [x] ReportsScreen.tsx, ReportsFilters.tsx, Toast.tsx ✅
+- [x] PaymentDetailModal.tsx, PayoutDetailModal.tsx ✅ (colors.buttonPrimaryText)
 
 ---
 
-# ðŸ“± DEVICE TESTING PROTOCOL
+# 📱 DEVICE TESTING PROTOCOL
 
 ## Tests de Navigation
 
 ### Job Payment Flow
-- [ ] CrÃ©er un job via Calendar > Day View ðŸ”´
-- [ ] DÃ©marrer le timer > valider calculs temps rÃ©el ðŸ”´
-- [ ] Terminer le job > saisir signature ðŸ”´
-- [ ] Ouvrir PaymentWindow > tester Stripe Elements ðŸ”´
-- [ ] Confirmer paiement > vÃ©rifier feedback visuel ðŸ”´
+- [ ] Créer un job via Calendar > Day View 🔴
+- [ ] Démarrer le timer > valider calculs temps réel 🔴
+- [ ] Terminer le job > saisir signature 🔴
+- [ ] Ouvrir PaymentWindow > tester Stripe Elements 🔴
+- [ ] Confirmer paiement > vérifier feedback visuel 🔴
 
 ### Staff Management Flow
-- [ ] Navigation : Business > Staff & Crew ðŸŸ¡
-- [ ] Ajout : Ouvrir modal > ajouter employÃ©/prestataire ðŸŸ¡
-- [ ] Filtrage : Tester filtres par type ðŸŸ¢
-- [ ] Refresh : Pull-to-refresh > vÃ©rifier mise Ã  jour ðŸŸ¢
+- [ ] Navigation : Business > Staff & Crew 🟡
+- [ ] Ajout : Ouvrir modal > ajouter employé/prestataire 🟡
+- [ ] Filtrage : Tester filtres par type 🟢
+- [ ] Refresh : Pull-to-refresh > vérifier mise à jour 🟢
 
 ### Business Dashboard Navigation
-- [ ] Navigation principale : Tester tous les tabs Business ðŸŸ¡
-- [ ] Stripe Hub : Navigation vers PaymentsList/Payouts/Settings ðŸŸ 
-- [ ] Ã‰tat persistent : VÃ©rifier retour aux Ã©crans corrects ðŸŸ¢
+- [ ] Navigation principale : Tester tous les tabs Business 🟡
+- [ ] Stripe Hub : Navigation vers PaymentsList/Payouts/Settings 🟠
+- [ ] État persistent : Vérifier retour aux écrans corrects 🟢
 
 ## Tests de Responsive Design
 
 ### Orientations
-- [ ] Portrait : Interface standard > tous les flows ðŸŸ 
-- [ ] Paysage : VÃ©rifier layouts adaptatifs ðŸŸ¢
-- [ ] Rotation : Transitions fluides, Ã©tat conservÃ© ðŸŸ¢
+- [ ] Portrait : Interface standard > tous les flows 🟠
+- [ ] Paysage : Vérifier layouts adaptatifs 🟢
+- [ ] Rotation : Transitions fluides, état conservé 🟢
 
-### Tailles d'Ã©cran
-- [ ] Petit (iPhone SE) : Pas de dÃ©bordement UI ðŸŸ 
-- [ ] Standard (iPhone 13) : Interface optimale ðŸŸ¡
-- [ ] Grand (iPad) : Utilisation espace disponible ðŸŸ¢
+### Tailles d'écran
+- [ ] Petit (iPhone SE) : Pas de débordement UI 🟠
+- [ ] Standard (iPhone 13) : Interface optimale 🟡
+- [ ] Grand (iPad) : Utilisation espace disponible 🟢
 
 ## Tests d'Interactions Tactiles
 
 ### Gestes natifs
-- [ ] Tap : Boutons, liens, cards responsifs ðŸŸ 
-- [ ] Long press : Menus contextuels ðŸŸ¢
-- [ ] Swipe : Navigation latÃ©rale, refresh ðŸŸ¡
-- [ ] Pinch/Zoom : Photos, documents ðŸŸ¢
-- [ ] Scroll : Listes longues, smooth scrolling ðŸŸ¡
+- [ ] Tap : Boutons, liens, cards responsifs 🟠
+- [ ] Long press : Menus contextuels 🟢
+- [ ] Swipe : Navigation latérale, refresh 🟡
+- [ ] Pinch/Zoom : Photos, documents 🟢
+- [ ] Scroll : Listes longues, smooth scrolling 🟡
 
 ### Accessibility
-- [ ] VoiceOver/TalkBack : Navigation vocale ðŸŸ¢
-- [ ] Zoom systÃ¨me : Interface reste utilisable ðŸŸ¢
-- [ ] Contraste Ã©levÃ© : LisibilitÃ© prÃ©servÃ©e ðŸŸ¡
-- [ ] Taille police systÃ¨me : Adaptation automatique ðŸŸ¡
+- [ ] VoiceOver/TalkBack : Navigation vocale 🟢
+- [ ] Zoom système : Interface reste utilisable 🟢
+- [ ] Contraste élevé : Lisibilité préservée 🟡
+- [ ] Taille police système : Adaptation automatique 🟡
 
-## Performance & StabilitÃ©
+## Performance & Stabilité
 
-### MÃ©moire et CPU
-- [ ] Utilisation mÃ©moire stable ðŸŸ 
-- [ ] CPU usage raisonnable (< 50%) ðŸŸ¡
-- [ ] Pas de crashes lors des navigations rÃ©pÃ©tÃ©es ðŸ”´
-- [ ] Gestion background correcte ðŸŸ¡
+### Mémoire et CPU
+- [ ] Utilisation mémoire stable 🟠
+- [ ] CPU usage raisonnable (< 50%) 🟡
+- [ ] Pas de crashes lors des navigations répétées 🔴
+- [ ] Gestion background correcte 🟡
 
-### RÃ©seau
-- [ ] WiFi : Toutes les APIs fonctionnent ðŸ”´
-- [ ] 4G/5G : Performance acceptable ðŸŸ 
-- [ ] Mode Avion : Gestion gracieuse de l'offline ðŸŸ¡
-- [ ] Connexion instable : Retry et fallbacks ðŸŸ¡
+### Réseau
+- [ ] WiFi : Toutes les APIs fonctionnent 🔴
+- [ ] 4G/5G : Performance acceptable 🟠
+- [ ] Mode Avion : Gestion gracieuse de l'offline 🟡
+- [ ] Connexion instable : Retry et fallbacks 🟡
 
 ### Stripe Elements
-- [ ] Interface native rendue correctement ðŸ”´
-- [ ] Saisie carte fluide et sÃ©curisÃ©e ðŸ”´
-- [ ] Validation temps rÃ©el des champs ðŸŸ 
-- [ ] Confirmation paiement avec feedback ðŸ”´
+- [ ] Interface native rendue correctement 🔴
+- [ ] Saisie carte fluide et sécurisée 🔴
+- [ ] Validation temps réel des champs 🟠
+- [ ] Confirmation paiement avec feedback 🔴
 
 ---
 
-# ðŸŒ INTERNATIONALISATION (i18n)
+# 🌍 INTERNATIONALISATION (i18n)
 
-## ClÃ©s AjoutÃ©es âœ…
-- [x] Types TranslationKeys mis Ã  jour
-- [x] Traductions EN ajoutÃ©es
-- [x] Traductions FR ajoutÃ©es
-- [x] Ã‰crans critiques identifiÃ©s
-- [x] Sections auth, settings, profile, payment ajoutÃ©es
+## Clés Ajoutées ✅
+- [x] Types TranslationKeys mis à jour
+- [x] Traductions EN ajoutées
+- [x] Traductions FR ajoutées
+- [x] Écrans critiques identifiés
+- [x] Sections auth, settings, profile, payment ajoutées
 
-## Migration des Ã‰crans âœ… En Cours
-- [x] Migrer `parameters.tsx` vers `settings.*` âœ… FAIT
-- [x] CrÃ©er clÃ©s `auth.*` pour `login.tsx` âœ… FAIT
-- [x] Migrer `login.tsx` âœ… FAIT
-- [x] Migrer `subscribe.tsx` âœ… FAIT
-- [x] Migrer `connection.tsx` âœ… FAIT
-- [x] Migrer `profile.tsx` âœ… FAIT
-- [x] Migrer `PaymentSuccessScreen.tsx` âœ… FAIT
-- [ ] CrÃ©er clÃ©s `stripe.*` pour Ã©crans Stripe ðŸŸ  Partiellement
-- [x] VÃ©rifier traductions partielles (es, it, pt, zh, hi) âœ… FAIT
+## Migration des Écrans ✅ En Cours
+- [x] Migrer `parameters.tsx` vers `settings.*` ✅ FAIT
+- [x] Créer clés `auth.*` pour `login.tsx` ✅ FAIT
+- [x] Migrer `login.tsx` ✅ FAIT
+- [x] Migrer `subscribe.tsx` ✅ FAIT
+- [x] Migrer `connection.tsx` ✅ FAIT
+- [x] Migrer `profile.tsx` ✅ FAIT
+- [x] Migrer `PaymentSuccessScreen.tsx` ✅ FAIT
+- [ ] Créer clés `stripe.*` pour écrans Stripe 🟠 Partiellement
+- [x] Vérifier traductions partielles (es, it, pt, zh, hi) ✅ FAIT
 
-## Migration Restante ðŸŸ¡
-- [x] StripeSettingsScreen.tsx âœ… VÃ‰RIFIÃ‰ - DÃ©jÃ  migrÃ©
-- [x] BusinessInfoPage.tsx âœ… VÃ‰RIFIÃ‰ - DÃ©jÃ  migrÃ©
-- [x] PaymentsListScreen.tsx âœ… VÃ‰RIFIÃ‰ - DÃ©jÃ  migrÃ©
-- [x] PayoutsScreen.tsx âœ… VÃ‰RIFIÃ‰ - DÃ©jÃ  migrÃ©
-- [x] ReportsScreen.tsx âœ… VÃ‰RIFIÃ‰ - DÃ©jÃ  migrÃ©
-- [x] VehicleFleetScreen.tsx âœ… VÃ‰RIFIÃ‰ - DÃ©jÃ  migrÃ©
-- [x] VehicleDetailsScreen.tsx âœ… VÃ‰RIFIÃ‰ - DÃ©jÃ  migrÃ©
-- [x] PhotoSelectionModal.tsx âœ… MIGRÃ‰ - Session courante
-- [x] JobPhotosSection.tsx âœ… MIGRÃ‰ - Session courante
-- [x] jobDetails.tsx (toasts) âœ… MIGRÃ‰ - Session courante
-- [x] note.tsx âœ… MIGRÃ‰ - Date locale dynamique
-- [x] summary.tsx âœ… MIGRÃ‰ - Note title localisÃ©
-- [x] Internationaliser les formats de date âœ… FAIT - formatters.ts crÃ©Ã©, 11 fichiers migrÃ©s
+## Migration Restante 🟡
+- [x] StripeSettingsScreen.tsx ✅ VÉRIFIÉ - Déjà migré
+- [x] BusinessInfoPage.tsx ✅ VÉRIFIÉ - Déjà migré
+- [x] PaymentsListScreen.tsx ✅ VÉRIFIÉ - Déjà migré
+- [x] PayoutsScreen.tsx ✅ VÉRIFIÉ - Déjà migré
+- [x] ReportsScreen.tsx ✅ VÉRIFIÉ - Déjà migré
+- [x] VehicleFleetScreen.tsx ✅ VÉRIFIÉ - Déjà migré
+- [x] VehicleDetailsScreen.tsx ✅ VÉRIFIÉ - Déjà migré
+- [x] PhotoSelectionModal.tsx ✅ MIGRÉ - Session courante
+- [x] JobPhotosSection.tsx ✅ MIGRÉ - Session courante
+- [x] jobDetails.tsx (toasts) ✅ MIGRÉ - Session courante
+- [x] note.tsx ✅ MIGRÉ - Date locale dynamique
+- [x] summary.tsx ✅ MIGRÉ - Note title localisé
+- [x] Internationaliser les formats de date ✅ FAIT - formatters.ts créé, 11 fichiers migrés
 
 ---
 
-# âš¡ PERFORMANCE OPTIMIZATION
+# ⚡ PERFORMANCE OPTIMIZATION
 
-## Phase 1 - Quick Wins âœ… COMPLÃ‰TÃ‰E
-- [x] CrÃ©er `metro.config.js` avec optimisations âœ… FAIT - caching, terser, tree shaking
-- [x] Lazy load des Ã©crans secondaires âœ… FAIT - 8 Ã©crans avec lazyScreen()
+## Phase 1 - Quick Wins ✅ COMPLÉTÉE
+- [x] Créer `metro.config.js` avec optimisations ✅ FAIT - caching, terser, tree shaking
+- [x] Lazy load des écrans secondaires ✅ FAIT - 8 écrans avec lazyScreen()
 
-## Phase 2 - Assets âœ… COMPLÃ‰TÃ‰E (2 Jan 2026)
-- [x] Audit des images (taille, format) âœ… FAIT
+## Phase 2 - Assets ✅ COMPLÉTÉE (2 Jan 2026)
+- [x] Audit des images (taille, format) ✅ FAIT
   - assets/images: vide (pas d'images statiques)
-  - Android: splash screens + launchers dÃ©jÃ  en WebP (optimisÃ©)
+  - Android: splash screens + launchers déjà en WebP (optimisé)
   - Plus gros fichier: 65KB (splashscreen_logo.png xxxhdpi)
-- [x] Audit des fonts âœ… FAIT
-  - SpaceMono-Regular.ttf: non utilisÃ© (fonts systÃ¨me prÃ©fÃ©rÃ©es)
-  - fontFamily: 'System' + 'monospace' utilisÃ©s
-- [x] Compression des assets âœ… FAIT
+- [x] Audit des fonts ✅ FAIT
+  - SpaceMono-Regular.ttf: non utilisé (fonts système préférées)
+  - fontFamily: 'System' + 'monospace' utilisés
+- [x] Compression des assets ✅ FAIT
   - `expo-image` v3.0.11 avec cache natif (disk + memory)
   - `imageCompression.ts` - compression runtime 50% quality
-  - `assetOptimization.ts` - utilitaires prÃ©chargement + cache
+  - `assetOptimization.ts` - utilitaires préchargement + cache
 
-## Phase 3 - Monitoring âœ… COMPLÃ‰TÃ‰E (2 Jan 2026)
-- [x] CrÃ©er `performanceMonitoring.ts` âœ… FAIT
+## Phase 3 - Monitoring ✅ COMPLÉTÉE (2 Jan 2026)
+- [x] Créer `performanceMonitoring.ts` ✅ FAIT
   - Marks et mesures avec thresholds d'alerte
   - App startup, screen render, navigation timing
   - API call monitoring avec wrapper
-- [x] CrÃ©er `usePerformanceMetrics` hook âœ… FAIT
+- [x] Créer `usePerformanceMetrics` hook ✅ FAIT
   - Auto-track mount time et screen time
   - markInteractive() pour TTI (Time To Interactive)
-  - useScreenTime() pour tracking simplifiÃ©
-  - useAsyncPerformance() pour opÃ©rations async
-- [x] IntÃ©grer dans App.tsx et JobDetails âœ… FAIT
+  - useScreenTime() pour tracking simplifié
+  - useAsyncPerformance() pour opérations async
+- [x] Intégrer dans App.tsx et JobDetails ✅ FAIT
   - App startup time tracking
   - JobDetails screen performance monitoring
-- [x] Dashboard temps de chargement âœ… FAIT
+- [x] Dashboard temps de chargement ✅ FAIT
   - performanceMonitor.getSummary() disponible
   - Logs console en DEV mode
 
 ---
 
-# ðŸ§ª TESTS E2E AUTO-CORRECTION
+# 🧪 TESTS E2E AUTO-CORRECTION
 
 ## Test 1 : Auto-Correction au Chargement
-- [ ] Toast "Correction automatique en cours..." affichÃ© ðŸŸ 
-- [ ] Toast "âœ… 3 corrections appliquÃ©es" affichÃ© ðŸŸ 
-- [ ] Job rechargÃ© automatiquement ðŸŸ 
-- [ ] current_step = 5 dans l'app ðŸ”´
-- [ ] current_step = 5 en base de donnÃ©es ðŸ”´
-- [ ] step = 5 en base de donnÃ©es ðŸ”´
-- [ ] Items crÃ©Ã©s dans job_items ðŸŸ¡
-- [ ] Log crÃ©Ã© dans job_corrections_log ðŸŸ¢
+- [ ] Toast "Correction automatique en cours..." affiché 🟠
+- [ ] Toast "✅ 3 corrections appliquées" affiché 🟠
+- [ ] Job rechargé automatiquement 🟠
+- [ ] current_step = 5 dans l'app 🔴
+- [ ] current_step = 5 en base de données 🔴
+- [ ] step = 5 en base de données 🔴
+- [ ] Items créés dans job_items 🟡
+- [ ] Log créé dans job_corrections_log 🟢
 
-## Test 2 : Workflow Complet AprÃ¨s Correction
-- [ ] Timer dÃ©marre sans erreur ðŸ”´
-- [ ] Avancement Ã©tapes fonctionne ðŸ”´
-- [ ] Signature enregistrÃ©e ðŸ”´
-- [ ] Paiement confirmÃ© ðŸ”´
+## Test 2 : Workflow Complet Après Correction
+- [ ] Timer démarre sans erreur 🔴
+- [ ] Avancement étapes fonctionne 🔴
+- [ ] Signature enregistrée 🔴
+- [ ] Paiement confirmé 🔴
 
 ---
 
-# ðŸ—ï¸ CI/CD PIPELINE
+# 🏗️ CI/CD PIPELINE
 
 ## Jobs Overview
 - [x] Tests & Coverage : 202 tests passent
 - [x] Build Validation : TypeScript compilation OK
-- [ ] Codecov token Ã  configurer ðŸŸ¡
-- [ ] Alerts critiques Ã  configurer ðŸŸ 
+- [ ] Codecov token à configurer 🟡
+- [ ] Alerts critiques à configurer 🟠
 
 ---
 
-# âœ… CORRECTIONS BACKEND - COMPLÃ‰TÃ‰ES (2 Jan 2026)
+# ✅ CORRECTIONS BACKEND - COMPLÉTÉES (2 Jan 2026)
 
-## Bug MySQL - pool.execute() âœ… NON APPLICABLE
-- [x] mysql2 v3.9.1 dÃ©jÃ  installÃ©, aucun bug
+## Bug MySQL - pool.execute() ✅ NON APPLICABLE
+- [x] mysql2 v3.9.1 déjà installé, aucun bug
 
-## Bug Advance Step âœ… CORRIGÃ‰
-- [x] Restriction de sÃ©quence supprimÃ©e
-- [x] Range autorisÃ©: 0-5 (au lieu de 1-5)
-- [x] Sauts d'Ã©tapes autorisÃ©s
+## Bug Advance Step ✅ CORRIGÉ
+- [x] Restriction de séquence supprimée
+- [x] Range autorisé: 0-5 (au lieu de 1-5)
+- [x] Sauts d'étapes autorisés
 
-## Bug Complete Job - Step 99 âœ… NON APPLICABLE  
+## Bug Complete Job - Step 99 ✅ NON APPLICABLE  
 - [x] Aucun step=99 dans le code
-- [x] VÃ©rifiÃ© en base de donnÃ©es
+- [x] Vérifié en base de données
 
-## Nouveaux Endpoints âœ… IMPLÃ‰MENTÃ‰S
+## Nouveaux Endpoints ✅ IMPLÉMENTÉS
 - [x] PUT /job/:id/step - Sync step depuis l'app
 - [x] POST /job/:id/sync-timer - Sync timer
-- [x] GET /job/:id/timer - RÃ©cupÃ©rer Ã©tat timer
-- [x] currentStep dÃ©jÃ  retournÃ© par GET /job/:id
+- [x] GET /job/:id/timer - Récupérer état timer
+- [x] currentStep déjà retourné par GET /job/:id
 
-## IntÃ©gration Frontend âœ… COMPLÃ‰TÃ‰E (2 Jan 2026)
-- [x] `syncStepToBackend()` - AjoutÃ© dans `src/services/jobSteps.ts`
-- [x] `syncTimerToBackend()` - AjoutÃ© dans `src/services/jobSteps.ts`
-- [x] `getTimerFromBackend()` - AjoutÃ© dans `src/services/jobSteps.ts`
+## Intégration Frontend ✅ COMPLÉTÉE (2 Jan 2026)
+- [x] `syncStepToBackend()` - Ajouté dans `src/services/jobSteps.ts`
+- [x] `syncTimerToBackend()` - Ajouté dans `src/services/jobSteps.ts`
+- [x] `getTimerFromBackend()` - Ajouté dans `src/services/jobSteps.ts`
 - [x] `useJobTimer.advanceStep()` - Utilise maintenant `syncStepToBackend` (avec fallback)
 - [x] `JobTimerProvider` - Auto-sync timer toutes les 30s via `syncTimerToBackend`
-- [x] `useJobTimer.loadTimerData()` - Restaure Ã©tat depuis backend via `getTimerFromBackend`
+- [x] `useJobTimer.loadTimerData()` - Restaure état depuis backend via `getTimerFromBackend`
 
-## Stripe & Staff âœ… DÃ‰JÃ€ PRÃ‰SENTS
+## Stripe & Staff ✅ DÉJÀ PRÉSENTS
 - [x] 8 endpoints paiements
 - [x] 8 endpoints factures  
 - [x] 5 endpoints staff
@@ -960,581 +960,581 @@ Pour chaque bug rÃ©solu :
 
 ---
 
-# ðŸ“‹ GUIDE TEST MANUEL - JOB WORKFLOW
+# 📋 GUIDE TEST MANUEL - JOB WORKFLOW
 
-## PrÃ©-requis
-- [ ] Compte utilisateur crÃ©Ã© et authentifiÃ© ðŸŸ 
-- [ ] Entreprise configurÃ©e avec au moins 1 employÃ© ðŸŸ 
-- [ ] Client existant dans le systÃ¨me ðŸŸ 
-- [ ] Template de job disponible ðŸŸ¡
+## Pré-requis
+- [ ] Compte utilisateur créé et authentifié 🟠
+- [ ] Entreprise configurée avec au moins 1 employé 🟠
+- [ ] Client existant dans le système 🟠
+- [ ] Template de job disponible 🟡
 
 ## Environnement
-- [ ] App SwiftApp lancÃ©e en mode dÃ©veloppement ðŸŸ 
-- [ ] Device physique ou Ã©mulateur avec internet ðŸŸ 
-- [ ] Backend API accessible et fonctionnel ðŸ”´
-- [ ] Token d'authentification valide ðŸ”´
+- [ ] App SwiftApp lancée en mode développement 🟠
+- [ ] Device physique ou émulateur avec internet 🟠
+- [ ] Backend API accessible et fonctionnel 🔴
+- [ ] Token d'authentification valide 🔴
 
 ## Outils
-- [ ] ChronomÃ¨tre (pour vÃ©rifier timer) ðŸŸ¢
-- [ ] Appareil photo (pour tests photos) ðŸŸ¢
-- [ ] Connexion internet stable ðŸŸ 
+- [ ] Chronomètre (pour vérifier timer) 🟢
+- [ ] Appareil photo (pour tests photos) 🟢
+- [ ] Connexion internet stable 🟠
 
 ---
 
-# ðŸ” SYSTÃˆME VALIDATION JOBS
+# 🔍 SYSTÈME VALIDATION JOBS
 
-## Objectifs ComplÃ©tÃ©s
-- [x] DÃ©tecter 8 types d'incohÃ©rences
-- [x] Auto-corriger timer non dÃ©marrÃ©
+## Objectifs Complétés
+- [x] Détecter 8 types d'incohérences
+- [x] Auto-corriger timer non démarré
 - [x] Support mode hors-ligne
 - [x] Tests Jest complets
 - [x] Documentation exhaustive
-- [x] Logs dÃ©taillÃ©s
-- [x] Rapports formatÃ©s
+- [x] Logs détaillés
+- [x] Rapports formatés
 
-## Prochaines Ã‰tapes
-- [ ] Restaurer `jobDetails.tsx` ðŸŸ 
-- [ ] Appliquer patch d'intÃ©gration ðŸŸ 
-- [ ] Tester avec job rÃ©el JOB-NERD-URGENT-006 ðŸ”´
-- [ ] VÃ©rifier DB aprÃ¨s auto-correction ðŸ”´
-- [ ] Tester mode avion complet ðŸŸ¡
-- [ ] Ajouter listener NetInfo dans App.tsx ðŸŸ¡
-- [ ] Valider en production ðŸ”´
+## Prochaines Étapes
+- [ ] Restaurer `jobDetails.tsx` 🟠
+- [ ] Appliquer patch d'intégration 🟠
+- [ ] Tester avec job réel JOB-NERD-URGENT-006 🔴
+- [ ] Vérifier DB après auto-correction 🔴
+- [ ] Tester mode avion complet 🟡
+- [ ] Ajouter listener NetInfo dans App.tsx 🟡
+- [ ] Valider en production 🔴
 
 ---
 
-# ðŸ“± MIGRATION DESIGN SYSTEM - Ã‰CRANS
+# 📱 MIGRATION DESIGN SYSTEM - ÉCRANS
 
-## Ã‰crans Critiques (â­â­â­) - 12 Ã©crans
-- [x] `home.tsx` - Ã‰cran principal âœ… MIGRÃ‰
-- [ ] `profile.tsx` - Profil utilisateur ðŸŸ 
-- [ ] `connection.tsx` - Auth flow principal ðŸŸ 
-- [ ] `login.tsx` - Authentification ðŸŸ 
-- [ ] `subscribe.tsx` - Registration ðŸŸ¡
-- [ ] `PaymentsScreen.tsx` - Paiements âœ… MIGRÃ‰ ðŸŸ¢
-- [ ] `StripeConnectScreen.tsx` - Onboarding Stripe ðŸŸ 
-- [ ] `StripePaymentScreen.tsx` - Formulaire paiement âœ… CRÃ‰Ã‰ ðŸŸ¢
-- [ ] `PaymentSuccessScreen.tsx` - Confirmation âœ… CRÃ‰Ã‰ ðŸŸ¢
-- [ ] `StripeHub.tsx` - Hub paiements âœ… CRÃ‰Ã‰ ðŸŸ¢
-- [ ] `payment.tsx` - DÃ©tails paiement job ðŸŸ 
-- [ ] `paymentWindow.tsx` - UI paiement ðŸ”´
+## Écrans Critiques (⭐⭐⭐) - 12 écrans
+- [x] `home.tsx` - Écran principal ✅ MIGRÉ
+- [ ] `profile.tsx` - Profil utilisateur 🟠
+- [ ] `connection.tsx` - Auth flow principal 🟠
+- [ ] `login.tsx` - Authentification 🟠
+- [ ] `subscribe.tsx` - Registration 🟡
+- [ ] `PaymentsScreen.tsx` - Paiements ✅ MIGRÉ 🟢
+- [ ] `StripeConnectScreen.tsx` - Onboarding Stripe 🟠
+- [ ] `StripePaymentScreen.tsx` - Formulaire paiement ✅ CRÉÉ 🟢
+- [ ] `PaymentSuccessScreen.tsx` - Confirmation ✅ CRÉÉ 🟢
+- [ ] `StripeHub.tsx` - Hub paiements ✅ CRÉÉ 🟢
+- [ ] `payment.tsx` - Détails paiement job 🟠
+- [ ] `paymentWindow.tsx` - UI paiement 🔴
 
-## Ã‰crans Moyens (â­â­) - 23 Ã©crans
-- [ ] `parameters.tsx` - Settings ðŸŸ¡
-- [ ] `jobDetails.tsx` - Business logic ðŸŸ 
-- [ ] `ReportsScreen.tsx` - Analytics ðŸŸ¢
-- [ ] `trucksScreen.tsx` - VÃ©hicules ðŸŸ¢
-- [ ] `staffCrewScreen.tsx` - EmployÃ©s ðŸŸ¡
-- [ ] `InvoicesScreen.tsx` - Factures ðŸŸ¢
-- [ ] `AccountSettingsScreen.tsx` - Compte ðŸŸ¡
-- [ ] `job.tsx` - Job management ðŸŸ 
-- [ ] `client.tsx` - Info client ðŸŸ¡
-- [ ] `summary.tsx` - RÃ©sumÃ© job ðŸŸ 
-- [ ] `subscribeMailVerification.tsx` - Email ðŸŸ¢
-- [ ] `StripeDashboardScreen.tsx` - Analytics Stripe ðŸŸ¢
-- [ ] `StripeSettingsScreen.tsx` - Config Stripe ðŸŸ¡
-- [ ] `dayScreen.tsx` - Vue jour ðŸŸ¡
-- [ ] `monthScreen.tsx` - Vue mois ðŸŸ¡
-- [ ] `PayoutsScreen.tsx` - Payout management ðŸŸ¢
-- [ ] Et autres... ðŸŸ¢
+## Écrans Moyens (⭐⭐) - 23 écrans
+- [ ] `parameters.tsx` - Settings 🟡
+- [ ] `jobDetails.tsx` - Business logic 🟠
+- [ ] `ReportsScreen.tsx` - Analytics 🟢
+- [ ] `trucksScreen.tsx` - Véhicules 🟢
+- [ ] `staffCrewScreen.tsx` - Employés 🟡
+- [ ] `InvoicesScreen.tsx` - Factures 🟢
+- [ ] `AccountSettingsScreen.tsx` - Compte 🟡
+- [ ] `job.tsx` - Job management 🟠
+- [ ] `client.tsx` - Info client 🟡
+- [ ] `summary.tsx` - Résumé job 🟠
+- [ ] `subscribeMailVerification.tsx` - Email 🟢
+- [ ] `StripeDashboardScreen.tsx` - Analytics Stripe 🟢
+- [ ] `StripeSettingsScreen.tsx` - Config Stripe 🟡
+- [ ] `dayScreen.tsx` - Vue jour 🟡
+- [ ] `monthScreen.tsx` - Vue mois 🟡
+- [ ] `PayoutsScreen.tsx` - Payout management 🟢
+- [ ] Et autres... 🟢
 
 ## Statistiques Migration
-- **Total d'Ã©crans** : 45 Ã©crans principaux
-- **âœ… MigrÃ©s** : 5 Ã©crans
-- **ðŸ”„ Ã€ migrer** : 40 Ã©crans
+- **Total d'écrans** : 45 écrans principaux
+- **✅ Migrés** : 5 écrans
+- **🔄 À migrer** : 40 écrans
 
 ---
 
-# ðŸ” CHECKLIST DESIGN SYSTEM
+# 🔐 CHECKLIST DESIGN SYSTEM
 
 ## Imports
-- [x] Importer `useTheme` depuis `../context/ThemeProvider` ðŸŸ  âœ…
-- [x] Importer `DESIGN_TOKENS` depuis `../constants/Styles` ðŸŸ  âœ…
-- [x] Supprimer les imports de `Colors` direct ðŸŸ¡ âœ… (majoritÃ©)
+- [x] Importer `useTheme` depuis `../context/ThemeProvider` 🟠 ✅
+- [x] Importer `DESIGN_TOKENS` depuis `../constants/Styles` 🟠 ✅
+- [x] Supprimer les imports de `Colors` direct 🟡 ✅ (majorité)
 
 ## Couleurs
-- [x] Appeler `const { colors } = useTheme()` dans le composant ðŸŸ  âœ…
-- [x] Remplacer toutes les couleurs hardcodÃ©es (#xxx) par `colors.xxx` ðŸ”´ âœ… (95%)
-- [x] VÃ©rifier en mode sombre ET clair ðŸ”´ âœ…
+- [x] Appeler `const { colors } = useTheme()` dans le composant 🟠 ✅
+- [x] Remplacer toutes les couleurs hardcodées (#xxx) par `colors.xxx` 🔴 ✅ (95%)
+- [x] Vérifier en mode sombre ET clair 🔴 ✅
 
 ## Design Tokens
-- [x] Remplacer les nombres magiques par `DESIGN_TOKENS.spacing.xxx` ðŸŸ¡ âœ…
-- [x] Utiliser `DESIGN_TOKENS.typography.xxx` pour les textes ðŸŸ¡ âœ…
-- [x] Utiliser `DESIGN_TOKENS.radius.xxx` pour les bordures ðŸŸ¡ âœ…
+- [x] Remplacer les nombres magiques par `DESIGN_TOKENS.spacing.xxx` 🟡 ✅
+- [x] Utiliser `DESIGN_TOKENS.typography.xxx` pour les textes 🟡 ✅
+- [x] Utiliser `DESIGN_TOKENS.radius.xxx` pour les bordures 🟡 ✅
 
 ## Validation
-- [x] Basculer entre mode clair et sombre ðŸ”´ âœ…
-- [x] VÃ©rifier que les contrastes sont corrects ðŸ”´ âœ…
-- [ ] Tester sur diffÃ©rentes tailles d'Ã©cran ðŸŸ 
+- [x] Basculer entre mode clair et sombre 🔴 ✅
+- [x] Vérifier que les contrastes sont corrects 🔴 ✅
+- [ ] Tester sur différentes tailles d'écran 🟠
 
 ---
 
-# ðŸ“± PERMISSIONS NATIVES
+# 📱 PERMISSIONS NATIVES
 
-- [ ] **Camera :** Pour photos de jobs ðŸŸ 
-- [ ] **Stockage :** Pour documents et signatures ðŸŸ 
-- [ ] **Notifications :** Si implÃ©mentÃ©es ðŸŸ¡
-- [ ] **Localisation :** Pour gÃ©olocalisation jobs ðŸŸ¢
+- [ ] **Camera :** Pour photos de jobs 🟠
+- [ ] **Stockage :** Pour documents et signatures 🟠
+- [ ] **Notifications :** Si implémentées 🟡
+- [ ] **Localisation :** Pour géolocalisation jobs 🟢
 
 ---
 
-# ðŸ§ª TESTS DEVICE FLOW
+# 🧪 TESTS DEVICE FLOW
 
 ## Summary Tests
-- [ ] Job Payment Flow - â±ï¸ [time] - âœ…/âŒ [status] ðŸ”´
-- [ ] Staff Management - â±ï¸ [time] - âœ…/âŒ [status] ðŸŸ 
-- [ ] Business Navigation - â±ï¸ [time] - âœ…/âŒ [status] ðŸŸ¡
-- [ ] Calendar Job Flow - â±ï¸ [time] - âœ…/âŒ [status] ðŸŸ 
+- [ ] Job Payment Flow - ⏱️ [time] - ✅/❌ [status] 🔴
+- [ ] Staff Management - ⏱️ [time] - ✅/❌ [status] 🟠
+- [ ] Business Navigation - ⏱️ [time] - ✅/❌ [status] 🟡
+- [ ] Calendar Job Flow - ⏱️ [time] - ✅/❌ [status] 🟠
 
 ---
 
-# ðŸ“‚ LISTE COMPLÃˆTE DES FICHIERS SOURCES
+# 📂 LISTE COMPLÈTE DES FICHIERS SOURCES
 
-> Cette liste contient tous les fichiers .md utilisÃ©s pour consolider ce MASTER_TASKS.md
+> Cette liste contient tous les fichiers .md utilisés pour consolider ce MASTER_TASKS.md
 
-## ðŸ“‹ Roadmaps & StratÃ©gie
+## 📋 Roadmaps & Stratégie
 | Fichier | Checkboxes | Description |
 |---------|------------|-------------|
-| `ROADMAP_STRATEGIQUE_SWIFTAPP_2025-2026.md` | âœ… 80+ | Plan stratÃ©gique complet 2025-2026 |
-| `ROADMAP_FRONTEND.md` | âœ… 40+ | Plan technique frontend |
-| `PROJECT_STATUS_27DEC2025.md` | âœ… 15+ | Ã‰tat du projet 27 dÃ©c |
+| `ROADMAP_STRATEGIQUE_SWIFTAPP_2025-2026.md` | ✅ 80+ | Plan stratégique complet 2025-2026 |
+| `ROADMAP_FRONTEND.md` | ✅ 40+ | Plan technique frontend |
+| `PROJECT_STATUS_27DEC2025.md` | ✅ 15+ | État du projet 27 déc |
 
-## ðŸ“ Suivi des TODOs
+## 📝 Suivi des TODOs
 | Fichier | Checkboxes | Description |
 |---------|------------|-------------|
-| `TODO_TRACKER.md` | âœ… 30+ | Suivi dÃ©taillÃ© des TODOs |
-| `I18N_AUDIT_PHASE3.md` | âœ… 10+ | Audit internationalisation |
+| `TODO_TRACKER.md` | ✅ 30+ | Suivi détaillé des TODOs |
+| `I18N_AUDIT_PHASE3.md` | ✅ 10+ | Audit internationalisation |
 
-## ðŸ§ª Tests & Validation
+## 🧪 Tests & Validation
 | Fichier | Checkboxes | Description |
 |---------|------------|-------------|
-| `VISUAL_TESTING_CHECKLIST.md` | âœ… 40+ | Checklist tests Light/Dark |
-| `DEVICE_TESTING_GUIDE.md` | âœ… 50+ | Guide tests devices rÃ©els |
-| `GUIDE_TESTS_E2E_AUTO_CORRECTION.md` | âœ… 20+ | Tests E2E auto-correction |
-| `GUIDE_TEST_MANUEL_JOB_WORKFLOW.md` | âœ… 30+ | Tests manuels workflow |
+| `VISUAL_TESTING_CHECKLIST.md` | ✅ 40+ | Checklist tests Light/Dark |
+| `DEVICE_TESTING_GUIDE.md` | ✅ 50+ | Guide tests devices réels |
+| `GUIDE_TESTS_E2E_AUTO_CORRECTION.md` | ✅ 20+ | Tests E2E auto-correction |
+| `GUIDE_TEST_MANUEL_JOB_WORKFLOW.md` | ✅ 30+ | Tests manuels workflow |
 
-## ðŸŽ¨ Design System
+## 🎨 Design System
 | Fichier | Checkboxes | Description |
 |---------|------------|-------------|
-| `DESIGN_SYSTEM_INTEGRATION_GUIDE.md` | âœ… 15+ | Guide intÃ©gration design |
-| `UNIFORMISATION_APP_COMPLETE.md` | âœ… 45+ | Migration design Ã©crans |
+| `DESIGN_SYSTEM_INTEGRATION_GUIDE.md` | ✅ 15+ | Guide intégration design |
+| `UNIFORMISATION_APP_COMPLETE.md` | ✅ 45+ | Migration design écrans |
 
-## âš¡ Performance & Optimisation
+## ⚡ Performance & Optimisation
 | Fichier | Checkboxes | Description |
 |---------|------------|-------------|
-| `PERFORMANCE_OPTIMIZATION_GUIDE.md` | âœ… 10+ | Guide optimisation perf |
-| `LOAD_TESTING_IMPLEMENTATION.md` | âŒ | Documentation load testing |
+| `PERFORMANCE_OPTIMIZATION_GUIDE.md` | ✅ 10+ | Guide optimisation perf |
+| `LOAD_TESTING_IMPLEMENTATION.md` | ❌ | Documentation load testing |
 
-## ðŸ”§ Backend & API
+## 🔧 Backend & API
 | Fichier | Checkboxes | Description |
 |---------|------------|-------------|
-| `API_DISCOVERY.md` | âŒ | Documentation API Discovery |
-| `BACKEND_SPEC_FIX_INCONSISTENCIES.md` | âŒ | Specs endpoint correction |
-| `DEMANDE_CORRECTION_BACKEND.md` | âœ… 15+ | Corrections backend requises |
+| `API_DISCOVERY.md` | ❌ | Documentation API Discovery |
+| `BACKEND_SPEC_FIX_INCONSISTENCIES.md` | ❌ | Specs endpoint correction |
+| `DEMANDE_CORRECTION_BACKEND.md` | ✅ 15+ | Corrections backend requises |
 
-## ðŸ› Debug & Diagnostic
+## 🐛 Debug & Diagnostic
 | Fichier | Checkboxes | Description |
 |---------|------------|-------------|
-| `BUGS_CRITIQUES_17DEC2025.md` | âŒ | Bugs critiques identifiÃ©s |
-| `DEBUG_SESSION_17DEC2025.md` | âœ… 10+ | Session debug 17 dÃ©c |
-| `DIAGNOSTIC_LOGS_26DEC_ANALYSE.md` | âœ… 10+ | Analyse logs diagnostic |
-| `RESUME_COMPLET_DIAGNOSTIC_FINAL.md` | âŒ | RÃ©sumÃ© diagnostic final |
-| `FIX_SIGNATURE_JOB_26DEC.md` | âŒ | Fix signature 26 dÃ©c |
+| `BUGS_CRITIQUES_17DEC2025.md` | ❌ | Bugs critiques identifiés |
+| `DEBUG_SESSION_17DEC2025.md` | ✅ 10+ | Session debug 17 déc |
+| `DIAGNOSTIC_LOGS_26DEC_ANALYSE.md` | ✅ 10+ | Analyse logs diagnostic |
+| `RESUME_COMPLET_DIAGNOSTIC_FINAL.md` | ❌ | Résumé diagnostic final |
+| `FIX_SIGNATURE_JOB_26DEC.md` | ❌ | Fix signature 26 déc |
 
-## ðŸ“Š Sessions & RÃ©sumÃ©s
+## 📊 Sessions & Résumés
 | Fichier | Checkboxes | Description |
 |---------|------------|-------------|
-| `SESSION9_RESUME_EXECUTIF.md` | âŒ | RÃ©sumÃ© session 9 |
-| `RECAPITULATIF_FINAL_6_SESSIONS_17DEC2025.md` | âŒ | RÃ©cap 6 sessions |
+| `SESSION9_RESUME_EXECUTIF.md` | ❌ | Résumé session 9 |
+| `RECAPITULATIF_FINAL_6_SESSIONS_17DEC2025.md` | ❌ | Récap 6 sessions |
 
-## ðŸ”Œ IntÃ©gration & Guides
+## 🔌 Intégration & Guides
 | Fichier | Checkboxes | Description |
 |---------|------------|-------------|
-| `JOB_PAYMENT_INTEGRATION_GUIDE.md` | âŒ | Guide intÃ©gration paiement |
-| `LOGGING_SYSTEM_GUIDE.md` | âŒ | Guide systÃ¨me logging |
-| `DEV_RULES_ONLINE_ONLY.md` | âœ… 5+ | RÃ¨gles dev online only |
+| `JOB_PAYMENT_INTEGRATION_GUIDE.md` | ❌ | Guide intégration paiement |
+| `LOGGING_SYSTEM_GUIDE.md` | ❌ | Guide système logging |
+| `DEV_RULES_ONLINE_ONLY.md` | ✅ 5+ | Règles dev online only |
 
-## ðŸ“ SystÃ¨me de Validation
+## 📁 Système de Validation
 | Fichier | Checkboxes | Description |
 |---------|------------|-------------|
-| `docs/system/INDEX_VALIDATION_SYSTEM.md` | âœ… 15+ | Index systÃ¨me validation |
+| `docs/system/INDEX_VALIDATION_SYSTEM.md` | ✅ 15+ | Index système validation |
 
-## ðŸ—ï¸ CI/CD
+## 🏗️ CI/CD
 | Fichier | Checkboxes | Description |
 |---------|------------|-------------|
-| `.github/CI_CD_SETUP.md` | âŒ | Configuration CI/CD |
+| `.github/CI_CD_SETUP.md` | ❌ | Configuration CI/CD |
 
 ---
 
-## ðŸ“Š STATISTIQUES CONSOLIDATION
+## 📊 STATISTIQUES CONSOLIDATION
 
-| MÃ©trique | Valeur |
+| Métrique | Valeur |
 |----------|--------|
-| **Fichiers sources analysÃ©s** | 30+ |
+| **Fichiers sources analysés** | 30+ |
 | **Checkboxes totales extraites** | 400+ |
-| **TÃ¢ches terminÃ©es [x]** | ~150 |
-| **TÃ¢ches en attente [ ]** | ~250 |
-| **CatÃ©gories** | 15+ |
+| **Tâches terminées [x]** | ~150 |
+| **Tâches en attente [ ]** | ~250 |
+| **Catégories** | 15+ |
 
 ---
 
-# ðŸ—„ï¸ MIGRATION MOCK DATA â†’ API
+# 🗄️ MIGRATION MOCK DATA → API
 
 ## Hook useStaff.ts
-- [ ] CrÃ©er endpoints backend `/api/staff` (GET, POST, PUT, DELETE) ðŸŸ 
-- [ ] Remplacer mockStaff par API calls ðŸŸ 
-- [ ] Migrer logique invite/add vers backend ðŸŸ¡
-- [ ] Tests avec vraies donnÃ©es API ðŸŸ¡
+- [ ] Créer endpoints backend `/api/staff` (GET, POST, PUT, DELETE) 🟠
+- [ ] Remplacer mockStaff par API calls 🟠
+- [ ] Migrer logique invite/add vers backend 🟡
+- [ ] Tests avec vraies données API 🟡
 
 ## Hook useJobsBilling.ts
-- [ ] Endpoint `/api/jobs/billing` avec Stripe integration ðŸ”´
-- [ ] Suppression logique fallback mock ðŸŸ 
-- [ ] API payment status temps rÃ©el ðŸ”´
-- [ ] Invoice generation via Stripe API ðŸŸ 
+- [ ] Endpoint `/api/jobs/billing` avec Stripe integration 🔴
+- [ ] Suppression logique fallback mock 🟠
+- [ ] API payment status temps réel 🔴
+- [ ] Invoice generation via Stripe API 🟠
 
 ## Services Business
-- [ ] `templatesService.ts` - mockTemplates â†’ API `/quotes/templates` ðŸŸ¡
-- [ ] `businessService.ts` - mockBusinessInfo â†’ API `/business/stats` ðŸŸ¡
+- [ ] `templatesService.ts` - mockTemplates → API `/quotes/templates` 🟡
+- [ ] `businessService.ts` - mockBusinessInfo → API `/business/stats` 🟡
 
 ---
 
-# ðŸ—ºï¸ PHASE 2D - TESTS COVERAGE 90%+
+# 🗺️ PHASE 2D - TESTS COVERAGE 90%+
 
 ## Phase 2D-1 Quick Wins (Objectif: 281/321 - 87.5%)
 
 ### Task 1: Fix InviteEmployeeModal (1 test)
-- [ ] Run `npm test -- InviteEmployeeModal --no-coverage` ðŸŸ 
-- [ ] Identifier le test qui Ã©choue (1/21) ðŸŸ 
-- [ ] Analyser l'erreur (probablement testID manquant) ðŸŸ 
-- [ ] Corriger (add testID ou fix assertion) ðŸŸ 
-- [ ] Valider que les 21 tests passent ðŸŸ¡
+- [ ] Run `npm test -- InviteEmployeeModal --no-coverage` 🟠
+- [ ] Identifier le test qui échoue (1/21) 🟠
+- [ ] Analyser l'erreur (probablement testID manquant) 🟠
+- [ ] Corriger (add testID ou fix assertion) 🟠
+- [ ] Valider que les 21 tests passent 🟡
 
 ### Task 2: TrucksScreen Empty State (3 tests)
-- [ ] Ajouter testID: `empty-state-icon`, `empty-state-title`, `empty-state-message` ðŸŸ 
-- [ ] Migrer les 3 tests vers getByTestId ðŸŸ 
-- [ ] Valider 25/44 passing ðŸŸ¡
+- [ ] Ajouter testID: `empty-state-icon`, `empty-state-title`, `empty-state-message` 🟠
+- [ ] Migrer les 3 tests vers getByTestId 🟠
+- [ ] Valider 25/44 passing 🟡
 
 ### Task 3: TrucksScreen Vehicle Actions (8 tests)
-- [ ] Ajouter testID: `vehicle-edit-button-{id}`, `vehicle-delete-button-{id}` ðŸŸ 
-- [ ] Migrer les 8 tests Actions ðŸŸ 
-- [ ] Valider 281/321 tests ðŸŸ¡
+- [ ] Ajouter testID: `vehicle-edit-button-{id}`, `vehicle-delete-button-{id}` 🟠
+- [ ] Migrer les 8 tests Actions 🟠
+- [ ] Valider 281/321 tests 🟡
 
 ## Phase 2C Migration testID
-- [ ] AddContractorModal - 15 tests avec testID ðŸŸ¡
-- [ ] InviteEmployeeModal - 18 tests avec testID ðŸŸ¡
-- [ ] staffCrewScreen - 25 tests avec testID ðŸŸ¡
-- [ ] TrucksScreen - 39 tests avec testID ðŸŸ¡
+- [ ] AddContractorModal - 15 tests avec testID 🟡
+- [ ] InviteEmployeeModal - 18 tests avec testID 🟡
+- [ ] staffCrewScreen - 25 tests avec testID 🟡
+- [ ] TrucksScreen - 39 tests avec testID 🟡
 
 ---
 
-# ðŸ”§ API BACKEND - TIMER SYNC
+# 🔧 API BACKEND - TIMER SYNC
 
-## Base de DonnÃ©es - Colonnes jobs
-- [ ] `timer_total_hours DECIMAL(10, 2) DEFAULT 0` ðŸŸ 
-- [ ] `timer_billable_hours DECIMAL(10, 2) DEFAULT 0` ðŸŸ 
-- [ ] `timer_break_hours DECIMAL(10, 2) DEFAULT 0` ðŸŸ 
-- [ ] `timer_is_running BOOLEAN DEFAULT FALSE` ðŸŸ 
-- [ ] `timer_started_at TIMESTAMP NULL` ðŸŸ 
-- [ ] `timer_last_updated TIMESTAMP NULL` ðŸŸ 
+## Base de Données - Colonnes jobs
+- [ ] `timer_total_hours DECIMAL(10, 2) DEFAULT 0` 🟠
+- [ ] `timer_billable_hours DECIMAL(10, 2) DEFAULT 0` 🟠
+- [ ] `timer_break_hours DECIMAL(10, 2) DEFAULT 0` 🟠
+- [ ] `timer_is_running BOOLEAN DEFAULT FALSE` 🟠
+- [ ] `timer_started_at TIMESTAMP NULL` 🟠
+- [ ] `timer_last_updated TIMESTAMP NULL` 🟠
 
 ## Endpoint POST /job/:id/sync-timer
-- [ ] Recevoir donnÃ©es timer depuis l'app ðŸ”´
-- [ ] Sauvegarder temps total, facturable, pauses ðŸ”´
-- [ ] Retourner step_history dÃ©taillÃ© ðŸŸ 
+- [ ] Recevoir données timer depuis l'app 🔴
+- [ ] Sauvegarder temps total, facturable, pauses 🔴
+- [ ] Retourner step_history détaillé 🟠
 
 ---
 
-# ðŸ”§ API BACKEND - CURRENT STEP
+# 🔧 API BACKEND - CURRENT STEP
 
-## Base de DonnÃ©es
-- [ ] Ajouter colonne `current_step INTEGER DEFAULT 0` ðŸ”´
-- [ ] CrÃ©er index `idx_jobs_current_step` ðŸŸ 
-- [ ] Initialiser valeurs jobs existants (completed=5, in-progress=1, other=0) ðŸŸ 
+## Base de Données
+- [ ] Ajouter colonne `current_step INTEGER DEFAULT 0` 🔴
+- [ ] Créer index `idx_jobs_current_step` 🟠
+- [ ] Initialiser valeurs jobs existants (completed=5, in-progress=1, other=0) 🟠
 
 ## Endpoint GET /job/:id
-- [ ] Ajouter `current_step` dans la rÃ©ponse JSON ðŸ”´
-- [ ] Documenter dans API specs ðŸŸ¡
+- [ ] Ajouter `current_step` dans la réponse JSON 🔴
+- [ ] Documenter dans API specs 🟡
 
 ## Endpoint PUT /job/:id/step
-- [ ] CrÃ©er endpoint pour mise Ã  jour step ðŸ”´
-- [ ] Valider current_step (0-5) ðŸŸ 
-- [ ] Log historique changements ðŸŸ¡
+- [ ] Créer endpoint pour mise à jour step 🔴
+- [ ] Valider current_step (0-5) 🟠
+- [ ] Log historique changements 🟡
 
 ---
 
-# ðŸ” SYSTÃˆME PERMISSIONS ENTERPRISE
+# 🔐 SYSTÈME PERMISSIONS ENTERPRISE
 
 ## Semaine 1: Database Foundation
 
 ### Jour 1-2: Schema Design
-- [ ] CrÃ©er table `companies` âšª
-- [ ] CrÃ©er table `roles` âšª
-- [ ] CrÃ©er table `permissions` âšª
-- [ ] CrÃ©er table `user_sessions` âšª
-- [ ] Migration donnÃ©es existantes âšª
+- [ ] Créer table `companies` ⚪
+- [ ] Créer table `roles` ⚪
+- [ ] Créer table `permissions` ⚪
+- [ ] Créer table `user_sessions` ⚪
+- [ ] Migration données existantes ⚪
 
 ### Jour 3: Permissions Seeding
-- [ ] CrÃ©er 20+ permissions systÃ¨me (jobs:*, payments:*, users:*, teams:*, analytics:*, billing:*) âšª
-- [ ] CrÃ©er rÃ´les par dÃ©faut par type company âšª
+- [ ] Créer 20+ permissions système (jobs:*, payments:*, users:*, teams:*, analytics:*, billing:*) ⚪
+- [ ] Créer rôles par défaut par type company ⚪
 
 ## Semaine 2: API & Middleware
-- [ ] Middleware de validation permissions âšª
-- [ ] Endpoints CRUD permissions âšª
-- [ ] Cache permissions (Redis) âšª
+- [ ] Middleware de validation permissions ⚪
+- [ ] Endpoints CRUD permissions ⚪
+- [ ] Cache permissions (Redis) ⚪
 
 ## Semaine 3: Frontend Integration
-- [ ] Composant `<PermissionGate permission="xxx">` âšª
-- [ ] Hook `usePermissions()` âšª
-- [ ] UI adaptive selon permissions âšª
+- [ ] Composant `<PermissionGate permission="xxx">` ⚪
+- [ ] Hook `usePermissions()` ⚪
+- [ ] UI adaptive selon permissions ⚪
 
 ---
 
-# ðŸ“· PHOTOS API TESTING
+# 📷 PHOTOS API TESTING
 
-## Tests Ã  Effectuer
+## Tests à Effectuer
 
-### GET - RÃ©cupÃ©rer photos d'un job
-- [ ] `GET /swift-app/v1/job/{jobId}/images` â†’ 200 OK ðŸŸ¡
-- [ ] VÃ©rifier structure rÃ©ponse (id, filename, description, created_at) ðŸŸ¡
+### GET - Récupérer photos d'un job
+- [ ] `GET /swift-app/v1/job/{jobId}/images` → 200 OK 🟡
+- [ ] Vérifier structure réponse (id, filename, description, created_at) 🟡
 
 ### POST - Upload une photo
-- [ ] `POST /swift-app/v1/job/{jobId}/image` avec multipart/form-data ðŸŸ¡
-- [ ] VÃ©rifier photo enregistrÃ©e ðŸŸ¡
+- [ ] `POST /swift-app/v1/job/{jobId}/image` avec multipart/form-data 🟡
+- [ ] Vérifier photo enregistrée 🟡
 
-### PATCH - Mettre Ã  jour description
-- [ ] `PATCH /swift-app/v1/image/{id}` avec nouvelle description ðŸŸ¡
-- [ ] VÃ©rifier modification ðŸŸ¡
+### PATCH - Mettre à jour description
+- [ ] `PATCH /swift-app/v1/image/{id}` avec nouvelle description 🟡
+- [ ] Vérifier modification 🟡
 
-### SÃ©curitÃ©
-- [ ] RequÃªte sans token â†’ 401 Unauthorized ðŸŸ¡
-- [ ] RequÃªte avec mauvais jobId â†’ 404 Not Found ðŸŸ¡
+### Sécurité
+- [ ] Requête sans token → 401 Unauthorized 🟡
+- [ ] Requête avec mauvais jobId → 404 Not Found 🟡
 
 ---
 
-# ðŸŒ MIGRATION i18n URGENTE
+# 🌍 MIGRATION i18n URGENTE
 
-## Screens Ã  Migrer (100% hardcodÃ© â†’ 100% t())
-- [ ] paymentWindow.tsx - franÃ§ais hardcodÃ© ðŸŸ 
-- [ ] staffCrewScreen.tsx - aucun t() utilisÃ© ðŸŸ 
-- [ ] VehicleFleetScreen.tsx - anglais hardcodÃ© ðŸŸ 
-- [ ] Tous screens business ðŸŸ 
+## Screens à Migrer (100% hardcodé → 100% t())
+- [ ] paymentWindow.tsx - français hardcodé 🟠
+- [ ] staffCrewScreen.tsx - aucun t() utilisé 🟠
+- [ ] VehicleFleetScreen.tsx - anglais hardcodé 🟠
+- [ ] Tous screens business 🟠
 
 ## Actions
-- [ ] ComplÃ©ter clÃ©s traduction business/payment/profile ðŸŸ 
-- [ ] Migrer TOUS screens vers useTranslation() ðŸŸ 
-- [ ] Ã‰liminer 100% textes hardcodÃ©s ðŸ”´
-- [ ] Valider 7 langues en production ðŸŸ¡
+- [ ] Compléter clés traduction business/payment/profile 🟠
+- [ ] Migrer TOUS screens vers useTranslation() 🟠
+- [ ] Éliminer 100% textes hardcodés 🔴
+- [ ] Valider 7 langues en production 🟡
 
 ---
 
-# ðŸ§ª JOB WORKFLOW TEST PLAN
+# 🧪 JOB WORKFLOW TEST PLAN
 
-## Phase 1: CrÃ©ation Job
-- [ ] Ouvrir Calendar > Day View ðŸ”´
-- [ ] Cliquer sur crÃ©neau horaire libre ðŸ”´
-- [ ] Remplir formulaire nouveau job ðŸ”´
-- [ ] Assigner client existant ðŸ”´
-- [ ] Assigner Ã©quipe ðŸŸ 
-- [ ] VÃ©rifier job crÃ©Ã© dans liste ðŸ”´
+## Phase 1: Création Job
+- [ ] Ouvrir Calendar > Day View 🔴
+- [ ] Cliquer sur créneau horaire libre 🔴
+- [ ] Remplir formulaire nouveau job 🔴
+- [ ] Assigner client existant 🔴
+- [ ] Assigner équipe 🟠
+- [ ] Vérifier job créé dans liste 🔴
 
 ## Phase 2: Timer & Steps
-- [ ] Ouvrir JobDetails ðŸ”´
-- [ ] DÃ©marrer timer ðŸ”´
-- [ ] VÃ©rifier compteur temps rÃ©el ðŸ”´
-- [ ] Passer Ã  step 2 ðŸ”´
-- [ ] Prendre pause ðŸŸ 
-- [ ] Reprendre timer ðŸŸ 
-- [ ] Avancer jusqu'Ã  step 5 ðŸ”´
+- [ ] Ouvrir JobDetails 🔴
+- [ ] Démarrer timer 🔴
+- [ ] Vérifier compteur temps réel 🔴
+- [ ] Passer à step 2 🔴
+- [ ] Prendre pause 🟠
+- [ ] Reprendre timer 🟠
+- [ ] Avancer jusqu'à step 5 🔴
 
 ## Phase 3: Photos & Notes
-- [ ] Ajouter photo depuis galerie ðŸŸ 
-- [ ] Ajouter photo depuis camera ðŸŸ 
-- [ ] Ajouter note texte ðŸŸ¡
-- [ ] VÃ©rifier sync backend ðŸ”´
+- [ ] Ajouter photo depuis galerie 🟠
+- [ ] Ajouter photo depuis camera 🟠
+- [ ] Ajouter note texte 🟡
+- [ ] Vérifier sync backend 🔴
 
 ## Phase 4: Signature & Payment
-- [ ] Ouvrir section signature ðŸ”´
-- [ ] Dessiner signature ðŸ”´
-- [ ] Confirmer signature ðŸ”´
-- [ ] Ouvrir PaymentWindow ðŸ”´
-- [ ] Entrer carte test Stripe ðŸ”´
-- [ ] Confirmer paiement ðŸ”´
-- [ ] VÃ©rifier job completed ðŸ”´
+- [ ] Ouvrir section signature 🔴
+- [ ] Dessiner signature 🔴
+- [ ] Confirmer signature 🔴
+- [ ] Ouvrir PaymentWindow 🔴
+- [ ] Entrer carte test Stripe 🔴
+- [ ] Confirmer paiement 🔴
+- [ ] Vérifier job completed 🔴
 
 ---
 
-# ðŸ“± STRIPE BACKEND ENDPOINTS
+# 📱 STRIPE BACKEND ENDPOINTS
 
 ## Payments
-- [ ] `POST /api/stripe/create-payment-intent` - CrÃ©er intention paiement ðŸ”´
-- [ ] `POST /api/stripe/confirm-payment` - Confirmer paiement ðŸ”´
-- [ ] `GET /api/stripe/payment-status/{id}` - Statut paiement ðŸŸ 
+- [ ] `POST /api/stripe/create-payment-intent` - Créer intention paiement 🔴
+- [ ] `POST /api/stripe/confirm-payment` - Confirmer paiement 🔴
+- [ ] `GET /api/stripe/payment-status/{id}` - Statut paiement 🟠
 
 ## Invoices
-- [ ] `POST /api/stripe/create-invoice` - CrÃ©er facture ðŸŸ 
-- [ ] `GET /api/stripe/invoices` - Lister factures ðŸŸ 
-- [ ] `POST /api/stripe/send-invoice` - Envoyer facture par email ðŸŸ¡
+- [ ] `POST /api/stripe/create-invoice` - Créer facture 🟠
+- [ ] `GET /api/stripe/invoices` - Lister factures 🟠
+- [ ] `POST /api/stripe/send-invoice` - Envoyer facture par email 🟡
 
 ## Refunds
-- [ ] `POST /api/stripe/refund/{payment_id}` - Rembourser ðŸŸ 
-- [ ] `GET /api/stripe/refunds` - Lister remboursements ðŸŸ¡
+- [ ] `POST /api/stripe/refund/{payment_id}` - Rembourser 🟠
+- [ ] `GET /api/stripe/refunds` - Lister remboursements 🟡
 
 ## Staff Management API
-- [ ] `GET /api/staff` - Lister employÃ©s ðŸŸ 
-- [ ] `POST /api/staff/invite` - Inviter employÃ© ðŸŸ 
-- [ ] `POST /api/staff/contractor` - Ajouter prestataire ðŸŸ¡
-- [ ] `PUT /api/staff/{id}` - Modifier employÃ© ðŸŸ¡
-- [ ] `DELETE /api/staff/{id}` - Supprimer employÃ© ðŸŸ¡
-- [ ] `GET /api/staff/stats` - Dashboard mÃ©triques ðŸŸ¢
+- [ ] `GET /api/staff` - Lister employés 🟠
+- [ ] `POST /api/staff/invite` - Inviter employé 🟠
+- [ ] `POST /api/staff/contractor` - Ajouter prestataire 🟡
+- [ ] `PUT /api/staff/{id}` - Modifier employé 🟡
+- [ ] `DELETE /api/staff/{id}` - Supprimer employé 🟡
+- [ ] `GET /api/staff/stats` - Dashboard métriques 🟢
 
 ---
 
-# ðŸŽ® GAMIFICATION - IMPLÃ‰MENTATION
+# 🎮 GAMIFICATION - IMPLÉMENTATION
 
 ## Phase 1: Backend Foundation (2 semaines)
 
-### Base de DonnÃ©es
-- [ ] CrÃ©er table `user_gamification` (level, experience, points, streaks, badges) âšª
-- [ ] CrÃ©er table `points_transactions` (historique points) âšª
-- [ ] CrÃ©er table `user_achievements` (badges gagnÃ©s) âšª
-- [ ] CrÃ©er table `gamification_levels` (config 7 niveaux) âšª
-- [ ] CrÃ©er table `gamification_badges` (config 25+ badges) âšª
+### Base de Données
+- [ ] Créer table `user_gamification` (level, experience, points, streaks, badges) ⚪
+- [ ] Créer table `points_transactions` (historique points) ⚪
+- [ ] Créer table `user_achievements` (badges gagnés) ⚪
+- [ ] Créer table `gamification_levels` (config 7 niveaux) ⚪
+- [ ] Créer table `gamification_badges` (config 25+ badges) ⚪
 
 ### API Endpoints
-- [ ] `GET /gamification/profile` - Profil gamification user âšª
-- [ ] `POST /gamification/points` - Ajouter points âšª
-- [ ] `GET /gamification/leaderboard` - Classement âšª
-- [ ] `GET /gamification/badges` - Liste badges disponibles âšª
-- [ ] `POST /gamification/check-achievements` - VÃ©rifier nouveaux badges âšª
+- [ ] `GET /gamification/profile` - Profil gamification user ⚪
+- [ ] `POST /gamification/points` - Ajouter points ⚪
+- [ ] `GET /gamification/leaderboard` - Classement ⚪
+- [ ] `GET /gamification/badges` - Liste badges disponibles ⚪
+- [ ] `POST /gamification/check-achievements` - Vérifier nouveaux badges ⚪
 
 ## Phase 2: Frontend Integration (2 semaines)
-- [ ] Hook `useGamification()` - State management âšª
-- [ ] Composant `LevelBadge` - Affichage niveau âšª
-- [ ] Composant `PointsAnimation` - Gain de points âšª
-- [ ] Composant `AchievementPopup` - Nouveau badge âšª
-- [ ] Ã‰cran `GamificationProfile` - Profil complet âšª
-- [ ] IntÃ©gration dans JobDetails (points aprÃ¨s complÃ©tion) âšª
+- [ ] Hook `useGamification()` - State management ⚪
+- [ ] Composant `LevelBadge` - Affichage niveau ⚪
+- [ ] Composant `PointsAnimation` - Gain de points ⚪
+- [ ] Composant `AchievementPopup` - Nouveau badge ⚪
+- [ ] Écran `GamificationProfile` - Profil complet ⚪
+- [ ] Intégration dans JobDetails (points après complétion) ⚪
 
 ## Phase 3: Advanced Features (1 semaine)
-- [ ] Badges avancÃ©s (streak 30 jours, 100 jobs) âšª
-- [ ] Leaderboards Ã©quipes/individuels âšª
-- [ ] Notifications push gamification âšª
-- [ ] Analytics et monitoring âšª
+- [ ] Badges avancés (streak 30 jours, 100 jobs) ⚪
+- [ ] Leaderboards équipes/individuels ⚪
+- [ ] Notifications push gamification ⚪
+- [ ] Analytics et monitoring ⚪
 
 ---
 
-# ðŸ§ª TEST MANUEL WORKFLOW COMPLET (102 checks)
+# 🧪 TEST MANUEL WORKFLOW COMPLET (102 checks)
 
-## PrÃ©-requis
-- [ ] Compte utilisateur crÃ©Ã© et authentifiÃ© ðŸ”´
-- [ ] Entreprise configurÃ©e avec au moins 1 employÃ© ðŸ”´
-- [ ] Client existant dans le systÃ¨me ðŸ”´
-- [ ] Template de job disponible ðŸŸ 
-- [ ] App SwiftApp lancÃ©e en mode dÃ©veloppement ðŸ”´
-- [ ] Device physique ou Ã©mulateur avec internet ðŸ”´
-- [ ] Backend API accessible et fonctionnel ðŸ”´
-- [ ] Token d'authentification valide ðŸ”´
-- [ ] ChronomÃ¨tre (pour vÃ©rifier timer) ðŸŸ¡
-- [ ] Appareil photo (pour tests photos) ðŸŸ¡
-- [ ] Connexion internet stable ðŸ”´
+## Pré-requis
+- [ ] Compte utilisateur créé et authentifié 🔴
+- [ ] Entreprise configurée avec au moins 1 employé 🔴
+- [ ] Client existant dans le système 🔴
+- [ ] Template de job disponible 🟠
+- [ ] App SwiftApp lancée en mode développement 🔴
+- [ ] Device physique ou émulateur avec internet 🔴
+- [ ] Backend API accessible et fonctionnel 🔴
+- [ ] Token d'authentification valide 🔴
+- [ ] Chronomètre (pour vérifier timer) 🟡
+- [ ] Appareil photo (pour tests photos) 🟡
+- [ ] Connexion internet stable 🔴
 
-## Ã‰tape 1: Navigation vers JobDetails
-- [ ] Ouvrir l'app â†’ Page Home ðŸ”´
-- [ ] VÃ©rifier section "Today" visible ðŸ”´
-- [ ] Cliquer sur la carte "Today" ðŸ”´
-- [ ] Redirection vers DayView avec date du jour ðŸ”´
-- [ ] Dans DayView, trouver un job de test ðŸ”´
-- [ ] Cliquer sur le job â†’ Ouverture JobDetails ðŸ”´
-- [ ] Navigation fluide (<500ms) ðŸŸ 
-- [ ] Pas de crash ou erreur ðŸ”´
-- [ ] JobDetails affiche les bonnes donnÃ©es ðŸ”´
-- [ ] Header avec titre et RefBookMark visible ðŸŸ 
+## Étape 1: Navigation vers JobDetails
+- [ ] Ouvrir l'app → Page Home 🔴
+- [ ] Vérifier section "Today" visible 🔴
+- [ ] Cliquer sur la carte "Today" 🔴
+- [ ] Redirection vers DayView avec date du jour 🔴
+- [ ] Dans DayView, trouver un job de test 🔴
+- [ ] Cliquer sur le job → Ouverture JobDetails 🔴
+- [ ] Navigation fluide (<500ms) 🟠
+- [ ] Pas de crash ou erreur 🔴
+- [ ] JobDetails affiche les bonnes données 🔴
+- [ ] Header avec titre et RefBookMark visible 🟠
 
-## Ã‰tape 2: VÃ©rification Ã‰tat Initial
-- [ ] Ouvrir tab "Summary" (par dÃ©faut) ðŸ”´
-- [ ] VÃ©rifier code job (ex: #LM0000001) ðŸ”´
-- [ ] VÃ©rifier client (nom, adresse) ðŸ”´
-- [ ] VÃ©rifier date et heure planifiÃ©es ðŸ”´
-- [ ] VÃ©rifier description du job ðŸ”´
-- [ ] VÃ©rifier statut actuel (assigned, scheduled) ðŸ”´
-- [ ] Timeline affiche 3 steps ðŸ”´
-- [ ] Step actuel = 0 (job pas dÃ©marrÃ©) ðŸ”´
-- [ ] Boutons visibles : "Commencer", "Annuler" ðŸ”´
+## Étape 2: Vérification État Initial
+- [ ] Ouvrir tab "Summary" (par défaut) 🔴
+- [ ] Vérifier code job (ex: #LM0000001) 🔴
+- [ ] Vérifier client (nom, adresse) 🔴
+- [ ] Vérifier date et heure planifiées 🔴
+- [ ] Vérifier description du job 🔴
+- [ ] Vérifier statut actuel (assigned, scheduled) 🔴
+- [ ] Timeline affiche 3 steps 🔴
+- [ ] Step actuel = 0 (job pas démarré) 🔴
+- [ ] Boutons visibles : "Commencer", "Annuler" 🔴
 
-## Ã‰tape 3: DÃ©marrage du Job
-- [ ] Cliquer bouton "Commencer" (vert) ðŸ”´
-- [ ] Timer dÃ©marre Ã  00:00:00 ðŸ”´
-- [ ] Timer incrÃ©mente chaque seconde ðŸ”´
-- [ ] Format correct HH:MM:SS ðŸ”´
-- [ ] Pas de freeze ou lag ðŸ”´
-- [ ] Step actuel = 1 ðŸ”´
-- [ ] Nom du step affichÃ© (ex: "Pickup") ðŸ”´
-- [ ] Timeline mise Ã  jour (step 1 actif) ðŸ”´
+## Étape 3: Démarrage du Job
+- [ ] Cliquer bouton "Commencer" (vert) 🔴
+- [ ] Timer démarre à 00:00:00 🔴
+- [ ] Timer incrémente chaque seconde 🔴
+- [ ] Format correct HH:MM:SS 🔴
+- [ ] Pas de freeze ou lag 🔴
+- [ ] Step actuel = 1 🔴
+- [ ] Nom du step affiché (ex: "Pickup") 🔴
+- [ ] Timeline mise à jour (step 1 actif) 🔴
 
-## Ã‰tape 4: Progression Steps
-- [ ] Steps s'incrÃ©mentent correctement (1â†’2â†’3) ðŸ”´
-- [ ] Timer ne s'arrÃªte JAMAIS entre steps ðŸ”´
-- [ ] Timeline visuelle correcte ðŸ”´
-- [ ] Boutons adaptÃ©s au step actuel ðŸ”´
-- [ ] Pas de skip de step ðŸ”´
-- [ ] Dernier step affiche "Terminer" au lieu de "Suivant" ðŸ”´
-- [ ] Test double-clic rapide (debounce fonctionne) ðŸŸ 
+## Étape 4: Progression Steps
+- [ ] Steps s'incrémentent correctement (1→2→3) 🔴
+- [ ] Timer ne s'arrête JAMAIS entre steps 🔴
+- [ ] Timeline visuelle correcte 🔴
+- [ ] Boutons adaptés au step actuel 🔴
+- [ ] Pas de skip de step 🔴
+- [ ] Dernier step affiche "Terminer" au lieu de "Suivant" 🔴
+- [ ] Test double-clic rapide (debounce fonctionne) 🟠
 
-## Ã‰tape 5: Pause et Resume
-- [ ] Cliquer bouton "Pause" (jaune) ðŸ”´
-- [ ] Timer arrÃªte immÃ©diatement ðŸ”´
-- [ ] Temps affichÃ© ne change plus ðŸ”´
-- [ ] Bouton devient "Reprendre" ðŸ”´
-- [ ] Cliquer bouton "Reprendre" (vert) ðŸ”´
-- [ ] Timer reprend exact temps sauvegardÃ© ðŸ”´
-- [ ] Pas de saut ou dÃ©rive temporelle ðŸ”´
-- [ ] IncrÃ©mentation normale ðŸ”´
+## Étape 5: Pause et Resume
+- [ ] Cliquer bouton "Pause" (jaune) 🔴
+- [ ] Timer arrête immédiatement 🔴
+- [ ] Temps affiché ne change plus 🔴
+- [ ] Bouton devient "Reprendre" 🔴
+- [ ] Cliquer bouton "Reprendre" (vert) 🔴
+- [ ] Timer reprend exact temps sauvegardé 🔴
+- [ ] Pas de saut ou dérive temporelle 🔴
+- [ ] Incrémentation normale 🔴
 
 ---
 
-# ðŸ”§ WSL SETUP - TESTS 100%
+# 🔧 WSL SETUP - TESTS 100%
 
 ## Installation WSL2 Ubuntu
-- [ ] WSL2 (pas WSL1) installÃ© ðŸŸ¢
-- [ ] Distribution: Ubuntu 22.04 LTS ðŸŸ¢
-- [ ] Mise Ã  jour vers version rÃ©cente ðŸŸ¢
-- [ ] Node.js 20.x installÃ© ðŸŸ¢
-- [ ] npm (derniÃ¨re version) ðŸŸ¢
-- [ ] Git configurÃ© ðŸŸ¢
+- [ ] WSL2 (pas WSL1) installé 🟢
+- [ ] Distribution: Ubuntu 22.04 LTS 🟢
+- [ ] Mise à jour vers version récente 🟢
+- [ ] Node.js 20.x installé 🟢
+- [ ] npm (dernière version) 🟢
+- [ ] Git configuré 🟢
 
 ## Cloner & Tester
-- [ ] Clone du repo dans WSL ðŸŸ¢
-- [ ] npm install rÃ©ussi ðŸŸ¢
-- [ ] npm test â†’ 324/324 tests passent ðŸŸ¢
-- [ ] Aucune suite exclue ðŸŸ¢
-- [ ] CaractÃ¨res UTF-8 corrects ðŸŸ¡
+- [ ] Clone du repo dans WSL 🟢
+- [ ] npm install réussi 🟢
+- [ ] npm test → 324/324 tests passent 🟢
+- [ ] Aucune suite exclue 🟢
+- [ ] Caractères UTF-8 corrects 🟡
 
 ## CI/CD GitHub Actions
-- [ ] Workflow Ubuntu crÃ©Ã© ðŸŸ¡
-- [ ] Run automatique sur push ðŸŸ¡
-- [ ] Badges de coverage fonctionnels ðŸŸ¢
+- [ ] Workflow Ubuntu créé 🟡
+- [ ] Run automatique sur push 🟡
+- [ ] Badges de coverage fonctionnels 🟢
 
 ---
 
-# ðŸŽ¨ UI/UX TIMER - AMÃ‰LIORATIONS
+# 🎨 UI/UX TIMER - AMÉLIORATIONS
 
-## ProblÃ¨mes IdentifiÃ©s
-- [ ] CoÃ»t non affichÃ© en temps rÃ©el (CRITIQUE) ðŸ”´
-- [ ] Pauses non visibles (temps total) ðŸŸ 
-- [ ] Badge step trop petit (fontSize: 12) ðŸŸ¡
-- [ ] Pas de progression visuelle ðŸŸ 
-- [ ] Bouton "Ã‰tape suivante" masquÃ© si pas running ðŸŸ 
+## Problèmes Identifiés
+- [ ] Coût non affiché en temps réel (CRITIQUE) 🔴
+- [ ] Pauses non visibles (temps total) 🟠
+- [ ] Badge step trop petit (fontSize: 12) 🟡
+- [ ] Pas de progression visuelle 🟠
+- [ ] Bouton "Étape suivante" masqué si pas running 🟠
 
 ## Nouveau Composant JobTimerDisplay
-- [ ] Fusionner JobClock + JobProgressSection + JobTimeLine ðŸŸ 
-- [ ] Ligne 1: Timer + Step actuel avec emoji ðŸŸ¡
-- [ ] Ligne 2: Progression inline (toujours visible) ðŸŸ¡
-- [ ] Ligne 3: Boutons contextuels ðŸŸ¡
-- [ ] Camion ðŸš› toujours visible avec step actuel ðŸŸ¢
+- [ ] Fusionner JobClock + JobProgressSection + JobTimeLine 🟠
+- [ ] Ligne 1: Timer + Step actuel avec emoji 🟡
+- [ ] Ligne 2: Progression inline (toujours visible) 🟡
+- [ ] Ligne 3: Boutons contextuels 🟡
+- [ ] Camion 🚛 toujours visible avec step actuel 🟢
 
 ---
 
-# ðŸ“‚ FICHIERS SOURCES - SCAN COMPLET (28 DEC 2025)
+# 📂 FICHIERS SOURCES - SCAN COMPLET (28 DEC 2025)
 
 ## Fichiers avec 50+ checkboxes
 
@@ -1718,25 +1718,25 @@ Pour chaque bug rÃ©solu :
 
 ---
 
-## ðŸ“Š STATISTIQUES CONSOLIDATION FINALE (28 DEC 2025)
+## 📊 STATISTIQUES CONSOLIDATION FINALE (28 DEC 2025)
 
-| MÃ©trique | Valeur |
+| Métrique | Valeur |
 |----------|--------|
-| **Total fichiers .md scannÃ©s** | 148 |
-| **Fichiers avec checkboxes listÃ©s** | 148 |
+| **Total fichiers .md scannés** | 148 |
+| **Fichiers avec checkboxes listés** | 148 |
 | **Checkboxes totales (tous fichiers)** | 2000+ |
 | **Checkboxes dans MASTER_TASKS.md** | 480 |
-| **CatÃ©gories de tÃ¢ches** | 25+ |
+| **Catégories de tâches** | 25+ |
 | **Fichiers archive/obsolete** | 18 |
 | **Fichiers docs/** | 60+ |
 | **Fichiers racine** | 70+ |
 
 ---
 
-*Fichier consolidÃ© gÃ©nÃ©rÃ© le 27 DÃ©cembre 2025*
-*MISE Ã€ JOUR SCAN COMPLET : 28 DÃ©cembre 2025*
+*Fichier consolidé généré le 27 Décembre 2025*
+*MISE À JOUR SCAN COMPLET : 28 Décembre 2025*
 *Source : 148 fichiers .md avec checkboxes*
-*DerniÃ¨re mise Ã  jour : 28 DÃ©cembre 2025 - LISTE COMPLÃˆTE*
+*Dernière mise à jour : 28 Décembre 2025 - LISTE COMPLÈTE*
 
 
 
