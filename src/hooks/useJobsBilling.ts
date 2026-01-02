@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { fetchJobs } from '../services/jobs';
+import { createStripeInvoice } from '../services/StripeService';
 
 export interface JobBilling {
   id: string;
@@ -118,7 +119,8 @@ export const useJobsBilling = (): UseJobsBillingResult => {
       // TEMP_DISABLED: console.log(`✅ [useJobsBilling] Loaded ${billingJobs.length} jobs for billing`);
       setJobs(billingJobs);
 
-    } catch (err) {
+    } catch (err) {
+
       console.error('❌ [useJobsBilling] Error loading jobs:', err);
       setError(err instanceof Error ? err.message : 'Erreur lors du chargement');
     } finally {
@@ -132,19 +134,41 @@ export const useJobsBilling = (): UseJobsBillingResult => {
 
   const createInvoice = async (jobId: string) => {
     try {
-      // TEMP_DISABLED: console.log(`💰 [useJobsBilling] Creating invoice for job ${jobId}`);
-      
-      // Simuler la création d'une facture (intégration Stripe côté serveur)
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Trouver le job pour récupérer les infos client
+      const job = jobs.find(j => j.id === jobId);
+      if (!job) {
+        throw new Error('Job not found');
+      }
+
+      // ✅ Appel réel au service Stripe pour créer la facture
+      const invoiceData = {
+        customer_email: job.client.email,
+        customer_name: job.client.name || `${job.client.firstName} ${job.client.lastName}`,
+        description: `Invoice for Job ${job.code || jobId}`,
+        line_items: [
+          {
+            description: `Moving Service - Job ${job.code || jobId}`,
+            quantity: 1,
+            unit_amount: Math.round((job.billing.estimatedCost || 0) * 100), // En centimes
+            currency: job.billing.currency || 'AUD'
+          }
+        ],
+        metadata: {
+          job_id: jobId,
+          job_code: job.code || ''
+        }
+      };
+
+      const result = await createStripeInvoice(invoiceData);
       
       // Mettre à jour le job pour indiquer qu'une facture a été créée
       setJobs(prevJobs => 
-        prevJobs.map(job => 
-          job.id === jobId 
+        prevJobs.map(j => 
+          j.id === jobId 
             ? {
-                ...job,
+                ...j,
                 billing: {
-                  ...job.billing,
+                  ...j.billing,
                   paymentStatus: 'unpaid' // Facture créée mais pas encore payée
                 }
               }
@@ -153,7 +177,8 @@ export const useJobsBilling = (): UseJobsBillingResult => {
       );
       
       // TEMP_DISABLED: console.log(`✅ [useJobsBilling] Invoice created for job ${jobId}`);
-    } catch (err) {
+    } catch (err) {
+
       console.error('❌ [useJobsBilling] Error creating invoice:', err);
       throw new Error('Erreur lors de la création de la facture');
     }
@@ -185,7 +210,8 @@ export const useJobsBilling = (): UseJobsBillingResult => {
       );
       
       // TEMP_DISABLED: console.log(`✅ [useJobsBilling] Refund processed for job ${jobId}`);
-    } catch (err) {
+    } catch (err) {
+
       console.error('❌ [useJobsBilling] Error processing refund:', err);
       throw new Error('Erreur lors du traitement du remboursement');
     }

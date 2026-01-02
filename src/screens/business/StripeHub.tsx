@@ -19,6 +19,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { DESIGN_TOKENS } from '../../constants/Styles'
 import { useTheme } from '../../context/ThemeProvider'
 import { useStripeConnection } from '../../hooks/useStripeConnection'
+import { useStripeAccount, useStripePayments, useStripePayouts } from '../../hooks/useStripe'
 import { useTranslation } from '../../localization'
 // Components
 import CreatePaymentLinkModal from '../../components/modals/CreatePaymentLinkModal'
@@ -55,49 +56,13 @@ export default function StripeHub({ navigation }: StripeHubProps) {
   // Hook pour détecter la connexion Stripe réelle
   const stripeConnection = useStripeConnection()
   
-  // TEMPORAIRE: Désactiver tous les hooks Stripe pour identifier le problème
-  // const stripeAccount = useStripeAccount()
-  // const stripePayments = useStripePayments()
-  // const stripePayouts = useStripePayouts()
-
-  // Mock data pour tester l'interface
-  const stripeAccount = { 
-    account: {
-      default_currency: 'AUD',
-      charges_enabled: false,
-      business_name: 'Swift Moving Services',
-      stripe_account_id: 'acct_mock123456789'
-    },
-    loading: false,
-    error: null,
-    balance: { pending: 0, available: 0 },
-    refresh: () => Promise.resolve()
-  }
-  const stripePayments = { 
-    payments: [], 
-    loading: false, 
-    error: null,
-    refresh: () => Promise.resolve()
-  }
-  const stripePayouts = { 
-    payouts: [], 
-    loading: false, 
-    error: null,
-    refresh: () => Promise.resolve()
-  }
+  // ✅ RÉACTIVÉ: Utiliser les vrais hooks Stripe
+  const stripeAccount = useStripeAccount()
+  const stripePayments = useStripePayments()
+  const stripePayouts = useStripePayouts()
 
   // Calculer les stats réelles à partir des données Stripe
   const stripeStats = React.useMemo(() => {
-    // TEMPORAIRE: Mock stats pour éviter les erreurs
-    return {
-      totalRevenue: 0,
-      monthlyRevenue: 0,
-      pendingPayouts: 0,
-      successfulPayments: 0,
-      currency: 'AUD'
-    };
-    
-    /* VERSION ORIGINALE COMMENTÉE
     const totalRevenue = stripePayments.payments.reduce((total, payment) => {
       return payment.status === 'succeeded' ? total + payment.amount : total;
     }, 0);
@@ -110,7 +75,7 @@ export default function StripeHub({ navigation }: StripeHubProps) {
       })
       .reduce((total, payment) => total + payment.amount, 0);
     
-    const pendingPayouts = stripeAccount.balance.pending;
+    const pendingPayouts = stripeAccount.balance?.pending || 0;
     const successfulPayments = stripePayments.payments.filter(p => p.status === 'succeeded').length;
     
     return {
@@ -120,7 +85,6 @@ export default function StripeHub({ navigation }: StripeHubProps) {
       successfulPayments,
       currency: stripeAccount.account?.default_currency || 'AUD'
     };
-    */
   }, [stripePayments.payments, stripeAccount.balance, stripeAccount.account]);
 
   // WebView states

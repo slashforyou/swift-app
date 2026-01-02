@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import {
     Alert,
+    Linking,
     Modal,
     Pressable,
     ScrollView,
@@ -264,12 +265,25 @@ export default function PaymentDetailModal({
           <View style={styles.actions}>
             <Pressable
               style={[styles.actionButton, { backgroundColor: colors.backgroundSecondary }]}
-              onPress={() => {
-                Alert.alert(
-                  'Coming Soon',
-                  'Receipt download will be available in a future update.',
-                  [{ text: 'OK' }]
-                );
+              onPress={async () => {
+                if (payment.receipt_url) {
+                  try {
+                    const canOpen = await Linking.canOpenURL(payment.receipt_url);
+                    if (canOpen) {
+                      await Linking.openURL(payment.receipt_url);
+                    } else {
+                      Alert.alert('Error', 'Cannot open receipt URL');
+                    }
+                  } catch (error) {
+                    Alert.alert('Error', 'Failed to open receipt');
+                  }
+                } else {
+                  Alert.alert(
+                    'Receipt Unavailable',
+                    'No receipt is available for this payment. Receipts are generated for card payments only.',
+                    [{ text: 'OK' }]
+                  );
+                }
               }}
             >
               <Ionicons name="download-outline" size={20} color={colors.primary} />

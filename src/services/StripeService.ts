@@ -331,7 +331,8 @@ export const fetchStripePayments = async () => {
           status: payment.status || 'succeeded',
           description: payment.description || 'Payment',
           customer: payment.customer_name || payment.customer || 'Customer',
-          method: payment.payment_method || 'card'
+          method: payment.payment_method || 'card',
+          receipt_url: payment.receipt_url || payment.charges?.data?.[0]?.receipt_url || null
         }));
         
         // TEMP_DISABLED: console.log('💳 [FETCH PAYMENTS] Processed payments:', payments.length, 'items');

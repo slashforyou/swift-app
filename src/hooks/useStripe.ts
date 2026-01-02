@@ -33,6 +33,7 @@ export interface Payment {
   description: string;
   customer: string;
   method: string;
+  receipt_url?: string; // URL du reçu Stripe
 }
 
 export interface Payout {
