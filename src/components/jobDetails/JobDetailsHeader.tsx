@@ -18,6 +18,8 @@ interface JobDetailsHeaderProps {
     title: string;
     onToast: (message: string, type: 'info' | 'success' | 'error') => void;
     showLanguageButton?: boolean;
+    onEdit?: () => void;
+    onDelete?: () => void;
 }
 
 const JobDetailsHeader: React.FC<JobDetailsHeaderProps> = ({ 
@@ -26,11 +28,14 @@ const JobDetailsHeader: React.FC<JobDetailsHeaderProps> = ({
     title, 
     onToast,
     showLanguageButton = true,
+    onEdit,
+    onDelete,
 }) => {
     const insets = useSafeAreaInsets();
     const { colors } = useTheme();
     const { currentLanguage, getSupportedLanguages } = useLocalization();
     const [showLanguageSelector, setShowLanguageSelector] = useState(false);
+    const [showActionsMenu, setShowActionsMenu] = useState(false);
     
     const supportedLanguages = getSupportedLanguages();
     const currentLangInfo = supportedLanguages[currentLanguage];
@@ -97,29 +102,114 @@ const JobDetailsHeader: React.FC<JobDetailsHeaderProps> = ({
                     Job Details
                 </Text>
                 
-                {/* Bouton langue circulaire (style Business) */}
-                {showLanguageButton && (
-                    <Pressable
-                        onPress={() => setShowLanguageSelector(true)}
-                        style={({ pressed }) => ({
-                            width: 44,
-                            height: 44,
-                            borderRadius: 22,
-                            backgroundColor: colors.backgroundSecondary,
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            borderWidth: 1,
-                            borderColor: colors.border,
-                            transform: [{ scale: pressed ? 0.95 : 1 }],
-                        })}
-                        hitSlop={DESIGN_TOKENS.touch.hitSlop}
-                    >
-                        <Text style={{ fontSize: 18 }}>
-                            {currentLangInfo.flag}
-                        </Text>
-                    </Pressable>
-                )}
+                {/* Actions buttons */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    {/* Bouton actions menu (Edit/Delete) */}
+                    {(onEdit || onDelete) && (
+                        <Pressable
+                            onPress={() => setShowActionsMenu(!showActionsMenu)}
+                            style={({ pressed }) => ({
+                                width: 44,
+                                height: 44,
+                                borderRadius: 22,
+                                backgroundColor: colors.backgroundSecondary,
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                borderWidth: 1,
+                                borderColor: colors.border,
+                                transform: [{ scale: pressed ? 0.95 : 1 }],
+                            })}
+                            hitSlop={DESIGN_TOKENS.touch.hitSlop}
+                        >
+                            <Ionicons name="ellipsis-vertical" size={20} color={colors.text} />
+                        </Pressable>
+                    )}
+                    
+                    {/* Bouton langue circulaire (style Business) */}
+                    {showLanguageButton && (
+                        <Pressable
+                            onPress={() => setShowLanguageSelector(true)}
+                            style={({ pressed }) => ({
+                                width: 44,
+                                height: 44,
+                                borderRadius: 22,
+                                backgroundColor: colors.backgroundSecondary,
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                borderWidth: 1,
+                                borderColor: colors.border,
+                                transform: [{ scale: pressed ? 0.95 : 1 }],
+                            })}
+                            hitSlop={DESIGN_TOKENS.touch.hitSlop}
+                        >
+                            <Text style={{ fontSize: 18 }}>
+                                {currentLangInfo.flag}
+                            </Text>
+                        </Pressable>
+                    )}
+                </View>
             </View>
+
+            {/* Actions dropdown menu */}
+            {showActionsMenu && (onEdit || onDelete) && (
+                <View style={{
+                    position: 'absolute',
+                    top: insets.top + 76,
+                    right: DESIGN_TOKENS.spacing.lg,
+                    backgroundColor: colors.background,
+                    borderRadius: DESIGN_TOKENS.radius.md,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.15,
+                    shadowRadius: 8,
+                    elevation: 8,
+                    zIndex: 100,
+                    minWidth: 150,
+                }}>
+                    {onEdit && (
+                        <Pressable
+                            onPress={() => {
+                                setShowActionsMenu(false);
+                                onEdit();
+                            }}
+                            style={({ pressed }) => ({
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                padding: DESIGN_TOKENS.spacing.md,
+                                borderBottomWidth: onDelete ? 1 : 0,
+                                borderBottomColor: colors.border,
+                                backgroundColor: pressed ? colors.backgroundSecondary : 'transparent',
+                            })}
+                        >
+                            <Ionicons name="create-outline" size={20} color={colors.primary} />
+                            <Text style={{ marginLeft: 12, color: colors.text, fontSize: 15 }}>
+                                Edit Job
+                            </Text>
+                        </Pressable>
+                    )}
+                    {onDelete && (
+                        <Pressable
+                            onPress={() => {
+                                setShowActionsMenu(false);
+                                onDelete();
+                            }}
+                            style={({ pressed }) => ({
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                padding: DESIGN_TOKENS.spacing.md,
+                                backgroundColor: pressed ? colors.backgroundSecondary : 'transparent',
+                            })}
+                        >
+                            <Ionicons name="trash-outline" size={20} color={colors.error} />
+                            <Text style={{ marginLeft: 12, color: colors.error, fontSize: 15 }}>
+                                Delete Job
+                            </Text>
+                        </Pressable>
+                    )}
+                </View>
+            )}
 
             {/* RefBookMark exactement en dessous du menu, centré */}
             <View style={{

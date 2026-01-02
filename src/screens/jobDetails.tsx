@@ -2,10 +2,11 @@
  * JobDetails - Écran principal des détails de tâche
  * Architecture moderne avec gestion correcte des Safe Areas et marges
  */
-import React, { useRef, useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import React, { useCallback, useRef, useState } from 'react';
+import { Alert, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import JobDetailsHeader from '../components/jobDetails/JobDetailsHeader';
+import EditJobModal from '../components/modals/EditJobModal';
 import TabMenu from '../components/ui/TabMenu';
 import Toast from '../components/ui/toastNotification';
 import { getTemplateSteps, JobTemplate } from '../constants/JobSteps';
@@ -17,6 +18,7 @@ import { useJobDetails } from '../hooks/useJobDetails';
 import { usePerformanceMetrics } from '../hooks/usePerformanceMetrics';
 import { useLocalization } from '../localization/useLocalization';
 import { filterServerCorrectableIssues, requestServerCorrection } from '../services/jobCorrection';
+import { deleteJob, updateJob as updateJobAPI, UpdateJobRequest } from '../services/jobs';
 import { useAuthCheck } from '../utils/checkAuth';
 import { formatValidationReport, validateJobConsistency } from '../utils/jobValidation';
 import JobClient from './JobDetailsScreens/client';
@@ -77,7 +79,6 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
         isLoading: jobLoading, 
         error, 
         refreshJobDetails,
-        updateJob,
         addNote,
         startJob,
         pauseJob,
@@ -219,8 +220,51 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
         }
     });
     
+    // State for Edit Job Modal
+    const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+    
     // ✅ FIX BOUCLE INFINIE: Ref pour tracker si validation déjà effectuée
     const hasValidatedRef = useRef(false);
+    
+    // Handle Edit Job
+    const handleEditJob = useCallback(() => {
+        setIsEditModalVisible(true);
+    }, []);
+    
+    // Handle Update Job (called from EditJobModal)
+    const handleUpdateJob = useCallback(async (updateData: UpdateJobRequest) => {
+        if (!actualJobId) return;
+        await updateJobAPI(actualJobId, updateData);
+        await refreshJobDetails(); // Refresh after update
+    }, [actualJobId, refreshJobDetails]);
+    
+    // Handle Delete Job
+    const handleDeleteJob = useCallback(() => {
+        Alert.alert(
+            t('jobs.deleteConfirmTitle') || 'Delete Job',
+            t('jobs.deleteConfirmMessage') || 'Are you sure you want to delete this job? This action cannot be undone.',
+            [
+                {
+                    text: t('common.cancel') || 'Cancel',
+                    style: 'cancel',
+                },
+                {
+                    text: t('common.delete') || 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await deleteJob(actualJobId);
+                            showToast(t('jobs.deleteSuccess') || 'Job deleted successfully', 'success');
+                            navigation.goBack();
+                        } catch (error) {
+                            console.error('Error deleting job:', error);
+                            showToast(t('jobs.deleteError') || 'Failed to delete job', 'error');
+                        }
+                    },
+                },
+            ]
+        );
+    }, [actualJobId, navigation, showToast, t]);
     
     // Effet pour mettre à jour les données locales quand jobDetails change
     React.useEffect(() => {
@@ -509,6 +553,8 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
                     jobRef={job.code || jobDetails?.job?.code || job.id}
                     title={getPanelTitle()}
                     onToast={showToast}
+                    onEdit={handleEditJob}
+                    onDelete={handleDeleteJob}
                 />
                 
                 {/* ScrollView principal */}
@@ -566,6 +612,14 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
                         status={toastDetails.status} 
                     />
                 </View>
+                
+                {/* Modal d'édition du job */}
+                <EditJobModal
+                    visible={isEditModalVisible}
+                    job={jobDetails?.job}
+                    onClose={() => setIsEditModalVisible(false)}
+                    onUpdateJob={handleUpdateJob}
+                />
             </View>
         </JobTimerProvider>
     );

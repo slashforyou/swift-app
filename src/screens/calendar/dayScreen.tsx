@@ -4,6 +4,7 @@ import JobBox from '@/src/components/calendar/modernJobBox';
 import Ionicons from '@react-native-vector-icons/ionicons';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
+    Alert,
     Pressable,
     RefreshControl,
     ScrollView,
@@ -13,10 +14,12 @@ import {
 } from 'react-native';
 import CalendarHeader from '../../components/calendar/CalendarHeader';
 import { EmptyDayState, ErrorState, JobsLoadingSkeleton } from '../../components/calendar/DayScreenComponents';
+import CreateJobModal from '../../components/modals/CreateJobModal';
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 import { Job, useJobsForDay } from '../../hooks/useJobsForDay';
 import { useTranslation } from '../../localization';
+import { createJob, CreateJobRequest } from '../../services/jobs';
 
 interface DayScreenProps {
     route: {
@@ -39,6 +42,7 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
     const [statusFilter, setStatusFilter] = useState<string>('');
     const [sortBy, setSortBy] = useState<'time' | 'priority' | 'status'>('time');
     const [showFilters, setShowFilters] = useState(false);
+    const [isCreateJobModalVisible, setIsCreateJobModalVisible] = useState(false);
 
     // Get themed colors and styles
     const { colors, styles: commonStyles } = useCommonThemedStyles();
@@ -87,6 +91,12 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
     // Handle refresh
     const handleRefresh = useCallback(async () => {
         await refetch();
+    }, [refetch]);
+
+    // Handle create job
+    const handleCreateJob = useCallback(async (jobData: CreateJobRequest) => {
+        await createJob(jobData);
+        await refetch(); // Refresh the jobs list
     }, [refetch]);
 
     // Navigate to previous/next day
@@ -253,6 +263,21 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
             paddingHorizontal: DESIGN_TOKENS.spacing.lg,
             paddingTop: DESIGN_TOKENS.spacing.lg,
         },
+        fab: {
+            position: 'absolute',
+            right: DESIGN_TOKENS.spacing.lg,
+            bottom: 120, // Above the navigation bar
+            width: 56,
+            height: 56,
+            borderRadius: 28,
+            alignItems: 'center',
+            justifyContent: 'center',
+            shadowColor: colors.shadow,
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.3,
+            shadowRadius: 8,
+            elevation: 8,
+        },
     });
 
     // Render filter button
@@ -399,6 +424,22 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
                     </ScrollView>
                 )}
             </View>
+
+            {/* FAB - Create Job Button */}
+            <Pressable
+                style={[styles.fab, { backgroundColor: colors.primary }]}
+                onPress={() => setIsCreateJobModalVisible(true)}
+            >
+                <Ionicons name="add" size={28} color={colors.buttonPrimaryText} />
+            </Pressable>
+
+            {/* Create Job Modal */}
+            <CreateJobModal
+                visible={isCreateJobModalVisible}
+                onClose={() => setIsCreateJobModalVisible(false)}
+                onCreateJob={handleCreateJob}
+                selectedDate={new Date(selectedYear, selectedMonth - 1, selectedDay)}
+            />
         </View>
     );
 };
