@@ -105,7 +105,7 @@
   - **Impact :** Bloquant - FonctionnalitÃ© cassÃ©e
 
 ### Photos Non SauvegardÃ©es ðŸ”´
-- [ ] **JOB-05** : Les photos prises ne sont pas sauvegardÃ©es/affichÃ©es
+- [x] **JOB-05** : Les photos prises ne sont pas sauvegardÃ©es/affichÃ©es
   - **Fichier :** `src/components/modals/PhotoSelectionModal.tsx`, `src/services/jobPhotos.ts`
   - **Action :** ImplÃ©menter upload vers backend + affichage dans job
   - **Endpoint :** `POST /jobs/{id}/photos` (Ã  crÃ©er si n'existe pas)
@@ -1737,6 +1737,7 @@ Pour chaque bug rÃ©solu :
 *MISE Ã€ JOUR SCAN COMPLET : 28 DÃ©cembre 2025*
 *Source : 148 fichiers .md avec checkboxes*
 *DerniÃ¨re mise Ã  jour : 28 DÃ©cembre 2025 - LISTE COMPLÃˆTE*
+
 
 
 
