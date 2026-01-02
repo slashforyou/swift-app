@@ -14,6 +14,7 @@ import { JobStateProvider } from '../context/JobStateProvider';
 import { JobTimerProvider } from '../context/JobTimerProvider';
 import { useTheme } from '../context/ThemeProvider';
 import { useJobDetails } from '../hooks/useJobDetails';
+import { usePerformanceMetrics } from '../hooks/usePerformanceMetrics';
 import { useLocalization } from '../localization/useLocalization';
 import { filterServerCorrectableIssues, requestServerCorrection } from '../services/jobCorrection';
 import { useAuthCheck } from '../utils/checkAuth';
@@ -64,6 +65,9 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
     const { isLoading: authLoading, LoadingComponent } = useAuthCheck(navigation);
     const { colors } = useTheme();
     const { t } = useLocalization();
+    
+    // 📊 Performance monitoring
+    const perf = usePerformanceMetrics('JobDetails');
     
     // Récupération de l'ID du job depuis les paramètres de route ou props
     const actualJobId = route?.params?.jobId || jobId || route?.params?.id;
@@ -221,6 +225,9 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
     // Effet pour mettre à jour les données locales quand jobDetails change
     React.useEffect(() => {
         if (jobDetails) {
+            // 📊 Marquer l'écran comme interactif quand les données sont chargées
+            perf.markInteractive();
+            
             console.log('🔄 [JobDetails] Updating local job data from API data...');
             console.log('🔍 [JobDetails] jobDetails structure:', {
                 hasJob: !!jobDetails.job,
