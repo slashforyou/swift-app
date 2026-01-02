@@ -590,25 +590,39 @@
 
 ---
 
-# � CORRECTIONS BACKEND REQUISES
+# ✅ CORRECTIONS BACKEND - COMPLÉTÉES (2 Jan 2026)
 
-## Bug MySQL - pool.execute()
-- [ ] Vérifier `package.json` → quelle lib MySQL ? 🔴
-- [ ] Chercher tous les `pool.execute()` dans le code 🔴
-- [ ] Remplacer par `pool.query()` OU installer `mysql2` 🔴
-- [ ] Tester: `POST /job/2/start` → doit retourner 200 OK 🔴
+## Bug MySQL - pool.execute() ✅ NON APPLICABLE
+- [x] mysql2 v3.9.1 déjà installé, aucun bug
 
-## Bug Advance Step
-- [ ] Trouver le handler `POST /job/:id/advance-step` 🔴
-- [ ] Vérifier validation du paramètre `current_step` 🔴
-- [ ] Supprimer restriction de séquence (step+1 obligatoire) 🔴
-- [ ] Tester: `POST /job/2/advance-step` avec `{"current_step": 3}` → doit retourner 200 OK 🔴
+## Bug Advance Step ✅ CORRIGÉ
+- [x] Restriction de séquence supprimée
+- [x] Range autorisé: 0-5 (au lieu de 1-5)
+- [x] Sauts d'étapes autorisés
 
-## Bug Complete Job - Step 99
-- [ ] Trouver le handler `POST /job/:id/complete` 🔴
-- [ ] Supprimer `current_step = 99` de la requête UPDATE 🔴
-- [ ] Préserver le `current_step` réel du job 🔴
-- [ ] Tester: `POST /job/2/complete` → `current_step` doit être 4 ou 5, PAS 99 🔴
+## Bug Complete Job - Step 99 ✅ NON APPLICABLE  
+- [x] Aucun step=99 dans le code
+- [x] Vérifié en base de données
+
+## Nouveaux Endpoints ✅ IMPLÉMENTÉS
+- [x] PUT /job/:id/step - Sync step depuis l'app
+- [x] POST /job/:id/sync-timer - Sync timer
+- [x] GET /job/:id/timer - Récupérer état timer
+- [x] currentStep déjà retourné par GET /job/:id
+
+## Intégration Frontend ✅ COMPLÉTÉE (2 Jan 2026)
+- [x] `syncStepToBackend()` - Ajouté dans `src/services/jobSteps.ts`
+- [x] `syncTimerToBackend()` - Ajouté dans `src/services/jobSteps.ts`
+- [x] `getTimerFromBackend()` - Ajouté dans `src/services/jobSteps.ts`
+- [x] `useJobTimer.advanceStep()` - Utilise maintenant `syncStepToBackend` (avec fallback)
+- [x] `JobTimerProvider` - Auto-sync timer toutes les 30s via `syncTimerToBackend`
+- [x] `useJobTimer.loadTimerData()` - Restaure état depuis backend via `getTimerFromBackend`
+
+## Stripe & Staff ✅ DÉJÀ PRÉSENTS
+- [x] 8 endpoints paiements
+- [x] 8 endpoints factures  
+- [x] 5 endpoints staff
+- [x] 8 endpoints photos/images
 
 ---
 

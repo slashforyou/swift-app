@@ -5,7 +5,12 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { completeJob, updateJobStep } from '../services/jobSteps';
+import { 
+    completeJob, 
+    getTimerFromBackend, 
+    syncStepToBackend, 
+    updateJobStep 
+} from '../services/jobSteps';
 import { timerLogger } from '../utils/logger';
 
 export interface JobStepTime {
@@ -90,6 +95,38 @@ export const useJobTimer = (
     // Charger les données du timer depuis le storage
     const loadTimerData = useCallback(async () => {
         try {
+            // ✅ NOUVEAU: D'abord essayer de récupérer l'état depuis le backend
+            // GET /job/:id/timer - Confirmé par backend 2 Jan 2026
+            const backendResponse = await getTimerFromBackend(jobId);
+            
+            if (backendResponse.success && backendResponse.data?.timer) {
+                const backendTimer = backendResponse.data.timer;
+                console.log('✅ [useJobTimer] Timer restored from backend:', backendTimer);
+                
+                // Convertir les heures backend en données locales
+                const now = Date.now();
+                const totalElapsedMs = backendTimer.totalHours * 60 * 60 * 1000;
+                const totalBreakTimeMs = backendTimer.breakHours * 60 * 60 * 1000;
+                const estimatedStartTime = backendTimer.isRunning ? now - totalElapsedMs : 0;
+                
+                const restoredTimer: JobTimerData = {
+                    jobId,
+                    startTime: estimatedStartTime,
+                    currentStep: currentStep,
+                    stepTimes: [], // Ne peut pas être restauré depuis le backend
+                    breakTimes: [],
+                    isRunning: backendTimer.isRunning,
+                    isOnBreak: false,
+                    totalElapsed: totalElapsedMs,
+                    totalBreakTime: totalBreakTimeMs
+                };
+                
+                setTimerData(restoredTimer);
+                return; // Succès, pas besoin de fallback
+            }
+            
+            // Fallback: Charger depuis AsyncStorage si backend échoue
+            console.log('📱 [useJobTimer] Falling back to local storage');
             const storedData = await AsyncStorage.getItem(TIMER_STORAGE_KEY);
             if (storedData) {
                 const timers: Record<string, JobTimerData> = JSON.parse(storedData);
@@ -315,13 +352,21 @@ export const useJobTimer = (
                     console.error('❌ [useJobTimer] Failed to sync job completion');
                 });
         } else {
-            // ✅ FIX: Utiliser updateJobStep qui fonctionne au lieu de advanceStepAPI
-            updateJobStep(jobId, newStep, `Avancé à l'étape ${newStep} après ${(currentStepDuration / 3600).toFixed(2)}h`)
-                .then(() => {
-                    // TEMP_DISABLED: console.log('✅ [useJobTimer] Step advanced and synced to API');
+            // ✅ NOUVEAU: Utiliser syncStepToBackend (PUT /job/:id/step) - Confirmé par backend
+            syncStepToBackend(jobId, newStep)
+                .then((response) => {
+                    if (response.success) {
+                        console.log(`✅ [useJobTimer] Step ${newStep} synced to backend`);
+                    } else {
+                        // Fallback sur l'ancienne API si la nouvelle échoue
+                        console.warn('⚠️ [useJobTimer] syncStepToBackend failed, using fallback');
+                        updateJobStep(jobId, newStep, `Avancé à l'étape ${newStep}`);
+                    }
                 })
                 .catch(error => {
-                    console.error('❌ [useJobTimer] Failed to sync step advancement:', error);
+                    console.error('❌ [useJobTimer] Failed to sync step:', error);
+                    // Fallback silencieux
+                    updateJobStep(jobId, newStep, `Avancé à l'étape ${newStep}`).catch(() => {});
                 });
         }
     }, [timerData, saveTimerData, totalSteps, onJobCompleted, calculateCost, jobId, getStepName]);

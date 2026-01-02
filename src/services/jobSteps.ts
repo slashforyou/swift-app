@@ -453,3 +453,288 @@ export const completeJob = async (jobId: string): Promise<JobStepResponse> => {
     };
   }
 };
+
+// ============================================
+// 🆕 NOUVEAUX ENDPOINTS - Confirmés par Backend (2 Jan 2026)
+// ============================================
+
+export interface SyncStepRequest {
+  current_step: number;
+}
+
+export interface SyncStepResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    jobId: number;
+    jobCode: string;
+    currentStep: number;
+    totalSteps: number;
+    progress: string;
+    status: string;
+    changes: {
+      previousStep: number;
+      newStep: number;
+      stepChanged: boolean;
+    };
+  };
+  error?: string;
+}
+
+/**
+ * 🆕 Synchroniser le step actuel vers le backend
+ * API Endpoint: PUT /swift-app/v1/job/:id/step
+ * 
+ * ✅ Confirmé par backend le 2 Jan 2026
+ * Range autorisé: 0-5
+ * 
+ * @param jobId - Job ID (code ou numérique)
+ * @param currentStep - Step actuel (0-5)
+ */
+export const syncStepToBackend = async (
+  jobId: string,
+  currentStep: number
+): Promise<SyncStepResponse> => {
+  const startTime = Date.now();
+  
+  try {
+    // Extraire ID numérique si c'est un code
+    let numericId = jobId;
+    if (/[a-zA-Z]/.test(jobId)) {
+      const match = jobId.match(/(\d+)$/);
+      if (match) {
+        numericId = parseInt(match[1], 10).toString();
+      }
+    }
+    
+    const endpoint = `/swift-app/v1/job/${numericId}/step`;
+    
+    const authHeaders = await getAuthHeaders();
+    if (!authHeaders) {
+      throw new Error('No authentication token available');
+    }
+
+    console.log('📤 [SYNC STEP] Syncing step to backend:', {
+      jobId,
+      numericId,
+      currentStep,
+      endpoint
+    });
+
+    const response = await fetch(`${API_BASE_URL}/job/${numericId}/step`, {
+      method: 'PUT',
+      headers: {
+        ...authHeaders,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ current_step: currentStep }),
+    });
+
+    const duration = Date.now() - startTime;
+    trackAPICall(endpoint, 'PUT', duration, response.status);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.warn('⚠️ [SYNC STEP] Failed:', response.status, errorData);
+      
+      return {
+        success: false,
+        error: errorData.error || `HTTP ${response.status}`,
+      };
+    }
+
+    const data = await response.json();
+    console.log('✅ [SYNC STEP] Step synced successfully:', data);
+    
+    return {
+      success: true,
+      message: data.message,
+      data: data.data,
+    };
+  } catch (error) {
+    console.error('❌ [SYNC STEP] Error:', error);
+    
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+};
+
+export interface SyncTimerRequest {
+  totalHours: number;
+  billableHours: number;
+  breakHours: number;
+  isRunning: boolean;
+}
+
+export interface SyncTimerResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    jobId: number;
+    jobCode: string;
+    timer: {
+      totalHours: number;
+      billableHours: number;
+      breakHours: number;
+      isRunning: boolean;
+      lastUpdated: string;
+    };
+  };
+  error?: string;
+}
+
+/**
+ * 🆕 Synchroniser les données du timer vers le backend
+ * API Endpoint: POST /swift-app/v1/job/:id/sync-timer
+ * 
+ * ✅ Confirmé par backend le 2 Jan 2026
+ * 
+ * @param jobId - Job ID (code ou numérique)
+ * @param timerData - Données du timer
+ */
+export const syncTimerToBackend = async (
+  jobId: string,
+  timerData: SyncTimerRequest
+): Promise<SyncTimerResponse> => {
+  const startTime = Date.now();
+  
+  try {
+    // Extraire ID numérique si c'est un code
+    let numericId = jobId;
+    if (/[a-zA-Z]/.test(jobId)) {
+      const match = jobId.match(/(\d+)$/);
+      if (match) {
+        numericId = parseInt(match[1], 10).toString();
+      }
+    }
+    
+    const endpoint = `/swift-app/v1/job/${numericId}/sync-timer`;
+    
+    const authHeaders = await getAuthHeaders();
+    if (!authHeaders) {
+      throw new Error('No authentication token available');
+    }
+
+    console.log('📤 [SYNC TIMER] Syncing timer to backend:', {
+      jobId,
+      numericId,
+      ...timerData,
+      endpoint
+    });
+
+    const response = await fetch(`${API_BASE_URL}/job/${numericId}/sync-timer`, {
+      method: 'POST',
+      headers: {
+        ...authHeaders,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(timerData),
+    });
+
+    const duration = Date.now() - startTime;
+    trackAPICall(endpoint, 'POST', duration, response.status);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.warn('⚠️ [SYNC TIMER] Failed:', response.status, errorData);
+      
+      return {
+        success: false,
+        error: errorData.error || `HTTP ${response.status}`,
+      };
+    }
+
+    const data = await response.json();
+    console.log('✅ [SYNC TIMER] Timer synced successfully:', data);
+    
+    return {
+      success: true,
+      message: data.message,
+      data: data.data,
+    };
+  } catch (error) {
+    console.error('❌ [SYNC TIMER] Error:', error);
+    
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+};
+
+/**
+ * 🆕 Récupérer l'état du timer depuis le backend
+ * API Endpoint: GET /swift-app/v1/job/:id/timer
+ * 
+ * ✅ Confirmé par backend le 2 Jan 2026
+ * 
+ * @param jobId - Job ID (code ou numérique)
+ */
+export const getTimerFromBackend = async (
+  jobId: string
+): Promise<SyncTimerResponse> => {
+  const startTime = Date.now();
+  
+  try {
+    // Extraire ID numérique si c'est un code
+    let numericId = jobId;
+    if (/[a-zA-Z]/.test(jobId)) {
+      const match = jobId.match(/(\d+)$/);
+      if (match) {
+        numericId = parseInt(match[1], 10).toString();
+      }
+    }
+    
+    const endpoint = `/swift-app/v1/job/${numericId}/timer`;
+    
+    const authHeaders = await getAuthHeaders();
+    if (!authHeaders) {
+      throw new Error('No authentication token available');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/job/${numericId}/timer`, {
+      method: 'GET',
+      headers: authHeaders,
+    });
+
+    const duration = Date.now() - startTime;
+    trackAPICall(endpoint, 'GET', duration, response.status);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.warn('⚠️ [GET TIMER] Failed:', response.status, errorData);
+      
+      return {
+        success: false,
+        error: errorData.error || `HTTP ${response.status}`,
+      };
+    }
+
+    const data = await response.json();
+    console.log('✅ [GET TIMER] Timer retrieved:', data);
+    
+    return {
+      success: true,
+      data: {
+        jobId: data.job_id,
+        jobCode: data.job_code,
+        timer: {
+          totalHours: data.timer.total_hours,
+          billableHours: data.timer.billable_hours,
+          breakHours: data.timer.break_hours,
+          isRunning: data.timer.is_running,
+          lastUpdated: data.timer.last_updated,
+        },
+      },
+    };
+  } catch (error) {
+    console.error('❌ [GET TIMER] Error:', error);
+    
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+};

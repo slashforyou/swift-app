@@ -5,6 +5,7 @@
 
 import React, { createContext, ReactNode, useCallback, useContext, useEffect, useRef } from 'react';
 import { JobTimerData, useJobTimer } from '../hooks/useJobTimer';
+import { syncTimerToBackend } from '../services/jobSteps';
 import { timerLogger } from '../utils/logger';
 
 interface JobTimerContextValue {
@@ -178,30 +179,39 @@ export const JobTimerProvider: React.FC<JobTimerProviderProps> = ({
         }
     }, [currentStep]); // ✅ Dépendance UNIQUEMENT sur currentStep (pas timer.currentStep)
 
-    // ✅ DÉSACTIVÉ TEMPORAIREMENT - Cause boucle infinie
-    // Auto-sync timer to API every 30 seconds when running
-    /*
-    useEffect(() =>);        if (timer.isRunning && timer.timerData && !timer.isOnBreak) {
-            // TEMP_DISABLED: console.log('⏱️ [JobTimerProvider] Starting auto-sync (every 30s)');
-            
-            const intervalId = setInterval(() =>);                syncTimerToAPI(timer.timerData!)
-                    .then(response => {
-                        if (response?.success) {
-                            // TEMP_DISABLED: console.log('✅ [JobTimerProvider] Auto-sync successful');
-                        }
+    // ✅ Auto-sync timer to API every 30 seconds when running
+    // Utilise syncTimerToBackend (POST /job/:id/sync-timer) - Confirmé par backend 2 Jan 2026
+    useEffect(() => {
+        if (timer.isRunning && timer.timerData && !timer.isOnBreak && safeJobId !== 'unknown') {
+            const intervalId = setInterval(() => {
+                if (timer.timerData) {
+                    // Convertir les millisecondes en heures
+                    const totalHours = timer.totalElapsed / (1000 * 60 * 60);
+                    const billableHours = timer.billableTime / (1000 * 60 * 60);
+                    const breakHours = (timer.timerData.totalBreakTime || 0) / (1000 * 60 * 60);
+                    
+                    syncTimerToBackend(safeJobId, {
+                        totalHours,
+                        billableHours,
+                        breakHours,
+                        isRunning: timer.isRunning,
                     })
-                    .catch(error => {
-                        console.error('❌ [JobTimerProvider] Auto-sync failed:', error);
-                    });
+                        .then(response => {
+                            if (response?.success) {
+                                console.log('✅ [JobTimerProvider] Auto-sync timer successful');
+                            }
+                        })
+                        .catch(error => {
+                            console.warn('⚠️ [JobTimerProvider] Auto-sync timer failed:', error);
+                        });
+                }
             }, 30000); // 30 seconds
             
             return () => {
-                // TEMP_DISABLED: console.log('⏱️ [JobTimerProvider] Stopping auto-sync');
                 clearInterval(intervalId);
             };
         }
-    }, [timer.isRunning, timer.timerData, timer.isOnBreak]);
-    */
+    }, [timer.isRunning, timer.timerData, timer.isOnBreak, timer.totalElapsed, timer.billableTime, safeJobId]);
 
     const value: JobTimerContextValue = {
         timerData: timer.timerData,
