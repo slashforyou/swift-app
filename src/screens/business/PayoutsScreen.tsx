@@ -21,7 +21,7 @@ import PayoutDetailModal from '../../components/modals/PayoutDetailModal'
 import { DESIGN_TOKENS } from '../../constants/Styles'
 import { useTheme } from '../../context/ThemeProvider'
 import { useStripePayouts, type Payout } from '../../hooks/useStripe'
-import { useTranslation } from '../../localization/useLocalization'
+import { useLocalization, formatCurrency as formatLocalizedCurrency, formatDateShort } from '../../localization'
 
 // Types
 interface PayoutsScreenProps {
@@ -30,7 +30,7 @@ interface PayoutsScreenProps {
 
 export default function PayoutsScreen({ navigation }: PayoutsScreenProps) {
   const { colors } = useTheme()
-  const { t } = useTranslation()
+  const { t, currentLanguage } = useLocalization()
   const [selectedTab, setSelectedTab] = useState<'all' | 'pending' | 'completed'>('all')
   const [selectedPayout, setSelectedPayout] = useState<Payout | null>(null)
 
@@ -38,18 +38,11 @@ export default function PayoutsScreen({ navigation }: PayoutsScreenProps) {
   const { payouts, loading: isLoading, error, refresh, createPayout } = useStripePayouts()
 
   const formatCurrency = (amount: number, currency: string = 'EUR') => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: currency
-    }).format(amount)
+    return formatLocalizedCurrency(amount * 100, currentLanguage, currency)
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    })
+    return formatDateShort(dateString, currentLanguage)
   }
 
   const getStatusColor = (status: Payout['status']) => {

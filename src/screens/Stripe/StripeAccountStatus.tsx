@@ -7,6 +7,7 @@ import { Text, View } from 'react-native';
 import { useTheme } from '../../context/ThemeProvider_Advanced';
 import { Button, Card } from '../../design-system/components';
 import { DESIGN_TOKENS } from '../../design-system/tokens';
+import { useLocalization, formatDate } from '../../localization';
 import type { StripeAccount, StripeRequirement } from '../../types/stripe';
 
 interface StripeAccountStatusProps {
@@ -23,6 +24,7 @@ const StripeAccountStatus: React.FC<StripeAccountStatusProps> = ({
   onCompleteOnboarding,
 }) => {
   const { colors } = useTheme();
+  const { currentLanguage } = useLocalization();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -171,7 +173,7 @@ const StripeAccountStatus: React.FC<StripeAccountStatusProps> = ({
             textAlign: 'center',
             marginTop: DESIGN_TOKENS.spacing.xs,
           }}>
-            Créé le: {new Date(account.created * 1000).toLocaleDateString('fr-FR')}
+            Créé le: {formatDate(new Date(account.created * 1000), currentLanguage)}
           </Text>
         )}
       </View>

@@ -7,7 +7,7 @@ import { Alert, Modal, Text, View } from 'react-native';
 import { useTheme } from '../../context/ThemeProvider_Advanced';
 import { Button, Card, Input } from '../../design-system/components';
 import { DESIGN_TOKENS } from '../../design-system/tokens';
-import { useLocalization } from '../../localization/useLocalization';
+import { useLocalization, formatCurrency } from '../../localization';
 import type { PayoutRequest } from '../../types/payouts';
 
 interface AnimatedInstantPayoutModalProps {
@@ -28,16 +28,13 @@ const AnimatedInstantPayoutModal: React.FC<AnimatedInstantPayoutModalProps> = ({
   loading = false,
 }) => {
   const { colors } = useTheme();
-  const { t } = useLocalization();
+  const { t, currentLanguage } = useLocalization();
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [processing, setProcessing] = useState(false);
 
   const formatMaxAmount = () => {
-    return (maxAmount / 100).toLocaleString('fr-FR', {
-      style: 'currency',
-      currency: currency.toUpperCase(),
-    });
+    return formatCurrency(maxAmount, currentLanguage, currency.toUpperCase());
   };
 
   const handleConfirm = async () => {

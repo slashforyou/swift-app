@@ -22,7 +22,7 @@ import PaymentDetailModal from '../../components/modals/PaymentDetailModal'
 import { DESIGN_TOKENS } from '../../constants/Styles'
 import { useTheme } from '../../context/ThemeProvider'
 import { useStripePayments, type Payment } from '../../hooks/useStripe'
-import { useTranslation } from '../../localization/useLocalization'
+import { useLocalization, formatCurrency as formatLocalizedCurrency, formatDateTime } from '../../localization'
 
 interface PaymentsListScreenProps {
   navigation?: any
@@ -30,7 +30,7 @@ interface PaymentsListScreenProps {
 
 export default function PaymentsListScreen({ navigation }: PaymentsListScreenProps) {
   const { colors } = useTheme()
-  const { t } = useTranslation()
+  const { t, currentLanguage } = useLocalization()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'succeeded' | 'processing' | 'failed'>('all')
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null)
@@ -39,14 +39,11 @@ export default function PaymentsListScreen({ navigation }: PaymentsListScreenPro
   const { payments, loading: isLoading, error, refresh } = useStripePayments()
 
   const formatCurrency = (amount: number, currency: string = 'EUR') => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: currency
-    }).format(amount)
+    return formatLocalizedCurrency(amount * 100, currentLanguage, currency)
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('fr-FR', {
+    return formatDateTime(dateString, currentLanguage, {
       day: '2-digit',
       month: 'short',
       hour: '2-digit',

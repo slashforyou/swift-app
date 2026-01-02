@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useTheme } from '../../context/ThemeProvider';
+import { useLocalization, formatCurrency as formatLocalizedCurrency, formatDateWithDay, formatTime as formatLocalizedTime } from '../../localization';
 import type { Payout } from '../../hooks/useStripe';
 
 interface PayoutDetailModalProps {
@@ -27,30 +28,20 @@ export default function PayoutDetailModal({
   onClose,
 }: PayoutDetailModalProps) {
   const { colors } = useTheme();
+  const { currentLanguage } = useLocalization();
 
   if (!payout) return null;
 
   const formatCurrency = (amount: number, currency: string = 'EUR') => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: currency.toUpperCase(),
-    }).format(amount);
+    return formatLocalizedCurrency(amount * 100, currentLanguage, currency.toUpperCase());
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      weekday: 'long',
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
-    });
+    return formatDateWithDay(dateString, currentLanguage);
   };
 
   const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleTimeString('fr-FR', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    return formatLocalizedTime(dateString, currentLanguage);
   };
 
   const getStatusColor = (status: Payout['status']) => {

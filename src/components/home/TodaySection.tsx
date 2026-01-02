@@ -8,7 +8,7 @@ import { Pressable, Text, View } from 'react-native';
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useTheme } from '../../context/ThemeProvider';
 import { useJobsForDay } from '../../hooks/useJobsForDay';
-import { useTranslation } from '../../localization';
+import { useLocalization, formatDateWithDay } from '../../localization';
 import { HStack, VStack } from '../primitives/Stack';
 
 interface TodaySectionProps {
@@ -17,7 +17,7 @@ interface TodaySectionProps {
 }
 
 const TodaySection: React.FC<TodaySectionProps> = ({ onPress, style }) => {
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useLocalization();
   const { colors } = useTheme();
   
   // Récupérer les jobs du jour
@@ -28,13 +28,9 @@ const TodaySection: React.FC<TodaySectionProps> = ({ onPress, style }) => {
     today.getFullYear()
   );
   
-  // Formatage de la date
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('fr-FR', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long'
-    });
+  // Formatage de la date localisé
+  const getFormattedDate = (date: Date) => {
+    return formatDateWithDay(date, currentLanguage);
   };
 
   // Couleur du statut
@@ -119,7 +115,7 @@ const TodaySection: React.FC<TodaySectionProps> = ({ onPress, style }) => {
               textTransform: 'capitalize',
             }}
           >
-            {formatDate(new Date())}
+            {getFormattedDate(new Date())}
           </Text>
           
           {/* Stats des jobs */}

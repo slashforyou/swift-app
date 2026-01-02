@@ -7,6 +7,7 @@ import { Animated, Text, View } from 'react-native';
 import { useTheme } from '../../context/ThemeProvider_Advanced';
 import { Card } from '../../design-system/components';
 import { DESIGN_TOKENS } from '../../design-system/tokens';
+import { useLocalization, formatCurrency } from '../../localization';
 import type { PayoutBalance } from '../../types/payouts';
 
 interface AnimatedBalanceCardProps {
@@ -21,6 +22,7 @@ const AnimatedBalanceCard: React.FC<AnimatedBalanceCardProps> = ({
   onRefresh,
 }) => {
   const { colors } = useTheme();
+  const { currentLanguage } = useLocalization();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(-50)).current;
 
@@ -44,10 +46,7 @@ const AnimatedBalanceCard: React.FC<AnimatedBalanceCardProps> = ({
   const currency = balance.available[0]?.currency || 'eur';
 
   const formatAmount = (amount: number) => {
-    return (amount / 100).toLocaleString('fr-FR', {
-      style: 'currency',
-      currency: currency.toUpperCase(),
-    });
+    return formatCurrency(amount, currentLanguage, currency.toUpperCase());
   };
 
   if (loading) {

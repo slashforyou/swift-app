@@ -7,6 +7,7 @@ import React, { useEffect, useRef } from 'react';
 import { Animated, Text, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../../context/ThemeProvider_Advanced';
 import { DESIGN_TOKENS } from '../../design-system/tokens';
+import { useLocalization, formatCurrency, formatDateShort } from '../../localization';
 import type { Payout } from '../../types/payouts';
 
 interface AnimatedPayoutListItemProps {
@@ -21,6 +22,7 @@ const AnimatedPayoutListItem: React.FC<AnimatedPayoutListItemProps> = ({
   index = 0,
 }) => {
   const { colors } = useTheme();
+  const { currentLanguage } = useLocalization();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
 
@@ -42,18 +44,11 @@ const AnimatedPayoutListItem: React.FC<AnimatedPayoutListItemProps> = ({
   }, [fadeAnim, slideAnim, index]);
 
   const formatAmount = (amount: number, currency: string) => {
-    return (amount / 100).toLocaleString('fr-FR', {
-      style: 'currency',
-      currency: currency.toUpperCase(),
-    });
+    return formatCurrency(amount, currentLanguage, currency.toUpperCase());
   };
 
   const formatDate = (timestamp: number) => {
-    return new Date(timestamp * 1000).toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
+    return formatDateShort(new Date(timestamp * 1000), currentLanguage);
   };
 
   const getStatusColor = (status: string) => {

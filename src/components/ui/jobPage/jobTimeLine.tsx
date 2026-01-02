@@ -8,7 +8,7 @@ import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { DESIGN_TOKENS } from '../../../constants/Styles';
 import { useJobTimerContext } from '../../../context/JobTimerProvider';
 import { useTheme } from '../../../context/ThemeProvider';
-import { useLocalization } from '../../../localization/useLocalization';
+import { useLocalization, formatTime } from '../../../localization';
 
 interface JobTimeLineProps {
     job: any;
@@ -17,7 +17,7 @@ interface JobTimeLineProps {
 
 const JobTimeLine = ({ job, onAdvanceStep }: JobTimeLineProps) => {
     const { colors } = useTheme();
-    const { t } = useLocalization();
+    const { t, currentLanguage } = useLocalization();
     const progressAnimation = useRef(new Animated.Value(0)).current;
     const truckAnimation = useRef(new Animated.Value(0)).current;
     const [isStepsExpanded, setIsStepsExpanded] = useState(false); // Rétracté par défaut
@@ -562,11 +562,7 @@ const JobTimeLine = ({ job, onAdvanceStep }: JobTimeLineProps) => {
                             // Formater timestamp (HH:MM)
                             const formatTimestamp = (timestamp: number) => {
                                 if (!timestamp) return '';
-                                const date = new Date(timestamp);
-                                return date.toLocaleTimeString('fr-FR', { 
-                                    hour: '2-digit', 
-                                    minute: '2-digit' 
-                                });
+                                return formatTime(new Date(timestamp), currentLanguage);
                             };
                             
                             return (
