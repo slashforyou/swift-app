@@ -172,7 +172,7 @@
   - **Impact :** FonctionnalitÃ© CORE manquante
 
 ### Modification de VÃ©hicule - Seulement une Alerte ðŸ”´
-- [ ] **VEH-02** : La modification affiche seulement une alerte au lieu d'un formulaire
+- [x] **VEH-02** : La modification affiche seulement une alerte au lieu d'un formulaire
   - **Fichier :** `src/screens/business/VehicleDetailsScreen.tsx`
   - **Action :** Remplacer Alert par `EditVehicleModal` fonctionnel
   - **Endpoint :** `PUT /vehicles/{id}` (vÃ©rifier si existe)
@@ -188,7 +188,7 @@
   - **Impact :** FonctionnalitÃ© manquante
 
 ### DonnÃ©es VÃ©hicules en Mock ðŸŸ 
-- [ ] **VEH-04** : Valider que les vÃ©hicules fonctionnent en donnÃ©es rÃ©elles
+- [x] **VEH-04** : Valider que les vÃ©hicules fonctionnent en donnÃ©es rÃ©elles
   - **Fichier :** `src/hooks/useVehicles.ts`
   - **Action :** Tester sans mock, corriger si erreurs
   - **ComplexitÃ© :** Faible (2-3h)
