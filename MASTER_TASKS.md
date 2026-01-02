@@ -32,10 +32,10 @@
 | 🔧 TODOs Code | **34** | 5 | 39 |
 | 📱 Device Testing | 0 | 40+ | 40+ |
 | 🌍 i18n | **19** | 0 | 19 |
-| ⚡ Performance | **2** | 4 | 6 |
+| ⚡ Performance | **4** | 2 | 6 |
 | 🎨 Design System | 15 | 0 | 15 |
 
-**Note :** i18n 100% complété (formatters.ts + 11 fichiers migrés). Performance: metro.config.js + lazy loading.
+**Note :** i18n 100% complété. Performance: metro.config.js + lazy loading + audit assets + assetOptimization.ts.
 
 ---
 
@@ -546,13 +546,22 @@
 
 # ⚡ PERFORMANCE OPTIMIZATION
 
-## Phase 1 - Quick Wins
+## Phase 1 - Quick Wins ✅ COMPLÉTÉE
 - [x] Créer `metro.config.js` avec optimisations ✅ FAIT - caching, terser, tree shaking
 - [x] Lazy load des écrans secondaires ✅ FAIT - 8 écrans avec lazyScreen()
 
-## Phase 2 - Assets
-- [ ] Audit des images (taille, format) 🟢
-- [ ] Compression des assets 🟢
+## Phase 2 - Assets ✅ COMPLÉTÉE (2 Jan 2026)
+- [x] Audit des images (taille, format) ✅ FAIT
+  - assets/images: vide (pas d'images statiques)
+  - Android: splash screens + launchers déjà en WebP (optimisé)
+  - Plus gros fichier: 65KB (splashscreen_logo.png xxxhdpi)
+- [x] Audit des fonts ✅ FAIT
+  - SpaceMono-Regular.ttf: non utilisé (fonts système préférées)
+  - fontFamily: 'System' + 'monospace' utilisés
+- [x] Compression des assets ✅ FAIT
+  - `expo-image` v3.0.11 avec cache natif (disk + memory)
+  - `imageCompression.ts` - compression runtime 50% quality
+  - `assetOptimization.ts` - utilitaires préchargement + cache
 
 ## Phase 3 - Monitoring
 - [ ] Intégrer analytics de performance 🟢
