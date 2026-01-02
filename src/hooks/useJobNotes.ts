@@ -159,7 +159,7 @@ export const useJobNotes = (jobId: string): UseJobNotesReturn => {
           title: noteData.title,
           content: noteData.content,
           note_type: noteData.note_type || 'general',
-          created_by: profile.id,
+          created_by: userId, // ✅ FIX: Utiliser userId au lieu de profile.id
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         };
