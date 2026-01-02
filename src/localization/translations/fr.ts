@@ -683,6 +683,7 @@ export const frTranslations: TranslationKeys = {
             security: 'Sécurité',
             appearance: 'Apparence',
             data: 'Données et stockage',
+            account: 'Compte',
         },
         items: {
             pushNotifications: 'Notifications push',
@@ -707,6 +708,8 @@ export const frTranslations: TranslationKeys = {
             shareLocationDescription: 'Permettre à l\'application d\'accéder et partager vos données de localisation',
             analytics: 'Analytiques',
             analyticsDescription: 'Partager les statistiques d\'utilisation pour améliorer l\'application',
+            logout: 'Déconnexion',
+            logoutDescription: 'Se déconnecter de votre compte',
         },
         alerts: {
             biometricEnabled: {
@@ -722,6 +725,13 @@ export const frTranslations: TranslationKeys = {
             resetSuccess: {
                 title: 'Paramètres réinitialisés',
                 message: 'Tous les paramètres ont été réinitialisés aux valeurs par défaut.',
+            },
+            logout: {
+                title: 'Déconnexion',
+                message: 'Êtes-vous sûr de vouloir vous déconnecter ?',
+                cancel: 'Annuler',
+                confirm: 'Se déconnecter',
+                error: 'Une erreur est survenue lors de la déconnexion. Veuillez réessayer.',
             },
         },
         actions: {

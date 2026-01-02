@@ -683,6 +683,7 @@ export const enTranslations: TranslationKeys = {
             security: 'Security',
             appearance: 'Appearance',
             data: 'Data & Storage',
+            account: 'Account',
         },
         items: {
             pushNotifications: 'Push Notifications',
@@ -707,6 +708,8 @@ export const enTranslations: TranslationKeys = {
             shareLocationDescription: 'Allow app to access and share your location data',
             analytics: 'Analytics',
             analyticsDescription: 'Share usage analytics to help improve the app',
+            logout: 'Logout',
+            logoutDescription: 'Sign out of your account',
         },
         alerts: {
             biometricEnabled: {
@@ -722,6 +725,13 @@ export const enTranslations: TranslationKeys = {
             resetSuccess: {
                 title: 'Settings Reset',
                 message: 'All settings have been reset to default values.',
+            },
+            logout: {
+                title: 'Logout',
+                message: 'Are you sure you want to log out?',
+                cancel: 'Cancel',
+                confirm: 'Logout',
+                error: 'An error occurred while logging out. Please try again.',
             },
         },
         actions: {

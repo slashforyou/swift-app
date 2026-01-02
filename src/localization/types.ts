@@ -723,6 +723,7 @@ export interface TranslationKeys {
             security: string;
             appearance: string;
             data: string;
+            account: string;
         };
         items: {
             pushNotifications: string;
@@ -747,6 +748,8 @@ export interface TranslationKeys {
             shareLocationDescription: string;
             analytics: string;
             analyticsDescription: string;
+            logout: string;
+            logoutDescription: string;
         };
         alerts: {
             biometricEnabled: {
@@ -762,6 +765,13 @@ export interface TranslationKeys {
             resetSuccess: {
                 title: string;
                 message: string;
+            };
+            logout: {
+                title: string;
+                message: string;
+                cancel: string;
+                confirm: string;
+                error: string;
             };
         };
         actions: {

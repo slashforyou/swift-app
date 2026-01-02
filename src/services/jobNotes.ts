@@ -89,13 +89,19 @@ export async function fetchJobNoteById(noteId: string): Promise<JobNoteAPI> {
 export async function addJobNote(jobId: string, noteData: CreateJobNoteRequest): Promise<JobNoteAPI> {
   const headers = await getAuthHeaders();
   
-  // Préparer le payload selon l'API
-  const payload = {
+  // ✅ FIX JOB-04: Préparer le payload - created_by est optionnel si le backend le déduit du token
+  const payload: Record<string, any> = {
     title: noteData.title,
     content: noteData.content,
     note_type: noteData.note_type || 'general',
-    created_by: noteData.created_by // Sera fourni par l'app
   };
+  
+  // Ajouter created_by seulement s'il est fourni et valide
+  if (noteData.created_by && noteData.created_by !== 'current-user') {
+    payload.created_by = noteData.created_by;
+  }
+  
+  console.log('📤 [jobNotes] Sending note to API:', { jobId, payload });
   
   const res = await fetch(`${API}v1/job/${jobId}/notes`, {
     method: 'POST',
@@ -108,10 +114,12 @@ export async function addJobNote(jobId: string, noteData: CreateJobNoteRequest):
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({ message: 'Failed to add job note' }));
+    console.error('❌ [jobNotes] API error:', res.status, error);
     throw new Error(error.message || `HTTP ${res.status}: Failed to add job note`);
   }
 
   const data = await res.json();
+  console.log('✅ [jobNotes] Note created:', data);
   return data.note || data;
 }
 

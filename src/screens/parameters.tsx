@@ -11,6 +11,7 @@ import { HStack, VStack } from '../components/primitives/Stack';
 import { DESIGN_TOKENS } from '../constants/Styles';
 import { useTheme } from '../context/ThemeProvider';
 import { useTranslation } from '../localization/useLocalization';
+import { clearSession } from '../utils/auth';
 import { useAuthCheck } from '../utils/checkAuth';
 
 // Types et interfaces
@@ -249,6 +250,36 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
         );
     };
 
+    const handleLogout = () => {
+        Alert.alert(
+            t('settings.alerts.logout.title'),
+            t('settings.alerts.logout.message'),
+            [
+                { text: t('settings.alerts.logout.cancel'), style: "cancel" },
+                { 
+                    text: t('settings.alerts.logout.confirm'), 
+                    style: "destructive", 
+                    onPress: async () => {
+                        try {
+                            await clearSession();
+                            // Navigate to login screen and reset navigation stack
+                            navigation?.reset({
+                                index: 0,
+                                routes: [{ name: 'Connection' }],
+                            });
+                        } catch (error) {
+                            console.error('[Logout] Error:', error);
+                            Alert.alert(
+                                t('common.error'),
+                                t('settings.alerts.logout.error')
+                            );
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
     return (
         <Screen>
             {/* Simple Back Button Header */}
@@ -407,6 +438,56 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
                             onToggle={(value) => updateSetting('privacy', 'biometricAuth', value)}
                             color={colors.success}
                         />
+                    </SettingSection>
+
+                    {/* Account Section with Logout */}
+                    <SettingSection colors={colors} title={t('settings.sections.account')} icon="person-outline">
+                        <Pressable
+                            onPress={handleLogout}
+                            style={({ pressed }) => ({
+                                backgroundColor: pressed ? colors.errorLight : 'transparent',
+                                borderRadius: DESIGN_TOKENS.radius.md,
+                                paddingVertical: DESIGN_TOKENS.spacing.md,
+                                paddingHorizontal: DESIGN_TOKENS.spacing.sm,
+                            })}
+                        >
+                            <HStack gap={DESIGN_TOKENS.spacing.md} align="center">
+                                <View style={{
+                                    width: 40,
+                                    height: 40,
+                                    borderRadius: 20,
+                                    backgroundColor: `${colors.error}15`,
+                                    justifyContent: 'center',
+                                    alignItems: 'center'
+                                }}>
+                                    <Ionicons 
+                                        name="log-out-outline" 
+                                        size={22} 
+                                        color={colors.error} 
+                                    />
+                                </View>
+                                <VStack gap={2} style={{ flex: 1 }}>
+                                    <Text style={{
+                                        fontSize: DESIGN_TOKENS.typography.body.fontSize,
+                                        fontWeight: '600',
+                                        color: colors.error
+                                    }}>
+                                        {t('settings.items.logout')}
+                                    </Text>
+                                    <Text style={{
+                                        fontSize: DESIGN_TOKENS.typography.caption.fontSize,
+                                        color: colors.textSecondary
+                                    }}>
+                                        {t('settings.items.logoutDescription')}
+                                    </Text>
+                                </VStack>
+                                <Ionicons 
+                                    name="chevron-forward" 
+                                    size={20} 
+                                    color={colors.textSecondary} 
+                                />
+                            </HStack>
+                        </Pressable>
                     </SettingSection>
                 </VStack>
             </ScrollView>

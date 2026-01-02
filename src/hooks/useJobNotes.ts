@@ -106,18 +106,23 @@ export const useJobNotes = (jobId: string): UseJobNotesReturn => {
   }, [fetchNotes]);
 
   const addNote = useCallback(async (noteData: CreateJobNoteRequest): Promise<JobNoteAPI | null> => {
-    if (!jobId || !profile || !profile.id) {
-      console.error('❌ [useJobNotes] Missing required data:', { 
-        jobId: !!jobId, 
-        profile: !!profile, 
-        profileId: profile?.id 
-      });
-      return null;
+    // ✅ FIX JOB-04: Meilleure validation et messages d'erreur
+    if (!jobId) {
+      console.error('❌ [useJobNotes] Cannot add note: jobId is missing');
+      throw new Error('ID du job manquant. Impossible d\'ajouter la note.');
+    }
+
+    // ✅ FIX: Si le profile n'est pas chargé, utiliser un ID par défaut ou attendre
+    let userId = profile?.id;
+    if (!userId) {
+      console.warn('⚠️ [useJobNotes] Profile not loaded, using default user ID');
+      // Essayer de récupérer l'ID depuis AsyncStorage ou utiliser un placeholder
+      userId = 'current-user'; // Le backend peut résoudre cela avec le token
     }
 
     console.log('📝 [useJobNotes] Adding note:', {
       jobId,
-      userId: profile.id,
+      userId,
       noteType: noteData.note_type,
       hasContent: !!noteData.content,
       hasTitle: !!noteData.title
@@ -127,7 +132,7 @@ export const useJobNotes = (jobId: string): UseJobNotesReturn => {
       // Préparer les données avec l'utilisateur actuel
       const noteWithUser: CreateJobNoteRequest = {
         ...noteData,
-        created_by: profile.id
+        created_by: userId
       };
 
       // Essayer d'abord l'API
