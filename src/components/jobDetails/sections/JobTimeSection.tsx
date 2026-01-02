@@ -7,8 +7,8 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { DESIGN_TOKENS } from '../../../constants/Styles';
+import { useJobTimerContext } from '../../../context/JobTimerProvider';
 import { useCommonThemedStyles } from '../../../hooks/useCommonStyles';
-import { useJobTimer } from '../../../hooks/useJobTimer';
 import { useLocalization } from '../../../localization/useLocalization';
 
 interface JobTimeSectionProps {
@@ -18,9 +18,8 @@ interface JobTimeSectionProps {
 const JobTimeSection: React.FC<JobTimeSectionProps> = ({ job }) => {
     const { colors } = useCommonThemedStyles();
     const { t } = useLocalization();
-    const jobId = job?.job?.code || job?.code || 'unknown';
-    const currentStep = job?.job?.current_step || job?.current_step || 0;
     
+    // ✅ FIX BOUCLE INFINIE: Utiliser le context au lieu de créer une nouvelle instance
     const {
         timerData,
         totalElapsed,
@@ -28,14 +27,12 @@ const JobTimeSection: React.FC<JobTimeSectionProps> = ({ job }) => {
         formatTime, 
         isRunning,
         isOnBreak,
+        currentStep,
         togglePause,
-        startTimerWithJobData
-    } = useJobTimer(jobId, currentStep);    // Auto-démarrer si le job a déjà commencé
-    React.useEffect(() => {
-        if (currentStep >= 1 && !isRunning) {
-            startTimerWithJobData(job);
-        }
-    }, [currentStep, isRunning, job, startTimerWithJobData]);
+    } = useJobTimerContext();
+
+    // ✅ SUPPRIMÉ: L'auto-démarrage qui causait la boucle infinie
+    // Le démarrage est maintenant géré par l'utilisateur via JobTimerDisplay
 
     // Ne pas afficher si le job n'a pas commencé
     if (currentStep === 0 || !timerData) {

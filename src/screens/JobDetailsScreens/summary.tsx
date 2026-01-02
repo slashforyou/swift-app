@@ -191,20 +191,29 @@ const JobSummary = ({ job, setJob, onOpenPaymentPanel } : { job: any, setJob: Re
         }
     };
 
-    // ✅ Fonction simple pour avancer à l'étape suivante - délègue au timer context
+    // ✅ FIX BOUCLE INFINIE: Fonction simple pour avancer à l'étape suivante
+    // Ne plus appeler handleAdvanceStep car nextStep() fait déjà tout:
+    // 1. Met à jour le timer local
+    // 2. Appelle syncStepToBackend (API)
+    // 3. Appelle onStepChange (met à jour job local via jobDetails)
     const handleNextStep = async () => {
         if (currentStep < totalSteps) {
-            const targetStep = currentStep + 1;
-            
             try {
-                // Avancer dans le timer context
+                // ✅ nextStep() fait TOUT - pas besoin d'appeler handleAdvanceStep
                 nextStep();
                 
-                // Synchroniser avec l'API
-                await handleAdvanceStep(targetStep);
+                // Afficher le message de succès
+                const targetStep = currentStep + 1;
+                showSuccess(
+                    t('jobDetails.messages.nextStep'), 
+                    `${t('jobDetails.messages.advancedToStep')} ${targetStep}`
+                );
             } catch (error) {
-
                 console.error('Failed to advance step:', error);
+                showError(
+                    t('jobDetails.messages.stepUpdateError'),
+                    t('jobDetails.messages.stepUpdateErrorMessage')
+                );
             }
         }
     };

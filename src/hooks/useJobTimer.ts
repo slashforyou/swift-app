@@ -4,7 +4,7 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     completeJob,
     getTimerFromBackend,
@@ -72,6 +72,12 @@ export const useJobTimer = (
     const stepNames = useMemo(() => options?.stepNames || [], [options?.stepNames]); // ✅ Mémorisé
     const onJobCompleted = options?.onJobCompleted; // ✅ Callback
 
+    // ✅ FIX BOUCLE INFINIE: Ref pour currentStep (évite les re-renders)
+    const currentStepRef = useRef(currentStep);
+    useEffect(() => {
+        currentStepRef.current = currentStep;
+    }, [currentStep]);
+
     // ✅ Helper pour obtenir le nom d'un step (dynamique ou fallback)
     const getStepName = useCallback((step: number): string => {
         // Priorité 1: Utiliser stepNames dynamique si fourni
@@ -92,8 +98,28 @@ export const useJobTimer = (
         return () => clearInterval(interval);
     }, []);
 
+    // ✅ Ref pour éviter les chargements multiples
+    const isLoadingRef = useRef(false);
+    const hasLoadedRef = useRef(false);
+    const lastJobIdRef = useRef<string | null>(null);
+
     // Charger les données du timer depuis le storage
     const loadTimerData = useCallback(async () => {
+        // ✅ FIX BOUCLE INFINIE: Éviter les chargements multiples
+        if (isLoadingRef.current) {
+            console.log('⏳ [useJobTimer] Already loading, skipping...');
+            return;
+        }
+        
+        // ✅ FIX: Si déjà chargé pour ce job, ne pas recharger
+        if (hasLoadedRef.current && lastJobIdRef.current === jobId) {
+            console.log('✅ [useJobTimer] Already loaded for this job, skipping...');
+            return;
+        }
+        
+        isLoadingRef.current = true;
+        lastJobIdRef.current = jobId;
+        
         try {
             // ✅ NOUVEAU: D'abord essayer de récupérer l'état depuis le backend
             // GET /job/:id/timer - Confirmé par backend 2 Jan 2026
@@ -109,10 +135,13 @@ export const useJobTimer = (
                 const totalBreakTimeMs = backendTimer.breakHours * 60 * 60 * 1000;
                 const estimatedStartTime = backendTimer.isRunning ? now - totalElapsedMs : 0;
                 
+                // ✅ FIX: Utiliser la ref pour éviter les dépendances
+                const stepValue = currentStepRef.current;
+                
                 const restoredTimer: JobTimerData = {
                     jobId,
                     startTime: estimatedStartTime,
-                    currentStep: currentStep,
+                    currentStep: stepValue,
                     stepTimes: [], // Ne peut pas être restauré depuis le backend
                     breakTimes: [],
                     isRunning: backendTimer.isRunning,
@@ -122,20 +151,26 @@ export const useJobTimer = (
                 };
                 
                 setTimerData(restoredTimer);
+                hasLoadedRef.current = true;
+                isLoadingRef.current = false;
                 return; // Succès, pas besoin de fallback
             }
             
             // Fallback: Charger depuis AsyncStorage si backend échoue
             console.log('📱 [useJobTimer] Falling back to local storage');
             const storedData = await AsyncStorage.getItem(TIMER_STORAGE_KEY);
+            
+            // ✅ FIX: Utiliser la ref pour éviter les dépendances
+            const stepValue = currentStepRef.current;
+            
             if (storedData) {
                 const timers: Record<string, JobTimerData> = JSON.parse(storedData);
                 const jobTimer = timers[jobId];
                 
                 if (jobTimer) {
                     // ✅ VALIDATION: Détecter incohérence step > 1 mais timer jamais démarré
-                    if (currentStep > 1 && (!jobTimer.startTime || jobTimer.startTime === 0)) {
-                        console.warn(`⚠️ [useJobTimer] INCOHÉRENCE DÉTECTÉE: Job à l'étape ${currentStep}/5 mais timer jamais démarré (startTime = ${jobTimer.startTime})`);
+                    if (stepValue > 1 && (!jobTimer.startTime || jobTimer.startTime === 0)) {
+                        console.warn(`⚠️ [useJobTimer] INCOHÉRENCE DÉTECTÉE: Job à l'étape ${stepValue}/5 mais timer jamais démarré (startTime = ${jobTimer.startTime})`);
                         console.warn('⚠️ [useJobTimer] Auto-correction: Démarrage automatique du timer pour synchroniser les données');
                         
                         // Auto-start timer avec timestamp rétroactif (estimé)
@@ -146,13 +181,13 @@ export const useJobTimer = (
                             ...jobTimer,
                             startTime: estimatedStartTime,
                             isRunning: true,
-                            currentStep: currentStep,
-                            stepTimes: Array.from({ length: currentStep }, (_, i) => ({
+                            currentStep: stepValue,
+                            stepTimes: Array.from({ length: stepValue }, (_, i) => ({
                                 step: i + 1,
                                 stepName: getStepName(i + 1),
                                 startTime: estimatedStartTime + (i * 60 * 60 * 1000), // 1h par step
-                                endTime: i < currentStep - 1 ? estimatedStartTime + ((i + 1) * 60 * 60 * 1000) : undefined,
-                                duration: i < currentStep - 1 ? 60 * 60 * 1000 : undefined
+                                endTime: i < stepValue - 1 ? estimatedStartTime + ((i + 1) * 60 * 60 * 1000) : undefined,
+                                duration: i < stepValue - 1 ? 60 * 60 * 1000 : undefined
                             })),
                             totalElapsed: now - estimatedStartTime
                         };
@@ -173,7 +208,7 @@ export const useJobTimer = (
                     const newTimer: JobTimerData = {
                         jobId,
                         startTime: 0,
-                        currentStep: currentStep,
+                        currentStep: stepValue,
                         stepTimes: [],
                         breakTimes: [],
                         isRunning: false,
@@ -188,7 +223,7 @@ export const useJobTimer = (
                 const newTimer: JobTimerData = {
                     jobId,
                     startTime: 0,
-                    currentStep: currentStep,
+                    currentStep: stepValue,
                     stepTimes: [],
                     breakTimes: [],
                     isRunning: false,
@@ -198,11 +233,15 @@ export const useJobTimer = (
                 };
                 setTimerData(newTimer);
             }
+            
+            hasLoadedRef.current = true;
         } catch (error) {
-
+            isLoadingRef.current = false;
             console.error('Error loading timer data:', error);
+        } finally {
+            isLoadingRef.current = false;
         }
-    }, [jobId, currentStep, getStepName]);
+    }, [jobId, getStepName]); // ✅ FIX: currentStep retiré - on utilise currentStepRef
 
     // Sauvegarder les données du timer
     const saveTimerData = useCallback(async (data: JobTimerData) => {

@@ -169,15 +169,30 @@ export const JobTimerProvider: React.FC<JobTimerProviderProps> = ({
             return;
         }
         
-        // ✅ FIX BOUCLE INFINIE: Ne sync que si le step a VRAIMENT changé depuis la dernière sync
-        if (currentStep !== lastSyncedStepRef.current && currentStep > 0 && timer.timerData) {
-            // TEMP_DISABLED: console.log(`� [JobTimerProvider] SYNCING step from ${timer.currentStep} to ${currentStep}`);
+        // ✅ FIX BOUCLE INFINIE #1: Ne pas sync si le timer n'est pas initialisé
+        if (!timer.timerData) {
+            return;
+        }
+        
+        // ✅ FIX BOUCLE INFINIE #2: Ne pas sync si le step est déjà le même dans le timer
+        if (timer.currentStep === currentStep) {
+            lastSyncedStepRef.current = currentStep;
+            return;
+        }
+        
+        // ✅ FIX BOUCLE INFINIE #3: Ne sync que si le step a VRAIMENT changé depuis la dernière sync
+        // ET que le nouveau step est SUPÉRIEUR (on ne recule pas)
+        if (currentStep !== lastSyncedStepRef.current && 
+            currentStep > 0 && 
+            currentStep > timer.currentStep &&
+            timer.isRunning) {
+            console.log(`🔄 [JobTimerProvider] SYNCING step from ${timer.currentStep} to ${currentStep}`);
             timerLogger.sync('toContext', currentStep);
             timer.advanceStep(currentStep);
-            lastSyncedStepRef.current = currentStep; // ✅ Sauvegarder le step synchronisé
-            // TEMP_DISABLED: console.log(`✅ [JobTimerProvider] Sync completed`);
+            lastSyncedStepRef.current = currentStep;
         }
-    }, [currentStep]); // ✅ Dépendance UNIQUEMENT sur currentStep (pas timer.currentStep)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentStep, timer.timerData, timer.currentStep, timer.isRunning]); // timer.advanceStep stable
 
     // ✅ Auto-sync timer to API every 30 seconds when running
     // Utilise syncTimerToBackend (POST /job/:id/sync-timer) - Confirmé par backend 2 Jan 2026
