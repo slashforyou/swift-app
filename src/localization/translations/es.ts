@@ -550,6 +550,10 @@ export const esTranslations = {
                 loadError: 'Error de carga',
                 loading: 'Cargando...',
                 loadingPhotos: 'Cargando fotos...',
+                takePhotoError: 'No se pudo tomar la foto.',
+                selectPhotoError: 'No se pudo seleccionar la foto.',
+                permissionRequired: 'Permiso requerido',
+                permissionRequiredMessage: 'El acceso a la galería es necesario para seleccionar fotos.',
                 stages: {
                     pickup: '📍 Recogida',
                     delivery: '🚚 Entrega',
@@ -920,6 +924,23 @@ export const esTranslations = {
             editConfirm: {
                 message: 'Editando {{vehicleName}}',
             },
+        },
+        validation: {
+            error: 'Error',
+            selectMake: 'Por favor seleccione una marca',
+            enterModel: 'Por favor ingrese el modelo',
+            yearRange: 'El año debe estar entre 1990 y {{maxYear}}',
+            enterRegistration: 'Por favor ingrese la matrícula',
+            invalidRegistration: 'Formato de matrícula inválido (ej: ABC-123 o AB-12-CD)',
+            selectLocation: 'Por favor seleccione una ubicación',
+            enterNextService: 'Por favor ingrese la fecha del próximo servicio',
+            serviceDatePast: 'La fecha de servicio no puede ser pasada',
+        },
+        addModal: {
+            vehicleType: 'Tipo de vehículo',
+            selectTypeSubtitle: 'Seleccione el tipo de vehículo a añadir',
+            vehicleAdded: 'Vehículo añadido',
+            vehicleAddedMessage: '{{make}} {{model}} se ha añadido exitosamente',
         },
         errors: {
             loadingTitle: 'Error al cargar vehículos',

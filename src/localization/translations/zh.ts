@@ -553,6 +553,10 @@ export const zhTranslations = {
                 loadError: '加载错误',
                 loading: '加载中...',
                 loadingPhotos: '正在加载照片...',
+                takePhotoError: '无法拍摄照片。',
+                selectPhotoError: '无法选择照片。',
+                permissionRequired: '需要权限',
+                permissionRequiredMessage: '需要访问相册才能选择照片。',
                 stages: {
                     pickup: '📍 取件',
                     delivery: '🚚 配送',
@@ -1164,6 +1168,23 @@ export const zhTranslations = {
             editConfirm: {
                 message: '编辑{{vehicleName}}',
             },
+        },
+        validation: {
+            error: '错误',
+            selectMake: '请选择品牌',
+            enterModel: '请输入型号',
+            yearRange: '年份必须在1990到{{maxYear}}之间',
+            enterRegistration: '请输入车牌号',
+            invalidRegistration: '车牌格式无效（例如：ABC-123或AB-12-CD）',
+            selectLocation: '请选择位置',
+            enterNextService: '请输入下次保养日期',
+            serviceDatePast: '保养日期不能是过去的日期',
+        },
+        addModal: {
+            vehicleType: '车辆类型',
+            selectTypeSubtitle: '选择要添加的车辆类型',
+            vehicleAdded: '车辆已添加',
+            vehicleAddedMessage: '{{make}} {{model}}已成功添加',
         },
         errors: {
             loadingTitle: '加载车辆时出错',

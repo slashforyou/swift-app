@@ -561,6 +561,10 @@ export const enTranslations: TranslationKeys = {
                 loadError: 'Load error',
                 loading: 'Loading...',
                 loadingPhotos: 'Loading photos...',
+                takePhotoError: 'Unable to take photo.',
+                selectPhotoError: 'Unable to select photo.',
+                permissionRequired: 'Permission required',
+                permissionRequiredMessage: 'Gallery access is required to select photos.',
                 stages: {
                     pickup: '📍 Pickup',
                     delivery: '🚚 Delivery',
@@ -920,6 +924,23 @@ export const enTranslations: TranslationKeys = {
             editConfirm: {
                 message: 'Editing {{vehicleName}}',
             },
+        },
+        validation: {
+            error: 'Error',
+            selectMake: 'Please select a make',
+            enterModel: 'Please enter the model',
+            yearRange: 'Year must be between 1990 and {{maxYear}}',
+            enterRegistration: 'Please enter the registration',
+            invalidRegistration: 'Invalid registration format (e.g., ABC-123 or AB-12-CD)',
+            selectLocation: 'Please select a location',
+            enterNextService: 'Please enter the next service date',
+            serviceDatePast: 'Service date cannot be in the past',
+        },
+        addModal: {
+            vehicleType: 'Vehicle Type',
+            selectTypeSubtitle: 'Select the type of vehicle to add',
+            vehicleAdded: 'Vehicle Added',
+            vehicleAddedMessage: '{{make}} {{model}} has been added successfully',
         },
         errors: {
             loadingTitle: 'Error loading vehicles',

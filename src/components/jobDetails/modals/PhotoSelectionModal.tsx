@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { DESIGN_TOKENS } from '../../../constants/Styles';
 import { useTheme } from '../../../context/ThemeProvider';
+import { useLocalization } from '../../../localization/useLocalization';
 
 interface PhotoSelectionModalProps {
     isVisible: boolean;
@@ -29,6 +30,7 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
     jobId
 }) => {
     const { colors } = useTheme();
+    const { t } = useLocalization();
 
     // Vérifier et demander les permissions
     const requestPermissions = async () => {
@@ -89,7 +91,7 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
 
             console.error('❌ [DEBUG] ERREUR dans handleTakePhoto:', error);
             console.error('❌ [DEBUG] Stack trace:', error instanceof Error ? error.stack : 'N/A');
-            Alert.alert('Erreur', 'Impossible de prendre la photo.');
+            Alert.alert(t('jobDetails.components.photos.error'), t('jobDetails.components.photos.takePhotoError'));
         }
     };
 
@@ -104,9 +106,9 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
             
             if (!permissions.mediaLibrary) {
                 Alert.alert(
-                    'Permission requise',
-                    'L\'accès à la galerie est nécessaire pour sélectionner des photos.',
-                    [{ text: 'OK' }]
+                    t('jobDetails.components.photos.permissionRequired'),
+                    t('jobDetails.components.photos.permissionRequiredMessage'),
+                    [{ text: t('common.ok') }]
                 );
                 return;
             }
@@ -136,7 +138,7 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
 
             console.error('❌ [DEBUG] ERREUR dans handleSelectFromGallery:', error);
             console.error('❌ [DEBUG] Stack trace:', error instanceof Error ? error.stack : 'N/A');
-            Alert.alert('Erreur', 'Impossible de sélectionner la photo.');
+            Alert.alert(t('jobDetails.components.photos.error'), t('jobDetails.components.photos.selectPhotoError'));
         }
     };
 

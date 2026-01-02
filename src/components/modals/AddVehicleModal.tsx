@@ -19,6 +19,7 @@ import {
 } from 'react-native'
 import { DESIGN_TOKENS } from '../../constants/Styles'
 import { useTheme } from '../../context/ThemeProvider'
+import { useLocalization } from '../../localization/useLocalization'
 
 export interface VehicleCreateData {
   type: 'moving-truck' | 'van' | 'trailer' | 'ute' | 'dolly' | 'tools'
@@ -94,6 +95,7 @@ export default function AddVehicleModal({
   onAddVehicle,
 }: AddVehicleModalProps) {
   const { colors } = useTheme()
+  const { t } = useLocalization()
   const [step, setStep] = useState<Step>('type')
   const [isLoading, setIsLoading] = useState(false)
 
@@ -148,32 +150,32 @@ export default function AddVehicleModal({
 
   const validateForm = (): boolean => {
     if (!vehicleData.make.trim()) {
-      Alert.alert('Erreur', 'Veuillez sélectionner une marque')
+      Alert.alert(t('vehicles.validation.error'), t('vehicles.validation.selectMake'))
       return false
     }
     if (!vehicleData.model.trim()) {
-      Alert.alert('Erreur', 'Veuillez renseigner le modèle')
+      Alert.alert(t('vehicles.validation.error'), t('vehicles.validation.enterModel'))
       return false
     }
     if (vehicleData.year < 1990 || vehicleData.year > new Date().getFullYear()) {
-      Alert.alert('Erreur', `L'année doit être entre 1990 et ${new Date().getFullYear()}`)
+      Alert.alert(t('vehicles.validation.error'), t('vehicles.validation.yearRange', { maxYear: new Date().getFullYear() }))
       return false
     }
     if (!vehicleData.registration.trim()) {
-      Alert.alert('Erreur', 'Veuillez renseigner l\'immatriculation')
+      Alert.alert(t('vehicles.validation.error'), t('vehicles.validation.enterRegistration'))
       return false
     }
     if (!validateRegistration(vehicleData.registration.toUpperCase())) {
-      Alert.alert('Erreur', 'Format d\'immatriculation invalide (ex: ABC-123 ou AB-12-CD)')
+      Alert.alert(t('vehicles.validation.error'), t('vehicles.validation.invalidRegistration'))
       return false
     }
     // Capacity est optionnel, donc pas de validation
     if (!vehicleData.location.trim()) {
-      Alert.alert('Erreur', 'Veuillez sélectionner un emplacement')
+      Alert.alert(t('vehicles.validation.error'), t('vehicles.validation.selectLocation'))
       return false
     }
     if (!vehicleData.nextService.trim()) {
-      Alert.alert('Erreur', 'Veuillez renseigner la date du prochain service')
+      Alert.alert(t('vehicles.validation.error'), t('vehicles.validation.enterNextService'))
       return false
     }
     // Valider que la date de service est dans le futur
@@ -181,7 +183,7 @@ export default function AddVehicleModal({
     const today = new Date()
     today.setHours(0, 0, 0, 0) // Ignorer l'heure pour comparer seulement les dates
     if (serviceDate < today) {
-      Alert.alert('Erreur', 'La date de service ne peut pas être passée')
+      Alert.alert(t('vehicles.validation.error'), t('vehicles.validation.serviceDatePast'))
       return false
     }
     return true
@@ -194,13 +196,13 @@ export default function AddVehicleModal({
     try {
       await onAddVehicle(vehicleData)
       Alert.alert(
-        'Véhicule ajouté',
-        `${vehicleData.make} ${vehicleData.model} a été ajouté avec succès`
+        t('vehicles.addModal.vehicleAdded'),
+        t('vehicles.addModal.vehicleAddedMessage', { make: vehicleData.make, model: vehicleData.model })
       )
       handleClose()
     } catch (error) {
 
-      Alert.alert('Erreur', 'Impossible d\'ajouter le véhicule')
+      Alert.alert(t('vehicles.validation.error'), t('vehicles.alerts.addError.message'))
     } finally {
       setIsLoading(false)
     }
@@ -209,10 +211,10 @@ export default function AddVehicleModal({
   const renderStepType = () => (
     <View style={styles.stepContainer}>
       <Text style={[styles.stepTitle, { color: colors.text }]}>
-        Type de véhicule
+        {t('vehicles.addModal.vehicleType')}
       </Text>
       <Text style={[styles.stepSubtitle, { color: colors.textSecondary }]}>
-        Sélectionnez le type de véhicule à ajouter
+        {t('vehicles.addModal.selectTypeSubtitle')}
       </Text>
 
       <ScrollView 

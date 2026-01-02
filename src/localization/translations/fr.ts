@@ -561,6 +561,10 @@ export const frTranslations: TranslationKeys = {
                 loadError: 'Erreur chargement',
                 loading: 'Chargement...',
                 loadingPhotos: 'Chargement des photos...',
+                takePhotoError: 'Impossible de prendre la photo.',
+                selectPhotoError: 'Impossible de sélectionner la photo.',
+                permissionRequired: 'Permission requise',
+                permissionRequiredMessage: 'L\'accès à la galerie est nécessaire pour sélectionner des photos.',
                 stages: {
                     pickup: '📍 Ramassage',
                     delivery: '🚚 Livraison',
@@ -920,6 +924,23 @@ export const frTranslations: TranslationKeys = {
             editConfirm: {
                 message: 'Modification de {{vehicleName}}',
             },
+        },
+        validation: {
+            error: 'Erreur',
+            selectMake: 'Veuillez sélectionner une marque',
+            enterModel: 'Veuillez renseigner le modèle',
+            yearRange: 'L\'année doit être entre 1990 et {{maxYear}}',
+            enterRegistration: 'Veuillez renseigner l\'immatriculation',
+            invalidRegistration: 'Format d\'immatriculation invalide (ex: ABC-123 ou AB-12-CD)',
+            selectLocation: 'Veuillez sélectionner un emplacement',
+            enterNextService: 'Veuillez renseigner la date du prochain service',
+            serviceDatePast: 'La date de service ne peut pas être passée',
+        },
+        addModal: {
+            vehicleType: 'Type de véhicule',
+            selectTypeSubtitle: 'Sélectionnez le type de véhicule à ajouter',
+            vehicleAdded: 'Véhicule ajouté',
+            vehicleAddedMessage: '{{make}} {{model}} a été ajouté avec succès',
         },
         errors: {
             loadingTitle: 'Erreur lors du chargement des véhicules',

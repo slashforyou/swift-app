@@ -600,6 +600,10 @@ export interface TranslationKeys {
                 loadError: string;
                 loading: string;
                 loadingPhotos: string;
+                takePhotoError: string;
+                selectPhotoError: string;
+                permissionRequired: string;
+                permissionRequiredMessage: string;
                 stages: {
                     pickup: string;
                     delivery: string;
@@ -963,6 +967,23 @@ export interface TranslationKeys {
             editConfirm: {
                 message: string;
             };
+        };
+        validation: {
+            error: string;
+            selectMake: string;
+            enterModel: string;
+            yearRange: string;
+            enterRegistration: string;
+            invalidRegistration: string;
+            selectLocation: string;
+            enterNextService: string;
+            serviceDatePast: string;
+        };
+        addModal: {
+            vehicleType: string;
+            selectTypeSubtitle: string;
+            vehicleAdded: string;
+            vehicleAddedMessage: string;
         };
         errors: {
             loadingTitle: string;
