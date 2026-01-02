@@ -272,11 +272,11 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
                                         console.log('ℹ️ [JobDetails] Server analyzed but no corrections needed');
                                     } else {
                                         console.warn('⚠️ [JobDetails] Server correction failed:', result.error);
-                                        showToast('⚠️ Correction automatique échouée', 'error');
+                                        showToast(`⚠️ ${t('jobDetails.components.stepValidation.autoCorrectionFailed')}`, 'error');
                                     }
                                 } catch (error: any) {
                                     console.error('❌ [JobDetails] Error requesting server correction:', error);
-                                    showToast('❌ Erreur lors de la correction', 'error');
+                                    showToast(`❌ ${t('jobDetails.components.stepValidation.correctionError')}`, 'error');
                                 }
                             }
                         }

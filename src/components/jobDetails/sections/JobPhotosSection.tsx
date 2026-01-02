@@ -387,7 +387,7 @@ const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
                     }}
                   >
                     <Text style={{ color: 'white', fontWeight: '600' }}>
-                      Annuler
+                      {t('jobDetails.components.photos.cancel')}
                     </Text>
                   </Pressable>
                   <Pressable
@@ -400,7 +400,7 @@ const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
                     }}
                   >
                     <Text style={{ color: 'white', fontWeight: '600' }}>
-                      Sauvegarder
+                      {t('jobDetails.components.photos.save')}
                     </Text>
                   </Pressable>
                 </HStack>
@@ -713,7 +713,7 @@ const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete 
                 }}
               >
                 <Text style={{ color: colors.text, fontSize: 14, fontWeight: '500' }}>
-                  Annuler
+                  {t('jobDetails.components.photos.cancel')}
                 </Text>
               </Pressable>
               
@@ -728,7 +728,7 @@ const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete 
                 }}
               >
                 <Text style={{ color: 'white', fontSize: 14, fontWeight: '600' }}>
-                  Sauvegarder
+                  {t('jobDetails.components.photos.save')}
                 </Text>
               </Pressable>
             </View>
@@ -866,7 +866,7 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId }) => 
       <View style={{ padding: DESIGN_TOKENS.spacing.md, alignItems: 'center' }}>
         <ActivityIndicator size="small" color={colors.primary} />
         <Text style={{ marginTop: 8, color: colors.textSecondary, fontSize: 12 }}>
-          Chargement...
+          {t('jobDetails.components.photos.loading')}
         </Text>
       </View>
     );
@@ -907,7 +907,7 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId }) => 
                   color: colors.textSecondary,
                   fontSize: 14
                 }}>
-                  Chargement des photos...
+                  {t('jobDetails.components.photos.loadingPhotos')}
                 </Text>
               </View>
             ) : Array.isArray(photos) && photos.length > 0 ? (

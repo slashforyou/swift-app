@@ -504,6 +504,7 @@ export interface TranslationKeys {
                 suggestion: string;
                 stepCorrected: string;
                 correctionError: string;
+                autoCorrectionFailed: string;
                 autoCorrect: string;
             };
             truckDetails: {
@@ -589,6 +590,7 @@ export interface TranslationKeys {
                 deleteTitle: string;
                 cancel: string;
                 delete: string;
+                save: string;
                 added: string;
                 addedSuccess: string;
                 descriptionUpdated: string;
@@ -606,6 +608,15 @@ export interface TranslationKeys {
                 selectPhotoError: string;
                 permissionRequired: string;
                 permissionRequiredMessage: string;
+                cameraPermissionMessage: string;
+                selectionModal: {
+                    title: string;
+                    subtitle: string;
+                    takePhoto: string;
+                    takePhotoDescription: string;
+                    selectFromGallery: string;
+                    selectFromGalleryDescription: string;
+                };
                 stages: {
                     pickup: string;
                     delivery: string;

@@ -464,7 +464,8 @@ export const frTranslations: TranslationKeys = {
                 inconsistencyDetected: 'Incohérence détectée',
                 suggestion: 'Suggestion: Passer au step {{expectedStep}}/{{totalSteps}}',
                 stepCorrected: 'Step corrigé: {{currentStep}} → {{newStep}}',
-                correctionError: 'Erreur lors de la correction du step',
+                correctionError: 'Erreur lors de la correction',
+                autoCorrectionFailed: 'Correction automatique échouée',
                 autoCorrect: '🔧 Corriger automatiquement',
             },
             truckDetails: {
@@ -550,6 +551,7 @@ export const frTranslations: TranslationKeys = {
                 deleteTitle: 'Supprimer la photo',
                 cancel: 'Annuler',
                 delete: 'Supprimer',
+                save: 'Sauvegarder',
                 added: 'Succès',
                 addedSuccess: 'Photo ajoutée avec succès !',
                 descriptionUpdated: 'Description mise à jour !',
@@ -567,6 +569,15 @@ export const frTranslations: TranslationKeys = {
                 selectPhotoError: 'Impossible de sélectionner la photo.',
                 permissionRequired: 'Permission requise',
                 permissionRequiredMessage: 'L\'accès à la galerie est nécessaire pour sélectionner des photos.',
+                cameraPermissionMessage: 'L\'accès à la caméra est nécessaire pour prendre des photos.',
+                selectionModal: {
+                    title: 'Ajouter une Photo',
+                    subtitle: 'Choisissez comment ajouter une photo à ce job',
+                    takePhoto: 'Prendre une photo',
+                    takePhotoDescription: 'Utiliser l\'appareil photo pour capturer une nouvelle image',
+                    selectFromGallery: 'Choisir dans la galerie',
+                    selectFromGalleryDescription: 'Sélectionner une image existante de votre galerie',
+                },
                 stages: {
                     pickup: '📍 Ramassage',
                     delivery: '🚚 Livraison',

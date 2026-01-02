@@ -456,7 +456,8 @@ export const zhTranslations = {
                 inconsistencyDetected: '检测到不一致',
                 suggestion: '建议：转到步骤 {{expectedStep}}/{{totalSteps}}',
                 stepCorrected: '步骤已更正：{{currentStep}} → {{newStep}}',
-                correctionError: '更正步骤时出错',
+                correctionError: '更正时出错',
+                autoCorrectionFailed: '自动更正失败',
                 autoCorrect: '🔧 自动更正',
             },
             truckDetails: {
@@ -542,6 +543,7 @@ export const zhTranslations = {
                 deleteTitle: '删除照片',
                 cancel: '取消',
                 delete: '删除',
+                save: '保存',
                 added: '成功',
                 addedSuccess: '照片添加成功！',
                 descriptionUpdated: '描述已更新！',
@@ -559,6 +561,15 @@ export const zhTranslations = {
                 selectPhotoError: '无法选择照片。',
                 permissionRequired: '需要权限',
                 permissionRequiredMessage: '需要访问相册才能选择照片。',
+                cameraPermissionMessage: '需要访问相机才能拍摄照片。',
+                selectionModal: {
+                    title: '添加照片',
+                    subtitle: '选择如何为此工作添加照片',
+                    takePhoto: '拍摄照片',
+                    takePhotoDescription: '使用相机拍摄新图片',
+                    selectFromGallery: '从相册选择',
+                    selectFromGalleryDescription: '从相册中选择现有图片',
+                },
                 stages: {
                     pickup: '📍 取件',
                     delivery: '🚚 配送',

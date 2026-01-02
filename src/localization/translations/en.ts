@@ -464,7 +464,8 @@ export const enTranslations: TranslationKeys = {
                 inconsistencyDetected: 'Inconsistency detected',
                 suggestion: 'Suggestion: Go to step {expectedStep}/{totalSteps}',
                 stepCorrected: 'Step corrected: {currentStep} → {newStep}',
-                correctionError: 'Error correcting step',
+                correctionError: 'Error during correction',
+                autoCorrectionFailed: 'Auto-correction failed',
                 autoCorrect: '🔧 Auto-correct',
             },
             truckDetails: {
@@ -550,6 +551,7 @@ export const enTranslations: TranslationKeys = {
                 deleteTitle: 'Delete photo',
                 cancel: 'Cancel',
                 delete: 'Delete',
+                save: 'Save',
                 added: 'Success',
                 addedSuccess: 'Photo added successfully!',
                 descriptionUpdated: 'Description updated!',
@@ -567,6 +569,15 @@ export const enTranslations: TranslationKeys = {
                 selectPhotoError: 'Unable to select photo.',
                 permissionRequired: 'Permission required',
                 permissionRequiredMessage: 'Gallery access is required to select photos.',
+                cameraPermissionMessage: 'Camera access is required to take photos.',
+                selectionModal: {
+                    title: 'Add a Photo',
+                    subtitle: 'Choose how to add a photo to this job',
+                    takePhoto: 'Take a photo',
+                    takePhotoDescription: 'Use the camera to capture a new image',
+                    selectFromGallery: 'Choose from gallery',
+                    selectFromGalleryDescription: 'Select an existing image from your gallery',
+                },
                 stages: {
                     pickup: '📍 Pickup',
                     delivery: '🚚 Delivery',

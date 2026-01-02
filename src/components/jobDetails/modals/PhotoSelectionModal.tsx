@@ -59,8 +59,8 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
             
             if (!permissions.camera) {
                 Alert.alert(
-                    'Permission requise',
-                    'L\'accès à la caméra est nécessaire pour prendre des photos.',
+                    t('jobDetails.components.photos.permissionRequired'),
+                    t('jobDetails.components.photos.cameraPermissionMessage'),
                     [{ text: 'OK' }]
                 );
                 return;
@@ -248,9 +248,9 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
                             <View style={[styles.optionIcon, { backgroundColor: colors.tint + '20' }]}>
                                 <Ionicons name="camera" size={24} color={colors.tint} />
                             </View>
-                            <Text style={styles.title}>Ajouter une Photo</Text>
+                            <Text style={styles.title}>{t('jobDetails.components.photos.selectionModal.title')}</Text>
                             <Text style={styles.subtitle}>
-                                Choisissez comment ajouter une photo à ce job
+                                {t('jobDetails.components.photos.selectionModal.subtitle')}
                             </Text>
                         </View>
 
@@ -267,9 +267,9 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
                                     <Ionicons name="camera" size={24} color={colors.primary} />
                                 </View>
                                 <View style={styles.optionTextContainer}>
-                                    <Text style={styles.optionTitle}>Prendre une photo</Text>
+                                    <Text style={styles.optionTitle}>{t('jobDetails.components.photos.selectionModal.takePhoto')}</Text>
                                     <Text style={styles.optionDescription}>
-                                        Utiliser l'appareil photo pour capturer une nouvelle image
+                                        {t('jobDetails.components.photos.selectionModal.takePhotoDescription')}
                                     </Text>
                                 </View>
                                 <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
@@ -286,9 +286,9 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
                                     <Ionicons name="images" size={24} color={colors.success} />
                                 </View>
                                 <View style={styles.optionTextContainer}>
-                                    <Text style={styles.optionTitle}>Choisir dans la galerie</Text>
+                                    <Text style={styles.optionTitle}>{t('jobDetails.components.photos.selectionModal.selectFromGallery')}</Text>
                                     <Text style={styles.optionDescription}>
-                                        Sélectionner une image existante de votre galerie
+                                        {t('jobDetails.components.photos.selectionModal.selectFromGalleryDescription')}
                                     </Text>
                                 </View>
                                 <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
@@ -303,7 +303,7 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
                                 pressed && styles.cancelButtonPressed,
                             ]}
                         >
-                            <Text style={styles.cancelText}>Annuler</Text>
+                            <Text style={styles.cancelText}>{t('jobDetails.components.photos.cancel')}</Text>
                         </Pressable>
                     </View>
                 </Pressable>

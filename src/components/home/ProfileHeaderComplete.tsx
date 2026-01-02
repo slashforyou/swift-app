@@ -2,14 +2,14 @@
  * ProfileHeaderComplete - Header avec gamification pour la page d'accueil (version complète)
  * Utilise les vraies données du profil utilisateur via useUserProfile
  */
-import React, { useState } from 'react';
-import { View, Text, Pressable, Animated, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { HStack, VStack } from '../primitives/Stack';
-import { useUserProfile } from '../../hooks/useUserProfile';
-import { DESIGN_TOKENS } from '../../constants/Styles';
+import React, { useState } from 'react';
+import { ActivityIndicator, Animated, Pressable, Text, View } from 'react-native';
 import { Colors } from '../../constants/Colors';
+import { DESIGN_TOKENS } from '../../constants/Styles';
+import { useUserProfile } from '../../hooks/useUserProfile';
 import { useTranslation } from '../../localization';
+import { VStack } from '../primitives/Stack';
 import NotificationsPanel from './NotificationsPanel';
 
 interface ProfileHeaderProps {

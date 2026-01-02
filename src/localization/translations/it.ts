@@ -456,7 +456,8 @@ export const itTranslations = {
                 inconsistencyDetected: 'Incoerenza rilevata',
                 suggestion: 'Suggerimento: Vai al passo {{expectedStep}}/{{totalSteps}}',
                 stepCorrected: 'Passo corretto: {{currentStep}} → {{newStep}}',
-                correctionError: 'Errore nella correzione del passo',
+                correctionError: 'Errore durante la correzione',
+                autoCorrectionFailed: 'Correzione automatica fallita',
                 autoCorrect: '🔧 Correggi automaticamente',
             },
             truckDetails: {
@@ -542,6 +543,7 @@ export const itTranslations = {
                 deleteTitle: 'Elimina foto',
                 cancel: 'Annulla',
                 delete: 'Elimina',
+                save: 'Salva',
                 added: 'Successo',
                 addedSuccess: 'Foto aggiunta con successo!',
                 descriptionUpdated: 'Descrizione aggiornata!',
@@ -559,6 +561,15 @@ export const itTranslations = {
                 selectPhotoError: 'Impossibile selezionare la foto.',
                 permissionRequired: 'Permesso richiesto',
                 permissionRequiredMessage: 'L\'accesso alla galleria è necessario per selezionare le foto.',
+                cameraPermissionMessage: 'L\'accesso alla fotocamera è necessario per scattare foto.',
+                selectionModal: {
+                    title: 'Aggiungi una Foto',
+                    subtitle: 'Scegli come aggiungere una foto a questo lavoro',
+                    takePhoto: 'Scatta una foto',
+                    takePhotoDescription: 'Usa la fotocamera per catturare una nuova immagine',
+                    selectFromGallery: 'Scegli dalla galleria',
+                    selectFromGalleryDescription: 'Seleziona un\'immagine esistente dalla tua galleria',
+                },
                 stages: {
                     pickup: '📍 Ritiro',
                     delivery: '🚚 Consegna',

@@ -31,7 +31,7 @@
 | 🔧 Config Production | **6** | 0 | 6 |
 | 🔧 TODOs Code | **34** | 5 | 39 |
 | 📱 Device Testing | 0 | 40+ | 40+ |
-| 🌍 i18n | 11 | 8 | 19 |
+| 🌍 i18n | 14 | 5 | 19 |
 | ⚡ Performance | 0 | 6 | 6 |
 | 🎨 Design System | 15 | 0 | 15 |
 
@@ -528,14 +528,17 @@
 - [x] Vérifier traductions partielles (es, it, pt, zh, hi) ✅ FAIT
 
 ## Migration Restante 🟡
-- [ ] StripeSettingsScreen.tsx 🟡
-- [ ] BusinessInfoPage.tsx 🟢
-- [ ] PaymentsListScreen.tsx 🟢
-- [ ] PayoutsScreen.tsx 🟢
-- [ ] ReportsScreen.tsx 🟢
-- [ ] VehicleFleetScreen.tsx 🟢
-- [ ] VehicleDetailsScreen.tsx 🟢
-- [ ] JobDetailsScreens (client, job, note, summary) 🟢
+- [x] StripeSettingsScreen.tsx ✅ VÉRIFIÉ - Déjà migré
+- [x] BusinessInfoPage.tsx ✅ VÉRIFIÉ - Déjà migré
+- [x] PaymentsListScreen.tsx ✅ VÉRIFIÉ - Déjà migré
+- [x] PayoutsScreen.tsx ✅ VÉRIFIÉ - Déjà migré
+- [x] ReportsScreen.tsx ✅ VÉRIFIÉ - Déjà migré
+- [x] VehicleFleetScreen.tsx ✅ VÉRIFIÉ - Déjà migré
+- [x] VehicleDetailsScreen.tsx ✅ VÉRIFIÉ - Déjà migré
+- [x] PhotoSelectionModal.tsx ✅ MIGRÉ - Session courante
+- [x] JobPhotosSection.tsx ✅ MIGRÉ - Session courante
+- [x] jobDetails.tsx (toasts) ✅ MIGRÉ - Session courante
+- [ ] JobDetailsScreens (client, job, note, summary) 🟢 À vérifier
 
 ---
 
