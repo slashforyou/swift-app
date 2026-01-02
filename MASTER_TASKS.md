@@ -18,7 +18,7 @@
 
 ---
 
-## 📊 Résumé (Mise à jour 30 Déc 2025)
+## 📊 Résumé (Mise à jour 2 Jan 2026)
 
 | Catégorie | Terminé | En Attente | Total |
 |-----------|---------|------------|-------|
@@ -31,11 +31,11 @@
 | 🔧 Config Production | **6** | 0 | 6 |
 | 🔧 TODOs Code | **34** | 5 | 39 |
 | 📱 Device Testing | 0 | 40+ | 40+ |
-| 🌍 i18n | 16 | 3 | 19 |
-| ⚡ Performance | 0 | 6 | 6 |
+| 🌍 i18n | **19** | 0 | 19 |
+| ⚡ Performance | **2** | 4 | 6 |
 | 🎨 Design System | 15 | 0 | 15 |
 
-**Note :** 15 TODOs marqués "en attente" étaient déjà implémentés dans le code (audit 30 déc)
+**Note :** i18n 100% complété (formatters.ts + 11 fichiers migrés). Performance: metro.config.js + lazy loading.
 
 ---
 
@@ -540,15 +540,15 @@
 - [x] jobDetails.tsx (toasts) ✅ MIGRÉ - Session courante
 - [x] note.tsx ✅ MIGRÉ - Date locale dynamique
 - [x] summary.tsx ✅ MIGRÉ - Note title localisé
-- [ ] Internationaliser les formats de date (6 fichiers restants) 🟢
+- [x] Internationaliser les formats de date ✅ FAIT - formatters.ts créé, 11 fichiers migrés
 
 ---
 
 # ⚡ PERFORMANCE OPTIMIZATION
 
 ## Phase 1 - Quick Wins
-- [ ] Créer `metro.config.js` avec optimisations 🟡
-- [ ] Lazy load des écrans secondaires 🟡
+- [x] Créer `metro.config.js` avec optimisations ✅ FAIT - caching, terser, tree shaking
+- [x] Lazy load des écrans secondaires ✅ FAIT - 8 écrans avec lazyScreen()
 
 ## Phase 2 - Assets
 - [ ] Audit des images (taille, format) 🟢
