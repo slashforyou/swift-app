@@ -182,11 +182,25 @@ export async function updateUserProfile(updates: UpdateUserProfile): Promise<Use
   const data = await res.json();
   // TEMP_DISABLED: console.log('✅ User profile updated:', data);
   
-  if (!data.success || !data.user) {
+  // ✅ FIX: Accepter plusieurs formats de réponse API (comme fetchUserProfile)
+  // Format 1: { success: true, user: {...} }
+  // Format 2: { user: {...} }
+  // Format 3: { data: {...} } (nouveau format possible)
+  // Format 4: données utilisateur directement dans data
+  
+  const userData = data.user || data.data || (data.id ? data : null);
+  
+  if (!userData) {
+    console.error('❌ [updateUserProfile] Invalid response format:', JSON.stringify(data, null, 2));
     throw new Error('Invalid response format from server');
   }
   
-  return normalizeUserProfile(data.user);
+  // Si success existe explicitement à false, c'est une erreur
+  if (data.success === false) {
+    throw new Error(data.message || 'Update failed');
+  }
+  
+  return normalizeUserProfile(userData);
 }
 
 /**
