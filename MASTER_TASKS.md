@@ -164,7 +164,7 @@
 ## ðŸš— 4. VÃ‰HICULES (4 problÃ¨mes)
 
 ### Modal d'Ajout de VÃ©hicule Manquant ðŸ”´
-- [ ] **VEH-01** : Le bouton et modal d'ajout de vÃ©hicule n'existent pas
+- [x] **VEH-01** : Le bouton et modal d'ajout de vÃ©hicule n'existent pas
   - **Fichier :** `src/screens/business/trucksScreen.tsx`
   - **Action :** Ajouter FAB + `AddVehicleModal` fonctionnel
   - **Endpoint :** `POST /vehicles` (vÃ©rifier si existe)
@@ -246,7 +246,7 @@
 ## âš™ï¸ 6. PARAMÃˆTRES (5 problÃ¨mes)
 
 ### Modification Profil - Erreur ðŸ”´
-- [ ] **SETTINGS-01** : Erreur lors de la modification du profil utilisateur
+- [x] **SETTINGS-01** : Erreur lors de la modification du profil utilisateur
   - **Fichier :** `src/screens/profile.tsx` ou modal profil
   - **Action :** Debug et corriger la sauvegarde profil
   - **Endpoint :** `PUT /users/me` ou `PATCH /users/{id}`
