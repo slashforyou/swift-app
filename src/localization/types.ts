@@ -438,6 +438,8 @@ export interface TranslationKeys {
                 signatureRequiredMessage: string;
                 cancel: string;
                 signNow: string;
+                alreadyProcessed: string;
+                alreadyProcessedMessage: string;
             };
             // Signature section
             signature: {
@@ -1269,6 +1271,23 @@ export interface TranslationKeys {
             created: string;
             arrival: string;
             feesIncluded: string;
+            instantModal: {
+                error: string;
+                invalidAmount: string;
+                amountExceedsMax: string;
+                processingError: string;
+                title: string;
+                maxAvailable: string;
+                amountLabel: string;
+                amountPlaceholder: string;
+                descriptionLabel: string;
+                descriptionPlaceholder: string;
+                feesWarning: string;
+                feesDetails: string;
+                cancel: string;
+                confirm: string;
+                processing: string;
+            };
         };
         status: {
             connected: string;
@@ -1319,14 +1338,20 @@ export interface TranslationKeys {
             validation: {
                 error: string;
                 nameRequired: string;
+                firstNameRequired: string;
+                lastNameRequired: string;
                 emailRequired: string;
+                emailInvalid: string;
                 phoneRequired: string;
                 positionRequired: string;
+                roleRequired: string;
                 teamRequired: string;
                 hourlyRateRequired: string;
+                hourlyRateInvalid: string;
                 contractorNameRequired: string;
                 contractorEmailRequired: string;
                 contractorPhoneRequired: string;
+                inviteError: string;
             };
             // Success messages
             success: {

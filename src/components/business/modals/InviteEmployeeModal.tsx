@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { DESIGN_TOKENS } from '../../../constants/Styles';
 import { useTheme } from '../../../context/ThemeProvider';
+import { useLocalization } from '../../../localization/useLocalization';
 import { InviteEmployeeData } from '../../../types/staff';
 import { HStack, VStack } from '../../primitives/Stack';
 
@@ -36,6 +37,7 @@ const initialFormData: InviteEmployeeData = {
 
 export default function InviteEmployeeModal({ visible, onClose, onSubmit }: InviteEmployeeModalProps) {
   const { colors } = useTheme();
+  const { t } = useLocalization();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<InviteEmployeeData>(initialFormData);
 
@@ -67,31 +69,31 @@ export default function InviteEmployeeModal({ visible, onClose, onSubmit }: Invi
 
   const validateForm = (): boolean => {
     if (!formData.firstName.trim()) {
-      Alert.alert('Erreur', 'Le prénom est requis');
+      Alert.alert(t('staffModals.addStaff.validation.error'), t('staffModals.addStaff.validation.firstNameRequired'));
       return false;
     }
     if (!formData.lastName.trim()) {
-      Alert.alert('Erreur', 'Le nom est requis');
+      Alert.alert(t('staffModals.addStaff.validation.error'), t('staffModals.addStaff.validation.lastNameRequired'));
       return false;
     }
     if (!formData.email.trim() || !formData.email.includes('@')) {
-      Alert.alert('Erreur', 'Email valide requis');
+      Alert.alert(t('staffModals.addStaff.validation.error'), t('staffModals.addStaff.validation.emailInvalid'));
       return false;
     }
     if (!formData.phone.trim()) {
-      Alert.alert('Erreur', 'Le téléphone est requis');
+      Alert.alert(t('staffModals.addStaff.validation.error'), t('staffModals.addStaff.validation.phoneRequired'));
       return false;
     }
     if (!formData.role) {
-      Alert.alert('Erreur', 'Le rôle est requis');
+      Alert.alert(t('staffModals.addStaff.validation.error'), t('staffModals.addStaff.validation.roleRequired'));
       return false;
     }
     if (!formData.team) {
-      Alert.alert('Erreur', 'L\'équipe est requise');
+      Alert.alert(t('staffModals.addStaff.validation.error'), t('staffModals.addStaff.validation.teamRequired'));
       return false;
     }
     if (formData.hourlyRate <= 0) {
-      Alert.alert('Erreur', 'Le taux horaire doit être supérieur à 0');
+      Alert.alert(t('staffModals.addStaff.validation.error'), t('staffModals.addStaff.validation.hourlyRateInvalid'));
       return false;
     }
     return true;
@@ -105,15 +107,18 @@ export default function InviteEmployeeModal({ visible, onClose, onSubmit }: Invi
       await onSubmit(formData);
       
       Alert.alert(
-        'Invitation envoyée',
-        `Une invitation a été envoyée à ${formData.email}. L'employé devra compléter ses informations (TFN, date de naissance) pour accéder à son compte.`,
+        t('staffModals.addStaff.success.invitationSent'),
+        t('staffModals.addStaff.success.invitationSentMessage', { email: formData.email }),
         [{ text: 'OK', onPress: onClose }]
       );
       
       // Reset form (will also be done by useEffect when modal closes)
       setFormData(initialFormData);
-    } catch (error) {
-      Alert.alert('Erreur', 'Impossible d\'envoyer l\'invitation');
+    } catch (_error) {
+      Alert.alert(
+        t('staffModals.addStaff.validation.error'),
+        t('staffModals.addStaff.validation.inviteError')
+      );
     } finally {
       setIsLoading(false);
     }

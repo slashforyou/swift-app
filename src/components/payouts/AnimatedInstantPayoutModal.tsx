@@ -7,6 +7,7 @@ import { Alert, Modal, Text, View } from 'react-native';
 import { useTheme } from '../../context/ThemeProvider_Advanced';
 import { Button, Card, Input } from '../../design-system/components';
 import { DESIGN_TOKENS } from '../../design-system/tokens';
+import { useLocalization } from '../../localization/useLocalization';
 import type { PayoutRequest } from '../../types/payouts';
 
 interface AnimatedInstantPayoutModalProps {
@@ -27,20 +28,34 @@ const AnimatedInstantPayoutModal: React.FC<AnimatedInstantPayoutModalProps> = ({
   loading = false,
 }) => {
   const { colors } = useTheme();
+  const { t } = useLocalization();
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [processing, setProcessing] = useState(false);
+
+  const formatMaxAmount = () => {
+    return (maxAmount / 100).toLocaleString('fr-FR', {
+      style: 'currency',
+      currency: currency.toUpperCase(),
+    });
+  };
 
   const handleConfirm = async () => {
     const amountValue = parseFloat(amount);
     
     if (!amountValue || amountValue <= 0) {
-      Alert.alert('Erreur', 'Veuillez saisir un montant valide');
+      Alert.alert(
+        t('stripe.payouts.instantModal.error'),
+        t('stripe.payouts.instantModal.invalidAmount')
+      );
       return;
     }
 
     if (amountValue > maxAmount / 100) {
-      Alert.alert('Erreur', `Le montant ne peut pas dépasser ${(maxAmount / 100).toLocaleString('fr-FR', { style: 'currency', currency })}`);
+      Alert.alert(
+        t('stripe.payouts.instantModal.error'),
+        t('stripe.payouts.instantModal.amountExceedsMax', { max: formatMaxAmount() })
+      );
       return;
     }
 
@@ -55,18 +70,14 @@ const AnimatedInstantPayoutModal: React.FC<AnimatedInstantPayoutModalProps> = ({
       setAmount('');
       setDescription('');
       onClose();
-    } catch (error) {
-      Alert.alert('Erreur', 'Impossible de traiter le paiement instantané');
+    } catch (_error) {
+      Alert.alert(
+        t('stripe.payouts.instantModal.error'),
+        t('stripe.payouts.instantModal.processingError')
+      );
     } finally {
       setProcessing(false);
     }
-  };
-
-  const formatMaxAmount = () => {
-    return (maxAmount / 100).toLocaleString('fr-FR', {
-      style: 'currency',
-      currency: currency.toUpperCase(),
-    });
   };
 
   return (
@@ -95,7 +106,7 @@ const AnimatedInstantPayoutModal: React.FC<AnimatedInstantPayoutModalProps> = ({
             textAlign: 'center',
             marginBottom: DESIGN_TOKENS.spacing.lg,
           }}>
-            Paiement instantané
+            {t('stripe.payouts.instantModal.title')}
           </Text>
 
           <Text style={{
@@ -104,23 +115,23 @@ const AnimatedInstantPayoutModal: React.FC<AnimatedInstantPayoutModalProps> = ({
             textAlign: 'center',
             marginBottom: DESIGN_TOKENS.spacing.lg,
           }}>
-            Montant maximum disponible: {formatMaxAmount()}
+            {t('stripe.payouts.instantModal.maxAvailable', { max: formatMaxAmount() })}
           </Text>
 
           <Input
-            label="Montant à transférer"
+            label={t('stripe.payouts.instantModal.amountLabel')}
             value={amount}
             onChangeText={setAmount}
             keyboardType="numeric"
-            placeholder="0.00"
+            placeholder={t('stripe.payouts.instantModal.amountPlaceholder')}
             style={{ marginBottom: DESIGN_TOKENS.spacing.md }}
           />
 
           <Input
-            label="Description (optionnel)"
+            label={t('stripe.payouts.instantModal.descriptionLabel')}
             value={description}
             onChangeText={setDescription}
-            placeholder="Motif du virement"
+            placeholder={t('stripe.payouts.instantModal.descriptionPlaceholder')}
             multiline
             numberOfLines={2}
             style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}
@@ -138,7 +149,7 @@ const AnimatedInstantPayoutModal: React.FC<AnimatedInstantPayoutModalProps> = ({
               textAlign: 'center',
               fontWeight: DESIGN_TOKENS.typography.fontWeight.medium,
             }}>
-              ⚡ Les frais de paiement instantané s'appliquent
+              {t('stripe.payouts.instantModal.feesWarning')}
             </Text>
             <Text style={{
               fontSize: DESIGN_TOKENS.typography.fontSize.xs,
@@ -146,7 +157,7 @@ const AnimatedInstantPayoutModal: React.FC<AnimatedInstantPayoutModalProps> = ({
               textAlign: 'center',
               marginTop: DESIGN_TOKENS.spacing.xs,
             }}>
-              Frais: 1% du montant (min. 0.25€)
+              {t('stripe.payouts.instantModal.feesDetails')}
             </Text>
           </View>
 
@@ -156,14 +167,14 @@ const AnimatedInstantPayoutModal: React.FC<AnimatedInstantPayoutModalProps> = ({
             gap: DESIGN_TOKENS.spacing.md,
           }}>
             <Button
-              title="Annuler"
+              title={t('stripe.payouts.instantModal.cancel')}
               variant="secondary"
               onPress={onClose}
               disabled={processing}
               style={{ flex: 1 }}
             />
             <Button
-              title={processing ? 'Traitement...' : 'Confirmer'}
+              title={processing ? t('stripe.payouts.instantModal.processing') : t('stripe.payouts.instantModal.confirm')}
               variant="primary"
               onPress={handleConfirm}
               disabled={processing || loading || !amount}

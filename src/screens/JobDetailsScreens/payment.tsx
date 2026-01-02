@@ -245,7 +245,10 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
         if (paymentInfo.status === 'pending') {
             setPaymentWindowVisible('paymentWindow');
         } else {
-            Alert.alert("Information", "Le paiement pour ce job a déjà été traité.");
+            Alert.alert(
+                t('jobDetails.payment.alerts.alreadyProcessed'),
+                t('jobDetails.payment.alerts.alreadyProcessedMessage')
+            );
         }
     };
 
