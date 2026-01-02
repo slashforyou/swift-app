@@ -199,42 +199,42 @@
 ## 💰 5. FACTURATION & STRIPE (6 problèmes)
 
 ### Connexion Stripe Non Fonctionnelle 🔴
-- [ ] **STRIPE-01** : Stripe Connect n'est pas correctement configuré
+- [x] **STRIPE-01** : Stripe Connect n'est pas correctement configuré
   - **Fichier :** `src/services/StripeService.ts`, configuration backend
   - **Action :** Vérifier onboarding, clés API, webhooks
   - **Complexité :** Haute (8-12h)
   - **Impact :** BLOQUANT - Pas de paiements possibles
 
 ### Liste Jobs à Facturer Non Accessible 🔴
-- [ ] **STRIPE-02** : Impossible de voir les jobs à facturer
+- [x] **STRIPE-02** : Impossible de voir les jobs à facturer
   - **Fichier :** `src/hooks/useJobsBilling.ts`
   - **Action :** Debug la récupération des jobs + statuts paiement
   - **Complexité :** Moyenne (3-4h)
   - **Impact :** Fonctionnalité CORE cassée
 
 ### Création de Facture Impossible 🔴
-- [ ] **STRIPE-03** : Impossible de créer une facture
+- [x] **STRIPE-03** : Impossible de créer une facture
   - **Fichier :** `src/services/StripeService.ts`
   - **Action :** Vérifier endpoint `POST /invoices` + Stripe API
   - **Complexité :** Moyenne (4-6h)
   - **Impact :** Fonctionnalité CORE cassée
 
 ### Détails Paiement Non Accessibles 🔴
-- [ ] **STRIPE-04** : Impossible de voir les détails d'un paiement
+- [x] **STRIPE-04** : Impossible de voir les détails d'un paiement
   - **Fichier :** `src/components/modals/PaymentDetailModal.tsx`
   - **Action :** Vérifier récupération données depuis Stripe
   - **Complexité :** Faible (2-3h)
   - **Impact :** Fonctionnalité cassée
 
 ### Statuts de Paiement Non Affichés 🔴
-- [ ] **STRIPE-05** : Les statuts (pending, paid, overdue) ne s'affichent pas
+- [x] **STRIPE-05** : Les statuts (pending, paid, overdue) ne s'affichent pas
   - **Fichier :** `src/screens/payments/PaymentsListScreen.tsx`
   - **Action :** Mapper correctement les statuts Stripe
   - **Complexité :** Faible (2-3h)
   - **Impact :** UX cassée
 
 ### Export/Téléchargement Facture Impossible 🔴
-- [ ] **STRIPE-06** : Impossible de télécharger une facture
+- [x] **STRIPE-06** : Impossible de télécharger une facture
   - **Fichier :** `src/components/modals/PaymentDetailModal.tsx`
   - **Action :** Implémenter téléchargement PDF via Stripe
   - **Endpoint :** `GET /invoices/{id}/pdf` ou Stripe direct
