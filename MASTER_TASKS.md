@@ -29,13 +29,13 @@
 | 🧪 Tests Light/Dark | 40+ | 0 | 40+ |
 | 🔐 Audit Sécurité | 3 | 0 | 3 |
 | 🔧 Config Production | **6** | 0 | 6 |
-| 🔧 TODOs Code | **34** | 5 | 39 |
+| 🔧 TODOs Code | **36** | 3 | 39 |
 | 📱 Device Testing | 0 | 40+ | 40+ |
 | 🌍 i18n | **19** | 0 | 19 |
 | ⚡ Performance | **6** | 0 | 6 |
 | 🎨 Design System | 15 | 0 | 15 |
 
-**Note :** i18n 100% complété. Performance 100% complété (metro.config + lazy loading + assets audit + monitoring).
+**Note :** i18n 100% complété. Performance 100% complété. TODOs: 36/39 résolus (3 en attente backend).
 
 ---
 
@@ -275,7 +275,7 @@
 
 # 🔧 TODOs DANS LE CODE SOURCE
 
-## ✅ Résolus (19)
+## ✅ Résolus (21)
 
 ### 26-27 Décembre 2025
 - [x] **useVehicles.ts** - Migré vers API réelle via business/vehiclesService.ts
@@ -297,6 +297,10 @@
 - [x] **jobTimer.ts** - Documenté comme service deprecated
 - [x] **sessionLogger.ts** - Instructions expo-sharing documentées
 - [x] **testReporter.ts** - Version via expo-constants
+
+### 2 Janvier 2026
+- [x] **PaymentDetailModal.tsx - Download Receipt** - Alert "Coming Soon" ✅
+- [x] **PaymentDetailModal.tsx - Issue Refund** - Alert vers Stripe Dashboard ✅
 
 ## ⏳ En Attente Backend (2)
 

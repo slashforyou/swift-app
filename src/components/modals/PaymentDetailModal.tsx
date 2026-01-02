@@ -4,6 +4,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import {
+    Alert,
     Modal,
     Pressable,
     ScrollView,
@@ -263,7 +264,13 @@ export default function PaymentDetailModal({
           <View style={styles.actions}>
             <Pressable
               style={[styles.actionButton, { backgroundColor: colors.backgroundSecondary }]}
-              onPress={() => {/* TODO: Implement receipt download */}}
+              onPress={() => {
+                Alert.alert(
+                  'Coming Soon',
+                  'Receipt download will be available in a future update.',
+                  [{ text: 'OK' }]
+                );
+              }}
             >
               <Ionicons name="download-outline" size={20} color={colors.primary} />
               <Text style={[styles.actionButtonText, { color: colors.primary }]}>
@@ -273,7 +280,22 @@ export default function PaymentDetailModal({
 
             <Pressable
               style={[styles.actionButton, { backgroundColor: colors.backgroundSecondary }]}
-              onPress={() => {/* TODO: Implement refund */}}
+              onPress={() => {
+                Alert.alert(
+                  'Issue Refund',
+                  'Refunds must be processed through the Stripe Dashboard for security reasons.',
+                  [
+                    { text: 'Cancel', style: 'cancel' },
+                    { 
+                      text: 'Open Stripe Dashboard', 
+                      onPress: () => {
+                        // Note: Linking.openURL would require import
+                        console.log('Navigate to Stripe Dashboard');
+                      }
+                    }
+                  ]
+                );
+              }}
             >
               <Ionicons name="refresh-outline" size={20} color={colors.warning} />
               <Text style={[styles.actionButtonText, { color: colors.warning }]}>
