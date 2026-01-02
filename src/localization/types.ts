@@ -982,8 +982,20 @@ export interface TranslationKeys {
             serviceDatePast: string;
         };
         addModal: {
+            title: string;
             vehicleType: string;
             selectTypeSubtitle: string;
+            vehicleDetails: string;
+            detailsSubtitle: string;
+            make: string;
+            model: string;
+            year: string;
+            registration: string;
+            capacity: string;
+            location: string;
+            nextService: string;
+            dateHelperText: string;
+            addButton: string;
             vehicleAdded: string;
             vehicleAddedMessage: string;
         };

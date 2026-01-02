@@ -265,16 +265,16 @@ export default function AddVehicleModal({
       </Pressable>
 
       <Text style={[styles.stepTitle, { color: colors.text }]}>
-        Détails du véhicule
+        {t('vehicles.addModal.vehicleDetails')}
       </Text>
       <Text style={[styles.stepSubtitle, { color: colors.textSecondary }]}>
-        Renseignez les informations du véhicule
+        {t('vehicles.addModal.detailsSubtitle')}
       </Text>
 
       <View style={styles.form}>
         {/* Marque */}
         <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>Marque *</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{t('vehicles.addModal.make')}</Text>
           <ScrollView 
             horizontal 
             showsHorizontalScrollIndicator={false}
@@ -306,7 +306,7 @@ export default function AddVehicleModal({
 
         {/* Modèle */}
         <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>Modèle *</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{t('vehicles.addModal.model')}</Text>
           <TextInput
             style={[styles.input, { backgroundColor: colors.backgroundSecondary, color: colors.text }]}
             value={vehicleData.model}
@@ -319,7 +319,7 @@ export default function AddVehicleModal({
         {/* Année et Immatriculation */}
         <View style={styles.formRow}>
           <View style={[styles.formGroup, { flex: 1 }]}>
-            <Text style={[styles.label, { color: colors.text }]}>Année *</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t('vehicles.addModal.year')}</Text>
             <TextInput
               style={[styles.input, { backgroundColor: colors.backgroundSecondary, color: colors.text }]}
               value={String(vehicleData.year)}
@@ -330,7 +330,7 @@ export default function AddVehicleModal({
             />
           </View>
           <View style={[styles.formGroup, { flex: 1 }]}>
-            <Text style={[styles.label, { color: colors.text }]}>Immatriculation *</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t('vehicles.addModal.registration')}</Text>
             <TextInput
               style={[styles.input, { backgroundColor: colors.backgroundSecondary, color: colors.text }]}
               value={vehicleData.registration}
@@ -344,7 +344,7 @@ export default function AddVehicleModal({
 
         {/* Capacité */}
         <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>Capacité *</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{t('vehicles.addModal.capacity')}</Text>
           <TextInput
             style={[styles.input, { backgroundColor: colors.backgroundSecondary, color: colors.text }]}
             value={vehicleData.capacity}
@@ -356,7 +356,7 @@ export default function AddVehicleModal({
 
         {/* Emplacement */}
         <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>Emplacement *</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{t('vehicles.addModal.location')}</Text>
           <ScrollView 
             horizontal 
             showsHorizontalScrollIndicator={false}
@@ -388,7 +388,7 @@ export default function AddVehicleModal({
 
         {/* Prochain service */}
         <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>Prochain service *</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{t('vehicles.addModal.nextService')}</Text>
           <TextInput
             style={[styles.input, { backgroundColor: colors.backgroundSecondary, color: colors.text }]}
             value={vehicleData.nextService}
@@ -397,7 +397,7 @@ export default function AddVehicleModal({
             placeholderTextColor={colors.textSecondary}
           />
           <Text style={[styles.helperText, { color: colors.textSecondary }]}>
-            Format: Année-Mois-Jour (ex: 2025-12-31)
+            {t('vehicles.addModal.dateHelperText')}
           </Text>
         </View>
       </View>
@@ -416,7 +416,7 @@ export default function AddVehicleModal({
         ) : (
           <>
             <Ionicons name="add-circle" size={20} color={colors.background} />
-            <Text style={[styles.submitButtonText, { color: colors.background }]}>Ajouter le véhicule</Text>
+            <Text style={[styles.submitButtonText, { color: colors.background }]}>{t('vehicles.addModal.addButton')}</Text>
           </>
         )}
       </Pressable>
@@ -436,7 +436,7 @@ export default function AddVehicleModal({
       >
         <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
           <Text style={[styles.modalTitle, { color: colors.text }]}>
-            Ajouter un véhicule
+            {t('vehicles.addModal.title')}
           </Text>
           <Pressable testID="close-button" onPress={handleClose}>
             <Ionicons name="close" size={28} color={colors.text} />
