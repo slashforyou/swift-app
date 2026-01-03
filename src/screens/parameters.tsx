@@ -449,7 +449,7 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
                     <SettingSection colors={colors} title={t('settings.sections.account')} icon="person-outline">
                         {/* SETTINGS-05: Business Info Link */}
                         <Pressable
-                            onPress={() => navigation?.navigate('BusinessInfo')}
+                            onPress={() => navigation?.navigate('Business', { initialTab: 'BusinessInfo' })}
                             style={({ pressed }) => ({
                                 backgroundColor: pressed ? colors.backgroundTertiary : 'transparent',
                                 borderRadius: DESIGN_TOKENS.radius.md,
@@ -497,7 +497,7 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
 
                         {/* Stripe Settings Link */}
                         <Pressable
-                            onPress={() => navigation?.navigate('StripeHub')}
+                            onPress={() => navigation?.navigate('Business', { initialTab: 'JobsBilling', initialStripeScreen: 'StripeSettings' })}
                             style={({ pressed }) => ({
                                 backgroundColor: pressed ? colors.backgroundTertiary : 'transparent',
                                 borderRadius: DESIGN_TOKENS.radius.md,

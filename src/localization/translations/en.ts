@@ -692,6 +692,10 @@ export const enTranslations: TranslationKeys = {
             account: 'Account',
         },
         items: {
+            businessInfo: 'Business Information',
+            businessInfoDescription: 'Manage your company details',
+            paymentSettings: 'Payment Settings',
+            paymentSettingsDescription: 'Stripe connection and payment options',
             pushNotifications: 'Push Notifications',
             pushDescription: 'Receive push notifications for important updates',
             emailNotifications: 'Email Notifications',

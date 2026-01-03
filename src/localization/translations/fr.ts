@@ -692,6 +692,10 @@ export const frTranslations: TranslationKeys = {
             account: 'Compte',
         },
         items: {
+            businessInfo: 'Informations entreprise',
+            businessInfoDescription: 'Gérer les détails de votre société',
+            paymentSettings: 'Paramètres de paiement',
+            paymentSettingsDescription: 'Connexion Stripe et options de paiement',
             pushNotifications: 'Notifications push',
             pushDescription: 'Recevoir des notifications push pour les mises à jour importantes',
             emailNotifications: 'Notifications par email',

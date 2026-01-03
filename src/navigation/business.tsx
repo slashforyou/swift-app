@@ -53,8 +53,12 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
     const { colors } = useTheme();
     const { t } = useLocalization();
     
-    const [businessPanel, setBusinessPanel] = useState('BusinessInfo');
-    const [stripeScreen, setStripeScreen] = useState<string | null>(null);
+    // Support navigation with initialTab or initialStripeScreen params
+    const initialTab = route?.params?.initialTab || 'BusinessInfo';
+    const initialStripeScreen = route?.params?.initialStripeScreen || null;
+    
+    const [businessPanel, setBusinessPanel] = useState(initialTab);
+    const [stripeScreen, setStripeScreen] = useState<string | null>(initialStripeScreen);
     // businessPanel: 'BusinessInfo', 'StaffCrew', 'Trucks', 'JobsBilling'
     // stripeScreen: null, 'PaymentsList', 'Payouts', 'StripeSettings'
 
