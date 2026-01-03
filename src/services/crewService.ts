@@ -13,8 +13,8 @@
 
 import { ServerData } from '../constants/ServerData';
 import { authenticatedFetch } from '../utils/auth';
-import { logger } from './logger';
 import type { CrewMember } from './jobDetails';
+import { logger } from './logger';
 
 const API = ServerData.serverUrl;
 

@@ -9,6 +9,15 @@ jest.mock('../../src/services/jobs', () => ({
   fetchJobs: jest.fn()
 }));
 
+// Mock du service Stripe
+jest.mock('../../src/services/StripeService', () => ({
+  createStripeInvoice: jest.fn().mockResolvedValue({
+    id: 'inv_123',
+    status: 'open',
+    amount_due: 50000
+  })
+}));
+
 // Mock des données de test
 const mockApiJobs = [
   {

@@ -18,7 +18,7 @@ import { useTheme } from '../context/ThemeProvider';
 import { useJobDetails } from '../hooks/useJobDetails';
 import { usePerformanceMetrics } from '../hooks/usePerformanceMetrics';
 import { useLocalization } from '../localization/useLocalization';
-import { assignStaffToJob, removeCrewMember, getJobCrew } from '../services/crewService';
+import { assignStaffToJob, getJobCrew, removeCrewMember } from '../services/crewService';
 import { filterServerCorrectableIssues, requestServerCorrection } from '../services/jobCorrection';
 import { deleteJob, updateJob as updateJobAPI, UpdateJobRequest } from '../services/jobs';
 import { useAuthCheck } from '../utils/checkAuth';
