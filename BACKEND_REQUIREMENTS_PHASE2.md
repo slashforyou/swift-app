@@ -1,0 +1,517 @@
+# 🔧 Backend Requirements - Phase 2 Features
+
+**Document généré le :** 3 Janvier 2026  
+**Application :** Swift App (React Native / Expo)  
+**API Base URL :** `https://altivo.fr/swift-app/`  
+**Version API actuelle :** v1
+
+---
+
+## 📋 Résumé Exécutif
+
+Ce document liste les **fonctionnalités frontend prêtes** qui attendent des **endpoints backend** pour être opérationnelles.
+
+| Priorité | Fonctionnalité | Complexité Backend | Status Frontend |
+|----------|----------------|-------------------|-----------------|
+| 🔴 Haute | Push Notifications | Moyenne | En attente |
+| 🔴 Haute | Gestion des Équipes | Haute | En attente |
+| 🟠 Moyenne | Rôles & Permissions | Haute | En attente |
+| 🟠 Moyenne | Upload Photo Véhicule | Faible | ✅ Prêt |
+| 🟡 Basse | Assignation Staff à Job | Faible | ✅ Prêt |
+
+---
+
+## 1. 📸 Upload Photo Véhicule (VEH-03)
+
+### Description
+Permettre aux utilisateurs de prendre ou sélectionner une photo pour un véhicule.
+
+### Frontend Status : ✅ PRÊT
+- `VehiclePhotoModal.tsx` créé
+- Bouton "Photo" ajouté dans VehicleDetailsScreen
+- Utilise `expo-image-picker` pour caméra/galerie
+- Upload via `FormData` multipart
+
+### ⚠️ Note Importante
+L'endpoint d'upload de photo **fonctionne déjà pour les jobs** :
+```
+POST /v1/job/{job_id}/image  ✅ FONCTIONNEL
+```
+
+Il suffit de créer un endpoint **similaire pour les véhicules** :
+
+### Endpoint Requis
+
+```
+POST /v1/company/{company_id}/trucks/{truck_id}/image
+```
+
+**Pattern identique à l'upload job** (voir `src/services/jobPhotos.ts`)
+
+**Headers :**
+```
+Content-Type: multipart/form-data
+Authorization: Bearer {token}
+```
+
+**Body (FormData) :**
+```
+image: File (image/jpeg)
+description: string (optionnel)
+```
+
+**Response Success (200) - Même format que jobs :**
+```json
+{
+  "success": true,
+  "data": {
+    "id": 123,
+    "filename": "truck_photo_123.jpg",
+    "url": "https://storage.googleapis.com/...",
+    "description": "Photo du véhicule",
+    "created_at": "2026-01-03T10:00:00Z"
+  }
+}
+```
+
+### Spécifications
+- **Taille max :** 5 MB recommandé
+- **Formats acceptés :** JPEG, PNG
+- **Stockage :** S3, local, ou autre solution de stockage
+- **Optionnel :** Génération de thumbnail pour liste
+
+---
+
+## 2. 👥 Assignation Staff à Job (STAFF-01)
+
+### Description
+Assigner un employé ou prestataire à un job spécifique.
+
+### Frontend Status : ✅ PRÊT
+- `AssignStaffModal.tsx` créé avec sélection du staff
+- Champ `assigned_staff_id` ajouté dans `UpdateJobRequest`
+- Interface de sélection avec filtres (employés/prestataires)
+
+### ⚠️ Vérification Requise
+L'endpoint `PATCH /v1/jobs/{job_id}` est **déjà utilisé** pour d'autres champs.
+
+**À vérifier côté backend :**
+1. Est-ce que le champ `assigned_staff_id` est accepté dans le body ?
+2. Est-ce que `GET /v1/jobs/{job_id}` retourne `assigned_staff_id` et `assigned_staff` ?
+
+### Endpoint Existant à Enrichir
+
+```
+PATCH /v1/jobs/{job_id}
+```
+
+**Body actuel (fonctionne déjà) :**
+```json
+{
+  "status": "in_progress",
+  "priority": "high",
+  "notes": "Updated notes"
+}
+```
+
+**Body enrichi (à supporter) :**
+```json
+{
+  "assigned_staff_id": "staff_123"
+}
+```
+
+### Response Job Enrichie
+S'assurer que `GET /v1/jobs/{job_id}` retourne :
+```json
+{
+  "job": {
+    "id": "job_456",
+    "assigned_staff_id": "staff_123",
+    "assigned_staff": {
+      "id": "staff_123",
+      "firstName": "John",
+      "lastName": "Smith",
+      "email": "john@example.com",
+      "phone": "+61412345678"
+    }
+  }
+}
+```
+
+### Complexité Backend : FAIBLE
+- Ajouter colonne `assigned_staff_id` à la table jobs (si pas déjà fait)
+- Accepter ce champ dans l'endpoint PATCH existant
+- Joindre les données staff dans le GET
+
+---
+
+## 3. 🔔 Push Notifications (SETTINGS-02)
+
+### Description
+Notifications push pour alerter les utilisateurs sur :
+- Nouveaux jobs assignés
+- Rappels de jobs
+- Messages clients
+- Mises à jour de paiement
+
+### Frontend Status : 🟡 EN ATTENTE
+- Toggle dans Settings (activé/désactivé)
+- Prêt à intégrer `expo-notifications`
+
+### Endpoints Requis
+
+#### 3.1 Enregistrer Device Token
+```
+POST /v1/users/push-token
+```
+
+**Body :**
+```json
+{
+  "push_token": "ExponentPushToken[xxxxxxxxxxxxxx]",
+  "platform": "ios" | "android",
+  "device_id": "unique_device_identifier"
+}
+```
+
+**Response :**
+```json
+{
+  "success": true,
+  "message": "Push token registered"
+}
+```
+
+#### 3.2 Gérer Préférences Notifications
+```
+PATCH /v1/users/notification-preferences
+```
+
+**Body :**
+```json
+{
+  "push_enabled": true,
+  "email_enabled": false,
+  "sms_enabled": false,
+  "job_reminders": true,
+  "payment_alerts": true,
+  "marketing": false
+}
+```
+
+#### 3.3 Backend Push Service
+Implémenter un service pour envoyer les notifications via :
+- **Expo Push API** (recommandé pour Expo) : `https://exp.host/--/api/v2/push/send`
+- Ou Firebase Cloud Messaging (FCM) / Apple Push Notification Service (APNs)
+
+**Payload Notification :**
+```json
+{
+  "to": "ExponentPushToken[xxx]",
+  "title": "Nouveau job assigné",
+  "body": "Job #LM0012345 - Déménagement Sydney",
+  "data": {
+    "type": "new_job",
+    "job_id": "job_123",
+    "screen": "JobDetails"
+  }
+}
+```
+
+### Types de Notifications à Implémenter
+| Type | Trigger | Titre | Priorité |
+|------|---------|-------|----------|
+| `new_job` | Job assigné au user | "Nouveau job assigné" | Haute |
+| `job_reminder` | 1h avant job | "Rappel : Job dans 1h" | Haute |
+| `job_updated` | Modification job | "Job mis à jour" | Moyenne |
+| `payment_received` | Paiement reçu | "Paiement reçu" | Moyenne |
+| `invoice_due` | Facture bientôt due | "Facture à payer" | Haute |
+
+---
+
+## 4. 👥 Gestion des Équipes (STAFF-02)
+
+### Description
+CRUD complet pour créer et gérer des équipes de personnel.
+
+### Frontend Status : 🟡 EN ATTENTE
+- Écran `TeamsScreen.tsx` à créer une fois API disponible
+
+### Endpoints Requis
+
+#### 4.1 Liste des Équipes
+```
+GET /v1/company/{company_id}/teams
+```
+
+**Response :**
+```json
+{
+  "success": true,
+  "teams": [
+    {
+      "id": "team_001",
+      "name": "Équipe Sydney Nord",
+      "description": "Déménagements zone nord Sydney",
+      "leader_id": "staff_001",
+      "leader": {
+        "id": "staff_001",
+        "firstName": "John",
+        "lastName": "Smith"
+      },
+      "members": [
+        {
+          "id": "staff_002",
+          "firstName": "Sarah",
+          "lastName": "Johnson",
+          "role": "mover"
+        }
+      ],
+      "member_count": 5,
+      "created_at": "2025-01-01T00:00:00Z"
+    }
+  ]
+}
+```
+
+#### 4.2 Créer une Équipe
+```
+POST /v1/company/{company_id}/teams
+```
+
+**Body :**
+```json
+{
+  "name": "Équipe Melbourne",
+  "description": "Équipe pour zone Melbourne",
+  "leader_id": "staff_001",
+  "member_ids": ["staff_002", "staff_003", "staff_004"]
+}
+```
+
+#### 4.3 Modifier une Équipe
+```
+PUT /v1/company/{company_id}/teams/{team_id}
+```
+
+**Body :**
+```json
+{
+  "name": "Équipe Melbourne CBD",
+  "description": "Description mise à jour",
+  "leader_id": "staff_002",
+  "member_ids": ["staff_001", "staff_003", "staff_005"]
+}
+```
+
+#### 4.4 Supprimer une Équipe
+```
+DELETE /v1/company/{company_id}/teams/{team_id}
+```
+
+#### 4.5 Assigner Équipe à un Job
+```
+PATCH /v1/jobs/{job_id}
+```
+
+**Body :**
+```json
+{
+  "assigned_team_id": "team_001"
+}
+```
+
+### Schéma Base de Données Suggéré
+
+```sql
+CREATE TABLE teams (
+  id VARCHAR(36) PRIMARY KEY,
+  company_id VARCHAR(36) NOT NULL,
+  name VARCHAR(100) NOT NULL,
+  description TEXT,
+  leader_id VARCHAR(36),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (company_id) REFERENCES companies(id),
+  FOREIGN KEY (leader_id) REFERENCES staff(id)
+);
+
+CREATE TABLE team_members (
+  team_id VARCHAR(36) NOT NULL,
+  staff_id VARCHAR(36) NOT NULL,
+  role VARCHAR(50) DEFAULT 'member',
+  joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (team_id, staff_id),
+  FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE,
+  FOREIGN KEY (staff_id) REFERENCES staff(id)
+);
+```
+
+---
+
+## 5. 🔐 Rôles et Permissions (STAFF-03)
+
+### Description
+Système de contrôle d'accès basé sur les rôles (RBAC).
+
+### Frontend Status : 🟡 EN ATTENTE
+- UI de gestion des rôles à créer
+
+### Rôles Suggérés
+
+| Rôle | Description | Permissions |
+|------|-------------|-------------|
+| `owner` | Propriétaire entreprise | Toutes |
+| `admin` | Administrateur | Tout sauf suppression entreprise |
+| `manager` | Manager | CRUD jobs, staff, véhicules |
+| `supervisor` | Superviseur | Voir/modifier jobs assignés |
+| `mover` | Déménageur | Voir jobs assignés, mettre à jour statut |
+| `viewer` | Lecture seule | Voir uniquement |
+
+### Endpoints Requis
+
+#### 5.1 Liste des Rôles
+```
+GET /v1/company/{company_id}/roles
+```
+
+**Response :**
+```json
+{
+  "success": true,
+  "roles": [
+    {
+      "id": "role_admin",
+      "name": "admin",
+      "display_name": "Administrator",
+      "permissions": ["jobs.read", "jobs.write", "jobs.delete", "staff.read", "staff.write"]
+    }
+  ]
+}
+```
+
+#### 5.2 Assigner Rôle à un Staff
+```
+PATCH /v1/staff/{staff_id}/role
+```
+
+**Body :**
+```json
+{
+  "role_id": "role_manager"
+}
+```
+
+#### 5.3 Vérifier Permissions (Middleware)
+Chaque endpoint devrait vérifier les permissions :
+```
+GET /v1/users/me/permissions
+```
+
+**Response :**
+```json
+{
+  "success": true,
+  "permissions": [
+    "jobs.read",
+    "jobs.write",
+    "staff.read",
+    "vehicles.read",
+    "vehicles.write"
+  ]
+}
+```
+
+### Matrice de Permissions
+
+| Permission | Owner | Admin | Manager | Supervisor | Mover |
+|------------|-------|-------|---------|------------|-------|
+| jobs.read | ✅ | ✅ | ✅ | ✅ (assignés) | ✅ (assignés) |
+| jobs.write | ✅ | ✅ | ✅ | ✅ (assignés) | ❌ |
+| jobs.delete | ✅ | ✅ | ❌ | ❌ | ❌ |
+| staff.read | ✅ | ✅ | ✅ | ✅ | ❌ |
+| staff.write | ✅ | ✅ | ❌ | ❌ | ❌ |
+| vehicles.read | ✅ | ✅ | ✅ | ✅ | ❌ |
+| vehicles.write | ✅ | ✅ | ✅ | ❌ | ❌ |
+| payments.read | ✅ | ✅ | ✅ | ❌ | ❌ |
+| payments.write | ✅ | ✅ | ❌ | ❌ | ❌ |
+| settings.read | ✅ | ✅ | ✅ | ❌ | ❌ |
+| settings.write | ✅ | ✅ | ❌ | ❌ | ❌ |
+
+---
+
+## 6. 📊 Endpoints Existants - Statut de Vérification
+
+### ✅ Endpoints FONCTIONNELS (confirmés)
+
+| Endpoint | Méthode | Status | Utilisé par |
+|----------|---------|--------|-------------|
+| `/v1/job/{id}/image` | POST | ✅ Fonctionne | jobPhotos.ts |
+| `/v1/jobs` | GET | ✅ Fonctionne | jobs.ts |
+| `/v1/jobs/{id}` | GET/PATCH | ✅ Fonctionne | jobs.ts |
+| `/v1/api/staff` | GET | ✅ Fonctionne | staffService.ts |
+| `/v1/company/{id}/trucks` | GET/POST | ✅ Fonctionne | vehiclesService.ts |
+
+### ⚠️ Endpoints à VÉRIFIER
+
+| Endpoint | Champ | Question |
+|----------|-------|----------|
+| `PATCH /v1/jobs/{id}` | `assigned_staff_id` | Accepté dans le body ? |
+| `GET /v1/jobs/{id}` | `assigned_staff` | Retourné avec le job ? |
+| `/v1/company/{id}/trucks/{id}/image` | - | Existe-t-il ? |
+
+### 🔴 Endpoints à CRÉER
+
+| Endpoint | Description | Priorité |
+|----------|-------------|----------|
+| `POST /v1/users/push-token` | Enregistrer token push | Haute |
+| `GET/POST/PUT/DELETE /v1/company/{id}/teams` | CRUD équipes | Moyenne |
+| `GET /v1/company/{id}/roles` | Liste rôles | Basse |
+
+### Référence des Services Frontend
+
+```
+src/services/jobPhotos.ts      → Upload photos jobs
+src/services/jobs.ts           → CRUD jobs
+src/services/staff/staffService.ts → Gestion staff
+src/services/business/vehiclesService.ts → Gestion véhicules
+src/services/StripeService.ts  → Intégration Stripe
+```
+
+---
+
+## 7. 🗓️ Priorités Recommandées
+
+### 🟢 Sprint Immédiat (Quelques heures)
+**Vérifications simples :**
+1. ✅ **Vérifier `assigned_staff_id`** dans PATCH /jobs - Peut-être déjà supporté
+2. ✅ **Créer endpoint image véhicule** - Copier pattern de /job/{id}/image
+
+### 🟡 Sprint Court (1-2 semaines)
+3. 🔔 **Push Notifications** - Impact utilisateur élevé, service Expo Push simple
+
+### 🟠 Sprint Moyen (2-4 semaines)  
+4. 👥 **Gestion Équipes** - CRUD complet, tables DB à créer
+
+### 🔴 Long Terme (1-2 mois)
+5. 🔐 **Rôles & Permissions** - RBAC complet, middleware à implémenter
+
+---
+
+## 8. 📞 Contact & Questions
+
+Pour toute question sur l'intégration frontend :
+- Les fichiers frontend sont dans `src/services/` et `src/hooks/`
+- Les types TypeScript sont dans `src/types/`
+- Tester avec l'app Expo sur device réel recommandé
+
+**Points d'attention :**
+- Toujours retourner `{ success: true/false }` dans les réponses
+- Inclure des messages d'erreur explicites
+- Supporter la pagination pour les listes (page, per_page)
+- Retourner les objets imbriqués (ex: staff assigné dans job)
+
+---
+
+*Document généré automatiquement - Swift App Frontend Team*
