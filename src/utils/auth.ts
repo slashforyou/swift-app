@@ -23,7 +23,7 @@ export async function login(mail: string, password: string) {
 
   if (!res.ok) {
     const e = await res.json().catch(() => ({}));
-    console.error('Login API Error:', e);
+    // Silencieux - les erreurs de login sont gérées par l'UI
     
     let errorMessage = "login_failed";
     if (res.status === 400) {
@@ -61,7 +61,7 @@ export async function getAuthHeaders(): Promise<Record<string, string>> {
     // TEMP_DISABLED: console.log('🔐 Token preview:', st.substring(0, 20) + '...');
     return { Authorization: `Bearer ${st}` };
   } else {
-    console.warn('⚠️ No session token found in SecureStore');
+    // Silencieux - pas de session est un état normal (non connecté)
     return {};
   }
 }

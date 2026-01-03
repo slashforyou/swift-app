@@ -73,9 +73,11 @@ export default function CreateJobModal({
 
   // Filter clients based on search
   const filteredClients = useMemo(() => {
-    if (!searchQuery) return clients
+    // Sécurité : s'assurer que clients est un tableau
+    const clientList = Array.isArray(clients) ? clients : [];
+    if (!searchQuery) return clientList;
     const query = searchQuery.toLowerCase()
-    return clients.filter(client => 
+    return clientList.filter(client => 
       client.firstName.toLowerCase().includes(query) ||
       client.lastName.toLowerCase().includes(query) ||
       client.email.toLowerCase().includes(query) ||

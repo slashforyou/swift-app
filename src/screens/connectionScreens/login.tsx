@@ -88,8 +88,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             }, 1500);
             
         } catch (error: any) {
-
-            console.error('Login error:', error);
+            // Silencieux - l'erreur est affichée via showAlert à l'utilisateur
             
             // Messages d'erreur personnalisés basés sur les nouveaux codes
             let errorMessage = t('auth.errors.generic');

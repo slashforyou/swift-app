@@ -84,6 +84,9 @@ export const frTranslations: TranslationKeys = {
 
     jobs: {
         title: 'Travaux',
+        createNewJob: 'Créer un nouveau travail',
+        selectClient: 'Sélectionner un client',
+        selectClientDescription: 'Choisissez un client pour ce travail',
         status: {
             pending: 'En attente',
             inProgress: 'En cours',

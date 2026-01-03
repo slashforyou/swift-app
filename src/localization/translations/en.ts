@@ -84,6 +84,9 @@ export const enTranslations: TranslationKeys = {
 
     jobs: {
         title: 'Jobs',
+        createNewJob: 'Create New Job',
+        selectClient: 'Select Client',
+        selectClientDescription: 'Choose a client for this job',
         status: {
             pending: 'Pending',
             inProgress: 'In Progress',
