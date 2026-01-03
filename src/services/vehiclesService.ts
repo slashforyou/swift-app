@@ -20,7 +20,7 @@ export {
 // Re-export business vehicle types for convenience
 export {
     createBusinessVehicle, createMultipleVehicles, deleteBusinessVehicle, fetchBusinessVehicles,
-    fetchVehicleDetails, updateBusinessVehicle, type BusinessVehicle,
+    fetchVehicleDetails, updateBusinessVehicle, uploadVehiclePhoto, type BusinessVehicle,
     type VehicleCreateData as BusinessVehicleCreateData
 } from './business/vehiclesService';
 

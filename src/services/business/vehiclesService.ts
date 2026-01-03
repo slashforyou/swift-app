@@ -138,7 +138,8 @@ export const fetchBusinessVehicles = async (companyId: string): Promise<Business
     }
 
     return data.trucks || mockVehicles.map(v => ({ ...v, company_id: companyId }));
-  } catch (error) {
+  } catch (error) {
+
     console.error('Error fetching business vehicles:', error);
     console.warn('Using mock business vehicles as fallback');
     return mockVehicles.map(v => ({ ...v, company_id: companyId }));
@@ -165,7 +166,8 @@ export const fetchVehicleDetails = async (companyId: string, vehicleId: string):
     }
 
     return data.truck;
-  } catch (error) {
+  } catch (error) {
+
     console.error('Error fetching vehicle details:', error);
     throw new Error('Failed to fetch vehicle details');
   }
@@ -217,7 +219,8 @@ export const createBusinessVehicle = async (
     }
 
     return data.truck;
-  } catch (error) {
+  } catch (error) {
+
     console.error('Error creating vehicle:', error);
     console.warn('Creating mock vehicle as fallback');
     const mockVehicle: BusinessVehicle = {
@@ -260,7 +263,8 @@ export const updateBusinessVehicle = async (
     }
 
     return data.truck;
-  } catch (error) {
+  } catch (error) {
+
     console.error('Error updating vehicle:', error);
     throw new Error('Failed to update vehicle');
   }
@@ -284,7 +288,8 @@ export const deleteBusinessVehicle = async (companyId: string, vehicleId: string
     if (!data.success) {
       throw new Error('API returned success: false');
     }
-  } catch (error) {
+  } catch (error) {
+
     console.error('Error deleting vehicle:', error);
     throw new Error('Failed to delete vehicle');
   }
@@ -317,8 +322,68 @@ export const createMultipleVehicles = async (
     }
 
     return data.trucks || [];
-  } catch (error) {
+  } catch (error) {
+
     console.error('Error creating multiple vehicles:', error);
     throw new Error('Failed to create multiple vehicles');
+  }
+};
+
+/**
+ * Upload une photo pour un véhicule
+ * VEH-03: Interface photo véhicule
+ */
+export const uploadVehiclePhoto = async (
+  companyId: string,
+  vehicleId: string,
+  photoUri: string
+): Promise<{ success: boolean; photoUrl?: string }> => {
+  try {
+    console.log(`📸 [vehiclesService] Uploading photo for vehicle ${vehicleId}...`);
+
+    // Créer FormData pour l'upload
+    const formData = new FormData();
+    
+    // Extraire le nom de fichier depuis l'URI
+    const filename = photoUri.split('/').pop() || 'vehicle_photo.jpg';
+    const match = /\.(\w+)$/.exec(filename);
+    const type = match ? `image/${match[1]}` : 'image/jpeg';
+
+    formData.append('photo', {
+      uri: photoUri,
+      name: filename,
+      type: type,
+    } as any);
+
+    const response = await fetchWithAuth(
+      `${ServerData.serverUrl}v1/company/${companyId}/trucks/${vehicleId}/photo`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        body: formData,
+      }
+    );
+
+    if (!response.ok) {
+      // Si endpoint non disponible, retourner erreur explicite
+      if (response.status === 404) {
+        console.warn('⚠️ [vehiclesService] Photo upload endpoint not available (404)');
+        throw new Error('Photo upload endpoint not available. Backend implementation required.');
+      }
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log(`✅ [vehiclesService] Photo uploaded successfully`);
+
+    return {
+      success: true,
+      photoUrl: data.photo_url || data.url,
+    };
+  } catch (error) {
+    console.error('❌ [vehiclesService] Error uploading vehicle photo:', error);
+    throw error;
   }
 };

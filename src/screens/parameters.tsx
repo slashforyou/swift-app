@@ -170,7 +170,7 @@ const SettingItem: React.FC<SettingItemProps> = ({
 
 const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
     const insets = useSafeAreaInsets();
-    const { colors } = useTheme();
+    const { colors, isDark, toggleTheme } = useTheme();
     const { t } = useTranslation();
     const { isLoading, LoadingComponent } = useAuthCheck(navigation);
     const [settings, setSettings] = useState<AppSettings>({
@@ -181,7 +181,7 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
             taskReminders: true,
         },
         preferences: {
-            darkMode: false,
+            darkMode: isDark, // SETTINGS-03: Sync with actual theme
             autoSync: true,
             offlineMode: false,
             soundEnabled: true,
@@ -203,6 +203,11 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
                 [key]: value
             }
         }));
+        
+        // SETTINGS-03: Handle dark mode toggle via ThemeProvider
+        if (key === 'darkMode') {
+            toggleTheme();
+        }
         
         // Show feedback for important changes
         if (key === 'biometricAuth' && value) {
@@ -442,6 +447,102 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
 
                     {/* Account Section with Logout */}
                     <SettingSection colors={colors} title={t('settings.sections.account')} icon="person-outline">
+                        {/* SETTINGS-05: Business Info Link */}
+                        <Pressable
+                            onPress={() => navigation?.navigate('BusinessInfo')}
+                            style={({ pressed }) => ({
+                                backgroundColor: pressed ? colors.backgroundTertiary : 'transparent',
+                                borderRadius: DESIGN_TOKENS.radius.md,
+                                paddingVertical: DESIGN_TOKENS.spacing.md,
+                                paddingHorizontal: DESIGN_TOKENS.spacing.sm,
+                            })}
+                        >
+                            <HStack gap={DESIGN_TOKENS.spacing.md} align="center">
+                                <View style={{
+                                    width: 40,
+                                    height: 40,
+                                    borderRadius: 20,
+                                    backgroundColor: `${colors.primary}15`,
+                                    justifyContent: 'center',
+                                    alignItems: 'center'
+                                }}>
+                                    <Ionicons 
+                                        name="business-outline" 
+                                        size={22} 
+                                        color={colors.primary} 
+                                    />
+                                </View>
+                                <VStack gap={2} style={{ flex: 1 }}>
+                                    <Text style={{
+                                        fontSize: DESIGN_TOKENS.typography.body.fontSize,
+                                        fontWeight: '600',
+                                        color: colors.text
+                                    }}>
+                                        {t('settings.items.businessInfo') || 'Business Information'}
+                                    </Text>
+                                    <Text style={{
+                                        fontSize: DESIGN_TOKENS.typography.caption.fontSize,
+                                        color: colors.textSecondary
+                                    }}>
+                                        {t('settings.items.businessInfoDescription') || 'Manage your company details'}
+                                    </Text>
+                                </VStack>
+                                <Ionicons 
+                                    name="chevron-forward" 
+                                    size={20} 
+                                    color={colors.textSecondary} 
+                                />
+                            </HStack>
+                        </Pressable>
+
+                        {/* Stripe Settings Link */}
+                        <Pressable
+                            onPress={() => navigation?.navigate('StripeHub')}
+                            style={({ pressed }) => ({
+                                backgroundColor: pressed ? colors.backgroundTertiary : 'transparent',
+                                borderRadius: DESIGN_TOKENS.radius.md,
+                                paddingVertical: DESIGN_TOKENS.spacing.md,
+                                paddingHorizontal: DESIGN_TOKENS.spacing.sm,
+                            })}
+                        >
+                            <HStack gap={DESIGN_TOKENS.spacing.md} align="center">
+                                <View style={{
+                                    width: 40,
+                                    height: 40,
+                                    borderRadius: 20,
+                                    backgroundColor: `${colors.info}15`,
+                                    justifyContent: 'center',
+                                    alignItems: 'center'
+                                }}>
+                                    <Ionicons 
+                                        name="card-outline" 
+                                        size={22} 
+                                        color={colors.info} 
+                                    />
+                                </View>
+                                <VStack gap={2} style={{ flex: 1 }}>
+                                    <Text style={{
+                                        fontSize: DESIGN_TOKENS.typography.body.fontSize,
+                                        fontWeight: '600',
+                                        color: colors.text
+                                    }}>
+                                        {t('settings.items.paymentSettings') || 'Payment Settings'}
+                                    </Text>
+                                    <Text style={{
+                                        fontSize: DESIGN_TOKENS.typography.caption.fontSize,
+                                        color: colors.textSecondary
+                                    }}>
+                                        {t('settings.items.paymentSettingsDescription') || 'Stripe connection and payment options'}
+                                    </Text>
+                                </VStack>
+                                <Ionicons 
+                                    name="chevron-forward" 
+                                    size={20} 
+                                    color={colors.textSecondary} 
+                                />
+                            </HStack>
+                        </Pressable>
+
                         <Pressable
                             onPress={handleLogout}
                             style={({ pressed }) => ({

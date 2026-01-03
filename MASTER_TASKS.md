@@ -182,12 +182,13 @@
   - **Impact :** Fonctionnalité cassée
 
 ### Interface Prise Photo Véhicule Manquante 🔴
-- [ ] **VEH-03** : Aucune interface pour prendre une photo du véhicule
+- [x] **VEH-03** : Aucune interface pour prendre une photo du véhicule ✅ RÉSOLU
   - **Fichier :** `src/screens/business/VehicleDetailsScreen.tsx`
   - **Action :** Ajouter bouton photo + PhotoSelectionModal + upload
   - **Endpoint :** `POST /vehicles/{id}/photo` (à créer)
   - **Complexité :** Moyenne (4-5h)
   - **Impact :** Fonctionnalité manquante
+  - **Solution :** Créé VehiclePhotoModal.tsx, ajouté uploadVehiclePhoto au service, bouton Photo dans Quick Actions
 
 ### Données Véhicules en Mock 🟠
 - [x] **VEH-04** : Valider que les véhicules fonctionnent en données réelles
@@ -256,32 +257,35 @@
   - **Impact :** Fonctionnalité cassée
 
 ### Système de Notifications Inactif 🔴
-- [ ] **SETTINGS-02** : Les notifications push ne fonctionnent pas
+- [ ] **SETTINGS-02** : Les notifications push ne fonctionnent pas (PHASE 2 - BACKEND REQUIS)
   - **Fichier :** `src/services/notificationService.ts` (à créer si n'existe pas)
   - **Action :** Implémenter expo-notifications + backend push
   - **Complexité :** Haute (8-12h)
   - **Impact :** Fonctionnalité Phase 2 mais attendue
 
 ### Thème Clair/Sombre via Système uniquement 🟠
-- [ ] **SETTINGS-03** : Pas de toggle manuel pour le thème
+- [x] **SETTINGS-03** : Pas de toggle manuel pour le thème ✅ RÉSOLU
   - **Fichier :** `src/screens/parameters.tsx`
   - **Action :** Ajouter toggle Dark/Light/System
   - **Complexité :** Faible (2-3h)
   - **Impact :** Amélioration UX
+  - **Solution :** Toggle darkMode connecté à toggleTheme() du ThemeProvider, isDark synchronisé
 
 ### Paramètres de Paiement Inexistants 🟠
-- [ ] **SETTINGS-04** : Pas d'écran pour gérer les paramètres de paiement
+- [x] **SETTINGS-04** : Pas d'écran pour gérer les paramètres de paiement ✅ RÉSOLU
   - **Fichier :** Créer ou améliorer `src/screens/payments/StripeSettingsScreen.tsx`
   - **Action :** Interface pour paramètres Stripe (devises, notifications, etc.)
   - **Complexité :** Moyenne (4-6h)
   - **Impact :** Amélioration UX
+  - **Solution :** Lien vers StripeHub ajouté dans la section Account des paramètres
 
 ### Infos Entreprise mal placées 🟡
-- [ ] **SETTINGS-05** : Les infos entreprise ne sont pas dans les paramètres
+- [x] **SETTINGS-05** : Les infos entreprise ne sont pas dans les paramètres ✅ RÉSOLU
   - **Fichier :** `src/screens/parameters.tsx`
   - **Action :** Ajouter lien vers Business Info dans paramètres
   - **Complexité :** Faible (1h)
   - **Impact :** Navigation améliorée
+  - **Solution :** Lien vers BusinessInfo ajouté dans la section Account des paramètres
 
 ---
 

@@ -14,11 +14,12 @@ import {
     View,
 } from 'react-native'
 import EditVehicleModal, { VehicleEditData } from '../../components/modals/EditVehicleModal'
+import VehiclePhotoModal from '../../components/modals/VehiclePhotoModal'
 import { DESIGN_TOKENS } from '../../constants/Styles'
 import { useTheme } from '../../context/ThemeProvider'
 import { useVehicleDetails } from '../../hooks/useVehicles'
 import { useTranslation } from '../../localization/useLocalization'
-import { VehicleAPI } from '../../services/vehiclesService'
+import { uploadVehiclePhoto, VehicleAPI } from '../../services/vehiclesService'
 
 // =====================================
 // HELPER FUNCTIONS - Type Mapping
@@ -110,6 +111,7 @@ export default function VehicleDetailsScreen({
   const { colors } = useTheme()
   const { t } = useTranslation()
   const [isEditModalVisible, setIsEditModalVisible] = useState(false)
+  const [isPhotoModalVisible, setIsPhotoModalVisible] = useState(false)
 
   // Use hook if vehicleId is provided
   const {
@@ -293,6 +295,36 @@ export default function VehicleDetailsScreen({
 
   const handleAssignStaff = () => {
     Alert.alert(t('vehicles.assignStaff'), t('vehicles.featureComingSoon'))
+  }
+
+  // VEH-03: Handle vehicle photo
+  const handleTakePhoto = () => {
+    setIsPhotoModalVisible(true)
+  }
+
+  const handlePhotoSelected = async (photoUri: string) => {
+    if (!vehicle || !vehicleId) return
+
+    try {
+      // Upload the photo to the server
+      await uploadVehiclePhoto('swift-removals-001', vehicleId, photoUri)
+      Alert.alert(
+        t('common.success') || 'Success',
+        t('vehicles.photo.uploadSuccess') || 'Photo uploaded successfully'
+      )
+      await refetch() // Refresh to get updated photo URL
+    } catch (error: any) {
+      console.error('Error uploading photo:', error)
+      // Check if it's a 404 (endpoint not available)
+      if (error.message?.includes('404') || error.message?.includes('not available')) {
+        Alert.alert(
+          t('vehicles.photo.notAvailable') || 'Feature Not Available',
+          t('vehicles.photo.backendRequired') || 'Photo upload requires backend implementation.'
+        )
+      } else {
+        throw error // Re-throw to let modal handle it
+      }
+    }
   }
 
   // Loading state
@@ -512,6 +544,16 @@ export default function VehicleDetailsScreen({
 
             <Pressable
               style={[styles.actionCard, { backgroundColor: colors.backgroundSecondary }]}
+              onPress={handleTakePhoto}
+            >
+              <Ionicons name="camera-outline" size={24} color={colors.primary} />
+              <Text style={[styles.actionText, { color: colors.text }]}>
+                {t('vehicles.actions.photo') || 'Photo'}
+              </Text>
+            </Pressable>
+
+            <Pressable
+              style={[styles.actionCard, { backgroundColor: colors.backgroundSecondary }]}
               onPress={handleChangeStatus}
             >
               <Ionicons name="swap-horizontal-outline" size={24} color={colors.primary} />
@@ -610,6 +652,15 @@ export default function VehicleDetailsScreen({
         }
         onClose={() => setIsEditModalVisible(false)}
         onUpdateVehicle={handleUpdateVehicle}
+      />
+
+      {/* VEH-03: Photo Modal */}
+      <VehiclePhotoModal
+        visible={isPhotoModalVisible}
+        vehicleId={vehicleId || vehicle?.id || ''}
+        vehicleName={vehicle?.name || ''}
+        onPhotoSelected={handlePhotoSelected}
+        onClose={() => setIsPhotoModalVisible(false)}
       />
     </View>
   )
