@@ -454,7 +454,9 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
                     start_window_start: jobDetails.job?.start_window_start,
                     start_window_end: jobDetails.job?.start_window_end,
                     end_window_start: jobDetails.job?.end_window_start,
-                    end_window_end: jobDetails.job?.end_window_end
+                    end_window_end: jobDetails.job?.end_window_end,
+                    // Crew assigné au job
+                    crew: jobDetails.crew || [],
                 };
             });
             // TEMP_DISABLED: console.log('✅ [JobDetails] Local job data updated with API data');

@@ -793,6 +793,109 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
                 {/* Photos Section */}
                 <JobPhotosSection jobId={numericJobId} />
 
+                {/* Crew Section - Staff assigné au job */}
+                {job.crew && job.crew.length > 0 && (
+                    <Card style={{ padding: DESIGN_TOKENS.spacing.lg }}>
+                        <VStack gap="sm">
+                            <SectionHeader 
+                                icon="people-outline" 
+                                title={t('jobDetails.job.crewAssigned') || 'Crew Assigned'} 
+                                badge={`${job.crew.length}`}
+                            />
+                            
+                            {job.crew.map((member: any, index: number) => (
+                                <View 
+                                    key={member.id || index}
+                                    style={{
+                                        flexDirection: 'row',
+                                        alignItems: 'center',
+                                        paddingVertical: DESIGN_TOKENS.spacing.sm,
+                                        borderBottomWidth: index < job.crew.length - 1 ? 1 : 0,
+                                        borderBottomColor: colors.border,
+                                    }}
+                                >
+                                    {/* Avatar */}
+                                    <View style={{
+                                        width: 40,
+                                        height: 40,
+                                        borderRadius: 20,
+                                        backgroundColor: colors.primary + '20',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        marginRight: DESIGN_TOKENS.spacing.sm,
+                                    }}>
+                                        <Text style={{
+                                            fontSize: 14,
+                                            fontWeight: '600',
+                                            color: colors.primary,
+                                        }}>
+                                            {(member.firstName?.[0] || '?')}{(member.lastName?.[0] || '')}
+                                        </Text>
+                                    </View>
+                                    
+                                    {/* Info */}
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={{
+                                            fontSize: 15,
+                                            fontWeight: '600',
+                                            color: colors.text,
+                                        }}>
+                                            {member.firstName} {member.lastName}
+                                        </Text>
+                                        <Text style={{
+                                            fontSize: 13,
+                                            color: colors.textSecondary,
+                                        }}>
+                                            {member.role || t('jobDetails.job.teamMember') || 'Team Member'}
+                                        </Text>
+                                    </View>
+                                    
+                                    {/* Status badge */}
+                                    {member.status && (
+                                        <View style={{
+                                            paddingHorizontal: DESIGN_TOKENS.spacing.sm,
+                                            paddingVertical: 4,
+                                            borderRadius: DESIGN_TOKENS.radius.sm,
+                                            backgroundColor: member.status === 'confirmed' ? colors.success + '20' : 
+                                                           member.status === 'on-site' ? colors.primary + '20' : 
+                                                           colors.warning + '20',
+                                        }}>
+                                            <Text style={{
+                                                fontSize: 11,
+                                                fontWeight: '600',
+                                                color: member.status === 'confirmed' ? colors.success : 
+                                                       member.status === 'on-site' ? colors.primary : 
+                                                       colors.warning,
+                                                textTransform: 'capitalize',
+                                            }}>
+                                                {member.status}
+                                            </Text>
+                                        </View>
+                                    )}
+                                    
+                                    {/* Call button */}
+                                    {member.phone && (
+                                        <Pressable
+                                            onPress={() => contactLink.openPhone(member.phone)}
+                                            style={{
+                                                width: 36,
+                                                height: 36,
+                                                borderRadius: 18,
+                                                backgroundColor: colors.success + '15',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                marginLeft: DESIGN_TOKENS.spacing.xs,
+                                            }}
+                                        >
+                                            <Ionicons name="call" size={18} color={colors.success} />
+                                        </Pressable>
+                                    )}
+                                </View>
+                            ))}
+                        </VStack>
+                    </Card>
+                )}
+
                 {/* Job Information */}
                 <Card style={{ padding: DESIGN_TOKENS.spacing.lg }}>
                     <VStack gap="sm">
