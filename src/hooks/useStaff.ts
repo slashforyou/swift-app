@@ -118,18 +118,9 @@ export const useStaff = (): UseStaffResult => {
       }
 
     } catch (err) {
-      // Fallback silencieux vers les mocks si l'API n'est pas disponible
-      if (!USE_MOCK_DATA) {
-        try {
-          setStaff(mockStaff);
-          // Note: Ne pas afficher d'erreur, le fallback est normal
-          return;
-        } catch (mockError) {
-          // Ignore
-        }
-      }
-      
-      setError(err instanceof Error ? err.message : 'Erreur lors du chargement du personnel');
+      // API non disponible - retourner liste vide (l'UI affichera l'état vide)
+      setStaff([]);
+      // Pas d'erreur affichée, l'état vide sera géré par l'UI avec un message approprié
     } finally {
       setIsLoading(false);
     }
