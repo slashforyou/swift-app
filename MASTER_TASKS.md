@@ -1,4 +1,4 @@
-# 📋 MASTER TASKS - Swift App
+﻿# 📋 MASTER TASKS - Swift App
 
 > **Fichier consolidé de toutes les tâches du projet**  
 > **Dernière mise à jour :** 2 Janvier 2026  
@@ -22,7 +22,7 @@
 
 | Catégorie | Terminé | En Attente | Total |
 |-----------|---------|------------|-------|
-| �?? **BUGS CRITIQUES** | **2** | **25** | **27** |
+| ��?? **BUGS CRITIQUES** | **2** | **25** | **27** |
 | �🚀 Phase 1 - Production Ready | **51+** | 0 | 51+ |
 | 🎯 Phase 2 - Growth | 5 | 14 | 19 |
 | 🌍 Phase 3 - Expansion | 0 | 12 | 12 |
@@ -129,15 +129,16 @@
 ## 👥 3. GESTION DU PERSONNEL (4 problèmes)
 
 ### Assignation Employé à Job Impossible 🔴
-- [ ] **STAFF-01** : Implémenter l'assignation d'un employé à un job
+- [x] **STAFF-01** : Implémenter l'assignation d'un employé à un job ✅ RÉSOLU
   - **Fichier :** `src/screens/JobDetailsScreens/jobDetails.tsx` ou création modal
   - **Action :** Dropdown/modal pour sélectionner un employé existant
   - **Endpoint :** `PUT /jobs/{id}/assign` ou `PATCH /jobs/{id}` (à vérifier)
   - **Complexité :** Moyenne (4-5h)
   - **Impact :** Fonctionnalité CORE manquante pour équipes
+  - **Solution :** Créé AssignStaffModal.tsx, ajouté assigned_staff_id à jobs.ts, intégré dans JobDetailsHeader et jobDetails.tsx
 
 ### Gestion des Équipes Inexistante 🟠
-- [ ] **STAFF-02** : Créer le système de gestion des équipes
+- [ ] **STAFF-02** : Créer le système de gestion des équipes (PHASE 2 - BACKEND REQUIS)
   - **Fichier :** Nouveau écran `src/screens/TeamsScreen.tsx`
   - **Action :** CRUD équipes (créer, modifier, supprimer, assigner membres)
   - **Endpoint :** `GET/POST/PUT/DELETE /teams` (à créer backend)
@@ -145,7 +146,7 @@
   - **Impact :** Fonctionnalité Phase 2
 
 ### Système de Rôles/Permissions Inexistant 🟠
-- [ ] **STAFF-03** : Implémenter le système de rôles et permissions
+- [ ] **STAFF-03** : Implémenter le système de rôles et permissions (PHASE 2 - BACKEND REQUIS)
   - **Fichier :** `src/services/staffService.ts`, `src/types/staff.ts`
   - **Action :** Définir rôles (Admin, Manager, Tech, Viewer) + UI
   - **Endpoint :** Backend + Frontend
@@ -153,11 +154,12 @@
   - **Impact :** Fonctionnalité Phase 2 - Enterprise
 
 ### Vérification Serveur Staff (Mock actif) 🟠
-- [ ] **STAFF-04** : Valider que les opérations Staff fonctionnent en données réelles
+- [x] **STAFF-04** : Valider que les opérations Staff fonctionnent en données réelles ✅ RÉSOLU
   - **Fichier :** `src/hooks/useStaff.ts`
   - **Action :** Tester sans mock, corriger si erreurs
   - **Complexité :** Faible (2-3h)
   - **Impact :** Validation production
+  - **Solution :** USE_MOCK_DATA passé de __DEV__ à false, staffService utilise déjà les vraies APIs
 
 ---
 

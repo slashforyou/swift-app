@@ -3,26 +3,26 @@
  * Permet de créer un job avec client, adresse, date/heure, et notes
  */
 import { Ionicons } from '@expo/vector-icons'
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import {
-  ActivityIndicator,
-  Alert,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
+    ActivityIndicator,
+    Alert,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    View,
 } from 'react-native'
 import { DESIGN_TOKENS } from '../../constants/Styles'
 import { useTheme } from '../../context/ThemeProvider'
-import { useTranslation } from '../../localization'
 import { useClients } from '../../hooks/useClients'
-import { CreateJobRequest } from '../../services/jobs'
+import { useTranslation } from '../../localization'
 import { ClientAPI } from '../../services/clients'
+import { CreateJobRequest } from '../../services/jobs'
 
 interface CreateJobModalProps {
   visible: boolean

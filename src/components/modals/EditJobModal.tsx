@@ -5,17 +5,17 @@
 import { Ionicons } from '@expo/vector-icons'
 import React, { useEffect, useState } from 'react'
 import {
-  ActivityIndicator,
-  Alert,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
+    ActivityIndicator,
+    Alert,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    View,
 } from 'react-native'
 import { DESIGN_TOKENS } from '../../constants/Styles'
 import { useTheme } from '../../context/ThemeProvider'

@@ -4,7 +4,6 @@ import JobBox from '@/src/components/calendar/modernJobBox';
 import Ionicons from '@react-native-vector-icons/ionicons';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
-    Alert,
     Pressable,
     RefreshControl,
     ScrollView,

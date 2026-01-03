@@ -3,7 +3,8 @@ import { staffService } from '../services/staff/staffService';
 import { Contractor, Employee, InviteEmployeeData, StaffFilters, StaffMember, UseStaffResult } from '../types/staff';
 
 // Configuration pour basculer entre mock et API
-const USE_MOCK_DATA = __DEV__; // En dev on peut utiliser les mocks en cas de problème API
+// ✅ STAFF-04: Désactivé les mocks, utilisation des données réelles
+const USE_MOCK_DATA = false;
 
 export const useStaff = (): UseStaffResult => {
   const [staff, setStaff] = useState<StaffMember[]>([]);

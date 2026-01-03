@@ -20,6 +20,8 @@ interface JobDetailsHeaderProps {
     showLanguageButton?: boolean;
     onEdit?: () => void;
     onDelete?: () => void;
+    onAssignStaff?: () => void;
+    assignedStaffName?: string;
 }
 
 const JobDetailsHeader: React.FC<JobDetailsHeaderProps> = ({ 
@@ -30,6 +32,8 @@ const JobDetailsHeader: React.FC<JobDetailsHeaderProps> = ({
     showLanguageButton = true,
     onEdit,
     onDelete,
+    onAssignStaff,
+    assignedStaffName,
 }) => {
     const insets = useSafeAreaInsets();
     const { colors } = useTheme();
@@ -178,7 +182,7 @@ const JobDetailsHeader: React.FC<JobDetailsHeaderProps> = ({
                                 flexDirection: 'row',
                                 alignItems: 'center',
                                 padding: DESIGN_TOKENS.spacing.md,
-                                borderBottomWidth: onDelete ? 1 : 0,
+                                borderBottomWidth: (onAssignStaff || onDelete) ? 1 : 0,
                                 borderBottomColor: colors.border,
                                 backgroundColor: pressed ? colors.backgroundSecondary : 'transparent',
                             })}
@@ -187,6 +191,34 @@ const JobDetailsHeader: React.FC<JobDetailsHeaderProps> = ({
                             <Text style={{ marginLeft: 12, color: colors.text, fontSize: 15 }}>
                                 Edit Job
                             </Text>
+                        </Pressable>
+                    )}
+                    {onAssignStaff && (
+                        <Pressable
+                            onPress={() => {
+                                setShowActionsMenu(false);
+                                onAssignStaff();
+                            }}
+                            style={({ pressed }) => ({
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                padding: DESIGN_TOKENS.spacing.md,
+                                borderBottomWidth: onDelete ? 1 : 0,
+                                borderBottomColor: colors.border,
+                                backgroundColor: pressed ? colors.backgroundSecondary : 'transparent',
+                            })}
+                        >
+                            <Ionicons name="person-add-outline" size={20} color={colors.primary} />
+                            <View style={{ marginLeft: 12, flex: 1 }}>
+                                <Text style={{ color: colors.text, fontSize: 15 }}>
+                                    {assignedStaffName ? 'Change Staff' : 'Assign Staff'}
+                                </Text>
+                                {assignedStaffName && (
+                                    <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 2 }}>
+                                        Current: {assignedStaffName}
+                                    </Text>
+                                )}
+                            </View>
                         </Pressable>
                     )}
                     {onDelete && (

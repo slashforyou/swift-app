@@ -1095,7 +1095,7 @@ export const confirmJobPayment = async (
 export const getJobPaymentHistory = async (
   jobId: string | number
 ): Promise<{
-  payments: Array<{
+  payments: {
     id: string;
     amount: number;
     currency: string;
@@ -1111,7 +1111,7 @@ export const getJobPaymentHistory = async (
       swiftapp_user_id: string;
       job_title?: string;
     };
-  }>;
+  }[];
   meta: {
     job_id: number;
     total_payments: number;
@@ -1265,7 +1265,7 @@ export const fetchStripeRefunds = async (
     };
   } = {}
 ): Promise<{
-  refunds: Array<{
+  refunds: {
     id: string;
     amount: number;
     currency: string;
@@ -1276,7 +1276,7 @@ export const fetchStripeRefunds = async (
     created: string;
     updated: string | null;
     metadata: Record<string, string>;
-  }>;
+  }[];
   meta: {
     total_count: number;
     has_more: boolean;
@@ -1491,12 +1491,12 @@ export const createStripeInvoice = async (
     customer_email: string;
     customer_name?: string;
     description?: string;
-    line_items: Array<{
+    line_items: {
       description: string;
       quantity: number;
       unit_amount: number; // En centimes
       currency?: string;
-    }>;
+    }[];
     due_date?: string; // ISO string
     metadata?: Record<string, string>;
     auto_advance?: boolean; // Auto-finaliser la facture
@@ -1588,7 +1588,7 @@ export const fetchStripeInvoices = async (
     };
   } = {}
 ): Promise<{
-  invoices: Array<{
+  invoices: {
     id: string;
     number: string;
     status: 'draft' | 'open' | 'paid' | 'void' | 'uncollectible';
@@ -1605,7 +1605,7 @@ export const fetchStripeInvoices = async (
     due_date: string | null;
     paid_at: string | null;
     metadata: Record<string, string>;
-  }>;
+  }[];
   meta: {
     total_count: number;
     has_more: boolean;
@@ -1894,7 +1894,7 @@ export const getStripeAnalytics = async (
     average_payment_amount: number;
     success_rate: number;
   };
-  period_data: Array<{
+  period_data: {
     date: string;
     revenue: number;
     fees: number;
@@ -1902,25 +1902,25 @@ export const getStripeAnalytics = async (
     payments_count: number;
     refunds_count: number;
     refund_amount: number;
-  }>;
-  top_customers: Array<{
+  }[];
+  top_customers: {
     customer_id: string;
     customer_email: string;
     total_spent: number;
     payments_count: number;
-  }>;
-  payment_methods: Array<{
+  }[];
+  payment_methods: {
     type: string;
     count: number;
     amount: number;
     percentage: number;
-  }>;
-  currency_breakdown: Array<{
+  }[];
+  currency_breakdown: {
     currency: string;
     amount: number;
     count: number;
     percentage: number;
-  }>;
+  }[];
   meta: {
     period: string;
     granularity: string;
@@ -2168,13 +2168,13 @@ export const getStripeRealtimeAnalytics = async (): Promise<{
     payments_change_pct: number;
     trend_direction: 'up' | 'down' | 'stable';
   };
-  recent_activity: Array<{
+  recent_activity: {
     type: 'payment' | 'refund' | 'invoice' | 'payout';
     amount: number;
     currency: string;
     description: string;
     timestamp: string;
-  }>;
+  }[];
   meta: {
     last_updated: string;
     timezone: string;

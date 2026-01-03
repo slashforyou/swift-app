@@ -18,8 +18,8 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 // Context
 import { DESIGN_TOKENS } from '../../constants/Styles'
 import { useTheme } from '../../context/ThemeProvider'
-import { useStripeConnection } from '../../hooks/useStripeConnection'
 import { useStripeAccount, useStripePayments, useStripePayouts } from '../../hooks/useStripe'
+import { useStripeConnection } from '../../hooks/useStripeConnection'
 import { useTranslation } from '../../localization'
 // Components
 import CreatePaymentLinkModal from '../../components/modals/CreatePaymentLinkModal'

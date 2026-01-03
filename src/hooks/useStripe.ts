@@ -60,12 +60,12 @@ export interface AccountInfo {
   default_currency: string;
   available_balance: number;
   pending_balance: number;
-  bank_accounts: Array<{
+  bank_accounts: {
     id: string;
     bank_name: string;
     last4: string;
     currency: string;
-  }>;
+  }[];
   requirements: {
     currently_due: string[];
     eventually_due: string[];

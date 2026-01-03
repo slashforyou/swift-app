@@ -6,6 +6,7 @@ import React, { useCallback, useRef, useState } from 'react';
 import { Alert, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import JobDetailsHeader from '../components/jobDetails/JobDetailsHeader';
+import AssignStaffModal from '../components/modals/AssignStaffModal';
 import EditJobModal from '../components/modals/EditJobModal';
 import TabMenu from '../components/ui/TabMenu';
 import Toast from '../components/ui/toastNotification';
@@ -223,6 +224,9 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
     // State for Edit Job Modal
     const [isEditModalVisible, setIsEditModalVisible] = useState(false);
     
+    // State for Assign Staff Modal
+    const [isAssignStaffModalVisible, setIsAssignStaffModalVisible] = useState(false);
+    
     // ✅ FIX BOUCLE INFINIE: Ref pour tracker si validation déjà effectuée
     const hasValidatedRef = useRef(false);
     
@@ -237,6 +241,24 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
         await updateJobAPI(actualJobId, updateData);
         await refreshJobDetails(); // Refresh after update
     }, [actualJobId, refreshJobDetails]);
+    
+    // Handle Assign Staff
+    const handleOpenAssignStaff = useCallback(() => {
+        setIsAssignStaffModalVisible(true);
+    }, []);
+    
+    const handleAssignStaff = useCallback(async (staffId: string) => {
+        if (!actualJobId) return;
+        try {
+            await updateJobAPI(actualJobId, { assigned_staff_id: staffId });
+            await refreshJobDetails();
+            showToast(t('staff.assignSuccess') || 'Staff assigned successfully', 'success');
+        } catch (error) {
+            console.error('Error assigning staff:', error);
+            showToast(t('staff.assignError') || 'Failed to assign staff', 'error');
+            throw error;
+        }
+    }, [actualJobId, refreshJobDetails, showToast, t]);
     
     // Handle Delete Job
     const handleDeleteJob = useCallback(() => {
@@ -555,6 +577,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
                     onToast={showToast}
                     onEdit={handleEditJob}
                     onDelete={handleDeleteJob}
+                    onAssignStaff={handleOpenAssignStaff}
                 />
                 
                 {/* ScrollView principal */}
@@ -619,6 +642,15 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
                     job={jobDetails?.job}
                     onClose={() => setIsEditModalVisible(false)}
                     onUpdateJob={handleUpdateJob}
+                />
+                
+                {/* Modal d'assignation de staff */}
+                <AssignStaffModal
+                    visible={isAssignStaffModalVisible}
+                    jobId={actualJobId}
+                    currentStaffId={jobDetails?.job?.assigned_staff_id}
+                    onAssign={handleAssignStaff}
+                    onClose={() => setIsAssignStaffModalVisible(false)}
                 />
             </View>
         </JobTimerProvider>

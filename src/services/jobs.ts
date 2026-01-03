@@ -9,6 +9,13 @@ export interface JobAPI {
   status: 'pending' | 'in-progress' | 'completed' | 'cancelled';
   priority: 'low' | 'medium' | 'high' | 'urgent';
   client_id: string;
+  assigned_staff_id?: string;  // ID du staff assigné
+  assigned_staff?: {           // Infos du staff assigné (optionnel, retourné par l'API)
+    id: string;
+    firstName: string;
+    lastName: string;
+    role?: string;
+  };
   client?: {
     id: string;
     firstName: string;
@@ -66,6 +73,7 @@ export interface UpdateJobRequest {
   truck?: JobAPI['truck'];
   estimatedDuration?: number;
   notes?: string;
+  assigned_staff_id?: string; // ID du staff à assigner
 }
 
 // Fonction helper pour faire des appels API avec retry automatique
