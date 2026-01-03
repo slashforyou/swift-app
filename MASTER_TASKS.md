@@ -129,13 +129,14 @@
 ## 👥 3. GESTION DU PERSONNEL (4 problèmes)
 
 ### Assignation Employé à Job Impossible 🔴
-- [x] **STAFF-01** : Implémenter l'assignation d'un employé à un job ✅ RÉSOLU
-  - **Fichier :** `src/screens/JobDetailsScreens/jobDetails.tsx` ou création modal
-  - **Action :** Dropdown/modal pour sélectionner un employé existant
-  - **Endpoint :** `PUT /jobs/{id}/assign` ou `PATCH /jobs/{id}` (à vérifier)
+- [x] **STAFF-01** : Implémenter l'assignation d'un employé à un job ✅ RÉSOLU (v2 - API réelle)
+  - **Fichier :** `src/screens/jobDetails.tsx`, `src/services/crewService.ts`
+  - **Action :** Modal de sélection + appel API `/job/:id/crew`
+  - **Endpoint :** `POST /v1/job/:id/crew` (vérifié via API Discovery ✅)
   - **Complexité :** Moyenne (4-5h)
-  - **Impact :** Fonctionnalité CORE manquante pour équipes
-  - **Solution :** Créé AssignStaffModal.tsx, ajouté assigned_staff_id à jobs.ts, intégré dans JobDetailsHeader et jobDetails.tsx
+  - **Impact :** Fonctionnalité CORE - maintenant connectée à l'API réelle
+  - **Solution v1 :** Créé AssignStaffModal.tsx, ajouté assigned_staff_id à jobs.ts
+  - **Solution v2 (3 Jan 2026) :** Créé crewService.ts avec POST/GET/DELETE /job/:id/crew, mis à jour jobDetails.tsx pour utiliser les vrais endpoints au lieu de PATCH /jobs avec assigned_staff_id
 
 ### Gestion des Équipes Inexistante 🟠
 - [ ] **STAFF-02** : Créer le système de gestion des équipes (PHASE 2 - BACKEND REQUIS)

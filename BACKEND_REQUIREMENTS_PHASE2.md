@@ -11,13 +11,13 @@
 
 Ce document liste les **fonctionnalités frontend prêtes** qui attendent des **endpoints backend** pour être opérationnelles.
 
-| Priorité | Fonctionnalité | Complexité Backend | Status Frontend |
-|----------|----------------|-------------------|-----------------|
-| 🔴 Haute | Push Notifications | Moyenne | En attente |
-| 🔴 Haute | Gestion des Équipes | Haute | En attente |
-| 🟠 Moyenne | Rôles & Permissions | Haute | En attente |
-| 🟠 Moyenne | Upload Photo Véhicule | Faible | ✅ Prêt |
-| 🟡 Basse | Assignation Staff à Job | Faible | ✅ Prêt |
+| Priorité | Fonctionnalité | Complexité Backend | Status Frontend | API Existe ? |
+|----------|----------------|-------------------|-----------------|--------------|
+| 🟢 Faible | Assignation Staff à Job | Faible | ✅ Prêt | ✅ `/job/:id/crew` |
+| 🔴 Haute | Push Notifications | Moyenne | En attente | ⚠️ Partiel |
+| 🔴 Haute | Gestion des Équipes | Haute | En attente | ❌ Non |
+| 🟠 Moyenne | Rôles & Permissions | Haute | En attente | ❌ Non |
+| 🟠 Moyenne | Upload Photo Véhicule | Faible | ✅ Prêt | ❌ Non |
 
 ---
 
@@ -443,31 +443,57 @@ GET /v1/users/me/permissions
 
 ## 6. 📊 Endpoints Existants - Statut de Vérification
 
-### ✅ Endpoints FONCTIONNELS (confirmés)
+> **🔍 Vérifié via API Discovery le 3 Janvier 2026**
+> Endpoint: `GET /swift-app/v1/api/discover/summary`
 
-| Endpoint | Méthode | Status | Utilisé par |
-|----------|---------|--------|-------------|
-| `/v1/job/{id}/image` | POST | ✅ Fonctionne | jobPhotos.ts |
-| `/v1/jobs` | GET | ✅ Fonctionne | jobs.ts |
-| `/v1/jobs/{id}` | GET/PATCH | ✅ Fonctionne | jobs.ts |
-| `/v1/api/staff` | GET | ✅ Fonctionne | staffService.ts |
-| `/v1/company/{id}/trucks` | GET/POST | ✅ Fonctionne | vehiclesService.ts |
+### ✅ Endpoints FONCTIONNELS (confirmés par API Discovery)
 
-### ⚠️ Endpoints à VÉRIFIER
+| Endpoint | Méthode | Status | Catégorie |
+|----------|---------|--------|-----------|
+| `/v1/job/:jobId/image` | POST | ✅ Existe | Upload photo job |
+| `/v1/jobs` | GET | ✅ Existe | Jobs Management |
+| `/v1/job/:id` | GET/PATCH/DELETE | ✅ Existe | CRUD job |
+| `/v1/job/:id/crew` | GET/POST | ✅ **EXISTE !** | Staff sur job |
+| `/v1/job/:id/crew/:crewId` | PATCH/DELETE | ✅ Existe | Gérer crew |
+| `/v1/job/:id/trucks` | GET/POST | ✅ Existe | Véhicules sur job |
+| `/v1/staff` | GET | ✅ Existe | Liste staff |
+| `/v1/staff/:id` | GET | ✅ Existe | Détails staff |
+| `/v1/staff/invite` | POST | ✅ Existe | Inviter staff |
+| `/v1/staff/contractors` | POST | ✅ Existe | Ajouter contractor |
+| `/v1/vehicles` | GET/POST | ✅ Existe | CRUD véhicules |
+| `/v1/vehicles/:id` | GET/PUT/DELETE | ✅ Existe | CRUD véhicule |
+| `/v1/company/:companyId/trucks` | GET/POST | ✅ Existe | Trucks company |
+| `/v1/notifications` | GET/POST | ✅ Existe | Notifications |
+| `/v1/notifications/:id` | PATCH/DELETE | ✅ Existe | CRUD notification |
 
-| Endpoint | Champ | Question |
-|----------|-------|----------|
-| `PATCH /v1/jobs/{id}` | `assigned_staff_id` | Accepté dans le body ? |
-| `GET /v1/jobs/{id}` | `assigned_staff` | Retourné avec le job ? |
-| `/v1/company/{id}/trucks/{id}/image` | - | Existe-t-il ? |
+### 🎉 BONNE NOUVELLE - Crew Management EXISTE !
 
-### 🔴 Endpoints à CRÉER
+L'API Discovery révèle que **l'assignation staff existe déjà** via `/job/:id/crew` :
+- `POST /v1/job/:id/crew` → Assigner staff à un job
+- `GET /v1/job/:id/crew` → Liste staff assignés
+- `DELETE /v1/job/:id/crew/:crewId` → Retirer staff
+- `PATCH /v1/job/:id/crew/:crewId` → Modifier assignation
 
-| Endpoint | Description | Priorité |
-|----------|-------------|----------|
-| `POST /v1/users/push-token` | Enregistrer token push | Haute |
-| `GET/POST/PUT/DELETE /v1/company/{id}/teams` | CRUD équipes | Moyenne |
-| `GET /v1/company/{id}/roles` | Liste rôles | Basse |
+**→ STAFF-01 peut utiliser ces endpoints au lieu de `assigned_staff_id` !**
+
+### ⚠️ Endpoints à VÉRIFIER (format réponse)
+
+| Endpoint | Question |
+|----------|----------|
+| `POST /v1/job/:id/crew` | Quel format body ? `{ staff_id: "..." }` ? |
+| `GET /v1/job/:id/crew` | Format réponse ? Liste de staff objects ? |
+| `/v1/notifications` | Contient push tokens ou juste in-app ? |
+
+### 🔴 Endpoints MANQUANTS (à CRÉER)
+
+| Endpoint | Description | Priorité | Notes |
+|----------|-------------|----------|-------|
+| `POST /v1/company/:id/trucks/:id/photo` | Upload photo véhicule | 🟠 Moyenne | Pattern = /job/:id/image |
+| `POST /v1/users/push-token` | Enregistrer device token | 🔴 Haute | Pour Expo Push |
+| `PATCH /v1/users/notification-preferences` | Préférences push | 🔴 Haute | Avec push-token |
+| `GET/POST/PUT/DELETE /v1/company/:id/teams` | CRUD équipes | 🟡 Basse | Feature Phase 2 |
+| `GET /v1/company/:id/roles` | Liste rôles | 🟡 Basse | RBAC Phase 2 |
+| `PATCH /v1/staff/:id/role` | Assigner rôle | 🟡 Basse | RBAC Phase 2 |
 
 ### Référence des Services Frontend
 

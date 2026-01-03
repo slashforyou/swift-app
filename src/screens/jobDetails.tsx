@@ -18,6 +18,7 @@ import { useTheme } from '../context/ThemeProvider';
 import { useJobDetails } from '../hooks/useJobDetails';
 import { usePerformanceMetrics } from '../hooks/usePerformanceMetrics';
 import { useLocalization } from '../localization/useLocalization';
+import { assignStaffToJob, removeCrewMember, getJobCrew } from '../services/crewService';
 import { filterServerCorrectableIssues, requestServerCorrection } from '../services/jobCorrection';
 import { deleteJob, updateJob as updateJobAPI, UpdateJobRequest } from '../services/jobs';
 import { useAuthCheck } from '../utils/checkAuth';
@@ -250,9 +251,19 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
     const handleAssignStaff = useCallback(async (staffId: string) => {
         if (!actualJobId) return;
         try {
-            await updateJobAPI(actualJobId, { assigned_staff_id: staffId });
+            if (staffId === '') {
+                // Unassign: retirer tous les membres du crew
+                const currentCrew = await getJobCrew(actualJobId);
+                await Promise.all(
+                    currentCrew.map(member => removeCrewMember(actualJobId, member.id))
+                );
+                showToast(t('staff.unassignSuccess') || 'Staff unassigned successfully', 'success');
+            } else {
+                // Assign: ajouter au crew via POST /job/:id/crew
+                await assignStaffToJob(actualJobId, staffId);
+                showToast(t('staff.assignSuccess') || 'Staff assigned successfully', 'success');
+            }
             await refreshJobDetails();
-            showToast(t('staff.assignSuccess') || 'Staff assigned successfully', 'success');
         } catch (error) {
             console.error('Error assigning staff:', error);
             showToast(t('staff.assignError') || 'Failed to assign staff', 'error');
@@ -648,7 +659,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
                 <AssignStaffModal
                     visible={isAssignStaffModalVisible}
                     jobId={actualJobId}
-                    currentStaffId={jobDetails?.job?.assigned_staff_id}
+                    currentStaffId={jobDetails?.crew?.[0]?.id || jobDetails?.job?.assigned_staff_id}
                     onAssign={handleAssignStaff}
                     onClose={() => setIsAssignStaffModalVisible(false)}
                 />
