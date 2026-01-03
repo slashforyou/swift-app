@@ -24,8 +24,7 @@ export const fetchStaff = async (): Promise<StaffMember[]> => {
     
     return data.staff;
   } catch (error) {
-
-    console.error('❌ [staffService] Error fetching staff:', error);
+    // Propager l'erreur silencieusement, le hook gère le fallback
     throw new Error('Failed to fetch staff members');
   }
 };
@@ -48,8 +47,6 @@ export const fetchEmployees = async (): Promise<Employee[]> => {
     
     return data.employees;
   } catch (error) {
-
-    console.error('❌ [staffService] Error fetching employees:', error);
     throw new Error('Failed to fetch employees');
   }
 };
@@ -72,8 +69,6 @@ export const fetchContractors = async (): Promise<Contractor[]> => {
     
     return data.contractors;
   } catch (error) {
-
-    console.error('❌ [staffService] Error fetching contractors:', error);
     throw new Error('Failed to fetch contractors');
   }
 };
@@ -102,8 +97,6 @@ export const inviteEmployee = async (employeeData: InviteEmployeeData): Promise<
       employeeId: data.employeeId,
     };
   } catch (error) {
-
-    console.error('❌ [staffService] Error inviting employee:', error);
     throw new Error('Failed to send employee invitation');
   }
 };
@@ -131,8 +124,6 @@ export const searchContractors = async (searchTerm: string): Promise<Contractor[
     
     return data.results;
   } catch (error) {
-
-    console.error('❌ [staffService] Error searching contractors:', error);
     throw new Error('Failed to search contractors');
   }
 };
@@ -167,8 +158,6 @@ export const addContractorToStaff = async (
       contractor: data.contractor,
     };
   } catch (error) {
-
-    console.error('❌ [staffService] Error adding contractor to staff:', error);
     throw new Error('Failed to add contractor to staff');
   }
 };
@@ -200,8 +189,6 @@ export const updateStaffMember = async (
       member: data.member,
     };
   } catch (error) {
-
-    console.error('❌ [staffService] Error updating staff member:', error);
     throw new Error('Failed to update staff member');
   }
 };
@@ -225,8 +212,6 @@ export const removeStaffMember = async (staffId: string): Promise<{ success: boo
     
     return { success: true };
   } catch (error) {
-
-    console.error('❌ [staffService] Error removing staff member:', error);
     throw new Error('Failed to remove staff member');
   }
 };
@@ -260,8 +245,6 @@ export const inviteContractor = async (
       message: data.message || `Invitation envoyée à ${email}`,
     };
   } catch (error) {
-
-    console.error('❌ [staffService] Error inviting contractor:', error);
     throw new Error('Failed to send contractor invitation');
   }
 };

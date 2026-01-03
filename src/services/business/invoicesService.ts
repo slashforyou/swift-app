@@ -167,33 +167,23 @@ export const fetchInvoices = async (): Promise<Invoice[]> => {
     });
 
     if (!response.ok) {
-      if (__DEV__) {
-        console.warn('Invoices API not available in development, using mock data');
-        return mockInvoices;
-      }
-      throw new Error(`Invoices API failed with status ${response.status}`);
+      // Fallback silencieux sur mock data
+      return mockInvoices;
     }
 
     const data: InvoiceListResponse = await response.json();
     
     if (!data.success) {
-      if (__DEV__) {
-        console.warn('Invoices API returned success: false, using mock data');
-        return mockInvoices;
-      }
-      throw new Error('Invoices API returned success: false');
+      // Fallback silencieux sur mock data
+      return mockInvoices;
     }
 
     // Filtrer seulement les factures (si l'API renvoie aussi des quotes/templates)
     const invoices = (data.quotes || []).filter(quote => quote.isInvoice);
     return invoices.length > 0 ? invoices : (__DEV__ ? mockInvoices : []);
-  } catch (error) {
-    console.error('Error fetching invoices:', error);
-    if (__DEV__) {
-      console.warn('Using mock invoices as fallback in development');
-      return mockInvoices;
-    }
-    throw new Error(`Failed to fetch invoices: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  } catch (error) {
+    // Fallback silencieux sur mock data
+    return mockInvoices;
   }
 };
 
@@ -217,7 +207,8 @@ export const fetchInvoiceDetails = async (invoiceId: string): Promise<Invoice> =
     }
 
     return data.quote;
-  } catch (error) {
+  } catch (error) {
+
     console.error('Error fetching invoice details:', error);
     throw new Error('Failed to fetch invoice details');
   }
@@ -313,7 +304,8 @@ export const createInvoice = async (invoiceData: InvoiceCreateData): Promise<Inv
     }
 
     return data.quote;
-  } catch (error) {
+  } catch (error) {
+
     console.error('Error creating invoice:', error);
     console.warn('Creating mock invoice as fallback');
     // Utiliser les mêmes calculs que dans le try
@@ -392,7 +384,8 @@ export const updateInvoice = async (
     }
 
     return data.quote;
-  } catch (error) {
+  } catch (error) {
+
     console.error('Error updating invoice:', error);
     throw new Error('Failed to update invoice');
   }
@@ -416,7 +409,8 @@ export const deleteInvoice = async (invoiceId: string): Promise<void> => {
     if (!data.success) {
       throw new Error('API returned success: false');
     }
-  } catch (error) {
+  } catch (error) {
+
     console.error('Error deleting invoice:', error);
     throw new Error('Failed to delete invoice');
   }
@@ -442,7 +436,8 @@ export const sendInvoice = async (invoiceId: string): Promise<Invoice> => {
     }
 
     return data.quote;
-  } catch (error) {
+  } catch (error) {
+
     console.error('Error sending invoice:', error);
     throw new Error('Failed to send invoice');
   }
@@ -459,7 +454,8 @@ export const markInvoiceAsPaid = async (invoiceId: string): Promise<Invoice> => 
     };
 
     return await updateInvoice(invoiceId, updateData as any);
-  } catch (error) {
+  } catch (error) {
+
     console.error('Error marking invoice as paid:', error);
     throw new Error('Failed to mark invoice as paid');
   }

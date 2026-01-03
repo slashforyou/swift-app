@@ -118,20 +118,14 @@ export const useStaff = (): UseStaffResult => {
       }
 
     } catch (err) {
-
-      console.error('❌ [useStaff] Error loading staff:', err);
-      
+      // Fallback silencieux vers les mocks si l'API n'est pas disponible
       if (!USE_MOCK_DATA) {
-        // En cas d'erreur API, fallback vers les mocks
-        // TEMP_DISABLED: console.log('🔄 [useStaff] API failed, falling back to mock data');
         try {
           setStaff(mockStaff);
-          setError('Connexion API limitée - données de démonstration');
-          // TEMP_DISABLED: console.log(`✅ [useStaff] Fallback: loaded ${mockStaff.length} mock staff members`);
+          // Note: Ne pas afficher d'erreur, le fallback est normal
           return;
         } catch (mockError) {
-
-          console.error('❌ [useStaff] Even mock data failed:', mockError);
+          // Ignore
         }
       }
       

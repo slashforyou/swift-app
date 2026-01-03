@@ -262,7 +262,7 @@ class LoggingService {
 
       const authHeaders = await getAuthHeaders();
       if (!authHeaders) {
-        console.warn('⚠️ [LOGGING] No auth headers, logs not sent to backend');
+        // Silencieux - pas connecté, logs pas envoyés
         return;
       }
 
@@ -276,19 +276,14 @@ class LoggingService {
       });
 
       if (response.ok) {
-        console.debug(`📝 [LOGGING] Flushed ${logsToFlush.length} logs to backend`);
+        // Logs envoyés avec succès (silencieux)
       } else {
-        // ⚠️ Si on arrive ici, c'est une VRAIE erreur (endpoint existe mais erreur serveur)
-        console.warn('⚠️ [LOGGING] Failed to flush logs (server error):', {
-          status: response.status,
-          count: logsToFlush.length
-        });
+        // Silencieux - le serveur a rejeté mais on continue
         // Ne PAS remettre en queue pour éviter accumulation infinie
       }
 
     } catch (error) {
-      // ⚠️ Erreur réseau ou autre
-      console.warn('⚠️ [LOGGING] Error flushing logs (network issue):', error);
+      // Silencieux - erreur réseau ou autre
       // Ne PAS remettre en queue pour éviter accumulation infinie
     }
   }
