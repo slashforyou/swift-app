@@ -673,6 +673,10 @@ export const esTranslations = {
             data: 'Datos y Almacenamiento',
         },
         items: {
+            businessInfo: 'Información de empresa',
+            businessInfoDescription: 'Gestionar los detalles de su empresa',
+            paymentSettings: 'Configuración de pagos',
+            paymentSettingsDescription: 'Conexión Stripe y opciones de pago',
             pushNotifications: 'Notificaciones push',
             pushDescription: 'Recibir notificaciones push para actualizaciones importantes',
             emailNotifications: 'Notificaciones por email',

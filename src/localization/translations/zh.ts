@@ -676,6 +676,10 @@ export const zhTranslations = {
             data: '数据与存储',
         },
         items: {
+            businessInfo: '企业信息',
+            businessInfoDescription: '管理您的公司详情',
+            paymentSettings: '支付设置',
+            paymentSettingsDescription: 'Stripe连接和支付选项',
             pushNotifications: '推送通知',
             pushDescription: '接收重要更新的推送通知',
             emailNotifications: '邮件通知',

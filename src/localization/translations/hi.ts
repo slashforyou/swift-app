@@ -676,6 +676,10 @@ export const hiTranslations = {
             data: 'डेटा और भंडारण',
         },
         items: {
+            businessInfo: 'व्यापार जानकारी',
+            businessInfoDescription: 'अपनी कंपनी की जानकारी प्रबंधित करें',
+            paymentSettings: 'भुगतान सेटिंग्स',
+            paymentSettingsDescription: 'Stripe कनेक्शन और भुगतान विकल्प',
             pushNotifications: 'पुश नोटिफिकेशन',
             pushDescription: 'महत्वपूर्ण अपडेट के लिए पुश नोटिफिकेशन प्राप्त करें',
             emailNotifications: 'ईमेल नोटिफिकेशन',
