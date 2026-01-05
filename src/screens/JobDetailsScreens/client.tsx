@@ -68,11 +68,11 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
     // ✅ SYNC: Synchroniser job state avec jobDetails.job (notamment signature_blob)
     useEffect(() => {
         if (jobDetails?.job) {
-            console.log('🔄 [JobClient] Syncing job state with jobDetails:', {
-                hasSignatureInContext: !!jobDetails.job.signature_blob,
-                hasSignatureInState: !!job?.signature_blob,
-                signatureDate: jobDetails.job.signature_date
-            });
+            // TEMP_DISABLED: console.log('🔄 [JobClient] Syncing job state with jobDetails:', {
+            //     hasSignatureInContext: !!jobDetails.job.signature_blob,
+            //     hasSignatureInState: !!job?.signature_blob,
+            //     signatureDate: jobDetails.job.signature_date
+            // });
             
             // Merge pour garder modifications locales + ajouter données backend
             setJob((prev: any) => ({
@@ -104,7 +104,7 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
             }
         } catch (error) {
 
-            console.error('Error loading extended client data:', error);
+            // TEMP_DISABLED: console.error('Error loading extended client data:', error);
             // En cas d'erreur, on continue avec les données de base du job
         } finally {
             setIsLoadingClient(false);

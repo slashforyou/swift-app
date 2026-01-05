@@ -374,11 +374,11 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
       // ⚡ VÉRIFICATION SERVEUR: Vérifier si une signature existe déjà sur le backend
       const { checkJobSignatureExists, saveJobSignature } = await import('../services/jobDetails');
       
-      console.log('🔍 [SigningBloc] Checking if signature already exists on server for job:', job.id);
+      // TEMP_DISABLED: console.log('🔍 [SigningBloc] Checking if signature already exists on server for job:', job.id);
       const existingSignature = await checkJobSignatureExists(job.id, 'client');
       
       if (existingSignature.exists) {
-        console.log('⚠️ [SigningBloc] Signature already exists on server (id:', existingSignature.signatureId, ')');
+        // TEMP_DISABLED: console.log('⚠️ [SigningBloc] Signature already exists on server (id:', existingSignature.signatureId, ')');
         
         // Mettre à jour le state local SANS appeler le backend (car signature existe)
         setJob(prev => ({
@@ -405,7 +405,7 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
       }
 
       // ✅ ÉTAPE 2: Envoyer la signature au backend (seulement si nouvelle)
-      console.log('📤 [SigningBloc] Uploading NEW signature to server for job:', job.id);
+      // TEMP_DISABLED: console.log('📤 [SigningBloc] Uploading NEW signature to server for job:', job.id);
       
       const uploadResult = await saveJobSignature(
         job.id,
@@ -414,11 +414,11 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
       );
 
       if (!uploadResult.success) {
-        console.error('❌ [SigningBloc] Server upload failed:', uploadResult.message);
+        // TEMP_DISABLED: console.error('❌ [SigningBloc] Server upload failed:', uploadResult.message);
         
         // ⚡ GESTION SPÉCIFIQUE: Signature existe déjà (code 400)
         if (uploadResult.message?.includes('existe déjà')) {
-          console.log('⚠️ [SigningBloc] Signature already exists, treating as update');
+          // TEMP_DISABLED: console.log('⚠️ [SigningBloc] Signature already exists, treating as update');
           
           // Mettre à jour le state local même si backend refuse (signature existe = OK)
           setJob(prev => ({
@@ -453,10 +453,10 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
         return;
       }
 
-      console.log('✅ [SigningBloc] Signature uploaded successfully:', {
-        signatureId: uploadResult.signatureId,
-        signatureUrl: uploadResult.signatureUrl
-      });
+      // TEMP_DISABLED: console.log('✅ [SigningBloc] Signature uploaded successfully:', {
+      //   signatureId: uploadResult.signatureId,
+      //   signatureUrl: uploadResult.signatureUrl
+      // });
 
       // ✅ ÉTAPE 3: Mettre à jour le state local avec la signature ET l'URL serveur
       setJob(prev => ({
@@ -486,7 +486,7 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
       );
     } catch (error) {
 
-      console.error('❌ [SigningBloc] Signature save error:', error);
+      // TEMP_DISABLED: console.error('❌ [SigningBloc] Signature save error:', error);
       Alert.alert(
         t('jobDetails.components.signature.saveError'),
         t('jobDetails.components.signature.saveErrorMessage'),

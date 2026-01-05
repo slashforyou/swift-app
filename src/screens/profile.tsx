@@ -98,15 +98,15 @@ const ProfileScreen: React.FC = () => {
 
   // Update form data when profile loads
   React.useEffect(() => {
-    console.log('🔍 [PROFILE SCREEN] useEffect - Profile changed:', {
-      hasProfile: !!profile,
-      profileData: profile ? {
-        id: profile.id,
-        firstName: profile.firstName,
-        email: profile.email,
-        phone: profile.phone,
-      } : null
-    });
+    // TEMP_DISABLED: console.log('🔍 [PROFILE SCREEN] useEffect - Profile changed:', {
+    //   hasProfile: !!profile,
+    //   profileData: profile ? {
+    //     id: profile.id,
+    //     firstName: profile.firstName,
+    //     email: profile.email,
+    //     phone: profile.phone,
+    //   } : null
+    // });
 
     if (profile) {
       setFormData({
@@ -134,7 +134,7 @@ const ProfileScreen: React.FC = () => {
       }
     } catch (error) {
 
-      console.error('❌ [PROFILE] Error updating profile:', error);
+      // TEMP_DISABLED: console.error('❌ [PROFILE] Error updating profile:', error);
       Alert.alert(t('common.error'), t('profile.messages.updateError'));
     }
   };

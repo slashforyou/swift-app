@@ -35,12 +35,12 @@ const SignatureSection: React.FC<SignatureSectionProps> = ({ job, onSignContract
             }
 
             try {
-                console.log('🔍 [SignatureSection] Checking signature for job:', jobId);
+                // TEMP_DISABLED: console.log('🔍 [SignatureSection] Checking signature for job:', jobId);
                 const result = await checkJobSignatureExists(jobId, 'client');
-                console.log('🔍 [SignatureSection] Signature check result:', result);
+                // TEMP_DISABLED: console.log('🔍 [SignatureSection] Signature check result:', result);
                 setSignatureFromServer(result);
             } catch (error) {
-                console.error('❌ [SignatureSection] Error checking signature:', error);
+                // TEMP_DISABLED: console.error('❌ [SignatureSection] Error checking signature:', error);
             } finally {
                 setIsLoading(false);
             }
@@ -59,13 +59,13 @@ const SignatureSection: React.FC<SignatureSectionProps> = ({ job, onSignContract
 
     // Log pour debug
     useEffect(() => {
-        console.log('🔍 [SignatureSection] isContractSigned:', {
-            signatureFromServer: signatureFromServer.exists,
-            localSignature: !!(job.signatureDataUrl && job.signatureFileUri),
-            signatureBlob: !!job.signature_blob,
-            jobSignatureBlob: !!job.job?.signature_blob,
-            final: isContractSigned
-        });
+        // TEMP_DISABLED: console.log('🔍 [SignatureSection] isContractSigned:', {
+        //     signatureFromServer: signatureFromServer.exists,
+        //     localSignature: !!(job.signatureDataUrl && job.signatureFileUri),
+        //     signatureBlob: !!job.signature_blob,
+        //     jobSignatureBlob: !!job.job?.signature_blob,
+        //     final: isContractSigned
+        // });
     }, [isContractSigned, signatureFromServer, job]);
 
     return (

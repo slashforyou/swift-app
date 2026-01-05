@@ -28,13 +28,13 @@ const getUserCompanyId = async (): Promise<string> => {
     }
     
     // Pour d'autres utilisateurs, utiliser l'ancien comportement (user_id = company_id)
-    console.warn('⚠️ [FALLBACK] Using user_id as company_id for user:', userId);
+    // TEMP_DISABLED: console.warn('⚠️ [FALLBACK] Using user_id as company_id for user:', userId);
     cachedUserId = userId;
     return userId;
     
   } catch (error) {
 
-    console.error('❌ [COMPANY ID] Failed to get company_id:', error);
+    // TEMP_DISABLED: console.error('❌ [COMPANY ID] Failed to get company_id:', error);
     throw new Error('Unable to get user company_id. Please ensure you are logged in.');
   }
 };
@@ -124,11 +124,11 @@ export const createStripeConnectAccount = async (): Promise<{
 
     if (!response.ok) {
       if (response.status === 400) {
-        console.warn('⚠️ Account already exists for this company');
+        // TEMP_DISABLED: console.warn('⚠️ Account already exists for this company');
         throw new Error('Compte Stripe déjà existant pour cette entreprise');
       }
       const errorText = await response.text().catch(() => 'No error text');
-      console.error('❌ [STRIPE CREATE] Error response:', errorText);
+      // TEMP_DISABLED: console.error('❌ [STRIPE CREATE] Error response:', errorText);
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
@@ -149,7 +149,7 @@ export const createStripeConnectAccount = async (): Promise<{
 
   } catch (error) {
 
-    console.error('Error creating Stripe Connect Express account:', error);
+    // TEMP_DISABLED: console.error('Error creating Stripe Connect Express account:', error);
     
     // Si c'est un compte existant, essayer de récupérer le lien d'onboarding
     if (error instanceof Error && error.message.includes('déjà existant')) {
@@ -162,14 +162,14 @@ export const createStripeConnectAccount = async (): Promise<{
         };
       } catch (onboardingError) {
 
-        console.error('Failed to get existing account onboarding link:', onboardingError);
+        // TEMP_DISABLED: console.error('Failed to get existing account onboarding link:', onboardingError);
       }
     }
     
     // Return mock data for development
     const mockAccountId = `acct_mock_${Date.now()}`;
     const mockOnboardingUrl = `https://connect.stripe.com/express/setup/mock-${Date.now()}`;
-    console.warn(`Using mock data:`, { mockAccountId, mockOnboardingUrl });
+    // TEMP_DISABLED: console.warn(`Using mock data:`, { mockAccountId, mockOnboardingUrl });
     
     return {
       accountId: mockAccountId,
@@ -201,7 +201,7 @@ export const getStripeConnectOnboardingLink = async (): Promise<string> => {
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'No error text');
-      console.error('❌ [STRIPE ONBOARDING] Error response:', errorText);
+      // TEMP_DISABLED: console.error('❌ [STRIPE ONBOARDING] Error response:', errorText);
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
@@ -218,10 +218,10 @@ export const getStripeConnectOnboardingLink = async (): Promise<string> => {
     return data.data.onboarding_url;
   } catch (error) {
 
-    console.error('Error getting Stripe Connect onboarding link:', error);
+    // TEMP_DISABLED: console.error('Error getting Stripe Connect onboarding link:', error);
     // Return mock URL for development
     const mockUrl = `https://connect.stripe.com/express/setup/mock-${Date.now()}`;
-    console.warn(`Using mock Express onboarding link: ${mockUrl}`);
+    // TEMP_DISABLED: console.warn(`Using mock Express onboarding link: ${mockUrl}`);
     return mockUrl;
   }
 };
@@ -339,7 +339,7 @@ export const fetchStripePayments = async () => {
         return payments;
       }
     } else {
-      console.warn('⚠️ [FETCH PAYMENTS] Payments endpoint failed, status:', response.status);
+      // TEMP_DISABLED: console.warn('⚠️ [FETCH PAYMENTS] Payments endpoint failed, status:', response.status);
     }
 
     throw new Error('Unable to fetch payments from API');
@@ -389,7 +389,7 @@ export const fetchStripePayouts = async () => {
         return payouts;
       }
     } else {
-      console.warn('⚠️ [FETCH PAYOUTS] Payouts endpoint failed, status:', response.status);
+      // TEMP_DISABLED: console.warn('⚠️ [FETCH PAYOUTS] Payouts endpoint failed, status:', response.status);
     }
 
     throw new Error('Unable to fetch payouts from API');

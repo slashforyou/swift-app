@@ -48,16 +48,16 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
             }
 
             try {
-                console.log('🔍 [Payment] Checking signature on server for job:', jobId);
+                // TEMP_DISABLED: console.log('🔍 [Payment] Checking signature on server for job:', jobId);
                 const result = await checkJobSignatureExists(jobId, 'client');
-                console.log('🔍 [Payment] Server signature check result:', result);
+                // TEMP_DISABLED: console.log('🔍 [Payment] Server signature check result:', result);
                 setSignatureFromServer({
                     exists: result.exists,
                     signatureId: result.signatureId,
                     isLoading: false
                 });
             } catch (error) {
-                console.error('❌ [Payment] Error checking signature:', error);
+                // TEMP_DISABLED: console.error('❌ [Payment] Error checking signature:', error);
                 setSignatureFromServer({ exists: false, isLoading: false });
             }
         };
@@ -68,11 +68,11 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
     // ✅ SYNC: Synchroniser job state avec jobDetails.job (notamment signature_blob)
     useEffect(() => {
         if (jobDetails?.job) {
-            console.log('🔄 [Payment] Syncing job state with jobDetails:', {
-                hasSignatureInContext: !!jobDetails.job.signature_blob,
-                hasSignatureInState: !!job.signature_blob,
-                signatureDate: jobDetails.job.signature_date
-            });
+            // TEMP_DISABLED: console.log('🔄 [Payment] Syncing job state with jobDetails:', {
+            //     hasSignatureInContext: !!jobDetails.job.signature_blob,
+            //     hasSignatureInState: !!job.signature_blob,
+            //     signatureDate: jobDetails.job.signature_date
+            // });
             
             // Merge pour garder modifications locales + ajouter données backend
             setJob((prev: any) => ({
@@ -183,13 +183,13 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
         const isStepCompleted = currentStep >= 4;  // Au moins step 4
         const isStatusCompleted = jobStatus === 'completed' || jobJobStatus === 'completed';
         
-        console.log('🔍 [Payment] isJobCompleted check:', {
-            currentStep,
-            totalSteps,
-            isStepCompleted,
-            isStatusCompleted,
-            result: isStepCompleted || isStatusCompleted
-        });
+        // TEMP_DISABLED: console.log('🔍 [Payment] isJobCompleted check:', {
+        //     currentStep,
+        //     totalSteps,
+        //     isStepCompleted,
+        //     isStatusCompleted,
+        //     result: isStepCompleted || isStatusCompleted
+        // });
         
         return isStepCompleted || isStatusCompleted;
     }, [currentStep, totalSteps, jobStatus, jobJobStatus]);
@@ -209,14 +209,14 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
 
     // Log uniquement quand la valeur change (pas à chaque render)
     useEffect(() => {
-        console.log('🔍 [Payment] hasSignature changed:', {
-            signatureFromServer: signatureFromServer.exists,
-            signatureDataUrl: !!job?.signatureDataUrl,
-            signatureFileUri: !!job?.signatureFileUri,
-            signatureBlob: !!job?.signature_blob,
-            jobSignatureBlob: !!job?.job?.signature_blob,
-            result: hasSignature
-        });
+        // TEMP_DISABLED: console.log('🔍 [Payment] hasSignature changed:', {
+        //     signatureFromServer: signatureFromServer.exists,
+        //     signatureDataUrl: !!job?.signatureDataUrl,
+        //     signatureFileUri: !!job?.signatureFileUri,
+        //     signatureBlob: !!job?.signature_blob,
+        //     jobSignatureBlob: !!job?.job?.signature_blob,
+        //     result: hasSignature
+        // });
     }, [hasSignature]);
 
     // ✅ Handler pour le bouton de signature

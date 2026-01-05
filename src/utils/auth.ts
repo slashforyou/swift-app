@@ -114,7 +114,7 @@ export async function refreshToken(): Promise<boolean> {
         // TEMP_DISABLED: console.log('🔍 [TOKEN REFRESH] Could not read error body:', e);
       }
       
-      console.error('❌ Token refresh failed:', res.status);
+      // TEMP_DISABLED: console.error('❌ Token refresh failed:', res.status);
       return false;
     }
 
@@ -132,7 +132,7 @@ export async function refreshToken(): Promise<boolean> {
 
     if (!sessionToken || !success) {
       // TEMP_DISABLED: console.log('🔍 [TOKEN REFRESH] ❌ Step 8: Invalid refresh response format');
-      console.error('❌ Invalid refresh response');
+      // TEMP_DISABLED: console.error('❌ Invalid refresh response');
       return false;
     }
 
@@ -151,7 +151,7 @@ export async function refreshToken(): Promise<boolean> {
 
   } catch (error) {
 
-    console.error('❌ Token refresh error:', error);
+    // TEMP_DISABLED: console.error('❌ Token refresh error:', error);
     return false;
   }
 }
