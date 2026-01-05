@@ -3,7 +3,7 @@
  * Affiche l'historique des payouts et les prochains virements
  */
 import Ionicons from '@react-native-vector-icons/ionicons'
-import React, { useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import {
     FlatList,
     RefreshControl,
@@ -35,7 +35,7 @@ export default function PayoutsScreen({ navigation }: PayoutsScreenProps) {
   const [selectedPayout, setSelectedPayout] = useState<Payout | null>(null)
 
   // Utilisation du hook Stripe pour récupérer les vraies données
-  const { payouts, loading: isLoading, error, refresh, createPayout } = useStripePayouts()
+  const { payouts, loading: isLoading, refresh } = useStripePayouts()
 
   const formatCurrency = (amount: number, currency: string = 'EUR') => {
     return formatLocalizedCurrency(amount * 100, currentLanguage, currency)
@@ -90,16 +90,16 @@ export default function PayoutsScreen({ navigation }: PayoutsScreenProps) {
     }
   }
 
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     // Utilisation du refresh du hook Stripe
     refresh()
-  }
+  }, [refresh])
 
-  const handlePayoutPress = (payout: Payout) => {
+  const handlePayoutPress = useCallback((payout: Payout) => {
     setSelectedPayout(payout)
-  }
+  }, [])
 
-  const filteredPayouts = payouts.filter(payout => {
+  const filteredPayouts = useMemo(() => payouts.filter(payout => {
     switch (selectedTab) {
       case 'pending':
         return payout.status === 'pending' || payout.status === 'in_transit'
@@ -108,17 +108,17 @@ export default function PayoutsScreen({ navigation }: PayoutsScreenProps) {
       default:
         return true
     }
-  })
+  }), [payouts, selectedTab])
 
-  const totalPending = payouts
+  const totalPending = useMemo(() => payouts
     .filter(p => p.status === 'pending' || p.status === 'in_transit')
-    .reduce((sum, p) => sum + p.amount, 0)
+    .reduce((sum, p) => sum + p.amount, 0), [payouts])
 
-  const totalCompleted = payouts
+  const totalCompleted = useMemo(() => payouts
     .filter(p => p.status === 'paid')
-    .reduce((sum, p) => sum + p.amount, 0)
+    .reduce((sum, p) => sum + p.amount, 0), [payouts])
 
-  const renderPayout = ({ item }: { item: Payout }) => (
+  const renderPayout = useCallback(({ item }: { item: Payout }) => (
     <TouchableOpacity
       style={[styles.payoutCard, { backgroundColor: colors.backgroundSecondary }]}
       onPress={() => handlePayoutPress(item)}
@@ -165,7 +165,15 @@ export default function PayoutsScreen({ navigation }: PayoutsScreenProps) {
         </View>
       </View>
     </TouchableOpacity>
-  )
+  ), [colors, handlePayoutPress, t, formatDate, formatCurrency, getStatusColor, getStatusIcon, getStatusLabel])
+
+  // Optimisation FlatList
+  const keyExtractor = useCallback((item: Payout) => item.id, [])
+  const getItemLayout = useCallback((_: any, index: number) => ({
+    length: 140, // Hauteur approximative d'un item
+    offset: 140 * index,
+    index,
+  }), [])
 
   const styles = StyleSheet.create({
     container: {
@@ -384,7 +392,12 @@ export default function PayoutsScreen({ navigation }: PayoutsScreenProps) {
           <FlatList
             data={filteredPayouts}
             renderItem={renderPayout}
-            keyExtractor={(item) => item.id}
+            keyExtractor={keyExtractor}
+            getItemLayout={getItemLayout}
+            initialNumToRender={10}
+            maxToRenderPerBatch={10}
+            windowSize={5}
+            removeClippedSubviews={true}
             refreshControl={
               <RefreshControl
                 refreshing={isLoading}

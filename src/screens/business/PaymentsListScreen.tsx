@@ -3,7 +3,7 @@
  * Affiche l'historique des paiements avec filtres et recherche
  */
 import Ionicons from '@react-native-vector-icons/ionicons'
-import React, { useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import {
     FlatList,
     RefreshControl,
@@ -36,7 +36,7 @@ export default function PaymentsListScreen({ navigation }: PaymentsListScreenPro
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null)
 
   // Utilisation du hook Stripe pour récupérer les vraies données
-  const { payments, loading: isLoading, error, refresh } = useStripePayments()
+  const { payments, loading: isLoading, refresh } = useStripePayments()
 
   const formatCurrency = (amount: number, currency: string = 'EUR') => {
     return formatLocalizedCurrency(amount * 100, currentLanguage, currency)
@@ -77,24 +77,24 @@ export default function PaymentsListScreen({ navigation }: PaymentsListScreenPro
     }
   }
 
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     // Utilisation du refresh du hook Stripe
     refresh()
-  }
+  }, [refresh])
 
-  const handlePaymentPress = (payment: Payment) => {
+  const handlePaymentPress = useCallback((payment: Payment) => {
     setSelectedPayment(payment)
-  }
+  }, [])
 
-  const filteredPayments = payments.filter(payment => {
+  const filteredPayments = useMemo(() => payments.filter(payment => {
     const matchesSearch = payment.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          payment.customer?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          payment.id.includes(searchQuery)
     const matchesFilter = selectedFilter === 'all' || payment.status === selectedFilter
     return matchesSearch && matchesFilter
-  })
+  }), [payments, searchQuery, selectedFilter])
 
-  const renderPayment = ({ item }: { item: Payment }) => (
+  const renderPayment = useCallback(({ item }: { item: Payment }) => (
     <TouchableOpacity
       style={[styles.paymentCard, { backgroundColor: colors.backgroundSecondary }]}
       onPress={() => handlePaymentPress(item)}
@@ -141,7 +141,15 @@ export default function PaymentsListScreen({ navigation }: PaymentsListScreenPro
         </View>
       </View>
     </TouchableOpacity>
-  )
+  ), [colors, handlePaymentPress, t, formatDate, formatCurrency, getStatusColor, getStatusIcon])
+
+  // Optimisation FlatList
+  const keyExtractor = useCallback((item: Payment) => item.id, [])
+  const getItemLayout = useCallback((_: any, index: number) => ({
+    length: 120, // Hauteur approximative d'un item
+    offset: 120 * index,
+    index,
+  }), [])
 
   const styles = StyleSheet.create({
     container: {
@@ -357,7 +365,12 @@ export default function PaymentsListScreen({ navigation }: PaymentsListScreenPro
           <FlatList
             data={filteredPayments}
             renderItem={renderPayment}
-            keyExtractor={(item) => item.id}
+            keyExtractor={keyExtractor}
+            getItemLayout={getItemLayout}
+            initialNumToRender={10}
+            maxToRenderPerBatch={10}
+            windowSize={5}
+            removeClippedSubviews={true}
             refreshControl={
               <RefreshControl
                 refreshing={isLoading}
