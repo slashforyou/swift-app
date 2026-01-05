@@ -158,7 +158,7 @@ export const DESIGN_SYSTEM_INFO = {
     buttons: 9,
     cards: 7,
     inputs: 6,
-    total: 37,
+    total: 39,
   },
   tokens: {
     colors: 50,
@@ -173,3 +173,19 @@ export const DESIGN_SYSTEM_INFO = {
   typescript: true,
   testing: 'Jest + RNTL ready',
 } as const;
+
+// ============================================================================
+// EMPTY STATE & SKELETON LOADERS
+// ============================================================================
+
+export { EmptyState } from './EmptyState';
+export {
+    Skeleton,
+    SkeletonAvatar,
+    SkeletonCard,
+    SkeletonJobCard,
+    SkeletonJobList,
+    SkeletonList,
+    SkeletonListItem,
+    SkeletonText,
+} from './SkeletonLoader';
