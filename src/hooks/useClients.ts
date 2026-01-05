@@ -35,7 +35,8 @@ export const useClients = (): UseClientsReturn => {
       const apiClients = await fetchClients();
       setClients(apiClients);
       
-    } catch (err) {
+    } catch (err) {
+
       console.error('Error fetching clients:', err);
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       
@@ -60,13 +61,14 @@ export const useClients = (): UseClientsReturn => {
     fetchClientsData();
   }, [fetchClientsData]);
 
-  // Calculs dérivés
-  const totalClients = clients.length;
-  const archivedClients = clients.filter(client => client.isArchived).length;
+  // Calculs dérivés avec protection contre undefined
+  const safeClients = Array.isArray(clients) ? clients : [];
+  const totalClients = safeClients.length;
+  const archivedClients = safeClients.filter(client => client.isArchived).length;
   const activeClients = totalClients - archivedClients;
 
   return {
-    clients,
+    clients: safeClients,
     isLoading,
     error,
     refetch,
