@@ -208,6 +208,12 @@ export const zhTranslations = {
         },
     },
 
+    clients: {
+        noClients: '未找到客户',
+        searchPlaceholder: '搜索客户...',
+        addClient: '添加客户',
+    },
+
     profile: {
         title: '我的资料',
         personalInfo: '个人信息',

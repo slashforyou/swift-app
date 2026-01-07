@@ -219,6 +219,12 @@ export const enTranslations: TranslationKeys = {
         },
     },
 
+    clients: {
+        noClients: 'No clients found',
+        searchPlaceholder: 'Search clients...',
+        addClient: 'Add Client',
+    },
+
     profile: {
         title: 'My Profile',
         personalInfo: 'Personal Information',

@@ -208,6 +208,12 @@ export const itTranslations = {
         },
     },
 
+    clients: {
+        noClients: 'Nessun cliente trovato',
+        searchPlaceholder: 'Cerca clienti...',
+        addClient: 'Aggiungi cliente',
+    },
+
     profile: {
         title: 'Il Mio Profilo',
         personalInfo: 'Informazioni Personali',

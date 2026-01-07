@@ -5,70 +5,6 @@
 import { ServerData } from '../../constants/ServerData';
 import { fetchWithAuth } from '../../utils/session';
 
-// Mock data pour fallback
-const mockVehicles: BusinessVehicle[] = [
-  {
-    id: 'vehicle-001',
-    company_id: 'swift-removals-001',
-    name: 'Swift Truck #1',
-    type: 'moving-truck',
-    registration: 'NSW-123',
-    make: 'Isuzu',
-    model: 'NPR 200',
-    year: '2020',
-    nextService: '2024-12-15',
-    location: 'Sydney Depot',
-    status: 'available',
-    currentDriver: '',
-    mileage: 45000,
-    capacity: '5.5m³',
-    fuel_type: 'Diesel',
-    insurance_expiry: '2025-03-30',
-    created_at: '2023-01-15T00:00:00Z',
-    updated_at: '2024-10-20T00:00:00Z'
-  },
-  {
-    id: 'vehicle-002', 
-    company_id: 'swift-removals-001',
-    name: 'Swift Van #2',
-    type: 'van',
-    registration: 'NSW-456',
-    make: 'Ford',
-    model: 'Transit',
-    year: '2021',
-    nextService: '2024-11-30',
-    location: 'Sydney Depot',
-    status: 'in-use',
-    currentDriver: 'John Smith',
-    mileage: 32000,
-    capacity: '3.5m³',
-    fuel_type: 'Diesel',
-    insurance_expiry: '2025-04-15',
-    created_at: '2023-02-01T00:00:00Z',
-    updated_at: '2024-10-20T00:00:00Z'
-  },
-  {
-    id: 'vehicle-003',
-    company_id: 'swift-removals-001',
-    name: 'Swift Truck #3',
-    type: 'moving-truck',
-    registration: 'NSW-789',
-    make: 'Hino',
-    model: '300 Series',
-    year: '2019',
-    nextService: '2024-10-25',
-    location: 'Sydney Depot', 
-    status: 'maintenance',
-    currentDriver: '',
-    mileage: 67000,
-    capacity: '8m³',
-    fuel_type: 'Diesel',
-    insurance_expiry: '2025-02-28',
-    created_at: '2022-12-01T00:00:00Z',
-    updated_at: '2024-10-20T00:00:00Z'
-  }
-];
-
 // Types Vehicles
 export interface BusinessVehicle {
   id: string;
@@ -118,6 +54,7 @@ interface VehicleListResponse {
 
 /**
  * Récupère la liste des véhicules d'une entreprise
+ * En cas d'erreur ou de données invalides, retourne un tableau vide
  */
 export const fetchBusinessVehicles = async (companyId: string): Promise<BusinessVehicle[]> => {
   try {
@@ -126,23 +63,22 @@ export const fetchBusinessVehicles = async (companyId: string): Promise<Business
     });
 
     if (!response.ok) {
-      console.warn('Vehicles API not available, using mock data');
-      return mockVehicles.map(v => ({ ...v, company_id: companyId }));
+      // API non disponible - retourner tableau vide (pas de mock)
+      return [];
     }
 
     const data: VehicleListResponse = await response.json();
     
     if (!data.success) {
-      console.warn('Vehicles API returned success: false, using mock data');
-      return mockVehicles.map(v => ({ ...v, company_id: companyId }));
+      // API a retourné une erreur - retourner tableau vide (pas de mock)
+      return [];
     }
 
-    return data.trucks || mockVehicles.map(v => ({ ...v, company_id: companyId }));
+    // Retourner les véhicules de l'API ou tableau vide si aucun
+    return data.trucks || [];
   } catch (error) {
-
-    console.error('Error fetching business vehicles:', error);
-    console.warn('Using mock business vehicles as fallback');
-    return mockVehicles.map(v => ({ ...v, company_id: companyId }));
+    // En cas d'erreur réseau - retourner tableau vide (pas de mock)
+    return [];
   }
 };
 

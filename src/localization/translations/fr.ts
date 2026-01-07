@@ -219,6 +219,12 @@ export const frTranslations: TranslationKeys = {
         },
     },
 
+    clients: {
+        noClients: 'Aucun client trouvé',
+        searchPlaceholder: 'Rechercher des clients...',
+        addClient: 'Ajouter un client',
+    },
+
     profile: {
         title: 'Mon Profil',
         personalInfo: 'Informations personnelles',

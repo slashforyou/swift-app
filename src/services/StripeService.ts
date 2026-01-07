@@ -166,15 +166,8 @@ export const createStripeConnectAccount = async (): Promise<{
       }
     }
     
-    // Return mock data for development
-    const mockAccountId = `acct_mock_${Date.now()}`;
-    const mockOnboardingUrl = `https://connect.stripe.com/express/setup/mock-${Date.now()}`;
-    // TEMP_DISABLED: console.warn(`Using mock data:`, { mockAccountId, mockOnboardingUrl });
-    
-    return {
-      accountId: mockAccountId,
-      onboardingUrl: mockOnboardingUrl
-    };
+    // Re-throw the error - no mock data
+    throw error;
   }
 };
 
@@ -219,10 +212,8 @@ export const getStripeConnectOnboardingLink = async (): Promise<string> => {
   } catch (error) {
 
     // TEMP_DISABLED: console.error('Error getting Stripe Connect onboarding link:', error);
-    // Return mock URL for development
-    const mockUrl = `https://connect.stripe.com/express/setup/mock-${Date.now()}`;
-    // TEMP_DISABLED: console.warn(`Using mock Express onboarding link: ${mockUrl}`);
-    return mockUrl;
+    // Re-throw the error - no mock URLs
+    throw error;
   }
 };
 
@@ -557,12 +548,10 @@ export const createStripeConnectAccountAndLink = async (): Promise<string> => {
       
     } catch (onboardingError) {
 
-      console.error('❌ [CREATE & LINK] Failed to get any onboarding link:', onboardingError);
+      // TEMP_DISABLED: console.error('❌ [CREATE & LINK] Failed to get any onboarding link:', onboardingError);
       
-      // En dernier recours, retourner une URL mock
-      const mockUrl = `https://connect.stripe.com/express/setup/mock-${Date.now()}`;
-      console.warn('🔧 [CREATE & LINK] Using mock URL:', mockUrl);
-      return mockUrl;
+      // Re-throw the error - no mock URLs
+      throw onboardingError;
     }
   }
 };

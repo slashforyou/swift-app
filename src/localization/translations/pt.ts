@@ -312,6 +312,12 @@ export const ptTranslations = {
         },
     },
 
+    clients: {
+        noClients: 'Nenhum cliente encontrado',
+        searchPlaceholder: 'Buscar clientes...',
+        addClient: 'Adicionar cliente',
+    },
+
     jobDetails: {
         panels: {
             summary: 'Resumo do Trabalho',

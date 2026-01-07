@@ -208,6 +208,12 @@ export const hiTranslations = {
         },
     },
 
+    clients: {
+        noClients: 'कोई ग्राहक नहीं मिला',
+        searchPlaceholder: 'ग्राहक खोजें...',
+        addClient: 'ग्राहक जोड़ें',
+    },
+
     profile: {
         title: 'मेरी प्रोफ़ाइल',
         personalInfo: 'व्यक्तिगत जानकारी',

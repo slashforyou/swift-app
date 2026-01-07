@@ -205,6 +205,12 @@ export const esTranslations = {
         },
     },
 
+    clients: {
+        noClients: 'No se encontraron clientes',
+        searchPlaceholder: 'Buscar clientes...',
+        addClient: 'Añadir cliente',
+    },
+
     profile: {
         title: 'Mi Perfil',
         personalInfo: 'Información Personal',
