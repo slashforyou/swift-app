@@ -17,7 +17,7 @@ Ce document liste les **fonctionnalités frontend prêtes** qui attendent des **
 | ✅ | Assignation Staff à Job | Faible | ✅ Prêt | ✅ `/job/:id/crew` |
 | ✅ | Push Notifications | Moyenne | ✅ **INTÉGRÉ** | ✅ Terminé |
 | ✅ | Upload Photo Véhicule | Faible | ✅ **INTÉGRÉ** | ✅ Terminé |
-| 🔴 Haute | Gestion des Équipes | Haute | En attente | ❌ Non |
+| ✅ | Gestion des Équipes | Haute | ✅ **INTÉGRÉ** | ✅ Terminé |
 | 🟠 Moyenne | Rôles & Permissions | Haute | En attente | ❌ Non |
 
 ---
@@ -190,122 +190,55 @@ addNotificationResponseListener(callback)
 
 ---
 
-## 4. 👥 Gestion des Équipes (STAFF-02)
+## 4. 👥 Gestion des Équipes (STAFF-02) - ✅ TERMINÉ
 
 ### Description
 CRUD complet pour créer et gérer des équipes de personnel.
 
-### Frontend Status : 🟡 EN ATTENTE
-- Écran `TeamsScreen.tsx` à créer une fois API disponible
+### Frontend Status : ✅ INTÉGRÉ
+- Service créé : `src/services/teamsService.ts`
+- Hook React : `src/hooks/useTeams.ts`
+- Écran `TeamsScreen.tsx` à créer pour l'UI
 
-### Endpoints Requis
+### Endpoints Backend (Implémentés 8 Jan 2026)
 
-#### 4.1 Liste des Équipes
+#### Lister les équipes
 ```
-GET /v1/company/{company_id}/teams
-```
-
-**Response :**
-```json
-{
-  "success": true,
-  "teams": [
-    {
-      "id": "team_001",
-      "name": "Équipe Sydney Nord",
-      "description": "Déménagements zone nord Sydney",
-      "leader_id": "staff_001",
-      "leader": {
-        "id": "staff_001",
-        "firstName": "John",
-        "lastName": "Smith"
-      },
-      "members": [
-        {
-          "id": "staff_002",
-          "firstName": "Sarah",
-          "lastName": "Johnson",
-          "role": "mover"
-        }
-      ],
-      "member_count": 5,
-      "created_at": "2025-01-01T00:00:00Z"
-    }
-  ]
-}
+GET /v1/company/{companyId}/teams
 ```
 
-#### 4.2 Créer une Équipe
+#### Créer une équipe
 ```
-POST /v1/company/{company_id}/teams
-```
-
-**Body :**
-```json
-{
-  "name": "Équipe Melbourne",
-  "description": "Équipe pour zone Melbourne",
-  "leader_id": "staff_001",
-  "member_ids": ["staff_002", "staff_003", "staff_004"]
-}
+POST /v1/company/{companyId}/teams
 ```
 
-#### 4.3 Modifier une Équipe
+#### Récupérer une équipe
 ```
-PUT /v1/company/{company_id}/teams/{team_id}
-```
-
-**Body :**
-```json
-{
-  "name": "Équipe Melbourne CBD",
-  "description": "Description mise à jour",
-  "leader_id": "staff_002",
-  "member_ids": ["staff_001", "staff_003", "staff_005"]
-}
+GET /v1/company/{companyId}/teams/{teamId}
 ```
 
-#### 4.4 Supprimer une Équipe
+#### Modifier une équipe
 ```
-DELETE /v1/company/{company_id}/teams/{team_id}
-```
-
-#### 4.5 Assigner Équipe à un Job
-```
-PATCH /v1/jobs/{job_id}
+PUT /v1/company/{companyId}/teams/{teamId}
 ```
 
-**Body :**
-```json
-{
-  "assigned_team_id": "team_001"
-}
+#### Supprimer une équipe
+```
+DELETE /v1/company/{companyId}/teams/{teamId}
 ```
 
-### Schéma Base de Données Suggéré
-
-```sql
-CREATE TABLE teams (
-  id VARCHAR(36) PRIMARY KEY,
-  company_id VARCHAR(36) NOT NULL,
-  name VARCHAR(100) NOT NULL,
-  description TEXT,
-  leader_id VARCHAR(36),
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (company_id) REFERENCES companies(id),
-  FOREIGN KEY (leader_id) REFERENCES staff(id)
-);
-
-CREATE TABLE team_members (
-  team_id VARCHAR(36) NOT NULL,
-  staff_id VARCHAR(36) NOT NULL,
-  role VARCHAR(50) DEFAULT 'member',
-  joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (team_id, staff_id),
-  FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE,
-  FOREIGN KEY (staff_id) REFERENCES staff(id)
-);
+### Frontend Service Functions
+```typescript
+// src/services/teamsService.ts
+fetchTeams(options?)
+fetchTeamById(teamId)
+createTeam(data)
+updateTeam(teamId, data)
+deleteTeam(teamId, permanent?)
+addTeamMembers(teamId, memberIds)
+removeTeamMember(teamId, memberId)
+setTeamLeader(teamId, leaderId)
+assignTeamToJob(jobId, teamId)
 ```
 
 ---

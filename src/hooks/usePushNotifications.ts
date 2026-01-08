@@ -5,22 +5,22 @@
  * - Gérer les préférences utilisateur
  * - Écouter les notifications reçues
  */
+import { useNavigation } from '@react-navigation/native';
+import * as Notifications from 'expo-notifications';
 import { useCallback, useEffect, useState } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
-import * as Notifications from 'expo-notifications';
 import {
-  getExpoPushToken,
-  getNotificationPreferences,
-  initializePushNotifications,
-  NotificationPreferences,
-  registerPushToken,
-  updateNotificationPreferences,
-  addNotificationReceivedListener,
-  addNotificationResponseListener,
-  parseNotificationData,
-  clearBadge,
+    addNotificationReceivedListener,
+    addNotificationResponseListener,
+    clearBadge,
+    getExpoPushToken,
+    getNotificationPreferences,
+    initializePushNotifications,
+    NotificationPreferences,
+    parseNotificationData,
+    registerPushToken,
+    updateNotificationPreferences,
 } from '../services/pushNotifications';
-import { useNavigation } from '@react-navigation/native';
 
 interface UsePushNotificationsReturn {
   // State
