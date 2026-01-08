@@ -1,6 +1,7 @@
 # 🔧 Backend Requirements - Phase 2 Features
 
 **Document généré le :** 3 Janvier 2026  
+**Dernière mise à jour :** 8 Janvier 2026  
 **Application :** Swift App (React Native / Expo)  
 **API Base URL :** `https://altivo.fr/swift-app/`  
 **Version API actuelle :** v1
@@ -13,72 +14,50 @@ Ce document liste les **fonctionnalités frontend prêtes** qui attendent des **
 
 | Priorité | Fonctionnalité | Complexité Backend | Status Frontend | API Existe ? |
 |----------|----------------|-------------------|-----------------|--------------|
-| 🟢 Faible | Assignation Staff à Job | Faible | ✅ Prêt | ✅ `/job/:id/crew` |
-| 🔴 Haute | Push Notifications | Moyenne | En attente | ⚠️ Partiel |
+| ✅ | Assignation Staff à Job | Faible | ✅ Prêt | ✅ `/job/:id/crew` |
+| ✅ | Push Notifications | Moyenne | ✅ **INTÉGRÉ** | ✅ Terminé |
+| ✅ | Upload Photo Véhicule | Faible | ✅ **INTÉGRÉ** | ✅ Terminé |
 | 🔴 Haute | Gestion des Équipes | Haute | En attente | ❌ Non |
 | 🟠 Moyenne | Rôles & Permissions | Haute | En attente | ❌ Non |
-| 🟠 Moyenne | Upload Photo Véhicule | Faible | ✅ Prêt | ❌ Non |
 
 ---
 
-## 1. 📸 Upload Photo Véhicule (VEH-03)
+## 1. 📸 Upload Photo Véhicule (VEH-03) - ✅ TERMINÉ
 
 ### Description
 Permettre aux utilisateurs de prendre ou sélectionner une photo pour un véhicule.
 
-### Frontend Status : ✅ PRÊT
+### Frontend Status : ✅ INTÉGRÉ
 - `VehiclePhotoModal.tsx` créé
 - Bouton "Photo" ajouté dans VehicleDetailsScreen
 - Utilise `expo-image-picker` pour caméra/galerie
 - Upload via `FormData` multipart
+- **Service mis à jour :** `src/services/business/vehiclesService.ts`
 
-### ⚠️ Note Importante
-L'endpoint d'upload de photo **fonctionne déjà pour les jobs** :
+### Endpoints Backend (Implémentés 8 Jan 2026)
+
+#### Upload une image
 ```
-POST /v1/job/{job_id}/image  ✅ FONCTIONNEL
-```
-
-Il suffit de créer un endpoint **similaire pour les véhicules** :
-
-### Endpoint Requis
-
-```
-POST /v1/company/{company_id}/trucks/{truck_id}/image
+POST /v1/company/{companyId}/trucks/{truckId}/image
 ```
 
-**Pattern identique à l'upload job** (voir `src/services/jobPhotos.ts`)
-
-**Headers :**
+#### Lister les images
 ```
-Content-Type: multipart/form-data
-Authorization: Bearer {token}
+GET /v1/company/{companyId}/trucks/{truckId}/images
 ```
 
-**Body (FormData) :**
+#### Supprimer une image
 ```
-image: File (image/jpeg)
-description: string (optionnel)
-```
-
-**Response Success (200) - Même format que jobs :**
-```json
-{
-  "success": true,
-  "data": {
-    "id": 123,
-    "filename": "truck_photo_123.jpg",
-    "url": "https://storage.googleapis.com/...",
-    "description": "Photo du véhicule",
-    "created_at": "2026-01-03T10:00:00Z"
-  }
-}
+DELETE /v1/company/{companyId}/trucks/{truckId}/images/{imageId}
 ```
 
-### Spécifications
-- **Taille max :** 5 MB recommandé
-- **Formats acceptés :** JPEG, PNG
-- **Stockage :** S3, local, ou autre solution de stockage
-- **Optionnel :** Génération de thumbnail pour liste
+### Frontend Service Functions
+```typescript
+// src/services/business/vehiclesService.ts
+uploadVehiclePhoto(companyId, vehicleId, photoUri, options?)
+fetchVehicleImages(companyId, vehicleId, options?)
+deleteVehicleImage(companyId, vehicleId, imageId, permanent?)
+```
 
 ---
 
@@ -146,7 +125,7 @@ S'assurer que `GET /v1/jobs/{job_id}` retourne :
 
 ---
 
-## 3. 🔔 Push Notifications (SETTINGS-02)
+## 3. 🔔 Push Notifications (SETTINGS-02) - ✅ TERMINÉ
 
 ### Description
 Notifications push pour alerter les utilisateurs sur :
@@ -155,71 +134,52 @@ Notifications push pour alerter les utilisateurs sur :
 - Messages clients
 - Mises à jour de paiement
 
-### Frontend Status : 🟡 EN ATTENTE
-- Toggle dans Settings (activé/désactivé)
-- Prêt à intégrer `expo-notifications`
+### Frontend Status : ✅ INTÉGRÉ
+- Service complet créé : `src/services/pushNotifications.ts`
+- Hook React : `src/hooks/usePushNotifications.ts`
+- Initialisation automatique dans `App.tsx`
+- Gestion des préférences utilisateur
 
-### Endpoints Requis
+### Endpoints Backend (Implémentés 8 Jan 2026)
 
-#### 3.1 Enregistrer Device Token
+#### Enregistrer Device Token
 ```
 POST /v1/users/push-token
 ```
 
-**Body :**
-```json
-{
-  "push_token": "ExponentPushToken[xxxxxxxxxxxxxx]",
-  "platform": "ios" | "android",
-  "device_id": "unique_device_identifier"
-}
+#### Supprimer Device Token (logout)
+```
+DELETE /v1/users/push-token
 ```
 
-**Response :**
-```json
-{
-  "success": true,
-  "message": "Push token registered"
-}
+#### Récupérer les préférences
+```
+GET /v1/users/notification-preferences
 ```
 
-#### 3.2 Gérer Préférences Notifications
+#### Modifier les préférences
 ```
 PATCH /v1/users/notification-preferences
 ```
 
-**Body :**
-```json
-{
-  "push_enabled": true,
-  "email_enabled": false,
-  "sms_enabled": false,
-  "job_reminders": true,
-  "payment_alerts": true,
-  "marketing": false
-}
+#### Envoyer une notification (Admin)
+```
+POST /v1/notifications/push/send
 ```
 
-#### 3.3 Backend Push Service
-Implémenter un service pour envoyer les notifications via :
-- **Expo Push API** (recommandé pour Expo) : `https://exp.host/--/api/v2/push/send`
-- Ou Firebase Cloud Messaging (FCM) / Apple Push Notification Service (APNs)
-
-**Payload Notification :**
-```json
-{
-  "to": "ExponentPushToken[xxx]",
-  "title": "Nouveau job assigné",
-  "body": "Job #LM0012345 - Déménagement Sydney",
-  "data": {
-    "type": "new_job",
-    "job_id": "job_123",
-    "screen": "JobDetails"
-  }
-}
+### Frontend Service Functions
+```typescript
+// src/services/pushNotifications.ts
+initializePushNotifications()
+registerPushToken(token)
+unregisterPushToken(token)
+getNotificationPreferences()
+updateNotificationPreferences(prefs)
+addNotificationReceivedListener(callback)
+addNotificationResponseListener(callback)
 ```
 
-### Types de Notifications à Implémenter
+### Types de Notifications Supportées
 | Type | Trigger | Titre | Priorité |
 |------|---------|-------|----------|
 | `new_job` | Job assigné au user | "Nouveau job assigné" | Haute |

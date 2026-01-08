@@ -9,6 +9,7 @@ import { ToastProvider } from './context/ToastProvider'
 import { VehiclesProvider } from './context/VehiclesProvider'
 import { LocalizationProvider } from './localization'
 import Navigation from './navigation/index'
+import { initializePushNotifications } from './services/pushNotifications'
 import { logInfo, simpleSessionLogger } from './services/simpleSessionLogger'
 import './services/testCommunication'; // Initialize test communication
 import './services/testReporter'; // Initialize test reporter
@@ -29,6 +30,16 @@ export default function App() {
     // Log des informations de démarrage utiles
     logInfo(`Environment: ${ENV.name}`, 'env-init');
     logInfo(`Stripe Provider initialized with key: ${STRIPE_PUBLISHABLE_KEY.substring(0, 12)}...`, 'stripe-init');
+    
+    // Initialiser les push notifications (Phase 2)
+    initializePushNotifications().then((success) => {
+      if (success) {
+        logInfo('Push notifications initialized successfully', 'push-init');
+      }
+    }).catch((error) => {
+      // Silently fail - notifications are optional
+      console.warn('[Push] Failed to initialize:', error);
+    });
     
     // Marquer l'app comme interactive après initialisation
     setTimeout(() => {

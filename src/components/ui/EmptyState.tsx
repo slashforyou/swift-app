@@ -4,9 +4,9 @@
  * Utilisé quand une liste est vide ou qu'il n'y a pas de données à afficher.
  * Fournit un feedback visuel clair avec icône, titre, description et action optionnelle.
  */
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import React from 'react';
+import { StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useTheme } from '../../context/ThemeProvider';
 

@@ -265,18 +265,47 @@ export const createMultipleVehicles = async (
   }
 };
 
+// ========================================
+// 📸 VEHICLE PHOTO MANAGEMENT - Phase 2
+// ========================================
+
+/**
+ * Types pour les photos de véhicules
+ */
+export type VehicleImageType = 'exterior' | 'interior' | 'damage' | 'document' | 'other';
+
+export interface VehicleImage {
+  id: number;
+  truck_id: number;
+  filename: string;
+  original_filename?: string;
+  url: string;
+  gcs_path?: string;
+  image_type: VehicleImageType;
+  description?: string;
+  is_primary: boolean;
+  created_at: string;
+}
+
+export interface UploadVehiclePhotoOptions {
+  description?: string;
+  image_type?: VehicleImageType;
+  is_primary?: boolean;
+}
+
 /**
  * Upload une photo pour un véhicule
- * VEH-03: Interface photo véhicule
+ * POST /v1/company/{companyId}/trucks/{truckId}/image
+ * 
+ * @see BACKEND_REQUIREMENTS_PHASE2.md
  */
 export const uploadVehiclePhoto = async (
   companyId: string,
   vehicleId: string,
-  photoUri: string
-): Promise<{ success: boolean; photoUrl?: string }> => {
+  photoUri: string,
+  options?: UploadVehiclePhotoOptions
+): Promise<{ success: boolean; image?: VehicleImage }> => {
   try {
-    console.log(`📸 [vehiclesService] Uploading photo for vehicle ${vehicleId}...`);
-
     // Créer FormData pour l'upload
     const formData = new FormData();
     
@@ -285,14 +314,25 @@ export const uploadVehiclePhoto = async (
     const match = /\.(\w+)$/.exec(filename);
     const type = match ? `image/${match[1]}` : 'image/jpeg';
 
-    formData.append('photo', {
+    formData.append('image', {
       uri: photoUri,
       name: filename,
       type: type,
     } as any);
 
+    // Ajouter les options optionnelles
+    if (options?.description) {
+      formData.append('description', options.description);
+    }
+    if (options?.image_type) {
+      formData.append('image_type', options.image_type);
+    }
+    if (options?.is_primary !== undefined) {
+      formData.append('is_primary', String(options.is_primary));
+    }
+
     const response = await fetchWithAuth(
-      `${ServerData.serverUrl}v1/company/${companyId}/trucks/${vehicleId}/photo`,
+      `${ServerData.serverUrl}v1/company/${companyId}/trucks/${vehicleId}/image`,
       {
         method: 'POST',
         headers: {
@@ -303,23 +343,100 @@ export const uploadVehiclePhoto = async (
     );
 
     if (!response.ok) {
-      // Si endpoint non disponible, retourner erreur explicite
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error(data.error || 'Upload failed');
+    }
+
+    return {
+      success: true,
+      image: data.data as VehicleImage,
+    };
+  } catch (error) {
+    console.error('[vehiclesService] Error uploading vehicle photo:', error);
+    throw error;
+  }
+};
+
+/**
+ * Récupère la liste des images d'un véhicule
+ * GET /v1/company/{companyId}/trucks/{truckId}/images
+ */
+export const fetchVehicleImages = async (
+  companyId: string,
+  vehicleId: string,
+  options?: { image_type?: VehicleImageType; include_deleted?: boolean }
+): Promise<VehicleImage[]> => {
+  try {
+    const params = new URLSearchParams();
+    if (options?.image_type) {
+      params.append('image_type', options.image_type);
+    }
+    if (options?.include_deleted) {
+      params.append('include_deleted', 'true');
+    }
+
+    const url = `${ServerData.serverUrl}v1/company/${companyId}/trucks/${vehicleId}/images${
+      params.toString() ? '?' + params.toString() : ''
+    }`;
+
+    const response = await fetchWithAuth(url, {
+      method: 'GET',
+    });
+
+    if (!response.ok) {
+      // Si pas d'images, retourner tableau vide
       if (response.status === 404) {
-        console.warn('⚠️ [vehiclesService] Photo upload endpoint not available (404)');
-        throw new Error('Photo upload endpoint not available. Backend implementation required.');
+        return [];
       }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log(`✅ [vehiclesService] Photo uploaded successfully`);
 
-    return {
-      success: true,
-      photoUrl: data.photo_url || data.url,
-    };
+    if (!data.success) {
+      return [];
+    }
+
+    return data.data?.images || [];
   } catch (error) {
-    console.error('❌ [vehiclesService] Error uploading vehicle photo:', error);
-    throw error;
+    console.error('[vehiclesService] Error fetching vehicle images:', error);
+    return [];
+  }
+};
+
+/**
+ * Supprime une image de véhicule
+ * DELETE /v1/company/{companyId}/trucks/{truckId}/images/{imageId}
+ */
+export const deleteVehicleImage = async (
+  companyId: string,
+  vehicleId: string,
+  imageId: number,
+  permanent: boolean = false
+): Promise<boolean> => {
+  try {
+    const url = `${ServerData.serverUrl}v1/company/${companyId}/trucks/${vehicleId}/images/${imageId}${
+      permanent ? '?permanent=true' : ''
+    }`;
+
+    const response = await fetchWithAuth(url, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.success === true;
+  } catch (error) {
+    console.error('[vehiclesService] Error deleting vehicle image:', error);
+    return false;
   }
 };

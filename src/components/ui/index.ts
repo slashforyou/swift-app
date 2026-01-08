@@ -187,5 +187,5 @@ export {
     SkeletonJobList,
     SkeletonList,
     SkeletonListItem,
-    SkeletonText,
+    SkeletonText
 } from './SkeletonLoader';

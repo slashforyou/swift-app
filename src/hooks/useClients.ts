@@ -1,6 +1,6 @@
 // hooks/useClients.ts
-import { useState, useEffect, useCallback } from 'react';
-import { fetchClients, ClientAPI } from '../services/clients';
+import { useCallback, useEffect, useState } from 'react';
+import { ClientAPI, fetchClients } from '../services/clients';
 import { isLoggedIn } from '../utils/auth';
 
 interface UseClientsReturn {
