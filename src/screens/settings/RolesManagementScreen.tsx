@@ -3,35 +3,35 @@
  * Interface pour créer, modifier et supprimer les rôles de l'entreprise
  */
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState, useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Modal,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    Modal,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Components
+import { AdminOnly } from '../../components/PermissionGate';
 import { Screen } from '../../components/primitives/Screen';
 import { HStack, VStack } from '../../components/primitives/Stack';
 import { Card } from '../../components/ui/Card';
-import { AdminOnly } from '../../components/PermissionGate';
 
 // Hooks & Utils
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useTheme } from '../../context/ThemeProvider';
 import { useRoles } from '../../hooks/useRoles';
 import {
-  Role,
-  AVAILABLE_PERMISSIONS,
-  PERMISSION_CATEGORIES,
-  getPermissionDisplayName,
+    AVAILABLE_PERMISSIONS,
+    PERMISSION_CATEGORIES,
+    Role,
+    getPermissionDisplayName,
 } from '../../services/rolesService';
 
 // ============================================================================

@@ -4,12 +4,12 @@
  * @module hooks/usePermissions
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  UserPermissions,
-  PermissionScope,
-  fetchMyPermissions,
-  hasWildcardPermission,
+    PermissionScope,
+    UserPermissions,
+    fetchMyPermissions,
+    hasWildcardPermission,
 } from '../services/rolesService';
 
 // ============================================================================

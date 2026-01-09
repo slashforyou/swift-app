@@ -4,12 +4,12 @@
  * @module contexts/PermissionsContext
  */
 
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
+import React, { ReactNode, createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import {
-  UserPermissions,
-  PermissionScope,
-  fetchMyPermissions,
-  hasWildcardPermission,
+    PermissionScope,
+    UserPermissions,
+    fetchMyPermissions,
+    hasWildcardPermission,
 } from '../services/rolesService';
 
 // ============================================================================
