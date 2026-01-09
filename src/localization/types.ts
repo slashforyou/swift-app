@@ -1484,6 +1484,119 @@ export interface TranslationKeys {
             };
         };
     };
+
+    // Roles Management
+    roles: {
+        title: string;
+        subtitle: string;
+        createRole: string;
+        editRole: string;
+        deleteRole: string;
+        newRole: string;
+        systemRole: string;
+        customRole: string;
+        permissions: string;
+        permissionsCount: string;
+        staffCount: string;
+        scope: string;
+        scopes: {
+            all: string;
+            team: string;
+            assigned: string;
+        };
+        form: {
+            slugLabel: string;
+            slugPlaceholder: string;
+            slugHint: string;
+            displayNameLabel: string;
+            displayNamePlaceholder: string;
+            descriptionLabel: string;
+            descriptionPlaceholder: string;
+            scopeLabel: string;
+            permissionsLabel: string;
+        };
+        validation: {
+            nameRequired: string;
+            slugRequired: string;
+            permissionsRequired: string;
+        };
+        alerts: {
+            createSuccess: string;
+            updateSuccess: string;
+            deleteSuccess: string;
+            createError: string;
+            updateError: string;
+            deleteError: string;
+            genericError: string;
+        };
+        confirmDelete: {
+            title: string;
+            message: string;
+        };
+        categories: {
+            jobs: string;
+            staff: string;
+            vehicles: string;
+            clients: string;
+            teams: string;
+            finances: string;
+            reports: string;
+            settings: string;
+            roles: string;
+        };
+        emptyState: {
+            title: string;
+            message: string;
+        };
+        loading: string;
+        retry: string;
+        search: string;
+    };
+
+    // Teams Management
+    teams: {
+        title: string;
+        subtitle: string;
+        createTeam: string;
+        editTeam: string;
+        deleteTeam: string;
+        newTeam: string;
+        membersCount: string;
+        leader: string;
+        noLeader: string;
+        form: {
+            nameLabel: string;
+            namePlaceholder: string;
+            descriptionLabel: string;
+            descriptionPlaceholder: string;
+            leaderLabel: string;
+            leaderNone: string;
+            membersLabel: string;
+        };
+        validation: {
+            nameRequired: string;
+        };
+        alerts: {
+            createSuccess: string;
+            updateSuccess: string;
+            deleteSuccess: string;
+            createError: string;
+            updateError: string;
+            deleteError: string;
+            unknownError: string;
+        };
+        confirmDelete: {
+            title: string;
+            message: string;
+        };
+        emptyState: {
+            title: string;
+            message: string;
+            noResults: string;
+        };
+        loading: string;
+        search: string;
+    };
 }
 
 export type TranslationFunction = (key: string, params?: Record<string, string | number>) => string;

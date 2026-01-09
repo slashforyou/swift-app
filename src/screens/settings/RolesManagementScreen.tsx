@@ -27,6 +27,7 @@ import { Card } from '../../components/ui/Card';
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useTheme } from '../../context/ThemeProvider';
 import { useRoles } from '../../hooks/useRoles';
+import { useTranslation } from '../../localization';
 import {
     AVAILABLE_PERMISSIONS,
     PERMISSION_CATEGORIES,
@@ -431,6 +432,7 @@ export default function RolesManagementScreen({
   navigation,
 }: RolesManagementScreenProps) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
   // Roles hook
@@ -499,40 +501,40 @@ export default function RolesManagementScreen({
   const handleDelete = useCallback(
     (role: Role) => {
       Alert.alert(
-        'Supprimer le rôle',
-        `Êtes-vous sûr de vouloir supprimer le rôle "${role.display_name}" ?\n\nLes ${role.staff_count || 0} membre(s) avec ce rôle seront réassignés au rôle "Viewer".`,
+        t('roles.confirmDelete.title'),
+        t('roles.confirmDelete.message', { name: role.display_name, count: role.staff_count || 0 }),
         [
-          { text: 'Annuler', style: 'cancel' },
+          { text: t('common.cancel'), style: 'cancel' },
           {
-            text: 'Supprimer',
+            text: t('common.delete'),
             style: 'destructive',
             onPress: async () => {
               try {
                 await deleteRole(role.id);
-                Alert.alert('Succès', 'Rôle supprimé avec succès');
+                Alert.alert(t('common.success'), t('roles.alerts.deleteSuccess'));
               } catch {
-                Alert.alert('Erreur', 'Impossible de supprimer le rôle');
+                Alert.alert(t('common.error'), t('roles.alerts.deleteError'));
               }
             },
           },
         ]
       );
     },
-    [deleteRole]
+    [deleteRole, t]
   );
 
   const handleSave = useCallback(async () => {
     // Validation
     if (!formData.display_name.trim()) {
-      Alert.alert('Erreur', 'Le nom du rôle est requis');
+      Alert.alert(t('common.error'), t('roles.validation.nameRequired'));
       return;
     }
     if (isCreating && !formData.name.trim()) {
-      Alert.alert('Erreur', "L'identifiant du rôle est requis");
+      Alert.alert(t('common.error'), t('roles.validation.slugRequired'));
       return;
     }
     if (formData.permissions.length === 0) {
-      Alert.alert('Erreur', 'Sélectionnez au moins une permission');
+      Alert.alert(t('common.error'), t('roles.validation.permissionsRequired'));
       return;
     }
 
@@ -546,7 +548,7 @@ export default function RolesManagementScreen({
           permissions: formData.permissions,
           scope: formData.scope,
         });
-        Alert.alert('Succès', 'Rôle créé avec succès');
+        Alert.alert(t('common.success'), t('roles.alerts.createSuccess'));
       } else if (selectedRole) {
         await updateRole(selectedRole.id, {
           display_name: formData.display_name,
@@ -554,15 +556,15 @@ export default function RolesManagementScreen({
           permissions: formData.permissions,
           scope: formData.scope,
         });
-        Alert.alert('Succès', 'Rôle mis à jour avec succès');
+        Alert.alert(t('common.success'), t('roles.alerts.updateSuccess'));
       }
       setIsEditModalVisible(false);
     } catch {
-      Alert.alert('Erreur', 'Une erreur est survenue');
+      Alert.alert(t('common.error'), t('roles.alerts.genericError'));
     } finally {
       setIsSaving(false);
     }
-  }, [formData, isCreating, selectedRole, createRole, updateRole]);
+  }, [formData, isCreating, selectedRole, createRole, updateRole, t]);
 
   const togglePermission = useCallback((permission: string) => {
     setFormData((prev) => ({
@@ -809,14 +811,14 @@ export default function RolesManagementScreen({
                     color: colors.text,
                   }}
                 >
-                  Identifiant (slug)
+                  {t('roles.form.slugLabel')}
                 </Text>
                 <TextInput
                   value={formData.name}
                   onChangeText={(text) =>
                     setFormData((prev) => ({ ...prev, name: text }))
                   }
-                  placeholder="team_leader"
+                  placeholder={t('roles.form.slugPlaceholder')}
                   placeholderTextColor={colors.textSecondary}
                   autoCapitalize="none"
                   style={{
@@ -835,7 +837,7 @@ export default function RolesManagementScreen({
                     color: colors.textSecondary,
                   }}
                 >
-                  Utilisez des minuscules et underscores (ex: team_leader)
+                  {t('roles.form.slugHint')}
                 </Text>
               </VStack>
             )}
@@ -849,14 +851,14 @@ export default function RolesManagementScreen({
                   color: colors.text,
                 }}
               >
-                Nom affiché *
+                {t('roles.form.displayNameLabel')}
               </Text>
               <TextInput
                 value={formData.display_name}
                 onChangeText={(text) =>
                   setFormData((prev) => ({ ...prev, display_name: text }))
                 }
-                placeholder="Chef d'équipe"
+                placeholder={t('roles.form.displayNamePlaceholder')}
                 placeholderTextColor={colors.textSecondary}
                 style={{
                   backgroundColor: colors.backgroundSecondary,
@@ -879,14 +881,14 @@ export default function RolesManagementScreen({
                   color: colors.text,
                 }}
               >
-                Description
+                {t('roles.form.descriptionLabel')}
               </Text>
               <TextInput
                 value={formData.description}
                 onChangeText={(text) =>
                   setFormData((prev) => ({ ...prev, description: text }))
                 }
-                placeholder="Responsable d'une équipe de déménageurs"
+                placeholder={t('roles.form.descriptionPlaceholder')}
                 placeholderTextColor={colors.textSecondary}
                 multiline
                 numberOfLines={3}
@@ -913,7 +915,7 @@ export default function RolesManagementScreen({
                   color: colors.text,
                 }}
               >
-                Portée des permissions
+                {t('roles.form.scopeLabel')}
               </Text>
               <HStack gap="sm">
                 {(['all', 'team', 'assigned'] as const).map((scope) => (

@@ -28,6 +28,7 @@ import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useTheme } from '../../context/ThemeProvider';
 import { useTeams } from '../../hooks/useTeams';
 import { useStaff } from '../../hooks/useStaff';
+import { useTranslation } from '../../localization';
 import { Team } from '../../services/teamsService';
 
 // ============================================================================
@@ -325,6 +326,7 @@ const MemberSelector: React.FC<MemberSelectorProps> = ({
 
 const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigation }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
   // Hooks
@@ -425,7 +427,7 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
 
   const handleCreate = useCallback(async () => {
     if (!formName.trim()) {
-      Alert.alert('Erreur', 'Le nom de l\'équipe est requis');
+      Alert.alert(t('common.error'), t('teams.validation.nameRequired'));
       return;
     }
 
@@ -439,22 +441,22 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
       });
 
       if (result) {
-        Alert.alert('Succès', 'Équipe créée avec succès');
+        Alert.alert(t('common.success'), t('teams.alerts.createSuccess'));
         handleCloseModals();
       } else {
-        Alert.alert('Erreur', 'Impossible de créer l\'équipe');
+        Alert.alert(t('common.error'), t('teams.alerts.createError'));
       }
     } catch (err) {
-      Alert.alert('Erreur', err instanceof Error ? err.message : 'Erreur inconnue');
+      Alert.alert(t('common.error'), err instanceof Error ? err.message : t('teams.alerts.unknownError'));
     } finally {
       setIsSaving(false);
     }
-  }, [formName, formDescription, formLeaderId, formMemberIds, createTeam, handleCloseModals]);
+  }, [formName, formDescription, formLeaderId, formMemberIds, createTeam, handleCloseModals, t]);
 
   const handleUpdate = useCallback(async () => {
     if (!selectedTeam) return;
     if (!formName.trim()) {
-      Alert.alert('Erreur', 'Le nom de l\'équipe est requis');
+      Alert.alert(t('common.error'), t('teams.validation.nameRequired'));
       return;
     }
 
@@ -468,39 +470,39 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
       });
 
       if (result) {
-        Alert.alert('Succès', 'Équipe mise à jour avec succès');
+        Alert.alert(t('common.success'), t('teams.alerts.updateSuccess'));
         handleCloseModals();
       } else {
-        Alert.alert('Erreur', 'Impossible de mettre à jour l\'équipe');
+        Alert.alert(t('common.error'), t('teams.alerts.updateError'));
       }
     } catch (err) {
-      Alert.alert('Erreur', err instanceof Error ? err.message : 'Erreur inconnue');
+      Alert.alert(t('common.error'), err instanceof Error ? err.message : t('teams.alerts.unknownError'));
     } finally {
       setIsSaving(false);
     }
-  }, [selectedTeam, formName, formDescription, formLeaderId, formMemberIds, updateTeam, handleCloseModals]);
+  }, [selectedTeam, formName, formDescription, formLeaderId, formMemberIds, updateTeam, handleCloseModals, t]);
 
   const handleDelete = useCallback((team: Team) => {
     Alert.alert(
-      'Supprimer l\'équipe',
-      `Êtes-vous sûr de vouloir supprimer l'équipe "${team.name}" ?\n\nCette action est irréversible.`,
+      t('teams.confirmDelete.title'),
+      t('teams.confirmDelete.message', { name: team.name }),
       [
-        { text: 'Annuler', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Supprimer',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             const success = await deleteTeam(team.id);
             if (success) {
-              Alert.alert('Succès', 'Équipe supprimée avec succès');
+              Alert.alert(t('common.success'), t('teams.alerts.deleteSuccess'));
             } else {
-              Alert.alert('Erreur', 'Impossible de supprimer l\'équipe');
+              Alert.alert(t('common.error'), t('teams.alerts.deleteError'));
             }
           },
         },
       ]
     );
-  }, [deleteTeam]);
+  }, [deleteTeam, t]);
 
   // ---------------------------------------------------------------------------
   // Render Functions
@@ -596,7 +598,7 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
                   fontWeight: '600',
                 }}
               >
-                {isEdit ? 'Enregistrer' : 'Créer'}
+                {isEdit ? t('common.save') : t('teams.createTeam')}
               </Text>
             )}
           </TouchableOpacity>
@@ -610,12 +612,12 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
           {/* Name */}
           <VStack gap="sm" style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
             <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text }}>
-              {"Nom de l'équipe *"}
+              {t('teams.form.nameLabel')}
             </Text>
             <TextInput
               value={formName}
               onChangeText={setFormName}
-              placeholder="Ex: Équipe Paris Nord"
+              placeholder={t('teams.form.namePlaceholder')}
               placeholderTextColor={colors.textSecondary}
               style={{
                 backgroundColor: colors.backgroundSecondary,
@@ -630,12 +632,12 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
           {/* Description */}
           <VStack gap="sm" style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
             <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text }}>
-              Description (optionnel)
+              {t('teams.form.descriptionLabel')}
             </Text>
             <TextInput
               value={formDescription}
               onChangeText={setFormDescription}
-              placeholder="Description de l'équipe..."
+              placeholder={t('teams.form.descriptionPlaceholder')}
               placeholderTextColor={colors.textSecondary}
               multiline
               numberOfLines={3}
@@ -654,7 +656,7 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
           {/* Leader Selection */}
           <VStack gap="sm" style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
             <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text }}>
-              {"Chef d'équipe (optionnel)"}
+              {t('teams.form.leaderLabel')}
             </Text>
             <ScrollView
               horizontal
@@ -678,7 +680,7 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
                     color: formLeaderId === null ? '#fff' : colors.text,
                   }}
                 >
-                  Aucun
+                  {t('teams.form.leaderNone')}
                 </Text>
               </TouchableOpacity>
               {staffMemberOptions.map((member) => (
@@ -710,7 +712,7 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
           <VStack gap="sm">
             <HStack justify="space-between" align="center">
               <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text }}>
-                {"Membres de l'équipe"}
+                {t('teams.form.membersLabel')}
               </Text>
               <Text style={{ fontSize: 12, color: colors.textSecondary }}>
                 {formMemberIds.length} sélectionné{formMemberIds.length > 1 ? 's' : ''}
@@ -967,10 +969,10 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
                     color: colors.text,
                   }}
                 >
-                  Équipes
+                  {t('teams.title')}
                 </Text>
                 <Text style={{ fontSize: 12, color: colors.textSecondary }}>
-                  {teams.length} équipe{teams.length > 1 ? 's' : ''}
+                  {t('teams.membersCount', { count: teams.length })}
                 </Text>
               </VStack>
             </HStack>
@@ -989,7 +991,7 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
                 }}
               >
                 <Ionicons name="add" size={20} color="#fff" />
-                <Text style={{ color: '#fff', fontWeight: '600' }}>Nouvelle</Text>
+                <Text style={{ color: '#fff', fontWeight: '600' }}>{t('teams.newTeam')}</Text>
               </TouchableOpacity>
             </PermissionGate>
           </HStack>
@@ -1009,7 +1011,7 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
               <TextInput
                 value={searchQuery}
                 onChangeText={setSearchQuery}
-                placeholder="Rechercher une équipe..."
+                placeholder={t('teams.search')}
                 placeholderTextColor={colors.textSecondary}
                 style={{
                   flex: 1,
@@ -1033,7 +1035,7 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
             <ActivityIndicator size="large" color={colors.primary} />
             <Text style={{ marginTop: DESIGN_TOKENS.spacing.md, color: colors.textSecondary }}>
-              Chargement des équipes...
+              {t('teams.loading')}
             </Text>
           </View>
         ) : error ? (
@@ -1066,7 +1068,7 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
                 borderRadius: DESIGN_TOKENS.radius.md,
               }}
             >
-              <Text style={{ color: '#fff', fontWeight: '600' }}>Réessayer</Text>
+              <Text style={{ color: '#fff', fontWeight: '600' }}>{t('common.retry')}</Text>
             </TouchableOpacity>
           </View>
         ) : (
