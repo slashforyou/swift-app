@@ -1,10 +1,13 @@
 /**
  * API Configuration - Configuration centralisée pour toutes les APIs
  * Gère les URLs, authentification et paramètres globaux
+ * 
+ * SECURITY NOTE: Les tokens sont gérés via SecureStore dans src/utils/auth.ts
+ * Ce fichier utilise getAuthHeaders() de auth.ts pour l'authentification
  */
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform as RNPlatform } from 'react-native';
+import { getAuthHeaders as getSecureAuthHeaders, clearSession } from '../utils/auth';
 
 // Variables d'environnement
 const IS_DEV = __DEV__;
@@ -66,64 +69,24 @@ export const apiConfig = {
       : 'pk_live_VOTRE_CLE_STRIPE_PRODUCTION',
   },
   
-  // Clés d'authentification AsyncStorage
-  authKeys: {
-    token: '@swiftapp:auth_token',
-    refreshToken: '@swiftapp:refresh_token', 
-    userId: '@swiftapp:user_id',
-  },
-  
   /**
-   * Récupère le token d'authentification
-   */
-  getAuthToken: async (): Promise<string | null> => {
-    try {
-      const token = await AsyncStorage.getItem(apiConfig.authKeys.token);
-      return token;
-    } catch (error) {
-      console.error('❌ [apiConfig] Error getting auth token:', error);
-      return null;
-    }
-  },
-  
-  /**
-   * Stocke le token d'authentification  
-   */
-  setAuthToken: async (token: string): Promise<void> => {
-    try {
-      await AsyncStorage.setItem(apiConfig.authKeys.token, token);
-      // TEMP_DISABLED: console.log('✅ [apiConfig] Auth token stored');
-    } catch (error) {
-      console.error('❌ [apiConfig] Error storing auth token:', error);
-    }
-  },
-  
-  /**
-   * Supprime le token d'authentification
-   */
-  clearAuthToken: async (): Promise<void> => {
-    try {
-      await AsyncStorage.multiRemove([
-        apiConfig.authKeys.token,
-        apiConfig.authKeys.refreshToken,
-        apiConfig.authKeys.userId,
-      ]);
-      // TEMP_DISABLED: console.log('✅ [apiConfig] Auth tokens cleared');
-    } catch (error) {
-      console.error('❌ [apiConfig] Error clearing auth tokens:', error);
-    }
-  },
-  
-  /**
-   * Crée les headers avec authentification
+   * Crée les headers avec authentification (via SecureStore)
+   * @see src/utils/auth.ts pour la gestion sécurisée des tokens
    */
   getAuthHeaders: async (): Promise<Record<string, string>> => {
-    const token = await apiConfig.getAuthToken();
+    const authHeaders = await getSecureAuthHeaders();
     
     return {
       ...apiConfig.defaultHeaders,
-      ...(token && { 'Authorization': `Bearer ${token}` }),
+      ...authHeaders,
     };
+  },
+  
+  /**
+   * Supprime les tokens d'authentification (via SecureStore)
+   */
+  clearAuthToken: async (): Promise<void> => {
+    await clearSession();
   },
   
   /**
@@ -160,7 +123,8 @@ export const apiConfig = {
       }
       
       return response;
-    } catch (error) {
+    } catch (error) {
+
       clearTimeout(timeoutId);
       
       if (error instanceof Error && error.name === 'AbortError') {
@@ -182,7 +146,8 @@ export const apiConfig = {
       });
       
       return response.ok;
-    } catch (error) {
+    } catch (error) {
+
       console.error('❌ [apiConfig] Health check failed:', error);
       return false;
     }

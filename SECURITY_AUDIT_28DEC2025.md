@@ -1,8 +1,9 @@
 # 🔐 SECURITY AUDIT REPORT - Swift App
 > **Date :** 28 Décembre 2025  
-> **Version :** 1.0  
+> **Dernière mise à jour :** 9 Janvier 2026  
+> **Version :** 1.1  
 > **Auditeur :** Automated Security Review  
-> **Statut :** ✅ CONFORME avec recommandations
+> **Statut :** ✅ CONFORME - Actions corrigées
 
 ---
 
@@ -10,44 +11,40 @@
 
 | Catégorie | Statut | Score |
 |-----------|--------|-------|
-| **PCI-DSS Données Cartes** | ✅ CONFORME | 9/10 |
-| **PCI-DSS Stockage** | ✅ CONFORME | 9/10 |
+| **PCI-DSS Données Cartes** | ✅ CONFORME | 10/10 |
+| **PCI-DSS Stockage** | ✅ CONFORME | 10/10 |
 | **PCI-DSS Communications** | ✅ CONFORME | 10/10 |
 | **Flows Critiques - Paiement** | ✅ CONFORME | 10/10 |
 | **Flows Critiques - Auth** | ✅ CONFORME | 10/10 |
 | **Validation Inputs** | ✅ CONFORME | 8/10 |
 
-**Score Global : 93/100** ✅
+**Score Global : 98/100** ✅
 
 ---
 
-## 🔴 Actions Requises (URGENT)
+## ✅ Actions Corrigées (9 Janvier 2026)
 
-### 1. Supprimer StripePaymentScreen.tsx
+### 1. ~~Supprimer StripePaymentScreen.tsx~~ ✅ FAIT
 **Fichier :** `src/screens/payments/StripePaymentScreen.tsx`
 
-**Problème :** Ce fichier stocke les données de carte (numéro, CVV, expiration) en state React et les envoie via notre API. C'est une **violation PCI-DSS** car les données de carte transitent par notre serveur.
+**Problème résolu :** Ce fichier stockait les données de carte en state React - violation PCI-DSS.
 
-**Statut actuel :** ⚠️ Non utilisé (non importé nulle part)
+**Action effectuée :** Fichier supprimé, export retiré de `src/screens/payments/index.ts`
 
-**Action :** 
-```bash
-# Supprimer le fichier
-rm src/screens/payments/StripePaymentScreen.tsx
-# Retirer de l'export
-# Éditer src/screens/payments/index.ts
-```
-
-**Impact :** Aucun - le fichier n'est pas utilisé en production
+**Statut :** ✅ Corrigé
 
 ---
 
-### 2. Nettoyer api.config.ts
+### 2. ~~Nettoyer api.config.ts~~ ✅ FAIT
 **Fichier :** `src/services/api.config.ts`
 
-**Problème :** Utilise AsyncStorage (non chiffré) pour stocker les tokens d'authentification, mais ces fonctions ne sont jamais appelées (code mort).
+**Problème résolu :** Utilisait AsyncStorage (non chiffré) pour les tokens d'auth.
 
-**Action :** Migrer vers SecureStore ou supprimer le code mort.
+**Action effectuée :** 
+- Supprimé les fonctions `getAuthToken`, `setAuthToken`, `authKeys` utilisant AsyncStorage
+- Migré vers `getAuthHeaders` et `clearSession` de `src/utils/auth.ts` qui utilisent SecureStore
+
+**Statut :** ✅ Corrigé
 
 ---
 
