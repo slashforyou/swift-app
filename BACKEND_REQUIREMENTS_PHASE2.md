@@ -18,7 +18,7 @@ Ce document liste les **fonctionnalités frontend prêtes** qui attendent des **
 | ✅ | Push Notifications | Moyenne | ✅ **INTÉGRÉ** | ✅ Terminé |
 | ✅ | Upload Photo Véhicule | Faible | ✅ **INTÉGRÉ** | ✅ Terminé |
 | ✅ | Gestion des Équipes | Haute | ✅ **INTÉGRÉ** | ✅ Terminé |
-| 🟠 Moyenne | Rôles & Permissions | Haute | En attente | ❌ Non |
+| ✅ | Rôles & Permissions | Haute | ✅ **INTÉGRÉ** | ✅ Terminé |
 
 ---
 
