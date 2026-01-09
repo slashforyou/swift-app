@@ -20,6 +20,7 @@ const CalendarNavigation = lazyScreen(() => import('./calendar'))
 
 // Settings screens
 const RolesManagement = lazyScreen(() => import('../screens/settings/RolesManagementScreen'))
+const TeamsManagement = lazyScreen(() => import('../screens/settings/TeamsManagementScreen'))
 
 const Stack = createNativeStackNavigator()
 
@@ -51,6 +52,7 @@ export default function Navigation() {
         <Stack.Screen name="Profile" component={Profile} />
         <Stack.Screen name="Parameters" component={Parameters} />
         <Stack.Screen name="RolesManagement" component={RolesManagement} />
+        <Stack.Screen name="TeamsManagement" component={TeamsManagement} />
       </Stack.Navigator>
     </NavigationContainer>
   )

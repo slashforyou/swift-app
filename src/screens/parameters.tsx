@@ -591,6 +591,54 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
                             </HStack>
                         </Pressable>
 
+                        {/* Teams Management Link */}
+                        <Pressable
+                            onPress={() => navigation?.navigate('TeamsManagement')}
+                            style={({ pressed }) => ({
+                                backgroundColor: pressed ? colors.backgroundTertiary : 'transparent',
+                                borderRadius: DESIGN_TOKENS.radius.md,
+                                paddingVertical: DESIGN_TOKENS.spacing.md,
+                                paddingHorizontal: DESIGN_TOKENS.spacing.sm,
+                            })}
+                        >
+                            <HStack gap={DESIGN_TOKENS.spacing.md} align="center">
+                                <View style={{
+                                    width: 40,
+                                    height: 40,
+                                    borderRadius: 20,
+                                    backgroundColor: `${colors.success}15`,
+                                    justifyContent: 'center',
+                                    alignItems: 'center'
+                                }}>
+                                    <Ionicons 
+                                        name="people-outline" 
+                                        size={22} 
+                                        color={colors.success} 
+                                    />
+                                </View>
+                                <VStack gap={2} style={{ flex: 1 }}>
+                                    <Text style={{
+                                        fontSize: DESIGN_TOKENS.typography.body.fontSize,
+                                        fontWeight: '600',
+                                        color: colors.text
+                                    }}>
+                                        {t('settings.items.teamsManagement') || 'Gestion des équipes'}
+                                    </Text>
+                                    <Text style={{
+                                        fontSize: DESIGN_TOKENS.typography.caption.fontSize,
+                                        color: colors.textSecondary
+                                    }}>
+                                        {t('settings.items.teamsManagementDescription') || 'Créer et organiser vos équipes'}
+                                    </Text>
+                                </VStack>
+                                <Ionicons 
+                                    name="chevron-forward" 
+                                    size={20} 
+                                    color={colors.textSecondary} 
+                                />
+                            </HStack>
+                        </Pressable>
+
                         <Pressable
                             onPress={handleLogout}
                             style={({ pressed }) => ({
