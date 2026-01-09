@@ -543,6 +543,54 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
                             </HStack>
                         </Pressable>
 
+                        {/* Roles & Permissions Link */}
+                        <Pressable
+                            onPress={() => navigation?.navigate('RolesManagement')}
+                            style={({ pressed }) => ({
+                                backgroundColor: pressed ? colors.backgroundTertiary : 'transparent',
+                                borderRadius: DESIGN_TOKENS.radius.md,
+                                paddingVertical: DESIGN_TOKENS.spacing.md,
+                                paddingHorizontal: DESIGN_TOKENS.spacing.sm,
+                            })}
+                        >
+                            <HStack gap={DESIGN_TOKENS.spacing.md} align="center">
+                                <View style={{
+                                    width: 40,
+                                    height: 40,
+                                    borderRadius: 20,
+                                    backgroundColor: `${colors.warning}15`,
+                                    justifyContent: 'center',
+                                    alignItems: 'center'
+                                }}>
+                                    <Ionicons 
+                                        name="shield-checkmark-outline" 
+                                        size={22} 
+                                        color={colors.warning} 
+                                    />
+                                </View>
+                                <VStack gap={2} style={{ flex: 1 }}>
+                                    <Text style={{
+                                        fontSize: DESIGN_TOKENS.typography.body.fontSize,
+                                        fontWeight: '600',
+                                        color: colors.text
+                                    }}>
+                                        {t('settings.items.rolesPermissions') || 'Rôles & Permissions'}
+                                    </Text>
+                                    <Text style={{
+                                        fontSize: DESIGN_TOKENS.typography.caption.fontSize,
+                                        color: colors.textSecondary
+                                    }}>
+                                        {t('settings.items.rolesPermissionsDescription') || 'Gérer les accès de votre équipe'}
+                                    </Text>
+                                </VStack>
+                                <Ionicons 
+                                    name="chevron-forward" 
+                                    size={20} 
+                                    color={colors.textSecondary} 
+                                />
+                            </HStack>
+                        </Pressable>
+
                         <Pressable
                             onPress={handleLogout}
                             style={({ pressed }) => ({

@@ -18,6 +18,9 @@ const Parameters = lazyScreen(() => import('../screens/parameters'))
 const BusinessNavigation = lazyScreen(() => import('./business'))
 const CalendarNavigation = lazyScreen(() => import('./calendar'))
 
+// Settings screens
+const RolesManagement = lazyScreen(() => import('../screens/settings/RolesManagementScreen'))
+
 const Stack = createNativeStackNavigator()
 
 export default function Navigation() {
@@ -47,6 +50,7 @@ export default function Navigation() {
         <Stack.Screen name="JobDetails" component={JobDetails} />
         <Stack.Screen name="Profile" component={Profile} />
         <Stack.Screen name="Parameters" component={Parameters} />
+        <Stack.Screen name="RolesManagement" component={RolesManagement} />
       </Stack.Navigator>
     </NavigationContainer>
   )
