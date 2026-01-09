@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import AlertMessage from '../../components/ui/AlertMessage';
 import AnimatedBackground from '../../components/ui/AnimatedBackground';
+import { usePermissionsContext } from '../../contexts/PermissionsContext';
 import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 import { useTranslation } from '../../localization';
 import { login } from '../../utils/auth';
@@ -29,6 +30,7 @@ interface LoginScreenProps {
 const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     const { colors, styles } = useCommonThemedStyles();
     const { t } = useTranslation();
+    const { loadPermissions } = usePermissionsContext();
     
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -80,6 +82,15 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
         try {
             await login(email, password);
+            
+            // Load user permissions after successful login
+            try {
+                await loadPermissions();
+            } catch {
+                // Permissions loading failure is non-blocking
+                console.warn('[Login] Failed to load permissions, continuing...');
+            }
+            
             showAlert('success', t('auth.success.loginSuccess'), t('auth.success.welcome'));
             
             // Délai pour voir le message de succès

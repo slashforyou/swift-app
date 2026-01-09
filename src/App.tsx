@@ -7,6 +7,7 @@ import { ENV, STRIPE_PUBLISHABLE_KEY } from './config/environment'
 import { ThemeProvider } from './context/ThemeProvider'
 import { ToastProvider } from './context/ToastProvider'
 import { VehiclesProvider } from './context/VehiclesProvider'
+import { PermissionsProvider } from './contexts/PermissionsContext'
 import { LocalizationProvider } from './localization'
 import Navigation from './navigation/index'
 import { initializePushNotifications } from './services/pushNotifications'
@@ -66,13 +67,15 @@ export default function App() {
       <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
         <LocalizationProvider>
           <ThemeProvider>
-            <VehiclesProvider>
-              <ToastProvider>
-                <View style={{ flex: 1 }}>
-                  <Navigation />
-                </View>
-              </ToastProvider>
-            </VehiclesProvider>
+            <PermissionsProvider autoLoad={false}>
+              <VehiclesProvider>
+                <ToastProvider>
+                  <View style={{ flex: 1 }}>
+                    <Navigation />
+                  </View>
+                </ToastProvider>
+              </VehiclesProvider>
+            </PermissionsProvider>
           </ThemeProvider>
         </LocalizationProvider>
       </StripeProvider>
