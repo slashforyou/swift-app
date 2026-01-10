@@ -13,40 +13,34 @@ import { ReportsFilters as FiltersType } from '../../hooks/useStripeReports';
 // Contexte et styles
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useTheme } from '../../context/ThemeProvider';
+import { useTranslation } from '../../localization';
 
 interface ReportsFiltersProps {
   filters: FiltersType;
   onFiltersChange: (filters: FiltersType) => void;
 }
 
-const PERIOD_OPTIONS = [
-  { value: 'day', label: 'Aujourd\'hui' },
-  { value: 'week', label: 'Cette semaine' },
-  { value: 'month', label: 'Ce mois' },
-  { value: 'quarter', label: 'Ce trimestre' },
-  { value: 'year', label: 'Cette année' },
-  { value: 'custom', label: 'Personnalisé' }
-] as const;
-
-const STATUS_OPTIONS: readonly ({ value: 'all' | 'succeeded' | 'pending' | 'failed'; label: string; icon: string; colorKey?: 'success' | 'warning' | 'error' })[] = [
-  { value: 'all', label: 'Tous les statuts', icon: 'apps' },
-  { value: 'succeeded', label: 'Réussis', icon: 'checkmark-circle', colorKey: 'success' },
-  { value: 'pending', label: 'En attente', icon: 'time', colorKey: 'warning' },
-  { value: 'failed', label: 'Échoués', icon: 'close-circle', colorKey: 'error' }
-] as const;
-
-const PAYMENT_METHOD_OPTIONS = [
-  { value: 'all', label: 'Toutes les méthodes', icon: 'card' },
-  { value: 'card', label: 'Carte bancaire', icon: 'card' },
-  { value: 'bank_transfer', label: 'Virement bancaire', icon: 'business' },
-  { value: 'wallet', label: 'Portefeuille digital', icon: 'wallet' }
-] as const;
+// Option values (labels are translated in component)
+const PERIOD_VALUES = ['day', 'week', 'month', 'quarter', 'year', 'custom'] as const;
+const STATUS_VALUES = [
+  { value: 'all' as const, icon: 'apps' },
+  { value: 'succeeded' as const, icon: 'checkmark-circle', colorKey: 'success' as const },
+  { value: 'pending' as const, icon: 'time', colorKey: 'warning' as const },
+  { value: 'failed' as const, icon: 'close-circle', colorKey: 'error' as const },
+];
+const PAYMENT_METHOD_VALUES = [
+  { value: 'all' as const, icon: 'card' },
+  { value: 'card' as const, icon: 'card' },
+  { value: 'bank_transfer' as const, icon: 'business' },
+  { value: 'wallet' as const, icon: 'wallet' },
+];
 
 export const ReportsFilters: React.FC<ReportsFiltersProps> = ({ 
   filters, 
   onFiltersChange 
 }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
   const [showAmountModal, setShowAmountModal] = useState(false);
   const [tempMinAmount, setTempMinAmount] = useState(filters.minAmount?.toString() || '');
@@ -109,7 +103,7 @@ export const ReportsFilters: React.FC<ReportsFiltersProps> = ({
           fontWeight: '600',
           color: colors.text
         }}>
-          Filtres avancés
+          {t('reports.filters.title')}
         </Text>
         <Ionicons 
           name={isExpanded ? 'chevron-up' : 'chevron-down'} 
@@ -128,24 +122,33 @@ export const ReportsFilters: React.FC<ReportsFiltersProps> = ({
               color: colors.text,
               marginBottom: DESIGN_TOKENS.spacing.sm
             }}>
-              Période
+              {t('reports.filters.period.label')}
             </Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-              {PERIOD_OPTIONS.map(option => (
+              {PERIOD_VALUES.map(value => {
+                const labelKey = {
+                  day: 'today',
+                  week: 'thisWeek',
+                  month: 'thisMonth',
+                  quarter: 'thisQuarter',
+                  year: 'thisYear',
+                  custom: 'custom',
+                }[value] as keyof typeof t;
+                return (
                 <TouchableOpacity
-                  key={option.value}
-                  style={filters.period === option.value ? selectedOptionStyle : optionStyle}
-                  onPress={() => updateFilters({ period: option.value })}
+                  key={value}
+                  style={filters.period === value ? selectedOptionStyle : optionStyle}
+                  onPress={() => updateFilters({ period: value })}
                 >
                   <Text style={{
-                    color: filters.period === option.value ? colors.primary : colors.text,
+                    color: filters.period === value ? colors.primary : colors.text,
                     fontSize: 14,
-                    fontWeight: filters.period === option.value ? '600' : '400'
+                    fontWeight: filters.period === value ? '600' : '400'
                   }}>
-                    {option.label}
+                    {t(`reports.filters.period.${labelKey}`)}
                   </Text>
                 </TouchableOpacity>
-              ))}
+              )})}
             </View>
           </View>
 
@@ -157,10 +160,10 @@ export const ReportsFilters: React.FC<ReportsFiltersProps> = ({
               color: colors.text,
               marginBottom: DESIGN_TOKENS.spacing.sm
             }}>
-              Statut des paiements
+              {t('reports.filters.status.label')}
             </Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-              {STATUS_OPTIONS.map(option => (
+              {STATUS_VALUES.map(option => (
                 <TouchableOpacity
                   key={option.value}
                   style={filters.status === option.value ? selectedOptionStyle : optionStyle}
@@ -180,7 +183,7 @@ export const ReportsFilters: React.FC<ReportsFiltersProps> = ({
                     fontSize: 14,
                     fontWeight: filters.status === option.value ? '600' : '400'
                   }}>
-                    {option.label}
+                    {t(`reports.filters.status.${option.value}`)}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -195,10 +198,17 @@ export const ReportsFilters: React.FC<ReportsFiltersProps> = ({
               color: colors.text,
               marginBottom: DESIGN_TOKENS.spacing.sm
             }}>
-              Méthode de paiement
+              {t('reports.filters.paymentMethod.label')}
             </Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-              {PAYMENT_METHOD_OPTIONS.map(option => (
+              {PAYMENT_METHOD_VALUES.map(option => {
+                const labelKey = {
+                  all: 'all',
+                  card: 'card',
+                  bank_transfer: 'bankTransfer',
+                  wallet: 'wallet',
+                }[option.value];
+                return (
                 <TouchableOpacity
                   key={option.value}
                   style={filters.paymentMethod === option.value ? selectedOptionStyle : optionStyle}
@@ -218,10 +228,10 @@ export const ReportsFilters: React.FC<ReportsFiltersProps> = ({
                     fontSize: 14,
                     fontWeight: filters.paymentMethod === option.value ? '600' : '400'
                   }}>
-                    {option.label}
+                    {t(`reports.filters.paymentMethod.${labelKey}`)}
                   </Text>
                 </TouchableOpacity>
-              ))}
+              )})}
             </View>
           </View>
 
@@ -233,7 +243,7 @@ export const ReportsFilters: React.FC<ReportsFiltersProps> = ({
               color: colors.text,
               marginBottom: DESIGN_TOKENS.spacing.sm
             }}>
-              Montant
+              {t('reports.filters.amount.label')}
             </Text>
             <TouchableOpacity
               style={{
@@ -254,7 +264,7 @@ export const ReportsFilters: React.FC<ReportsFiltersProps> = ({
                 <Text style={{ color: colors.text, fontSize: 14 }}>
                   {filters.minAmount || filters.maxAmount
                     ? `${filters.minAmount || 0}€ - ${filters.maxAmount || '∞'}€`
-                    : 'Tous les montants'
+                    : t('reports.filters.amount.all')
                   }
                 </Text>
               </View>
@@ -281,7 +291,7 @@ export const ReportsFilters: React.FC<ReportsFiltersProps> = ({
             })}
           >
             <Text style={{ color: colors.error, fontSize: 14, fontWeight: '500' }}>
-              Réinitialiser les filtres
+              {t('reports.filters.reset')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -316,12 +326,12 @@ export const ReportsFilters: React.FC<ReportsFiltersProps> = ({
               marginBottom: DESIGN_TOKENS.spacing.lg,
               textAlign: 'center'
             }}>
-              Filtrer par montant
+              {t('reports.filters.amount.modalTitle')}
             </Text>
 
             <View style={{ marginBottom: DESIGN_TOKENS.spacing.md }}>
               <Text style={{ fontSize: 14, color: colors.text, marginBottom: DESIGN_TOKENS.spacing.xs }}>
-                Montant minimum (€)
+                {t('reports.filters.amount.min')}
               </Text>
               <TextInput
                 style={{
@@ -336,14 +346,14 @@ export const ReportsFilters: React.FC<ReportsFiltersProps> = ({
                 value={tempMinAmount}
                 onChangeText={setTempMinAmount}
                 keyboardType="numeric"
-                placeholder="Ex: 50"
+                placeholder={t('reports.filters.amount.minPlaceholder')}
                 placeholderTextColor={colors.textSecondary}
               />
             </View>
 
             <View style={{ marginBottom: DESIGN_TOKENS.spacing.xl }}>
               <Text style={{ fontSize: 14, color: colors.text, marginBottom: DESIGN_TOKENS.spacing.xs }}>
-                Montant maximum (€)
+                {t('reports.filters.amount.max')}
               </Text>
               <TextInput
                 style={{
@@ -358,7 +368,7 @@ export const ReportsFilters: React.FC<ReportsFiltersProps> = ({
                 value={tempMaxAmount}
                 onChangeText={setTempMaxAmount}
                 keyboardType="numeric"
-                placeholder="Ex: 1000"
+                placeholder={t('reports.filters.amount.maxPlaceholder')}
                 placeholderTextColor={colors.textSecondary}
               />
             </View>
@@ -378,7 +388,7 @@ export const ReportsFilters: React.FC<ReportsFiltersProps> = ({
                 onPress={() => setShowAmountModal(false)}
               >
                 <Text style={{ color: colors.text, fontSize: 16, fontWeight: '500' }}>
-                  Annuler
+                  {t('reports.filters.cancel')}
                 </Text>
               </TouchableOpacity>
               
@@ -394,7 +404,7 @@ export const ReportsFilters: React.FC<ReportsFiltersProps> = ({
                 onPress={handleAmountSubmit}
               >
                 <Text style={{ color: colors.background, fontSize: 16, fontWeight: '600' }}>
-                  Appliquer
+                  {t('reports.filters.apply')}
                 </Text>
               </TouchableOpacity>
             </View>

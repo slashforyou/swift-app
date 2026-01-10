@@ -1327,6 +1327,45 @@ export const enTranslations: TranslationKeys = {
         total: 'Total',
         performance: 'Performance',
         perTransaction: 'Per transaction',
+        // Filters
+        filters: {
+            title: 'Advanced filters',
+            period: {
+                label: 'Period',
+                today: 'Today',
+                thisWeek: 'This week',
+                thisMonth: 'This month',
+                thisQuarter: 'This quarter',
+                thisYear: 'This year',
+                custom: 'Custom',
+            },
+            status: {
+                label: 'Payment status',
+                all: 'All statuses',
+                succeeded: 'Succeeded',
+                pending: 'Pending',
+                failed: 'Failed',
+            },
+            paymentMethod: {
+                label: 'Payment method',
+                all: 'All methods',
+                card: 'Credit card',
+                bankTransfer: 'Bank transfer',
+                wallet: 'Digital wallet',
+            },
+            amount: {
+                label: 'Amount',
+                all: 'All amounts',
+                modalTitle: 'Filter by amount',
+                min: 'Minimum amount (€)',
+                max: 'Maximum amount (€)',
+                minPlaceholder: 'e.g. 50',
+                maxPlaceholder: 'e.g. 1000',
+            },
+            reset: 'Reset filters',
+            cancel: 'Cancel',
+            apply: 'Apply',
+        },
     },
 
     // Staff Modals
@@ -1556,5 +1595,35 @@ export const enTranslations: TranslationKeys = {
         },
         loading: 'Loading teams...',
         search: 'Search for a team...',
+    },
+
+    // Profile Management
+    profile: {
+        title: 'Profile',
+        updateSuccess: 'Profile updated successfully',
+        updateError: 'Failed to update profile',
+        genericError: 'An error occurred while updating profile',
+        retry: 'Retry',
+        cancel: 'Cancel',
+        save: 'Save',
+        saving: 'Saving...',
+        edit: 'Edit',
+        photo: {
+            title: 'Photo',
+            uploadComingSoon: 'Photo upload coming soon',
+        },
+        placeholders: {
+            firstName: 'Enter your first name',
+            lastName: 'Enter your last name',
+            email: 'Enter your email',
+            phone: 'Enter your phone number',
+            address: 'Enter your address',
+            city: 'City',
+            postalCode: 'Postal code',
+            country: 'Enter your country',
+            companyName: 'Enter your company name',
+            siret: 'Enter your SIRET number',
+            vat: 'Enter your VAT number',
+        },
     },
 };

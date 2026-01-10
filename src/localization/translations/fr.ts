@@ -1327,6 +1327,45 @@ export const frTranslations: TranslationKeys = {
         total: 'Total',
         performance: 'Performance',
         perTransaction: 'Par transaction',
+        // Filters
+        filters: {
+            title: 'Filtres avancés',
+            period: {
+                label: 'Période',
+                today: "Aujourd'hui",
+                thisWeek: 'Cette semaine',
+                thisMonth: 'Ce mois',
+                thisQuarter: 'Ce trimestre',
+                thisYear: 'Cette année',
+                custom: 'Personnalisé',
+            },
+            status: {
+                label: 'Statut des paiements',
+                all: 'Tous les statuts',
+                succeeded: 'Réussis',
+                pending: 'En attente',
+                failed: 'Échoués',
+            },
+            paymentMethod: {
+                label: 'Méthode de paiement',
+                all: 'Toutes les méthodes',
+                card: 'Carte bancaire',
+                bankTransfer: 'Virement bancaire',
+                wallet: 'Portefeuille digital',
+            },
+            amount: {
+                label: 'Montant',
+                all: 'Tous les montants',
+                modalTitle: 'Filtrer par montant',
+                min: 'Montant minimum (€)',
+                max: 'Montant maximum (€)',
+                minPlaceholder: 'Ex: 50',
+                maxPlaceholder: 'Ex: 1000',
+            },
+            reset: 'Réinitialiser les filtres',
+            cancel: 'Annuler',
+            apply: 'Appliquer',
+        },
     },
 
     // Staff Modals
@@ -1556,5 +1595,35 @@ export const frTranslations: TranslationKeys = {
         },
         loading: 'Chargement des équipes...',
         search: 'Rechercher une équipe...',
+    },
+
+    // Profile Management
+    profile: {
+        title: 'Profil',
+        updateSuccess: 'Profil mis à jour avec succès',
+        updateError: 'Impossible de mettre à jour le profil',
+        genericError: 'Une erreur est survenue lors de la mise à jour du profil',
+        retry: 'Réessayer',
+        cancel: 'Annuler',
+        save: 'Enregistrer',
+        saving: 'Enregistrement...',
+        edit: 'Modifier',
+        photo: {
+            title: 'Photo',
+            uploadComingSoon: 'Téléchargement de photo bientôt disponible',
+        },
+        placeholders: {
+            firstName: 'Entrez votre prénom',
+            lastName: 'Entrez votre nom',
+            email: 'Entrez votre email',
+            phone: 'Entrez votre numéro de téléphone',
+            address: 'Entrez votre adresse',
+            city: 'Ville',
+            postalCode: 'Code postal',
+            country: 'Entrez votre pays',
+            companyName: 'Entrez le nom de votre entreprise',
+            siret: 'Entrez votre numéro SIRET',
+            vat: 'Entrez votre numéro de TVA',
+        },
     },
 };

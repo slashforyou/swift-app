@@ -1359,6 +1359,45 @@ export interface TranslationKeys {
         total: string;
         performance: string;
         perTransaction: string;
+        // Filters
+        filters: {
+            title: string;
+            period: {
+                label: string;
+                today: string;
+                thisWeek: string;
+                thisMonth: string;
+                thisQuarter: string;
+                thisYear: string;
+                custom: string;
+            };
+            status: {
+                label: string;
+                all: string;
+                succeeded: string;
+                pending: string;
+                failed: string;
+            };
+            paymentMethod: {
+                label: string;
+                all: string;
+                card: string;
+                bankTransfer: string;
+                wallet: string;
+            };
+            amount: {
+                label: string;
+                all: string;
+                modalTitle: string;
+                min: string;
+                max: string;
+                minPlaceholder: string;
+                maxPlaceholder: string;
+            };
+            reset: string;
+            cancel: string;
+            apply: string;
+        };
     };
 
     // Staff Modals
@@ -1596,6 +1635,36 @@ export interface TranslationKeys {
         };
         loading: string;
         search: string;
+    };
+
+    // Profile Management
+    profile: {
+        title: string;
+        updateSuccess: string;
+        updateError: string;
+        genericError: string;
+        retry: string;
+        cancel: string;
+        save: string;
+        saving: string;
+        edit: string;
+        photo: {
+            title: string;
+            uploadComingSoon: string;
+        };
+        placeholders: {
+            firstName: string;
+            lastName: string;
+            email: string;
+            phone: string;
+            address: string;
+            city: string;
+            postalCode: string;
+            country: string;
+            companyName: string;
+            siret: string;
+            vat: string;
+        };
     };
 }
 
