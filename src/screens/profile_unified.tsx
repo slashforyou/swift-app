@@ -17,6 +17,7 @@ import LanguageButton from '../components/calendar/LanguageButton';
 import { DESIGN_TOKENS } from '../constants/Styles';
 import { useTheme } from '../context/ThemeProvider';
 import { useUserProfile } from '../hooks/useUserProfile';
+import { useTranslation } from '../localization';
 
 interface ProfileFormFieldProps {
   label: string;
@@ -79,6 +80,7 @@ export const ProfileScreen: React.FC = () => {
   // TEMP_DISABLED: console.log('🔍 [PROFILE SCREEN] === PROFILE COMPONENT RENDERING ===');
   
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   
@@ -146,14 +148,14 @@ export const ProfileScreen: React.FC = () => {
       const result = await updateProfile(formData);
       if (result) {
         setIsEditing(false);
-        Alert.alert('Success', 'Profile updated successfully');
+        Alert.alert(t('common.success'), t('profile.updateSuccess'));
       } else {
-        Alert.alert('Error', 'Failed to update profile');
+        Alert.alert(t('common.error'), t('profile.updateError'));
       }
     } catch (error) {
 
       console.error('Profile update error:', error);
-      Alert.alert('Error', 'An error occurred while updating profile');
+      Alert.alert(t('common.error'), t('profile.genericError'));
     }
   };
 

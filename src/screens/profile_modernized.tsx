@@ -26,6 +26,7 @@ import {
 } from '../components/ui';
 
 import { useUserProfile } from '../hooks/useUserProfile';
+import { useTranslation } from '../localization';
 
 interface ProfileFormFieldProps {
   label: string;
@@ -69,6 +70,7 @@ export const ProfileScreen: React.FC = () => {
   // TEMP_DISABLED: console.log('🔍 [PROFILE SCREEN] === PROFILE COMPONENT RENDERING ===');
   
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   
@@ -121,10 +123,11 @@ export const ProfileScreen: React.FC = () => {
       // TEMP_DISABLED: console.log('💾 Saving profile changes...', formData);
       await updateProfile(formData);
       setIsEditing(false);
-      Alert.alert('Success', 'Profile updated successfully');
-    } catch (error) {
+      Alert.alert(t('common.success'), t('profile.updateSuccess'));
+    } catch (error) {
+
       console.error('❌ Error updating profile:', error);
-      Alert.alert('Error', 'Failed to update profile');
+      Alert.alert(t('common.error'), t('profile.updateError'));
     }
   };
 
@@ -289,7 +292,7 @@ export const ProfileScreen: React.FC = () => {
                 size="sm"
                 variant="primary"
                 iconOnly
-                onPress={() => Alert.alert('Photo', 'Photo upload coming soon')}
+                onPress={() => Alert.alert(t('profile.photo.title'), t('profile.photo.uploadComingSoon'))}
               />
             </View>
             
