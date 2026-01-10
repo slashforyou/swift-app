@@ -86,7 +86,8 @@ class ApiDiscoveryService {
   private maxFailures = 3;
   private failureCooldown = 60 * 1000; // 1 minute de cooldown après échecs
   private lastFailureTime = 0;
-  private hasInitialFetchFailed = false;
+  private hasLoggedInitialFailure = false; // Log une seule fois l'erreur initiale
+  private unavailableEndpointsLogged = new Set<string>(); // Track endpoints déjà loggés
 
   // ========================================
   // MÉTHODES PRINCIPALES
@@ -101,32 +102,28 @@ class ApiDiscoveryService {
       const cacheKey = 'all-endpoints';
       const cached = this.getFromCache<ApiEndpoint[]>(cacheKey);
       if (cached) {
-        console.debug('[ApiDiscovery] Returning cached endpoints', { count: cached.length });
         return cached;
       }
 
-      // ✅ Protection: si trop d'échecs, attendre le cooldown
+      // ✅ Protection: si trop d'échecs, attendre le cooldown (silencieux)
       if (this.failureCount >= this.maxFailures) {
         const timeSinceLastFailure = Date.now() - this.lastFailureTime;
         if (timeSinceLastFailure < this.failureCooldown) {
-          if (!this.hasInitialFetchFailed) {
-            console.debug('[ApiDiscovery] In cooldown after failures, skipping fetch');
-            this.hasInitialFetchFailed = true;
-          }
           return [];
         }
         // Cooldown terminé, reset
         this.failureCount = 0;
-        this.hasInitialFetchFailed = false;
       }
 
-      // ✅ Éviter les appels concurrents
+      // ✅ Éviter les appels concurrents (silencieux)
       if (this.isFetchingDiscovery) {
-        console.debug('[ApiDiscovery] Fetch already in progress, skipping');
         return [];
       }
 
-      console.log('[ApiDiscovery] Fetching all endpoints from server...');
+      // Log uniquement au premier appel
+      if (!this.hasLoggedInitialFailure) {
+        console.log('[ApiDiscovery] Fetching all endpoints from server...');
+      }
       this.isFetchingDiscovery = true;
       
       const response = await fetch(this.baseUrl);
@@ -141,17 +138,15 @@ class ApiDiscoveryService {
       
       this.isFetchingDiscovery = false;
       this.failureCount = 0; // Reset on success
+      this.hasLoggedInitialFailure = false; // Reset pour pouvoir logger succès futur
 
       if (data.success && data.data?.endpoints) {
         this.setCache(cacheKey, data.data.endpoints);
-        console.log('✅ [ApiDiscovery] Fetched and cached endpoints', { 
-          count: data.data.endpoints.length,
-          categories: Object.keys(data.data.categories || {})
-        });
+        console.log('✅ [ApiDiscovery] Connected - cached', data.data.endpoints.length, 'endpoints');
         return data.data.endpoints;
       }
 
-      console.warn('[ApiDiscovery] Invalid response from discovery endpoint', data);
+      // Échec silencieux après le premier log
       this.failureCount++;
       this.lastFailureTime = Date.now();
       return [];
@@ -159,7 +154,12 @@ class ApiDiscoveryService {
       this.isFetchingDiscovery = false;
       this.failureCount++;
       this.lastFailureTime = Date.now();
-      console.error('[ApiDiscovery] Failed to fetch endpoints', error);
+      
+      // ✅ Log une seule fois l'erreur, puis silencieux
+      if (!this.hasLoggedInitialFailure) {
+        console.warn('[ApiDiscovery] Service unavailable - falling back to offline mode');
+        this.hasLoggedInitialFailure = true;
+      }
       return [];
     }
   }
@@ -174,11 +174,10 @@ class ApiDiscoveryService {
       const cacheKey = `category-${category.toLowerCase()}`;
       const cached = this.getFromCache<ApiEndpoint[]>(cacheKey);
       if (cached) {
-        console.debug(`[ApiDiscovery] Returning cached endpoints for category: ${category}`, { count: cached.length });
         return cached;
       }
 
-      // ✅ Protection contre les boucles infinies
+      // ✅ Protection contre les boucles infinies (silencieux)
       if (this.failureCount >= this.maxFailures) {
         return [];
       }
@@ -187,7 +186,6 @@ class ApiDiscoveryService {
         return [];
       }
 
-      console.log(`[ApiDiscovery] Fetching endpoints for category: ${category}`);
       this.isFetchingDiscovery = true;
 
       const response = await fetch(`${this.baseUrl}/category/${encodeURIComponent(category)}`);
@@ -203,14 +201,7 @@ class ApiDiscoveryService {
 
       if (data.success && data.data?.endpoints) {
         this.setCache(cacheKey, data.data.endpoints);
-        console.log(`✅ [ApiDiscovery] Fetched endpoints for category: ${category}`, { count: data.data.endpoints.length });
         return data.data.endpoints;
-      }
-
-      if (data.error) {
-        console.warn(`[ApiDiscovery] Category not found: ${category}`, {
-          available: data.available_categories
-        });
       }
 
       return [];
@@ -218,7 +209,7 @@ class ApiDiscoveryService {
       this.isFetchingDiscovery = false;
       this.failureCount++;
       this.lastFailureTime = Date.now();
-      console.error(`[ApiDiscovery] Failed to fetch category: ${category}`, error);
+      // Silencieux - erreur déjà gérée par getAllEndpoints
       return [];
     }
   }
@@ -232,11 +223,10 @@ class ApiDiscoveryService {
       const cacheKey = 'summary';
       const cached = this.getFromCache<ApiDiscoverySummary>(cacheKey);
       if (cached) {
-        console.debug('[ApiDiscovery] Returning cached summary');
         return cached;
       }
 
-      // ✅ Protection contre les boucles infinies
+      // ✅ Protection contre les boucles infinies (silencieux)
       if (this.failureCount >= this.maxFailures) {
         return null;
       }
@@ -245,7 +235,6 @@ class ApiDiscoveryService {
         return null;
       }
 
-      console.log('[ApiDiscovery] Fetching API summary...');
       this.isFetchingDiscovery = true;
 
       const response = await fetch(`${this.baseUrl}/summary`);
@@ -261,10 +250,6 @@ class ApiDiscoveryService {
 
       if (data.success && data.data) {
         this.setCache(cacheKey, data.data);
-        console.log('✅ [ApiDiscovery] Fetched API summary', {
-          total: data.data.total_endpoints,
-          categories: Object.keys(data.data.categories || {})
-        });
         return data.data;
       }
 
@@ -273,7 +258,7 @@ class ApiDiscoveryService {
       this.isFetchingDiscovery = false;
       this.failureCount++;
       this.lastFailureTime = Date.now();
-      console.error('[ApiDiscovery] Failed to fetch summary', error);
+      // Silencieux
       return null;
     }
   }
@@ -290,7 +275,7 @@ class ApiDiscoveryService {
       }
       return [];
     } catch (error) {
-      console.error('[ApiDiscovery] Failed to fetch categories', error);
+      // Silencieux
       return [];
     }
   }
@@ -341,7 +326,7 @@ class ApiDiscoveryService {
       
       return found || null;
     } catch (error) {
-      console.error('[ApiDiscovery] Failed to find endpoint', { path, error });
+      // Silencieux - erreur gérée par getAllEndpoints
       return null;
     }
   }
@@ -357,19 +342,23 @@ class ApiDiscoveryService {
       const endpoint = await this.findEndpoint(path);
       
       if (!endpoint) {
-        console.debug(`[ApiDiscovery] Endpoint not available: ${method || 'ANY'} ${path}`);
+        // ✅ Log une seule fois par endpoint pour éviter spam
+        const key = `${method || 'ANY'} ${path}`;
+        if (!this.unavailableEndpointsLogged.has(key)) {
+          console.debug(`[ApiDiscovery] Endpoint not available: ${key}`);
+          this.unavailableEndpointsLogged.add(key);
+        }
         return false;
       }
 
-      // Si méthode spécifiée, vérifier qu'elle correspond
+      // Si méthode spécifiée, vérifier qu'elle correspond (silencieux)
       if (method && endpoint.method.toUpperCase() !== method.toUpperCase()) {
-        console.debug(`[ApiDiscovery] Endpoint exists but method mismatch: ${endpoint.method} vs ${method}`);
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error('[ApiDiscovery] Failed to check endpoint availability', { path, method, error });
+      // Silencieux
       return false;
     }
   }
@@ -395,7 +384,7 @@ class ApiDiscoveryService {
 
       return result;
     } catch (error) {
-      console.error('[ApiDiscovery] Failed to check multiple endpoints', { paths, error });
+      // Silencieux
       return new Map();
     }
   }

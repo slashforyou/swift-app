@@ -251,13 +251,12 @@ class LoggingService {
     this.logQueue = [];
 
     try {
-      // ✅ SESSION 8: Vérifier si endpoint /logs existe avant d'appeler
+      // ✅ Vérifier si endpoint /logs existe avant d'appeler (silencieux)
       const logsEndpointAvailable = await apiDiscovery.isEndpointAvailable('/swift-app/v1/logs', 'POST');
       
       if (!logsEndpointAvailable) {
-        // Endpoint non disponible → fallback silent (pas de log d'erreur)
-        console.debug(`📝 [LOGGING] Endpoint /logs not available, ${logsToFlush.length} logs kept locally (silent fallback)`);
-        return; // Ne PAS envoyer si endpoint n'existe pas
+        // Endpoint non disponible → fallback silent (logs gardés localement)
+        return;
       }
 
       const authHeaders = await getAuthHeaders();
@@ -275,12 +274,8 @@ class LoggingService {
         body: JSON.stringify({ logs: logsToFlush })
       });
 
-      if (response.ok) {
-        // Logs envoyés avec succès (silencieux)
-      } else {
-        // Silencieux - le serveur a rejeté mais on continue
-        // Ne PAS remettre en queue pour éviter accumulation infinie
-      }
+      // Silencieux dans tous les cas
+      // Ne PAS remettre en queue pour éviter accumulation infinie
 
     } catch (error) {
       // Silencieux - erreur réseau ou autre
