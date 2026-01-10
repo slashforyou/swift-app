@@ -80,6 +80,13 @@ class ApiDiscoveryService {
   
   // Flag pour éviter les boucles de logging
   private isFetchingDiscovery = false;
+  
+  // ✅ Protection contre les boucles infinies
+  private failureCount = 0;
+  private maxFailures = 3;
+  private failureCooldown = 60 * 1000; // 1 minute de cooldown après échecs
+  private lastFailureTime = 0;
+  private hasInitialFetchFailed = false;
 
   // ========================================
   // MÉTHODES PRINCIPALES
@@ -98,13 +105,42 @@ class ApiDiscoveryService {
         return cached;
       }
 
+      // ✅ Protection: si trop d'échecs, attendre le cooldown
+      if (this.failureCount >= this.maxFailures) {
+        const timeSinceLastFailure = Date.now() - this.lastFailureTime;
+        if (timeSinceLastFailure < this.failureCooldown) {
+          if (!this.hasInitialFetchFailed) {
+            console.debug('[ApiDiscovery] In cooldown after failures, skipping fetch');
+            this.hasInitialFetchFailed = true;
+          }
+          return [];
+        }
+        // Cooldown terminé, reset
+        this.failureCount = 0;
+        this.hasInitialFetchFailed = false;
+      }
+
+      // ✅ Éviter les appels concurrents
+      if (this.isFetchingDiscovery) {
+        console.debug('[ApiDiscovery] Fetch already in progress, skipping');
+        return [];
+      }
+
       console.log('[ApiDiscovery] Fetching all endpoints from server...');
       this.isFetchingDiscovery = true;
       
       const response = await fetch(this.baseUrl);
+      
+      // ✅ Vérifier le content-type avant de parser
+      const contentType = response.headers.get('content-type');
+      if (!contentType?.includes('application/json')) {
+        throw new Error(`Expected JSON but received: ${contentType || 'unknown'}`);
+      }
+      
       const data = await response.json();
       
       this.isFetchingDiscovery = false;
+      this.failureCount = 0; // Reset on success
 
       if (data.success && data.data?.endpoints) {
         this.setCache(cacheKey, data.data.endpoints);
@@ -116,9 +152,13 @@ class ApiDiscoveryService {
       }
 
       console.warn('[ApiDiscovery] Invalid response from discovery endpoint', data);
+      this.failureCount++;
+      this.lastFailureTime = Date.now();
       return [];
     } catch (error) {
       this.isFetchingDiscovery = false;
+      this.failureCount++;
+      this.lastFailureTime = Date.now();
       console.error('[ApiDiscovery] Failed to fetch endpoints', error);
       return [];
     }
@@ -138,10 +178,25 @@ class ApiDiscoveryService {
         return cached;
       }
 
+      // ✅ Protection contre les boucles infinies
+      if (this.failureCount >= this.maxFailures) {
+        return [];
+      }
+
+      if (this.isFetchingDiscovery) {
+        return [];
+      }
+
       console.log(`[ApiDiscovery] Fetching endpoints for category: ${category}`);
       this.isFetchingDiscovery = true;
 
       const response = await fetch(`${this.baseUrl}/category/${encodeURIComponent(category)}`);
+      
+      const contentType = response.headers.get('content-type');
+      if (!contentType?.includes('application/json')) {
+        throw new Error(`Expected JSON but received: ${contentType || 'unknown'}`);
+      }
+      
       const data = await response.json();
       
       this.isFetchingDiscovery = false;
@@ -161,6 +216,8 @@ class ApiDiscoveryService {
       return [];
     } catch (error) {
       this.isFetchingDiscovery = false;
+      this.failureCount++;
+      this.lastFailureTime = Date.now();
       console.error(`[ApiDiscovery] Failed to fetch category: ${category}`, error);
       return [];
     }
@@ -179,10 +236,25 @@ class ApiDiscoveryService {
         return cached;
       }
 
+      // ✅ Protection contre les boucles infinies
+      if (this.failureCount >= this.maxFailures) {
+        return null;
+      }
+
+      if (this.isFetchingDiscovery) {
+        return null;
+      }
+
       console.log('[ApiDiscovery] Fetching API summary...');
       this.isFetchingDiscovery = true;
 
       const response = await fetch(`${this.baseUrl}/summary`);
+      
+      const contentType = response.headers.get('content-type');
+      if (!contentType?.includes('application/json')) {
+        throw new Error(`Expected JSON but received: ${contentType || 'unknown'}`);
+      }
+      
       const data = await response.json();
       
       this.isFetchingDiscovery = false;
@@ -199,6 +271,8 @@ class ApiDiscoveryService {
       return null;
     } catch (error) {
       this.isFetchingDiscovery = false;
+      this.failureCount++;
+      this.lastFailureTime = Date.now();
       console.error('[ApiDiscovery] Failed to fetch summary', error);
       return null;
     }
