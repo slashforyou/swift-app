@@ -119,7 +119,7 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
 ;
     // });
     
-    const selectedMonth = monthList[month - 1] || new Date().toLocaleString('default', { month: 'long' });
+    const selectedMonth = monthList[selectedMonthIndex] || monthList[new Date().getMonth()];
 
     const daysInMonth = new Date(selectedYear, selectedMonthIndex + 1, 0).getDate();
     const daysArray = Array.from({ length: daysInMonth }, (_, i) => i + 1);
