@@ -4,7 +4,7 @@
  */
 import Ionicons from '@react-native-vector-icons/ionicons';
 import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import SigningBloc from '../../components/signingBloc';
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useJobTimerContext } from '../../context/JobTimerProvider';
@@ -20,11 +20,23 @@ interface PaymentProps {
     setJob: (job: any) => void;
 }
 
+interface AdditionalItem {
+    id: string;
+    description: string;
+    amount: number;
+}
+
 const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
     const { colors } = useTheme();
     const { t } = useLocalization();
     const [paymentWindowVisible, setPaymentWindowVisible] = useState<string | null>(null);
     const [isSigningVisible, setIsSigningVisible] = useState(false);
+    
+    // État pour les éléments additionnels de la facture
+    const [additionalItems, setAdditionalItems] = useState<AdditionalItem[]>([]);
+    const [isAddItemModalVisible, setIsAddItemModalVisible] = useState(false);
+    const [newItemDescription, setNewItemDescription] = useState('');
+    const [newItemAmount, setNewItemAmount] = useState('');
     
     // ✅ État pour la signature vérifiée depuis le serveur
     const [signatureFromServer, setSignatureFromServer] = useState<{
@@ -143,6 +155,38 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
             currency: 'AUD',
         }).format(amount);
     };
+
+    // Fonctions pour gérer les éléments additionnels
+    const handleAddItem = () => {
+        if (!newItemDescription.trim()) {
+            Alert.alert(t('common.error'), t('jobDetails.payment.additionalItems.descriptionRequired') || 'Description is required');
+            return;
+        }
+        const amount = parseFloat(newItemAmount);
+        if (isNaN(amount) || amount <= 0) {
+            Alert.alert(t('common.error'), t('jobDetails.payment.additionalItems.validAmountRequired') || 'Please enter a valid amount');
+            return;
+        }
+
+        const newItem: AdditionalItem = {
+            id: Date.now().toString(),
+            description: newItemDescription.trim(),
+            amount: amount,
+        };
+
+        setAdditionalItems(prev => [...prev, newItem]);
+        setNewItemDescription('');
+        setNewItemAmount('');
+        setIsAddItemModalVisible(false);
+    };
+
+    const handleRemoveItem = (itemId: string) => {
+        setAdditionalItems(prev => prev.filter(item => item.id !== itemId));
+    };
+
+    const additionalItemsTotal = useMemo(() => {
+        return additionalItems.reduce((sum, item) => sum + item.amount, 0);
+    }, [additionalItems]);
 
     const getStatusInfo = (status: string) => {
         const statusMap = {
@@ -855,6 +899,84 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                         </Text>
                     </View>
 
+                    {/* Section Éléments Additionnels */}
+                    <View style={{ 
+                        marginTop: DESIGN_TOKENS.spacing.md,
+                        marginBottom: DESIGN_TOKENS.spacing.md,
+                    }}>
+                        <View style={{
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            marginBottom: DESIGN_TOKENS.spacing.sm,
+                        }}>
+                            <Text style={{ fontSize: 15, color: colors.text, fontWeight: '600' }}>
+                                {t('jobDetails.payment.additionalItems.title') || 'Additional Items'}
+                            </Text>
+                            <Pressable
+                                onPress={() => setIsAddItemModalVisible(true)}
+                                style={{
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    backgroundColor: colors.primary,
+                                    paddingHorizontal: DESIGN_TOKENS.spacing.md,
+                                    paddingVertical: DESIGN_TOKENS.spacing.xs,
+                                    borderRadius: DESIGN_TOKENS.radius.md,
+                                    gap: DESIGN_TOKENS.spacing.xs,
+                                }}
+                            >
+                                <Ionicons name="add" size={16} color={colors.buttonPrimaryText} />
+                                <Text style={{ fontSize: 12, color: colors.buttonPrimaryText, fontWeight: '600' }}>
+                                    {t('jobDetails.payment.additionalItems.addItem') || 'Add Item'}
+                                </Text>
+                            </Pressable>
+                        </View>
+
+                        {additionalItems.length > 0 ? (
+                            <View style={{ gap: DESIGN_TOKENS.spacing.xs }}>
+                                {additionalItems.map((item) => (
+                                    <View key={item.id} style={{
+                                        flexDirection: 'row',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        backgroundColor: colors.backgroundTertiary + '30',
+                                        padding: DESIGN_TOKENS.spacing.sm,
+                                        borderRadius: DESIGN_TOKENS.radius.sm,
+                                    }}>
+                                        <Text style={{ fontSize: 14, color: colors.text, flex: 1 }}>
+                                            {item.description}
+                                        </Text>
+                                        <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text, marginRight: DESIGN_TOKENS.spacing.sm }}>
+                                            {formatCurrency(item.amount)}
+                                        </Text>
+                                        <Pressable onPress={() => handleRemoveItem(item.id)}>
+                                            <Ionicons name="close-circle" size={20} color={colors.error} />
+                                        </Pressable>
+                                    </View>
+                                ))}
+                                <View style={{
+                                    flexDirection: 'row',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    paddingTop: DESIGN_TOKENS.spacing.xs,
+                                    borderTopWidth: 1,
+                                    borderTopColor: colors.border,
+                                }}>
+                                    <Text style={{ fontSize: 14, color: colors.textSecondary, fontWeight: '600' }}>
+                                        {t('jobDetails.payment.additionalItems.subtotal') || 'Subtotal'}
+                                    </Text>
+                                    <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
+                                        {formatCurrency(additionalItemsTotal)}
+                                    </Text>
+                                </View>
+                            </View>
+                        ) : (
+                            <Text style={{ fontSize: 13, color: colors.textSecondary, fontStyle: 'italic' }}>
+                                {t('jobDetails.payment.additionalItems.noItems') || 'No additional items'}
+                            </Text>
+                        )}
+                    </View>
+
                     {/* Triple séparateur */}
                     <View style={{ height: 3, backgroundColor: colors.primary + '30', marginVertical: DESIGN_TOKENS.spacing.sm }} />
 
@@ -873,7 +995,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                             {t('jobDetails.payment.billingBreakdown.finalAmount')}
                         </Text>
                         <Text style={{ fontSize: 22, fontWeight: '700', color: colors.primary }}>
-                            {formatCurrency(paymentInfo.current)}
+                            {formatCurrency(paymentInfo.current + additionalItemsTotal)}
                         </Text>
                     </View>
 
@@ -1027,6 +1149,125 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                 </View>
             </View>
         </ScrollView>
+
+        {/* Modal pour ajouter un élément */}
+        <Modal
+            visible={isAddItemModalVisible}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setIsAddItemModalVisible(false)}
+        >
+            <Pressable 
+                style={{ 
+                    flex: 1, 
+                    backgroundColor: 'rgba(0,0,0,0.5)', 
+                    justifyContent: 'center', 
+                    alignItems: 'center',
+                    padding: DESIGN_TOKENS.spacing.lg,
+                }}
+                onPress={() => setIsAddItemModalVisible(false)}
+            >
+                <Pressable 
+                    style={{
+                        backgroundColor: colors.background,
+                        borderRadius: DESIGN_TOKENS.radius.lg,
+                        padding: DESIGN_TOKENS.spacing.lg,
+                        width: '100%',
+                        maxWidth: 400,
+                    }}
+                    onPress={(e) => e.stopPropagation()}
+                >
+                    <Text style={{ 
+                        fontSize: 18, 
+                        fontWeight: '600', 
+                        color: colors.text, 
+                        marginBottom: DESIGN_TOKENS.spacing.lg,
+                    }}>
+                        {t('jobDetails.payment.additionalItems.addItemTitle') || 'Add Item'}
+                    </Text>
+
+                    <Text style={{ 
+                        fontSize: 14, 
+                        color: colors.textSecondary, 
+                        marginBottom: DESIGN_TOKENS.spacing.xs,
+                    }}>
+                        {t('jobDetails.payment.additionalItems.description') || 'Description'}
+                    </Text>
+                    <TextInput
+                        style={{
+                            backgroundColor: colors.backgroundSecondary,
+                            borderRadius: DESIGN_TOKENS.radius.md,
+                            padding: DESIGN_TOKENS.spacing.md,
+                            fontSize: 16,
+                            color: colors.text,
+                            marginBottom: DESIGN_TOKENS.spacing.md,
+                        }}
+                        placeholder={t('jobDetails.payment.additionalItems.descriptionPlaceholder') || 'e.g., Extra materials'}
+                        placeholderTextColor={colors.textSecondary}
+                        value={newItemDescription}
+                        onChangeText={setNewItemDescription}
+                    />
+
+                    <Text style={{ 
+                        fontSize: 14, 
+                        color: colors.textSecondary, 
+                        marginBottom: DESIGN_TOKENS.spacing.xs,
+                    }}>
+                        {t('jobDetails.payment.additionalItems.amount') || 'Amount (AUD)'}
+                    </Text>
+                    <TextInput
+                        style={{
+                            backgroundColor: colors.backgroundSecondary,
+                            borderRadius: DESIGN_TOKENS.radius.md,
+                            padding: DESIGN_TOKENS.spacing.md,
+                            fontSize: 16,
+                            color: colors.text,
+                            marginBottom: DESIGN_TOKENS.spacing.lg,
+                        }}
+                        placeholder="0.00"
+                        placeholderTextColor={colors.textSecondary}
+                        value={newItemAmount}
+                        onChangeText={setNewItemAmount}
+                        keyboardType="decimal-pad"
+                    />
+
+                    <View style={{ flexDirection: 'row', gap: DESIGN_TOKENS.spacing.md }}>
+                        <Pressable
+                            onPress={() => {
+                                setIsAddItemModalVisible(false);
+                                setNewItemDescription('');
+                                setNewItemAmount('');
+                            }}
+                            style={{
+                                flex: 1,
+                                backgroundColor: colors.backgroundSecondary,
+                                padding: DESIGN_TOKENS.spacing.md,
+                                borderRadius: DESIGN_TOKENS.radius.md,
+                                alignItems: 'center',
+                            }}
+                        >
+                            <Text style={{ fontSize: 16, color: colors.text, fontWeight: '600' }}>
+                                {t('common.cancel') || 'Cancel'}
+                            </Text>
+                        </Pressable>
+                        <Pressable
+                            onPress={handleAddItem}
+                            style={{
+                                flex: 1,
+                                backgroundColor: colors.primary,
+                                padding: DESIGN_TOKENS.spacing.md,
+                                borderRadius: DESIGN_TOKENS.radius.md,
+                                alignItems: 'center',
+                            }}
+                        >
+                            <Text style={{ fontSize: 16, color: colors.buttonPrimaryText, fontWeight: '600' }}>
+                                {t('common.add') || 'Add'}
+                            </Text>
+                        </Pressable>
+                    </View>
+                </Pressable>
+            </Pressable>
+        </Modal>
         </>
     );
 };

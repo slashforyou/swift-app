@@ -403,14 +403,14 @@ const JobBox: React.FC<JobBoxProps> = ({ job, onPress, navigation, day, month, y
                         transform: [{ scale: pressed ? 0.95 : 1 }],
                     })}
                     onPress={() => navigation.navigate('JobDetails', { 
-                        jobId: job.id, 
+                        jobId: job.code || job.id, 
                         day, 
                         month, 
                         year 
                     })}
                 >
                     <Ionicons name="arrow-forward" size={16} color={colors.buttonPrimaryText} />
-                    <Text style={styles.modernActionText}>Détails</Text>
+                    <Text style={styles.modernActionText}>{t('calendar.dayScreen.details')}</Text>
                 </Pressable>
             </View>
         </Pressable>

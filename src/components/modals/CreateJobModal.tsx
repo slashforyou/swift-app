@@ -21,7 +21,7 @@ import { DESIGN_TOKENS } from '../../constants/Styles'
 import { useTheme } from '../../context/ThemeProvider'
 import { useClients } from '../../hooks/useClients'
 import { useTranslation } from '../../localization'
-import { ClientAPI } from '../../services/clients'
+import { ClientAPI, createClient, CreateClientRequest } from '../../services/clients'
 import { CreateJobRequest } from '../../services/jobs'
 
 interface CreateJobModalProps {
@@ -31,7 +31,7 @@ interface CreateJobModalProps {
   selectedDate?: Date
 }
 
-type Step = 'client' | 'address' | 'schedule' | 'details' | 'confirmation'
+type Step = 'client' | 'new-client' | 'address' | 'schedule' | 'details' | 'confirmation'
 
 const PRIORITY_OPTIONS = [
   { key: 'low' as const, label: 'Low', emoji: '🟢', color: '#22c55e' },
@@ -53,7 +53,7 @@ export default function CreateJobModal({
 }: CreateJobModalProps) {
   const { colors } = useTheme()
   const { t } = useTranslation()
-  const { clients, isLoading: isLoadingClients } = useClients()
+  const { clients, isLoading: isLoadingClients, refetch: refetchClients } = useClients()
   
   const [step, setStep] = useState<Step>('client')
   const [isLoading, setIsLoading] = useState(false)
@@ -70,6 +70,16 @@ export default function CreateJobModal({
   const [priority, setPriority] = useState<CreateJobRequest['priority']>('medium')
   const [estimatedDuration, setEstimatedDuration] = useState('4')
   const [notes, setNotes] = useState('')
+
+  // New client form state
+  const [newClientData, setNewClientData] = useState<CreateClientRequest>({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    company: '',
+  })
+  const [isCreatingClient, setIsCreatingClient] = useState(false)
 
   // Filter clients based on search
   const filteredClients = useMemo(() => {
@@ -98,6 +108,14 @@ export default function CreateJobModal({
     setPriority('medium')
     setEstimatedDuration('4')
     setNotes('')
+    setNewClientData({
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      company: '',
+    })
+    setIsCreatingClient(false)
   }
 
   useEffect(() => {
@@ -236,6 +254,17 @@ export default function CreateJobModal({
       <Text style={[styles.stepDescription, { color: colors.textSecondary }]}>
         {t('jobs.selectClientDescription') || 'Choose a client for this job'}
       </Text>
+
+      {/* Create new client button */}
+      <Pressable
+        style={[styles.createClientButton, { backgroundColor: colors.primary }]}
+        onPress={() => setStep('new-client')}
+      >
+        <Ionicons name="add-circle" size={20} color={colors.buttonPrimaryText} />
+        <Text style={[styles.createClientButtonText, { color: colors.buttonPrimaryText }]}>
+          {t('clients.addClient') || 'Create New Client'}
+        </Text>
+      </Pressable>
 
       {/* Search */}
       <View style={[styles.searchContainer, { backgroundColor: colors.backgroundSecondary }]}>
@@ -674,10 +703,183 @@ export default function CreateJobModal({
     </View>
   )
 
+  // Handler pour créer un nouveau client
+  const handleCreateNewClient = async () => {
+    // Validation
+    if (!newClientData.firstName.trim() || !newClientData.lastName.trim()) {
+      Alert.alert(
+        t('common.error') || 'Error',
+        t('clients.validation.nameRequired') || 'First and last name are required'
+      )
+      return
+    }
+    if (!newClientData.email.trim()) {
+      Alert.alert(
+        t('common.error') || 'Error',
+        t('clients.validation.emailRequired') || 'Email is required'
+      )
+      return
+    }
+    if (!newClientData.phone.trim()) {
+      Alert.alert(
+        t('common.error') || 'Error',
+        t('clients.validation.phoneRequired') || 'Phone number is required'
+      )
+      return
+    }
+
+    setIsCreatingClient(true)
+    try {
+      const newClient = await createClient(newClientData)
+      // Refresh la liste des clients
+      await refetchClients()
+      // Sélectionner automatiquement le nouveau client
+      setSelectedClient(newClient)
+      // Passer à l'étape suivante (address)
+      setStep('address')
+      // Réinitialiser le formulaire
+      setNewClientData({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        company: '',
+      })
+      Alert.alert(
+        t('clients.success.created') || 'Success',
+        t('clients.success.clientCreated') || 'Client created successfully'
+      )
+    } catch (error) {
+      Alert.alert(
+        t('common.error') || 'Error',
+        t('clients.error.createFailed') || 'Failed to create client'
+      )
+    } finally {
+      setIsCreatingClient(false)
+    }
+  }
+
+  const renderNewClientStep = () => (
+    <View style={styles.stepContent}>
+      <Text style={[styles.stepTitle, { color: colors.text }]}>
+        {t('clients.addClient') || 'Create New Client'}
+      </Text>
+      <Text style={[styles.stepDescription, { color: colors.textSecondary }]}>
+        {t('clients.addClientDescription') || 'Fill in the client information'}
+      </Text>
+
+      <ScrollView style={styles.clientList} showsVerticalScrollIndicator={false}>
+        {/* First Name */}
+        <View style={styles.newClientInputGroup}>
+          <Text style={[styles.newClientInputLabel, { color: colors.text }]}>
+            {t('clients.firstName') || 'First Name'} *
+          </Text>
+          <TextInput
+            style={[styles.newClientInput, { backgroundColor: colors.backgroundSecondary, color: colors.text }]}
+            placeholder={t('clients.firstNamePlaceholder') || 'Enter first name'}
+            placeholderTextColor={colors.textSecondary}
+            value={newClientData.firstName}
+            onChangeText={(text) => setNewClientData(prev => ({ ...prev, firstName: text }))}
+          />
+        </View>
+
+        {/* Last Name */}
+        <View style={styles.newClientInputGroup}>
+          <Text style={[styles.newClientInputLabel, { color: colors.text }]}>
+            {t('clients.lastName') || 'Last Name'} *
+          </Text>
+          <TextInput
+            style={[styles.newClientInput, { backgroundColor: colors.backgroundSecondary, color: colors.text }]}
+            placeholder={t('clients.lastNamePlaceholder') || 'Enter last name'}
+            placeholderTextColor={colors.textSecondary}
+            value={newClientData.lastName}
+            onChangeText={(text) => setNewClientData(prev => ({ ...prev, lastName: text }))}
+          />
+        </View>
+
+        {/* Email */}
+        <View style={styles.newClientInputGroup}>
+          <Text style={[styles.newClientInputLabel, { color: colors.text }]}>
+            {t('clients.email') || 'Email'} *
+          </Text>
+          <TextInput
+            style={[styles.newClientInput, { backgroundColor: colors.backgroundSecondary, color: colors.text }]}
+            placeholder={t('clients.emailPlaceholder') || 'Enter email address'}
+            placeholderTextColor={colors.textSecondary}
+            value={newClientData.email}
+            onChangeText={(text) => setNewClientData(prev => ({ ...prev, email: text }))}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+        </View>
+
+        {/* Phone */}
+        <View style={styles.newClientInputGroup}>
+          <Text style={[styles.newClientInputLabel, { color: colors.text }]}>
+            {t('clients.phone') || 'Phone'} *
+          </Text>
+          <TextInput
+            style={[styles.newClientInput, { backgroundColor: colors.backgroundSecondary, color: colors.text }]}
+            placeholder={t('clients.phonePlaceholder') || 'Enter phone number'}
+            placeholderTextColor={colors.textSecondary}
+            value={newClientData.phone}
+            onChangeText={(text) => setNewClientData(prev => ({ ...prev, phone: text }))}
+            keyboardType="phone-pad"
+          />
+        </View>
+
+        {/* Company (Optional) */}
+        <View style={styles.newClientInputGroup}>
+          <Text style={[styles.newClientInputLabel, { color: colors.text }]}>
+            {t('clients.company') || 'Company'} ({t('common.optional') || 'Optional'})
+          </Text>
+          <TextInput
+            style={[styles.newClientInput, { backgroundColor: colors.backgroundSecondary, color: colors.text }]}
+            placeholder={t('clients.companyPlaceholder') || 'Enter company name'}
+            placeholderTextColor={colors.textSecondary}
+            value={newClientData.company}
+            onChangeText={(text) => setNewClientData(prev => ({ ...prev, company: text }))}
+          />
+        </View>
+      </ScrollView>
+
+      {/* Navigation buttons */}
+      <View style={styles.buttonRow}>
+        <Pressable
+          style={[styles.button, styles.buttonSecondary, { backgroundColor: colors.backgroundSecondary }]}
+          onPress={() => setStep('client')}
+          disabled={isCreatingClient}
+        >
+          <Text style={[styles.buttonText, { color: colors.text }]}>
+            {t('common.back') || 'Back'}
+          </Text>
+        </Pressable>
+        <Pressable
+          style={[styles.button, styles.buttonPrimary, { backgroundColor: colors.primary }]}
+          onPress={handleCreateNewClient}
+          disabled={isCreatingClient}
+        >
+          {isCreatingClient ? (
+            <ActivityIndicator size="small" color={colors.buttonPrimaryText} />
+          ) : (
+            <>
+              <Ionicons name="add-circle" size={20} color={colors.buttonPrimaryText} />
+              <Text style={[styles.buttonText, { color: colors.buttonPrimaryText, marginLeft: 8 }]}>
+                {t('clients.createClient') || 'Create Client'}
+              </Text>
+            </>
+          )}
+        </Pressable>
+      </View>
+    </View>
+  )
+
   const renderCurrentStep = () => {
     switch (step) {
       case 'client':
         return renderClientStep()
+      case 'new-client':
+        return renderNewClientStep()
       case 'address':
         return renderAddressStep()
       case 'schedule':
@@ -755,6 +957,32 @@ export default function CreateJobModal({
     stepDescription: {
       fontSize: DESIGN_TOKENS.typography.body.fontSize,
       marginBottom: DESIGN_TOKENS.spacing.lg,
+    },
+    createClientButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: DESIGN_TOKENS.spacing.md,
+      borderRadius: DESIGN_TOKENS.radius.md,
+      marginBottom: DESIGN_TOKENS.spacing.md,
+      gap: DESIGN_TOKENS.spacing.sm,
+    },
+    createClientButtonText: {
+      fontSize: DESIGN_TOKENS.typography.body.fontSize,
+      fontWeight: '600',
+    },
+    newClientInputGroup: {
+      marginBottom: DESIGN_TOKENS.spacing.md,
+    },
+    newClientInputLabel: {
+      fontSize: DESIGN_TOKENS.typography.caption.fontSize,
+      fontWeight: '600',
+      marginBottom: DESIGN_TOKENS.spacing.xs,
+    },
+    newClientInput: {
+      borderRadius: DESIGN_TOKENS.radius.md,
+      padding: DESIGN_TOKENS.spacing.md,
+      fontSize: DESIGN_TOKENS.typography.body.fontSize,
     },
     searchContainer: {
       flexDirection: 'row',
