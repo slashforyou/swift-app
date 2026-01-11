@@ -1120,6 +1120,12 @@ export const enTranslations: TranslationKeys = {
             networkError: 'Network connection problem. Please check your internet.',
             timeout: 'Connection timed out. Please try again.',
             generic: 'An unexpected error occurred.',
+            // Enhanced error titles
+            loginFailed: 'Login Failed',
+            authenticationError: 'Authentication Error',
+            deviceError: 'Device Error',
+            serverConnectionError: 'Server Error',
+            connectionError: 'Connection Error',
         },
         success: {
             loginSuccess: 'Login successful! Redirecting...',

@@ -1150,6 +1150,12 @@ export interface TranslationKeys {
             networkError: string;
             timeout: string;
             generic: string;
+            // Enhanced error titles
+            loginFailed: string;
+            authenticationError: string;
+            deviceError: string;
+            serverConnectionError: string;
+            connectionError: string;
         };
         success: {
             loginSuccess: string;

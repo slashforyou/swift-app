@@ -40,18 +40,21 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         type: 'success' | 'error' | 'warning' | 'info';
         title?: string;
         message: string;
+        autoHide?: boolean;
     }>({
         visible: false,
         type: 'info',
         message: '',
+        autoHide: true,
     });
 
-    const showAlert = (type: 'success' | 'error' | 'warning' | 'info', message: string, title?: string) => {
+    const showAlert = (type: 'success' | 'error' | 'warning' | 'info', message: string, title?: string, autoHide: boolean = true) => {
         setAlert({
             visible: true,
             type,
             title,
             message,
+            autoHide,
         });
     };
 
@@ -103,42 +106,44 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             
             // Messages d'erreur personnalisés basés sur les nouveaux codes
             let errorMessage = t('auth.errors.generic');
-            let errorTitle = t('common.error');
+            let errorTitle = t('auth.errors.loginFailed');
             
             if (error.message) {
                 switch (error.message) {
                     case 'unauthorized':
                     case 'invalid_credentials':
                         errorMessage = t('auth.errors.invalidCredentials');
-                        errorTitle = t('common.error');
+                        errorTitle = t('auth.errors.authenticationError');
                         break;
                     case 'device_info_unavailable':
                         errorMessage = t('auth.errors.deviceInfoUnavailable');
-                        errorTitle = t('common.error');
+                        errorTitle = t('auth.errors.deviceError');
                         break;
                     case 'server_error':
                         errorMessage = t('auth.errors.serverError');
-                        errorTitle = t('common.error');
+                        errorTitle = t('auth.errors.serverConnectionError');
                         break;
                     case 'invalid_login_response':
                         errorMessage = t('auth.errors.invalidResponse');
-                        errorTitle = t('common.error');
+                        errorTitle = t('auth.errors.serverConnectionError');
                         break;
                     default:
                         if (error.message.includes('network') || error.message.includes('Network')) {
                             errorMessage = t('auth.errors.networkError');
-                            errorTitle = t('common.error');
+                            errorTitle = t('auth.errors.connectionError');
                         } else if (error.message.includes('timeout')) {
                             errorMessage = t('auth.errors.timeout');
-                            errorTitle = t('common.error');
+                            errorTitle = t('auth.errors.connectionError');
                         } else {
                             errorMessage = error.message;
+                            errorTitle = t('auth.errors.loginFailed');
                         }
                         break;
                 }
             }
             
-            showAlert('error', errorMessage, errorTitle);
+            // Afficher l'erreur sans auto-hide pour que l'utilisateur puisse lire
+            showAlert('error', errorMessage, errorTitle, false);
         } finally {
             setIsLoading(false);
         }
@@ -200,6 +205,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                         message={alert.message}
                         visible={alert.visible}
                         onDismiss={hideAlert}
+                        autoHide={alert.autoHide}
+                        prominent={alert.type === 'error'}
                     />
 
                     {/* Form Section */}

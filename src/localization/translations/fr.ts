@@ -1120,6 +1120,12 @@ export const frTranslations: TranslationKeys = {
             networkError: 'Problème de connexion réseau. Veuillez vérifier votre connexion internet.',
             timeout: 'La connexion a pris trop de temps. Veuillez réessayer.',
             generic: 'Une erreur inattendue s\'est produite.',
+            // Titres d'erreur améliorés
+            loginFailed: 'Échec de la connexion',
+            authenticationError: 'Erreur d\'authentification',
+            deviceError: 'Erreur de l\'appareil',
+            serverConnectionError: 'Erreur serveur',
+            connectionError: 'Erreur de connexion',
         },
         success: {
             loginSuccess: 'Connexion réussie ! Redirection en cours...',
