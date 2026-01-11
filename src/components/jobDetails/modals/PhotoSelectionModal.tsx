@@ -72,8 +72,7 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
             // Lancer la caméra pour prendre une photo
             const result = await ImagePicker.launchCameraAsync({
                 mediaTypes: ['images'],
-                allowsEditing: true,
-                aspect: [4, 3],
+                allowsEditing: false, // Désactivé - pas de crop pour les photos de job
                 quality: 0.8, // Compression pour réduire la taille
             });
 
@@ -119,8 +118,7 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
             // Ouvrir la galerie pour sélectionner une photo
             const result = await ImagePicker.launchImageLibraryAsync({
                 mediaTypes: ['images'],
-                allowsEditing: true,
-                aspect: [4, 3],
+                allowsEditing: false, // Désactivé - pas de crop pour les photos de job
                 quality: 0.8, // Compression pour réduire la taille
             });
 

@@ -94,7 +94,7 @@ export const frTranslations: TranslationKeys = {
             cancelled: 'Annulé',
         },
         timer: {
-            start: 'Démarrer le chrono',
+            start: 'Commencer',
             stop: 'Arrêter le chrono',
             pause: 'Pause',
             resume: 'Reprendre',

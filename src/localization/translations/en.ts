@@ -94,7 +94,7 @@ export const enTranslations: TranslationKeys = {
             cancelled: 'Cancelled',
         },
         timer: {
-            start: 'Start Timer',
+            start: 'Start',
             stop: 'Stop Timer',
             pause: 'Pause',
             resume: 'Resume',

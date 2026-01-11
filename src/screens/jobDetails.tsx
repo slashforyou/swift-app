@@ -588,6 +588,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
                     jobRef={job.code || jobDetails?.job?.code || job.id}
                     title={getPanelTitle()}
                     onToast={showToast}
+                    showLanguageButton={false}
                     onEdit={handleEditJob}
                     onDelete={handleDeleteJob}
                     onAssignStaff={handleOpenAssignStaff}

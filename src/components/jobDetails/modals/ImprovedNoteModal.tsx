@@ -159,7 +159,13 @@ const ImprovedNoteModal: React.FC<ImprovedNoteModalProps> = ({
             marginTop: DESIGN_TOKENS.spacing.xs,
         },
         section: {
-            marginBottom: DESIGN_TOKENS.spacing.lg,
+            marginBottom: DESIGN_TOKENS.spacing.xl,
+        },
+        sectionDivider: {
+            height: 1,
+            backgroundColor: colors.border,
+            marginVertical: DESIGN_TOKENS.spacing.md,
+            marginHorizontal: -DESIGN_TOKENS.spacing.lg,
         },
         sectionTitle: {
             fontSize: 16,
@@ -385,11 +391,14 @@ const ImprovedNoteModal: React.FC<ImprovedNoteModalProps> = ({
                                 />
                             </View>
 
+                            {/* Séparateur visuel */}
+                            <View style={styles.sectionDivider} />
+
                             {/* Note Content */}
                             <View style={styles.section}>
                                 <Text style={styles.sectionTitle}>{t('jobDetails.notes.modal.contentLabel')}</Text>
                                 <TextInput
-                                    style={styles.textInput}
+                                    style={[styles.textInput, { minHeight: 150 }]}
                                     value={noteContent}
                                     onChangeText={setNoteContent}
                                     placeholder={t('jobDetails.notes.modal.contentPlaceholder')}

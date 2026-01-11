@@ -131,18 +131,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                     <ProfileHeaderComplete navigation={navigation} />
                 </View>
 
-                <HStack gap="md" justify="space-between" align="center" style={{
+                {/* Bouton langue à droite */}
+                <HStack gap="md" justify="flex-end" align="center" style={{
                     paddingHorizontal: DESIGN_TOKENS.spacing.lg,
                     marginBottom: DESIGN_TOKENS.spacing.sm,
                 }}>
-                    <Text style={{
-                        fontSize: 22,
-                        fontWeight: '700',
-                        color: colors.text,
-                    }}>
-                        {t('home.title')}
-                    </Text>
-                    
                     <Pressable
                         onPress={() => setShowLanguageSelector(true)}
                         style={({ pressed }) => ({

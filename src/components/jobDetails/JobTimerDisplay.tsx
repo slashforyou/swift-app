@@ -16,6 +16,7 @@ import { Alert, Pressable, Text, View } from 'react-native';
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useJobTimerContext } from '../../context/JobTimerProvider';
 import { useTheme } from '../../context/ThemeProvider';
+import { useTranslation } from '../../localization';
 
 interface JobTimerDisplayProps {
     job: any;
@@ -25,6 +26,7 @@ interface JobTimerDisplayProps {
 
 const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({ job, onOpenSignatureModal, onOpenPaymentPanel }) => {
     const { colors } = useTheme();
+    const { t } = useTranslation();
     
     const { 
         totalElapsed,
@@ -297,7 +299,7 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({ job, onOpenSignatureM
                             fontSize: 16,
                             fontWeight: '600',
                         }}>
-                            {isRunning ? 'Pause' : 'Commencer'}
+                            {isRunning ? t('job.timer.pause') : t('job.timer.start')}
                         </Text>
                     </Pressable>
                 )}
