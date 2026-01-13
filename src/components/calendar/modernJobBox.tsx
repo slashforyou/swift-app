@@ -1,7 +1,7 @@
 import Ionicons from '@react-native-vector-icons/ionicons';
 import React from 'react';
-import { View, Text, Pressable, StyleSheet, Animated } from 'react-native';
-import { useThemedStyles, useThemeColors } from '../../../hooks/useThemeColor';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useThemeColors } from '../../../hooks/useThemeColor';
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { Job } from '../../hooks/useJobsForDay';
 import { useTranslation } from '../../localization';

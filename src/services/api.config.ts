@@ -7,7 +7,7 @@
  */
 
 import { Platform as RNPlatform } from 'react-native';
-import { getAuthHeaders as getSecureAuthHeaders, clearSession } from '../utils/auth';
+import { clearSession, getAuthHeaders as getSecureAuthHeaders } from '../utils/auth';
 
 // Variables d'environnement
 const IS_DEV = __DEV__;

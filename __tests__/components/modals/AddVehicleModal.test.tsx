@@ -517,7 +517,8 @@ describe('AddVehicleModal', () => {
       fireEvent.changeText(getByPlaceholderText('Ex: NPR 200'), 'Box Trailer')
       fireEvent.changeText(getByPlaceholderText('2024'), '2021')
       fireEvent.changeText(getByPlaceholderText('ABC-123'), 'TRL-456')
-      fireEvent.changeText(getByPlaceholderText('YYYY-MM-DD'), '2026-01-10')
+      // Date dans le futur pour passer la validation
+      fireEvent.changeText(getByPlaceholderText('YYYY-MM-DD'), '2026-06-15')
       fireEvent.press(getByText('Brisbane Office'))
 
       // Ne pas remplir capacity

@@ -1,0 +1,1378 @@
+{
+  "metadata": {
+    "version": "2.0.0",
+    "lastUpdated": "2026-01-12",
+    "description": "Suite de tests complète pour SwiftApp - Couvre l'authentification, la gestion des jobs, les paiements Stripe, le calendrier, les équipes, les véhicules, les photos, les notes, les signatures et l'analytics. Inclut tests CRUD détaillés pour tous les éléments.",
+    "totalTests": 171
+  },
+  "categories": [
+    {
+      "name": "Authentication & Session",
+      "description": "Tests liés à l'authentification, la session utilisateur et la sécurité",
+      "tests": [
+        {
+          "id": "auth_login_success",
+          "type": "integration",
+          "priority": "critical",
+          "description": "Vérifier qu'un utilisateur peut se connecter avec des identifiants valides. Le token JWT doit être stocké dans SecureStore et l'utilisateur redirigé vers Home."
+        },
+        {
+          "id": "auth_login_failure",
+          "type": "integration",
+          "priority": "critical",
+          "description": "Vérifier qu'un message d'erreur approprié s'affiche lors d'une tentative de connexion avec des identifiants invalides. Aucun token ne doit être stocké."
+        },
+        {
+          "id": "auth_logout",
+          "type": "integration",
+          "priority": "high",
+          "description": "Vérifier que la déconnexion supprime le token du SecureStore, efface le contexte utilisateur et redirige vers l'écran de connexion."
+        },
+        {
+          "id": "auth_token_refresh",
+          "type": "integration",
+          "priority": "high",
+          "description": "Vérifier que le token JWT est automatiquement rafraîchi avant expiration. Les appels API doivent continuer à fonctionner sans interruption."
+        },
+        {
+          "id": "auth_session_persistence",
+          "type": "functional",
+          "priority": "high",
+          "description": "Vérifier qu'après fermeture et réouverture de l'app, l'utilisateur reste connecté si le token est valide."
+        },
+        {
+          "id": "auth_biometric_login",
+          "type": "functional",
+          "priority": "medium",
+          "description": "Si activé, vérifier que l'authentification biométrique (Face ID/Touch ID) permet de se connecter sans saisir les identifiants."
+        }
+      ]
+    },
+    {
+      "name": "Home Screen",
+      "description": "Tests de l'écran d'accueil et du dashboard",
+      "tests": [
+        {
+          "id": "home_load_user_data",
+          "type": "integration",
+          "priority": "critical",
+          "description": "Vérifier que l'écran Home charge correctement les données utilisateur (nom, niveau, XP, avatar) depuis l'API."
+        },
+        {
+          "id": "home_daily_stats",
+          "type": "integration",
+          "priority": "high",
+          "description": "Vérifier que les statistiques du jour (jobs complétés, en cours, pending) sont correctes et se mettent à jour en temps réel."
+        },
+        {
+          "id": "home_quick_actions",
+          "type": "ui",
+          "priority": "medium",
+          "description": "Vérifier que les boutons d'action rapide (Voir Calendrier, Profil, Paramètres) redirigent vers les bons écrans."
+        },
+        {
+          "id": "home_language_selector",
+          "type": "functional",
+          "priority": "medium",
+          "description": "Vérifier que le sélecteur de langue change immédiatement tous les textes de l'interface dans la langue sélectionnée."
+        },
+        {
+          "id": "home_theme_toggle",
+          "type": "ui",
+          "priority": "medium",
+          "description": "Vérifier que le basculement Light/Dark mode met à jour toutes les couleurs de l'interface instantanément."
+        }
+      ]
+    },
+    {
+      "name": "Calendar & Day View",
+      "description": "Tests du calendrier mensuel et de la vue journalière",
+      "tests": [
+        {
+          "id": "calendar_month_navigation",
+          "type": "functional",
+          "priority": "high",
+          "description": "Vérifier que la navigation entre les mois fonctionne correctement et que le nom du mois est traduit dans la langue active."
+        },
+        {
+          "id": "calendar_job_indicators",
+          "type": "integration",
+          "priority": "high",
+          "description": "Vérifier que les jours avec des jobs affichent des indicateurs visuels (points colorés) correspondant au statut des jobs."
+        },
+        {
+          "id": "calendar_day_selection",
+          "type": "functional",
+          "priority": "high",
+          "description": "Vérifier que le tap sur un jour ouvre la vue DayScreen avec les jobs de cette date."
+        },
+        {
+          "id": "day_job_list",
+          "type": "integration",
+          "priority": "critical",
+          "description": "Vérifier que DayScreen affiche la liste complète des jobs du jour avec titre, client, heure, statut et priorité."
+        },
+        {
+          "id": "day_job_filters",
+          "type": "functional",
+          "priority": "medium",
+          "description": "Vérifier que les filtres par statut (pending, in-progress, completed) fonctionnent et mettent à jour la liste en temps réel."
+        },
+        {
+          "id": "day_job_sorting",
+          "type": "functional",
+          "priority": "medium",
+          "description": "Vérifier que le tri par heure, priorité ou statut réordonne correctement la liste des jobs."
+        },
+        {
+          "id": "day_create_job_modal",
+          "type": "functional",
+          "priority": "high",
+          "description": "Vérifier que le modal de création de job s'ouvre, permet de remplir tous les champs et crée le job avec succès."
+        },
+        {
+          "id": "day_create_client_inline",
+          "type": "functional",
+          "priority": "high",
+          "description": "Vérifier que le bouton 'Créer Client' dans le modal CreateJob permet de créer un client à la volée et le sélectionne automatiquement."
+        },
+        {
+          "id": "day_job_details_navigation",
+          "type": "functional",
+          "priority": "critical",
+          "description": "Vérifier que le bouton 'Détails' sur un job navigue vers JobDetails avec le bon jobCode (pas l'ID numérique)."
+        }
+      ]
+    },
+    {
+      "name": "Job Details & Workflow",
+      "description": "Tests du détail des jobs et du workflow en étapes",
+      "tests": [
+        {
+          "id": "job_details_load",
+          "type": "integration",
+          "priority": "critical",
+          "description": "Vérifier que JobDetails charge toutes les données du job (titre, client, adresses, équipe, véhicule, notes, photos)."
+        },
+        {
+          "id": "job_timer_start_pause",
+          "type": "functional",
+          "priority": "critical",
+          "description": "Vérifier que le timer peut être démarré et mis en pause. Le temps s'incrémente pendant l'exécution et se fige pendant les pauses."
+        },
+        {
+          "id": "job_timer_persistence",
+          "type": "functional",
+          "priority": "high",
+          "description": "Vérifier que le temps du timer persiste après fermeture de l'app et reprend correctement au retour."
+        },
+        {
+          "id": "job_step_advance",
+          "type": "integration",
+          "priority": "critical",
+          "description": "Vérifier que l'avancement d'étape (advanceStep) met à jour le backend et passe à l'étape suivante avec animation."
+        },
+        {
+          "id": "job_step_validation",
+          "type": "functional",
+          "priority": "high",
+          "description": "Vérifier que la validation automatique des étapes détecte les incohérences et propose une correction."
+        },
+        {
+          "id": "job_notes_add",
+          "type": "integration",
+          "priority": "high",
+          "description": "Vérifier qu'une note peut être ajoutée avec titre et contenu, qu'elle s'enregistre sur le serveur et apparaît dans la liste."
+        },
+        {
+          "id": "job_notes_edit_delete",
+          "type": "integration",
+          "priority": "medium",
+          "description": "Vérifier qu'une note peut être modifiée et supprimée, avec confirmation avant suppression."
+        },
+        {
+          "id": "job_photos_capture",
+          "type": "functional",
+          "priority": "high",
+          "description": "Vérifier que la prise de photo fonctionne (caméra), que l'image est uploadée et apparaît dans la galerie du job."
+        },
+        {
+          "id": "job_photos_gallery",
+          "type": "functional",
+          "priority": "high",
+          "description": "Vérifier que la sélection depuis la galerie fonctionne et que les photos sont uploadées sans crop automatique."
+        },
+        {
+          "id": "job_signature_capture",
+          "type": "functional",
+          "priority": "critical",
+          "description": "Vérifier que la capture de signature fonctionne, s'enregistre sur le serveur et apparaît dans le résumé du job."
+        },
+        {
+          "id": "job_summary_view",
+          "type": "ui",
+          "priority": "high",
+          "description": "Vérifier que l'écran Summary affiche toutes les informations du job : client, adresses, équipe, véhicule, notes, photos, signature."
+        }
+      ]
+    },
+    {
+      "name": "Stripe Payments",
+      "description": "Tests du système de paiement Stripe",
+      "tests": [
+        {
+          "id": "stripe_connection_status",
+          "type": "integration",
+          "priority": "critical",
+          "description": "Vérifier que checkStripeConnectionStatus retourne isConnected=true avec des clés Stripe valides et gère les erreurs réseau."
+        },
+        {
+          "id": "stripe_create_payment_intent",
+          "type": "integration",
+          "priority": "critical",
+          "description": "Créer un Payment Intent avec jobId et montant. Vérifier client_secret, amount en centimes, devise AUD et métadonnées."
+        },
+        {
+          "id": "stripe_confirm_payment_success",
+          "type": "integration",
+          "priority": "critical",
+          "description": "Confirmer un paiement réussi. Vérifier mise à jour du job (paymentStatus=paid), montant et timestamp."
+        },
+        {
+          "id": "stripe_confirm_payment_failure",
+          "type": "integration",
+          "priority": "high",
+          "description": "Simuler un paiement refusé (carte 4000000000009995). Vérifier alerte d'erreur et absence de mise à jour du job."
+        },
+        {
+          "id": "stripe_payment_history",
+          "type": "integration",
+          "priority": "high",
+          "description": "Récupérer l'historique des paiements d'un job. Vérifier montants, statuts, commissions et pagination."
+        },
+        {
+          "id": "stripe_refund_payment",
+          "type": "integration",
+          "priority": "high",
+          "description": "Créer un remboursement. Vérifier montant retourné, statut 'succeeded' et mise à jour de l'historique."
+        },
+        {
+          "id": "stripe_fetch_balance",
+          "type": "integration",
+          "priority": "medium",
+          "description": "Récupérer le solde Stripe. Vérifier montants disponible et en attente en AUD."
+        },
+        {
+          "id": "stripe_webhook_succeeded",
+          "type": "integration",
+          "priority": "high",
+          "description": "Déclencher payment_intent.succeeded via Stripe CLI. Vérifier mise à jour du job et notifications."
+        },
+        {
+          "id": "stripe_webhook_failed",
+          "type": "integration",
+          "priority": "high",
+          "description": "Déclencher payment_intent.payment_failed. Vérifier enregistrement de l'échec et alerte utilisateur."
+        },
+        {
+          "id": "stripe_card_ui",
+          "type": "ui",
+          "priority": "high",
+          "description": "Vérifier CardField, validation du nom, activation du bouton payer et loader pendant confirmation."
+        },
+        {
+          "id": "stripe_additional_items",
+          "type": "functional",
+          "priority": "high",
+          "description": "Vérifier que les éléments additionnels peuvent être ajoutés à la facture et sont inclus dans le montant final."
+        },
+        {
+          "id": "stripe_role_access",
+          "type": "security",
+          "priority": "critical",
+          "description": "Vérifier que seuls contractor/owner peuvent initier un paiement. Un employé doit recevoir erreur 403."
+        },
+        {
+          "id": "stripe_retry_failed",
+          "type": "functional",
+          "priority": "medium",
+          "description": "Simuler erreur réseau lors de confirmJobPayment. Vérifier option de réessai sans duplication."
+        },
+        {
+          "id": "stripe_load_test",
+          "type": "performance",
+          "priority": "medium",
+          "description": "Tests de charge sur les endpoints Stripe. Taux de succès >90%, temps moyen <300ms."
+        },
+        {
+          "id": "stripe_analytics_events",
+          "type": "analytics",
+          "priority": "medium",
+          "description": "Vérifier que chaque étape du paiement déclenche un événement analytics avec jobId et statut."
+        }
+      ]
+    },
+    {
+      "name": "Business Management",
+      "description": "Tests de la gestion d'entreprise (Staff, Vehicles, Clients)",
+      "tests": [
+        {
+          "id": "staff_list_load",
+          "type": "integration",
+          "priority": "high",
+          "description": "Vérifier que la liste du staff charge tous les employés et contractors avec leurs informations."
+        },
+        {
+          "id": "staff_add_employee",
+          "type": "integration",
+          "priority": "high",
+          "description": "Ajouter un employé via le modal. Vérifier envoi d'invitation et apparition dans la liste."
+        },
+        {
+          "id": "staff_add_contractor",
+          "type": "integration",
+          "priority": "high",
+          "description": "Rechercher et ajouter un contractor existant. Vérifier statut du contrat et intégration."
+        },
+        {
+          "id": "staff_edit_member",
+          "type": "functional",
+          "priority": "medium",
+          "description": "Modifier les informations d'un membre du staff. Vérifier mise à jour côté serveur."
+        },
+        {
+          "id": "staff_remove_member",
+          "type": "functional",
+          "priority": "medium",
+          "description": "Supprimer un membre du staff avec confirmation. Vérifier suppression de la liste."
+        },
+        {
+          "id": "vehicles_list_load",
+          "type": "integration",
+          "priority": "high",
+          "description": "Vérifier que la flotte de véhicules charge avec nom, plaque, statut et kilométrage."
+        },
+        {
+          "id": "vehicles_add",
+          "type": "integration",
+          "priority": "high",
+          "description": "Ajouter un véhicule via le modal. Vérifier création et apparition dans la liste."
+        },
+        {
+          "id": "vehicles_edit",
+          "type": "functional",
+          "priority": "medium",
+          "description": "Modifier les informations d'un véhicule. Vérifier mise à jour."
+        },
+        {
+          "id": "vehicles_details",
+          "type": "ui",
+          "priority": "medium",
+          "description": "Vérifier que VehicleDetailsScreen affiche toutes les infos : photo, specs, historique, statut."
+        },
+        {
+          "id": "clients_list_load",
+          "type": "integration",
+          "priority": "high",
+          "description": "Vérifier que la liste des clients charge avec nom, email, téléphone et nombre de jobs."
+        },
+        {
+          "id": "clients_add",
+          "type": "integration",
+          "priority": "high",
+          "description": "Créer un client. Vérifier validation des champs obligatoires et création réussie."
+        },
+        {
+          "id": "clients_search",
+          "type": "functional",
+          "priority": "medium",
+          "description": "Rechercher un client par nom, email ou téléphone. Vérifier filtrage en temps réel."
+        }
+      ]
+    },
+    {
+      "name": "Settings & Preferences",
+      "description": "Tests des paramètres et préférences utilisateur",
+      "tests": [
+        {
+          "id": "settings_load",
+          "type": "ui",
+          "priority": "high",
+          "description": "Vérifier que l'écran Settings charge toutes les sections : compte, notifications, apparence, sécurité."
+        },
+        {
+          "id": "settings_notifications_toggle",
+          "type": "functional",
+          "priority": "medium",
+          "description": "Activer/désactiver les notifications push. Vérifier persistence et effet réel."
+        },
+        {
+          "id": "settings_dark_mode",
+          "type": "ui",
+          "priority": "medium",
+          "description": "Basculer le mode sombre. Vérifier mise à jour immédiate de toutes les couleurs."
+        },
+        {
+          "id": "settings_language_change",
+          "type": "functional",
+          "priority": "high",
+          "description": "Changer la langue. Vérifier traduction immédiate de toute l'interface."
+        },
+        {
+          "id": "settings_biometric_toggle",
+          "type": "functional",
+          "priority": "medium",
+          "description": "Activer l'authentification biométrique. Vérifier demande d'autorisation et persistence."
+        },
+        {
+          "id": "settings_translations_complete",
+          "type": "i18n",
+          "priority": "high",
+          "description": "Vérifier que toutes les clés de traduction existent dans FR, EN et IT pour l'écran Settings."
+        }
+      ]
+    },
+    {
+      "name": "Profile & User",
+      "description": "Tests du profil utilisateur",
+      "tests": [
+        {
+          "id": "profile_load",
+          "type": "integration",
+          "priority": "high",
+          "description": "Vérifier que le profil charge avec nom, email, avatar, niveau, XP et statistiques."
+        },
+        {
+          "id": "profile_edit_info",
+          "type": "functional",
+          "priority": "medium",
+          "description": "Modifier les informations personnelles. Vérifier sauvegarde côté serveur."
+        },
+        {
+          "id": "profile_avatar_change",
+          "type": "functional",
+          "priority": "low",
+          "description": "Changer l'avatar. Vérifier upload et affichage de la nouvelle image."
+        },
+        {
+          "id": "profile_level_display",
+          "type": "ui",
+          "priority": "medium",
+          "description": "Vérifier que le niveau et la barre de progression XP s'affichent correctement."
+        },
+        {
+          "id": "profile_stats_accuracy",
+          "type": "integration",
+          "priority": "medium",
+          "description": "Vérifier que les statistiques (jobs complétés, heures travaillées) correspondent aux données réelles."
+        }
+      ]
+    },
+    {
+      "name": "Internationalization (i18n)",
+      "description": "Tests de traduction et localisation",
+      "tests": [
+        {
+          "id": "i18n_french_complete",
+          "type": "i18n",
+          "priority": "critical",
+          "description": "Vérifier que toutes les clés de traduction existent en français et sont correctes."
+        },
+        {
+          "id": "i18n_english_complete",
+          "type": "i18n",
+          "priority": "critical",
+          "description": "Vérifier que toutes les clés de traduction existent en anglais et sont correctes."
+        },
+        {
+          "id": "i18n_italian_complete",
+          "type": "i18n",
+          "priority": "high",
+          "description": "Vérifier que toutes les clés de traduction existent en italien et sont correctes (pas de français résiduel)."
+        },
+        {
+          "id": "i18n_date_format",
+          "type": "functional",
+          "priority": "medium",
+          "description": "Vérifier que les dates s'affichent dans le format local selon la langue (DD/MM/YYYY vs MM/DD/YYYY)."
+        },
+        {
+          "id": "i18n_currency_format",
+          "type": "functional",
+          "priority": "medium",
+          "description": "Vérifier que les montants s'affichent avec le bon format de devise selon le contexte."
+        },
+        {
+          "id": "i18n_dynamic_switch",
+          "type": "functional",
+          "priority": "high",
+          "description": "Changer de langue en cours d'utilisation. Vérifier que tous les textes se mettent à jour instantanément."
+        }
+      ]
+    },
+    {
+      "name": "Performance & Reliability",
+      "description": "Tests de performance et fiabilité",
+      "tests": [
+        {
+          "id": "perf_app_startup",
+          "type": "performance",
+          "priority": "high",
+          "description": "Mesurer le temps de démarrage de l'app. Objectif : <2 secondes jusqu'à l'écran Home."
+        },
+        {
+          "id": "perf_api_response",
+          "type": "performance",
+          "priority": "high",
+          "description": "Mesurer les temps de réponse API. 95% des requêtes doivent répondre en <500ms."
+        },
+        {
+          "id": "perf_list_scroll",
+          "type": "performance",
+          "priority": "medium",
+          "description": "Vérifier la fluidité du scroll dans les listes (jobs, staff, vehicles). FPS >55."
+        },
+        {
+          "id": "perf_memory_usage",
+          "type": "performance",
+          "priority": "medium",
+          "description": "Monitorer l'utilisation mémoire pendant une session normale. Pas de fuites mémoire après 30min."
+        },
+        {
+          "id": "reliability_offline_mode",
+          "type": "functional",
+          "priority": "high",
+          "description": "Vérifier que l'app fonctionne en mode hors-ligne avec les données cachées."
+        },
+        {
+          "id": "reliability_sync_resume",
+          "type": "functional",
+          "priority": "high",
+          "description": "Après reconnexion, vérifier que les données hors-ligne sont synchronisées avec le serveur."
+        },
+        {
+          "id": "reliability_error_recovery",
+          "type": "functional",
+          "priority": "high",
+          "description": "Simuler des erreurs API. Vérifier que l'app affiche des messages clairs et ne crash pas."
+        }
+      ]
+    },
+    {
+      "name": "Analytics & Logging",
+      "description": "Tests d'analytics et de logging",
+      "tests": [
+        {
+          "id": "analytics_screen_views",
+          "type": "analytics",
+          "priority": "medium",
+          "description": "Vérifier que chaque navigation d'écran déclenche un événement screen_view avec le nom correct."
+        },
+        {
+          "id": "analytics_user_actions",
+          "type": "analytics",
+          "priority": "medium",
+          "description": "Vérifier que les actions utilisateur clés (create_job, start_timer, confirm_payment) sont trackées."
+        },
+        {
+          "id": "logging_errors",
+          "type": "functional",
+          "priority": "high",
+          "description": "Vérifier que les erreurs sont loggées avec stack trace et contexte pour le debugging."
+        },
+        {
+          "id": "logging_session",
+          "type": "functional",
+          "priority": "medium",
+          "description": "Vérifier que le session logger capture les événements importants pendant une session."
+        }
+      ]
+    },
+    {
+      "name": "Security",
+      "description": "Tests de sécurité",
+      "tests": [
+        {
+          "id": "security_token_storage",
+          "type": "security",
+          "priority": "critical",
+          "description": "Vérifier que le token JWT est stocké de manière sécurisée (SecureStore, pas AsyncStorage)."
+        },
+        {
+          "id": "security_api_auth",
+          "type": "security",
+          "priority": "critical",
+          "description": "Vérifier que toutes les requêtes API incluent le header Authorization avec le token valide."
+        },
+        {
+          "id": "security_role_permissions",
+          "type": "security",
+          "priority": "high",
+          "description": "Vérifier que les permissions RBAC sont respectées (owner, contractor, employee)."
+        },
+        {
+          "id": "security_input_validation",
+          "type": "security",
+          "priority": "high",
+          "description": "Vérifier que les inputs sont validés et échappés pour prévenir les injections."
+        },
+        {
+          "id": "security_sensitive_data",
+          "type": "security",
+          "priority": "critical",
+          "description": "Vérifier qu'aucune donnée sensible (token, password) n'est loggée ou exposée."
+        }
+      ]
+    },
+    {
+      "name": "CRUD - Photos & Media",
+      "description": "Tests de création, lecture, modification et suppression des photos et médias",
+      "tests": [
+        {
+          "id": "photo_capture_camera",
+          "type": "functional",
+          "priority": "critical",
+          "description": "Capturer une photo avec la caméra. Vérifier que la permission est demandée, la photo est prise et affichée en preview."
+        },
+        {
+          "id": "photo_select_gallery",
+          "type": "functional",
+          "priority": "critical",
+          "description": "Sélectionner une photo depuis la galerie. Vérifier accès à la galerie, sélection et affichage sans crop automatique."
+        },
+        {
+          "id": "photo_upload_success",
+          "type": "integration",
+          "priority": "critical",
+          "description": "Uploader une photo vers le serveur. Vérifier compression, envoi multipart/form-data, réponse avec URL et stockage local."
+        },
+        {
+          "id": "photo_upload_progress",
+          "type": "ui",
+          "priority": "high",
+          "description": "Afficher une barre de progression pendant l'upload. Vérifier pourcentage, annulation possible et reprise après erreur."
+        },
+        {
+          "id": "photo_view_fullscreen",
+          "type": "ui",
+          "priority": "medium",
+          "description": "Afficher une photo en plein écran. Vérifier zoom, pan, rotation et fermeture par swipe down."
+        },
+        {
+          "id": "photo_delete",
+          "type": "integration",
+          "priority": "high",
+          "description": "Supprimer une photo. Vérifier confirmation, suppression serveur et mise à jour de la galerie locale."
+        },
+        {
+          "id": "photo_multiple_upload",
+          "type": "functional",
+          "priority": "high",
+          "description": "Uploader plusieurs photos simultanément. Vérifier queue, progression individuelle et globale, gestion des erreurs partielles."
+        },
+        {
+          "id": "photo_offline_queue",
+          "type": "functional",
+          "priority": "high",
+          "description": "Stocker les photos en attente en mode hors-ligne. Vérifier auto-upload à la reconnexion."
+        },
+        {
+          "id": "photo_compression",
+          "type": "functional",
+          "priority": "medium",
+          "description": "Vérifier que les photos sont compressées avant upload (taille max 1MB, qualité 80%)."
+        },
+        {
+          "id": "photo_metadata",
+          "type": "functional",
+          "priority": "medium",
+          "description": "Vérifier que les métadonnées (date, géolocalisation, jobId) sont attachées à chaque photo."
+        }
+      ]
+    },
+    {
+      "name": "CRUD - Vehicles",
+      "description": "Tests de création, lecture, modification et suppression des véhicules",
+      "tests": [
+        {
+          "id": "vehicle_create_truck",
+          "type": "integration",
+          "priority": "critical",
+          "description": "Créer un véhicule de type Truck. Vérifier tous les champs requis (make, model, year, registration, location, nextService)."
+        },
+        {
+          "id": "vehicle_create_ute",
+          "type": "integration",
+          "priority": "high",
+          "description": "Créer un véhicule de type Ute. Vérifier validation du format de plaque australien (ABC-123 ou AB-12-CD)."
+        },
+        {
+          "id": "vehicle_create_trailer",
+          "type": "integration",
+          "priority": "high",
+          "description": "Créer un véhicule de type Trailer. Vérifier que capacity est optionnel et accepte une chaîne vide."
+        },
+        {
+          "id": "vehicle_create_van",
+          "type": "integration",
+          "priority": "high",
+          "description": "Créer un véhicule de type Van. Vérifier que l'année est entre 1990 et l'année courante."
+        },
+        {
+          "id": "vehicle_create_equipment",
+          "type": "integration",
+          "priority": "medium",
+          "description": "Créer un véhicule de type Equipment. Vérifier les champs spécifiques à l'équipement."
+        },
+        {
+          "id": "vehicle_create_other",
+          "type": "integration",
+          "priority": "medium",
+          "description": "Créer un véhicule de type Other avec make 'Other' et description personnalisée."
+        },
+        {
+          "id": "vehicle_validation_registration",
+          "type": "functional",
+          "priority": "critical",
+          "description": "Valider le format de plaque. Rejeter les formats invalides, accepter ABC-123 et AB-12-CD."
+        },
+        {
+          "id": "vehicle_validation_year",
+          "type": "functional",
+          "priority": "high",
+          "description": "Valider l'année du véhicule. Rejeter <1990 et >année courante, afficher message d'erreur approprié."
+        },
+        {
+          "id": "vehicle_validation_service_date",
+          "type": "functional",
+          "priority": "high",
+          "description": "Valider la date de prochain service. Rejeter les dates passées, accepter uniquement les dates futures."
+        },
+        {
+          "id": "vehicle_read_list",
+          "type": "integration",
+          "priority": "high",
+          "description": "Charger la liste des véhicules. Vérifier pagination, tri par nom et affichage des statuts."
+        },
+        {
+          "id": "vehicle_read_details",
+          "type": "integration",
+          "priority": "high",
+          "description": "Charger les détails d'un véhicule. Vérifier toutes les infos, historique des jobs et kilométrage."
+        },
+        {
+          "id": "vehicle_update",
+          "type": "integration",
+          "priority": "high",
+          "description": "Modifier un véhicule existant. Vérifier sauvegarde, validation des champs et mise à jour de la liste."
+        },
+        {
+          "id": "vehicle_delete",
+          "type": "integration",
+          "priority": "high",
+          "description": "Supprimer un véhicule. Vérifier confirmation, suppression serveur et retrait de la liste."
+        },
+        {
+          "id": "vehicle_assign_job",
+          "type": "functional",
+          "priority": "high",
+          "description": "Assigner un véhicule à un job. Vérifier disponibilité, mise à jour du statut et affichage dans JobDetails."
+        },
+        {
+          "id": "vehicle_modal_reset",
+          "type": "ui",
+          "priority": "medium",
+          "description": "Vérifier que le modal de création se reset correctement après fermeture et réouverture."
+        }
+      ]
+    },
+    {
+      "name": "CRUD - Employees",
+      "description": "Tests de création, lecture, modification et suppression des employés",
+      "tests": [
+        {
+          "id": "employee_invite_success",
+          "type": "integration",
+          "priority": "critical",
+          "description": "Inviter un employé avec email valide. Vérifier envoi d'email d'invitation, création pending et apparition dans la liste."
+        },
+        {
+          "id": "employee_invite_validation_email",
+          "type": "functional",
+          "priority": "critical",
+          "description": "Valider le format email lors de l'invitation. Rejeter formats invalides, afficher message d'erreur clair."
+        },
+        {
+          "id": "employee_invite_validation_phone",
+          "type": "functional",
+          "priority": "high",
+          "description": "Valider le format téléphone australien. Accepter +61 et formats locaux, rejeter invalides."
+        },
+        {
+          "id": "employee_invite_validation_rate",
+          "type": "functional",
+          "priority": "high",
+          "description": "Valider le taux horaire. Rejeter valeurs négatives ou nulles, accepter décimales."
+        },
+        {
+          "id": "employee_invite_role_selection",
+          "type": "functional",
+          "priority": "high",
+          "description": "Sélectionner un rôle lors de l'invitation. Vérifier dropdown avec tous les rôles disponibles."
+        },
+        {
+          "id": "employee_invite_team_selection",
+          "type": "functional",
+          "priority": "high",
+          "description": "Sélectionner une équipe lors de l'invitation. Vérifier dropdown avec toutes les équipes."
+        },
+        {
+          "id": "employee_read_list",
+          "type": "integration",
+          "priority": "high",
+          "description": "Charger la liste des employés. Vérifier nom, email, rôle, équipe et statut (active/pending)."
+        },
+        {
+          "id": "employee_read_details",
+          "type": "integration",
+          "priority": "medium",
+          "description": "Charger les détails d'un employé. Vérifier infos complètes, statistiques et historique des jobs."
+        },
+        {
+          "id": "employee_update",
+          "type": "integration",
+          "priority": "high",
+          "description": "Modifier un employé. Vérifier mise à jour du rôle, équipe et taux horaire."
+        },
+        {
+          "id": "employee_delete",
+          "type": "integration",
+          "priority": "high",
+          "description": "Supprimer un employé. Vérifier confirmation, révocation des accès et retrait de la liste."
+        },
+        {
+          "id": "employee_resend_invite",
+          "type": "functional",
+          "priority": "medium",
+          "description": "Renvoyer une invitation à un employé pending. Vérifier nouvel email et reset du délai."
+        },
+        {
+          "id": "employee_modal_reset",
+          "type": "ui",
+          "priority": "medium",
+          "description": "Vérifier que le formulaire d'invitation se vide après soumission réussie."
+        }
+      ]
+    },
+    {
+      "name": "CRUD - Contractors",
+      "description": "Tests de recherche, ajout et gestion des contractors",
+      "tests": [
+        {
+          "id": "contractor_search",
+          "type": "integration",
+          "priority": "critical",
+          "description": "Rechercher un contractor par nom ou email. Vérifier résultats, pagination et affichage des détails."
+        },
+        {
+          "id": "contractor_search_empty",
+          "type": "functional",
+          "priority": "high",
+          "description": "Rechercher avec terme vide. Vérifier message d'erreur 'Entrez un terme de recherche'."
+        },
+        {
+          "id": "contractor_search_no_results",
+          "type": "ui",
+          "priority": "medium",
+          "description": "Recherche sans résultats. Vérifier affichage message 'Aucun contractor trouvé'."
+        },
+        {
+          "id": "contractor_select",
+          "type": "functional",
+          "priority": "high",
+          "description": "Sélectionner un contractor dans les résultats. Vérifier affichage des détails et passage à l'étape suivante."
+        },
+        {
+          "id": "contractor_add_active",
+          "type": "integration",
+          "priority": "critical",
+          "description": "Ajouter un contractor avec statut 'active'. Vérifier création du contrat et apparition dans la liste."
+        },
+        {
+          "id": "contractor_add_pending",
+          "type": "integration",
+          "priority": "high",
+          "description": "Ajouter un contractor avec statut 'pending'. Vérifier envoi de notification et statut en attente."
+        },
+        {
+          "id": "contractor_add_preferred",
+          "type": "integration",
+          "priority": "high",
+          "description": "Ajouter un contractor avec statut 'preferred'. Vérifier badge préféré et priorité dans les assignations."
+        },
+        {
+          "id": "contractor_verified_badge",
+          "type": "ui",
+          "priority": "medium",
+          "description": "Afficher le badge 'Verified' pour les contractors vérifiés. Vérifier icône et couleur."
+        },
+        {
+          "id": "contractor_rate_display",
+          "type": "ui",
+          "priority": "medium",
+          "description": "Afficher le taux du contractor (hourly/fixed/percentage). Vérifier format et devise."
+        },
+        {
+          "id": "contractor_read_list",
+          "type": "integration",
+          "priority": "high",
+          "description": "Charger la liste des contractors. Vérifier nom, statut contrat, taux et disponibilité."
+        },
+        {
+          "id": "contractor_update_status",
+          "type": "integration",
+          "priority": "high",
+          "description": "Modifier le statut d'un contractor. Vérifier transition active/pending/preferred/inactive."
+        },
+        {
+          "id": "contractor_remove",
+          "type": "integration",
+          "priority": "high",
+          "description": "Retirer un contractor. Vérifier confirmation, fin de contrat et retrait de la liste."
+        },
+        {
+          "id": "contractor_modal_navigation",
+          "type": "ui",
+          "priority": "medium",
+          "description": "Naviguer entre les étapes du modal (search → results → status). Vérifier boutons back/next."
+        },
+        {
+          "id": "contractor_modal_reset",
+          "type": "ui",
+          "priority": "medium",
+          "description": "Vérifier que le modal se reset après fermeture (recherche vidée, étape 1)."
+        }
+      ]
+    },
+    {
+      "name": "CRUD - Clients",
+      "description": "Tests de création, lecture, modification et suppression des clients",
+      "tests": [
+        {
+          "id": "client_create_success",
+          "type": "integration",
+          "priority": "critical",
+          "description": "Créer un client avec nom, email et téléphone. Vérifier validation et création côté serveur."
+        },
+        {
+          "id": "client_create_inline",
+          "type": "functional",
+          "priority": "critical",
+          "description": "Créer un client depuis CreateJobModal. Vérifier création et sélection automatique pour le job."
+        },
+        {
+          "id": "client_validation_name",
+          "type": "functional",
+          "priority": "high",
+          "description": "Valider le nom du client. Rejeter vide, accepter caractères spéciaux et accents."
+        },
+        {
+          "id": "client_validation_email",
+          "type": "functional",
+          "priority": "high",
+          "description": "Valider l'email du client. Format standard, domaines valides, rejeter malformés."
+        },
+        {
+          "id": "client_validation_phone",
+          "type": "functional",
+          "priority": "high",
+          "description": "Valider le téléphone. Formats australiens (+61, 04xx), affichage formaté."
+        },
+        {
+          "id": "client_validation_address",
+          "type": "functional",
+          "priority": "medium",
+          "description": "Valider l'adresse avec autocomplétion Google Places. Vérifier coordonnées GPS."
+        },
+        {
+          "id": "client_read_list",
+          "type": "integration",
+          "priority": "high",
+          "description": "Charger la liste des clients. Vérifier nom, dernier job, nombre total de jobs."
+        },
+        {
+          "id": "client_search",
+          "type": "functional",
+          "priority": "high",
+          "description": "Rechercher un client par nom, email ou téléphone. Vérifier filtrage en temps réel."
+        },
+        {
+          "id": "client_read_details",
+          "type": "integration",
+          "priority": "medium",
+          "description": "Charger les détails d'un client. Vérifier historique des jobs, montants facturés."
+        },
+        {
+          "id": "client_update",
+          "type": "integration",
+          "priority": "high",
+          "description": "Modifier un client. Vérifier mise à jour des infos et propagation aux jobs existants."
+        },
+        {
+          "id": "client_delete",
+          "type": "integration",
+          "priority": "medium",
+          "description": "Supprimer un client. Vérifier confirmation, gestion des jobs associés."
+        },
+        {
+          "id": "client_select_for_job",
+          "type": "functional",
+          "priority": "high",
+          "description": "Sélectionner un client existant pour un nouveau job. Vérifier recherche et sélection."
+        }
+      ]
+    },
+    {
+      "name": "CRUD - Jobs",
+      "description": "Tests de création, lecture, modification et suppression des jobs",
+      "tests": [
+        {
+          "id": "job_create_success",
+          "type": "integration",
+          "priority": "critical",
+          "description": "Créer un job avec tous les champs requis (titre, client, date, adresses). Vérifier génération du jobCode."
+        },
+        {
+          "id": "job_create_with_vehicle",
+          "type": "integration",
+          "priority": "high",
+          "description": "Créer un job avec véhicule assigné. Vérifier disponibilité et mise à jour du statut véhicule."
+        },
+        {
+          "id": "job_create_with_crew",
+          "type": "integration",
+          "priority": "high",
+          "description": "Créer un job avec équipe assignée. Vérifier sélection multiple et notifications."
+        },
+        {
+          "id": "job_validation_title",
+          "type": "functional",
+          "priority": "high",
+          "description": "Valider le titre du job. Rejeter vide, limiter longueur, accepter caractères spéciaux."
+        },
+        {
+          "id": "job_validation_date",
+          "type": "functional",
+          "priority": "high",
+          "description": "Valider la date du job. Rejeter dates passées pour nouveaux jobs."
+        },
+        {
+          "id": "job_validation_addresses",
+          "type": "functional",
+          "priority": "high",
+          "description": "Valider les adresses pickup et dropoff. Google Places, coordonnées GPS requises."
+        },
+        {
+          "id": "job_read_list",
+          "type": "integration",
+          "priority": "high",
+          "description": "Charger la liste des jobs du jour. Vérifier titre, client, heure, statut, priorité."
+        },
+        {
+          "id": "job_read_details",
+          "type": "integration",
+          "priority": "critical",
+          "description": "Charger JobDetails par jobCode. Vérifier toutes les sections (client, job, notes, photos, payment)."
+        },
+        {
+          "id": "job_update_status",
+          "type": "integration",
+          "priority": "critical",
+          "description": "Modifier le statut d'un job (pending → in-progress → completed). Vérifier timestamps."
+        },
+        {
+          "id": "job_update_info",
+          "type": "integration",
+          "priority": "high",
+          "description": "Modifier les informations d'un job. Vérifier sauvegarde et historique des modifications."
+        },
+        {
+          "id": "job_cancel",
+          "type": "integration",
+          "priority": "high",
+          "description": "Annuler un job. Vérifier confirmation, raison, notification client et libération des ressources."
+        },
+        {
+          "id": "job_duplicate",
+          "type": "functional",
+          "priority": "medium",
+          "description": "Dupliquer un job existant. Vérifier copie des infos et nouveau jobCode."
+        }
+      ]
+    },
+    {
+      "name": "CRUD - Notes",
+      "description": "Tests de création, lecture, modification et suppression des notes",
+      "tests": [
+        {
+          "id": "note_add_success",
+          "type": "integration",
+          "priority": "critical",
+          "description": "Ajouter une note à un job. Vérifier titre, contenu, auteur et timestamp."
+        },
+        {
+          "id": "note_add_long_content",
+          "type": "functional",
+          "priority": "medium",
+          "description": "Ajouter une note avec contenu long (>500 chars). Vérifier sauvegarde complète et affichage."
+        },
+        {
+          "id": "note_validation_empty",
+          "type": "functional",
+          "priority": "high",
+          "description": "Rejeter une note vide. Afficher message d'erreur approprié."
+        },
+        {
+          "id": "note_read_list",
+          "type": "integration",
+          "priority": "high",
+          "description": "Charger toutes les notes d'un job. Vérifier ordre chronologique et pagination."
+        },
+        {
+          "id": "note_update",
+          "type": "integration",
+          "priority": "high",
+          "description": "Modifier une note existante. Vérifier mise à jour du contenu et timestamp 'modifié le'."
+        },
+        {
+          "id": "note_delete",
+          "type": "integration",
+          "priority": "high",
+          "description": "Supprimer une note. Vérifier confirmation et retrait de la liste."
+        },
+        {
+          "id": "note_modal_spacing",
+          "type": "ui",
+          "priority": "medium",
+          "description": "Vérifier l'espacement correct entre le label et l'input dans le modal de notes."
+        },
+        {
+          "id": "note_offline_sync",
+          "type": "functional",
+          "priority": "high",
+          "description": "Créer une note en mode hors-ligne. Vérifier sync automatique à la reconnexion."
+        }
+      ]
+    },
+    {
+      "name": "CRUD - Signatures",
+      "description": "Tests de capture et gestion des signatures",
+      "tests": [
+        {
+          "id": "signature_capture",
+          "type": "functional",
+          "priority": "critical",
+          "description": "Capturer une signature avec le doigt. Vérifier canvas, traits fluides et preview."
+        },
+        {
+          "id": "signature_clear",
+          "type": "ui",
+          "priority": "high",
+          "description": "Effacer la signature en cours. Vérifier bouton clear et reset du canvas."
+        },
+        {
+          "id": "signature_save",
+          "type": "integration",
+          "priority": "critical",
+          "description": "Sauvegarder la signature. Vérifier conversion en image, upload et association au job."
+        },
+        {
+          "id": "signature_validation",
+          "type": "functional",
+          "priority": "high",
+          "description": "Rejeter signature vide ou trop simple. Message 'Veuillez signer dans la zone'."
+        },
+        {
+          "id": "signature_display",
+          "type": "ui",
+          "priority": "high",
+          "description": "Afficher la signature dans le résumé du job. Vérifier image et date de signature."
+        },
+        {
+          "id": "signature_replace",
+          "type": "functional",
+          "priority": "medium",
+          "description": "Remplacer une signature existante. Vérifier confirmation et mise à jour."
+        }
+      ]
+    },
+    {
+      "name": "CRUD - Additional Items",
+      "description": "Tests de création et gestion des éléments additionnels de facturation",
+      "tests": [
+        {
+          "id": "additional_item_add",
+          "type": "functional",
+          "priority": "critical",
+          "description": "Ajouter un élément additionnel à la facture. Vérifier label, montant et mise à jour du total."
+        },
+        {
+          "id": "additional_item_validation_label",
+          "type": "functional",
+          "priority": "high",
+          "description": "Valider le label de l'élément. Rejeter vide, limiter à 100 caractères."
+        },
+        {
+          "id": "additional_item_validation_amount",
+          "type": "functional",
+          "priority": "high",
+          "description": "Valider le montant. Rejeter négatif ou zéro, accepter décimales à 2 chiffres."
+        },
+        {
+          "id": "additional_item_multiple",
+          "type": "functional",
+          "priority": "high",
+          "description": "Ajouter plusieurs éléments additionnels. Vérifier liste, total cumulé et affichage."
+        },
+        {
+          "id": "additional_item_edit",
+          "type": "functional",
+          "priority": "medium",
+          "description": "Modifier un élément existant. Vérifier mise à jour du label, montant et total."
+        },
+        {
+          "id": "additional_item_delete",
+          "type": "functional",
+          "priority": "high",
+          "description": "Supprimer un élément. Vérifier retrait de la liste et recalcul du total."
+        },
+        {
+          "id": "additional_item_subtotal",
+          "type": "functional",
+          "priority": "high",
+          "description": "Calculer le sous-total des éléments additionnels. Vérifier affichage séparé du total job."
+        },
+        {
+          "id": "additional_item_persist",
+          "type": "integration",
+          "priority": "high",
+          "description": "Persister les éléments additionnels côté serveur. Vérifier sauvegarde et rechargement."
+        }
+      ]
+    },
+    {
+      "name": "CRUD - Teams & Roles",
+      "description": "Tests de gestion des équipes et rôles",
+      "tests": [
+        {
+          "id": "team_create",
+          "type": "integration",
+          "priority": "high",
+          "description": "Créer une nouvelle équipe. Vérifier nom, couleur et apparition dans la liste."
+        },
+        {
+          "id": "team_add_member",
+          "type": "functional",
+          "priority": "high",
+          "description": "Ajouter un membre à une équipe. Vérifier sélection et mise à jour de l'équipe."
+        },
+        {
+          "id": "team_remove_member",
+          "type": "functional",
+          "priority": "high",
+          "description": "Retirer un membre d'une équipe. Vérifier confirmation et mise à jour."
+        },
+        {
+          "id": "team_update",
+          "type": "integration",
+          "priority": "medium",
+          "description": "Modifier une équipe (nom, couleur). Vérifier propagation aux membres."
+        },
+        {
+          "id": "team_delete",
+          "type": "integration",
+          "priority": "medium",
+          "description": "Supprimer une équipe. Vérifier gestion des membres orphelins."
+        },
+        {
+          "id": "role_assign",
+          "type": "functional",
+          "priority": "high",
+          "description": "Assigner un rôle à un utilisateur. Vérifier permissions accordées."
+        },
+        {
+          "id": "role_permissions",
+          "type": "security",
+          "priority": "critical",
+          "description": "Vérifier que chaque rôle (owner, contractor, employee) a les bonnes permissions."
+        },
+        {
+          "id": "role_change",
+          "type": "functional",
+          "priority": "medium",
+          "description": "Changer le rôle d'un utilisateur. Vérifier mise à jour des permissions."
+        }
+      ]
+    }
+  ],
+  "testMatrix": {
+    "byPriority": {
+      "critical": 35,
+      "high": 78,
+      "medium": 42,
+      "low": 1
+    },
+    "byType": {
+      "integration": 62,
+      "functional": 68,
+      "ui": 20,
+      "performance": 6,
+      "security": 8,
+      "i18n": 4,
+      "analytics": 3
+    }
+  },
+  "executionPlan": {
+    "phase1_critical": [
+      "auth_login_success",
+      "auth_login_failure",
+      "home_load_user_data",
+      "day_job_list",
+      "day_job_details_navigation",
+      "job_details_load",
+      "job_timer_start_pause",
+      "job_step_advance",
+      "job_signature_capture",
+      "stripe_connection_status",
+      "stripe_create_payment_intent",
+      "stripe_confirm_payment_success",
+      "stripe_role_access",
+      "i18n_french_complete",
+      "i18n_english_complete",
+      "security_token_storage",
+      "security_api_auth",
+      "security_sensitive_data",
+      "photo_capture_camera",
+      "photo_select_gallery",
+      "photo_upload_success",
+      "vehicle_create_truck",
+      "vehicle_validation_registration",
+      "employee_invite_success",
+      "employee_invite_validation_email",
+      "contractor_search",
+      "contractor_add_active",
+      "client_create_success",
+      "client_create_inline",
+      "job_create_success",
+      "job_read_details",
+      "job_update_status",
+      "note_add_success",
+      "signature_capture",
+      "signature_save",
+      "additional_item_add",
+      "role_permissions"
+    ],
+    "phase2_high": "Tous les tests marqués 'high'",
+    "phase3_medium_low": "Tous les tests marqués 'medium' et 'low'"
+  }
+}

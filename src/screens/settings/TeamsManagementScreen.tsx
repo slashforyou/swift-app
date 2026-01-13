@@ -5,15 +5,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Modal,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    Modal,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -26,8 +26,8 @@ import { Card } from '../../components/ui/Card';
 // Hooks & Utils
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useTheme } from '../../context/ThemeProvider';
-import { useTeams } from '../../hooks/useTeams';
 import { useStaff } from '../../hooks/useStaff';
+import { useTeams } from '../../hooks/useTeams';
 import { useTranslation } from '../../localization';
 import { Team } from '../../services/teamsService';
 
