@@ -18,8 +18,14 @@ interface ProfileHeaderProps {
         role?: string;
         level?: number;
         xp?: number;
+        xpProgress?: number;
         xpToNextLevel?: number;
         totalXpForNextLevel?: number;
+        rank?: {
+            name: string;
+            emoji: string;
+            color: string;
+        };
     };
     notifications?: number;
 }
@@ -37,12 +43,14 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
     
     // Utiliser les données de gamification ou des valeurs par défaut
     const user = gamificationData || {
-        firstName: 'Marie',
-        role: 'Senior Driver',
-        level: 8,
-        xp: 1247,
-        xpToNextLevel: 353,
-        totalXpForNextLevel: 500
+        firstName: 'User',
+        role: 'Newcomer',
+        level: 1,
+        xp: 0,
+        xpProgress: 0,
+        xpToNextLevel: 100,
+        totalXpForNextLevel: 100,
+        rank: { name: 'Starter', emoji: '⭐', color: '#808080' }
     };
 
     // Si en cours de chargement, afficher un placeholder
@@ -70,26 +78,26 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
 
     // Animation de la barre de progression
     React.useEffect(() => {
-        const progressPercentage = user.xpToNextLevel ? 
-            ((user.totalXpForNextLevel || 500) - (user.xpToNextLevel || 0)) / (user.totalXpForNextLevel || 500) : 0;
+        // Utiliser xpProgress de l'API si disponible, sinon calculer
+        const progressPercentage = user.xpProgress !== undefined 
+            ? user.xpProgress / 100 
+            : user.xpToNextLevel 
+                ? ((user.totalXpForNextLevel || 500) - (user.xpToNextLevel || 0)) / (user.totalXpForNextLevel || 500) 
+                : 0;
         
         Animated.timing(progressAnimation, {
             toValue: progressPercentage,
             duration: 2000,
             useNativeDriver: false,
         }).start();
-    }, [user.xp]);
+    }, [user.xp, user.xpProgress]);
 
-    // Fonction pour obtenir le rang basé sur le niveau
-    const getRankInfo = (level: number = 1) => {
-        if (level >= 19) return { emoji: '👑', title: 'Master Driver', color: '#FFD700' };
-        if (level >= 13) return { emoji: '💎', title: 'Expert Driver', color: '#40E0D0' };
-        if (level >= 8) return { emoji: '🥇', title: 'Senior Driver', color: '#FFD700' };
-        if (level >= 4) return { emoji: '🥈', title: 'Driver', color: '#C0C0C0' };
-        return { emoji: '🥉', title: 'Rookie Driver', color: '#CD7F32' };
+    // Utiliser le rang de l'API s'il existe, sinon fallback local
+    const rankInfo = user.rank || {
+        emoji: '⭐',
+        name: user.role || 'Starter',
+        color: '#808080'
     };
-
-    const rankInfo = getRankInfo(user.level);
 
     // Notifications mockées
     const mockNotifications = [
@@ -255,18 +263,29 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                             color: rankInfo.color,
                             textAlign: 'center',
                         }}>
-                            {rankInfo.emoji} {rankInfo.title}
+                            {rankInfo.emoji} {rankInfo.name}
                         </Text>
 
-                        {/* XP et Level */}
-                        <Text style={{
-                            fontSize: 14,
-                            fontWeight: '500',
-                            color: Colors.light.textSecondary,
-                            textAlign: 'center',
-                        }}>
-                            {user.xp?.toLocaleString()} XP • Level {user.level}
-                        </Text>
+                        {/* XP et Level - Tap pour voir l'historique */}
+                        <Pressable
+                            onPress={() => navigation.navigate('XpHistory')}
+                            style={({ pressed }) => ({
+                                opacity: pressed ? 0.7 : 1,
+                                backgroundColor: pressed ? Colors.light.backgroundSecondary : 'transparent',
+                                paddingHorizontal: 12,
+                                paddingVertical: 4,
+                                borderRadius: DESIGN_TOKENS.radius.md,
+                            })}
+                        >
+                            <Text style={{
+                                fontSize: 14,
+                                fontWeight: '500',
+                                color: Colors.light.textSecondary,
+                                textAlign: 'center',
+                            }}>
+                                ⚡ {user.xp?.toLocaleString()} XP • Level {user.level}
+                            </Text>
+                        </Pressable>
 
                         {/* Progression vers le prochain niveau */}
                         <Text style={{
@@ -278,6 +297,60 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                             {Math.round(((user.totalXpForNextLevel || 500) - (user.xpToNextLevel || 0)) / (user.totalXpForNextLevel || 500) * 100)}% vers Level {(user.level || 1) + 1}
                         </Text>
                     </VStack>
+                </Pressable>
+                
+                {/* Bouton Leaderboard en haut à gauche */}
+                <Pressable
+                    onPress={() => navigation.navigate('Leaderboard')}
+                    accessibilityLabel="View leaderboard"
+                    accessibilityRole="button"
+                    style={({ pressed }) => ({
+                        position: 'absolute',
+                        top: DESIGN_TOKENS.spacing.lg,
+                        left: DESIGN_TOKENS.spacing.lg,
+                        padding: 8,
+                        opacity: pressed ? 0.7 : 1,
+                        backgroundColor: Colors.light.backgroundSecondary,
+                        borderRadius: 20,
+                        shadowColor: Colors.light.shadow,
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.1,
+                        shadowRadius: 4,
+                        elevation: 2,
+                    })}
+                >
+                    <Ionicons 
+                        name="trophy" 
+                        size={24} 
+                        color="#FFD700"
+                    />
+                </Pressable>
+
+                {/* Bouton Badges à côté du leaderboard */}
+                <Pressable
+                    onPress={() => navigation.navigate('Badges')}
+                    accessibilityLabel="View badges"
+                    accessibilityRole="button"
+                    style={({ pressed }) => ({
+                        position: 'absolute',
+                        top: DESIGN_TOKENS.spacing.lg,
+                        left: DESIGN_TOKENS.spacing.lg + 48,
+                        padding: 8,
+                        opacity: pressed ? 0.7 : 1,
+                        backgroundColor: Colors.light.backgroundSecondary,
+                        borderRadius: 20,
+                        shadowColor: Colors.light.shadow,
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.1,
+                        shadowRadius: 4,
+                        elevation: 2,
+                    })}
+                >
+                    <Ionicons 
+                        name="ribbon" 
+                        size={24} 
+                        color="#9B59B6"
+                    />
                 </Pressable>
                 
                 {/* Bouton notifications en haut à droite */}

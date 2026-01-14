@@ -344,14 +344,69 @@ export default function StripeHub({ navigation }: StripeHubProps) {
         {/* Loading état */}
         {stripeConnection.loading && (
           <View style={{ alignItems: 'center', marginBottom: 30 }}>
-            <Text style={[styles.title, { color: colors.textSecondary }]}>
-              Vérification de votre compte Stripe...
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={[styles.title, { color: colors.textSecondary, marginTop: 15 }]}>
+              {t('stripe.hub.checkingConnection')}
             </Text>
           </View>
         )}
 
-        {/* État non connecté */}
-        {!stripeConnection.loading && (
+        {/* ✅ FIX: État erreur de connexion */}
+        {!stripeConnection.loading && stripeConnection.error && (
+          <>
+            <View style={{ alignItems: 'center', marginBottom: 40 }}>
+              <View style={{
+                backgroundColor: colors.error + '20',
+                width: 80,
+                height: 80,
+                borderRadius: 40,
+                marginBottom: 20,
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Ionicons name="cloud-offline" size={40} color={colors.error} />
+              </View>
+              
+              <Text style={[styles.title, { textAlign: 'center', marginBottom: 10 }]}>
+                {t('stripe.hub.connectionError')}
+              </Text>
+              
+              <Text style={{
+                textAlign: 'center', 
+                color: colors.textSecondary,
+                lineHeight: 22,
+                fontSize: 14,
+                marginBottom: 10
+              }}>
+                {stripeConnection.error}
+              </Text>
+            </View>
+
+            {/* Bouton de retry */}
+            <TouchableOpacity
+              style={[styles.actionButton, {
+                backgroundColor: colors.primary,
+                paddingVertical: 16,
+                borderRadius: 12,
+                marginBottom: 15
+              }]}
+              onPress={() => stripeConnection.refresh()}
+            >
+              <Ionicons name="refresh-outline" size={24} color="white" />
+              <Text style={[styles.actionText, { 
+                color: 'white', 
+                fontSize: 16,
+                fontWeight: '600',
+                marginLeft: 10
+              }]}>
+                {t('common.retry')}
+              </Text>
+            </TouchableOpacity>
+          </>
+        )}
+
+        {/* État non connecté (sans erreur) */}
+        {!stripeConnection.loading && !stripeConnection.error && (
           <>
             <View style={{ alignItems: 'center', marginBottom: 40 }}>
               <View style={{

@@ -4,26 +4,26 @@
  */
 
 // Mock des dépendances
+import { apiConfig } from '../../src/services/api.config';
+import {
+    addContractorToStaff,
+    fetchContractors,
+    fetchEmployees,
+    fetchStaff,
+    inviteContractor,
+    inviteEmployee,
+    removeStaffMember,
+    searchContractors,
+    updateStaffMember,
+} from '../../src/services/staff/staffService';
+import type { Contractor, Employee } from '../../src/types/staff';
+
 jest.mock('../../src/services/api.config', () => ({
   apiConfig: {
     baseURL: 'https://api.test.com',
     authenticatedFetch: jest.fn(),
   },
 }));
-
-import {
-  fetchStaff,
-  fetchEmployees,
-  fetchContractors,
-  inviteEmployee,
-  inviteContractor,
-  searchContractors,
-  addContractorToStaff,
-  updateStaffMember,
-  removeStaffMember,
-} from '../../src/services/staff/staffService';
-import { apiConfig } from '../../src/services/api.config';
-import type { Employee, Contractor, StaffMember } from '../../src/types/staff';
 
 const mockAuthenticatedFetch = apiConfig.authenticatedFetch as jest.MockedFunction<
   typeof apiConfig.authenticatedFetch

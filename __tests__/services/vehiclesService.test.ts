@@ -4,6 +4,17 @@
  */
 
 // Mock des dépendances
+import {
+    createBusinessVehicle,
+    deleteBusinessVehicle,
+    fetchBusinessVehicles,
+    fetchVehicleDetails,
+    updateBusinessVehicle,
+    type BusinessVehicle,
+    type VehicleCreateData,
+} from '../../src/services/business/vehiclesService';
+import { fetchWithAuth } from '../../src/utils/session';
+
 jest.mock('../../src/utils/session', () => ({
   fetchWithAuth: jest.fn(),
 }));
@@ -13,17 +24,6 @@ jest.mock('../../src/constants/ServerData', () => ({
     serverUrl: 'https://api.test.com/',
   },
 }));
-
-import { fetchWithAuth } from '../../src/utils/session';
-import {
-  fetchBusinessVehicles,
-  fetchVehicleDetails,
-  createBusinessVehicle,
-  updateBusinessVehicle,
-  deleteBusinessVehicle,
-  type BusinessVehicle,
-  type VehicleCreateData,
-} from '../../src/services/business/vehiclesService';
 
 const mockFetchWithAuth = fetchWithAuth as jest.MockedFunction<typeof fetchWithAuth>;
 

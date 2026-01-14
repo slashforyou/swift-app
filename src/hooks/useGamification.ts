@@ -1,190 +1,161 @@
 /**
  * useGamification - Hook pour gérer les données de gamification
- * Version simplifiée sans AsyncStorage pour le moment
+ * Intégration avec l'API backend pour Level, XP, Badges
  */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { 
+    fetchGamification, 
+    fetchLeaderboard,
+    fetchXpHistory,
+    GamificationData, 
+    GamificationRank,
+    LeaderboardEntry,
+    BadgeDetailed,
+    getRankFromLevel 
+} from '../services/gamification';
 
-interface GamificationData {
-    firstName: string;
+// Interface pour la rétro-compatibilité avec l'ancien format
+export interface GamificationDisplayData {
+    firstName?: string;
     level: number;
     xp: number;
     xpToNextLevel: number;
     totalXpForNextLevel: number;
+    xpProgress: number;
     role: string;
+    title: string;
+    rank: GamificationRank;
     completedJobs: number;
     streak: number;
     lastActivity: string;
+    badges: string[];
+    badgesDetailed?: BadgeDetailed[];
 }
 
-interface UseGamificationReturn {
-    data: GamificationData | null;
+export interface UseGamificationReturn {
+    data: GamificationDisplayData | null;
+    fullData: GamificationData | null;
     isLoading: boolean;
     error: string | null;
+    refetch: () => Promise<void>;
+    // Leaderboard
+    leaderboard: LeaderboardEntry[] | null;
+    userRank: number | null;
+    fetchLeaderboardData: (limit?: number) => Promise<void>;
+    // Legacy functions (now no-ops, XP is managed by backend)
     addXP: (amount: number, reason: string) => void;
     updateLevel: () => void;
     resetStreak: () => void;
 }
 
-const STORAGE_KEY = '@swift_gamification';
-
-// Niveaux et XP requis
-const LEVELS = [
-    { level: 1, xpRequired: 0, title: 'Rookie Driver' },
-    { level: 2, xpRequired: 100, title: 'Rookie Driver' },
-    { level: 3, xpRequired: 250, title: 'Rookie Driver' },
-    { level: 4, xpRequired: 500, title: 'Driver' },
-    { level: 5, xpRequired: 800, title: 'Driver' },
-    { level: 6, xpRequired: 1200, title: 'Driver' },
-    { level: 7, xpRequired: 1700, title: 'Driver' },
-    { level: 8, xpRequired: 2300, title: 'Senior Driver' },
-    { level: 9, xpRequired: 3000, title: 'Senior Driver' },
-    { level: 10, xpRequired: 3800, title: 'Senior Driver' },
-    { level: 11, xpRequired: 4700, title: 'Senior Driver' },
-    { level: 12, xpRequired: 5700, title: 'Senior Driver' },
-    { level: 13, xpRequired: 6800, title: 'Expert Driver' },
-    { level: 14, xpRequired: 8000, title: 'Expert Driver' },
-    { level: 15, xpRequired: 9300, title: 'Expert Driver' },
-    { level: 16, xpRequired: 10700, title: 'Expert Driver' },
-    { level: 17, xpRequired: 12200, title: 'Expert Driver' },
-    { level: 18, xpRequired: 13800, title: 'Expert Driver' },
-    { level: 19, xpRequired: 15500, title: 'Master Driver' },
-    { level: 20, xpRequired: 17300, title: 'Master Driver' },
-];
+// Données par défaut pour le fallback
+const DEFAULT_DATA: GamificationDisplayData = {
+    level: 1,
+    xp: 0,
+    xpToNextLevel: 100,
+    totalXpForNextLevel: 100,
+    xpProgress: 0,
+    role: 'Newcomer',
+    title: 'Newcomer',
+    rank: { name: 'Starter', emoji: '⭐', color: '#808080' },
+    completedJobs: 0,
+    streak: 0,
+    lastActivity: new Date().toISOString(),
+    badges: [],
+};
 
 export const useGamification = (): UseGamificationReturn => {
-    const [data, setData] = useState<GamificationData | null>(null);
+    const [data, setData] = useState<GamificationDisplayData | null>(null);
+    const [fullData, setFullData] = useState<GamificationData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[] | null>(null);
+    const [userRank, setUserRank] = useState<number | null>(null);
 
-    // Données par défaut
-    const defaultData: GamificationData = {
-        firstName: 'Marie',
-        level: 8,
-        xp: 1247,
-        xpToNextLevel: 353,
-        totalXpForNextLevel: 500,
-        role: 'Senior Driver',
-        completedJobs: 42,
-        streak: 7,
-        lastActivity: new Date().toISOString(),
+    // Convertir les données API en format d'affichage
+    const transformApiData = (apiData: GamificationData): GamificationDisplayData => {
+        return {
+            level: apiData.level,
+            xp: apiData.experience,
+            xpToNextLevel: apiData.experienceToNextLevel - apiData.experience,
+            totalXpForNextLevel: apiData.totalExperienceForNextLevel,
+            xpProgress: apiData.xpProgress,
+            role: apiData.title,
+            title: apiData.title,
+            rank: apiData.rank || getRankFromLevel(apiData.level),
+            completedJobs: apiData.completedJobs,
+            streak: apiData.streak,
+            lastActivity: apiData.lastActivity || new Date().toISOString(),
+            badges: apiData.badges,
+            badgesDetailed: apiData.badgesDetailed,
+        };
     };
+
+    // Charger les données de gamification
+    const loadGamificationData = useCallback(async () => {
+        try {
+            setIsLoading(true);
+            setError(null);
+            
+            const apiData = await fetchGamification();
+            setFullData(apiData);
+            setData(transformApiData(apiData));
+        } catch (err) {
+            console.error('❌ Erreur lors du chargement de la gamification:', err);
+            setError(err instanceof Error ? err.message : 'Erreur de chargement');
+            // Utiliser les données par défaut en cas d'erreur
+            setData(DEFAULT_DATA);
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
+
+    // Charger le leaderboard
+    const fetchLeaderboardData = useCallback(async (limit: number = 20) => {
+        try {
+            const response = await fetchLeaderboard(limit);
+            setLeaderboard(response.leaderboard);
+            setUserRank(response.userRank);
+        } catch (err) {
+            console.error('❌ Erreur lors du chargement du leaderboard:', err);
+        }
+    }, []);
 
     // Charger les données au démarrage
     useEffect(() => {
         loadGamificationData();
-    }, []);
+    }, [loadGamificationData]);
 
-    const loadGamificationData = () => {
-        try {
-            setIsLoading(true);
-            // Pour l'instant, on utilise juste les données par défaut
-            setData(defaultData);
-        } catch (err) {
-            console.error('Erreur lors du chargement des données de gamification:', err);
-            setError('Erreur lors du chargement des données');
-            setData(defaultData);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    // ============== LEGACY FUNCTIONS (no-ops) ==============
+    // Ces fonctions sont conservées pour la rétro-compatibilité
+    // L'XP est maintenant géré entièrement par le backend
 
-    const saveData = (newData: GamificationData) => {
-        try {
-            // Pour l'instant, on sauvegarde juste en mémoire
-            setData(newData);
-        } catch (err) {
-            console.error('Erreur lors de la sauvegarde:', err);
-            setError('Erreur lors de la sauvegarde');
-        }
-    };
-
-    const calculateLevel = (totalXP: number) => {
-        let currentLevel = 1;
-        let currentRole = 'Rookie Driver';
-        
-        for (let i = LEVELS.length - 1; i >= 0; i--) {
-            if (totalXP >= LEVELS[i].xpRequired) {
-                currentLevel = LEVELS[i].level;
-                currentRole = LEVELS[i].title;
-                break;
-            }
-        }
-        
-        // Calculer XP pour le prochain niveau
-        const nextLevelIndex = LEVELS.findIndex(l => l.level === currentLevel + 1);
-        let xpToNextLevel = 0;
-        let totalXpForNextLevel = 500; // Par défaut
-        
-        if (nextLevelIndex !== -1) {
-            const nextLevelXP = LEVELS[nextLevelIndex].xpRequired;
-            xpToNextLevel = nextLevelXP - totalXP;
-            const currentLevelXP = LEVELS.find(l => l.level === currentLevel)?.xpRequired || 0;
-            totalXpForNextLevel = nextLevelXP - currentLevelXP;
-        }
-        
-        return {
-            level: currentLevel,
-            role: currentRole,
-            xpToNextLevel: Math.max(0, xpToNextLevel),
-            totalXpForNextLevel,
-        };
-    };
-
-    const addXP = (amount: number, reason: string) => {
-        if (!data) return;
-        
-        const newTotalXP = data.xp + amount;
-        const levelInfo = calculateLevel(newTotalXP);
-        
-        const newData: GamificationData = {
-            ...data,
-            xp: newTotalXP,
-            level: levelInfo.level,
-            role: levelInfo.role,
-            xpToNextLevel: levelInfo.xpToNextLevel,
-            totalXpForNextLevel: levelInfo.totalXpForNextLevel,
-            lastActivity: new Date().toISOString(),
-        };
-        
-        // Si niveau up, on pourrait déclencher une notification
-        const leveledUp = levelInfo.level > data.level;
-        if (leveledUp) {
-            // TEMP_DISABLED: console.log(`🎉 Level Up! Vous êtes maintenant ${levelInfo.role} niveau ${levelInfo.level}!`);
-        }
-        
-        saveData(newData);
+    const addXP = (_amount: number, _reason: string) => {
+        // L'XP est maintenant géré par le backend
+        // Cette fonction peut déclencher un refetch si nécessaire
+        console.log('ℹ️ addXP appelé - L\'XP est géré par le backend, refetch des données...');
+        loadGamificationData();
     };
 
     const updateLevel = () => {
-        if (!data) return;
-        
-        const levelInfo = calculateLevel(data.xp);
-        const newData: GamificationData = {
-            ...data,
-            level: levelInfo.level,
-            role: levelInfo.role,
-            xpToNextLevel: levelInfo.xpToNextLevel,
-            totalXpForNextLevel: levelInfo.totalXpForNextLevel,
-        };
-        
-        saveData(newData);
+        // Le niveau est calculé par le backend
+        loadGamificationData();
     };
 
     const resetStreak = () => {
-        if (!data) return;
-        
-        const newData: GamificationData = {
-            ...data,
-            streak: 0,
-        };
-        
-        saveData(newData);
+        // Le streak est géré par le backend
+        loadGamificationData();
     };
 
     return {
         data,
+        fullData,
         isLoading,
         error,
+        refetch: loadGamificationData,
+        leaderboard,
+        userRank,
+        fetchLeaderboardData,
         addXP,
         updateLevel,
         resetStreak,

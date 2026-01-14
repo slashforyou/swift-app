@@ -3,8 +3,7 @@
  */
 
 import React, { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
-import LanguageButton from '../../components/calendar/LanguageButton';
+import { View } from 'react-native';
 import { JobStepHistoryCard } from '../../components/jobDetails/JobStepHistoryCard';
 import JobTimerDisplay from '../../components/jobDetails/JobTimerDisplay';
 import ImprovedNoteModal from '../../components/jobDetails/modals/ImprovedNoteModal';
@@ -218,23 +217,6 @@ const JobSummary = ({ job, setJob, onOpenPaymentPanel } : { job: any, setJob: Re
         }
     };
 
-    // Styles pour le bouton de langue
-    const styles = StyleSheet.create({
-        languageButtonContainer: {
-            position: 'absolute',
-            top: DESIGN_TOKENS.spacing.sm,
-            right: DESIGN_TOKENS.spacing.lg,
-            zIndex: 10,
-            backgroundColor: colors.background,
-            borderRadius: DESIGN_TOKENS.radius.md,
-            shadowColor: colors.shadow,
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.1,
-            shadowRadius: 4,
-            elevation: 3,
-        },
-    });
-
     return (
         <>
             {/* Modal de signature */}
@@ -295,11 +277,6 @@ const JobSummary = ({ job, setJob, onOpenPaymentPanel } : { job: any, setJob: Re
 
             {/* Sections modulaires */}
             <View>
-                {/* Bouton de langue discret */}
-                <View style={styles.languageButtonContainer}>
-                    <LanguageButton />
-                </View>
-
                 {/* 🆕 Module Timer + Progression fusionnés */}
                 <JobTimerDisplay 
                     job={job} 

@@ -22,6 +22,11 @@ const CalendarNavigation = lazyScreen(() => import('./calendar'))
 const RolesManagement = lazyScreen(() => import('../screens/settings/RolesManagementScreen'))
 const TeamsManagement = lazyScreen(() => import('../screens/settings/TeamsManagementScreen'))
 
+// Gamification screens
+const Leaderboard = lazyScreen(() => import('../screens/leaderboard'))
+const Badges = lazyScreen(() => import('../screens/badges'))
+const XpHistory = lazyScreen(() => import('../screens/xpHistory'))
+
 const Stack = createNativeStackNavigator()
 
 export default function Navigation() {
@@ -53,6 +58,9 @@ export default function Navigation() {
         <Stack.Screen name="Parameters" component={Parameters} />
         <Stack.Screen name="RolesManagement" component={RolesManagement} />
         <Stack.Screen name="TeamsManagement" component={TeamsManagement} />
+        <Stack.Screen name="Leaderboard" component={Leaderboard} />
+        <Stack.Screen name="Badges" component={Badges} />
+        <Stack.Screen name="XpHistory" component={XpHistory} />
       </Stack.Navigator>
     </NavigationContainer>
   )

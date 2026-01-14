@@ -73,6 +73,51 @@ export const esTranslations = {
                 testing: 'Probando...',
             },
         },
+        leaderboard: {
+            title: 'Clasificación',
+            description: 'Mira dónde te ubicas entre otros conductores',
+        },
+    },
+
+    leaderboard: {
+        title: 'Clasificación',
+        yourRank: 'Tu Rango',
+        topDrivers: 'Mejores Conductores',
+        you: 'Tú',
+        jobs: 'trabajos',
+        loading: 'Cargando clasificación...',
+        empty: 'No hay conductores en la clasificación aún',
+    },
+
+    badges: {
+        title: 'Insignias',
+        earned: 'obtenidas',
+        earnedBadges: 'Insignias Obtenidas',
+        availableBadges: 'Insignias Disponibles',
+        loading: 'Cargando insignias...',
+        empty: 'No hay insignias en esta categoría',
+        categories: {
+            all: 'Todas',
+            driver: 'Conductor',
+            offsider: 'Ayudante',
+            business: 'Negocio',
+            rating: 'Valoración',
+            streak: 'Racha',
+            level: 'Nivel',
+            special: 'Especial',
+        },
+    },
+
+    xpHistory: {
+        title: 'Historial de XP',
+        entries: 'entradas',
+        loading: 'Cargando historial...',
+        empty: 'Sin historial de XP aún',
+        emptyDescription: '¡Completa trabajos para ganar XP!',
+        justNow: 'Ahora mismo',
+        minutesAgo: 'Hace {{count}} min',
+        hoursAgo: 'Hace {{count}}h',
+        daysAgo: 'Hace {{count}}d',
     },
 
     navigation: {
@@ -115,6 +160,7 @@ export const esTranslations = {
 
     calendar: {
         title: 'Calendario',
+        selectMonth: 'Seleccionar mes',
         days: {
             mon: 'Lun',
             tue: 'Mar',
@@ -243,10 +289,30 @@ export const esTranslations = {
             edit: 'Editar perfil',
             save: 'Guardar',
             cancel: 'Cancelar',
+            changePassword: 'Cambiar contraseña',
+            changeEmail: 'Cambiar correo electrónico',
+            chooseAvatar: 'Elegir avatar',
         },
         messages: {
             updateSuccess: 'Perfil actualizado con éxito',
             updateError: 'Error al actualizar el perfil',
+            passwordChanged: 'Contraseña cambiada con éxito',
+            passwordChangeError: 'Error al cambiar la contraseña',
+            emailChanged: 'Correo electrónico cambiado con éxito',
+            emailChangeError: 'Error al cambiar el correo electrónico',
+            avatarUpdated: 'Avatar actualizado con éxito',
+        },
+        security: {
+            title: 'Seguridad',
+            currentPassword: 'Contraseña actual',
+            newPassword: 'Nueva contraseña',
+            confirmPassword: 'Confirmar nueva contraseña',
+            passwordMismatch: 'Las contraseñas no coinciden',
+            passwordTooShort: 'La contraseña debe tener al menos 8 caracteres',
+        },
+        avatar: {
+            title: 'Elige tu avatar',
+            selectAvatar: 'Selecciona un avatar que te represente',
         },
     },
 

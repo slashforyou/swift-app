@@ -64,6 +64,51 @@ export const ptTranslations = {
                 testing: 'Testando...',
             },
         },
+        leaderboard: {
+            title: 'Classificação',
+            description: 'Veja onde você está entre outros motoristas',
+        },
+    },
+
+    leaderboard: {
+        title: 'Classificação',
+        yourRank: 'Sua Posição',
+        topDrivers: 'Melhores Motoristas',
+        you: 'Você',
+        jobs: 'trabalhos',
+        loading: 'Carregando classificação...',
+        empty: 'Nenhum motorista na classificação ainda',
+    },
+
+    badges: {
+        title: 'Emblemas',
+        earned: 'conquistados',
+        earnedBadges: 'Emblemas Conquistados',
+        availableBadges: 'Emblemas Disponíveis',
+        loading: 'Carregando emblemas...',
+        empty: 'Nenhum emblema nesta categoria',
+        categories: {
+            all: 'Todos',
+            driver: 'Motorista',
+            offsider: 'Ajudante',
+            business: 'Negócio',
+            rating: 'Avaliação',
+            streak: 'Sequência',
+            level: 'Nível',
+            special: 'Especial',
+        },
+    },
+
+    xpHistory: {
+        title: 'Histórico de XP',
+        entries: 'entradas',
+        loading: 'Carregando histórico...',
+        empty: 'Sem histórico de XP ainda',
+        emptyDescription: 'Complete trabalhos para ganhar XP!',
+        justNow: 'Agora mesmo',
+        minutesAgo: 'Há {{count}} min',
+        hoursAgo: 'Há {{count}}h',
+        daysAgo: 'Há {{count}}d',
     },
 
     navigation: {
@@ -136,10 +181,30 @@ export const ptTranslations = {
             edit: 'Editar perfil',
             save: 'Salvar',
             cancel: 'Cancelar',
+            changePassword: 'Alterar senha',
+            changeEmail: 'Alterar e-mail',
+            chooseAvatar: 'Escolher avatar',
         },
         messages: {
             updateSuccess: 'Perfil atualizado com sucesso',
             updateError: 'Falha ao atualizar o perfil',
+            passwordChanged: 'Senha alterada com sucesso',
+            passwordChangeError: 'Falha ao alterar a senha',
+            emailChanged: 'E-mail alterado com sucesso',
+            emailChangeError: 'Falha ao alterar o e-mail',
+            avatarUpdated: 'Avatar atualizado com sucesso',
+        },
+        security: {
+            title: 'Segurança',
+            currentPassword: 'Senha atual',
+            newPassword: 'Nova senha',
+            confirmPassword: 'Confirmar nova senha',
+            passwordMismatch: 'As senhas não coincidem',
+            passwordTooShort: 'A senha deve ter pelo menos 8 caracteres',
+        },
+        avatar: {
+            title: 'Escolha seu avatar',
+            selectAvatar: 'Selecione um avatar que represente você',
         },
     },
 
@@ -222,6 +287,7 @@ export const ptTranslations = {
 
     calendar: {
         title: 'Calendário',
+        selectMonth: 'Selecionar mês',
         days: {
             mon: 'Seg',
             tue: 'Ter',

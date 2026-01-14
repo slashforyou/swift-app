@@ -492,7 +492,7 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
                         onPress={() => navigation.navigate('Year', { year: selectedYear, month: selectedMonthIndex + 1 })}
                     >
                         <Text style={customStyles.monthButtonText}>{selectedMonth}</Text>
-                        <Text style={customStyles.monthButtonSubtext}>Select Month</Text>
+                        <Text style={customStyles.monthButtonSubtext}>{t('calendar.selectMonth')}</Text>
                     </Pressable>
 
                     <Pressable

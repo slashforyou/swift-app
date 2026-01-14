@@ -471,6 +471,30 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
     const [jobPanel, setJobPanel] = useState('summary');
     // jobPanel: 'summary', 'job', 'client', 'notes', 'payment'
 
+    // 🔔 Calcul des compteurs de notifications pour les onglets
+    const notificationCounts = React.useMemo(() => {
+        const counts: Record<string, number> = {};
+        
+        // Nombre de notes
+        const notesCount = jobDetails?.notes?.length || job?.notes?.length || 0;
+        if (notesCount > 0) {
+            counts['notes'] = notesCount;
+        }
+        
+        // Nombre d'items non cochés
+        const uncheckedItems = job?.items?.filter((item: any) => !item.checked)?.length || 0;
+        if (uncheckedItems > 0) {
+            counts['job'] = uncheckedItems;
+        }
+        
+        // Paiement en attente
+        if (job?.payment?.status === 'unsettled' || job?.payment?.status === 'pending') {
+            counts['payment'] = 1;
+        }
+        
+        return counts;
+    }, [jobDetails?.notes, job?.notes, job?.items, job?.payment?.status]);
+
     // ✅ Handler pour mettre à jour l'étape du job quand le timer change
     const handleStepChange = (newStep: number) => {
         console.log('🔄 [JobDetails] Step change requested:', {
@@ -631,6 +655,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
                         activeTab={jobPanel}
                         onTabPress={handleTabPress}
                         page="jobDetails"
+                        notificationCounts={notificationCounts}
                     />
                 </View>
                 

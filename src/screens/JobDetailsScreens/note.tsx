@@ -46,7 +46,11 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob }) => {
             });
             if (result) {
                 showSuccess(t('jobDetails.messages.noteAdded'), t('jobDetails.messages.noteAddedSuccess'));
-                await refetch(); // Actualiser la liste des notes
+                // ✅ FIX: Ne pas refetch si la note a été sauvegardée localement (id commence par 'local-')
+                // car cela écraserait les notes locales avec les notes API
+                if (!result.id.startsWith('local-')) {
+                    await refetch(); // Actualiser la liste des notes depuis l'API
+                }
                 return Promise.resolve();
             } else {
                 throw new Error(t('jobDetails.messages.noteAddError'));

@@ -17,7 +17,8 @@ import CreateJobModal from '../../components/modals/CreateJobModal';
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
 import { Job, useJobsForDay } from '../../hooks/useJobsForDay';
-import { useTranslation } from '../../localization';
+import { useLocalization, useTranslation } from '../../localization';
+import { formatDateWithDay } from '../../localization/formatters';
 import { createJob, CreateJobRequest } from '../../services/jobs';
 
 interface DayScreenProps {
@@ -46,6 +47,7 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
     // Get themed colors and styles
     const { colors, styles: commonStyles } = useCommonThemedStyles();
     const { t } = useTranslation();
+    const { currentLanguage } = useLocalization();
 
     // Custom hook for jobs data
     const {
@@ -63,16 +65,11 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
     // TEMP_DISABLED: console.log(`🏠 DayScreen Hook Results - Date: ${selectedDay}/${selectedMonth}/${selectedYear}`);
     // TEMP_DISABLED: console.log(`📊 Hook State - isLoading: ${isLoading}, error: ${error}, jobs: ${jobs.length}, filteredJobs: ${filteredJobs.length}`);
     
-    // Format date for display
+    // Format date for display - utilise la langue courante
     const formattedDate = useMemo(() => {
         const date = new Date(selectedYear, selectedMonth - 1, selectedDay);
-        return date.toLocaleDateString('en-US', { 
-            weekday: 'long',
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-        });
-    }, [selectedDay, selectedMonth, selectedYear]);
+        return formatDateWithDay(date, currentLanguage);
+    }, [selectedDay, selectedMonth, selectedYear, currentLanguage]);
 
     // Handle job press
     const handleJobPress = useCallback((job: Job) => {

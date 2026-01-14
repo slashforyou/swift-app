@@ -18,6 +18,7 @@ interface TabMenuProps {
   onTabPress: (tabId: string) => void;
   style?: any;
   page?: 'business' | 'jobDetails' | 'calendar'; // Type de page pour adapter le comportement
+  notificationCounts?: Record<string, number>; // Compteurs de notifications par tabId
 }
 
 // Configuration des menus selon la page
@@ -55,13 +56,20 @@ const TabMenu: React.FC<TabMenuProps> = ({
   activeTab, 
   onTabPress, 
   style,
-  page 
+  page,
+  notificationCounts = {}
 }) => {
   const { colors } = useTheme();
   const { t } = useLocalization();
 
   // Si une page est spécifiée, utiliser la configuration automatique
   const menuItems = page ? getMenuConfig(page, t) : (items || []);
+  
+  // Appliquer les compteurs de notifications aux items
+  const menuItemsWithNotifications = menuItems.map(item => ({
+    ...item,
+    notifications: notificationCounts[item.id] || item.notifications || 0
+  }));
 
   const styles = StyleSheet.create({
     container: {
@@ -141,7 +149,7 @@ const TabMenu: React.FC<TabMenuProps> = ({
 
   return (
     <View style={styles.container}>
-      {menuItems.map((item) => {
+      {menuItemsWithNotifications.map((item) => {
         const isActive = activeTab === item.id;
         
         return (

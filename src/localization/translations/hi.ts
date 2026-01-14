@@ -64,6 +64,51 @@ export const hiTranslations = {
                 testing: 'टेस्ट हो रहा है...',
             },
         },
+        leaderboard: {
+            title: 'लीडरबोर्ड',
+            description: 'देखें कि आप अन्य ड्राइवरों में कहाँ हैं',
+        },
+    },
+
+    leaderboard: {
+        title: 'लीडरबोर्ड',
+        yourRank: 'आपकी रैंक',
+        topDrivers: 'शीर्ष ड्राइवर',
+        you: 'आप',
+        jobs: 'कार्य',
+        loading: 'लीडरबोर्ड लोड हो रहा है...',
+        empty: 'अभी कोई ड्राइवर लीडरबोर्ड में नहीं है',
+    },
+
+    badges: {
+        title: 'बैज',
+        earned: 'प्राप्त',
+        earnedBadges: 'प्राप्त बैज',
+        availableBadges: 'उपलब्ध बैज',
+        loading: 'बैज लोड हो रहे हैं...',
+        empty: 'इस श्रेणी में कोई बैज नहीं',
+        categories: {
+            all: 'सभी',
+            driver: 'ड्राइवर',
+            offsider: 'सहायक',
+            business: 'व्यापार',
+            rating: 'रेटिंग',
+            streak: 'स्ट्रीक',
+            level: 'स्तर',
+            special: 'विशेष',
+        },
+    },
+
+    xpHistory: {
+        title: 'XP इतिहास',
+        entries: 'एंट्रीज़',
+        loading: 'इतिहास लोड हो रहा है...',
+        empty: 'अभी कोई XP इतिहास नहीं',
+        emptyDescription: 'XP कमाने के लिए कार्य पूरे करें!',
+        justNow: 'अभी',
+        minutesAgo: '{{count}} मिनट पहले',
+        hoursAgo: '{{count}} घंटे पहले',
+        daysAgo: '{{count}} दिन पहले',
     },
 
     navigation: {
@@ -106,6 +151,7 @@ export const hiTranslations = {
 
     calendar: {
         title: 'कैलेंडर',
+        selectMonth: 'महीना चुनें',
         // Jours de la semaine (abréviations)
         days: {
             mon: 'सोम',
@@ -246,10 +292,30 @@ export const hiTranslations = {
             edit: 'प्रोफ़ाइल संपादित करें',
             save: 'सहेजें',
             cancel: 'रद्द करें',
+            changePassword: 'पासवर्ड बदलें',
+            changeEmail: 'ईमेल बदलें',
+            chooseAvatar: 'अवतार चुनें',
         },
         messages: {
             updateSuccess: 'प्रोफ़ाइल सफलतापूर्वक अपडेट की गई',
             updateError: 'प्रोफ़ाइल अपडेट करने में विफल',
+            passwordChanged: 'पासवर्ड सफलतापूर्वक बदला गया',
+            passwordChangeError: 'पासवर्ड बदलने में विफल',
+            emailChanged: 'ईमेल सफलतापूर्वक बदला गया',
+            emailChangeError: 'ईमेल बदलने में विफल',
+            avatarUpdated: 'अवतार सफलतापूर्वक अपडेट किया गया',
+        },
+        security: {
+            title: 'सुरक्षा',
+            currentPassword: 'वर्तमान पासवर्ड',
+            newPassword: 'नया पासवर्ड',
+            confirmPassword: 'नया पासवर्ड पुष्टि करें',
+            passwordMismatch: 'पासवर्ड मेल नहीं खाते',
+            passwordTooShort: 'पासवर्ड कम से कम 8 अक्षरों का होना चाहिए',
+        },
+        avatar: {
+            title: 'अपना अवतार चुनें',
+            selectAvatar: 'एक अवतार चुनें जो आपका प्रतिनिधित्व करे',
         },
     },
 

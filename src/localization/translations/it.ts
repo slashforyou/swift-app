@@ -64,6 +64,51 @@ export const itTranslations = {
                 testing: 'Test in corso...',
             },
         },
+        leaderboard: {
+            title: 'Classifica',
+            description: 'Guarda dove ti posizioni tra gli altri autisti',
+        },
+    },
+
+    leaderboard: {
+        title: 'Classifica',
+        yourRank: 'Il Tuo Rango',
+        topDrivers: 'Migliori Autisti',
+        you: 'Tu',
+        jobs: 'lavori',
+        loading: 'Caricamento classifica...',
+        empty: 'Nessun autista in classifica al momento',
+    },
+
+    badges: {
+        title: 'Distintivi',
+        earned: 'ottenuti',
+        earnedBadges: 'Distintivi Ottenuti',
+        availableBadges: 'Distintivi Disponibili',
+        loading: 'Caricamento distintivi...',
+        empty: 'Nessun distintivo in questa categoria',
+        categories: {
+            all: 'Tutti',
+            driver: 'Autista',
+            offsider: 'Assistente',
+            business: 'Azienda',
+            rating: 'Valutazione',
+            streak: 'Serie',
+            level: 'Livello',
+            special: 'Speciale',
+        },
+    },
+
+    xpHistory: {
+        title: 'Cronologia XP',
+        entries: 'voci',
+        loading: 'Caricamento cronologia...',
+        empty: 'Nessuna cronologia XP ancora',
+        emptyDescription: 'Completa lavori per guadagnare XP!',
+        justNow: 'Proprio ora',
+        minutesAgo: '{{count}} min fa',
+        hoursAgo: '{{count}}h fa',
+        daysAgo: '{{count}}g fa',
     },
 
     navigation: {
@@ -106,6 +151,7 @@ export const itTranslations = {
 
     calendar: {
         title: 'Calendario',
+        selectMonth: 'Seleziona mese',
         // Jours de la semaine (abréviations)
         days: {
             mon: 'Lun',
@@ -271,10 +317,30 @@ export const itTranslations = {
             edit: 'Modifica profilo',
             save: 'Salva',
             cancel: 'Annulla',
+            changePassword: 'Cambia password',
+            changeEmail: 'Cambia email',
+            chooseAvatar: 'Scegli avatar',
         },
         messages: {
             updateSuccess: 'Profilo aggiornato con successo',
             updateError: 'Impossibile aggiornare il profilo',
+            passwordChanged: 'Password cambiata con successo',
+            passwordChangeError: 'Impossibile cambiare la password',
+            emailChanged: 'Email cambiata con successo',
+            emailChangeError: 'Impossibile cambiare l\'email',
+            avatarUpdated: 'Avatar aggiornato con successo',
+        },
+        security: {
+            title: 'Sicurezza',
+            currentPassword: 'Password attuale',
+            newPassword: 'Nuova password',
+            confirmPassword: 'Conferma nuova password',
+            passwordMismatch: 'Le password non corrispondono',
+            passwordTooShort: 'La password deve essere di almeno 8 caratteri',
+        },
+        avatar: {
+            title: 'Scegli il tuo avatar',
+            selectAvatar: 'Seleziona un avatar che ti rappresenta',
         },
     },
 

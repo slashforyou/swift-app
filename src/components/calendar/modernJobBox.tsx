@@ -386,7 +386,21 @@ const JobBox: React.FC<JobBoxProps> = ({ job, onPress, navigation, day, month, y
 
             {/* Footer - Truck Info Moderne */}
             <View style={styles.modernTruckSection}>
-                <View style={styles.modernTruckCard}>
+                <Pressable 
+                    style={({ pressed }) => ({
+                        ...styles.modernTruckCard,
+                        opacity: pressed ? 0.7 : 1,
+                    })}
+                    onPress={() => {
+                        // Navigation vers les détails du véhicule si truck.id existe
+                        if (job.truck?.id) {
+                            navigation.navigate('Business', {
+                                screen: 'Vehicles',
+                                params: { vehicleId: job.truck.id }
+                            });
+                        }
+                    }}
+                >
                     <View style={styles.truckIconContainer}>
                         <Ionicons name="car-sport" size={20} color={colors.primary} />
                     </View>
@@ -396,7 +410,8 @@ const JobBox: React.FC<JobBoxProps> = ({ job, onPress, navigation, day, month, y
                             <Text style={styles.licensePlateModernText}>{job.truck.licensePlate}</Text>
                         </View>
                     </View>
-                </View>
+                    <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
+                </Pressable>
                 <Pressable
                     style={({ pressed }) => ({
                         ...styles.modernActionButton,

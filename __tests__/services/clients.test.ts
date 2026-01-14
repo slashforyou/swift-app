@@ -4,6 +4,16 @@
  */
 
 // Mock des dépendances
+import {
+    createClient,
+    deleteClient,
+    fetchClientById,
+    fetchClients,
+    updateClient,
+    type ClientAPI,
+    type CreateClientRequest,
+} from '../../src/services/clients';
+
 jest.mock('../../src/utils/auth', () => ({
   getAuthHeaders: jest.fn().mockResolvedValue({
     Authorization: 'Bearer test-token',
@@ -15,16 +25,6 @@ jest.mock('../../src/constants/ServerData', () => ({
     serverUrl: 'https://api.test.com/',
   },
 }));
-
-import {
-  fetchClients,
-  fetchClientById,
-  createClient,
-  updateClient,
-  deleteClient,
-  type ClientAPI,
-  type CreateClientRequest,
-} from '../../src/services/clients';
 
 const mockFetch = jest.fn();
 global.fetch = mockFetch;

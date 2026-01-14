@@ -72,6 +72,51 @@ export const enTranslations: TranslationKeys = {
                 testing: 'Testing...',
             },
         },
+        leaderboard: {
+            title: 'Leaderboard',
+            description: 'See how you rank against other drivers',
+        },
+    },
+
+    leaderboard: {
+        title: 'Leaderboard',
+        yourRank: 'Your Rank',
+        topDrivers: 'Top Drivers',
+        you: 'You',
+        jobs: 'jobs',
+        loading: 'Loading leaderboard...',
+        empty: 'No drivers in the leaderboard yet',
+    },
+
+    badges: {
+        title: 'Badges',
+        earned: 'earned',
+        earnedBadges: 'Earned Badges',
+        availableBadges: 'Available Badges',
+        loading: 'Loading badges...',
+        empty: 'No badges in this category',
+        categories: {
+            all: 'All',
+            driver: 'Driver',
+            offsider: 'Offsider',
+            business: 'Business',
+            rating: 'Rating',
+            streak: 'Streak',
+            level: 'Level',
+            special: 'Special',
+        },
+    },
+
+    xpHistory: {
+        title: 'XP History',
+        entries: 'entries',
+        loading: 'Loading history...',
+        empty: 'No XP history yet',
+        emptyDescription: 'Complete jobs to earn XP!',
+        justNow: 'Just now',
+        minutesAgo: '{{count}} min ago',
+        hoursAgo: '{{count}}h ago',
+        daysAgo: '{{count}}d ago',
     },
 
     navigation: {
@@ -85,6 +130,11 @@ export const enTranslations: TranslationKeys = {
     jobs: {
         title: 'Jobs',
         createNewJob: 'Create New Job',
+        createJob: 'Create Job',
+        createSuccess: 'Job created successfully!',
+        createSuccessAddAnother: 'Job created! You can now add another.',
+        createError: 'Failed to create job. Please try again.',
+        createAndAddAnother: 'Create & Add Another',
         selectClient: 'Select Client',
         selectClientDescription: 'Choose a client for this job',
         status: {
@@ -117,6 +167,7 @@ export const enTranslations: TranslationKeys = {
 
     calendar: {
         title: 'Calendar',
+        selectMonth: 'Select Month',
         // Days of the week (abbreviations)
         days: {
             mon: 'Mon',
@@ -282,10 +333,30 @@ export const enTranslations: TranslationKeys = {
             edit: 'Edit Profile',
             save: 'Save',
             cancel: 'Cancel',
+            changePassword: 'Change Password',
+            changeEmail: 'Change Email',
+            chooseAvatar: 'Choose Avatar',
         },
         messages: {
             updateSuccess: 'Profile updated successfully',
             updateError: 'Failed to update profile',
+            passwordChanged: 'Password changed successfully',
+            passwordChangeError: 'Failed to change password',
+            emailChanged: 'Email changed successfully',
+            emailChangeError: 'Failed to change email',
+            avatarUpdated: 'Avatar updated successfully',
+        },
+        security: {
+            title: 'Security',
+            currentPassword: 'Current Password',
+            newPassword: 'New Password',
+            confirmPassword: 'Confirm New Password',
+            passwordMismatch: 'Passwords do not match',
+            passwordTooShort: 'Password must be at least 8 characters',
+        },
+        avatar: {
+            title: 'Choose Your Avatar',
+            selectAvatar: 'Select an avatar that represents you',
         },
     },
 
@@ -1227,6 +1298,8 @@ export const enTranslations: TranslationKeys = {
             accountStatus: 'Account status',
             onboarding: 'Setup',
             completeSetup: 'Complete setup',
+            checkingConnection: 'Checking your Stripe account...',
+            connectionError: 'Connection Error',
         },
         settings: {
             title: 'Stripe Settings',

@@ -391,8 +391,14 @@ const ImprovedNoteModal: React.FC<ImprovedNoteModalProps> = ({
                                 />
                             </View>
 
-                            {/* Séparateur visuel */}
-                            <View style={styles.sectionDivider} />
+                            {/* Séparateur visuel avec plus d'espace */}
+                            <View style={{
+                                height: 1,
+                                backgroundColor: colors.border,
+                                marginTop: DESIGN_TOKENS.spacing.lg,
+                                marginBottom: DESIGN_TOKENS.spacing.xl,
+                                marginHorizontal: -DESIGN_TOKENS.spacing.lg,
+                            }} />
 
                             {/* Note Content */}
                             <View style={styles.section}>

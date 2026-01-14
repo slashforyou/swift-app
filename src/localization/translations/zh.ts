@@ -64,6 +64,51 @@ export const zhTranslations = {
                 testing: '测试中...',
             },
         },
+        leaderboard: {
+            title: '排行榜',
+            description: '查看您在其他司机中的排名',
+        },
+    },
+
+    leaderboard: {
+        title: '排行榜',
+        yourRank: '您的排名',
+        topDrivers: '顶尖司机',
+        you: '您',
+        jobs: '个任务',
+        loading: '加载排行榜中...',
+        empty: '暂无司机上榜',
+    },
+
+    badges: {
+        title: '徽章',
+        earned: '已获得',
+        earnedBadges: '已获得徽章',
+        availableBadges: '可获得徽章',
+        loading: '加载徽章中...',
+        empty: '此类别暂无徽章',
+        categories: {
+            all: '全部',
+            driver: '司机',
+            offsider: '助手',
+            business: '商业',
+            rating: '评分',
+            streak: '连续',
+            level: '等级',
+            special: '特殊',
+        },
+    },
+
+    xpHistory: {
+        title: 'XP历史',
+        entries: '条记录',
+        loading: '加载历史中...',
+        empty: '暂无XP历史',
+        emptyDescription: '完成任务以获得XP！',
+        justNow: '刚刚',
+        minutesAgo: '{{count}}分钟前',
+        hoursAgo: '{{count}}小时前',
+        daysAgo: '{{count}}天前',
     },
 
     navigation: {
@@ -106,6 +151,7 @@ export const zhTranslations = {
 
     calendar: {
         title: '日历',
+        selectMonth: '选择月份',
         // Jours de la semaine (abréviations)
         days: {
             mon: '周一',
@@ -246,10 +292,30 @@ export const zhTranslations = {
             edit: '编辑资料',
             save: '保存',
             cancel: '取消',
+            changePassword: '修改密码',
+            changeEmail: '修改邮箱',
+            chooseAvatar: '选择头像',
         },
         messages: {
             updateSuccess: '资料更新成功',
             updateError: '更新资料失败',
+            passwordChanged: '密码修改成功',
+            passwordChangeError: '密码修改失败',
+            emailChanged: '邮箱修改成功',
+            emailChangeError: '邮箱修改失败',
+            avatarUpdated: '头像更新成功',
+        },
+        security: {
+            title: '安全',
+            currentPassword: '当前密码',
+            newPassword: '新密码',
+            confirmPassword: '确认新密码',
+            passwordMismatch: '密码不匹配',
+            passwordTooShort: '密码长度至少为8个字符',
+        },
+        avatar: {
+            title: '选择你的头像',
+            selectAvatar: '选择一个代表你的头像',
         },
     },
 

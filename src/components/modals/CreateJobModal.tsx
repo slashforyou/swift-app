@@ -194,19 +194,40 @@ export default function CreateJobModal({
       }
 
       await onCreateJob(jobData)
-      handleClose()
-      Alert.alert(
-        t('common.success'),
-        t('jobs.createSuccess') || 'Job created successfully!'
-      )
+      return true // Return success status
     } catch (error) {
       console.error('Error creating job:', error)
       Alert.alert(
         t('common.error'),
         t('jobs.createError') || 'Failed to create job. Please try again.'
       )
+      return false
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  // Handle submit and close
+  const handleSubmitAndClose = async () => {
+    const success = await handleSubmit()
+    if (success) {
+      handleClose()
+      Alert.alert(
+        t('common.success'),
+        t('jobs.createSuccess') || 'Job created successfully!'
+      )
+    }
+  }
+
+  // Handle submit and create another
+  const handleSubmitAndAddAnother = async () => {
+    const success = await handleSubmit()
+    if (success) {
+      resetModal() // Reset form but keep modal open
+      Alert.alert(
+        t('common.success'),
+        t('jobs.createSuccessAddAnother') || 'Job created! You can now add another.'
+      )
     }
   }
 
@@ -673,31 +694,50 @@ export default function CreateJobModal({
         )}
       </ScrollView>
 
-      <View style={styles.buttonRow}>
+      <View style={{ gap: DESIGN_TOKENS.spacing.sm }}>
+        <View style={styles.buttonRow}>
+          <Pressable
+            style={[styles.button, styles.buttonSecondary, { borderColor: colors.border }]}
+            onPress={() => setStep('details')}
+            disabled={isLoading}
+          >
+            <Text style={[styles.buttonText, { color: colors.text }]}>
+              {t('common.back') || 'Back'}
+            </Text>
+          </Pressable>
+          <Pressable
+            style={[styles.button, styles.buttonPrimary, { backgroundColor: colors.success }]}
+            onPress={handleSubmitAndClose}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator size="small" color={colors.buttonPrimaryText} />
+            ) : (
+              <>
+                <Ionicons name="checkmark-circle" size={20} color={colors.buttonPrimaryText} />
+                <Text style={[styles.buttonText, { color: colors.buttonPrimaryText, marginLeft: 8 }]}>
+                  {t('jobs.createJob') || 'Create Job'}
+                </Text>
+              </>
+            )}
+          </Pressable>
+        </View>
+        
+        {/* Create and Add Another button */}
         <Pressable
-          style={[styles.button, styles.buttonSecondary, { borderColor: colors.border }]}
-          onPress={() => setStep('details')}
+          style={[styles.button, { 
+            backgroundColor: colors.primary + '20',
+            borderWidth: 1,
+            borderColor: colors.primary,
+            width: '100%',
+          }]}
+          onPress={handleSubmitAndAddAnother}
           disabled={isLoading}
         >
-          <Text style={[styles.buttonText, { color: colors.text }]}>
-            {t('common.back') || 'Back'}
+          <Ionicons name="add-circle" size={20} color={colors.primary} />
+          <Text style={[styles.buttonText, { color: colors.primary, marginLeft: 8 }]}>
+            {t('jobs.createAndAddAnother') || 'Create & Add Another'}
           </Text>
-        </Pressable>
-        <Pressable
-          style={[styles.button, styles.buttonPrimary, { backgroundColor: colors.success }]}
-          onPress={handleSubmit}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <ActivityIndicator size="small" color={colors.buttonPrimaryText} />
-          ) : (
-            <>
-              <Ionicons name="checkmark-circle" size={20} color={colors.buttonPrimaryText} />
-              <Text style={[styles.buttonText, { color: colors.buttonPrimaryText, marginLeft: 8 }]}>
-                {t('jobs.createJob') || 'Create Job'}
-              </Text>
-            </>
-          )}
         </Pressable>
       </View>
     </View>

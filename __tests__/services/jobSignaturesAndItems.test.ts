@@ -4,6 +4,9 @@
  */
 
 // Mock des dépendances
+// Import types from jobDetails
+import type { JobItem, JobMedia } from '../../src/services/jobDetails';
+
 jest.mock('../../src/utils/auth', () => ({
   getAuthHeaders: jest.fn().mockResolvedValue({
     Authorization: 'Bearer test-token',
@@ -19,9 +22,6 @@ jest.mock('../../src/constants/ServerData', () => ({
 
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
-
-// Import types from jobDetails
-import type { JobMedia, JobItem } from '../../src/services/jobDetails';
 
 describe('CRUD - Job Signatures', () => {
   beforeEach(() => {

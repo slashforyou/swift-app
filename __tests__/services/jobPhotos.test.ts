@@ -4,6 +4,15 @@
  */
 
 // Mock des dépendances
+// Import après les mocks
+import {
+    deletePhoto,
+    fetchJobPhotos,
+    uploadJobPhoto,
+    uploadJobPhotos,
+    type JobPhotoAPI,
+} from '../../src/services/jobPhotos';
+
 jest.mock('../../src/utils/auth', () => ({
   getAuthHeaders: jest.fn().mockResolvedValue({
     Authorization: 'Bearer test-token',
@@ -15,15 +24,6 @@ jest.mock('../../src/constants/ServerData', () => ({
     serverUrl: 'https://api.test.com/',
   },
 }));
-
-// Import après les mocks
-import {
-  uploadJobPhoto,
-  uploadJobPhotos,
-  fetchJobPhotos,
-  deletePhoto,
-  type JobPhotoAPI,
-} from '../../src/services/jobPhotos';
 
 // Mock global fetch
 const mockFetch = jest.fn();

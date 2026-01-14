@@ -72,6 +72,51 @@ export const frTranslations: TranslationKeys = {
                 testing: 'Test en cours...',
             },
         },
+        leaderboard: {
+            title: 'Classement',
+            description: 'Voyez où vous vous situez parmi les autres chauffeurs',
+        },
+    },
+
+    leaderboard: {
+        title: 'Classement',
+        yourRank: 'Votre Rang',
+        topDrivers: 'Top Chauffeurs',
+        you: 'Vous',
+        jobs: 'missions',
+        loading: 'Chargement du classement...',
+        empty: 'Aucun chauffeur dans le classement pour le moment',
+    },
+
+    badges: {
+        title: 'Badges',
+        earned: 'obtenus',
+        earnedBadges: 'Badges Obtenus',
+        availableBadges: 'Badges Disponibles',
+        loading: 'Chargement des badges...',
+        empty: 'Aucun badge dans cette catégorie',
+        categories: {
+            all: 'Tous',
+            driver: 'Chauffeur',
+            offsider: 'Assistant',
+            business: 'Entreprise',
+            rating: 'Évaluation',
+            streak: 'Série',
+            level: 'Niveau',
+            special: 'Spécial',
+        },
+    },
+
+    xpHistory: {
+        title: 'Historique XP',
+        entries: 'entrées',
+        loading: 'Chargement de l\'historique...',
+        empty: 'Pas encore d\'historique XP',
+        emptyDescription: 'Complétez des missions pour gagner des XP !',
+        justNow: 'À l\'instant',
+        minutesAgo: 'Il y a {{count}} min',
+        hoursAgo: 'Il y a {{count}}h',
+        daysAgo: 'Il y a {{count}}j',
     },
 
     navigation: {
@@ -85,6 +130,11 @@ export const frTranslations: TranslationKeys = {
     jobs: {
         title: 'Travaux',
         createNewJob: 'Créer un nouveau travail',
+        createJob: 'Créer le travail',
+        createSuccess: 'Travail créé avec succès !',
+        createSuccessAddAnother: 'Travail créé ! Vous pouvez en ajouter un autre.',
+        createError: 'Échec de la création du travail. Veuillez réessayer.',
+        createAndAddAnother: 'Créer & Ajouter un autre',
         selectClient: 'Sélectionner un client',
         selectClientDescription: 'Choisissez un client pour ce travail',
         status: {
@@ -117,6 +167,7 @@ export const frTranslations: TranslationKeys = {
 
     calendar: {
         title: 'Calendrier',
+        selectMonth: 'Choisir un mois',
         // Jours de la semaine (abréviations)
         days: {
             mon: 'Lun',
@@ -282,10 +333,30 @@ export const frTranslations: TranslationKeys = {
             edit: 'Modifier le profil',
             save: 'Enregistrer',
             cancel: 'Annuler',
+            changePassword: 'Changer le mot de passe',
+            changeEmail: 'Changer l\'email',
+            chooseAvatar: 'Choisir un avatar',
         },
         messages: {
             updateSuccess: 'Profil mis à jour avec succès',
             updateError: 'Échec de la mise à jour du profil',
+            passwordChanged: 'Mot de passe modifié avec succès',
+            passwordChangeError: 'Échec du changement de mot de passe',
+            emailChanged: 'Email modifié avec succès',
+            emailChangeError: 'Échec du changement d\'email',
+            avatarUpdated: 'Avatar mis à jour avec succès',
+        },
+        security: {
+            title: 'Sécurité',
+            currentPassword: 'Mot de passe actuel',
+            newPassword: 'Nouveau mot de passe',
+            confirmPassword: 'Confirmer le nouveau mot de passe',
+            passwordMismatch: 'Les mots de passe ne correspondent pas',
+            passwordTooShort: 'Le mot de passe doit contenir au moins 8 caractères',
+        },
+        avatar: {
+            title: 'Choisissez votre avatar',
+            selectAvatar: 'Sélectionnez un avatar qui vous représente',
         },
     },
 
@@ -1227,6 +1298,8 @@ export const frTranslations: TranslationKeys = {
             accountStatus: 'Statut du compte',
             onboarding: 'Configuration',
             completeSetup: 'Compléter la configuration',
+            checkingConnection: 'Vérification de votre compte Stripe...',
+            connectionError: 'Erreur de connexion',
         },
         settings: {
             title: 'Paramètres Stripe',
