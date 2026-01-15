@@ -86,6 +86,12 @@ export const enTranslations: TranslationKeys = {
         jobs: 'jobs',
         loading: 'Loading leaderboard...',
         empty: 'No drivers in the leaderboard yet',
+        drivers: 'Drivers',
+        error: 'Failed to load leaderboard',
+        rank: 'Rank',
+        level: 'Level',
+        xp: 'XP',
+        top: 'Top',
     },
 
     badges: {
@@ -117,6 +123,8 @@ export const enTranslations: TranslationKeys = {
         minutesAgo: '{{count}} min ago',
         hoursAgo: '{{count}}h ago',
         daysAgo: '{{count}}d ago',
+        loadMore: 'Load more',
+        noMoreEntries: 'No more entries',
     },
 
     navigation: {
@@ -312,6 +320,14 @@ export const enTranslations: TranslationKeys = {
         toNextLevel: 'to Level',
         defaultTitle: 'Driver',
         loading: 'Loading profile...',
+        updateSuccess: 'Profile updated successfully',
+        updateError: 'Failed to update profile',
+        genericError: 'An error occurred while updating profile',
+        retry: 'Retry',
+        cancel: 'Cancel',
+        save: 'Save',
+        saving: 'Saving...',
+        edit: 'Edit',
         ranks: {
             master: 'Master Driver',
             expert: 'Expert Driver',
@@ -357,6 +373,23 @@ export const enTranslations: TranslationKeys = {
         avatar: {
             title: 'Choose Your Avatar',
             selectAvatar: 'Select an avatar that represents you',
+        },
+        photo: {
+            title: 'Photo',
+            uploadComingSoon: 'Photo upload coming soon',
+        },
+        placeholders: {
+            firstName: 'Enter your first name',
+            lastName: 'Enter your last name',
+            email: 'Enter your email',
+            phone: 'Enter your phone number',
+            address: 'Enter your address',
+            city: 'City',
+            postalCode: 'Postal code',
+            country: 'Enter your country',
+            companyName: 'Enter your company name',
+            siret: 'Enter your SIRET number',
+            vat: 'Enter your VAT number',
         },
     },
 
@@ -1715,35 +1748,5 @@ export const enTranslations: TranslationKeys = {
         },
         loading: 'Loading teams...',
         search: 'Search for a team...',
-    },
-
-    // Profile Management
-    profile: {
-        title: 'Profile',
-        updateSuccess: 'Profile updated successfully',
-        updateError: 'Failed to update profile',
-        genericError: 'An error occurred while updating profile',
-        retry: 'Retry',
-        cancel: 'Cancel',
-        save: 'Save',
-        saving: 'Saving...',
-        edit: 'Edit',
-        photo: {
-            title: 'Photo',
-            uploadComingSoon: 'Photo upload coming soon',
-        },
-        placeholders: {
-            firstName: 'Enter your first name',
-            lastName: 'Enter your last name',
-            email: 'Enter your email',
-            phone: 'Enter your phone number',
-            address: 'Enter your address',
-            city: 'City',
-            postalCode: 'Postal code',
-            country: 'Enter your country',
-            companyName: 'Enter your company name',
-            siret: 'Enter your SIRET number',
-            vat: 'Enter your VAT number',
-        },
     },
 };

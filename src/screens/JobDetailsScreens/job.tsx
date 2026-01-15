@@ -876,7 +876,7 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
                                     {/* Call button */}
                                     {member.phone && (
                                         <Pressable
-                                            onPress={() => contactLink.openPhone(member.phone)}
+                                            onPress={() => contactLink(member.phone, 'tel')}
                                             style={{
                                                 width: 36,
                                                 height: 36,

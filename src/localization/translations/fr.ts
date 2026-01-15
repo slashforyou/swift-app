@@ -86,6 +86,12 @@ export const frTranslations: TranslationKeys = {
         jobs: 'missions',
         loading: 'Chargement du classement...',
         empty: 'Aucun chauffeur dans le classement pour le moment',
+        drivers: 'Chauffeurs',
+        error: 'Échec du chargement du classement',
+        rank: 'Rang',
+        level: 'Niveau',
+        xp: 'XP',
+        top: 'Top',
     },
 
     badges: {
@@ -117,6 +123,8 @@ export const frTranslations: TranslationKeys = {
         minutesAgo: 'Il y a {{count}} min',
         hoursAgo: 'Il y a {{count}}h',
         daysAgo: 'Il y a {{count}}j',
+        loadMore: 'Charger plus',
+        noMoreEntries: 'Plus d\'entrées',
     },
 
     navigation: {
@@ -312,6 +320,14 @@ export const frTranslations: TranslationKeys = {
         toNextLevel: 'vers le Niveau',
         defaultTitle: 'Chauffeur',
         loading: 'Chargement du profil...',
+        updateSuccess: 'Profil mis à jour avec succès',
+        updateError: 'Impossible de mettre à jour le profil',
+        genericError: 'Une erreur est survenue lors de la mise à jour du profil',
+        retry: 'Réessayer',
+        cancel: 'Annuler',
+        save: 'Enregistrer',
+        saving: 'Enregistrement...',
+        edit: 'Modifier',
         ranks: {
             master: 'Chauffeur Maître',
             expert: 'Chauffeur Expert',
@@ -357,6 +373,23 @@ export const frTranslations: TranslationKeys = {
         avatar: {
             title: 'Choisissez votre avatar',
             selectAvatar: 'Sélectionnez un avatar qui vous représente',
+        },
+        photo: {
+            title: 'Photo',
+            uploadComingSoon: 'Téléchargement de photo bientôt disponible',
+        },
+        placeholders: {
+            firstName: 'Entrez votre prénom',
+            lastName: 'Entrez votre nom',
+            email: 'Entrez votre email',
+            phone: 'Entrez votre numéro de téléphone',
+            address: 'Entrez votre adresse',
+            city: 'Ville',
+            postalCode: 'Code postal',
+            country: 'Entrez votre pays',
+            companyName: 'Entrez le nom de votre entreprise',
+            siret: 'Entrez votre numéro SIRET',
+            vat: 'Entrez votre numéro de TVA',
         },
     },
 
@@ -1715,35 +1748,5 @@ export const frTranslations: TranslationKeys = {
         },
         loading: 'Chargement des équipes...',
         search: 'Rechercher une équipe...',
-    },
-
-    // Profile Management
-    profile: {
-        title: 'Profil',
-        updateSuccess: 'Profil mis à jour avec succès',
-        updateError: 'Impossible de mettre à jour le profil',
-        genericError: 'Une erreur est survenue lors de la mise à jour du profil',
-        retry: 'Réessayer',
-        cancel: 'Annuler',
-        save: 'Enregistrer',
-        saving: 'Enregistrement...',
-        edit: 'Modifier',
-        photo: {
-            title: 'Photo',
-            uploadComingSoon: 'Téléchargement de photo bientôt disponible',
-        },
-        placeholders: {
-            firstName: 'Entrez votre prénom',
-            lastName: 'Entrez votre nom',
-            email: 'Entrez votre email',
-            phone: 'Entrez votre numéro de téléphone',
-            address: 'Entrez votre adresse',
-            city: 'Ville',
-            postalCode: 'Code postal',
-            country: 'Entrez votre pays',
-            companyName: 'Entrez le nom de votre entreprise',
-            siret: 'Entrez votre numéro SIRET',
-            vat: 'Entrez votre numéro de TVA',
-        },
     },
 };

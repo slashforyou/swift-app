@@ -90,14 +90,14 @@ const BadgesScreen: React.FC = () => {
 
     const getCategoryLabel = (key: BadgeCategory | 'all'): string => {
         const labels: Record<string, string> = {
-            all: t('badges.categories.all', 'All'),
-            driver: t('badges.categories.driver', 'Driver'),
-            offsider: t('badges.categories.offsider', 'Offsider'),
-            business: t('badges.categories.business', 'Business'),
-            rating: t('badges.categories.rating', 'Rating'),
-            streak: t('badges.categories.streak', 'Streak'),
-            level: t('badges.categories.level', 'Level'),
-            special: t('badges.categories.special', 'Special'),
+            all: t('badges.categories.all'),
+            driver: t('badges.categories.driver'),
+            offsider: t('badges.categories.offsider'),
+            business: t('badges.categories.business'),
+            rating: t('badges.categories.rating'),
+            streak: t('badges.categories.streak'),
+            level: t('badges.categories.level'),
+            special: t('badges.categories.special'),
         };
         return labels[key] || key;
     };
@@ -207,7 +207,7 @@ const BadgesScreen: React.FC = () => {
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.light.background }}>
                 <ActivityIndicator size="large" color={Colors.light.primary} />
                 <Text style={{ marginTop: 16, color: Colors.light.textSecondary }}>
-                    {t('badges.loading', 'Loading badges...')}
+                    {t('badges.loading')}
                 </Text>
             </View>
         );
@@ -231,7 +231,7 @@ const BadgesScreen: React.FC = () => {
                     }}
                 >
                     <Text style={{ color: 'white', fontWeight: '600' }}>
-                        {t('common.retry', 'Retry')}
+                        {t('common.retry')}
                     </Text>
                 </Pressable>
             </View>
@@ -265,10 +265,10 @@ const BadgesScreen: React.FC = () => {
                 </Pressable>
                 <View style={{ flex: 1 }}>
                     <Text style={{ fontSize: 20, fontWeight: '700', color: Colors.light.text }}>
-                        {t('badges.title', 'Badges')}
+                        {t('badges.title')}
                     </Text>
                     <Text style={{ fontSize: 14, color: Colors.light.textSecondary }}>
-                        {earnedBadges.length} / {earnedBadges.length + availableBadges.length} {t('badges.earned', 'earned')}
+                        {earnedBadges.length} / {earnedBadges.length + availableBadges.length} {t('badges.earned')}
                     </Text>
                 </View>
                 <View
@@ -373,7 +373,7 @@ const BadgesScreen: React.FC = () => {
                                 marginBottom: DESIGN_TOKENS.spacing.md,
                             }}
                         >
-                            ✅ {t('badges.earnedBadges', 'Earned Badges')} ({filteredEarned.length})
+                            ✅ {t('badges.earnedBadges')} ({filteredEarned.length})
                         </Text>
                         <View
                             style={{
@@ -402,7 +402,7 @@ const BadgesScreen: React.FC = () => {
                                 marginBottom: DESIGN_TOKENS.spacing.md,
                             }}
                         >
-                            🔒 {t('badges.availableBadges', 'Available Badges')} ({filteredAvailable.length})
+                            🔒 {t('badges.availableBadges')} ({filteredAvailable.length})
                         </Text>
                         <View
                             style={{
@@ -432,7 +432,7 @@ const BadgesScreen: React.FC = () => {
                                 textAlign: 'center',
                             }}
                         >
-                            {t('badges.empty', 'No badges in this category')}
+                            {t('badges.empty')}
                         </Text>
                     </View>
                 )}

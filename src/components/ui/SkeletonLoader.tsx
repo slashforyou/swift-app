@@ -89,13 +89,15 @@ export const SkeletonText: React.FC<{
     lines?: number; 
     lastLineWidth?: string | number;
     spacing?: number;
+    style?: ViewStyle;
 }> = ({ 
     lines = 1, 
     lastLineWidth = '60%',
     spacing = DESIGN_TOKENS.spacing.xs,
+    style,
 }) => {
     return (
-        <View>
+        <View style={style}>
             {Array.from({ length: lines }).map((_, index) => (
                 <Skeleton
                     key={index}

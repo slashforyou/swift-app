@@ -128,10 +128,10 @@ const XpHistoryScreen: React.FC = () => {
         const diffHours = Math.floor(diffMs / 3600000);
         const diffDays = Math.floor(diffMs / 86400000);
 
-        if (diffMins < 1) return t('xpHistory.justNow', 'Just now');
-        if (diffMins < 60) return t('xpHistory.minutesAgo', '{{count}} min ago', { count: diffMins });
-        if (diffHours < 24) return t('xpHistory.hoursAgo', '{{count}}h ago', { count: diffHours });
-        if (diffDays < 7) return t('xpHistory.daysAgo', '{{count}}d ago', { count: diffDays });
+        if (diffMins < 1) return t('xpHistory.justNow');
+        if (diffMins < 60) return t('xpHistory.minutesAgo', { count: diffMins });
+        if (diffHours < 24) return t('xpHistory.hoursAgo', { count: diffHours });
+        if (diffDays < 7) return t('xpHistory.daysAgo', { count: diffDays });
         
         return date.toLocaleDateString();
     };
@@ -226,7 +226,7 @@ const XpHistoryScreen: React.FC = () => {
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.light.background }}>
                 <ActivityIndicator size="large" color={Colors.light.primary} />
                 <Text style={{ marginTop: 16, color: Colors.light.textSecondary }}>
-                    {t('xpHistory.loading', 'Loading history...')}
+                    {t('xpHistory.loading')}
                 </Text>
             </View>
         );
@@ -253,7 +253,7 @@ const XpHistoryScreen: React.FC = () => {
                     }}
                 >
                     <Text style={{ color: 'white', fontWeight: '600' }}>
-                        {t('common.retry', 'Retry')}
+                        {t('common.retry')}
                     </Text>
                 </Pressable>
             </View>
@@ -290,10 +290,10 @@ const XpHistoryScreen: React.FC = () => {
                 </Pressable>
                 <View style={{ flex: 1 }}>
                     <Text style={{ fontSize: 20, fontWeight: '700', color: Colors.light.text }}>
-                        {t('xpHistory.title', 'XP History')}
+                        {t('xpHistory.title')}
                     </Text>
                     <Text style={{ fontSize: 14, color: Colors.light.textSecondary }}>
-                        {history.length} / {totalEntries} {t('xpHistory.entries', 'entries')}
+                        {history.length} / {totalEntries} {t('xpHistory.entries')}
                     </Text>
                 </View>
                 <View
@@ -332,7 +332,7 @@ const XpHistoryScreen: React.FC = () => {
                                 textAlign: 'center',
                             }}
                         >
-                            {t('xpHistory.empty', 'No XP history yet')}
+                            {t('xpHistory.empty')}
                         </Text>
                         <Text
                             style={{
@@ -342,7 +342,7 @@ const XpHistoryScreen: React.FC = () => {
                                 textAlign: 'center',
                             }}
                         >
-                            {t('xpHistory.emptyDescription', 'Complete jobs to earn XP!')}
+                            {t('xpHistory.emptyDescription')}
                         </Text>
                     </View>
                 }

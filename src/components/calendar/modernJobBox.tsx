@@ -392,13 +392,8 @@ const JobBox: React.FC<JobBoxProps> = ({ job, onPress, navigation, day, month, y
                         opacity: pressed ? 0.7 : 1,
                     })}
                     onPress={() => {
-                        // Navigation vers les détails du véhicule si truck.id existe
-                        if (job.truck?.id) {
-                            navigation.navigate('Business', {
-                                screen: 'Vehicles',
-                                params: { vehicleId: job.truck.id }
-                            });
-                        }
+                        // TODO: Navigation vers les détails du véhicule quand l'id sera disponible
+                        // Le type Job.truck ne contient actuellement que licensePlate et name
                     }}
                 >
                     <View style={styles.truckIconContainer}>

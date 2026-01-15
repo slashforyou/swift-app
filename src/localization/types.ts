@@ -94,6 +94,10 @@ export interface TranslationKeys {
                 testing: string;
             };
         };
+        leaderboard: {
+            title: string;
+            description: string;
+        };
     };
 
     // Navigation
@@ -108,6 +112,14 @@ export interface TranslationKeys {
     // Job Management
     jobs: {
         title: string;
+        createNewJob: string;
+        createJob: string;
+        createSuccess: string;
+        createSuccessAddAnother: string;
+        createError: string;
+        createAndAddAnother: string;
+        selectClient: string;
+        selectClientDescription: string;
         status: {
             pending: string;
             inProgress: string;
@@ -238,6 +250,39 @@ export interface TranslationKeys {
             };
             filtersTitle: string;
             sortBy: string;
+            details: string;
+        };
+        selectMonth: string;
+    };
+
+    // Clients
+    clients: {
+        noClients: string;
+        searchPlaceholder: string;
+        addClient: string;
+        addClientDescription: string;
+        createClient: string;
+        firstName: string;
+        firstNamePlaceholder: string;
+        lastName: string;
+        lastNamePlaceholder: string;
+        email: string;
+        emailPlaceholder: string;
+        phone: string;
+        phonePlaceholder: string;
+        company: string;
+        companyPlaceholder: string;
+        validation: {
+            nameRequired: string;
+            emailRequired: string;
+            phoneRequired: string;
+        };
+        success: {
+            created: string;
+            clientCreated: string;
+        };
+        error: {
+            createFailed: string;
         };
     };
 
@@ -253,6 +298,14 @@ export interface TranslationKeys {
         toNextLevel: string;
         defaultTitle: string;
         loading: string;
+        updateSuccess: string;
+        updateError: string;
+        genericError: string;
+        retry: string;
+        cancel: string;
+        save: string;
+        saving: string;
+        edit: string;
         ranks: {
             master: string;
             expert: string;
@@ -274,10 +327,47 @@ export interface TranslationKeys {
             edit: string;
             save: string;
             cancel: string;
+            changePassword: string;
+            changeEmail: string;
+            chooseAvatar: string;
         };
         messages: {
             updateSuccess: string;
             updateError: string;
+            passwordChanged: string;
+            passwordChangeError: string;
+            emailChanged: string;
+            emailChangeError: string;
+            avatarUpdated: string;
+        };
+        security: {
+            title: string;
+            currentPassword: string;
+            newPassword: string;
+            confirmPassword: string;
+            passwordMismatch: string;
+            passwordTooShort: string;
+        };
+        avatar: {
+            title: string;
+            selectAvatar: string;
+        };
+        photo: {
+            title: string;
+            uploadComingSoon: string;
+        };
+        placeholders: {
+            firstName: string;
+            lastName: string;
+            email: string;
+            phone: string;
+            address: string;
+            city: string;
+            postalCode: string;
+            country: string;
+            companyName: string;
+            siret: string;
+            vat: string;
         };
     };
 
@@ -350,6 +440,9 @@ export interface TranslationKeys {
             itemAdded: string;
             itemAddedLocally: string;
             itemAddedLocallyMessage: string;
+            crewAssigned: string;
+            teamMember: string;
+            noCrew: string;
         };
         // Notes page labels
         notes: {
@@ -482,6 +575,19 @@ export interface TranslationKeys {
                 hourlyRate: string;
                 finalAmount: string;
                 explanatoryNote: string;
+            };
+            // Additional items section
+            additionalItems: {
+                title: string;
+                noItems: string;
+                addItem: string;
+                addItemTitle: string;
+                description: string;
+                descriptionPlaceholder: string;
+                amount: string;
+                subtotal: string;
+                descriptionRequired: string;
+                validAmountRequired: string;
             };
             // Job details section
             jobDetailsSection: {
@@ -750,6 +856,14 @@ export interface TranslationKeys {
             analyticsDescription: string;
             logout: string;
             logoutDescription: string;
+            businessInfo: string;
+            businessInfoDescription: string;
+            paymentSettings: string;
+            paymentSettingsDescription: string;
+            rolesPermissions: string;
+            rolesPermissionsDescription: string;
+            teamsManagement: string;
+            teamsManagementDescription: string;
         };
         alerts: {
             biometricEnabled: {
@@ -1217,6 +1331,8 @@ export interface TranslationKeys {
             accountStatus: string;
             onboarding: string;
             completeSetup: string;
+            checkingConnection: string;
+            connectionError: string;
         };
         settings: {
             title: string;
@@ -1643,34 +1759,56 @@ export interface TranslationKeys {
         search: string;
     };
 
-    // Profile Management
-    profile: {
+    // Leaderboard
+    leaderboard: {
         title: string;
-        updateSuccess: string;
-        updateError: string;
-        genericError: string;
-        retry: string;
-        cancel: string;
-        save: string;
-        saving: string;
-        edit: string;
-        photo: {
-            title: string;
-            uploadComingSoon: string;
+        drivers: string;
+        loading: string;
+        error: string;
+        empty: string;
+        rank: string;
+        level: string;
+        xp: string;
+        you: string;
+        top: string;
+        yourRank: string;
+        topDrivers: string;
+        jobs: string;
+    };
+
+    // Badges
+    badges: {
+        title: string;
+        loading: string;
+        earned: string;
+        earnedBadges: string;
+        availableBadges: string;
+        empty: string;
+        categories: {
+            all: string;
+            driver: string;
+            offsider: string;
+            business: string;
+            rating: string;
+            streak: string;
+            level: string;
+            special: string;
         };
-        placeholders: {
-            firstName: string;
-            lastName: string;
-            email: string;
-            phone: string;
-            address: string;
-            city: string;
-            postalCode: string;
-            country: string;
-            companyName: string;
-            siret: string;
-            vat: string;
-        };
+    };
+
+    // XP History
+    xpHistory: {
+        title: string;
+        loading: string;
+        entries: string;
+        empty: string;
+        emptyDescription: string;
+        justNow: string;
+        minutesAgo: string;
+        hoursAgo: string;
+        daysAgo: string;
+        loadMore: string;
+        noMoreEntries: string;
     };
 }
 

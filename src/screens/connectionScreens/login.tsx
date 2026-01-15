@@ -30,7 +30,7 @@ interface LoginScreenProps {
 const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     const { colors, styles } = useCommonThemedStyles();
     const { t } = useTranslation();
-    const { loadPermissions } = usePermissionsContext();
+    const { refreshPermissions } = usePermissionsContext();
     
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -88,7 +88,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             
             // Load user permissions after successful login
             try {
-                await loadPermissions();
+                await refreshPermissions();
             } catch {
                 // Permissions loading failure is non-blocking
                 console.warn('[Login] Failed to load permissions, continuing...');

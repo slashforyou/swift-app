@@ -64,6 +64,7 @@ const DESIGN_TOKENS = {
     md: 8,
     lg: 12,
     xl: 20, // Pour les modales et grandes cartes
+    full: 9999, // Pour les formes circulaires/pilules
   },
   
   // Shadow presets - Aliasés pour compatibilité avec les écrans calendar

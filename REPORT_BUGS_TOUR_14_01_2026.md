@@ -91,4 +91,4 @@ _Aucun bug rapporté pour le moment. Ajouter ici les bugs découverts pendant le
 
 ---
 
-*Créé le 14 Janvier 2026 - Après implémentation du système de gamification frontend*
+_Créé le 14 Janvier 2026 - Après implémentation du système de gamification frontend_
