@@ -1,94 +1,147 @@
-# Liste des vérifications visuelles - Tour de bugs 14/01/2026
+# 🧪 Tour de Tests - Swift App v1.0 (15 Janvier 2026)
 
-Ce document répertorie les écrans, composants et modals à vérifier après le déploiement des nouvelles fonctionnalités gamification.
+> **Objectif :** Validation complète avant mise en production  
+> **Dernière mise à jour :** 15 Janvier 2026
 
 ---
 
-## 🎮 Nouvelles Fonctionnalités à Tester
+## ✅ Corrections Techniques (15 Jan 2026)
 
-### Home Screen - Gamification
+| Correction | Status |
+|------------|--------|
+| TypeScript CI/CD (`tsc --noEmit`) | ✅ 0 erreurs |
+| Commit `ab5080b` poussé sur main | ✅ |
 
-[ ] Le bouton 🏆 (Leaderboard) fonctionne-t-il correctement ?
-[ ] Le bouton 🎖️ (Badges) fonctionne-t-il correctement ?
-[ ] Le tap sur "⚡ XP • Level" ouvre-t-il XP History ?
-[ ] Le rang et l'emoji s'affichent-ils correctement ?
-[ ] La barre de progression XP est-elle animée ?
+---
+
+## 🎮 1. GAMIFICATION - Tests Fonctionnels
+
+### Home Screen - Widgets Gamification
+- [ ] Bouton 🏆 (Leaderboard) → ouvre l'écran Leaderboard
+- [ ] Bouton 🎖️ (Badges) → ouvre l'écran Badges
+- [ ] Tap sur "⚡ XP • Level" → ouvre XP History
+- [ ] Rang et emoji affichés correctement (ex: 🥉 Bronze)
+- [ ] Barre de progression XP animée
 
 ### Écran Leaderboard
-
-[ ] La liste des chauffeurs se charge-t-elle ?
-[ ] Votre rang personnel s'affiche-t-il en haut ?
-[ ] Le pull-to-refresh fonctionne-t-il ?
-[ ] L'utilisateur actuel est-il surligné dans la liste ?
-[ ] Les couleurs de rang correspondent-elles (Starter→Diamond) ?
+- [ ] Liste des chauffeurs se charge
+- [ ] Rang personnel affiché en haut (carte "Your Rank")
+- [ ] Pull-to-refresh fonctionne
+- [ ] Utilisateur actuel surligné dans la liste
+- [ ] Couleurs de rang: Starter (gris) → Diamond (violet)
+- [ ] Scroll fluide sur longue liste
 
 ### Écran Badges
-
-[ ] Les badges gagnés s'affichent-ils correctement ?
-[ ] Les badges verrouillés sont-ils grisés avec icône 🔒 ?
-[ ] Les filtres par catégorie fonctionnent-ils ?
-[ ] La date d'obtention s'affiche-t-elle pour les badges gagnés ?
-[ ] Le pull-to-refresh fonctionne-t-il ?
+- [ ] Badges gagnés affichés avec couleur
+- [ ] Badges verrouillés grisés + icône 🔒
+- [ ] Filtres par catégorie fonctionnent (All, Jobs, Speed, Quality...)
+- [ ] Date d'obtention visible pour badges gagnés
+- [ ] Pull-to-refresh fonctionne
+- [ ] Animation au tap sur badge
 
 ### Écran XP History
-
-[ ] L'historique des gains XP se charge-t-il ?
-[ ] Les icônes correspondent-elles aux types d'actions ?
-[ ] Le temps relatif s'affiche-t-il correctement (il y a X min/h/j) ?
-[ ] L'infinite scroll (pagination) fonctionne-t-il ?
-[ ] Le total XP est-il correct dans le header ?
-
----
-
-## 🌍 Traductions à Vérifier
-
-### Langues à tester pour gamification
-
-[ ] 🇬🇧 Anglais (EN)
-[ ] 🇫🇷 Français (FR)
-[ ] 🇪🇸 Espagnol (ES)
-[ ] 🇵🇹 Portugais (PT)
-[ ] 🇮🇹 Italien (IT)
-[ ] 🇨🇳 Chinois (ZH)
-[ ] 🇮🇳 Hindi (HI)
+- [ ] Historique XP se charge
+- [ ] Icônes par type d'action (job, badge, streak...)
+- [ ] Temps relatif correct ("il y a 5 min", "hier"...)
+- [ ] Infinite scroll (pagination) fonctionne
+- [ ] Total XP affiché dans le header
+- [ ] Empty state si pas d'historique
 
 ---
 
-## 🧭 Navigation
+## 🌍 2. TRADUCTIONS GAMIFICATION
 
-### Points de vérification
+### Tester les 7 langues sur écrans gamification
 
-[ ] Bouton retour fonctionne sur tous les écrans gamification
-[ ] La navigation entre Home → Leaderboard → Badges → XP History est fluide
-[ ] Pas de crash lors de navigation rapide
+| Langue | Leaderboard | Badges | XP History |
+|--------|-------------|--------|------------|
+| 🇬🇧 EN | [ ] | [ ] | [ ] |
+| 🇫🇷 FR | [ ] | [ ] | [ ] |
+| 🇪🇸 ES | [ ] | [ ] | [ ] |
+| 🇵🇹 PT | [ ] | [ ] | [ ] |
+| 🇮🇹 IT | [ ] | [ ] | [ ] |
+| 🇨🇳 ZH | [ ] | [ ] | [ ] |
+| 🇮🇳 HI | [ ] | [ ] | [ ] |
+
+---
+
+## 🧭 3. NAVIGATION
+
+- [ ] Bouton retour fonctionne sur tous les écrans gamification
+- [ ] Navigation Home → Leaderboard → Badges → XP History fluide
+- [ ] Pas de crash lors de navigation rapide
+- [ ] État conservé après retour (scroll position, filtres)
+
+---
+
+## 📱 4. TESTS DEVICE (Priorité Haute)
+
+### Job Flow Complet
+- [ ] Créer job via Calendar > Day View
+- [ ] Démarrer timer → valider calculs temps réel
+- [ ] Avancer les étapes du job
+- [ ] Terminer job → saisir signature
+- [ ] Ouvrir Payment → tester Stripe Elements
+- [ ] Confirmer paiement → vérifier feedback
+
+### Staff Management
+- [ ] Navigation: Business > Staff & Crew
+- [ ] Ajouter employé/prestataire via modal
+- [ ] Modifier un membre du staff
+- [ ] Supprimer avec confirmation
+- [ ] Pull-to-refresh
+
+### Vehicles
+- [ ] Navigation: Business > Vehicles
+- [ ] Ajouter véhicule via modal
+- [ ] Voir détails véhicule
+- [ ] Prendre photo véhicule
+- [ ] Modifier/Supprimer véhicule
+
+---
+
+## 🎨 5. DARK MODE
+
+- [ ] Toggle dark/light dans Paramètres fonctionne
+- [ ] Tous les écrans gamification lisibles en dark mode
+- [ ] Contraste suffisant sur cartes et badges
+- [ ] Icônes visibles dans les deux modes
 
 ---
 
 ## 🐛 Bugs Découverts
 
-### [Catégorie] - [Écran]
+> Ajouter ici les bugs trouvés pendant les tests
 
-_Aucun bug rapporté pour le moment. Ajouter ici les bugs découverts pendant les tests._
-
----
-
-## 📊 Résumé du Tour de Bugs
-
-| Statut | Nombre |
-|--------|--------|
-| ✅ Vérifié | 0 |
-| ❌ Bug trouvé | 0 |
-| ⏳ À tester | 27 |
+| # | Écran | Description | Priorité | Status |
+|---|-------|-------------|----------|--------|
+| 1 | - | - | - | - |
 
 ---
 
-## 📝 Notes
+## 📊 Résumé
 
-**Date du test :** _À remplir_  
-**Testeur :** _À remplir_  
-**Version app :** _À remplir_  
-**Appareil :** _À remplir_
+| Catégorie | À tester | Vérifié | Bug |
+|-----------|----------|---------|-----|
+| Gamification | 25 | 0 | 0 |
+| Traductions | 21 | 0 | 0 |
+| Navigation | 4 | 0 | 0 |
+| Device Tests | 14 | 0 | 0 |
+| Dark Mode | 4 | 0 | 0 |
+| **TOTAL** | **68** | **0** | **0** |
 
 ---
 
-_Créé le 14 Janvier 2026 - Après implémentation du système de gamification frontend_
+## 📝 Informations Test
+
+| Champ | Valeur |
+|-------|--------|
+| **Date** | 15 Janvier 2026 |
+| **Testeur** | _À remplir_ |
+| **Version** | 1.0.0 |
+| **Appareil** | _À remplir_ |
+| **OS Version** | _À remplir_ |
+
+---
+
+_Mise à jour le 15 Janvier 2026 - Post corrections TypeScript CI/CD_

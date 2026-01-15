@@ -87,6 +87,12 @@ export const esTranslations = {
         jobs: 'trabajos',
         loading: 'Cargando clasificación...',
         empty: 'No hay conductores en la clasificación aún',
+        drivers: 'Conductores',
+        error: 'Error al cargar la clasificación',
+        rank: 'Rango',
+        level: 'Nivel',
+        xp: 'XP',
+        top: 'Top',
     },
 
     badges: {
@@ -118,6 +124,8 @@ export const esTranslations = {
         minutesAgo: 'Hace {{count}} min',
         hoursAgo: 'Hace {{count}}h',
         daysAgo: 'Hace {{count}}d',
+        loadMore: 'Cargar más',
+        noMoreEntries: 'No hay más entradas',
     },
 
     navigation: {

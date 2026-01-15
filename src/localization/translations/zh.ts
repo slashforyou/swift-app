@@ -78,6 +78,12 @@ export const zhTranslations = {
         jobs: '个任务',
         loading: '加载排行榜中...',
         empty: '暂无司机上榜',
+        drivers: '司机',
+        error: '加载排行榜失败',
+        rank: '排名',
+        level: '等级',
+        xp: '经验值',
+        top: '前',
     },
 
     badges: {
@@ -109,6 +115,8 @@ export const zhTranslations = {
         minutesAgo: '{{count}}分钟前',
         hoursAgo: '{{count}}小时前',
         daysAgo: '{{count}}天前',
+        loadMore: '加载更多',
+        noMoreEntries: '没有更多记录',
     },
 
     navigation: {

@@ -78,6 +78,12 @@ export const itTranslations = {
         jobs: 'lavori',
         loading: 'Caricamento classifica...',
         empty: 'Nessun autista in classifica al momento',
+        drivers: 'Autisti',
+        error: 'Impossibile caricare la classifica',
+        rank: 'Rango',
+        level: 'Livello',
+        xp: 'XP',
+        top: 'Top',
     },
 
     badges: {
@@ -109,6 +115,8 @@ export const itTranslations = {
         minutesAgo: '{{count}} min fa',
         hoursAgo: '{{count}}h fa',
         daysAgo: '{{count}}g fa',
+        loadMore: 'Carica altro',
+        noMoreEntries: 'Nessun altra voce',
     },
 
     navigation: {

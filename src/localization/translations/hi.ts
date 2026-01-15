@@ -78,6 +78,12 @@ export const hiTranslations = {
         jobs: 'कार्य',
         loading: 'लीडरबोर्ड लोड हो रहा है...',
         empty: 'अभी कोई ड्राइवर लीडरबोर्ड में नहीं है',
+        drivers: 'ड्राइवर',
+        error: 'लीडरबोर्ड लोड करने में विफल',
+        rank: 'रैंक',
+        level: 'स्तर',
+        xp: 'XP',
+        top: 'शीर्ष',
     },
 
     badges: {
@@ -109,6 +115,8 @@ export const hiTranslations = {
         minutesAgo: '{{count}} मिनट पहले',
         hoursAgo: '{{count}} घंटे पहले',
         daysAgo: '{{count}} दिन पहले',
+        loadMore: 'और लोड करें',
+        noMoreEntries: 'कोई और एंट्री नहीं',
     },
 
     navigation: {

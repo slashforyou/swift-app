@@ -78,6 +78,12 @@ export const ptTranslations = {
         jobs: 'trabalhos',
         loading: 'Carregando classificação...',
         empty: 'Nenhum motorista na classificação ainda',
+        drivers: 'Motoristas',
+        error: 'Falha ao carregar classificação',
+        rank: 'Posição',
+        level: 'Nível',
+        xp: 'XP',
+        top: 'Top',
     },
 
     badges: {
@@ -109,6 +115,8 @@ export const ptTranslations = {
         minutesAgo: 'Há {{count}} min',
         hoursAgo: 'Há {{count}}h',
         daysAgo: 'Há {{count}}d',
+        loadMore: 'Carregar mais',
+        noMoreEntries: 'Não há mais entradas',
     },
 
     navigation: {
