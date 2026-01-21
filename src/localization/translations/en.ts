@@ -160,7 +160,6 @@ export const enTranslations: TranslationKeys = {
     assignedStaff: "Assigned Staff",
     vehicleType: "Vehicle Type (optional)",
     extras: "Extras (optional)",
-    details: "Job Details",
     detailsDescription: "Set priority and add notes",
     confirmation: "Confirm Job",
     confirmationDescription: "Review job details before creating",

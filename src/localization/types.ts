@@ -49,6 +49,8 @@ export interface TranslationKeys {
     refresh: string;
     settings: string;
     language: string;
+    noSelection: string;
+    optional: string;
   };
 
   // Home Screen
@@ -124,6 +126,30 @@ export interface TranslationKeys {
     enterAddressesDescription: string;
     schedule: string;
     scheduleDescription: string;
+    selectStaff: string;
+    assignStaff: string;
+    assignedStaff: string;
+    vehicleType: string;
+    extras: string;
+    detailsDescription: string;
+    confirmation: string;
+    confirmationDescription: string;
+    client: string;
+    priority: string;
+    notes: string;
+    notesPlaceholder: string;
+    startTime: string;
+    endTime: string;
+    // Payment translations
+    payment: string;
+    quoteAmount: string;
+    paymentMethod: string;
+    depositRequired: string;
+    depositPercentage: string;
+    depositAmount: string;
+    depositPaid: string;
+    paymentSummary: string;
+    estimatedDuration: string;
     status: {
       pending: string;
       inProgress: string;
@@ -162,6 +188,7 @@ export interface TranslationKeys {
     city: string;
     state: string;
     zip: string;
+    selectState: string;
   };
 
   // Calendar
@@ -267,6 +294,10 @@ export interface TranslationKeys {
       filtersTitle: string;
       sortBy: string;
       details: string;
+      noVehicleSelected: string;
+      noPickupAddress: string;
+      noDeliveryAddress: string;
+      notAvailable: string;
     };
     selectMonth: string;
   };
@@ -1207,6 +1238,7 @@ export interface TranslationKeys {
       title: string;
       subtitle: string;
     };
+    noStaffAvailable: string;
   };
 
   // Errors and Messages

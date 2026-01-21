@@ -200,7 +200,6 @@ export const frTranslations: TranslationKeys = {
     assignedStaff: "Staff assigné",
     vehicleType: "Type de véhicule (optionnel)",
     extras: "Options supplémentaires (optionnel)",
-    details: "Détails du job",
     detailsDescription: "Définir la priorité et ajouter des notes",
     confirmation: "Confirmer le job",
     confirmationDescription: "Vérifier les détails avant création",
@@ -217,6 +216,7 @@ export const frTranslations: TranslationKeys = {
     city: "Ville",
     state: "Région",
     zip: "Code postal",
+    selectState: "Sélectionner un état",
   },
 
   calendar: {
@@ -1289,6 +1289,7 @@ export const frTranslations: TranslationKeys = {
       title: "Aucun membre du personnel",
       subtitle: "Ajoutez votre premier employé ou prestataire",
     },
+    noStaffAvailable: "Aucun personnel disponible",
   },
 
   messages: {
