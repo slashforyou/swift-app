@@ -1,35 +1,42 @@
 /**
  * LeaderboardScreen - Écran de classement des utilisateurs
  * Affiche le top des utilisateurs avec leur niveau, XP et rang
+ * Filtres par période : semaine, mois, année
  */
 import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect, useState, useCallback } from 'react';
-import { 
-    View, 
-    Text, 
-    FlatList, 
-    Pressable, 
+import React, { useCallback, useEffect, useState } from 'react';
+import {
     ActivityIndicator,
-    RefreshControl 
+    FlatList,
+    Pressable,
+    RefreshControl,
+    ScrollView,
+    Text,
+    View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Screen } from '../components/primitives/Screen';
 import { HStack, VStack } from '../components/primitives/Stack';
 import { DESIGN_TOKENS } from '../constants/Styles';
 import { useTheme } from '../context/ThemeProvider';
-import { useTranslation } from '../localization';
-import { 
-    fetchLeaderboard, 
-    LeaderboardEntry, 
-    getRankFromLevel 
-} from '../services/gamification';
 import { useGamification } from '../hooks/useGamification';
+import { useTranslation } from '../localization';
+import {
+    fetchLeaderboard,
+    getRankFromLevel,
+    LeaderboardEntry,
+    LeaderboardPeriod
+} from '../services/gamification';
 
 interface LeaderboardScreenProps {
     navigation: any;
 }
 
 const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({ navigation }) => {
+    console.log('\n🏆 ═══════════════════════════════════════');
+    console.log('🏆 [LEADERBOARD] Screen mounted');
+    console.log('🏆 ═══════════════════════════════════════\n');
+    
     const insets = useSafeAreaInsets();
     const { colors } = useTheme();
     const { t } = useTranslation();
@@ -40,8 +47,10 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({ navigation }) => 
     const [isLoading, setIsLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [selectedPeriod, setSelectedPeriod] = useState<LeaderboardPeriod>('week');
 
-    const loadLeaderboard = useCallback(async (showRefresh = false) => {
+    const loadLeaderboard = useCallback(async (showRefresh = false, period: LeaderboardPeriod = selectedPeriod) => {
+        console.log('🏆 [LEADERBOARD] Loading data...', showRefresh ? '(refresh)' : '(initial)', 'period:', period);
         try {
             if (showRefresh) {
                 setIsRefreshing(true);
@@ -50,9 +59,11 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({ navigation }) => 
             }
             setError(null);
             
-            const response = await fetchLeaderboard(50);
-            setLeaderboard(response.leaderboard);
-            setUserRank(response.userRank);
+            const response = await fetchLeaderboard(50, period);
+            const leaderboardData = response?.leaderboard || [];
+            console.log('🏆 [LEADERBOARD] ✅ Data loaded:', leaderboardData.length, 'drivers, userRank:', response?.userRank);
+            setLeaderboard(leaderboardData);
+            setUserRank(response?.userRank ?? null);
         } catch (err) {
             console.error('❌ Error loading leaderboard:', err);
             setError(err instanceof Error ? err.message : 'Failed to load leaderboard');
@@ -60,11 +71,39 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({ navigation }) => 
             setIsLoading(false);
             setIsRefreshing(false);
         }
-    }, []);
+    }, [selectedPeriod]);
 
     useEffect(() => {
         loadLeaderboard();
     }, [loadLeaderboard]);
+
+    // Changer la période et recharger
+    const handlePeriodChange = (period: LeaderboardPeriod) => {
+        setSelectedPeriod(period);
+        loadLeaderboard(false, period);
+    };
+
+    // Obtenir le label de la période
+    const getPeriodLabel = (period: LeaderboardPeriod): string => {
+        const labels: Record<LeaderboardPeriod, string> = {
+            week: t('leaderboard.thisWeek'),
+            month: t('leaderboard.thisMonth'),
+            year: t('leaderboard.thisYear'),
+            all: t('leaderboard.allTime'),
+        };
+        return labels[period];
+    };
+
+    // Obtenir l'icône de la période
+    const getPeriodIcon = (period: LeaderboardPeriod): keyof typeof Ionicons.glyphMap => {
+        const icons: Record<LeaderboardPeriod, keyof typeof Ionicons.glyphMap> = {
+            week: 'calendar-outline',
+            month: 'calendar',
+            year: 'ribbon',
+            all: 'trophy',
+        };
+        return icons[period];
+    };
 
     const getRankStyle = (rank: number) => {
         if (rank === 1) return { bg: '#FFD700', icon: '🥇' };
@@ -191,6 +230,53 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({ navigation }) => 
 
     const renderHeader = () => (
         <VStack gap="lg" style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
+            {/* Period Filter */}
+            <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{
+                    gap: 8,
+                    paddingVertical: 4,
+                }}
+            >
+                {(['week', 'month', 'year', 'all'] as LeaderboardPeriod[]).map((period) => (
+                    <Pressable
+                        key={period}
+                        onPress={() => handlePeriodChange(period)}
+                        style={({ pressed }) => ({
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            paddingHorizontal: 16,
+                            paddingVertical: 10,
+                            borderRadius: DESIGN_TOKENS.radius.full,
+                            backgroundColor: selectedPeriod === period 
+                                ? colors.primary 
+                                : pressed 
+                                    ? colors.backgroundTertiary 
+                                    : colors.backgroundSecondary,
+                            gap: 6,
+                            borderWidth: 1,
+                            borderColor: selectedPeriod === period ? colors.primary : colors.border,
+                        })}
+                    >
+                        <Ionicons
+                            name={getPeriodIcon(period)}
+                            size={16}
+                            color={selectedPeriod === period ? 'white' : colors.textSecondary}
+                        />
+                        <Text
+                            style={{
+                                fontSize: 14,
+                                fontWeight: '600',
+                                color: selectedPeriod === period ? 'white' : colors.textSecondary,
+                            }}
+                        >
+                            {getPeriodLabel(period)}
+                        </Text>
+                    </Pressable>
+                ))}
+            </ScrollView>
+
             {/* My Rank Card */}
             {userRank && myData && (
                 <View style={{

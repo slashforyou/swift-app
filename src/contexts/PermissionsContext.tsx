@@ -10,6 +10,7 @@ import {
     UserPermissions,
     fetchMyPermissions,
     hasWildcardPermission,
+    getRoleDisplayName,
 } from '../services/rolesService';
 
 // ============================================================================
@@ -133,12 +134,15 @@ export function PermissionsProvider({ children, autoLoad = true }: PermissionsPr
   // ---------------------------------------------------------------------------
 
   const roleName = useMemo(() => {
-    return state.permissions?.role?.name ?? null;
+    // API returns role as string code (e.g., 'owner', 'admin', 'manager')
+    const role = state.permissions?.role;
+    return typeof role === 'string' ? role : null;
   }, [state.permissions]);
 
   const roleDisplayName = useMemo(() => {
-    return state.permissions?.role?.display_name ?? null;
-  }, [state.permissions]);
+    if (!roleName) return null;
+    return getRoleDisplayName(roleName);
+  }, [roleName]);
 
   const scope = useMemo((): PermissionScope => {
     return state.permissions?.scope ?? 'all';

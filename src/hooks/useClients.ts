@@ -1,7 +1,7 @@
 // hooks/useClients.ts
-import { useCallback, useEffect, useState } from 'react';
-import { ClientAPI, fetchClients } from '../services/clients';
-import { isLoggedIn } from '../utils/auth';
+import { useCallback, useEffect, useState } from "react";
+import { ClientAPI, fetchClients } from "../services/clients";
+import { isLoggedIn } from "../utils/auth";
 
 interface UseClientsReturn {
   clients: ClientAPI[];
@@ -22,28 +22,53 @@ export const useClients = (): UseClientsReturn => {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       // Vérifier si l'utilisateur est connecté
       const loggedIn = await isLoggedIn();
+      console.log("🔍 [useClients] User logged in:", loggedIn);
+
       if (!loggedIn) {
-        setError('Vous devez être connecté pour voir les clients.');
+        console.warn("⚠️ [useClients] User not logged in");
+        setError("Vous devez être connecté pour voir les clients.");
         setClients([]);
         return;
       }
-      
-      // Utiliser l'API réelle
-      const apiClients = await fetchClients();
-      setClients(apiClients);
-      
-    } catch (err) {
 
-      console.error('Error fetching clients:', err);
-      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
-      
-      if (errorMessage.includes('401') || errorMessage.includes('Unauthorized')) {
-        setError('Session expirée. Veuillez vous reconnecter.');
-      } else if (errorMessage.includes('Network') || errorMessage.includes('fetch')) {
-        setError('Problème de connexion réseau.');
+      // Utiliser l'API réelle
+      console.log("📡 [useClients] Fetching clients from API...");
+      const apiClients = await fetchClients();
+      console.log(
+        `✅ [useClients] Received ${apiClients?.length || 0} clients:`,
+        JSON.stringify(apiClients, null, 2),
+      );
+
+      if (!Array.isArray(apiClients)) {
+        console.error(
+          "❌ [useClients] API returned non-array:",
+          typeof apiClients,
+          apiClients,
+        );
+        setError("Format de données invalide reçu de l'API");
+        setClients([]);
+        return;
+      }
+
+      setClients(apiClients);
+    } catch (err) {
+      console.error("❌ [useClients] Error fetching clients:", err);
+      const errorMessage =
+        err instanceof Error ? err.message : "An error occurred";
+
+      if (
+        errorMessage.includes("401") ||
+        errorMessage.includes("Unauthorized")
+      ) {
+        setError("Session expirée. Veuillez vous reconnecter.");
+      } else if (
+        errorMessage.includes("Network") ||
+        errorMessage.includes("fetch")
+      ) {
+        setError("Problème de connexion réseau.");
       } else {
         setError(`Erreur lors du chargement des clients: ${errorMessage}`);
       }
@@ -64,7 +89,9 @@ export const useClients = (): UseClientsReturn => {
   // Calculs dérivés avec protection contre undefined
   const safeClients = Array.isArray(clients) ? clients : [];
   const totalClients = safeClients.length;
-  const archivedClients = safeClients.filter(client => client.isArchived).length;
+  const archivedClients = safeClients.filter(
+    (client) => client.isArchived,
+  ).length;
   const activeClients = totalClients - archivedClients;
 
   return {

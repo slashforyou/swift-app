@@ -1,20 +1,20 @@
 /**
  * XP History Screen - Historique des gains d'XP
  */
-import React, { useEffect, useState, useCallback } from 'react';
-import {
-    View,
-    Text,
-    Pressable,
-    ActivityIndicator,
-    RefreshControl,
-    FlatList,
-} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { useTranslation } from '../localization';
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+    ActivityIndicator,
+    FlatList,
+    Pressable,
+    RefreshControl,
+    Text,
+    View,
+} from 'react-native';
 import { Colors } from '../constants/Colors';
 import { DESIGN_TOKENS } from '../constants/Styles';
+import { useTranslation } from '../localization';
 import { fetchXpHistory, formatXpAction } from '../services/gamification';
 
 interface XpEntry {
@@ -26,6 +26,10 @@ interface XpEntry {
 }
 
 const XpHistoryScreen: React.FC = () => {
+    console.log('\n⚡ ═══════════════════════════════════════');
+    console.log('⚡ [XP HISTORY] Screen mounted');
+    console.log('⚡ ═══════════════════════════════════════\n');
+    
     const navigation = useNavigation();
     const { t } = useTranslation();
     const [isLoading, setIsLoading] = useState(true);
@@ -39,10 +43,12 @@ const XpHistoryScreen: React.FC = () => {
     const LIMIT = 20;
 
     const loadHistory = useCallback(async (reset: boolean = false) => {
+        console.log('⚡ [XP HISTORY] Loading...', reset ? '(reset)' : `(offset: ${offset})`);
         try {
             setError(null);
             const currentOffset = reset ? 0 : offset;
             const data = await fetchXpHistory(LIMIT, currentOffset);
+            console.log('⚡ [XP HISTORY] ✅ Loaded:', data.history.length, 'entries, total:', data.total);
             
             if (reset) {
                 setHistory(data.history);

@@ -1,275 +1,403 @@
 /**
- * NotificationsPanel - Modal PLEIN ÉCRAN simple
+ * ⚠️ ATTENTION - FICHIER PROTÉGÉ ⚠️
+ * =================================
+ * Ce composant gère le panneau des notifications avec animations fluides.
+ * Avant toute modification, veuillez demander confirmation :
+ * "Souhaitez-vous vraiment modifier ce fichier ?"
+ * 
+ * NotificationsPanel - Panneau de notifications avec slide animation
+ * Supporte les modes Light et Dark
+ * Utilise NotificationsProvider pour les vraies notifications
+ * 
+ * @author Romain Giovanni - Slashforyou
+ * @lastModified 16/01/2026
  */
 import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect, useState } from 'react';
-import { Animated, Dimensions, Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
+    Animated,
+    Dimensions,
+    Easing,
+    Modal,
+    Pressable,
+    ScrollView,
+    Text,
+    View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { DESIGN_TOKENS } from '../../constants/Styles';
+import {
+    formatRelativeTime,
+    NotificationType,
+    useNotifications
+} from '../../context/NotificationsProvider';
 import { useTheme } from '../../context/ThemeProvider';
+import { useTranslation } from '../../localization';
 
-const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('screen'); // 'screen' au lieu de 'window'
+const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('screen');
 
 interface NotificationsPanelProps {
     isVisible: boolean;
     onClose: () => void;
-    notifications: {
-        id: string;
-        title: string;
-        message: string;
-        time: string;
-        type: 'job' | 'bonus' | 'call' | 'system';
-        isRead: boolean;
-    }[];
 }
 
 const NotificationsPanel: React.FC<NotificationsPanelProps> = ({ 
     isVisible, 
     onClose, 
-    notifications: initialNotifications 
 }) => {
     const { colors } = useTheme();
-    const [slideAnimation] = useState(new Animated.Value(0));
-    const [notifications, setNotifications] = useState(initialNotifications);
+    const { t } = useTranslation();
+    const insets = useSafeAreaInsets();
+    const { 
+        notifications, 
+        unreadCount, 
+        markAsRead, 
+        markAllAsRead, 
+        removeNotification,
+        clearAllNotifications,
+    } = useNotifications();
+    
+    // Animations
+    const slideAnimation = useRef(new Animated.Value(0)).current;
+    const backdropAnimation = useRef(new Animated.Value(0)).current;
+    
+    const [isModalVisible, setIsModalVisible] = useState(false);
 
-    // Styles dynamiques basés sur le thème
-    const styles = {
-        modalPanel: {
-            position: 'absolute' as const,
-            top: 0,
-            left: 0,
-            right: 0,
-            backgroundColor: colors.background,
-            borderBottomLeftRadius: 16,
-            borderBottomRightRadius: 16,
-            overflow: 'hidden' as const,
-            shadowColor: colors.text,
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.3,
-            shadowRadius: 8,
-            elevation: 10,
-        },
-        safeArea: {
-            height: 50,
-            backgroundColor: colors.background,
-        },
-        header: {
-            flexDirection: 'row' as const,
-            justifyContent: 'space-between' as const,
-            alignItems: 'center' as const,
-            padding: 20,
-            borderBottomWidth: 1,
-            borderBottomColor: colors.border,
-            backgroundColor: colors.background,
-        },
-        title: {
-            fontSize: 20,
-            fontWeight: '700' as const,
-            color: colors.text,
-        },
-        closeButton: {
-            padding: 8,
-            borderRadius: 20,
-        },
-        content: {
-            flex: 1,
-            backgroundColor: colors.background,
-        },
-        emptyState: {
-            padding: 40,
-            alignItems: 'center' as const,
-            backgroundColor: colors.background,
-        },
-        emptyText: {
-            fontSize: 16,
-            color: colors.textSecondary,
-            textAlign: 'center' as const,
-        },
-        notificationItem: {
-            flexDirection: 'row' as const,
-            alignItems: 'flex-start' as const,
-            padding: 20,
-            borderBottomWidth: 1,
-            borderBottomColor: colors.border,
-            backgroundColor: colors.background,
-            position: 'relative' as const,
-        },
-        newBadge: {
-            position: 'absolute' as const,
-            top: 12,
-            right: 50,
-            backgroundColor: colors.success,
-            paddingHorizontal: 8,
-            paddingVertical: 4,
-            borderRadius: 12,
-        },
-        newBadgeText: {
-            fontSize: 10,
-            fontWeight: '700' as const,
-            color: colors.background,
-            letterSpacing: 0.5,
-        },
-        notificationIcon: {
-            fontSize: 24,
-            marginRight: 16,
-            marginTop: 2,
-        },
-        notificationContent: {
-            flex: 1,
-            paddingRight: 40,
-        },
-        notificationTitle: {
-            fontSize: 15,
-            fontWeight: '700' as const,
-            color: colors.text,
-            marginBottom: 4,
-        },
-        notificationMessage: {
-            fontSize: 14,
-            color: colors.textSecondary,
-            marginBottom: 6,
-            lineHeight: 20,
-        },
-        notificationTime: {
-            fontSize: 12,
-            color: colors.textMuted || colors.textSecondary,
-        },
-        deleteButton: {
-            position: 'absolute' as const,
-            top: 12,
-            right: 12,
-            padding: 6,
-            borderRadius: 15,
-        },
-    };
-
-    useEffect(() => {
-        if (isVisible) {
-            Animated.timing(slideAnimation, {
+    // Ouvrir avec animation
+    const openPanel = useCallback(() => {
+        setIsModalVisible(true);
+        Animated.parallel([
+            Animated.timing(backdropAnimation, {
                 toValue: 1,
-                duration: 400,
-                useNativeDriver: false,
-            }).start();
-        } else {
+                duration: 300,
+                useNativeDriver: true,
+                easing: Easing.out(Easing.cubic),
+            }),
+            Animated.spring(slideAnimation, {
+                toValue: 1,
+                friction: 8,
+                tension: 65,
+                useNativeDriver: true,
+            }),
+        ]).start();
+    }, [backdropAnimation, slideAnimation]);
+
+    // Fermer avec animation
+    const closePanel = useCallback(() => {
+        // Marquer tout comme lu à la fermeture
+        markAllAsRead();
+        
+        Animated.parallel([
+            Animated.timing(backdropAnimation, {
+                toValue: 0,
+                duration: 200,
+                useNativeDriver: true,
+                easing: Easing.in(Easing.cubic),
+            }),
             Animated.timing(slideAnimation, {
                 toValue: 0,
-                duration: 300,
-                useNativeDriver: false,
-            }).start();
-        }
-    }, [isVisible]);
+                duration: 250,
+                useNativeDriver: true,
+                easing: Easing.in(Easing.cubic),
+            }),
+        ]).start(() => {
+            setIsModalVisible(false);
+            onClose();
+        });
+    }, [backdropAnimation, slideAnimation, onClose, markAllAsRead]);
 
-    // Marquer les notifications comme lues après 3 secondes d'ouverture
     useEffect(() => {
         if (isVisible) {
-            const timer = setTimeout(() => {
-                setNotifications(prev => prev.map(notif => ({ ...notif, isRead: true })));
-            }, 3000);
-            return () => clearTimeout(timer);
+            openPanel();
         }
-    }, [isVisible]);
+    }, [isVisible, openPanel]);
 
-    const getNotificationIcon = (type: string) => {
+    const getNotificationIcon = (type: NotificationType): { name: keyof typeof Ionicons.glyphMap; color: string } => {
         switch (type) {
-            case 'job': return '📋';
-            case 'bonus': return '⚡';
-            case 'call': return '📞';
-            case 'system': return '⚙️';
-            default: return '📌';
+            case 'job': 
+                return { name: 'briefcase', color: colors.primary };
+            case 'bonus': 
+                return { name: 'flash', color: '#FFD700' };
+            case 'call': 
+                return { name: 'call', color: colors.success };
+            case 'payment': 
+                return { name: 'card', color: colors.success };
+            case 'reminder': 
+                return { name: 'alarm', color: colors.warning };
+            case 'system': 
+            default: 
+                return { name: 'notifications', color: colors.textSecondary };
         }
     };
 
-    const removeNotification = (id: string) => {
-        setNotifications(prev => prev.filter(notif => notif.id !== id));
+    const handleRemoveNotification = (id: string) => {
+        removeNotification(id);
     };
+
+    if (!isModalVisible && !isVisible) return null;
 
     return (
         <Modal 
-            visible={isVisible}
+            visible={isModalVisible}
             transparent={true}
             animationType="none"
             statusBarTranslucent={true}
-            presentationStyle="overFullScreen"
+            onRequestClose={closePanel}
         >
-            {/* Forçons la taille absolue de l'écran */}
-            <View style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: SCREEN_WIDTH,
-                height: SCREEN_HEIGHT,
-                backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            }}>
-                <Pressable 
+            <View style={{ flex: 1 }}>
+                {/* Backdrop animé */}
+                <Animated.View 
                     style={{
                         position: 'absolute',
                         top: 0,
                         left: 0,
-                        width: SCREEN_WIDTH,
-                        height: SCREEN_HEIGHT,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                        opacity: backdropAnimation,
                     }}
-                    onPress={onClose}
-                />
+                >
+                    <Pressable 
+                        style={{ flex: 1 }}
+                        onPress={closePanel}
+                    />
+                </Animated.View>
                 
-                {/* MODAL QUI SE DÉROULE */}
-                <Animated.View style={[
-                    styles.modalPanel,
-                    {
-                        height: slideAnimation.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [0, SCREEN_HEIGHT * 0.9],
-                        }),
-                    }
-                ]}>
-                    {/* Safe Area */}
-                    <View style={styles.safeArea} />
+                {/* Panel qui slide depuis le haut */}
+                <Animated.View 
+                    style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        maxHeight: SCREEN_HEIGHT * 0.85,
+                        backgroundColor: colors.background,
+                        borderBottomLeftRadius: DESIGN_TOKENS.radius.xl,
+                        borderBottomRightRadius: DESIGN_TOKENS.radius.xl,
+                        shadowColor: colors.shadow,
+                        shadowOffset: { width: 0, height: 8 },
+                        shadowOpacity: 0.25,
+                        shadowRadius: 16,
+                        elevation: 20,
+                        transform: [{
+                            translateY: slideAnimation.interpolate({
+                                inputRange: [0, 1],
+                                outputRange: [-SCREEN_HEIGHT * 0.85, 0],
+                            }),
+                        }],
+                    }}
+                >
+                    {/* Safe Area Top */}
+                    <View style={{ height: insets.top, backgroundColor: colors.background }} />
                     
                     {/* Header */}
-                    <View style={styles.header}>
-                        <Text style={styles.title}>🔔 Notifications</Text>
-                        <Pressable onPress={onClose} style={styles.closeButton}>
-                            <Ionicons name="close" size={24} color={colors.textSecondary} />
+                    <View style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+                        paddingVertical: DESIGN_TOKENS.spacing.md,
+                        borderBottomWidth: 1,
+                        borderBottomColor: colors.border,
+                    }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                            <Ionicons name="notifications" size={24} color={colors.primary} />
+                            <Text style={{
+                                fontSize: 20,
+                                fontWeight: '700',
+                                color: colors.text,
+                            }}>
+                                Notifications
+                            </Text>
+                            {unreadCount > 0 && (
+                                <View style={{
+                                    backgroundColor: colors.error,
+                                    borderRadius: 12,
+                                    paddingHorizontal: 8,
+                                    paddingVertical: 2,
+                                    minWidth: 24,
+                                    alignItems: 'center',
+                                }}>
+                                    <Text style={{
+                                        fontSize: 12,
+                                        fontWeight: '700',
+                                        color: 'white',
+                                    }}>
+                                        {unreadCount}
+                                    </Text>
+                                </View>
+                            )}
+                        </View>
+                        
+                        <Pressable 
+                            onPress={closePanel}
+                            style={({ pressed }) => ({
+                                width: 36,
+                                height: 36,
+                                borderRadius: 18,
+                                backgroundColor: pressed ? colors.backgroundTertiary : colors.backgroundSecondary,
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                            })}
+                        >
+                            <Ionicons name="close" size={20} color={colors.text} />
                         </Pressable>
                     </View>
 
-                    {/* Contenu scrollable */}
-                    <ScrollView style={styles.content} showsVerticalScrollIndicator={true}>
+                    {/* Liste des notifications */}
+                    <ScrollView 
+                        style={{ flex: 1 }}
+                        contentContainerStyle={{ 
+                            paddingBottom: insets.bottom + DESIGN_TOKENS.spacing.lg,
+                        }}
+                        showsVerticalScrollIndicator={false}
+                    >
                         {notifications.length === 0 ? (
-                            <View style={styles.emptyState}>
-                                <Text style={styles.emptyText}>Aucune notification 📭</Text>
+                            <View style={{
+                                paddingVertical: DESIGN_TOKENS.spacing.xxl,
+                                alignItems: 'center',
+                            }}>
+                                <Ionicons 
+                                    name="notifications-off-outline" 
+                                    size={64} 
+                                    color={colors.textMuted} 
+                                />
+                                <Text style={{
+                                    fontSize: 16,
+                                    color: colors.textSecondary,
+                                    marginTop: DESIGN_TOKENS.spacing.md,
+                                    textAlign: 'center',
+                                }}>
+                                    Aucune notification
+                                </Text>
                             </View>
                         ) : (
-                            notifications.map((notif) => (
-                                <View key={notif.id} style={styles.notificationItem}>
-                                    {!notif.isRead && (
-                                        <View style={styles.newBadge}>
-                                            <Text style={styles.newBadgeText}>NOUVEAU</Text>
-                                        </View>
-                                    )}
-                                    
-                                    <Text style={styles.notificationIcon}>
-                                        {getNotificationIcon(notif.type)}
-                                    </Text>
-                                    <View style={styles.notificationContent}>
-                                        <Text style={styles.notificationTitle}>{notif.title}</Text>
-                                        <Text style={styles.notificationMessage}>{notif.message}</Text>
-                                        <Text style={styles.notificationTime}>{notif.time}</Text>
-                                    </View>
-                                    
+                            notifications.map((notif, index) => {
+                                const iconInfo = getNotificationIcon(notif.type);
+                                
+                                return (
                                     <Pressable
-                                        onPress={() => removeNotification(notif.id)}
-                                        style={styles.deleteButton}
+                                        key={notif.id}
+                                        onPress={() => {
+                                            // Action sur la notification
+                                            console.log('📩 Notification pressed:', notif.id);
+                                        }}
+                                        style={({ pressed }) => ({
+                                            flexDirection: 'row',
+                                            alignItems: 'flex-start',
+                                            paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+                                            paddingVertical: DESIGN_TOKENS.spacing.md,
+                                            backgroundColor: pressed 
+                                                ? colors.backgroundTertiary 
+                                                : !notif.isRead 
+                                                    ? colors.primary + '08'
+                                                    : colors.background,
+                                            borderBottomWidth: index < notifications.length - 1 ? 1 : 0,
+                                            borderBottomColor: colors.border,
+                                        })}
                                     >
-                                        <Ionicons name="close" size={18} color={colors.textMuted} />
+                                        {/* Icône */}
+                                        <View style={{
+                                            width: 44,
+                                            height: 44,
+                                            borderRadius: 22,
+                                            backgroundColor: iconInfo.color + '15',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            marginRight: DESIGN_TOKENS.spacing.md,
+                                        }}>
+                                            <Ionicons 
+                                                name={iconInfo.name} 
+                                                size={22} 
+                                                color={iconInfo.color} 
+                                            />
+                                        </View>
+                                        
+                                        {/* Contenu */}
+                                        <View style={{ flex: 1, marginRight: DESIGN_TOKENS.spacing.md }}>
+                                            <View style={{ 
+                                                flexDirection: 'row', 
+                                                alignItems: 'center', 
+                                                marginBottom: 4,
+                                                gap: 8,
+                                            }}>
+                                                <Text style={{
+                                                    fontSize: 15,
+                                                    fontWeight: notif.isRead ? '500' : '700',
+                                                    color: colors.text,
+                                                    flex: 1,
+                                                }}>
+                                                    {notif.title}
+                                                </Text>
+                                                {!notif.isRead && (
+                                                    <View style={{
+                                                        width: 8,
+                                                        height: 8,
+                                                        borderRadius: 4,
+                                                        backgroundColor: colors.primary,
+                                                    }} />
+                                                )}
+                                            </View>
+                                            <Text style={{
+                                                fontSize: 14,
+                                                color: colors.textSecondary,
+                                                lineHeight: 20,
+                                                marginBottom: 6,
+                                            }}>
+                                                {notif.message}
+                                            </Text>
+                                            <Text style={{
+                                                fontSize: 12,
+                                                color: colors.textMuted,
+                                            }}>
+                                                {formatRelativeTime(notif.createdAt)}
+                                            </Text>
+                                        </View>
+                                        
+                                        {/* Bouton supprimer */}
+                                        <Pressable
+                                            onPress={() => handleRemoveNotification(notif.id)}
+                                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                                            style={({ pressed }) => ({
+                                                width: 32,
+                                                height: 32,
+                                                borderRadius: 16,
+                                                backgroundColor: pressed ? colors.error + '20' : 'transparent',
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                            })}
+                                        >
+                                            <Ionicons 
+                                                name="trash-outline" 
+                                                size={18} 
+                                                color={colors.textMuted} 
+                                            />
+                                        </Pressable>
                                     </Pressable>
-                                </View>
-                            ))
+                                );
+                            })
                         )}
                     </ScrollView>
+                    
+                    {/* Barre de glissement (indicateur visuel) */}
+                    <View style={{
+                        position: 'absolute',
+                        bottom: DESIGN_TOKENS.spacing.sm,
+                        left: 0,
+                        right: 0,
+                        alignItems: 'center',
+                    }}>
+                        <View style={{
+                            width: 40,
+                            height: 4,
+                            borderRadius: 2,
+                            backgroundColor: colors.border,
+                        }} />
+                    </View>
                 </Animated.View>
             </View>
         </Modal>
     );
 };
-
-
 
 export default NotificationsPanel;

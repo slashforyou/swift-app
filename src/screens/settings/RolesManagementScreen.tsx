@@ -485,7 +485,7 @@ export default function RolesManagementScreen({
     setIsCreating(false);
     setFormData({
       name: role.name,
-      display_name: role.display_name,
+      display_name: role.display_name || role.name,
       description: role.description || '',
       permissions: [...(role.permissions || [])],
       scope: role.scope || 'all',
@@ -502,7 +502,7 @@ export default function RolesManagementScreen({
     (role: Role) => {
       Alert.alert(
         t('roles.confirmDelete.title'),
-        t('roles.confirmDelete.message', { name: role.display_name, count: role.staff_count || 0 }),
+        t('roles.confirmDelete.message', { name: role.display_name || role.name, count: role.staff_count || 0 }),
         [
           { text: t('common.cancel'), style: 'cancel' },
           {

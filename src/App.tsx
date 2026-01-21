@@ -4,6 +4,7 @@ import React, { useEffect } from 'react'
 import { View } from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { ENV, STRIPE_PUBLISHABLE_KEY } from './config/environment'
+import { NotificationsProvider } from './context/NotificationsProvider'
 import { ThemeProvider } from './context/ThemeProvider'
 import { ToastProvider } from './context/ToastProvider'
 import { VehiclesProvider } from './context/VehiclesProvider'
@@ -67,15 +68,17 @@ export default function App() {
       <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
         <LocalizationProvider>
           <ThemeProvider>
-            <PermissionsProvider autoLoad={false}>
-              <VehiclesProvider>
-                <ToastProvider>
-                  <View style={{ flex: 1 }}>
-                    <Navigation />
-                  </View>
-                </ToastProvider>
-              </VehiclesProvider>
-            </PermissionsProvider>
+            <NotificationsProvider>
+              <PermissionsProvider autoLoad={false}>
+                <VehiclesProvider>
+                  <ToastProvider>
+                    <View style={{ flex: 1 }}>
+                      <Navigation />
+                    </View>
+                  </ToastProvider>
+                </VehiclesProvider>
+              </PermissionsProvider>
+            </NotificationsProvider>
           </ThemeProvider>
         </LocalizationProvider>
       </StripeProvider>

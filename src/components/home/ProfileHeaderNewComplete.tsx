@@ -16,6 +16,7 @@ interface ProfileHeaderProps {
 }
 
 const ProfileHeaderComplete: React.FC<ProfileHeaderProps> = ({ navigation }) => {
+    console.log('👤 [PROFILE HEADER] Rendering...');
     const { colors } = useTheme();
     const { profile, isLoading } = useUserProfile();
     const { t } = useTranslation();

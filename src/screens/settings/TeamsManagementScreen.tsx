@@ -399,7 +399,7 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
     setSelectedTeam(team);
     setFormName(team.name);
     setFormDescription(team.description || '');
-    setFormLeaderId(team.leader_id);
+    setFormLeaderId(team.leader_id ?? null);
     setFormMemberIds(team.members.map((m) => m.id));
     setShowEditModal(true);
   }, []);

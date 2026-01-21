@@ -1,7 +1,9 @@
 /**
  * Teams Service
  * CRUD operations for team management
+ * Phase 2 - STAFF-02 Implementation
  * @module services/teamsService
+ * @updated 2026-01-17 - Aligned with new v1 endpoints
  */
 
 import { ServerData } from '../constants/ServerData';
@@ -17,16 +19,20 @@ export interface TeamMember {
   first_name: string;
   last_name: string;
   email: string;
-  role: 'leader' | 'member';
-  joined_at: string;
+  role: string; // 'technician', 'manager', etc.
+  is_leader: boolean;
+  joined_at?: string;
 }
 
 export interface Team {
   id: number;
   name: string;
   description: string | null;
-  leader_id: number | null;
-  leader: TeamMember | null;
+  color: string; // Hex color for team display
+  is_active: boolean; // Soft delete flag
+  company_id: number;
+  leader_id?: number | null;
+  leader?: TeamMember | null;
   members: TeamMember[];
   member_count: number;
   created_at: string;
@@ -36,6 +42,8 @@ export interface Team {
 export interface CreateTeamRequest {
   name: string;
   description?: string;
+  color?: string; // Hex color, defaults to #3B82F6
+  company_id?: number; // Optional, will be fetched from user profile if not provided
   leader_id?: number;
   member_ids?: number[];
 }
@@ -43,8 +51,18 @@ export interface CreateTeamRequest {
 export interface UpdateTeamRequest {
   name?: string;
   description?: string;
+  color?: string;
   leader_id?: number | null;
   member_ids?: number[];
+}
+
+export interface AddMemberRequest {
+  staff_id: number;
+  is_leader?: boolean;
+}
+
+export interface AssignTeamToJobRequest {
+  team_id: number;
 }
 
 export interface TeamsListResponse {
@@ -78,40 +96,39 @@ export interface FetchTeamsOptions {
 /**
  * Get company ID from user profile
  */
-async function getCompanyId(): Promise<string> {
+async function getCompanyId(): Promise<number> {
   const profile = await fetchUserProfile();
-  const userId = profile.id.toString();
+  const userId = profile.id;
+  const userIdNum = typeof userId === 'string' ? parseInt(userId, 10) : userId;
   
   // TEMPORAIRE: D'après les données, l'utilisateur 15 est lié à Company ID: 1
-  if (userId === '15') {
-    return '1';
+  if (userIdNum === 15) {
+    return 1;
   }
   
   // Pour d'autres utilisateurs, utiliser l'ancien comportement (user_id = company_id)
-  return userId;
+  return userIdNum;
 }
 
 // ============================================================================
-// API Functions
+// API Functions - New v1 Endpoints
 // ============================================================================
 
 /**
  * Fetch all teams for a company
+ * GET /v1/teams?business_id={id}
  */
 export async function fetchTeams(options: FetchTeamsOptions = {}): Promise<TeamsListResponse> {
   const companyId = await getCompanyId();
-  if (!companyId) {
-    throw new Error('Company ID not found');
-  }
 
   const params = new URLSearchParams();
+  params.append('business_id', companyId.toString());
   if (options.page) params.append('page', options.page.toString());
   if (options.perPage) params.append('per_page', options.perPage.toString());
   if (options.search) params.append('search', options.search);
   if (options.includeDeleted) params.append('include_deleted', 'true');
 
-  const queryString = params.toString();
-  const url = `${ServerData.serverUrl}v1/company/${companyId}/teams${queryString ? `?${queryString}` : ''}`;
+  const url = `${ServerData.serverUrl}v1/teams?${params.toString()}`;
 
   const response = await fetchWithAuth(url, { method: 'GET' });
   const data = await response.json();
@@ -125,14 +142,10 @@ export async function fetchTeams(options: FetchTeamsOptions = {}): Promise<Teams
 
 /**
  * Fetch a single team by ID
+ * GET /v1/teams/:teamId
  */
 export async function fetchTeamById(teamId: number): Promise<Team> {
-  const companyId = await getCompanyId();
-  if (!companyId) {
-    throw new Error('Company ID not found');
-  }
-
-  const url = `${ServerData.serverUrl}v1/company/${companyId}/teams/${teamId}`;
+  const url = `${ServerData.serverUrl}v1/teams/${teamId}`;
   const response = await fetchWithAuth(url, { method: 'GET' });
   const data = await response.json();
 
@@ -140,27 +153,31 @@ export async function fetchTeamById(teamId: number): Promise<Team> {
     throw new Error(data.message || 'Failed to fetch team');
   }
 
-  return data.team;
+  return data.data?.team ?? data.team;
 }
 
 /**
  * Create a new team
+ * POST /v1/teams
  */
 export async function createTeam(request: CreateTeamRequest): Promise<Team> {
   const companyId = await getCompanyId();
-  if (!companyId) {
-    throw new Error('Company ID not found');
-  }
 
   if (!request.name || request.name.trim() === '') {
     throw new Error('Team name is required');
   }
 
-  const url = `${ServerData.serverUrl}v1/company/${companyId}/teams`;
+  const payload = {
+    ...request,
+    company_id: request.company_id || companyId,
+    color: request.color || '#3B82F6', // Default blue color
+  };
+
+  const url = `${ServerData.serverUrl}v1/teams`;
   const response = await fetchWithAuth(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(request),
+    body: JSON.stringify(payload),
   });
   const data = await response.json();
 
@@ -168,19 +185,15 @@ export async function createTeam(request: CreateTeamRequest): Promise<Team> {
     throw new Error(data.message || 'Failed to create team');
   }
 
-  return data.team;
+  return data.data?.team ?? data.team;
 }
 
 /**
  * Update an existing team
+ * PUT /v1/teams/:teamId
  */
 export async function updateTeam(teamId: number, request: UpdateTeamRequest): Promise<Team> {
-  const companyId = await getCompanyId();
-  if (!companyId) {
-    throw new Error('Company ID not found');
-  }
-
-  const url = `${ServerData.serverUrl}v1/company/${companyId}/teams/${teamId}`;
+  const url = `${ServerData.serverUrl}v1/teams/${teamId}`;
   const response = await fetchWithAuth(url, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
@@ -192,19 +205,15 @@ export async function updateTeam(teamId: number, request: UpdateTeamRequest): Pr
     throw new Error(data.message || 'Failed to update team');
   }
 
-  return data.team;
+  return data.data?.team ?? data.team;
 }
 
 /**
- * Delete a team
+ * Delete a team (soft delete by default)
+ * DELETE /v1/teams/:teamId
  */
 export async function deleteTeam(teamId: number, permanent = false): Promise<void> {
-  const companyId = await getCompanyId();
-  if (!companyId) {
-    throw new Error('Company ID not found');
-  }
-
-  const url = `${ServerData.serverUrl}v1/company/${companyId}/teams/${teamId}${permanent ? '?permanent=true' : ''}`;
+  const url = `${ServerData.serverUrl}v1/teams/${teamId}${permanent ? '?permanent=true' : ''}`;
   const response = await fetchWithAuth(url, { method: 'DELETE' });
   const data = await response.json();
 
@@ -214,50 +223,99 @@ export async function deleteTeam(teamId: number, permanent = false): Promise<voi
 }
 
 /**
- * Add members to a team
+ * Add a member to a team
+ * POST /v1/teams/:teamId/members
  */
-export async function addTeamMembers(teamId: number, memberIds: number[]): Promise<Team> {
-  const team = await fetchTeamById(teamId);
-  const existingMemberIds = team.members.map(m => m.id);
-  const newMemberIds = [...new Set([...existingMemberIds, ...memberIds])];
-  
-  return updateTeam(teamId, { member_ids: newMemberIds });
+export async function addTeamMember(teamId: number, staffId: number, isLeader = false): Promise<Team> {
+  const url = `${ServerData.serverUrl}v1/teams/${teamId}/members`;
+  const response = await fetchWithAuth(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ staff_id: staffId, is_leader: isLeader }),
+  });
+  const data = await response.json();
+
+  if (!data.success) {
+    throw new Error(data.message || 'Failed to add member to team');
+  }
+
+  return data.data?.team ?? data.team;
 }
 
 /**
  * Remove a member from a team
+ * DELETE /v1/teams/:teamId/members/:staffId
  */
-export async function removeTeamMember(teamId: number, memberId: number): Promise<Team> {
-  const team = await fetchTeamById(teamId);
-  const newMemberIds = team.members
-    .map(m => m.id)
-    .filter(id => id !== memberId);
-  
-  return updateTeam(teamId, { member_ids: newMemberIds });
-}
+export async function removeTeamMember(teamId: number, staffId: number): Promise<Team> {
+  const url = `${ServerData.serverUrl}v1/teams/${teamId}/members/${staffId}`;
+  const response = await fetchWithAuth(url, { method: 'DELETE' });
+  const data = await response.json();
 
-/**
- * Set team leader
- */
-export async function setTeamLeader(teamId: number, leaderId: number | null): Promise<Team> {
-  return updateTeam(teamId, { leader_id: leaderId });
+  if (!data.success) {
+    throw new Error(data.message || 'Failed to remove member from team');
+  }
+
+  return data.data?.team ?? data.team;
 }
 
 /**
  * Assign a team to a job
+ * POST /v1/jobs/:jobId/team
  */
-export async function assignTeamToJob(jobId: string | number, teamId: number | null): Promise<void> {
-  const url = `${ServerData.serverUrl}v1/job/${jobId}`;
+export async function assignTeamToJob(jobId: string | number, teamId: number): Promise<void> {
+  const url = `${ServerData.serverUrl}v1/jobs/${jobId}/team`;
   const response = await fetchWithAuth(url, {
-    method: 'PUT',
+    method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ assigned_team_id: teamId }),
+    body: JSON.stringify({ team_id: teamId }),
   });
   const data = await response.json();
 
   if (!data.success) {
     throw new Error(data.message || 'Failed to assign team to job');
   }
+}
+
+/**
+ * Unassign a team from a job
+ */
+export async function unassignTeamFromJob(jobId: string | number): Promise<void> {
+  const url = `${ServerData.serverUrl}v1/jobs/${jobId}/team`;
+  const response = await fetchWithAuth(url, {
+    method: 'DELETE',
+  });
+  const data = await response.json();
+
+  if (!data.success) {
+    throw new Error(data.message || 'Failed to unassign team from job');
+  }
+}
+
+// ============================================================================
+// Backward Compatibility Functions
+// ============================================================================
+
+/**
+ * Add multiple members to a team (convenience wrapper)
+ * @deprecated Use addTeamMember for single member addition
+ */
+export async function addTeamMembers(teamId: number, memberIds: number[]): Promise<Team> {
+  let team: Team | null = null;
+  for (const memberId of memberIds) {
+    team = await addTeamMember(teamId, memberId);
+  }
+  return team ?? await fetchTeamById(teamId);
+}
+
+/**
+ * Set team leader (convenience wrapper)
+ */
+export async function setTeamLeader(teamId: number, leaderId: number | null): Promise<Team> {
+  if (leaderId === null) {
+    return updateTeam(teamId, { leader_id: null });
+  }
+  // Add member as leader
+  return addTeamMember(teamId, leaderId, true);
 }
 
 // ============================================================================

@@ -1,7 +1,9 @@
 /**
  * useTeams Hook
  * React hook for team management with state handling
+ * Phase 2 - STAFF-02 Implementation
  * @module hooks/useTeams
+ * @updated 2026-01-17 - Aligned with new v1 endpoints
  */
 
 import { useCallback, useEffect, useState } from 'react';
@@ -11,6 +13,7 @@ import {
     Team,
     TeamMember,
     UpdateTeamRequest,
+    addTeamMember as addTeamMemberApi,
     addTeamMembers as addTeamMembersApi,
     assignTeamToJob as assignTeamToJobApi,
     createTeam as createTeamApi,
@@ -20,6 +23,7 @@ import {
     getTeamMemberFullName,
     removeTeamMember as removeTeamMemberApi,
     setTeamLeader as setTeamLeaderApi,
+    unassignTeamFromJob as unassignTeamFromJobApi,
     updateTeam as updateTeamApi,
 } from '../services/teamsService';
 
@@ -53,12 +57,14 @@ interface UseTeamsReturn extends UseTeamsState {
   deleteTeam: (teamId: number, permanent?: boolean) => Promise<boolean>;
   
   // Member operations
+  addMember: (teamId: number, staffId: number, isLeader?: boolean) => Promise<Team | null>;
   addMembers: (teamId: number, memberIds: number[]) => Promise<Team | null>;
   removeMember: (teamId: number, memberId: number) => Promise<Team | null>;
   setLeader: (teamId: number, leaderId: number | null) => Promise<Team | null>;
   
   // Job assignment
-  assignToJob: (jobId: string | number, teamId: number | null) => Promise<boolean>;
+  assignToJob: (jobId: string | number, teamId: number) => Promise<boolean>;
+  unassignFromJob: (jobId: string | number) => Promise<boolean>;
   
   // Selection
   selectTeam: (team: Team | null) => void;
@@ -68,6 +74,8 @@ interface UseTeamsReturn extends UseTeamsState {
   
   // Helpers
   getMemberName: (member: TeamMember) => string;
+  getTeamColor: (team: Team) => string;
+  isTeamActive: (team: Team) => boolean;
   clearError: () => void;
 }
 
@@ -250,6 +258,35 @@ export function useTeams(): UseTeamsReturn {
   // Member Operations
   // ---------------------------------------------------------------------------
 
+  /**
+   * Add a single member to a team
+   */
+  const addMember = useCallback(async (teamId: number, staffId: number, isLeader = false): Promise<Team | null> => {
+    setState(prev => ({ ...prev, isLoading: true, error: null }));
+
+    try {
+      const updatedTeam = await addTeamMemberApi(teamId, staffId, isLeader);
+      setState(prev => ({
+        ...prev,
+        teams: prev.teams.map(t => t.id === teamId ? updatedTeam : t),
+        selectedTeam: prev.selectedTeam?.id === teamId ? updatedTeam : prev.selectedTeam,
+        isLoading: false,
+      }));
+      return updatedTeam;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to add member';
+      setState(prev => ({
+        ...prev,
+        isLoading: false,
+        error: message,
+      }));
+      return null;
+    }
+  }, []);
+
+  /**
+   * Add multiple members to a team
+   */
   const addMembers = useCallback(async (teamId: number, memberIds: number[]): Promise<Team | null> => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
 
@@ -323,7 +360,10 @@ export function useTeams(): UseTeamsReturn {
   // Job Assignment
   // ---------------------------------------------------------------------------
 
-  const assignToJob = useCallback(async (jobId: string | number, teamId: number | null): Promise<boolean> => {
+  /**
+   * Assign a team to a job
+   */
+  const assignToJob = useCallback(async (jobId: string | number, teamId: number): Promise<boolean> => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
 
     try {
@@ -332,6 +372,27 @@ export function useTeams(): UseTeamsReturn {
       return true;
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to assign team to job';
+      setState(prev => ({
+        ...prev,
+        isLoading: false,
+        error: message,
+      }));
+      return false;
+    }
+  }, []);
+
+  /**
+   * Unassign a team from a job
+   */
+  const unassignFromJob = useCallback(async (jobId: string | number): Promise<boolean> => {
+    setState(prev => ({ ...prev, isLoading: true, error: null }));
+
+    try {
+      await unassignTeamFromJobApi(jobId);
+      setState(prev => ({ ...prev, isLoading: false }));
+      return true;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to unassign team from job';
       setState(prev => ({
         ...prev,
         isLoading: false,
@@ -359,6 +420,20 @@ export function useTeams(): UseTeamsReturn {
 
   const getMemberName = useCallback((member: TeamMember): string => {
     return getTeamMemberFullName(member);
+  }, []);
+
+  /**
+   * Get the display color for a team
+   */
+  const getTeamColor = useCallback((team: Team): string => {
+    return team.color || '#3B82F6'; // Default blue
+  }, []);
+
+  /**
+   * Check if a team is active (not soft-deleted)
+   */
+  const isTeamActive = useCallback((team: Team): boolean => {
+    return team.is_active !== false;
   }, []);
 
   const clearError = useCallback(() => {
@@ -397,12 +472,14 @@ export function useTeams(): UseTeamsReturn {
     deleteTeam,
     
     // Member operations
+    addMember,
     addMembers,
     removeMember,
     setLeader,
     
     // Job assignment
     assignToJob,
+    unassignFromJob,
     
     // Selection & search
     selectTeam,
@@ -410,6 +487,8 @@ export function useTeams(): UseTeamsReturn {
     
     // Helpers
     getMemberName,
+    getTeamColor,
+    isTeamActive,
     clearError,
   };
 }

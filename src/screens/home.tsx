@@ -6,14 +6,14 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import ProfileHeaderComplete from '../components/home/ProfileHeaderNewComplete';
+import ProfileHeader from '../components/home/ProfileHeader';
 import TodaySection from '../components/home/TodaySection';
 import { Screen } from '../components/primitives/Screen';
 import { HStack, VStack } from '../components/primitives/Stack';
 import LanguageSelector from '../components/ui/LanguageSelector';
 import { DESIGN_TOKENS } from '../constants/Styles';
 import { useTheme } from '../context/ThemeProvider';
-import { useLocalization, useTranslation } from '../localization';
+import { useTranslation } from '../localization';
 import { useAuthCheck } from '../utils/checkAuth';
 
 // Types et interfaces
@@ -22,15 +22,15 @@ interface HomeScreenProps {
 }
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
+    console.log('\n🏠 ═══════════════════════════════════════');
+    console.log('🏠 [HOME] Screen mounted');
+    console.log('🏠 ═══════════════════════════════════════\n');
+    
     const insets = useSafeAreaInsets();
     const { colors } = useTheme();
     const { isLoading, LoadingComponent } = useAuthCheck(navigation);
     const { t } = useTranslation();
-    const { currentLanguage, getSupportedLanguages } = useLocalization();
     const [showLanguageSelector, setShowLanguageSelector] = useState(false);
-    
-    const supportedLanguages = getSupportedLanguages();
-    const currentLangInfo = supportedLanguages[currentLanguage];
 
     // Composant MenuItem interne avec accès aux couleurs du thème
     const MenuItem = ({ 
@@ -128,34 +128,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                 <View style={{ 
                     marginHorizontal: -DESIGN_TOKENS.spacing.lg,
                 }}>
-                    <ProfileHeaderComplete navigation={navigation} />
+                    <ProfileHeader 
+                        navigation={navigation} 
+                        onLanguagePress={() => setShowLanguageSelector(true)}
+                    />
                 </View>
-
-                {/* Bouton langue à droite */}
-                <HStack gap="md" justify="flex-end" align="center" style={{
-                    paddingHorizontal: DESIGN_TOKENS.spacing.lg,
-                    marginBottom: DESIGN_TOKENS.spacing.sm,
-                }}>
-                    <Pressable
-                        onPress={() => setShowLanguageSelector(true)}
-                        style={({ pressed }) => ({
-                            width: 44,
-                            height: 44,
-                            borderRadius: 22,
-                            backgroundColor: colors.backgroundSecondary,
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            borderWidth: 1,
-                            borderColor: colors.border,
-                            transform: [{ scale: pressed ? 0.95 : 1 }],
-                        })}
-                        hitSlop={DESIGN_TOKENS.touch.hitSlop}
-                    >
-                        <Text style={{ fontSize: 18 }}>
-                            {currentLangInfo.flag}
-                        </Text>
-                    </Pressable>
-                </HStack>
 
                 <View style={{ 
                     paddingHorizontal: DESIGN_TOKENS.spacing.lg,

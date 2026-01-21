@@ -188,7 +188,7 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
         return { totalJobs, urgentJobs, completedJobs };
     }, [selectedMonthIndex, selectedYear, daysInMonth, jobs]);
 
-    // Component for job indicator dot
+    // Component for job indicator - Enhanced visibility
     const JobIndicator = ({ job }: { job: any }) => {
         if (!job) return null;
 
@@ -197,35 +197,65 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
                 case 'urgent': return colors.error;
                 case 'completed': return colors.success;
                 case 'pending': return colors.warning;
+                case 'in-progress': return colors.primary;
                 default: return colors.primary;
             }
         };
 
+        const indicatorColor = getIndicatorColor();
+        const jobCount = job.count || 1;
+
+        // Si plusieurs jobs, afficher un badge avec compteur
+        if (jobCount > 1) {
+            return (
+                <View style={{
+                    position: 'absolute',
+                    bottom: 2,
+                    left: '50%',
+                    transform: [{ translateX: -12 }],
+                    backgroundColor: indicatorColor,
+                    borderRadius: 10,
+                    minWidth: 24,
+                    height: 16,
+                    paddingHorizontal: 4,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    shadowColor: indicatorColor,
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.4,
+                    shadowRadius: 2,
+                    elevation: 2,
+                }}>
+                    <Text style={{
+                        fontSize: 10,
+                        fontWeight: '700',
+                        color: 'white',
+                    }}>
+                        {jobCount}
+                    </Text>
+                </View>
+            );
+        }
+
+        // Si un seul job, afficher un point coloré
         return (
             <View style={{
                 position: 'absolute',
-                bottom: 2,
-                right: 2,
-                width: 8,
-                height: 8,
-                borderRadius: 4,
-                backgroundColor: getIndicatorColor(),
-                borderWidth: 1,
+                bottom: 4,
+                left: '50%',
+                transform: [{ translateX: -5 }],
+                width: 10,
+                height: 10,
+                borderRadius: 5,
+                backgroundColor: indicatorColor,
+                borderWidth: 2,
                 borderColor: colors.background,
-            }}>
-                {job.count > 1 && (
-                    <Text style={{
-                        position: 'absolute',
-                        top: -10,
-                        right: -2,
-                        fontSize: 8,
-                        color: colors.text,
-                        fontWeight: '600',
-                    }}>
-                        {job.count}
-                    </Text>
-                )}
-            </View>
+                shadowColor: indicatorColor,
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.5,
+                shadowRadius: 2,
+                elevation: 2,
+            }} />
         );
     };
 

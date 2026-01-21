@@ -1,7 +1,9 @@
 /**
- * Roles Service
+ * Roles & Permissions Service
  * CRUD operations for role management (RBAC)
+ * Phase 2 - STAFF-03 Implementation
  * @module services/rolesService
+ * @updated 2026-01-17 - Aligned with new v1 endpoints
  */
 
 import { ServerData } from '../constants/ServerData';
@@ -14,17 +16,20 @@ import { fetchUserProfile } from './user';
 
 export type PermissionScope = 'all' | 'team' | 'assigned';
 
+export type SystemRoleCode = 'owner' | 'admin' | 'manager' | 'technician' | 'viewer' | 'supervisor' | 'mover';
+
 export interface Role {
   id: string;
+  code: SystemRoleCode | string; // System role code
   name: string;
-  display_name: string;
+  display_name?: string;
   description?: string;
   is_system: boolean;
-  is_editable: boolean;
+  is_editable?: boolean;
   permissions: string[];
-  scope: PermissionScope;
-  staff_count: number;
-  created_at: string;
+  scope?: PermissionScope;
+  staff_count?: number;
+  created_at?: string;
   updated_at?: string;
 }
 
@@ -57,118 +62,162 @@ export interface RoleResponse {
 export interface UserPermissions {
   success: boolean;
   user_id: number;
-  role: {
-    id: string;
-    name: string;
-    display_name: string;
-  } | null;
+  role: string; // Role code: 'owner', 'admin', 'manager', etc.
   permissions: string[];
-  scope: PermissionScope;
-  restrictions: Record<string, {
+  is_owner: boolean;
+  scope?: PermissionScope;
+  restrictions?: Record<string, {
     filter: string;
     allowed_actions: string[];
   }> | null;
 }
 
+export interface AssignRoleRequest {
+  role: SystemRoleCode | string;
+  business_id: number;
+}
+
 export interface AssignRoleResponse {
   success: boolean;
   message?: string;
-  staff: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    role: {
-      id: string;
-      name: string;
-      display_name: string;
-    };
+  data: {
+    user_id: number;
+    role: string;
+    permissions: string[];
+  };
+}
+
+export interface CheckPermissionRequest {
+  user_id: number;
+  permission: string;
+  business_id: number;
+}
+
+export interface CheckPermissionResponse {
+  success: boolean;
+  data: {
+    has_permission: boolean;
+    user_id: number;
+    permission: string;
+    role: string;
   };
 }
 
 // ============================================================================
-// Available Permissions (Reference)
+// Available Permissions (Reference) - Phase 2 STAFF-03
 // ============================================================================
 
 export const AVAILABLE_PERMISSIONS = [
-  // Jobs
-  'jobs.read',
-  'jobs.write',
-  'jobs.delete',
-  'jobs.assign',
+  // Business
+  'business.view',
+  'business.edit',
   // Staff
-  'staff.read',
-  'staff.write',
+  'staff.view',
+  'staff.create',
+  'staff.edit',
   'staff.delete',
-  'staff.invite',
+  'staff.assign_role',
+  // Jobs
+  'jobs.view_all',
+  'jobs.view_assigned',
+  'jobs.create',
+  'jobs.edit',
+  'jobs.delete',
+  'jobs.assign_staff',
+  'jobs.complete',
   // Vehicles
-  'vehicles.read',
-  'vehicles.write',
-  'vehicles.delete',
-  // Clients
-  'clients.read',
-  'clients.write',
-  'clients.delete',
+  'vehicles.view',
+  'vehicles.manage',
   // Payments
-  'payments.read',
-  'payments.write',
-  // Invoices
-  'invoices.read',
-  'invoices.write',
-  // Settings
-  'settings.read',
-  'settings.write',
+  'payments.view',
+  'payments.process',
+  // Reports
+  'reports.view',
+  'reports.export',
   // Teams
-  'teams.read',
-  'teams.write',
-  // Roles
-  'roles.read',
-  'roles.write',
+  'teams.view',
+  'teams.manage',
 ] as const;
 
 export type Permission = typeof AVAILABLE_PERMISSIONS[number];
 
 export const PERMISSION_CATEGORIES = {
-  jobs: ['jobs.read', 'jobs.write', 'jobs.delete', 'jobs.assign'],
-  staff: ['staff.read', 'staff.write', 'staff.delete', 'staff.invite'],
-  vehicles: ['vehicles.read', 'vehicles.write', 'vehicles.delete'],
-  clients: ['clients.read', 'clients.write', 'clients.delete'],
-  payments: ['payments.read', 'payments.write'],
-  invoices: ['invoices.read', 'invoices.write'],
-  settings: ['settings.read', 'settings.write'],
-  teams: ['teams.read', 'teams.write'],
-  roles: ['roles.read', 'roles.write'],
+  business: ['business.view', 'business.edit'],
+  staff: ['staff.view', 'staff.create', 'staff.edit', 'staff.delete', 'staff.assign_role'],
+  jobs: ['jobs.view_all', 'jobs.view_assigned', 'jobs.create', 'jobs.edit', 'jobs.delete', 'jobs.assign_staff', 'jobs.complete'],
+  vehicles: ['vehicles.view', 'vehicles.manage'],
+  payments: ['payments.view', 'payments.process'],
+  reports: ['reports.view', 'reports.export'],
+  teams: ['teams.view', 'teams.manage'],
 } as const;
 
+// Permission matrix by role (reference - backend is source of truth)
+export const ROLE_PERMISSIONS: Record<SystemRoleCode, string[]> = {
+  owner: ['*'], // Wildcard - all permissions
+  admin: [
+    'business.view', 'business.edit',
+    'staff.view', 'staff.create', 'staff.edit', 'staff.delete', 'staff.assign_role',
+    'jobs.view_all', 'jobs.view_assigned', 'jobs.create', 'jobs.edit', 'jobs.delete', 'jobs.assign_staff', 'jobs.complete',
+    'vehicles.view', 'vehicles.manage',
+    'payments.view', 'payments.process',
+    'reports.view', 'reports.export',
+    'teams.view', 'teams.manage',
+  ],
+  manager: [
+    'staff.view', 'staff.create', 'staff.edit',
+    'jobs.view_all', 'jobs.view_assigned', 'jobs.create', 'jobs.edit', 'jobs.assign_staff', 'jobs.complete',
+    'vehicles.view', 'vehicles.manage',
+    'payments.view',
+    'reports.view', 'reports.export',
+    'teams.view', 'teams.manage',
+  ],
+  technician: [
+    'jobs.view_assigned', 'jobs.edit', 'jobs.complete',
+    'vehicles.view',
+    'teams.view',
+  ],
+  viewer: [
+    'jobs.view_all', 'jobs.view_assigned',
+    'reports.view',
+  ],
+  supervisor: [ // Legacy role
+    'jobs.view_assigned', 'jobs.edit', 'jobs.complete',
+    'vehicles.view',
+  ],
+  mover: [ // Legacy role
+    'jobs.view_assigned', 'jobs.complete',
+  ],
+};
+
 // ============================================================================
-// Helper to get Company ID
+// Helper to get Business ID
 // ============================================================================
 
-async function getCompanyId(): Promise<string> {
+async function getBusinessId(): Promise<number> {
   const profile = await fetchUserProfile();
-  const userId = profile.id.toString();
+  const userId = profile.id;
+  const userIdNum = typeof userId === 'string' ? parseInt(userId, 10) : userId;
   
-  if (userId === '15') {
-    return '1';
+  // TEMPORAIRE: D'après les données, l'utilisateur 15 est lié à Business ID: 1
+  if (userIdNum === 15) {
+    return 1;
   }
   
-  return userId;
+  return userIdNum;
 }
 
 // ============================================================================
-// API Functions - Roles
+// API Functions - Roles (New v1 Endpoints)
 // ============================================================================
 
 /**
- * Fetch all roles for a company
+ * Fetch all roles for a business
+ * GET /v1/roles?business_id={id}
  */
 export async function fetchRoles(): Promise<Role[]> {
-  const companyId = await getCompanyId();
-  if (!companyId) {
-    throw new Error('Company ID not found');
-  }
+  const businessId = await getBusinessId();
 
-  const url = `${ServerData.serverUrl}v1/company/${companyId}/roles`;
+  const url = `${ServerData.serverUrl}v1/roles?business_id=${businessId}`;
   const response = await fetchWithAuth(url, { method: 'GET' });
   const data = await response.json();
 
@@ -176,17 +225,16 @@ export async function fetchRoles(): Promise<Role[]> {
     throw new Error(data.message || 'Failed to fetch roles');
   }
 
-  return data.roles;
+  return data.data?.roles ?? data.roles;
 }
 
 /**
  * Create a new custom role
+ * Note: System roles cannot be created, only custom roles
+ * @deprecated Custom role creation not available in Phase 2
  */
 export async function createRole(request: CreateRoleRequest): Promise<Role> {
-  const companyId = await getCompanyId();
-  if (!companyId) {
-    throw new Error('Company ID not found');
-  }
+  const businessId = await getBusinessId();
 
   if (!request.name || request.name.trim() === '') {
     throw new Error('Role name is required');
@@ -196,7 +244,7 @@ export async function createRole(request: CreateRoleRequest): Promise<Role> {
     throw new Error('At least one permission is required');
   }
 
-  const url = `${ServerData.serverUrl}v1/company/${companyId}/roles`;
+  const url = `${ServerData.serverUrl}v1/company/${businessId}/roles`;
   const response = await fetchWithAuth(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -208,19 +256,18 @@ export async function createRole(request: CreateRoleRequest): Promise<Role> {
     throw new Error(data.message || 'Failed to create role');
   }
 
-  return data.role;
+  return data.data?.role ?? data.role;
 }
 
 /**
  * Update an existing role
+ * Note: System roles cannot be modified
+ * @deprecated Role modification not available in Phase 2
  */
 export async function updateRole(roleId: string, request: UpdateRoleRequest): Promise<Role> {
-  const companyId = await getCompanyId();
-  if (!companyId) {
-    throw new Error('Company ID not found');
-  }
+  const businessId = await getBusinessId();
 
-  const url = `${ServerData.serverUrl}v1/company/${companyId}/roles/${roleId}`;
+  const url = `${ServerData.serverUrl}v1/company/${businessId}/roles/${roleId}`;
   const response = await fetchWithAuth(url, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
@@ -232,24 +279,23 @@ export async function updateRole(roleId: string, request: UpdateRoleRequest): Pr
     throw new Error(data.message || 'Failed to update role');
   }
 
-  return data.role;
+  return data.data?.role ?? data.role;
 }
 
 /**
  * Delete a role
+ * Note: System roles cannot be deleted
+ * @deprecated Role deletion not available in Phase 2
  */
 export async function deleteRole(roleId: string, fallbackRole?: string, permanent = false): Promise<void> {
-  const companyId = await getCompanyId();
-  if (!companyId) {
-    throw new Error('Company ID not found');
-  }
+  const businessId = await getBusinessId();
 
   const params = new URLSearchParams();
   if (fallbackRole) params.append('fallback_role', fallbackRole);
   if (permanent) params.append('permanent', 'true');
   
   const queryString = params.toString();
-  const url = `${ServerData.serverUrl}v1/company/${companyId}/roles/${roleId}${queryString ? `?${queryString}` : ''}`;
+  const url = `${ServerData.serverUrl}v1/company/${businessId}/roles/${roleId}${queryString ? `?${queryString}` : ''}`;
   
   const response = await fetchWithAuth(url, { method: 'DELETE' });
   const data = await response.json();
@@ -260,18 +306,48 @@ export async function deleteRole(roleId: string, fallbackRole?: string, permanen
 }
 
 // ============================================================================
-// API Functions - Staff Role Assignment
+// API Functions - User Permissions (New v1 Endpoints)
 // ============================================================================
 
 /**
- * Assign a role to a staff member
+ * Get user's permissions
+ * GET /v1/users/:userId/permissions?business_id={id}
  */
-export async function assignRoleToStaff(staffId: string | number, roleId: string | number): Promise<AssignRoleResponse['staff']> {
-  const url = `${ServerData.serverUrl}v1/staff/${staffId}/role`;
+export async function fetchUserPermissions(userId: number): Promise<UserPermissions> {
+  const businessId = await getBusinessId();
+
+  const url = `${ServerData.serverUrl}v1/users/${userId}/permissions?business_id=${businessId}`;
+  const response = await fetchWithAuth(url, { method: 'GET' });
+  const data = await response.json();
+
+  if (!data.success) {
+    throw new Error(data.message || 'Failed to fetch user permissions');
+  }
+
+  return data.data ?? data;
+}
+
+/**
+ * Get current user's permissions
+ */
+export async function fetchMyPermissions(): Promise<UserPermissions> {
+  const profile = await fetchUserProfile();
+  const userId = typeof profile.id === 'string' ? parseInt(profile.id, 10) : profile.id;
+  return fetchUserPermissions(userId);
+}
+
+/**
+ * Assign a role to a user
+ * PUT /v1/users/:userId/role
+ */
+export async function assignRoleToUser(userId: number, role: SystemRoleCode | string): Promise<AssignRoleResponse['data']> {
+  const businessId = await getBusinessId();
+
+  const url = `${ServerData.serverUrl}v1/users/${userId}/role`;
   const response = await fetchWithAuth(url, {
-    method: 'PATCH',
+    method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ role_id: roleId }),
+    body: JSON.stringify({ role, business_id: businessId }),
   });
   const data = await response.json();
 
@@ -279,26 +355,43 @@ export async function assignRoleToStaff(staffId: string | number, roleId: string
     throw new Error(data.message || 'Failed to assign role');
   }
 
-  return data.staff;
+  return data.data;
 }
 
-// ============================================================================
-// API Functions - User Permissions
-// ============================================================================
-
 /**
- * Get current user's permissions
+ * Check if a user has a specific permission
+ * POST /v1/permissions/check
  */
-export async function fetchMyPermissions(): Promise<UserPermissions> {
-  const url = `${ServerData.serverUrl}v1/users/me/permissions`;
-  const response = await fetchWithAuth(url, { method: 'GET' });
+export async function checkPermission(userId: number, permission: string): Promise<boolean> {
+  const businessId = await getBusinessId();
+
+  const url = `${ServerData.serverUrl}v1/permissions/check`;
+  const response = await fetchWithAuth(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ user_id: userId, permission, business_id: businessId }),
+  });
   const data = await response.json();
 
   if (!data.success) {
-    throw new Error(data.message || 'Failed to fetch permissions');
+    throw new Error(data.message || 'Failed to check permission');
   }
 
-  return data;
+  return data.data?.has_permission ?? false;
+}
+
+// ============================================================================
+// Backward Compatibility Functions
+// ============================================================================
+
+/**
+ * Assign a role to a staff member
+ * @deprecated Use assignRoleToUser instead
+ */
+export async function assignRoleToStaff(staffId: string | number, roleId: string | number): Promise<AssignRoleResponse['data']> {
+  const numericId = typeof staffId === 'string' ? parseInt(staffId, 10) : staffId;
+  const roleCode = String(roleId);
+  return assignRoleToUser(numericId, roleCode);
 }
 
 // ============================================================================
@@ -340,23 +433,28 @@ export function getPermissionDisplayName(permission: string): string {
   
   const [category, action] = parts;
   const categoryNames: Record<string, string> = {
+    business: 'Business',
     jobs: 'Jobs',
     staff: 'Personnel',
     vehicles: 'Véhicules',
-    clients: 'Clients',
     payments: 'Paiements',
-    invoices: 'Factures',
-    settings: 'Paramètres',
+    reports: 'Rapports',
     teams: 'Équipes',
-    roles: 'Rôles',
   };
   
   const actionNames: Record<string, string> = {
-    read: 'Voir',
-    write: 'Modifier',
+    view: 'Voir',
+    view_all: 'Voir tout',
+    view_assigned: 'Voir assignés',
+    edit: 'Modifier',
+    create: 'Créer',
     delete: 'Supprimer',
-    assign: 'Assigner',
-    invite: 'Inviter',
+    assign_staff: 'Assigner personnel',
+    assign_role: 'Assigner rôle',
+    complete: 'Terminer',
+    manage: 'Gérer',
+    process: 'Traiter',
+    export: 'Exporter',
   };
   
   return `${actionNames[action] || action} ${categoryNames[category] || category}`;
@@ -395,4 +493,48 @@ export function getCustomRoles(roles: Role[]): Role[] {
  */
 export function getEditableRoles(roles: Role[]): Role[] {
   return roles.filter(r => r.is_editable);
+}
+/**
+ * Get role by code from list
+ */
+export function getRoleByCode(roles: Role[], code: SystemRoleCode | string): Role | undefined {
+  return roles.find(r => r.code === code);
+}
+
+/**
+ * Check if role is a system role
+ */
+export function isSystemRole(roleCode: string): boolean {
+  const systemRoles: SystemRoleCode[] = ['owner', 'admin', 'manager', 'technician', 'viewer', 'supervisor', 'mover'];
+  return systemRoles.includes(roleCode as SystemRoleCode);
+}
+
+/**
+ * Get role display name by code
+ */
+export function getRoleDisplayName(roleCode: SystemRoleCode | string): string {
+  const roleNames: Record<string, string> = {
+    owner: 'Propriétaire',
+    admin: 'Administrateur',
+    manager: 'Gestionnaire',
+    technician: 'Technicien',
+    viewer: 'Lecture seule',
+    supervisor: 'Superviseur',
+    mover: 'Déménageur',
+  };
+  return roleNames[roleCode] || roleCode;
+}
+
+/**
+ * Check if a role can perform an action based on local permission matrix
+ * Note: For accurate permission check, use checkPermission() API
+ */
+export function roleHasPermission(roleCode: SystemRoleCode | string, permission: string): boolean {
+  const rolePermissions = ROLE_PERMISSIONS[roleCode as SystemRoleCode];
+  if (!rolePermissions) return false;
+  
+  // Owner has wildcard permission
+  if (rolePermissions.includes('*')) return true;
+  
+  return rolePermissions.includes(permission);
 }

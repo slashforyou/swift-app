@@ -1,24 +1,25 @@
 /**
  * Badges Screen - Affiche les badges gagnés et disponibles
+ * Supporte les modes Light et Dark
  */
-import React, { useEffect, useState, useCallback } from 'react';
-import {
-    View,
-    Text,
-    Pressable,
-    ActivityIndicator,
-    RefreshControl,
-    ScrollView,
-} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { useTranslation } from '../localization';
-import { Colors } from '../constants/Colors';
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+    ActivityIndicator,
+    Pressable,
+    RefreshControl,
+    ScrollView,
+    Text,
+    View,
+} from 'react-native';
 import { DESIGN_TOKENS } from '../constants/Styles';
-import { 
-    fetchGamification, 
-    BadgeDetailed, 
-    getBadgesByCategory 
+import { useTheme } from '../context/ThemeProvider';
+import { useTranslation } from '../localization';
+import {
+    BadgeDetailed,
+    fetchGamification,
+    getBadgesByCategory
 } from '../services/gamification';
 
 type BadgeCategory = 'driver' | 'offsider' | 'business' | 'rating' | 'streak' | 'level' | 'special';
@@ -40,7 +41,12 @@ const CATEGORIES: CategoryInfo[] = [
 ];
 
 const BadgesScreen: React.FC = () => {
+    console.log('\n🎖️ ═══════════════════════════════════════');
+    console.log('🎖️ [BADGES] Screen mounted');
+    console.log('🎖️ ═══════════════════════════════════════\n');
+    
     const navigation = useNavigation();
+    const { colors } = useTheme();
     const { t } = useTranslation();
     const [isLoading, setIsLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
@@ -50,16 +56,19 @@ const BadgesScreen: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
 
     const loadBadges = useCallback(async () => {
+        console.log('🎖️ [BADGES] Loading badges...');
         try {
             setError(null);
             const data = await fetchGamification();
             
             // Badges gagnés
             const earned = data.badgesDetailed?.filter(b => b.earned || b.earnedAt) || [];
+            console.log('🎖️ [BADGES] ✅ Earned badges:', earned.length);
             setEarnedBadges(earned);
             
             // Badges disponibles (non gagnés)
             const available = data.availableBadges?.filter(b => !b.earned && !b.earnedAt) || [];
+            console.log('🎖️ [BADGES] ✅ Available badges:', available.length);
             setAvailableBadges(available);
         } catch (err) {
             console.error('Failed to load badges:', err);
@@ -109,12 +118,12 @@ const BadgesScreen: React.FC = () => {
             <View
                 style={{
                     width: '48%',
-                    backgroundColor: earned ? Colors.light.background : Colors.light.backgroundSecondary,
+                    backgroundColor: earned ? colors.background : colors.backgroundSecondary,
                     borderRadius: DESIGN_TOKENS.radius.lg,
                     padding: DESIGN_TOKENS.spacing.md,
                     marginBottom: DESIGN_TOKENS.spacing.md,
                     borderWidth: earned ? 2 : 1,
-                    borderColor: earned ? categoryInfo.color : Colors.light.border,
+                    borderColor: earned ? categoryInfo.color : colors.border,
                     opacity: earned ? 1 : 0.7,
                     shadowColor: earned ? categoryInfo.color : 'transparent',
                     shadowOffset: { width: 0, height: 2 },
@@ -129,7 +138,7 @@ const BadgesScreen: React.FC = () => {
                         width: 56,
                         height: 56,
                         borderRadius: 28,
-                        backgroundColor: earned ? categoryInfo.color : Colors.light.border,
+                        backgroundColor: earned ? categoryInfo.color : colors.border,
                         justifyContent: 'center',
                         alignItems: 'center',
                         alignSelf: 'center',
@@ -139,7 +148,7 @@ const BadgesScreen: React.FC = () => {
                     <Ionicons
                         name={earned ? categoryInfo.icon : 'lock-closed'}
                         size={28}
-                        color={earned ? 'white' : Colors.light.textMuted}
+                        color={earned ? 'white' : colors.textMuted}
                     />
                 </View>
 
@@ -148,7 +157,7 @@ const BadgesScreen: React.FC = () => {
                     style={{
                         fontSize: 14,
                         fontWeight: '700',
-                        color: earned ? Colors.light.text : Colors.light.textSecondary,
+                        color: earned ? colors.text : colors.textSecondary,
                         textAlign: 'center',
                         marginBottom: 4,
                     }}
@@ -161,7 +170,7 @@ const BadgesScreen: React.FC = () => {
                 <Text
                     style={{
                         fontSize: 12,
-                        color: Colors.light.textMuted,
+                        color: colors.textMuted,
                         textAlign: 'center',
                         lineHeight: 16,
                     }}
@@ -190,7 +199,7 @@ const BadgesScreen: React.FC = () => {
                     <Text
                         style={{
                             fontSize: 10,
-                            color: Colors.light.textMuted,
+                            color: colors.textMuted,
                             textAlign: 'center',
                             marginTop: DESIGN_TOKENS.spacing.xs,
                         }}
@@ -204,9 +213,9 @@ const BadgesScreen: React.FC = () => {
 
     if (isLoading) {
         return (
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.light.background }}>
-                <ActivityIndicator size="large" color={Colors.light.primary} />
-                <Text style={{ marginTop: 16, color: Colors.light.textSecondary }}>
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+                <ActivityIndicator size="large" color={colors.primary} />
+                <Text style={{ marginTop: 16, color: colors.textSecondary }}>
                     {t('badges.loading')}
                 </Text>
             </View>
@@ -215,9 +224,9 @@ const BadgesScreen: React.FC = () => {
 
     if (error) {
         return (
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.light.background, padding: 20 }}>
-                <Ionicons name="alert-circle" size={48} color={Colors.light.error} />
-                <Text style={{ marginTop: 16, color: Colors.light.error, textAlign: 'center' }}>
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background, padding: 20 }}>
+                <Ionicons name="alert-circle" size={48} color={colors.error} />
+                <Text style={{ marginTop: 16, color: colors.error, textAlign: 'center' }}>
                     {error}
                 </Text>
                 <Pressable
@@ -226,7 +235,7 @@ const BadgesScreen: React.FC = () => {
                         marginTop: 16,
                         paddingHorizontal: 24,
                         paddingVertical: 12,
-                        backgroundColor: Colors.light.primary,
+                        backgroundColor: colors.primary,
                         borderRadius: DESIGN_TOKENS.radius.md,
                     }}
                 >
@@ -239,7 +248,7 @@ const BadgesScreen: React.FC = () => {
     }
 
     return (
-        <View style={{ flex: 1, backgroundColor: Colors.light.background }}>
+        <View style={{ flex: 1, backgroundColor: colors.background }}>
             {/* Header */}
             <View
                 style={{
@@ -248,9 +257,9 @@ const BadgesScreen: React.FC = () => {
                     paddingHorizontal: DESIGN_TOKENS.spacing.lg,
                     paddingTop: DESIGN_TOKENS.spacing.xl,
                     paddingBottom: DESIGN_TOKENS.spacing.md,
-                    backgroundColor: Colors.light.background,
+                    backgroundColor: colors.background,
                     borderBottomWidth: 1,
-                    borderBottomColor: Colors.light.border,
+                    borderBottomColor: colors.border,
                 }}
             >
                 <Pressable
@@ -261,19 +270,19 @@ const BadgesScreen: React.FC = () => {
                         opacity: pressed ? 0.7 : 1,
                     })}
                 >
-                    <Ionicons name="arrow-back" size={24} color={Colors.light.text} />
+                    <Ionicons name="arrow-back" size={24} color={colors.text} />
                 </Pressable>
                 <View style={{ flex: 1 }}>
-                    <Text style={{ fontSize: 20, fontWeight: '700', color: Colors.light.text }}>
+                    <Text style={{ fontSize: 20, fontWeight: '700', color: colors.text }}>
                         {t('badges.title')}
                     </Text>
-                    <Text style={{ fontSize: 14, color: Colors.light.textSecondary }}>
+                    <Text style={{ fontSize: 14, color: colors.textSecondary }}>
                         {earnedBadges.length} / {earnedBadges.length + availableBadges.length} {t('badges.earned')}
                     </Text>
                 </View>
                 <View
                     style={{
-                        backgroundColor: Colors.light.primary,
+                        backgroundColor: colors.primary,
                         paddingHorizontal: 12,
                         paddingVertical: 6,
                         borderRadius: DESIGN_TOKENS.radius.full,
@@ -292,7 +301,7 @@ const BadgesScreen: React.FC = () => {
                 style={{
                     maxHeight: 50,
                     borderBottomWidth: 1,
-                    borderBottomColor: Colors.light.border,
+                    borderBottomColor: colors.border,
                 }}
                 contentContainerStyle={{
                     paddingHorizontal: DESIGN_TOKENS.spacing.md,
@@ -307,14 +316,14 @@ const BadgesScreen: React.FC = () => {
                         paddingHorizontal: 16,
                         paddingVertical: 8,
                         borderRadius: DESIGN_TOKENS.radius.full,
-                        backgroundColor: selectedCategory === 'all' ? Colors.light.primary : Colors.light.backgroundSecondary,
+                        backgroundColor: selectedCategory === 'all' ? colors.primary : colors.backgroundSecondary,
                     }}
                 >
                     <Text
                         style={{
                             fontSize: 13,
                             fontWeight: '600',
-                            color: selectedCategory === 'all' ? 'white' : Colors.light.textSecondary,
+                            color: selectedCategory === 'all' ? 'white' : colors.textSecondary,
                         }}
                     >
                         {getCategoryLabel('all')}
@@ -332,7 +341,7 @@ const BadgesScreen: React.FC = () => {
                             paddingHorizontal: 12,
                             paddingVertical: 8,
                             borderRadius: DESIGN_TOKENS.radius.full,
-                            backgroundColor: selectedCategory === cat.key ? cat.color : Colors.light.backgroundSecondary,
+                            backgroundColor: selectedCategory === cat.key ? cat.color : colors.backgroundSecondary,
                             gap: 6,
                         }}
                     >
@@ -345,7 +354,7 @@ const BadgesScreen: React.FC = () => {
                             style={{
                                 fontSize: 13,
                                 fontWeight: '600',
-                                color: selectedCategory === cat.key ? 'white' : Colors.light.textSecondary,
+                                color: selectedCategory === cat.key ? 'white' : colors.textSecondary,
                             }}
                         >
                             {getCategoryLabel(cat.key)}
@@ -369,7 +378,7 @@ const BadgesScreen: React.FC = () => {
                             style={{
                                 fontSize: 16,
                                 fontWeight: '700',
-                                color: Colors.light.text,
+                                color: colors.text,
                                 marginBottom: DESIGN_TOKENS.spacing.md,
                             }}
                         >
@@ -398,7 +407,7 @@ const BadgesScreen: React.FC = () => {
                             style={{
                                 fontSize: 16,
                                 fontWeight: '700',
-                                color: Colors.light.text,
+                                color: colors.text,
                                 marginBottom: DESIGN_TOKENS.spacing.md,
                             }}
                         >
@@ -423,11 +432,11 @@ const BadgesScreen: React.FC = () => {
                 {/* Empty State */}
                 {filteredEarned.length === 0 && filteredAvailable.length === 0 && (
                     <View style={{ alignItems: 'center', paddingVertical: 40 }}>
-                        <Ionicons name="ribbon-outline" size={64} color={Colors.light.textMuted} />
+                        <Ionicons name="ribbon-outline" size={64} color={colors.textMuted} />
                         <Text
                             style={{
                                 fontSize: 16,
-                                color: Colors.light.textSecondary,
+                                color: colors.textSecondary,
                                 marginTop: 16,
                                 textAlign: 'center',
                             }}

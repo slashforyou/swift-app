@@ -452,7 +452,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
             color: colors.textSecondary,
             marginBottom: 4,
           }}>
-            Temps facturable
+            {t('jobs.timer.billableTime')}
           </Text>
           <Text style={{
             fontSize: 16,
@@ -622,13 +622,13 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
           marginBottom: DESIGN_TOKENS.spacing.lg,
         }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
-            <Text style={{ fontSize: 12, color: colors.textSecondary }}>Temps facturable</Text>
+            <Text style={{ fontSize: 12, color: colors.textSecondary }}>{t('jobs.timer.billableTime')}</Text>
             <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text }}>
               {formatTime(billableTime)}
             </Text>
           </View>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-            <Text style={{ fontSize: 12, color: colors.textSecondary }}>Taux horaire</Text>
+            <Text style={{ fontSize: 12, color: colors.textSecondary }}>{t('payments.hourlyRate')}</Text>
             <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text }}>
               {costData.hours.toFixed(2)}h × {HOURLY_RATE_AUD} AUD/h
             </Text>

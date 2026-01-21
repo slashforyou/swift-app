@@ -435,7 +435,6 @@ const ProfileHeaderComplete: React.FC<ProfileHeaderProps> = ({
             <NotificationsPanel
                 isVisible={showNotifications}
                 onClose={() => setShowNotifications(false)}
-                notifications={mockNotifications}
             />
         </>
     );

@@ -337,7 +337,7 @@ const JobClock: React.FC<JobClockProps> = ({ job, onOpenSignatureModal }) => {
                         color: colors.textSecondary,
                         marginBottom: 2,
                     }}>
-                        Temps facturable
+                        {t('jobs.timer.billableTime')}
                     </Text>
                     <Text style={{
                         fontSize: 18,
@@ -354,7 +354,7 @@ const JobClock: React.FC<JobClockProps> = ({ job, onOpenSignatureModal }) => {
                         color: colors.textSecondary,
                         marginBottom: 2,
                     }}>
-                        Temps total
+                        {t('jobs.timer.totalTime')}
                     </Text>
                     <Text style={{
                         fontSize: 14,

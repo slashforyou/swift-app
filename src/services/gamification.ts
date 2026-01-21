@@ -129,11 +129,20 @@ export async function fetchGamification(): Promise<GamificationData> {
   return response.data;
 }
 
+export type LeaderboardPeriod = 'week' | 'month' | 'year' | 'all';
+
 /**
  * Récupère le leaderboard
+ * @param limit - Nombre maximum d'entrées
+ * @param period - Période du classement (week, month, year, all)
  */
-export async function fetchLeaderboard(limit: number = 20): Promise<LeaderboardResponse> {
-  const res = await authenticatedFetch(`${API}v1/user/gamification/leaderboard?limit=${limit}`, {
+export async function fetchLeaderboard(limit: number = 20, period: LeaderboardPeriod = 'all'): Promise<LeaderboardResponse> {
+  const params = new URLSearchParams({
+    limit: limit.toString(),
+    ...(period !== 'all' && { period }),
+  });
+  
+  const res = await authenticatedFetch(`${API}v1/user/gamification/leaderboard?${params}`, {
     method: 'GET',
   });
 

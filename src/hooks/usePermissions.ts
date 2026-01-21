@@ -1,14 +1,18 @@
 /**
  * usePermissions Hook
  * React hook for checking user permissions
+ * Phase 2 - STAFF-03 Implementation
  * @module hooks/usePermissions
+ * @updated 2026-01-17 - Aligned with new v1 endpoints
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     PermissionScope,
     UserPermissions,
+    checkPermission as checkPermissionApi,
     fetchMyPermissions,
+    getRoleDisplayName,
     hasWildcardPermission,
 } from '../services/rolesService';
 
@@ -28,6 +32,7 @@ interface UsePermissionsReturn extends UsePermissionsState {
   hasPermission: (permission: string) => boolean;
   hasAnyPermission: (permissions: string[]) => boolean;
   hasAllPermissions: (permissions: string[]) => boolean;
+  checkPermissionAsync: (permission: string) => Promise<boolean>;
   
   // Role info
   roleName: string | null;
@@ -46,9 +51,14 @@ interface UsePermissionsReturn extends UsePermissionsState {
   isOwner: boolean;
   isAdmin: boolean;
   isManager: boolean;
+  isTechnician: boolean;
+  isViewer: boolean;
   canManageStaff: boolean;
   canManageJobs: boolean;
+  canManageTeams: boolean;
   canManageSettings: boolean;
+  canViewReports: boolean;
+  canProcessPayments: boolean;
 }
 
 // ============================================================================
@@ -116,17 +126,33 @@ export function usePermissions(): UsePermissionsReturn {
     return permissions.every(p => hasPermission(p));
   }, [hasPermission]);
 
+  /**
+   * Check permission via API (more accurate but async)
+   */
+  const checkPermissionAsync = useCallback(async (permission: string): Promise<boolean> => {
+    if (!state.permissions?.user_id) return false;
+    try {
+      return await checkPermissionApi(state.permissions.user_id, permission);
+    } catch {
+      // Fallback to local check
+      return hasPermission(permission);
+    }
+  }, [state.permissions?.user_id, hasPermission]);
+
   // ---------------------------------------------------------------------------
   // Role Info
   // ---------------------------------------------------------------------------
 
   const roleName = useMemo(() => {
-    return state.permissions?.role?.name ?? null;
+    // API returns role as string code (e.g., 'owner', 'admin', 'manager')
+    const role = state.permissions?.role;
+    return role ?? null;
   }, [state.permissions]);
 
   const roleDisplayName = useMemo(() => {
-    return state.permissions?.role?.display_name ?? null;
-  }, [state.permissions]);
+    if (!roleName) return null;
+    return getRoleDisplayName(roleName);
+  }, [roleName]);
 
   const scope = useMemo((): PermissionScope => {
     return state.permissions?.scope ?? 'all';
@@ -152,7 +178,9 @@ export function usePermissions(): UsePermissionsReturn {
   // ---------------------------------------------------------------------------
 
   const isOwner = useMemo(() => {
-    return roleName === 'owner' || hasWildcardPermission(state.permissions?.permissions ?? []);
+    return roleName === 'owner' || 
+           state.permissions?.is_owner === true ||
+           hasWildcardPermission(state.permissions?.permissions ?? []);
   }, [roleName, state.permissions]);
 
   const isAdmin = useMemo(() => {
@@ -163,16 +191,36 @@ export function usePermissions(): UsePermissionsReturn {
     return roleName === 'manager' || isAdmin;
   }, [roleName, isAdmin]);
 
+  const isTechnician = useMemo(() => {
+    return roleName === 'technician';
+  }, [roleName]);
+
+  const isViewer = useMemo(() => {
+    return roleName === 'viewer';
+  }, [roleName]);
+
   const canManageStaff = useMemo(() => {
-    return hasAnyPermission(['staff.write', 'staff.delete', 'staff.invite']);
+    return hasAnyPermission(['staff.create', 'staff.edit', 'staff.delete', 'staff.assign_role']);
   }, [hasAnyPermission]);
 
   const canManageJobs = useMemo(() => {
-    return hasAnyPermission(['jobs.write', 'jobs.delete', 'jobs.assign']);
+    return hasAnyPermission(['jobs.create', 'jobs.edit', 'jobs.delete', 'jobs.assign_staff']);
   }, [hasAnyPermission]);
 
+  const canManageTeams = useMemo(() => {
+    return hasPermission('teams.manage');
+  }, [hasPermission]);
+
   const canManageSettings = useMemo(() => {
-    return hasPermission('settings.write');
+    return hasPermission('business.edit');
+  }, [hasPermission]);
+
+  const canViewReports = useMemo(() => {
+    return hasPermission('reports.view');
+  }, [hasPermission]);
+
+  const canProcessPayments = useMemo(() => {
+    return hasPermission('payments.process');
   }, [hasPermission]);
 
   // ---------------------------------------------------------------------------
@@ -206,6 +254,7 @@ export function usePermissions(): UsePermissionsReturn {
     hasPermission,
     hasAnyPermission,
     hasAllPermissions,
+    checkPermissionAsync,
     
     // Role info
     roleName,
@@ -224,9 +273,14 @@ export function usePermissions(): UsePermissionsReturn {
     isOwner,
     isAdmin,
     isManager,
+    isTechnician,
+    isViewer,
     canManageStaff,
     canManageJobs,
+    canManageTeams,
     canManageSettings,
+    canViewReports,
+    canProcessPayments,
   };
 }
 

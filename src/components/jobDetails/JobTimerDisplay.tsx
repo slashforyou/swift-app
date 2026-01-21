@@ -203,20 +203,15 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({ job, onOpenSignatureM
                 </View>
             </View>
 
-            {/* LIGNE 2: Mini progression avec cercles */}
+            {/* LIGNE 2: Stepper amélioré avec progression visuelle */}
             <View style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
                 marginBottom: DESIGN_TOKENS.spacing.lg,
-                paddingHorizontal: 4,
             }}>
                 {/* Cercles des steps */}
                 <View style={{
                     flexDirection: 'row',
                     alignItems: 'center',
-                    flex: 1,
-                    gap: 8,
+                    paddingHorizontal: 4,
                 }}>
                     {job?.steps?.map((step: any, index: number) => {
                         const stepNumber = index + 1;
@@ -226,52 +221,115 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({ job, onOpenSignatureM
 
                         return (
                             <React.Fragment key={step.id || index}>
-                                {/* Cercle du step */}
+                                {/* Cercle du step avec halo pour l'étape active */}
                                 <View style={{
-                                    width: 24,
-                                    height: 24,
-                                    borderRadius: 12,
-                                    backgroundColor: isCompleted || isCurrent ? colors.primary : colors.background,
-                                    borderWidth: 2,
-                                    borderColor: isCompleted || isCurrent ? colors.primary : colors.border,
-                                    justifyContent: 'center',
                                     alignItems: 'center',
-                                    transform: isCurrent ? [{ scale: 1.2 }] : [{ scale: 1 }],
+                                    position: 'relative',
                                 }}>
-                                    {isCompleted ? (
-                                        <Ionicons name="checkmark" size={12} color={colors.background} />
-                                    ) : (
-                                        <Text style={{
-                                            fontSize: 10,
-                                            fontWeight: '700',
-                                            color: isCurrent ? colors.background : colors.textSecondary,
-                                        }}>
-                                            {stepNumber}
-                                        </Text>
+                                    {/* Halo lumineux pour l'étape active */}
+                                    {isCurrent && (
+                                        <View style={{
+                                            position: 'absolute',
+                                            width: 36,
+                                            height: 36,
+                                            borderRadius: 18,
+                                            backgroundColor: colors.primary + '25',
+                                            top: -6,
+                                            left: -6,
+                                        }} />
                                     )}
+                                    <View style={{
+                                        width: isCurrent ? 28 : 24,
+                                        height: isCurrent ? 28 : 24,
+                                        borderRadius: isCurrent ? 14 : 12,
+                                        backgroundColor: isCompleted ? colors.success : isCurrent ? colors.primary : colors.backgroundSecondary,
+                                        borderWidth: isCurrent ? 3 : 2,
+                                        borderColor: isCompleted ? colors.success : isCurrent ? colors.primary : colors.border,
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        shadowColor: isCurrent ? colors.primary : 'transparent',
+                                        shadowOffset: { width: 0, height: 2 },
+                                        shadowOpacity: isCurrent ? 0.4 : 0,
+                                        shadowRadius: 4,
+                                        elevation: isCurrent ? 4 : 0,
+                                    }}>
+                                        {isCompleted ? (
+                                            <Ionicons name="checkmark" size={14} color={colors.background} />
+                                        ) : (
+                                            <Text style={{
+                                                fontSize: isCurrent ? 12 : 10,
+                                                fontWeight: '700',
+                                                color: isCurrent ? colors.background : colors.textSecondary,
+                                            }}>
+                                                {stepNumber}
+                                            </Text>
+                                        )}
+                                    </View>
                                 </View>
 
-                                {/* Ligne entre les steps (sauf pour le dernier) */}
+                                {/* Ligne de progression entre les steps */}
                                 {index < job.steps.length - 1 && (
                                     <View style={{
                                         flex: 1,
-                                        height: 2,
-                                        backgroundColor: stepNumber < currentStep ? colors.primary : colors.border,
-                                    }} />
+                                        height: 3,
+                                        marginHorizontal: 4,
+                                        backgroundColor: colors.border,
+                                        borderRadius: 1.5,
+                                        overflow: 'hidden',
+                                    }}>
+                                        {/* Progression remplie */}
+                                        <View style={{
+                                            width: stepNumber < currentStep ? '100%' : '0%',
+                                            height: '100%',
+                                            backgroundColor: colors.success,
+                                            borderRadius: 1.5,
+                                        }} />
+                                    </View>
                                 )}
                             </React.Fragment>
+                        );
+                    })}
+                </View>
+                
+                {/* Mini labels sous les étapes */}
+                <View style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    paddingHorizontal: 0,
+                    marginTop: 8,
+                }}>
+                    {job?.steps?.map((step: any, index: number) => {
+                        const stepNumber = index + 1;
+                        const isCurrent = stepNumber === currentStep;
+                        const isCompleted = stepNumber < currentStep;
+                        
+                        return (
+                            <Text 
+                                key={`label-${step.id || index}`}
+                                style={{
+                                    fontSize: 9,
+                                    fontWeight: isCurrent ? '700' : '500',
+                                    color: isCurrent ? colors.primary : isCompleted ? colors.success : colors.textMuted,
+                                    textAlign: 'center',
+                                    width: `${100 / job.steps.length}%`,
+                                }}
+                                numberOfLines={1}
+                            >
+                                {step.name || `Étape ${stepNumber}`}
+                            </Text>
                         );
                     })}
                 </View>
             </View>
 
             {/* LIGNE 2.5: Boutons de contrôle (sous la timeline) */}
+            {/* ✅ Hiérarchie CTA claire: Primaire = action principale, Secondaire = action optionnelle */}
             <View style={{
                 flexDirection: 'row',
                 gap: DESIGN_TOKENS.spacing.md,
                 marginBottom: DESIGN_TOKENS.spacing.lg,
             }}>
-                {/* ✅ Bouton Play/Pause/Commencer */}
+                {/* ✅ Bouton PRIMAIRE: Play/Pause (action principale) */}
                 {!isTimerFrozen && (
                     <Pressable
                         onPress={togglePause}
@@ -285,54 +343,64 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({ job, onOpenSignatureM
                             flexDirection: 'row',
                             alignItems: 'center',
                             gap: 8,
-                            flex: 1,
+                            flex: isRunning ? 1 : 2, // Plus large quand c'est "Démarrer"
                             justifyContent: 'center',
+                            minHeight: 48, // Touch target minimum
                         })}
                     >
                         <Ionicons 
                             name={isRunning ? 'pause' : 'play'} 
-                            size={18} 
+                            size={20} 
                             color={colors.background} 
                         />
-                        <Text style={{
-                            color: colors.background,
-                            fontSize: 16,
-                            fontWeight: '600',
-                        }}>
-                            {isRunning ? t('job.timer.pause') : t('job.timer.start')}
+                        <Text 
+                            style={{
+                                color: colors.background,
+                                fontSize: 15,
+                                fontWeight: '700',
+                            }}
+                            numberOfLines={1}
+                        >
+                            {isRunning ? t('jobs.timer.pause') : t('jobs.timer.start')}
                         </Text>
                     </Pressable>
                 )}
 
-                {/* ✅ Bouton Étape suivante / Terminer */}
+                {/* ✅ Bouton SECONDAIRE: Étape suivante (outline style, moins proéminent) */}
                 {isRunning && !isOnBreak && (
                     <Pressable
                         onPress={currentStep < totalSteps ? handleNextStep : handleStopTimer}
                         style={({ pressed }) => ({
                             flex: 1,
-                            paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+                            paddingHorizontal: DESIGN_TOKENS.spacing.md,
                             paddingVertical: DESIGN_TOKENS.spacing.md,
                             borderRadius: DESIGN_TOKENS.radius.md,
                             backgroundColor: pressed 
-                                ? colors.primary + 'DD' 
-                                : colors.primary,
+                                ? colors.backgroundTertiary
+                                : colors.backgroundSecondary,
+                            borderWidth: 1.5,
+                            borderColor: currentStep < totalSteps ? colors.primary : colors.success,
                             flexDirection: 'row',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            gap: 8,
+                            gap: 6,
+                            minHeight: 48,
                         })}
                     >
                         <Ionicons 
                             name={currentStep < totalSteps ? 'arrow-forward' : 'checkmark-circle'} 
                             size={18} 
-                            color={colors.background} 
+                            color={currentStep < totalSteps ? colors.primary : colors.success} 
                         />
-                        <Text style={{
-                            color: colors.background,
-                            fontSize: 16,
-                            fontWeight: '600',
-                        }}>
-                            {currentStep < totalSteps ? 'Étape suivante' : 'Terminer'}
+                        <Text 
+                            style={{
+                                color: currentStep < totalSteps ? colors.primary : colors.success,
+                                fontSize: 14,
+                                fontWeight: '600',
+                            }}
+                            numberOfLines={1}
+                        >
+                            {currentStep < totalSteps ? t('jobs.timer.nextStep') : t('jobs.timer.finish')}
                         </Text>
                     </Pressable>
                 )}
@@ -437,7 +505,7 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({ job, onOpenSignatureM
             }}>
                 <View>
                     <Text style={{ fontSize: 12, color: colors.textSecondary }}>
-                        Temps facturable
+                        {t('jobs.timer.billableTime')}
                     </Text>
                     <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text }}>
                         {formatTime(billableTime)}
@@ -445,7 +513,7 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({ job, onOpenSignatureM
                 </View>
                 <View style={{ alignItems: 'flex-end' }}>
                     <Text style={{ fontSize: 12, color: colors.textSecondary }}>
-                        Temps total
+                        {t('jobs.timer.totalTime')}
                     </Text>
                     <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text }}>
                         {formatTime(totalElapsed)}

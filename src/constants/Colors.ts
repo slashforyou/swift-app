@@ -85,8 +85,8 @@ export const Colors = {
   dark: {
     // Base colors - Dark theme référence exacte
     text: '#F5F7FB', // text_dark selon spécifications
-    textSecondary: '#C8D0E0', // text_secondary_dark selon spécifications
-    textMuted: '#9AA7BF', // variant intermédiaire
+    textSecondary: '#D4DBE8', // ⬆️ Amélioration contraste WCAG (était #C8D0E0)
+    textMuted: '#A8B5C9', // ⬆️ Amélioration contraste WCAG (était #9AA7BF)
     background: '#0F1420', // background_dark selon spécifications
     backgroundSecondary: '#121826', // surface_dark selon spécifications
     backgroundTertiary: '#121826', // surface_dark selon spécifications
