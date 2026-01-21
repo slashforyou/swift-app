@@ -1,0 +1,65 @@
+# Diagnostic complet du step login
+$ErrorActionPreference = "Continue"
+
+Write-Host "=== DIAGNOSTIC LOGIN STEP ===" -ForegroundColor Cyan
+
+# 1. Charger les fonctions
+Write-Host "`n1. Chargement des fonctions..." -ForegroundColor Yellow
+try {
+    . "$PSScriptRoot\..\shared\utils.ps1"
+    . "$PSScriptRoot\..\shared\config.ps1"
+    Write-Host "[OK] Fonctions chargees" -ForegroundColor Green
+} catch {
+    Write-Host "[FAIL] Erreur chargement: $_" -ForegroundColor Red
+    exit 1
+}
+
+# 2. Tester Get-Screen
+Write-Host "`n2. Test Get-Screen..." -ForegroundColor Yellow
+$ui = Get-Screen
+if ($ui) {
+    Write-Host "[OK] UI capturee (type: $($ui.GetType().Name))" -ForegroundColor Green
+} else {
+    Write-Host "[FAIL] Get-Screen retourne null" -ForegroundColor Red
+    exit 1
+}
+
+# 3. Vérifier le fichier XML
+Write-Host "`n3. Verification fichier XML..." -ForegroundColor Yellow
+$workspaceRoot = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
+$xmlPath = Join-Path $workspaceRoot "logs\ui_current.xml"
+if (Test-Path $xmlPath) {
+    Write-Host "[OK] Fichier existe: $xmlPath" -ForegroundColor Green
+    $xmlContent = Get-Content $xmlPath -Raw
+    Write-Host "  Taille: $($xmlContent.Length) caracteres" -ForegroundColor Gray
+} else {
+    Write-Host "[FAIL] Fichier introuvable: $xmlPath" -ForegroundColor Red
+    exit 1
+}
+
+# 4. Tester la detection d'elements
+Write-Host "`n4. Detection d'elements..." -ForegroundColor Yellow
+$elements = @("Today", "Jobs", "Calendar", "Create New Job", "Pickup Address", "Email", "Password")
+$found = @()
+
+foreach ($elem in $elements) {
+    $result = Test-ElementExists -Ui $ui -Text $elem
+    if ($result) {
+        Write-Host "  [✓] '$elem' detecte" -ForegroundColor Green
+        $found += $elem
+    } else {
+        Write-Host "  [ ] '$elem' non trouve" -ForegroundColor DarkGray
+    }
+}
+
+# 5. Conclusion
+Write-Host "`n5. Conclusion:" -ForegroundColor Yellow
+if ($found.Count -gt 0) {
+    Write-Host "[OK] Elements detectes: $($found -join ', ')" -ForegroundColor Green
+    Write-Host "=> Lutilisateur est CONNECTE" -ForegroundColor Green
+} else {
+    Write-Host "[INFO] Aucun element de connexion detecte" -ForegroundColor Yellow
+    Write-Host "=> Besoin de se connecter" -ForegroundColor Yellow
+}
+
+Write-Host "`n=== FIN DU DIAGNOSTIC ===" -ForegroundColor Cyan

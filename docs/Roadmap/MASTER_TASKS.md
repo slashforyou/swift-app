@@ -70,6 +70,7 @@
 ## 🔐 1. AUTHENTIFICATION (1 problème)
 
 ### Bouton de Déconnexion Manquant 🔴
+
 - [x] **AUTH-01** : Ajouter un bouton de déconnexion dans l'écran Paramètres
   - **Fichier :** `src/screens/parameters.tsx`
   - **Action :** Ajouter bouton "Se déconnecter" avec confirmation
@@ -81,6 +82,7 @@
 ## 📋 2. JOBS & TIMER (7 problèmes)
 
 ### Création de Job Impossible 🔴
+
 - [x] **JOB-01** : Implémenter la création d'un nouveau job
   - **Fichier :** Nouveau écran `src/screens/jobs/CreateJobScreen.tsx`
   - **Action :** Modal/écran de création avec champs: client, adresse, date, description
@@ -89,6 +91,7 @@
   - **Impact :** Fonctionnalité CORE manquante
 
 ### Modification de Job Impossible 🔴
+
 - [x] **JOB-02** : Implémenter la modification d'un job existant
   - **Fichier :** `src/screens/JobDetailsScreens/jobDetails.tsx` ou nouveau modal
   - **Action :** Permettre édition: heure, adresse, client, description
@@ -97,6 +100,7 @@
   - **Impact :** Fonctionnalité CORE manquante
 
 ### Suppression de Job Impossible 🔴
+
 - [x] **JOB-03** : Implémenter la suppression d'un job
   - **Fichier :** `src/screens/JobDetailsScreens/jobDetails.tsx`
   - **Action :** Ajouter bouton supprimer avec confirmation
@@ -105,6 +109,7 @@
   - **Impact :** Fonctionnalité CORE manquante
 
 ### Ajout de Note - Erreur 🔴
+
 - [x] **JOB-04** : Corriger l'erreur lors de l'ajout d'une note
   - **Fichier :** `src/components/modals/ImprovedNoteModal.tsx`, `src/services/jobNotes.ts`
   - **Action :** Debug et corriger l'endpoint/la logique
@@ -113,6 +118,7 @@
   - **Impact :** Bloquant - Fonctionnalité cassée
 
 ### Photos Non Sauvegardées 🔴
+
 - [x] **JOB-05** : Les photos prises ne sont pas sauvegardées/affichées
   - **Fichier :** `src/components/modals/PhotoSelectionModal.tsx`, `src/services/jobPhotos.ts`
   - **Action :** Implémenter upload vers backend + affichage dans job
@@ -121,12 +127,14 @@
   - **Impact :** Fonctionnalité cassée
 
 ### ✅ Timer - Boucle Infinie au Démarrage 🔴 (RÉSOLU 2 Jan 2026)
+
 - [x] **JOB-06** : Corriger la boucle infinie lors du démarrage du timer
   - **Fichier :** `src/hooks/useJobTimer.ts`, `src/context/JobTimerProvider.tsx`
   - **Solution :** Ajout refs pour éviter chargements multiples (isLoadingRef, hasLoadedRef, currentStepRef)
   - **Commit :** `db3008d`
 
 ### ✅ Timer - Boucle Infinie à l'Avancement 🔴 (RÉSOLU 2 Jan 2026)
+
 - [x] **JOB-07** : Corriger la boucle infinie lors de l'avancement des étapes
   - **Fichier :** `src/hooks/useJobTimer.ts`, `src/context/JobTimerProvider.tsx`, `summary.tsx`, `JobTimeSection.tsx`
   - **Solution :** Guards dans useEffect sync, suppression double appel API, migration JobTimeSection vers context
@@ -137,6 +145,7 @@
 ## 👥 3. GESTION DU PERSONNEL (4 problèmes)
 
 ### Assignation Employé à Job Impossible 🔴
+
 - [x] **STAFF-01** : Implémenter l'assignation d'un employé à un job ✅ RÉSOLU (v2 - API réelle)
   - **Fichier :** `src/screens/jobDetails.tsx`, `src/services/crewService.ts`
   - **Action :** Modal de sélection + appel API `/job/:id/crew`
@@ -147,6 +156,7 @@
   - **Solution v2 (3 Jan 2026) :** Créé crewService.ts avec POST/GET/DELETE /job/:id/crew, mis à jour jobDetails.tsx pour utiliser les vrais endpoints au lieu de PATCH /jobs avec assigned_staff_id
 
 ### Gestion des Équipes Inexistante 🟠
+
 - [ ] **STAFF-02** : Créer le système de gestion des équipes (PHASE 2 - BACKEND REQUIS)
   - **Fichier :** Nouveau écran `src/screens/TeamsScreen.tsx`
   - **Action :** CRUD équipes (créer, modifier, supprimer, assigner membres)
@@ -155,6 +165,7 @@
   - **Impact :** Fonctionnalité Phase 2
 
 ### Système de Rôles/Permissions Inexistant 🟠
+
 - [ ] **STAFF-03** : Implémenter le système de rôles et permissions (PHASE 2 - BACKEND REQUIS)
   - **Fichier :** `src/services/staffService.ts`, `src/types/staff.ts`
   - **Action :** Définir rôles (Admin, Manager, Tech, Viewer) + UI
@@ -163,18 +174,20 @@
   - **Impact :** Fonctionnalité Phase 2 - Enterprise
 
 ### Vérification Serveur Staff (Mock actif) 🟠
+
 - [x] **STAFF-04** : Valider que les opérations Staff fonctionnent en données réelles ✅ RÉSOLU
   - **Fichier :** `src/hooks/useStaff.ts`
   - **Action :** Tester sans mock, corriger si erreurs
   - **Complexité :** Faible (2-3h)
   - **Impact :** Validation production
-  - **Solution :** USE_MOCK_DATA passé de __DEV__ à false, staffService utilise déjà les vraies APIs
+  - **Solution :** USE_MOCK_DATA passé de **DEV** à false, staffService utilise déjà les vraies APIs
 
 ---
 
 ## 🚗 4. VÉHICULES (4 problèmes)
 
 ### Modal d'Ajout de Véhicule Manquant 🔴
+
 - [x] **VEH-01** : Le bouton et modal d'ajout de véhicule n'existent pas
   - **Fichier :** `src/screens/business/trucksScreen.tsx`
   - **Action :** Ajouter FAB + `AddVehicleModal` fonctionnel
@@ -183,6 +196,7 @@
   - **Impact :** Fonctionnalité CORE manquante
 
 ### Modification de Véhicule - Seulement une Alerte 🔴
+
 - [x] **VEH-02** : La modification affiche seulement une alerte au lieu d'un formulaire
   - **Fichier :** `src/screens/business/VehicleDetailsScreen.tsx`
   - **Action :** Remplacer Alert par `EditVehicleModal` fonctionnel
@@ -191,6 +205,7 @@
   - **Impact :** Fonctionnalité cassée
 
 ### Interface Prise Photo Véhicule Manquante 🔴
+
 - [x] **VEH-03** : Aucune interface pour prendre une photo du véhicule ✅ RÉSOLU
   - **Fichier :** `src/screens/business/VehicleDetailsScreen.tsx`
   - **Action :** Ajouter bouton photo + PhotoSelectionModal + upload
@@ -200,6 +215,7 @@
   - **Solution :** Créé VehiclePhotoModal.tsx, ajouté uploadVehiclePhoto au service, bouton Photo dans Quick Actions
 
 ### Données Véhicules en Mock 🟠
+
 - [x] **VEH-04** : Valider que les véhicules fonctionnent en données réelles
   - **Fichier :** `src/hooks/useVehicles.ts`
   - **Action :** Tester sans mock, corriger si erreurs
@@ -211,6 +227,7 @@
 ## 💰 5. FACTURATION & STRIPE (6 problèmes)
 
 ### Connexion Stripe Non Fonctionnelle 🔴
+
 - [x] **STRIPE-01** : Stripe Connect n'est pas correctement configuré
   - **Fichier :** `src/services/StripeService.ts`, configuration backend
   - **Action :** Vérifier onboarding, clés API, webhooks
@@ -218,6 +235,7 @@
   - **Impact :** BLOQUANT - Pas de paiements possibles
 
 ### Liste Jobs à Facturer Non Accessible 🔴
+
 - [x] **STRIPE-02** : Impossible de voir les jobs à facturer
   - **Fichier :** `src/hooks/useJobsBilling.ts`
   - **Action :** Debug la récupération des jobs + statuts paiement
@@ -225,6 +243,7 @@
   - **Impact :** Fonctionnalité CORE cassée
 
 ### Création de Facture Impossible 🔴
+
 - [x] **STRIPE-03** : Impossible de créer une facture
   - **Fichier :** `src/services/StripeService.ts`
   - **Action :** Vérifier endpoint `POST /invoices` + Stripe API
@@ -232,6 +251,7 @@
   - **Impact :** Fonctionnalité CORE cassée
 
 ### Détails Paiement Non Accessibles 🔴
+
 - [x] **STRIPE-04** : Impossible de voir les détails d'un paiement
   - **Fichier :** `src/components/modals/PaymentDetailModal.tsx`
   - **Action :** Vérifier récupération données depuis Stripe
@@ -239,6 +259,7 @@
   - **Impact :** Fonctionnalité cassée
 
 ### Statuts de Paiement Non Affichés 🔴
+
 - [x] **STRIPE-05** : Les statuts (pending, paid, overdue) ne s'affichent pas
   - **Fichier :** `src/screens/payments/PaymentsListScreen.tsx`
   - **Action :** Mapper correctement les statuts Stripe
@@ -246,6 +267,7 @@
   - **Impact :** UX cassée
 
 ### Export/Téléchargement Facture Impossible 🔴
+
 - [x] **STRIPE-06** : Impossible de télécharger une facture
   - **Fichier :** `src/components/modals/PaymentDetailModal.tsx`
   - **Action :** Implémenter téléchargement PDF via Stripe
@@ -258,6 +280,7 @@
 ## ⚙️ 6. PARAMÈTRES (5 problèmes)
 
 ### Modification Profil - Erreur 🔴
+
 - [x] **SETTINGS-01** : Erreur lors de la modification du profil utilisateur
   - **Fichier :** `src/screens/profile.tsx` ou modal profil
   - **Action :** Debug et corriger la sauvegarde profil
@@ -266,6 +289,7 @@
   - **Impact :** Fonctionnalité cassée
 
 ### Système de Notifications Inactif 🔴
+
 - [ ] **SETTINGS-02** : Les notifications push ne fonctionnent pas (PHASE 2 - BACKEND REQUIS)
   - **Fichier :** `src/services/notificationService.ts` (à créer si n'existe pas)
   - **Action :** Implémenter expo-notifications + backend push
@@ -273,6 +297,7 @@
   - **Impact :** Fonctionnalité Phase 2 mais attendue
 
 ### Thème Clair/Sombre via Système uniquement 🟠
+
 - [x] **SETTINGS-03** : Pas de toggle manuel pour le thème ✅ RÉSOLU
   - **Fichier :** `src/screens/parameters.tsx`
   - **Action :** Ajouter toggle Dark/Light/System
@@ -281,6 +306,7 @@
   - **Solution :** Toggle darkMode connecté à toggleTheme() du ThemeProvider, isDark synchronisé
 
 ### Paramètres de Paiement Inexistants 🟠
+
 - [x] **SETTINGS-04** : Pas d'écran pour gérer les paramètres de paiement ✅ RÉSOLU
   - **Fichier :** Créer ou améliorer `src/screens/payments/StripeSettingsScreen.tsx`
   - **Action :** Interface pour paramètres Stripe (devises, notifications, etc.)
@@ -289,6 +315,7 @@
   - **Solution :** Lien vers StripeHub ajouté dans la section Account des paramètres
 
 ### Infos Entreprise mal placées 🟡
+
 - [x] **SETTINGS-05** : Les infos entreprise ne sont pas dans les paramètres ✅ RÉSOLU
   - **Fichier :** `src/screens/parameters.tsx`
   - **Action :** Ajouter lien vers Business Info dans paramètres
@@ -301,6 +328,7 @@
 ## 📅 PLAN D'ACTION RECOMMANDÉ
 
 ### Sprint 1 - Semaine 1 : BLOCKERS CRITIQUES (40h estimées)
+
 **Objectif :** Rendre l'app utilisable pour les jobs
 
 | Priorité | Tâche | Estimation |
@@ -315,6 +343,7 @@
 | 8 | JOB-02 - Modification job | 6h |
 
 ### Sprint 2 - Semaine 2 : CRUD COMPLET (35h estimées)
+
 **Objectif :** CRUD complet pour Jobs, Véhicules
 
 | Priorité | Tâche | Estimation |
@@ -330,6 +359,7 @@
 | 9 | SETTINGS-05 - Lien infos entreprise | 1h |
 
 ### Sprint 3 - Semaine 3 : STRIPE & PAIEMENTS (30h estimées)
+
 **Objectif :** Facturation fonctionnelle
 
 | Priorité | Tâche | Estimation |
@@ -342,6 +372,7 @@
 | 6 | STRIPE-06 - Export facture | 5h |
 
 ### Sprint 4 - Semaine 4 : FONCTIONNALITÉS AVANCÉES (35h estimées)
+
 **Objectif :** Features enterprise
 
 | Priorité | Tâche | Estimation |
@@ -355,6 +386,7 @@
 ## 🎯 CRITÈRES DE VALIDATION
 
 Pour chaque bug résolu :
+
 - [ ] Test manuel sur appareil réel
 - [ ] Pas d'erreur console
 - [ ] Données persistées après redémarrage app
@@ -367,6 +399,7 @@ Pour chaque bug résolu :
 ## ✅ Semaine 1-2 : Stabilité Critique
 
 ### Migration Mock Data → API Réelle
+
 - [x] Remplacer mockStaff par API Staff Management (useStaff.ts)
 - [x] Connecter useJobsBilling aux vrais endpoints Stripe
 - [x] Finaliser templatesService avec API Quote Management
@@ -374,6 +407,7 @@ Pour chaque bug résolu :
 - **Livrable :** ✅ 0% mock data en production
 
 ### Migration Design System Complète
+
 - [x] Audit composants utilisant ancien système
 - [x] Harmonisation design tokens globaux
 - [x] Migration LanguageButton vers style circulaire uniforme
@@ -382,6 +416,7 @@ Pour chaque bug résolu :
 - **Livrable :** ✅ Design system unifié 100%
 
 ### API Integration Critique
+
 - [x] Endpoints Stripe backend complets (payments, refunds, invoices)
 - [x] API Staff CRUD (invite, add, manage contractors)
 - [x] Business Statistics API (dashboard metrics)
@@ -391,6 +426,7 @@ Pour chaque bug résolu :
 ## ✅ Semaine 3-4 : Finalisation Technique
 
 ### Intégration Stripe Elements
+
 - [x] Installation @stripe/stripe-react-native v0.50.3
 - [x] StripeProvider configuré dans App.tsx
 - [x] Remplacement champs TextInput par CardField natif Stripe
@@ -403,18 +439,21 @@ Pour chaque bug résolu :
 - **Livrable :** ✅ Paiements 100% natifs
 
 ### Améliorations UX Critiques
+
 - [x] Section "Aujourd'hui" sur Page d'Accueil
 - [x] ProfileHeader Simplifié - Design Épuré
 - [x] JobDetails Summary - Amélioration Interface
 - **Impact :** ✅ UX moderne, navigation fluide
 
 ### Tests & Validation
+
 - [x] Test suite complète E2E
 - [x] Validation UX sur devices réels
 - [x] Load testing avec backend
 - **Livrable :** ✅ App validée production
 
 ### Endpoints Backend
+
 - [x] `POST /swift-app/v1/logs` - Réception logs frontend
 - [x] `POST /swift-app/v1/analytics/events` - Collecte événements
 - [x] `POST /job/{id}/advance-step` - Avancement étape job
@@ -425,12 +464,14 @@ Pour chaque bug résolu :
 ## ⏳ Semaine 5-6 : Déploiement Production
 
 ### Audit Sécurité
+
 - [x] Revue conformité PCI-DSS 🔴 ✅ (SECURITY_AUDIT_28DEC2025.md)
 - [x] Test intrusion basic 🟠 ✅ (Pas de XSS, inputs validés)
 - [x] Validation flows critiques 🔴 ✅ (Auth + Paiement sécurisés)
 - **Livrable :** ✅ Certification sécurité - Score 93/100
 
 ### Configuration Production
+
 - [x] Setup Stripe live keys 🔴 ✅ (environment.ts prêt, en attente clé live)
 - [x] Configuration domaine production 🔴 ✅ (altivo.fr configuré)
 - [x] SSL certificates et sécurité 🔴 ✅ (HTTPS partout)
@@ -439,12 +480,14 @@ Pour chaque bug résolu :
 - **Livrable :** ✅ Infrastructure prête - En attente clé Stripe Live
 
 ### Monitoring & Analytics
+
 - [x] Dashboard Stripe opérationnel 🟠 ✅ (stripeAnalytics.ts intégré)
 - [x] Alerts critiques configurées 🟠 ✅ (analytics.ts + logger.ts avec flush auto)
 - [x] Logs centralisés 🟡 ✅ (logger.ts envoie vers /v1/logs)
 - **Livrable :** ✅ Observabilité complète - Services analytics.ts, logger.ts, stripeAnalytics.ts
 
 ### Documentation Finale
+
 - [x] Guide déploiement 🟠 ✅ (PRODUCTION_DEPLOYMENT_GUIDE.md)
 - [x] Runbooks opérationnels 🟡 ✅ (GUIDE_*.md - 10+ guides)
 - [x] Support utilisateurs 🟡 ✅ (README.md + README_OVERVIEW.md)
@@ -457,12 +500,14 @@ Pour chaque bug résolu :
 ## Mois 1 : Performance & UX
 
 ### Optimisations Performance
+
 - [ ] Bundle splitting et lazy loading 🟡
 - [ ] Cache strategies optimisées 🟡
 - [ ] Réduction temps chargement < 1s 🟠
 - **Impact :** +20% retention utilisateurs
 
 ### UX Enhancements
+
 - [x] Animations fluides et micro-interactions
 - [x] Design système moderne et cohérent
 - [x] Navigation intuitive avec boutons circulaires
@@ -471,6 +516,7 @@ Pour chaque bug résolu :
 - **Impact :** Score UX > 4.5/5
 
 ### Native Features
+
 - [ ] Push notifications intelligentes 🟠
 - [ ] Synchronisation offline 🟡
 - [ ] Biometric authentication 🟢
@@ -479,6 +525,7 @@ Pour chaque bug résolu :
 ## Mois 2-3 : Business Features
 
 ### Système de Gamification Complet
+
 - [ ] Points et niveaux utilisateur (7 niveaux) 🟢
 - [ ] 25+ badges de réalisation 🟢
 - [ ] Leaderboards équipes/individuels 🟢
@@ -486,6 +533,7 @@ Pour chaque bug résolu :
 - **Impact :** +40% engagement, +25% rétention
 
 ### Système de Rôles et Permissions Enterprise
+
 - [ ] 4 forfaits : Fournisseur, Entreprise, Prestataire, Employé 🟡
 - [ ] Architecture User ↔ Company séparée 🟡
 - [ ] Permissions granulaires par action 🟡
@@ -493,18 +541,21 @@ Pour chaque bug résolu :
 - **Impact :** SaaS B2B scalable, €1.18M ARR potential
 
 ### Analytics Avancées
+
 - [ ] Dashboard exécutif temps réel 🟢
 - [ ] Prédictions revenus IA ⚪
 - [ ] Benchmarks sectoriels ⚪
 - **Impact :** Insights business critiques
 
 ### Automation Workflows
+
 - [ ] Facturation automatique 🟡
 - [ ] Relances clients intelligentes 🟢
 - [ ] Rapports programmés 🟢
 - **Impact :** -50% tâches manuelles
 
 ### Intégrations Business
+
 - [ ] Xero/MYOB comptabilité 🟢
 - [ ] Google Calendar sync 🟢
 - [ ] Slack notifications ⚪
@@ -517,18 +568,21 @@ Pour chaque bug résolu :
 ## Expansion Géographique
 
 ### Union Européenne
+
 - [ ] Support EUR, multi-langues ⚪
 - [ ] Conformité GDPR complète 🟢
 - [ ] Taxation locale automatique ⚪
 - **Target :** 5 pays EU en 3 mois
 
 ### Marché Américain
+
 - [ ] Support USD, réglementation US ⚪
 - [ ] Partenariats locaux ⚪
 - [ ] Marketing digital ciblé ⚪
 - **Target :** 3 états US pilotes
 
 ### Royaume-Uni
+
 - [ ] Post-Brexit compliance ⚪
 - [ ] Partenaires distribution ⚪
 - [ ] Pricing local optimisé ⚪
@@ -537,12 +591,14 @@ Pour chaque bug résolu :
 ## Expansion Sectorielle
 
 ### Nouveaux Métiers
+
 - [ ] Électriciens, jardiniers, nettoyage ⚪
 - [ ] Templates métiers spécifiques ⚪
 - [ ] Workflows optimisés par secteur ⚪
 - **Target :** 10 secteurs couverts
 
 ### Enterprise Segment
+
 - [ ] Multi-teams et permissions ⚪
 - [ ] Reporting consolidé ⚪
 - [ ] API entreprise ⚪
@@ -555,12 +611,14 @@ Pour chaque bug résolu :
 ## Intelligence Artificielle
 
 ### AI-Powered Features
+
 - [ ] Prédiction coûts jobs via ML ⚪
 - [ ] Optimisation planning automatique ⚪
 - [ ] Détection fraude avancée ⚪
 - [ ] Assistant virtuel business ⚪
 
 ### Predictive Analytics
+
 - [ ] Forecasting revenus ⚪
 - [ ] Identification opportunités cross-sell ⚪
 - [ ] Optimisation pricing dynamique ⚪
@@ -569,18 +627,21 @@ Pour chaque bug résolu :
 ## Platform Economy
 
 ### API Publique
+
 - [ ] Developer portal avec docs ⚪
 - [ ] SDK mobile pour intégrations ⚪
 - [ ] Marketplace d'apps tierces ⚪
 - [ ] Revenue sharing partenaires ⚪
 
 ### Marketplace Intégré
+
 - [ ] Catalogue produits partenaires ⚪
 - [ ] Commission sur ventes ⚪
 - [ ] Gestion stock automatisée ⚪
 - [ ] Logistique intégrée ⚪
 
 ### White-Label Solutions
+
 - [ ] Branding custom pour partenaires ⚪
 - [ ] Multi-tenant architecture ⚪
 - [ ] Pricing différencié ⚪
@@ -591,6 +652,7 @@ Pour chaque bug résolu :
 # 🎯 STRATÉGIES D'ACQUISITION
 
 ### Marketing Digital
+
 - [ ] **SEO/SEM :** Dominer "logiciel plombier", "app facturation" 🟢
 - [ ] **Content Marketing :** Blog, guides, études sectorielles 🟢
 
@@ -601,6 +663,7 @@ Pour chaque bug résolu :
 ## ✅ Résolus (21)
 
 ### 26-27 Décembre 2025
+
 - [x] **useVehicles.ts** - Migré vers API réelle via business/vehiclesService.ts
 - [x] **StripeService.ts - createInstantPayout** - POST /stripe/payouts/create
 - [x] **StripeService.ts - bank_accounts** - Récupéré depuis external_accounts
@@ -622,6 +685,7 @@ Pour chaque bug résolu :
 - [x] **testReporter.ts** - Version via expo-constants
 
 ### 2 Janvier 2026
+
 - [x] **PaymentDetailModal.tsx - Download Receipt** - Alert "Coming Soon" ✅
 - [x] **PaymentDetailModal.tsx - Issue Refund** - Alert vers Stripe Dashboard ✅
 
@@ -685,6 +749,7 @@ Pour chaque bug résolu :
 | **Commits poussés** | - | **13** | ✅ |
 
 ### Fichiers Restants (intentionnels ou surchargés JSX)
+
 - ProfileHeader*.tsx (20 couleurs) - Médailles gamification (or/argent/bronze) - INTENTIONNEL
 - StepValidationBadge.tsx (5) - Dans StyleSheet statique, surchargées en JSX ✅
 - Payment modals (4 total) - Surchargées en JSX avec colors.buttonPrimaryText ✅
@@ -692,6 +757,7 @@ Pour chaque bug résolu :
 - signingBloc.tsx (1) - CSS injecté dans WebView - INTENTIONNEL
 
 ## Critères de Validation (par écran)
+
 - [x] Fond principal visible 🟠 ✅
 - [x] Texte lisible (bon contraste) 🔴 ✅
 - [x] Icônes visibles 🟡 ✅
@@ -700,6 +766,7 @@ Pour chaque bug résolu :
 - [x] Pas de couleurs hardcodées 🔴 ✅ (40 restantes intentionnelles)
 
 ## Navigation Tab (6 écrans)
+
 - [x] Home - `screens/home.tsx` - Light/Dark 🟡 ✅
 - [x] Calendar - `screens/calendar/*.tsx` - Light/Dark 🟡 ✅ (useCommonThemedStyles)
 - [x] Jobs - `screens/JobDetailsScreens/*.tsx` - Light/Dark 🟡 ✅ (useTheme/useCommonThemedStyles)
@@ -708,12 +775,14 @@ Pour chaque bug résolu :
 - [x] Parameters - `screens/parameters.tsx` - Light/Dark 🟡 ✅ (useTheme)
 
 ## Calendrier (4 écrans)
+
 - [x] Month View - Light/Dark 🟢 ✅
 - [x] Year View - Light/Dark 🟢 ✅ (useCommonThemedStyles)
 - [x] Multiple Years - Light/Dark ⚪ ✅ (useCommonThemedStyles)
 - [x] Day Details - Light/Dark 🟢 ✅ (useCommonThemedStyles)
 
 ## Jobs (5 écrans)
+
 - [x] Job List - Light/Dark 🟡 ✅
 - [x] Job Details - Light/Dark 🟠 ✅
 - [x] Job Steps - Light/Dark 🟠 ✅
@@ -721,18 +790,21 @@ Pour chaque bug résolu :
 - [x] Payment - Light/Dark 🔴 ✅
 
 ## Paiements & Stripe (4 écrans)
+
 - [x] Stripe Payment - Light/Dark 🔴 ✅
 - [x] Payment Success - Light/Dark 🟠 ✅
 - [x] Stripe Onboarding - Light/Dark 🟠 ✅ (useTheme)
 - [x] Account Status - Light/Dark 🟡 ✅ (useTheme)
 
 ## Business (4 écrans)
+
 - [x] Business Info - Light/Dark 🟡 ✅ (useTheme + useCommonThemedStyles)
 - [x] Trucks - Light/Dark 🟢 ✅
 - [x] Staff/Crew - Light/Dark 🟡 ✅
 - [x] Payout Schedule - Light/Dark 🟢 ✅ (PayoutsScreen - useTheme)
 
 ## Composants Critiques (6)
+
 - [x] Header Profile - Light/Dark 🟠 ✅ (médailles gamification - couleurs intentionnelles)
 - [x] Today Section - Light/Dark 🟠 ✅
 - [x] Job Timeline - Light/Dark 🟠 ✅
@@ -741,6 +813,7 @@ Pour chaque bug résolu :
 - [x] Unified Card - Light/Dark 🟡 ✅
 
 ## Modals (5)
+
 - [x] Payment Detail - Light/Dark 🟠 ✅
 - [x] Payout Detail - Light/Dark 🟢 ✅
 - [x] Create Payment Link - Light/Dark 🟡 ✅ (useTheme)
@@ -748,6 +821,7 @@ Pour chaque bug résolu :
 - [x] Photo Viewer - Light/Dark 🟢 ✅ (PhotoSelectionModal - useTheme)
 
 ## Composants Migrés (28 Déc 2025)
+
 - [x] NotificationsPanel.tsx - Conversion complète StyleSheet→dynamic ✅
 - [x] AlertsPanel.tsx, AlertMessage.tsx, TabMenu.tsx ✅
 - [x] CalendarTabMenu.tsx, jobMenu.tsx ✅
@@ -768,6 +842,7 @@ Pour chaque bug résolu :
 ## Tests de Navigation
 
 ### Job Payment Flow
+
 - [ ] Créer un job via Calendar > Day View 🔴
 - [ ] Démarrer le timer > valider calculs temps réel 🔴
 - [ ] Terminer le job > saisir signature 🔴
@@ -775,12 +850,14 @@ Pour chaque bug résolu :
 - [ ] Confirmer paiement > vérifier feedback visuel 🔴
 
 ### Staff Management Flow
+
 - [ ] Navigation : Business > Staff & Crew 🟡
 - [ ] Ajout : Ouvrir modal > ajouter employé/prestataire 🟡
 - [ ] Filtrage : Tester filtres par type 🟢
 - [ ] Refresh : Pull-to-refresh > vérifier mise à jour 🟢
 
 ### Business Dashboard Navigation
+
 - [ ] Navigation principale : Tester tous les tabs Business 🟡
 - [ ] Stripe Hub : Navigation vers PaymentsList/Payouts/Settings 🟠
 - [ ] État persistent : Vérifier retour aux écrans corrects 🟢
@@ -788,11 +865,13 @@ Pour chaque bug résolu :
 ## Tests de Responsive Design
 
 ### Orientations
+
 - [ ] Portrait : Interface standard > tous les flows 🟠
 - [ ] Paysage : Vérifier layouts adaptatifs 🟢
 - [ ] Rotation : Transitions fluides, état conservé 🟢
 
 ### Tailles d'écran
+
 - [ ] Petit (iPhone SE) : Pas de débordement UI 🟠
 - [ ] Standard (iPhone 13) : Interface optimale 🟡
 - [ ] Grand (iPad) : Utilisation espace disponible 🟢
@@ -800,6 +879,7 @@ Pour chaque bug résolu :
 ## Tests d'Interactions Tactiles
 
 ### Gestes natifs
+
 - [ ] Tap : Boutons, liens, cards responsifs 🟠
 - [ ] Long press : Menus contextuels 🟢
 - [ ] Swipe : Navigation latérale, refresh 🟡
@@ -807,6 +887,7 @@ Pour chaque bug résolu :
 - [ ] Scroll : Listes longues, smooth scrolling 🟡
 
 ### Accessibility
+
 - [ ] VoiceOver/TalkBack : Navigation vocale 🟢
 - [ ] Zoom système : Interface reste utilisable 🟢
 - [ ] Contraste élevé : Lisibilité préservée 🟡
@@ -815,18 +896,21 @@ Pour chaque bug résolu :
 ## Performance & Stabilité
 
 ### Mémoire et CPU
+
 - [ ] Utilisation mémoire stable 🟠
 - [ ] CPU usage raisonnable (< 50%) 🟡
 - [ ] Pas de crashes lors des navigations répétées 🔴
 - [ ] Gestion background correcte 🟡
 
 ### Réseau
+
 - [ ] WiFi : Toutes les APIs fonctionnent 🔴
 - [ ] 4G/5G : Performance acceptable 🟠
 - [ ] Mode Avion : Gestion gracieuse de l'offline 🟡
 - [ ] Connexion instable : Retry et fallbacks 🟡
 
 ### Stripe Elements
+
 - [ ] Interface native rendue correctement 🔴
 - [ ] Saisie carte fluide et sécurisée 🔴
 - [ ] Validation temps réel des champs 🟠
@@ -837,6 +921,7 @@ Pour chaque bug résolu :
 # 🌍 INTERNATIONALISATION (i18n)
 
 ## Clés Ajoutées ✅
+
 - [x] Types TranslationKeys mis à jour
 - [x] Traductions EN ajoutées
 - [x] Traductions FR ajoutées
@@ -844,6 +929,7 @@ Pour chaque bug résolu :
 - [x] Sections auth, settings, profile, payment ajoutées
 
 ## Migration des Écrans ✅ En Cours
+
 - [x] Migrer `parameters.tsx` vers `settings.*` ✅ FAIT
 - [x] Créer clés `auth.*` pour `login.tsx` ✅ FAIT
 - [x] Migrer `login.tsx` ✅ FAIT
@@ -855,6 +941,7 @@ Pour chaque bug résolu :
 - [x] Vérifier traductions partielles (es, it, pt, zh, hi) ✅ FAIT
 
 ## Migration Restante 🟡
+
 - [x] StripeSettingsScreen.tsx ✅ VÉRIFIÉ - Déjà migré
 - [x] BusinessInfoPage.tsx ✅ VÉRIFIÉ - Déjà migré
 - [x] PaymentsListScreen.tsx ✅ VÉRIFIÉ - Déjà migré
@@ -874,10 +961,12 @@ Pour chaque bug résolu :
 # ⚡ PERFORMANCE OPTIMIZATION
 
 ## Phase 1 - Quick Wins ✅ COMPLÉTÉE
+
 - [x] Créer `metro.config.js` avec optimisations ✅ FAIT - caching, terser, tree shaking
 - [x] Lazy load des écrans secondaires ✅ FAIT - 8 écrans avec lazyScreen()
 
 ## Phase 2 - Assets ✅ COMPLÉTÉE (2 Jan 2026)
+
 - [x] Audit des images (taille, format) ✅ FAIT
   - assets/images: vide (pas d'images statiques)
   - Android: splash screens + launchers déjà en WebP (optimisé)
@@ -891,6 +980,7 @@ Pour chaque bug résolu :
   - `assetOptimization.ts` - utilitaires préchargement + cache
 
 ## Phase 3 - Monitoring ✅ COMPLÉTÉE (2 Jan 2026)
+
 - [x] Créer `performanceMonitoring.ts` ✅ FAIT
   - Marks et mesures avec thresholds d'alerte
   - App startup, screen render, navigation timing
@@ -912,6 +1002,7 @@ Pour chaque bug résolu :
 # 🧪 TESTS E2E AUTO-CORRECTION
 
 ## Test 1 : Auto-Correction au Chargement
+
 - [ ] Toast "Correction automatique en cours..." affiché 🟠
 - [ ] Toast "✅ 3 corrections appliquées" affiché 🟠
 - [ ] Job rechargé automatiquement 🟠
@@ -922,6 +1013,7 @@ Pour chaque bug résolu :
 - [ ] Log créé dans job_corrections_log 🟢
 
 ## Test 2 : Workflow Complet Après Correction
+
 - [ ] Timer démarre sans erreur 🔴
 - [ ] Avancement étapes fonctionne 🔴
 - [ ] Signature enregistrée 🔴
@@ -932,6 +1024,7 @@ Pour chaque bug résolu :
 # 🏗️ CI/CD PIPELINE
 
 ## Jobs Overview
+
 - [x] Tests & Coverage : 202 tests passent
 - [x] Build Validation : TypeScript compilation OK
 - [ ] Codecov token à configurer 🟡
@@ -942,24 +1035,29 @@ Pour chaque bug résolu :
 # ✅ CORRECTIONS BACKEND - COMPLÉTÉES (2 Jan 2026)
 
 ## Bug MySQL - pool.execute() ✅ NON APPLICABLE
+
 - [x] mysql2 v3.9.1 déjà installé, aucun bug
 
 ## Bug Advance Step ✅ CORRIGÉ
+
 - [x] Restriction de séquence supprimée
 - [x] Range autorisé: 0-5 (au lieu de 1-5)
 - [x] Sauts d'étapes autorisés
 
 ## Bug Complete Job - Step 99 ✅ NON APPLICABLE  
+
 - [x] Aucun step=99 dans le code
 - [x] Vérifié en base de données
 
 ## Nouveaux Endpoints ✅ IMPLÉMENTÉS
+
 - [x] PUT /job/:id/step - Sync step depuis l'app
 - [x] POST /job/:id/sync-timer - Sync timer
 - [x] GET /job/:id/timer - Récupérer état timer
 - [x] currentStep déjà retourné par GET /job/:id
 
 ## Intégration Frontend ✅ COMPLÉTÉE (2 Jan 2026)
+
 - [x] `syncStepToBackend()` - Ajouté dans `src/services/jobSteps.ts`
 - [x] `syncTimerToBackend()` - Ajouté dans `src/services/jobSteps.ts`
 - [x] `getTimerFromBackend()` - Ajouté dans `src/services/jobSteps.ts`
@@ -968,6 +1066,7 @@ Pour chaque bug résolu :
 - [x] `useJobTimer.loadTimerData()` - Restaure état depuis backend via `getTimerFromBackend`
 
 ## Stripe & Staff ✅ DÉJÀ PRÉSENTS
+
 - [x] 8 endpoints paiements
 - [x] 8 endpoints factures  
 - [x] 5 endpoints staff
@@ -978,18 +1077,21 @@ Pour chaque bug résolu :
 # 📋 GUIDE TEST MANUEL - JOB WORKFLOW
 
 ## Pré-requis
+
 - [ ] Compte utilisateur créé et authentifié 🟠
 - [ ] Entreprise configurée avec au moins 1 employé 🟠
 - [ ] Client existant dans le système 🟠
 - [ ] Template de job disponible 🟡
 
 ## Environnement
+
 - [ ] App SwiftApp lancée en mode développement 🟠
 - [ ] Device physique ou émulateur avec internet 🟠
 - [ ] Backend API accessible et fonctionnel 🔴
 - [ ] Token d'authentification valide 🔴
 
 ## Outils
+
 - [ ] Chronomètre (pour vérifier timer) 🟢
 - [ ] Appareil photo (pour tests photos) 🟢
 - [ ] Connexion internet stable 🟠
@@ -999,6 +1101,7 @@ Pour chaque bug résolu :
 # 🔍 SYSTÈME VALIDATION JOBS
 
 ## Objectifs Complétés
+
 - [x] Détecter 8 types d'incohérences
 - [x] Auto-corriger timer non démarré
 - [x] Support mode hors-ligne
@@ -1008,6 +1111,7 @@ Pour chaque bug résolu :
 - [x] Rapports formatés
 
 ## Prochaines Étapes
+
 - [ ] Restaurer `jobDetails.tsx` 🟠
 - [ ] Appliquer patch d'intégration 🟠
 - [ ] Tester avec job réel JOB-NERD-URGENT-006 🔴
@@ -1021,6 +1125,7 @@ Pour chaque bug résolu :
 # 📱 MIGRATION DESIGN SYSTEM - ÉCRANS
 
 ## Écrans Critiques (⭐⭐⭐) - 12 écrans
+
 - [x] `home.tsx` - Écran principal ✅ MIGRÉ
 - [ ] `profile.tsx` - Profil utilisateur 🟠
 - [ ] `connection.tsx` - Auth flow principal 🟠
@@ -1035,6 +1140,7 @@ Pour chaque bug résolu :
 - [ ] `paymentWindow.tsx` - UI paiement 🔴
 
 ## Écrans Moyens (⭐⭐) - 23 écrans
+
 - [ ] `parameters.tsx` - Settings 🟡
 - [ ] `jobDetails.tsx` - Business logic 🟠
 - [ ] `ReportsScreen.tsx` - Analytics 🟢
@@ -1054,6 +1160,7 @@ Pour chaque bug résolu :
 - [ ] Et autres... 🟢
 
 ## Statistiques Migration
+
 - **Total d'écrans** : 45 écrans principaux
 - **✅ Migrés** : 5 écrans
 - **🔄 À migrer** : 40 écrans
@@ -1063,21 +1170,25 @@ Pour chaque bug résolu :
 # 🔐 CHECKLIST DESIGN SYSTEM
 
 ## Imports
+
 - [x] Importer `useTheme` depuis `../context/ThemeProvider` 🟠 ✅
 - [x] Importer `DESIGN_TOKENS` depuis `../constants/Styles` 🟠 ✅
 - [x] Supprimer les imports de `Colors` direct 🟡 ✅ (majorité)
 
 ## Couleurs
+
 - [x] Appeler `const { colors } = useTheme()` dans le composant 🟠 ✅
 - [x] Remplacer toutes les couleurs hardcodées (#xxx) par `colors.xxx` 🔴 ✅ (95%)
 - [x] Vérifier en mode sombre ET clair 🔴 ✅
 
 ## Design Tokens
+
 - [x] Remplacer les nombres magiques par `DESIGN_TOKENS.spacing.xxx` 🟡 ✅
 - [x] Utiliser `DESIGN_TOKENS.typography.xxx` pour les textes 🟡 ✅
 - [x] Utiliser `DESIGN_TOKENS.radius.xxx` pour les bordures 🟡 ✅
 
 ## Validation
+
 - [x] Basculer entre mode clair et sombre 🔴 ✅
 - [x] Vérifier que les contrastes sont corrects 🔴 ✅
 - [ ] Tester sur différentes tailles d'écran 🟠
@@ -1096,6 +1207,7 @@ Pour chaque bug résolu :
 # 🧪 TESTS DEVICE FLOW
 
 ## Summary Tests
+
 - [ ] Job Payment Flow - ⏱️ [time] - ✅/❌ [status] 🔴
 - [ ] Staff Management - ⏱️ [time] - ✅/❌ [status] 🟠
 - [ ] Business Navigation - ⏱️ [time] - ✅/❌ [status] 🟡
@@ -1108,6 +1220,7 @@ Pour chaque bug résolu :
 > Cette liste contient tous les fichiers .md utilisés pour consolider ce MASTER_TASKS.md
 
 ## 📋 Roadmaps & Stratégie
+
 | Fichier | Checkboxes | Description |
 |---------|------------|-------------|
 | `ROADMAP_STRATEGIQUE_SWIFTAPP_2025-2026.md` | ✅ 80+ | Plan stratégique complet 2025-2026 |
@@ -1115,12 +1228,14 @@ Pour chaque bug résolu :
 | `PROJECT_STATUS_27DEC2025.md` | ✅ 15+ | État du projet 27 déc |
 
 ## 📝 Suivi des TODOs
+
 | Fichier | Checkboxes | Description |
 |---------|------------|-------------|
 | `TODO_TRACKER.md` | ✅ 30+ | Suivi détaillé des TODOs |
 | `I18N_AUDIT_PHASE3.md` | ✅ 10+ | Audit internationalisation |
 
 ## 🧪 Tests & Validation
+
 | Fichier | Checkboxes | Description |
 |---------|------------|-------------|
 | `VISUAL_TESTING_CHECKLIST.md` | ✅ 40+ | Checklist tests Light/Dark |
@@ -1129,18 +1244,21 @@ Pour chaque bug résolu :
 | `GUIDE_TEST_MANUEL_JOB_WORKFLOW.md` | ✅ 30+ | Tests manuels workflow |
 
 ## 🎨 Design System
+
 | Fichier | Checkboxes | Description |
 |---------|------------|-------------|
 | `DESIGN_SYSTEM_INTEGRATION_GUIDE.md` | ✅ 15+ | Guide intégration design |
 | `UNIFORMISATION_APP_COMPLETE.md` | ✅ 45+ | Migration design écrans |
 
 ## ⚡ Performance & Optimisation
+
 | Fichier | Checkboxes | Description |
 |---------|------------|-------------|
 | `PERFORMANCE_OPTIMIZATION_GUIDE.md` | ✅ 10+ | Guide optimisation perf |
 | `LOAD_TESTING_IMPLEMENTATION.md` | ❌ | Documentation load testing |
 
 ## 🔧 Backend & API
+
 | Fichier | Checkboxes | Description |
 |---------|------------|-------------|
 | `API_DISCOVERY.md` | ❌ | Documentation API Discovery |
@@ -1148,6 +1266,7 @@ Pour chaque bug résolu :
 | `DEMANDE_CORRECTION_BACKEND.md` | ✅ 15+ | Corrections backend requises |
 
 ## 🐛 Debug & Diagnostic
+
 | Fichier | Checkboxes | Description |
 |---------|------------|-------------|
 | `BUGS_CRITIQUES_17DEC2025.md` | ❌ | Bugs critiques identifiés |
@@ -1157,12 +1276,14 @@ Pour chaque bug résolu :
 | `FIX_SIGNATURE_JOB_26DEC.md` | ❌ | Fix signature 26 déc |
 
 ## 📊 Sessions & Résumés
+
 | Fichier | Checkboxes | Description |
 |---------|------------|-------------|
 | `SESSION9_RESUME_EXECUTIF.md` | ❌ | Résumé session 9 |
 | `RECAPITULATIF_FINAL_6_SESSIONS_17DEC2025.md` | ❌ | Récap 6 sessions |
 
 ## 🔌 Intégration & Guides
+
 | Fichier | Checkboxes | Description |
 |---------|------------|-------------|
 | `JOB_PAYMENT_INTEGRATION_GUIDE.md` | ❌ | Guide intégration paiement |
@@ -1170,11 +1291,13 @@ Pour chaque bug résolu :
 | `DEV_RULES_ONLINE_ONLY.md` | ✅ 5+ | Règles dev online only |
 
 ## 📁 Système de Validation
+
 | Fichier | Checkboxes | Description |
 |---------|------------|-------------|
 | `docs/system/INDEX_VALIDATION_SYSTEM.md` | ✅ 15+ | Index système validation |
 
 ## 🏗️ CI/CD
+
 | Fichier | Checkboxes | Description |
 |---------|------------|-------------|
 | `.github/CI_CD_SETUP.md` | ❌ | Configuration CI/CD |
@@ -1196,18 +1319,21 @@ Pour chaque bug résolu :
 # 🗄️ MIGRATION MOCK DATA → API
 
 ## Hook useStaff.ts
+
 - [ ] Créer endpoints backend `/api/staff` (GET, POST, PUT, DELETE) 🟠
 - [ ] Remplacer mockStaff par API calls 🟠
 - [ ] Migrer logique invite/add vers backend 🟡
 - [ ] Tests avec vraies données API 🟡
 
 ## Hook useJobsBilling.ts
+
 - [ ] Endpoint `/api/jobs/billing` avec Stripe integration 🔴
 - [ ] Suppression logique fallback mock 🟠
 - [ ] API payment status temps réel 🔴
 - [ ] Invoice generation via Stripe API 🟠
 
 ## Services Business
+
 - [ ] `templatesService.ts` - mockTemplates → API `/quotes/templates` 🟡
 - [ ] `businessService.ts` - mockBusinessInfo → API `/business/stats` 🟡
 
@@ -1218,6 +1344,7 @@ Pour chaque bug résolu :
 ## Phase 2D-1 Quick Wins (Objectif: 281/321 - 87.5%)
 
 ### Task 1: Fix InviteEmployeeModal (1 test)
+
 - [ ] Run `npm test -- InviteEmployeeModal --no-coverage` 🟠
 - [ ] Identifier le test qui échoue (1/21) 🟠
 - [ ] Analyser l'erreur (probablement testID manquant) 🟠
@@ -1225,16 +1352,19 @@ Pour chaque bug résolu :
 - [ ] Valider que les 21 tests passent 🟡
 
 ### Task 2: TrucksScreen Empty State (3 tests)
+
 - [ ] Ajouter testID: `empty-state-icon`, `empty-state-title`, `empty-state-message` 🟠
 - [ ] Migrer les 3 tests vers getByTestId 🟠
 - [ ] Valider 25/44 passing 🟡
 
 ### Task 3: TrucksScreen Vehicle Actions (8 tests)
+
 - [ ] Ajouter testID: `vehicle-edit-button-{id}`, `vehicle-delete-button-{id}` 🟠
 - [ ] Migrer les 8 tests Actions 🟠
 - [ ] Valider 281/321 tests 🟡
 
 ## Phase 2C Migration testID
+
 - [ ] AddContractorModal - 15 tests avec testID 🟡
 - [ ] InviteEmployeeModal - 18 tests avec testID 🟡
 - [ ] staffCrewScreen - 25 tests avec testID 🟡
@@ -1245,6 +1375,7 @@ Pour chaque bug résolu :
 # 🔧 API BACKEND - TIMER SYNC
 
 ## Base de Données - Colonnes jobs
+
 - [ ] `timer_total_hours DECIMAL(10, 2) DEFAULT 0` 🟠
 - [ ] `timer_billable_hours DECIMAL(10, 2) DEFAULT 0` 🟠
 - [ ] `timer_break_hours DECIMAL(10, 2) DEFAULT 0` 🟠
@@ -1253,6 +1384,7 @@ Pour chaque bug résolu :
 - [ ] `timer_last_updated TIMESTAMP NULL` 🟠
 
 ## Endpoint POST /job/:id/sync-timer
+
 - [ ] Recevoir données timer depuis l'app 🔴
 - [ ] Sauvegarder temps total, facturable, pauses 🔴
 - [ ] Retourner step_history détaillé 🟠
@@ -1262,15 +1394,18 @@ Pour chaque bug résolu :
 # 🔧 API BACKEND - CURRENT STEP
 
 ## Base de Données
+
 - [ ] Ajouter colonne `current_step INTEGER DEFAULT 0` 🔴
 - [ ] Créer index `idx_jobs_current_step` 🟠
 - [ ] Initialiser valeurs jobs existants (completed=5, in-progress=1, other=0) 🟠
 
 ## Endpoint GET /job/:id
+
 - [ ] Ajouter `current_step` dans la réponse JSON 🔴
 - [ ] Documenter dans API specs 🟡
 
 ## Endpoint PUT /job/:id/step
+
 - [ ] Créer endpoint pour mise à jour step 🔴
 - [ ] Valider current_step (0-5) 🟠
 - [ ] Log historique changements 🟡
@@ -1282,6 +1417,7 @@ Pour chaque bug résolu :
 ## Semaine 1: Database Foundation
 
 ### Jour 1-2: Schema Design
+
 - [ ] Créer table `companies` ⚪
 - [ ] Créer table `roles` ⚪
 - [ ] Créer table `permissions` ⚪
@@ -1289,15 +1425,18 @@ Pour chaque bug résolu :
 - [ ] Migration données existantes ⚪
 
 ### Jour 3: Permissions Seeding
+
 - [ ] Créer 20+ permissions système (jobs:*, payments:*, users:*, teams:*, analytics:*, billing:*) ⚪
 - [ ] Créer rôles par défaut par type company ⚪
 
 ## Semaine 2: API & Middleware
+
 - [ ] Middleware de validation permissions ⚪
 - [ ] Endpoints CRUD permissions ⚪
 - [ ] Cache permissions (Redis) ⚪
 
 ## Semaine 3: Frontend Integration
+
 - [ ] Composant `<PermissionGate permission="xxx">` ⚪
 - [ ] Hook `usePermissions()` ⚪
 - [ ] UI adaptive selon permissions ⚪
@@ -1309,18 +1448,22 @@ Pour chaque bug résolu :
 ## Tests à Effectuer
 
 ### GET - Récupérer photos d'un job
+
 - [ ] `GET /swift-app/v1/job/{jobId}/images` → 200 OK 🟡
 - [ ] Vérifier structure réponse (id, filename, description, created_at) 🟡
 
 ### POST - Upload une photo
+
 - [ ] `POST /swift-app/v1/job/{jobId}/image` avec multipart/form-data 🟡
 - [ ] Vérifier photo enregistrée 🟡
 
 ### PATCH - Mettre à jour description
+
 - [ ] `PATCH /swift-app/v1/image/{id}` avec nouvelle description 🟡
 - [ ] Vérifier modification 🟡
 
 ### Sécurité
+
 - [ ] Requête sans token → 401 Unauthorized 🟡
 - [ ] Requête avec mauvais jobId → 404 Not Found 🟡
 
@@ -1329,12 +1472,14 @@ Pour chaque bug résolu :
 # 🌍 MIGRATION i18n URGENTE
 
 ## Screens à Migrer (100% hardcodé → 100% t())
+
 - [ ] paymentWindow.tsx - français hardcodé 🟠
 - [ ] staffCrewScreen.tsx - aucun t() utilisé 🟠
 - [ ] VehicleFleetScreen.tsx - anglais hardcodé 🟠
 - [ ] Tous screens business 🟠
 
 ## Actions
+
 - [ ] Compléter clés traduction business/payment/profile 🟠
 - [ ] Migrer TOUS screens vers useTranslation() 🟠
 - [ ] Éliminer 100% textes hardcodés 🔴
@@ -1345,6 +1490,7 @@ Pour chaque bug résolu :
 # 🧪 JOB WORKFLOW TEST PLAN
 
 ## Phase 1: Création Job
+
 - [ ] Ouvrir Calendar > Day View 🔴
 - [ ] Cliquer sur créneau horaire libre 🔴
 - [ ] Remplir formulaire nouveau job 🔴
@@ -1353,6 +1499,7 @@ Pour chaque bug résolu :
 - [ ] Vérifier job créé dans liste 🔴
 
 ## Phase 2: Timer & Steps
+
 - [ ] Ouvrir JobDetails 🔴
 - [ ] Démarrer timer 🔴
 - [ ] Vérifier compteur temps réel 🔴
@@ -1362,12 +1509,14 @@ Pour chaque bug résolu :
 - [ ] Avancer jusqu'à step 5 🔴
 
 ## Phase 3: Photos & Notes
+
 - [ ] Ajouter photo depuis galerie 🟠
 - [ ] Ajouter photo depuis camera 🟠
 - [ ] Ajouter note texte 🟡
 - [ ] Vérifier sync backend 🔴
 
 ## Phase 4: Signature & Payment
+
 - [ ] Ouvrir section signature 🔴
 - [ ] Dessiner signature 🔴
 - [ ] Confirmer signature 🔴
@@ -1381,20 +1530,24 @@ Pour chaque bug résolu :
 # 📱 STRIPE BACKEND ENDPOINTS
 
 ## Payments
+
 - [ ] `POST /api/stripe/create-payment-intent` - Créer intention paiement 🔴
 - [ ] `POST /api/stripe/confirm-payment` - Confirmer paiement 🔴
 - [ ] `GET /api/stripe/payment-status/{id}` - Statut paiement 🟠
 
 ## Invoices
+
 - [ ] `POST /api/stripe/create-invoice` - Créer facture 🟠
 - [ ] `GET /api/stripe/invoices` - Lister factures 🟠
 - [ ] `POST /api/stripe/send-invoice` - Envoyer facture par email 🟡
 
 ## Refunds
+
 - [ ] `POST /api/stripe/refund/{payment_id}` - Rembourser 🟠
 - [ ] `GET /api/stripe/refunds` - Lister remboursements 🟡
 
 ## Staff Management API
+
 - [ ] `GET /api/staff` - Lister employés 🟠
 - [ ] `POST /api/staff/invite` - Inviter employé 🟠
 - [ ] `POST /api/staff/contractor` - Ajouter prestataire 🟡
@@ -1409,6 +1562,7 @@ Pour chaque bug résolu :
 ## Phase 1: Backend Foundation (2 semaines)
 
 ### Base de Données
+
 - [ ] Créer table `user_gamification` (level, experience, points, streaks, badges) ⚪
 - [ ] Créer table `points_transactions` (historique points) ⚪
 - [ ] Créer table `user_achievements` (badges gagnés) ⚪
@@ -1416,6 +1570,7 @@ Pour chaque bug résolu :
 - [ ] Créer table `gamification_badges` (config 25+ badges) ⚪
 
 ### API Endpoints
+
 - [ ] `GET /gamification/profile` - Profil gamification user ⚪
 - [ ] `POST /gamification/points` - Ajouter points ⚪
 - [ ] `GET /gamification/leaderboard` - Classement ⚪
@@ -1423,6 +1578,7 @@ Pour chaque bug résolu :
 - [ ] `POST /gamification/check-achievements` - Vérifier nouveaux badges ⚪
 
 ## Phase 2: Frontend Integration (2 semaines)
+
 - [ ] Hook `useGamification()` - State management ⚪
 - [ ] Composant `LevelBadge` - Affichage niveau ⚪
 - [ ] Composant `PointsAnimation` - Gain de points ⚪
@@ -1431,6 +1587,7 @@ Pour chaque bug résolu :
 - [ ] Intégration dans JobDetails (points après complétion) ⚪
 
 ## Phase 3: Advanced Features (1 semaine)
+
 - [ ] Badges avancés (streak 30 jours, 100 jobs) ⚪
 - [ ] Leaderboards équipes/individuels ⚪
 - [ ] Notifications push gamification ⚪
@@ -1441,6 +1598,7 @@ Pour chaque bug résolu :
 # 🧪 TEST MANUEL WORKFLOW COMPLET (102 checks)
 
 ## Pré-requis
+
 - [ ] Compte utilisateur créé et authentifié 🔴
 - [ ] Entreprise configurée avec au moins 1 employé 🔴
 - [ ] Client existant dans le système 🔴
@@ -1454,6 +1612,7 @@ Pour chaque bug résolu :
 - [ ] Connexion internet stable 🔴
 
 ## Étape 1: Navigation vers JobDetails
+
 - [ ] Ouvrir l'app → Page Home 🔴
 - [ ] Vérifier section "Today" visible 🔴
 - [ ] Cliquer sur la carte "Today" 🔴
@@ -1466,6 +1625,7 @@ Pour chaque bug résolu :
 - [ ] Header avec titre et RefBookMark visible 🟠
 
 ## Étape 2: Vérification État Initial
+
 - [ ] Ouvrir tab "Summary" (par défaut) 🔴
 - [ ] Vérifier code job (ex: #LM0000001) 🔴
 - [ ] Vérifier client (nom, adresse) 🔴
@@ -1477,6 +1637,7 @@ Pour chaque bug résolu :
 - [ ] Boutons visibles : "Commencer", "Annuler" 🔴
 
 ## Étape 3: Démarrage du Job
+
 - [ ] Cliquer bouton "Commencer" (vert) 🔴
 - [ ] Timer démarre à 00:00:00 🔴
 - [ ] Timer incrémente chaque seconde 🔴
@@ -1487,6 +1648,7 @@ Pour chaque bug résolu :
 - [ ] Timeline mise à jour (step 1 actif) 🔴
 
 ## Étape 4: Progression Steps
+
 - [ ] Steps s'incrémentent correctement (1→2→3) 🔴
 - [ ] Timer ne s'arrête JAMAIS entre steps 🔴
 - [ ] Timeline visuelle correcte 🔴
@@ -1496,6 +1658,7 @@ Pour chaque bug résolu :
 - [ ] Test double-clic rapide (debounce fonctionne) 🟠
 
 ## Étape 5: Pause et Resume
+
 - [ ] Cliquer bouton "Pause" (jaune) 🔴
 - [ ] Timer arrête immédiatement 🔴
 - [ ] Temps affiché ne change plus 🔴
@@ -1510,6 +1673,7 @@ Pour chaque bug résolu :
 # 🔧 WSL SETUP - TESTS 100%
 
 ## Installation WSL2 Ubuntu
+
 - [ ] WSL2 (pas WSL1) installé 🟢
 - [ ] Distribution: Ubuntu 22.04 LTS 🟢
 - [ ] Mise à jour vers version récente 🟢
@@ -1518,6 +1682,7 @@ Pour chaque bug résolu :
 - [ ] Git configuré 🟢
 
 ## Cloner & Tester
+
 - [ ] Clone du repo dans WSL 🟢
 - [ ] npm install réussi 🟢
 - [ ] npm test → 324/324 tests passent 🟢
@@ -1525,6 +1690,7 @@ Pour chaque bug résolu :
 - [ ] Caractères UTF-8 corrects 🟡
 
 ## CI/CD GitHub Actions
+
 - [ ] Workflow Ubuntu créé 🟡
 - [ ] Run automatique sur push 🟡
 - [ ] Badges de coverage fonctionnels 🟢
@@ -1534,6 +1700,7 @@ Pour chaque bug résolu :
 # 🎨 UI/UX TIMER - AMÉLIORATIONS
 
 ## Problèmes Identifiés
+
 - [ ] Coût non affiché en temps réel (CRITIQUE) 🔴
 - [ ] Pauses non visibles (temps total) 🟠
 - [ ] Badge step trop petit (fontSize: 12) 🟡
@@ -1541,6 +1708,7 @@ Pour chaque bug résolu :
 - [ ] Bouton "Étape suivante" masqué si pas running 🟠
 
 ## Nouveau Composant JobTimerDisplay
+
 - [ ] Fusionner JobClock + JobProgressSection + JobTimeLine 🟠
 - [ ] Ligne 1: Timer + Step actuel avec emoji 🟡
 - [ ] Ligne 2: Progression inline (toujours visible) 🟡
@@ -1752,7 +1920,3 @@ Pour chaque bug résolu :
 *MISE À JOUR SCAN COMPLET : 28 Décembre 2025*
 *Source : 148 fichiers .md avec checkboxes*
 *Dernière mise à jour : 28 Décembre 2025 - LISTE COMPLÈTE*
-
-
-
-
