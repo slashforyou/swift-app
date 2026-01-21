@@ -84,6 +84,10 @@ export const hiTranslations = {
         level: 'स्तर',
         xp: 'XP',
         top: 'शीर्ष',
+        thisWeek: 'इस सप्ताह',
+        thisMonth: 'इस महीने',
+        thisYear: 'इस वर्ष',
+        allTime: 'सभी समय',
     },
 
     badges: {
@@ -129,6 +133,18 @@ export const hiTranslations = {
 
     jobs: {
         title: 'नौकरियां',
+        createNewJob: 'नया काम बनाएं',
+        createJob: 'काम बनाएं',
+        createSuccess: 'काम सफलतापूर्वक बनाया गया!',
+        createSuccessAddAnother: 'काम बनाया गया! आप अब एक और जोड़ सकते हैं।',
+        createError: 'काम बनाने में विफल। कृपया पुनः प्रयास करें।',
+        createAndAddAnother: 'बनाएं और दूसरा जोड़ें',
+        selectClient: 'क्लाइंट चुनें',
+        selectClientDescription: 'इस काम के लिए एक क्लाइंट चुनें',
+        enterAddresses: 'पते दर्ज करें',
+        enterAddressesDescription: 'पिकअप और डिलीवरी स्थान',
+        schedule: 'समय सारणी',
+        scheduleDescription: 'इस काम के लिए समय विंडो सेट करें',
         status: {
             pending: 'लंबित',
             inProgress: 'प्रगति में',
@@ -136,7 +152,7 @@ export const hiTranslations = {
             cancelled: 'रद्द',
         },
         timer: {
-            start: 'टाइमर शुरू करें',
+            start: 'शुरू',
             stop: 'टाइमर रोकें',
             pause: 'रोकें',
             resume: 'फिर से शुरू करें',
@@ -146,6 +162,8 @@ export const hiTranslations = {
             billableTime: 'बिल योग्य समय',
             breakTime: 'ब्रेक समय',
             currentStep: 'वर्तमान चरण',
+            nextStep: 'अगला',
+            finish: 'समाप्त',
         },
         details: {
             information: 'जानकारी',
@@ -155,6 +173,13 @@ export const hiTranslations = {
             payment: 'भुगतान',
             summary: 'सारांश',
         },
+    },
+
+    address: {
+        street: 'सड़क पता',
+        city: 'शहर',
+        state: 'राज्य',
+        zip: 'पिन कोड',
     },
 
     calendar: {

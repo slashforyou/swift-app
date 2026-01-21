@@ -93,6 +93,10 @@ export const esTranslations = {
         level: 'Nivel',
         xp: 'XP',
         top: 'Top',
+        thisWeek: 'Esta Semana',
+        thisMonth: 'Este Mes',
+        thisYear: 'Este Año',
+        allTime: 'Todo el tiempo',
     },
 
     badges: {
@@ -138,6 +142,18 @@ export const esTranslations = {
 
     jobs: {
         title: 'Trabajos',
+        createNewJob: 'Crear Nuevo Trabajo',
+        createJob: 'Crear Trabajo',
+        createSuccess: '¡Trabajo creado con éxito!',
+        createSuccessAddAnother: '¡Trabajo creado! Puedes añadir otro.',
+        createError: 'Error al crear el trabajo. Inténtalo de nuevo.',
+        createAndAddAnother: 'Crear y Añadir Otro',
+        selectClient: 'Seleccionar Cliente',
+        selectClientDescription: 'Elige un cliente para este trabajo',
+        enterAddresses: 'Ingresar Direcciones',
+        enterAddressesDescription: 'Ubicaciones de recogida y entrega',
+        schedule: 'Horario',
+        scheduleDescription: 'Establecer la ventana de tiempo para este trabajo',
         status: {
             pending: 'Pendiente',
             inProgress: 'En Progreso',
@@ -145,9 +161,9 @@ export const esTranslations = {
             cancelled: 'Cancelado',
         },
         timer: {
-            start: 'Iniciar Cronómetro',
+            start: 'Iniciar',
             stop: 'Detener Cronómetro',
-            pause: 'Pausar',
+            pause: 'Pausa',
             resume: 'Reanudar',
             break: 'Tomar Descanso',
             endBreak: 'Terminar Descanso',
@@ -155,6 +171,8 @@ export const esTranslations = {
             billableTime: 'Tiempo Facturable',
             breakTime: 'Tiempo de Descanso',
             currentStep: 'Paso Actual',
+            nextStep: 'Siguiente',
+            finish: 'Terminar',
         },
         details: {
             information: 'Información',
@@ -164,6 +182,13 @@ export const esTranslations = {
             payment: 'Pago',
             summary: 'Resumen',
         },
+    },
+
+    address: {
+        street: 'Dirección',
+        city: 'Ciudad',
+        state: 'Provincia',
+        zip: 'Código postal',
     },
 
     calendar: {

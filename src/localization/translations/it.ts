@@ -84,6 +84,10 @@ export const itTranslations = {
         level: 'Livello',
         xp: 'XP',
         top: 'Top',
+        thisWeek: 'Questa Settimana',
+        thisMonth: 'Questo Mese',
+        thisYear: 'Quest\'Anno',
+        allTime: 'Di sempre',
     },
 
     badges: {
@@ -129,6 +133,18 @@ export const itTranslations = {
 
     jobs: {
         title: 'Lavori',
+        createNewJob: 'Crea Nuovo Lavoro',
+        createJob: 'Crea Lavoro',
+        createSuccess: 'Lavoro creato con successo!',
+        createSuccessAddAnother: 'Lavoro creato! Puoi aggiungerne un altro.',
+        createError: 'Impossibile creare il lavoro. Riprova.',
+        createAndAddAnother: 'Crea e Aggiungi Altro',
+        selectClient: 'Seleziona Cliente',
+        selectClientDescription: 'Scegli un cliente per questo lavoro',
+        enterAddresses: 'Inserisci Indirizzi',
+        enterAddressesDescription: 'Luoghi di ritiro e consegna',
+        schedule: 'Orario',
+        scheduleDescription: 'Imposta la finestra temporale per questo lavoro',
         status: {
             pending: 'In attesa',
             inProgress: 'In corso',
@@ -146,6 +162,8 @@ export const itTranslations = {
             billableTime: 'Tempo fatturabile',
             breakTime: 'Tempo di pausa',
             currentStep: 'Passaggio attuale',
+            nextStep: 'Avanti',
+            finish: 'Fine',
         },
         details: {
             information: 'Informazioni',
