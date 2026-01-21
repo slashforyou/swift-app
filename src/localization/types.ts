@@ -664,6 +664,24 @@ export interface TranslationKeys {
         title: string;
         subtitle: string;
         primaryVehicle: string;
+        licensePlate: string;
+        noVehicleAssigned: string;
+        noVehicleDescription: string;
+        addVehicleButton: string;
+        assignVehicle: string;
+        selectVehicle: string;
+        noVehiclesAvailable: string;
+        addNewVehicle: string;
+        assignSelected: string;
+        removeVehicle: string;
+        currentVehicle: string;
+        loadError: string;
+        assignSuccess: string;
+        assignError: string;
+        removeConfirmTitle: string;
+        removeConfirmMessage: string;
+        removeSuccess: string;
+        removeError: string;
       };
       timeWindows: {
         title: string;
