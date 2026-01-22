@@ -33,6 +33,7 @@ const AnimatedExpoImage = Animated.createAnimatedComponent(ExpoImage);
 
 interface JobPhotosSectionProps {
   jobId: string;
+  isVisible?: boolean; // ✅ Session 10: Pour refetch quand l'onglet devient visible
 }
 
 // Helper pour formater la date en français
@@ -739,13 +740,14 @@ const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete 
   );
 };
 
-export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId }) => {
+export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId, isVisible = true }) => {
   const { colors } = useCommonThemedStyles();
   const { t } = useLocalization();
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<JobPhotoAPI | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false); // ✅ Collapsible state
+  const prevIsVisibleRef = React.useRef(isVisible);
   
   const {
     photos,
@@ -761,6 +763,15 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId }) => 
     loadMore,
     isLoadingMore
   } = useJobPhotos(jobId);
+
+  // ✅ Session 10: Refetch quand l'onglet devient visible (false -> true)
+  React.useEffect(() => {
+    if (isVisible && !prevIsVisibleRef.current) {
+      console.log('📸 [JobPhotosSection] Tab became visible, refetching photos...');
+      refetch();
+    }
+    prevIsVisibleRef.current = isVisible;
+  }, [isVisible, refetch]);
 
   const handlePhotoSelection = async (photoUri: string) => {
     // TEMP_DISABLED: console.log('🎯 [DEBUG] handlePhotoSelection - REÇU du modal');

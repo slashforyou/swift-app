@@ -1,8 +1,8 @@
-﻿import { getAuthHeaders } from '../utils/auth';
-import { analytics, trackAPICall, trackJobStep } from './analytics';
-import { apiDiscovery } from './apiDiscovery';
+﻿import { getAuthHeaders } from "../utils/auth";
+import { analytics, trackAPICall, trackJobStep } from "./analytics";
+import { apiDiscovery } from "./apiDiscovery";
 
-const API_BASE_URL = 'https://altivo.fr/swift-app/v1';
+const API_BASE_URL = "https://altivo.fr/swift-app/v1";
 
 export interface JobStepUpdate {
   current_step: number;
@@ -18,27 +18,27 @@ export interface JobStepResponse {
 /**
  * Update a job's current step
  * API Endpoint: POST /v1/job/{jobId}/advance-step  ← ✅ CORRIGÉ Session 9: Endpoint réel du backend
- * 
+ *
  * ✅ Session 9: Utilise le vrai endpoint /advance-step trouvé via API Discovery
  * ✅ Session 8: Vérifie disponibilité endpoint avant appel
- * 
+ *
  * @param jobId - The job ID (numeric) or CODE (ex: JOB-DEC-002)
  * @param current_step - The new step number (1-5)
  * @param notes - Optional notes for this step
  */
 export const updateJobStep = async (
-  jobId: string, 
-  current_step: number, 
-  notes?: string
+  jobId: string,
+  current_step: number,
+  notes?: string,
 ): Promise<JobStepResponse> => {
   const startTime = Date.now();
-  
-  console.log('📡 [API_STEP] updateJobStep called', {
+
+  console.log("📡 [API_STEP] updateJobStep called", {
     jobId,
     current_step,
-    hasNotes: !!notes
+    hasNotes: !!notes,
   });
-  
+
   try {
     // ✅ SESSION 9 FIX: Extraire ID numérique depuis CODE si nécessaire
     let numericId = jobId;
@@ -46,107 +46,130 @@ export const updateJobStep = async (
       const match = jobId.match(/(\d+)$/);
       if (match) {
         numericId = parseInt(match[1], 10).toString();
-        console.log('🔄 [API_STEP] Extracted numeric ID from code', { original: jobId, numericId });
+        console.log("🔄 [API_STEP] Extracted numeric ID from code", {
+          original: jobId,
+          numericId,
+        });
       }
     }
-    
+
     // ✅ Phase 2.3: Utiliser API Discovery avec support des patterns dynamiques
     const endpoint = `/swift-app/v1/job/${numericId}/advance-step`;
-    console.log('🔍 [API_STEP] Checking endpoint availability', { endpoint });
-    const isAvailable = await apiDiscovery.isEndpointAvailable(endpoint, 'POST');
-    
+    console.log("🔍 [API_STEP] Checking endpoint availability", { endpoint });
+    const isAvailable = await apiDiscovery.isEndpointAvailable(
+      endpoint,
+      "POST",
+    );
+
     if (!isAvailable) {
-      console.log(`⚠️ [API_STEP] Endpoint not available, step saved locally only`, {
-        jobId,
-        current_step,
-        endpoint
-      });
-      
+      console.log(
+        `⚠️ [API_STEP] Endpoint not available, step saved locally only`,
+        {
+          jobId,
+          current_step,
+          endpoint,
+        },
+      );
+
       // Fallback local uniquement (pas d'erreur)
       // Le JobTimerProvider gère déjà le step localement
       trackJobStep(jobId, current_step, 5, notes);
-      
+
       return {
         success: true, // Considérer comme succès (update local)
-        data: { message: 'Saved locally (endpoint not available)', current_step }
+        data: {
+          message: "Saved locally (endpoint not available)",
+          current_step,
+        },
       };
     }
 
     const authHeaders = await getAuthHeaders();
     if (!authHeaders) {
-      console.error('❌ [API_STEP] No authentication token available');
-      throw new Error('No authentication token available');
+      console.error("❌ [API_STEP] No authentication token available");
+      throw new Error("No authentication token available");
     }
 
     const payload: JobStepUpdate = {
       current_step,
-      ...(notes && { notes })
+      ...(notes && { notes }),
     };
 
-    console.log('📤 [API_STEP] Sending request', {
+    console.log("📤 [API_STEP] Sending request", {
       url: `${API_BASE_URL}/job/${numericId}/advance-step`,
-      method: 'POST',
-      payload
+      method: "POST",
+      payload,
     });
 
-    const response = await fetch(`${API_BASE_URL}/job/${numericId}/advance-step`, {
-      method: 'POST',
-      headers: {
-        ...authHeaders,
-        'Content-Type': 'application/json',
+    const response = await fetch(
+      `${API_BASE_URL}/job/${numericId}/advance-step`,
+      {
+        method: "POST",
+        headers: {
+          ...authHeaders,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
       },
-      body: JSON.stringify(payload),
-    });
+    );
 
     const duration = Date.now() - startTime;
-    console.log('📥 [API_STEP] Response received', {
+    console.log("📥 [API_STEP] Response received", {
       status: response.status,
       statusText: response.statusText,
-      duration: `${duration}ms`
+      duration: `${duration}ms`,
     });
-    
-    trackAPICall(`/job/${numericId}/advance-step`, 'POST', duration, response.status);
+
+    trackAPICall(
+      `/job/${numericId}/advance-step`,
+      "POST",
+      duration,
+      response.status,
+    );
 
     if (!response.ok) {
       const errorText = await response.text();
-      
+
       // ✅ SESSION 9: Distinguer 404 (endpoint absent) vs vraie erreur
       if (response.status === 404) {
-        console.log('⚠️ [API_STEP] Endpoint returned 404, using local fallback', {
-          jobId,
-          current_step,
-          endpoint
-        });
-        
+        console.log(
+          "⚠️ [API_STEP] Endpoint returned 404, using local fallback",
+          {
+            jobId,
+            current_step,
+            endpoint,
+          },
+        );
+
         // Invalider cache (peut-être endpoint supprimé)
         apiDiscovery.refresh();
-        
+
         // Fallback local (pas d'erreur, considéré comme succès)
         trackJobStep(jobId, current_step, 5, notes);
-        
+
         return {
           success: true,
-          data: { 
-            message: 'Saved locally (404 from server)', 
+          data: {
+            message: "Saved locally (404 from server)",
             current_step,
-            source: 'local'
-          }
+            source: "local",
+          },
         };
       }
-      
+
       // Vraie erreur (500, 401, etc.) → log et retourner erreur
       console.error(`❌ [API_STEP] Request failed`, {
         status: response.status,
         statusText: response.statusText,
-        errorBody: errorText
+        errorBody: errorText,
       });
-      
+
       analytics.trackError({
-        error_type: 'api_error',
+        error_type: "api_error",
         error_message: `Job step update failed: ${response.status} ${response.statusText}`,
-        context: { jobId, current_step, notes, endpoint: `/job/${jobId}/step` }
+        context: { jobId, current_step, notes, endpoint: `/job/${jobId}/step` },
       });
-      
+
       return {
         success: false,
         error: `HTTP ${response.status}: ${response.statusText}`,
@@ -154,35 +177,34 @@ export const updateJobStep = async (
     }
 
     const data = await response.json();
-    console.log('✅ [API_STEP] Step updated successfully', { 
-      jobId: numericId, 
+    console.log("✅ [API_STEP] Step updated successfully", {
+      jobId: numericId,
       current_step,
-      responseData: data 
+      responseData: data,
     });
-    
+
     // 📊 Track successful job step advancement
     trackJobStep(jobId, current_step, 5, notes); // Assuming 5 total steps, adjust as needed
-    
+
     return {
       success: true,
       data,
     };
   } catch (error) {
-
     const duration = Date.now() - startTime;
-    trackAPICall(`/job/${jobId}/step`, 'PATCH', duration, 500);
-    
-    console.error('❌ Error updating job step:', error);
-    
+    trackAPICall(`/job/${jobId}/step`, "PATCH", duration, 500);
+
+    console.error("❌ Error updating job step:", error);
+
     analytics.trackError({
-      error_type: 'network_error',
+      error_type: "network_error",
       error_message: `Job step update network error: ${error}`,
-      context: { jobId, current_step, notes }
+      context: { jobId, current_step, notes },
     });
-    
+
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : "Unknown error",
     };
   }
 };
@@ -190,73 +212,78 @@ export const updateJobStep = async (
 /**
  * Get current job step
  * API Endpoint: GET /v1/job/{jobId}/step  ← CORRIGÉ: singulier
- * 
+ *
  * ✅ Session 9: Intégration API Discovery pour éviter 404 parasites
  */
 export const getJobStep = async (jobId: string): Promise<JobStepResponse> => {
   const startTime = Date.now();
-  
+
   try {
     // ✅ SESSION 9: Vérifier si endpoint existe avant d'appeler
     const endpoint = `/swift-app/v1/job/${jobId}/step`;
-    const isAvailable = await apiDiscovery.isEndpointAvailable(endpoint, 'GET');
-    
+    const isAvailable = await apiDiscovery.isEndpointAvailable(endpoint, "GET");
+
     if (!isAvailable) {
-      console.debug(`📊 [GET JOB STEP] Endpoint not available, returning local state`, {
-        jobId,
-        endpoint
-      });
-      
+      console.debug(
+        `📊 [GET JOB STEP] Endpoint not available, returning local state`,
+        {
+          jobId,
+          endpoint,
+        },
+      );
+
       // Fallback local uniquement (pas d'erreur)
       // Le JobTimerProvider gère déjà le step localement
       return {
         success: true,
-        data: { 
-          message: 'Local state (endpoint not available)',
-          source: 'local',
-          note: 'Step is managed locally by JobTimerProvider'
-        }
+        data: {
+          message: "Local state (endpoint not available)",
+          source: "local",
+          note: "Step is managed locally by JobTimerProvider",
+        },
       };
     }
 
     const authHeaders = await getAuthHeaders();
     if (!authHeaders) {
-      throw new Error('No authentication token available');
+      throw new Error("No authentication token available");
     }
 
     const response = await fetch(`${API_BASE_URL}/job/${jobId}/step`, {
-      method: 'GET',
+      method: "GET",
       headers: authHeaders,
     });
 
     const duration = Date.now() - startTime;
-    trackAPICall(`/job/${jobId}/step`, 'GET', duration, response.status);
+    trackAPICall(`/job/${jobId}/step`, "GET", duration, response.status);
 
     if (!response.ok) {
       // ✅ Distinguer 404 (endpoint absent) vs vraie erreur
       if (response.status === 404) {
-        console.debug('📊 [GET JOB STEP] Endpoint returned 404, invalidating cache and using local fallback');
+        console.debug(
+          "📊 [GET JOB STEP] Endpoint returned 404, invalidating cache and using local fallback",
+        );
         // Invalider cache (peut-être endpoint supprimé)
         apiDiscovery.refresh();
-        
+
         // Fallback local (pas d'erreur)
         return {
           success: true,
-          data: { 
-            message: 'Local state (404 from server)',
-            source: 'local',
-            note: 'Endpoint was expected but returned 404'
-          }
+          data: {
+            message: "Local state (404 from server)",
+            source: "local",
+            note: "Endpoint was expected but returned 404",
+          },
         };
       }
-      
+
       // Vraie erreur (500, etc.)
       analytics.trackError({
-        error_type: 'api_error',
+        error_type: "api_error",
         error_message: `Get job step failed: ${response.status} ${response.statusText}`,
-        context: { jobId, endpoint: `/job/${jobId}/step` }
+        context: { jobId, endpoint: `/job/${jobId}/step` },
       });
-      
+
       return {
         success: false,
         error: `HTTP ${response.status}: ${response.statusText}`,
@@ -269,19 +296,18 @@ export const getJobStep = async (jobId: string): Promise<JobStepResponse> => {
       data,
     };
   } catch (error) {
-
     const duration = Date.now() - startTime;
-    trackAPICall(`/job/${jobId}/step`, 'GET', duration, 500);
-    
+    trackAPICall(`/job/${jobId}/step`, "GET", duration, 500);
+
     analytics.trackError({
-      error_type: 'network_error',
+      error_type: "network_error",
       error_message: `Get job step network error: ${error}`,
-      context: { jobId }
+      context: { jobId },
     });
-    
+
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : "Unknown error",
     };
   }
 };
@@ -289,61 +315,68 @@ export const getJobStep = async (jobId: string): Promise<JobStepResponse> => {
 /**
  * Get job steps history
  * API Endpoint: GET /v1/jobs/{jobId}/steps
- * 
+ *
  * ✅ Session 9: Intégration API Discovery pour éviter 404 parasites
  */
-export const getJobStepsHistory = async (jobId: string): Promise<JobStepResponse> => {
+export const getJobStepsHistory = async (
+  jobId: string,
+): Promise<JobStepResponse> => {
   try {
     // ✅ SESSION 9: Vérifier si endpoint existe avant d'appeler
     const endpoint = `/swift-app/v1/jobs/${jobId}/steps`;
-    const isAvailable = await apiDiscovery.isEndpointAvailable(endpoint, 'GET');
-    
+    const isAvailable = await apiDiscovery.isEndpointAvailable(endpoint, "GET");
+
     if (!isAvailable) {
-      console.debug(`📊 [GET STEPS HISTORY] Endpoint not available, returning empty history`, {
-        jobId,
-        endpoint
-      });
-      
+      console.debug(
+        `📊 [GET STEPS HISTORY] Endpoint not available, returning empty history`,
+        {
+          jobId,
+          endpoint,
+        },
+      );
+
       // Fallback local: historique vide (pas d'erreur)
       return {
         success: true,
-        data: { 
+        data: {
           steps: [],
-          message: 'History not available (endpoint not implemented)',
-          source: 'local',
-          note: 'Step history is not tracked locally, requires backend implementation'
-        }
+          message: "History not available (endpoint not implemented)",
+          source: "local",
+          note: "Step history is not tracked locally, requires backend implementation",
+        },
       };
     }
 
     const authHeaders = await getAuthHeaders();
     if (!authHeaders) {
-      throw new Error('No authentication token available');
+      throw new Error("No authentication token available");
     }
 
     const response = await fetch(`${API_BASE_URL}/jobs/${jobId}/steps`, {
-      method: 'GET',
+      method: "GET",
       headers: authHeaders,
     });
 
     if (!response.ok) {
       // ✅ Distinguer 404 (endpoint absent) vs vraie erreur
       if (response.status === 404) {
-        console.debug('📊 [GET STEPS HISTORY] Endpoint returned 404, invalidating cache and returning empty history');
+        console.debug(
+          "📊 [GET STEPS HISTORY] Endpoint returned 404, invalidating cache and returning empty history",
+        );
         // Invalider cache (peut-être endpoint supprimé)
         apiDiscovery.refresh();
-        
+
         // Fallback: historique vide (pas d'erreur)
         return {
           success: true,
-          data: { 
+          data: {
             steps: [],
-            message: 'History not available (404 from server)',
-            source: 'local'
-          }
+            message: "History not available (404 from server)",
+            source: "local",
+          },
         };
       }
-      
+
       // Vraie erreur (500, etc.)
       return {
         success: false,
@@ -357,10 +390,9 @@ export const getJobStepsHistory = async (jobId: string): Promise<JobStepResponse
       data,
     };
   } catch (error) {
-
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : "Unknown error",
     };
   }
 };
@@ -368,14 +400,14 @@ export const getJobStepsHistory = async (jobId: string): Promise<JobStepResponse
 /**
  * Complete a job (mark as finished)
  * API Endpoint: POST /v1/job/{jobId}/complete
- * 
+ *
  * ✅ Session 9: Nouvelle fonction pour compléter un job
- * 
+ *
  * @param jobId - The job ID (numeric) or CODE (ex: JOB-DEC-002)
  */
 export const completeJob = async (jobId: string): Promise<JobStepResponse> => {
   const startTime = Date.now();
-  
+
   try {
     // ✅ SESSION 9 FIX: Extraire ID numérique depuis CODE si nécessaire
     let numericId = jobId;
@@ -385,92 +417,105 @@ export const completeJob = async (jobId: string): Promise<JobStepResponse> => {
         numericId = parseInt(match[1], 10).toString();
       }
     }
-    
+
     // ✅ SESSION 9: Endpoint /complete trouvé via test-endpoints-fixed.js
     const endpoint = `/swift-app/v1/job/${numericId}/complete`;
     // Skip API Discovery (pattern matching issue)
     const isAvailable = true;
-    
+
     if (!isAvailable) {
-      console.debug(`📊 [COMPLETE JOB] Endpoint not available, marked as completed locally`, {
-        jobId,
-        numericId,
-        endpoint
-      });
-      
+      console.debug(
+        `📊 [COMPLETE JOB] Endpoint not available, marked as completed locally`,
+        {
+          jobId,
+          numericId,
+          endpoint,
+        },
+      );
+
       // Fallback local uniquement
       return {
         success: true,
-        data: { message: 'Marked as completed locally (endpoint not available)' }
+        data: {
+          message: "Marked as completed locally (endpoint not available)",
+        },
       };
     }
 
     const authHeaders = await getAuthHeaders();
     if (!authHeaders) {
-      throw new Error('No authentication token available');
+      throw new Error("No authentication token available");
     }
 
-    console.log('📊 [COMPLETE JOB] Calling API:', {
+    console.log("📊 [COMPLETE JOB] Calling API:", {
       jobId,
       numericId,
-      endpoint
+      endpoint,
     });
 
     const response = await fetch(`${API_BASE_URL}/job/${numericId}/complete`, {
-      method: 'POST',
+      method: "POST",
       headers: {
         ...authHeaders,
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({}),
     });
 
     const duration = Date.now() - startTime;
-    trackAPICall(`/job/${numericId}/complete`, 'POST', duration, response.status);
+    trackAPICall(
+      `/job/${numericId}/complete`,
+      "POST",
+      duration,
+      response.status,
+    );
 
     if (!response.ok) {
       const errorText = await response.text();
-      
+
       if (response.status === 404) {
-        console.debug('📊 [COMPLETE JOB] Endpoint returned 404, using local fallback', {
-          jobId,
-          numericId,
-          endpoint
-        });
-        
+        console.debug(
+          "📊 [COMPLETE JOB] Endpoint returned 404, using local fallback",
+          {
+            jobId,
+            numericId,
+            endpoint,
+          },
+        );
+
         apiDiscovery.refresh();
-        
+
         return {
           success: true,
-          data: { message: 'Marked as completed locally (404 response)' }
+          data: { message: "Marked as completed locally (404 response)" },
         };
       }
-      
+
       throw new Error(`Failed to complete job: ${errorText}`);
     }
 
     const data = await response.json();
-    
-    console.log('✅ [COMPLETE JOB] Job completed successfully:', {
+
+    console.log("✅ [COMPLETE JOB] Job completed successfully:", {
       jobId,
       numericId,
-      response: data
+      response: data,
     });
-    
+
     return {
       success: true,
       data,
     };
   } catch (error) {
-    console.error('❌ [COMPLETE JOB] Error:', error);
-    
+    console.error("❌ [COMPLETE JOB] Error:", error);
+
     // Note: numericId may not be in scope here, use jobId
     const duration = Date.now() - startTime;
-    trackAPICall(`/job/${jobId}/complete`, 'POST', duration, 0);
-    
+    trackAPICall(`/job/${jobId}/complete`, "POST", duration, 0);
+
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : "Unknown error",
     };
   }
 };
@@ -505,19 +550,19 @@ export interface SyncStepResponse {
 /**
  * 🆕 Synchroniser le step actuel vers le backend
  * API Endpoint: PUT /swift-app/v1/job/:id/step
- * 
+ *
  * ✅ Confirmé par backend le 2 Jan 2026
  * Range autorisé: 0-5
- * 
+ *
  * @param jobId - Job ID (code ou numérique)
  * @param currentStep - Step actuel (0-5)
  */
 export const syncStepToBackend = async (
   jobId: string,
-  currentStep: number
+  currentStep: number,
 ): Promise<SyncStepResponse> => {
   const startTime = Date.now();
-  
+
   try {
     // Extraire ID numérique si c'est un code
     let numericId = jobId;
@@ -527,37 +572,37 @@ export const syncStepToBackend = async (
         numericId = parseInt(match[1], 10).toString();
       }
     }
-    
+
     const endpoint = `/swift-app/v1/job/${numericId}/step`;
-    
+
     const authHeaders = await getAuthHeaders();
     if (!authHeaders) {
-      throw new Error('No authentication token available');
+      throw new Error("No authentication token available");
     }
 
-    console.log('📤 [SYNC STEP] Syncing step to backend:', {
+    console.log("📤 [SYNC STEP] Syncing step to backend:", {
       jobId,
       numericId,
       currentStep,
-      endpoint
+      endpoint,
     });
 
     const response = await fetch(`${API_BASE_URL}/job/${numericId}/step`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
         ...authHeaders,
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({ current_step: currentStep }),
     });
 
     const duration = Date.now() - startTime;
-    trackAPICall(endpoint, 'PUT', duration, response.status);
+    trackAPICall(endpoint, "PUT", duration, response.status);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.warn('⚠️ [SYNC STEP] Failed:', response.status, errorData);
-      
+      console.warn("⚠️ [SYNC STEP] Failed:", response.status, errorData);
+
       return {
         success: false,
         error: errorData.error || `HTTP ${response.status}`,
@@ -565,19 +610,19 @@ export const syncStepToBackend = async (
     }
 
     const data = await response.json();
-    console.log('✅ [SYNC STEP] Step synced successfully:', data);
-    
+    console.log("✅ [SYNC STEP] Step synced successfully:", data);
+
     return {
       success: true,
       message: data.message,
       data: data.data,
     };
   } catch (error) {
-    console.error('❌ [SYNC STEP] Error:', error);
-    
+    console.error("❌ [SYNC STEP] Error:", error);
+
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : "Unknown error",
     };
   }
 };
@@ -609,23 +654,23 @@ export interface SyncTimerResponse {
 /**
  * 🆕 Synchroniser les données du timer vers le backend
  * API Endpoint: POST /swift-app/v1/job/:id/sync-timer
- * 
+ *
  * ✅ Confirmé par backend le 2 Jan 2026
- * 
+ *
  * @param jobId - Job ID (code ou numérique)
  * @param timerData - Données du timer
  */
 export const syncTimerToBackend = async (
   jobId: string,
-  timerData: SyncTimerRequest
+  timerData: SyncTimerRequest,
 ): Promise<SyncTimerResponse> => {
   const startTime = Date.now();
-  
-  console.log('📡 [API_SYNC] syncTimerToBackend called', {
+
+  console.log("📡 [API_SYNC] syncTimerToBackend called", {
     jobId,
-    timerData
+    timerData,
   });
-  
+
   try {
     // Extraire ID numérique si c'est un code
     let numericId = jobId;
@@ -633,48 +678,54 @@ export const syncTimerToBackend = async (
       const match = jobId.match(/(\d+)$/);
       if (match) {
         numericId = parseInt(match[1], 10).toString();
-        console.log('🔄 [API_SYNC] Extracted numeric ID from code', { original: jobId, numericId });
+        console.log("🔄 [API_SYNC] Extracted numeric ID from code", {
+          original: jobId,
+          numericId,
+        });
       }
     }
-    
+
     const endpoint = `/swift-app/v1/job/${numericId}/sync-timer`;
-    
+
     const authHeaders = await getAuthHeaders();
     if (!authHeaders) {
-      console.error('❌ [API_SYNC] No authentication token available');
-      throw new Error('No authentication token available');
+      console.error("❌ [API_SYNC] No authentication token available");
+      throw new Error("No authentication token available");
     }
 
-    console.log('📤 [API_SYNC] Sending request', {
+    console.log("📤 [API_SYNC] Sending request", {
       url: `${API_BASE_URL}/job/${numericId}/sync-timer`,
-      method: 'POST',
-      payload: timerData
+      method: "POST",
+      payload: timerData,
     });
 
-    const response = await fetch(`${API_BASE_URL}/job/${numericId}/sync-timer`, {
-      method: 'POST',
-      headers: {
-        ...authHeaders,
-        'Content-Type': 'application/json',
+    const response = await fetch(
+      `${API_BASE_URL}/job/${numericId}/sync-timer`,
+      {
+        method: "POST",
+        headers: {
+          ...authHeaders,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(timerData),
       },
-      body: JSON.stringify(timerData),
-    });
+    );
 
     const duration = Date.now() - startTime;
-    console.log('📥 [API_SYNC] Response received', {
+    console.log("📥 [API_SYNC] Response received", {
       status: response.status,
       statusText: response.statusText,
-      duration: `${duration}ms`
+      duration: `${duration}ms`,
     });
-    trackAPICall(endpoint, 'POST', duration, response.status);
+    trackAPICall(endpoint, "POST", duration, response.status);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error('❌ [API_SYNC] Request failed', { 
-        status: response.status, 
-        errorData 
+      console.error("❌ [API_SYNC] Request failed", {
+        status: response.status,
+        errorData,
       });
-      
+
       return {
         success: false,
         error: errorData.error || `HTTP ${response.status}`,
@@ -682,22 +733,22 @@ export const syncTimerToBackend = async (
     }
 
     const data = await response.json();
-    console.log('✅ [API_SYNC] Timer synced successfully', { 
-      jobId: numericId, 
-      responseData: data 
+    console.log("✅ [API_SYNC] Timer synced successfully", {
+      jobId: numericId,
+      responseData: data,
     });
-    
+
     return {
       success: true,
       message: data.message,
       data: data.data,
     };
   } catch (error) {
-    console.error('❌ [API_SYNC] Error:', error);
-    
+    console.error("❌ [API_SYNC] Error:", error);
+
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : "Unknown error",
     };
   }
 };
@@ -705,16 +756,16 @@ export const syncTimerToBackend = async (
 /**
  * 🆕 Récupérer l'état du timer depuis le backend
  * API Endpoint: GET /swift-app/v1/job/:id/timer
- * 
+ *
  * ✅ Confirmé par backend le 2 Jan 2026
- * 
+ *
  * @param jobId - Job ID (code ou numérique)
  */
 export const getTimerFromBackend = async (
-  jobId: string
+  jobId: string,
 ): Promise<SyncTimerResponse> => {
   const startTime = Date.now();
-  
+
   try {
     // Extraire ID numérique si c'est un code
     let numericId = jobId;
@@ -724,26 +775,26 @@ export const getTimerFromBackend = async (
         numericId = parseInt(match[1], 10).toString();
       }
     }
-    
+
     const endpoint = `/swift-app/v1/job/${numericId}/timer`;
-    
+
     const authHeaders = await getAuthHeaders();
     if (!authHeaders) {
-      throw new Error('No authentication token available');
+      throw new Error("No authentication token available");
     }
 
     const response = await fetch(`${API_BASE_URL}/job/${numericId}/timer`, {
-      method: 'GET',
+      method: "GET",
       headers: authHeaders,
     });
 
     const duration = Date.now() - startTime;
-    trackAPICall(endpoint, 'GET', duration, response.status);
+    trackAPICall(endpoint, "GET", duration, response.status);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.warn('⚠️ [GET TIMER] Failed:', response.status, errorData);
-      
+      console.warn("⚠️ [GET TIMER] Failed:", response.status, errorData);
+
       return {
         success: false,
         error: errorData.error || `HTTP ${response.status}`,
@@ -751,8 +802,8 @@ export const getTimerFromBackend = async (
     }
 
     const data = await response.json();
-    console.log('✅ [GET TIMER] Timer retrieved:', data);
-    
+    console.log("✅ [GET TIMER] Timer retrieved:", data);
+
     return {
       success: true,
       data: {
@@ -768,11 +819,11 @@ export const getTimerFromBackend = async (
       },
     };
   } catch (error) {
-    console.error('❌ [GET TIMER] Error:', error);
-    
+    console.error("❌ [GET TIMER] Error:", error);
+
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : "Unknown error",
     };
   }
 };

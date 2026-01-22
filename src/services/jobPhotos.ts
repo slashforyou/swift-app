@@ -1,40 +1,40 @@
 // services/jobPhotos.ts
-import { ServerData } from '../constants/ServerData';
-import { getAuthHeaders } from '../utils/auth';
+import { ServerData } from "../constants/ServerData";
+import { getAuthHeaders } from "../utils/auth";
 
 const API = ServerData.serverUrl;
 
 export interface JobPhotoAPI {
-  id: string | number;  // L'API retourne des numbers
+  id: string | number; // L'API retourne des numbers
   job_id?: string;
   user_id?: string;
   filename: string;
-  filePath?: string;    // Chemin relatif dans Google Cloud Storage
-  file_path?: string;   // Alias snake_case
-  url?: string;         // ✅ Signed URL from backend (si disponible)
-  signedUrl?: string;   // ✅ Alias pour signed URL
-  expiresAt?: string;   // ✅ Date d'expiration de la signed URL
+  filePath?: string; // Chemin relatif dans Google Cloud Storage
+  file_path?: string; // Alias snake_case
+  url?: string; // ✅ Signed URL from backend (si disponible)
+  signedUrl?: string; // ✅ Alias pour signed URL
+  expiresAt?: string; // ✅ Date d'expiration de la signed URL
   original_name?: string;
-  originalFilename?: string;  // Alias camelCase
+  originalFilename?: string; // Alias camelCase
   description?: string;
   file_size?: number;
-  fileSize?: number;    // Alias camelCase
+  fileSize?: number; // Alias camelCase
   mime_type?: string;
-  mimeType?: string;    // Alias camelCase
+  mimeType?: string; // Alias camelCase
   width?: number;
   height?: number;
   dimensions?: { width: number | null; height: number | null };
-  type?: string;        // before, after, other, etc.
-  stage?: string;       // pickup, delivery, etc.
+  type?: string; // before, after, other, etc.
+  stage?: string; // pickup, delivery, etc.
   isPublic?: boolean;
   hasThumbnail?: boolean;
   thumbnailPath?: string | null;
   location?: any;
   capturedAt?: string;
   created_at?: string;
-  createdAt?: string;   // Alias camelCase
+  createdAt?: string; // Alias camelCase
   updated_at?: string;
-  updatedAt?: string;   // Alias camelCase
+  updatedAt?: string; // Alias camelCase
   deleted_at?: string;
   user?: { id: number; name: string };
   tags?: any[];
@@ -59,88 +59,102 @@ export interface UploadPhotoResponse {
 /**
  * Upload une seule image à un job
  * Route: POST /swift-app/v1/job/{jobId}/image
- * 
+ *
  * ✅ Session 10 FIX: Ajout de job_id et user_id dans FormData (requis par backend)
  */
 export async function uploadJobPhoto(
-  jobId: string, 
-  photoUri: string, 
+  jobId: string,
+  photoUri: string,
   description?: string,
-  userId?: string
+  userId?: string,
 ): Promise<JobPhotoAPI> {
   const headers = await getAuthHeaders();
-  
+
   // Créer FormData pour l'upload
   const formData = new FormData();
-  
+
   // ✅ Session 10 FIX: Ajouter job_id et user_id (requis par backend)
-  formData.append('job_id', jobId);
+  formData.append("job_id", jobId);
   if (userId) {
-    formData.append('user_id', userId);
+    formData.append("user_id", userId);
   }
-  
+
   // Ajouter l'image
-  const filename = photoUri.split('/').pop() || `photo_${Date.now()}.jpg`;
-  formData.append('image', {
+  const filename = photoUri.split("/").pop() || `photo_${Date.now()}.jpg`;
+  formData.append("image", {
     uri: photoUri,
-    type: 'image/jpeg',
+    type: "image/jpeg",
     name: filename,
   } as any);
-  
+
   // Ajouter la description si fournie
   if (description) {
-    formData.append('description', description);
+    formData.append("description", description);
   }
-  
-  console.log('📸 [jobPhotos] Uploading photo', { jobId, userId, hasDescription: !!description });
+
+  console.log("📸 [jobPhotos] Uploading photo", {
+    jobId,
+    userId,
+    hasDescription: !!description,
+  });
 
   const res = await fetch(`${API}v1/job/${jobId}/image`, {
-    method: 'POST',
+    method: "POST",
     headers: {
       ...headers,
-      'Content-Type': 'multipart/form-data',
+      "Content-Type": "multipart/form-data",
     },
     body: formData,
   });
 
   if (!res.ok) {
-    const error = await res.json().catch(() => ({ message: 'Failed to upload photo' }));
-    console.error('❌ [ERROR] Upload failed:', res.status, error);
-    throw new Error(error.message || `HTTP ${res.status}: Failed to upload photo`);
+    const error = await res
+      .json()
+      .catch(() => ({ message: "Failed to upload photo" }));
+    console.error("❌ [ERROR] Upload failed:", res.status, error);
+    throw new Error(
+      error.message || `HTTP ${res.status}: Failed to upload photo`,
+    );
   }
 
   const response = await res.json();
   // TEMP_DISABLED: console.log('🔍 [DEBUG] Server response:', JSON.stringify(response));
   // TEMP_DISABLED: console.log('🔍 [DEBUG] Response keys:', Object.keys(response));
-  
+
   // Le serveur retourne la photo dans response.data au lieu de response.photo
   // On transforme pour correspondre à l'interface JobPhotoAPI
   const serverData = response.data || response.photo;
-  
+
   if (!serverData) {
-    console.error('❌ [ERROR] Missing photo/data object in response');
-    console.error('🔍 [DEBUG] Full response:', JSON.stringify(response, null, 2));
-    throw new Error('No photo data returned from server');
+    console.error("❌ [ERROR] Missing photo/data object in response");
+    console.error(
+      "🔍 [DEBUG] Full response:",
+      JSON.stringify(response, null, 2),
+    );
+    throw new Error("No photo data returned from server");
   }
-  
+
   // TEMP_DISABLED: console.log('✅ [DEBUG] Photo data received:', serverData);
-  
+
   // Transformer la réponse serveur en format JobPhotoAPI
   const photo: JobPhotoAPI = {
     id: String(serverData.id),
     job_id: String(jobId), // On utilise le jobId de la requête
-    user_id: serverData.user_id || serverData.userId || '', // À adapter selon le serveur
-    filename: serverData.filename || '',
-    original_name: serverData.originalFilename || serverData.original_name || '',
-    description: serverData.description || '',
+    user_id: serverData.user_id || serverData.userId || "", // À adapter selon le serveur
+    filename: serverData.filename || "",
+    original_name:
+      serverData.originalFilename || serverData.original_name || "",
+    description: serverData.description || "",
     file_size: serverData.fileSize || serverData.file_size || 0,
-    mime_type: serverData.mimeType || serverData.mime_type || 'image/jpeg',
+    mime_type: serverData.mimeType || serverData.mime_type || "image/jpeg",
     width: serverData.width,
     height: serverData.height,
-    created_at: serverData.created_at || serverData.createdAt || new Date().toISOString(),
-    updated_at: serverData.updated_at || serverData.updatedAt || new Date().toISOString(),
+    created_at:
+      serverData.created_at || serverData.createdAt || new Date().toISOString(),
+    updated_at:
+      serverData.updated_at || serverData.updatedAt || new Date().toISOString(),
   };
-  
+
   // TEMP_DISABLED: console.log('✅ [DEBUG] Photo normalized:', photo);
   return photo;
 }
@@ -150,28 +164,29 @@ export async function uploadJobPhoto(
  * Route: POST /swift-app/v1/job/{jobId}/images
  */
 export async function uploadJobPhotos(
-  jobId: string, 
-  photoUris: string[], 
-  descriptions?: string[]
+  jobId: string,
+  photoUris: string[],
+  descriptions?: string[],
 ): Promise<JobPhotoAPI[]> {
   const headers = await getAuthHeaders();
-  
+
   if (photoUris.length > 10) {
-    throw new Error('Maximum 10 photos allowed per upload');
+    throw new Error("Maximum 10 photos allowed per upload");
   }
-  
+
   // Créer FormData pour l'upload
   const formData = new FormData();
-  
+
   // Ajouter toutes les images
   photoUris.forEach((photoUri, index) => {
-    const filename = photoUri.split('/').pop() || `photo_${Date.now()}_${index}.jpg`;
-    formData.append('images', {
+    const filename =
+      photoUri.split("/").pop() || `photo_${Date.now()}_${index}.jpg`;
+    formData.append("images", {
       uri: photoUri,
-      type: 'image/jpeg',
+      type: "image/jpeg",
       name: filename,
     } as any);
-    
+
     // Ajouter la description correspondante si fournie
     if (descriptions && descriptions[index]) {
       formData.append(`descriptions[${index}]`, descriptions[index]);
@@ -179,17 +194,21 @@ export async function uploadJobPhotos(
   });
 
   const res = await fetch(`${API}v1/job/${jobId}/images`, {
-    method: 'POST',
+    method: "POST",
     headers: {
       ...headers,
-      'Content-Type': 'multipart/form-data',
+      "Content-Type": "multipart/form-data",
     },
     body: formData,
   });
 
   if (!res.ok) {
-    const error = await res.json().catch(() => ({ message: 'Failed to upload photos' }));
-    throw new Error(error.message || `HTTP ${res.status}: Failed to upload photos`);
+    const error = await res
+      .json()
+      .catch(() => ({ message: "Failed to upload photos" }));
+    throw new Error(
+      error.message || `HTTP ${res.status}: Failed to upload photos`,
+    );
   }
 
   const data: UploadPhotoResponse = await res.json();
@@ -205,44 +224,55 @@ export async function uploadJobPhotos(
  * Route: GET /swift-app/v1/job/{jobId}/images?limit=8&offset=0
  */
 export async function fetchJobPhotos(
-  jobId: string, 
-  options?: { limit?: number; offset?: number }
-): Promise<{ photos: JobPhotoAPI[]; pagination: { total: number; hasMore: boolean; count: number } }> {
+  jobId: string,
+  options?: { limit?: number; offset?: number },
+): Promise<{
+  photos: JobPhotoAPI[];
+  pagination: { total: number; hasMore: boolean; count: number };
+}> {
   const headers = await getAuthHeaders();
-  
+
   // Paramètres de pagination (défaut: 8 photos par page)
   const limit = options?.limit ?? 8;
   const offset = options?.offset ?? 0;
-  
+
   const url = `${API}v1/job/${jobId}/images?limit=${limit}&offset=${offset}`;
   // TEMP_DISABLED: console.log('📸 [fetchJobPhotos] REQUEST - URL:', url, 'limit:', limit, 'offset:', offset);
-  
+
   const res = await fetch(url, {
-    method: 'GET',
+    method: "GET",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...headers,
     },
   });
 
   if (!res.ok) {
-    const error = await res.json().catch(() => ({ message: 'Failed to fetch job photos' }));
-    throw new Error(error.message || `HTTP ${res.status}: Failed to fetch job photos`);
+    const error = await res
+      .json()
+      .catch(() => ({ message: "Failed to fetch job photos" }));
+    throw new Error(
+      error.message || `HTTP ${res.status}: Failed to fetch job photos`,
+    );
   }
 
   const response = await res.json();
-  
+
   /* TEMP_DISABLED: console.log('📸 [fetchJobPhotos] RAW RESPONSE:', JSON.stringify({
     success: response.success,
     dataImages: response.data?.images?.length || 0,
     dataPagination: response.data?.pagination,
     topLevelImages: response.images?.length || 0
   }, null, 2)); */
-  
+
   // API retourne: { success: true, data: { images: [...], pagination: {...} } }
   const images = response.data?.images || response.images || [];
-  const pagination = response.data?.pagination || { total: images.length, hasMore: false, count: images.length };
-  
+  const pagination = response.data?.pagination || {
+    total: images.length,
+    hasMore: false,
+    count: images.length,
+  };
+
   /* TEMP_DISABLED: console.log('📸 [fetchJobPhotos] PARSED RESULT:', JSON.stringify({ 
     photosCount: images.length, 
     requestedLimit: limit,
@@ -251,14 +281,14 @@ export async function fetchJobPhotos(
     hasMore: pagination.hasMore,
     paginationCount: pagination.count
   }, null, 2)); */
-  
+
   return {
     photos: images,
     pagination: {
       total: pagination.total,
       hasMore: pagination.hasMore,
-      count: pagination.count
-    }
+      count: pagination.count,
+    },
   };
 }
 
@@ -268,18 +298,22 @@ export async function fetchJobPhotos(
  */
 export async function fetchPhotoById(photoId: string): Promise<JobPhotoAPI> {
   const headers = await getAuthHeaders();
-  
+
   const res = await fetch(`${API}v1/image/${photoId}`, {
-    method: 'GET',
+    method: "GET",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...headers,
     },
   });
 
   if (!res.ok) {
-    const error = await res.json().catch(() => ({ message: 'Failed to fetch photo' }));
-    throw new Error(error.message || `HTTP ${res.status}: Failed to fetch photo`);
+    const error = await res
+      .json()
+      .catch(() => ({ message: "Failed to fetch photo" }));
+    throw new Error(
+      error.message || `HTTP ${res.status}: Failed to fetch photo`,
+    );
   }
 
   const data = await res.json();
@@ -292,26 +326,30 @@ export async function fetchPhotoById(photoId: string): Promise<JobPhotoAPI> {
  */
 export async function getPhotoServeUrl(photoId: string): Promise<string> {
   const headers = await getAuthHeaders();
-  
+
   const res = await fetch(`${API}v1/image/${photoId}/serve`, {
-    method: 'GET',
+    method: "GET",
     headers: {
       ...headers,
     },
   });
 
   if (!res.ok) {
-    const error = await res.json().catch(() => ({ message: 'Failed to get photo serve URL' }));
-    throw new Error(error.message || `HTTP ${res.status}: Failed to get photo serve URL`);
+    const error = await res
+      .json()
+      .catch(() => ({ message: "Failed to get photo serve URL" }));
+    throw new Error(
+      error.message || `HTTP ${res.status}: Failed to get photo serve URL`,
+    );
   }
 
   // Cette route peut retourner soit une URL, soit rediriger directement
   if (res.url) {
     return res.url;
   }
-  
+
   const data = await res.json();
-  return data.url || data.serve_url || '';
+  return data.url || data.serve_url || "";
 }
 
 /**
@@ -319,23 +357,27 @@ export async function getPhotoServeUrl(photoId: string): Promise<string> {
  * Route: PATCH /swift-app/v1/image/{id}
  */
 export async function updatePhotoDescription(
-  photoId: string, 
-  description: string
+  photoId: string,
+  description: string,
 ): Promise<JobPhotoAPI> {
   const headers = await getAuthHeaders();
-  
+
   const res = await fetch(`${API}v1/image/${photoId}`, {
-    method: 'PATCH',
+    method: "PATCH",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...headers,
     },
     body: JSON.stringify({ description }),
   });
 
   if (!res.ok) {
-    const error = await res.json().catch(() => ({ message: 'Failed to update photo' }));
-    throw new Error(error.message || `HTTP ${res.status}: Failed to update photo`);
+    const error = await res
+      .json()
+      .catch(() => ({ message: "Failed to update photo" }));
+    throw new Error(
+      error.message || `HTTP ${res.status}: Failed to update photo`,
+    );
   }
 
   const data = await res.json();
@@ -348,18 +390,22 @@ export async function updatePhotoDescription(
  */
 export async function deletePhoto(photoId: string): Promise<void> {
   const headers = await getAuthHeaders();
-  
+
   const res = await fetch(`${API}v1/image/${photoId}`, {
-    method: 'DELETE',
+    method: "DELETE",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...headers,
     },
   });
 
   if (!res.ok) {
-    const error = await res.json().catch(() => ({ message: 'Failed to delete photo' }));
-    throw new Error(error.message || `HTTP ${res.status}: Failed to delete photo`);
+    const error = await res
+      .json()
+      .catch(() => ({ message: "Failed to delete photo" }));
+    throw new Error(
+      error.message || `HTTP ${res.status}: Failed to delete photo`,
+    );
   }
 }
 
@@ -369,18 +415,22 @@ export async function deletePhoto(photoId: string): Promise<void> {
  */
 export async function restorePhoto(photoId: string): Promise<JobPhotoAPI> {
   const headers = await getAuthHeaders();
-  
+
   const res = await fetch(`${API}v1/image/${photoId}/restore`, {
-    method: 'PATCH',
+    method: "PATCH",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...headers,
     },
   });
 
   if (!res.ok) {
-    const error = await res.json().catch(() => ({ message: 'Failed to restore photo' }));
-    throw new Error(error.message || `HTTP ${res.status}: Failed to restore photo`);
+    const error = await res
+      .json()
+      .catch(() => ({ message: "Failed to restore photo" }));
+    throw new Error(
+      error.message || `HTTP ${res.status}: Failed to restore photo`,
+    );
   }
 
   const data = await res.json();

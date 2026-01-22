@@ -39,6 +39,7 @@ const extractNumericJobId = (jobId: string): string => {
 interface JobPageProps {
     job: any;
     setJob: React.Dispatch<React.SetStateAction<any>>;
+    isVisible?: boolean; // ✅ Session 10: Pour refetch photos quand l'onglet devient visible
 }
 
 interface InfoRowProps {
@@ -562,7 +563,7 @@ const ItemRow: React.FC<ItemRowProps> = ({ item, index, onToggle, onQuantityChan
     );
 };
 
-const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
+const JobPage: React.FC<JobPageProps> = ({ job, setJob, isVisible = true }) => {
     const { colors } = useCommonThemedStyles();
     const { t } = useLocalization();
     const [showAddItemModal, setShowAddItemModal] = useState(false);
@@ -791,7 +792,7 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob }) => {
                 </Card>
 
                 {/* Photos Section */}
-                <JobPhotosSection jobId={numericJobId} />
+                <JobPhotosSection jobId={numericJobId} isVisible={isVisible} />
 
                 {/* Crew Section - Staff assigné au job */}
                 {job.crew && job.crew.length > 0 && (

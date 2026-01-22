@@ -687,11 +687,13 @@ export const frTranslations: TranslationKeys = {
         primaryVehicle: "Véhicule principal",
         licensePlate: "Plaque d'immatriculation",
         noVehicleAssigned: "Aucun véhicule assigné",
-        noVehicleDescription: "Assignez un véhicule de votre flotte à cette mission",
+        noVehicleDescription:
+          "Assignez un véhicule de votre flotte à cette mission",
         addVehicleButton: "Assigner un véhicule",
         assignVehicle: "Assigner un véhicule",
         selectVehicle: "Sélectionnez un véhicule de votre flotte",
-        noVehiclesAvailable: "Aucun véhicule disponible dans votre flotte. Ajoutez d'abord un nouveau véhicule.",
+        noVehiclesAvailable:
+          "Aucun véhicule disponible dans votre flotte. Ajoutez d'abord un nouveau véhicule.",
         addNewVehicle: "Ajouter un nouveau véhicule",
         assignSelected: "Assigner le véhicule sélectionné",
         removeVehicle: "Retirer le véhicule du job",
@@ -700,7 +702,8 @@ export const frTranslations: TranslationKeys = {
         assignSuccess: "Véhicule assigné avec succès au job",
         assignError: "Impossible d'assigner le véhicule",
         removeConfirmTitle: "Retirer le véhicule",
-        removeConfirmMessage: "Êtes-vous sûr de vouloir retirer le véhicule de ce job ?",
+        removeConfirmMessage:
+          "Êtes-vous sûr de vouloir retirer le véhicule de ce job ?",
         removeSuccess: "Véhicule retiré du job",
         removeError: "Impossible de retirer le véhicule",
       },

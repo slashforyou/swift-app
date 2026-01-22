@@ -689,7 +689,8 @@ export const enTranslations: TranslationKeys = {
         addVehicleButton: "Assign a vehicle",
         assignVehicle: "Assign Vehicle",
         selectVehicle: "Select a vehicle from your fleet",
-        noVehiclesAvailable: "No vehicles available in your fleet. Add a new vehicle first.",
+        noVehiclesAvailable:
+          "No vehicles available in your fleet. Add a new vehicle first.",
         addNewVehicle: "Add a new vehicle",
         assignSelected: "Assign selected vehicle",
         removeVehicle: "Remove vehicle from job",
@@ -698,7 +699,8 @@ export const enTranslations: TranslationKeys = {
         assignSuccess: "Vehicle successfully assigned to the job",
         assignError: "Unable to assign vehicle",
         removeConfirmTitle: "Remove vehicle",
-        removeConfirmMessage: "Are you sure you want to remove the vehicle from this job?",
+        removeConfirmMessage:
+          "Are you sure you want to remove the vehicle from this job?",
         removeSuccess: "Vehicle removed from job",
         removeError: "Unable to remove vehicle",
       },

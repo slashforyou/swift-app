@@ -8,30 +8,30 @@ La colonne `note_type` était définie comme `TINYINT(4)` (entier) alors que le 
 
 ### Corrections backend appliquées
 
-| Fichier | Correction |
-|---------|------------|
-| Base de données | `ALTER TABLE job_notes MODIFY COLUMN note_type ENUM('general', 'important', 'client', 'internal') DEFAULT 'general'` |
-| `listNotes.js` | Accepte maintenant ID numérique (25) ou code job (JOB-PIERRE-...) |
-| `getNoteById.js` | Corrigé pour utiliser `req.params.noteId` + connexion DB |
-| `updateNoteById.js` | Corrigé pour utiliser `req.params.noteId` + connexion DB + update dynamique |
+| Fichier             | Correction                                                                                                           |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Base de données     | `ALTER TABLE job_notes MODIFY COLUMN note_type ENUM('general', 'important', 'client', 'internal') DEFAULT 'general'` |
+| `listNotes.js`      | Accepte maintenant ID numérique (25) ou code job (JOB-PIERRE-...)                                                    |
+| `getNoteById.js`    | Corrigé pour utiliser `req.params.noteId` + connexion DB                                                             |
+| `updateNoteById.js` | Corrigé pour utiliser `req.params.noteId` + connexion DB + update dynamique                                          |
 
 ### Corrections frontend appliquées
 
-| Fichier | Correction |
-|---------|------------|
-| `jobNotes.ts` | Routes mises à jour: `/notes/:id` → `/job/:jobId/notes/:noteId` |
-| `useJobNotes.ts` | `updateNote` prend maintenant `jobId` en paramètre |
-| Tests | Mis à jour pour refléter la nouvelle signature |
+| Fichier          | Correction                                                      |
+| ---------------- | --------------------------------------------------------------- |
+| `jobNotes.ts`    | Routes mises à jour: `/notes/:id` → `/job/:jobId/notes/:noteId` |
+| `useJobNotes.ts` | `updateNote` prend maintenant `jobId` en paramètre              |
+| Tests            | Mis à jour pour refléter la nouvelle signature                  |
 
 ### Endpoints disponibles
 
-| Méthode | Route | Description |
-|---------|-------|-------------|
-| POST | `/swift-app/v1/job/:jobId/notes` | Créer une note |
-| GET | `/swift-app/v1/job/:jobId/notes` | Lister les notes d'un job |
-| GET | `/swift-app/v1/job/:jobId/notes/:noteId` | Récupérer une note |
-| PATCH | `/swift-app/v1/job/:jobId/notes/:noteId` | Modifier une note |
-| DELETE | `/swift-app/v1/job/:jobId/notes/:noteId` | Supprimer une note |
+| Méthode | Route                                    | Description               |
+| ------- | ---------------------------------------- | ------------------------- |
+| POST    | `/swift-app/v1/job/:jobId/notes`         | Créer une note            |
+| GET     | `/swift-app/v1/job/:jobId/notes`         | Lister les notes d'un job |
+| GET     | `/swift-app/v1/job/:jobId/notes/:noteId` | Récupérer une note        |
+| PATCH   | `/swift-app/v1/job/:jobId/notes/:noteId` | Modifier une note         |
+| DELETE  | `/swift-app/v1/job/:jobId/notes/:noteId` | Supprimer une note        |
 
 ### Payload accepté (POST/PATCH)
 
@@ -109,7 +109,7 @@ HTTP/1.1 500 Internal Server Error
 Voici ce que nous envoyons actuellement :
 
 | Champ        | Type   | Valeur exemple | Requis ? |
-|--------------|--------|----------------|----------|
+| ------------ | ------ | -------------- | -------- |
 | `title`      | string | `"Titre"`      | ?        |
 | `content`    | string | `"La note"`    | ?        |
 | `note_type`  | string | `"important"`  | ?        |
@@ -163,12 +163,12 @@ CREATE TABLE job_notes (
 );
 ```
 
-2. **Créer l'endpoint** `POST /swift-app/v1/job/:jobId/notes` qui :
+1. **Créer l'endpoint** `POST /swift-app/v1/job/:jobId/notes` qui :
    - Accepte `{ title, content, note_type, created_by? }`
    - Déduit `created_by` du token si non fourni
    - Retourne la note créée avec son `id`
 
-3. **Créer les endpoints associés** :
+2. **Créer les endpoints associés** :
    - `GET /swift-app/v1/job/:jobId/notes` - Liste les notes d'un job
    - `GET /swift-app/v1/notes/:id` - Récupère une note par son ID
    - `PATCH /swift-app/v1/notes/:id` - Met à jour une note
@@ -224,24 +224,27 @@ CREATE TABLE job_notes (
 Fichier: `src/services/jobNotes.ts`
 
 ```typescript
-export async function addJobNote(jobId: string, noteData: CreateJobNoteRequest): Promise<JobNoteAPI> {
+export async function addJobNote(
+  jobId: string,
+  noteData: CreateJobNoteRequest,
+): Promise<JobNoteAPI> {
   const headers = await getAuthHeaders();
-  
+
   const payload: Record<string, any> = {
     title: noteData.title,
     content: noteData.content,
-    note_type: noteData.note_type || 'general',
+    note_type: noteData.note_type || "general",
   };
-  
+
   // Ajouter created_by seulement s'il est fourni et valide
-  if (noteData.created_by && noteData.created_by !== 'current-user') {
+  if (noteData.created_by && noteData.created_by !== "current-user") {
     payload.created_by = noteData.created_by;
   }
-  
+
   const res = await fetch(`${API}v1/job/${jobId}/notes`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...headers,
     },
     body: JSON.stringify(payload),
