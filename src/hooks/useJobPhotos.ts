@@ -240,12 +240,12 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
         timestamp: new Date().toISOString(),
       });
 
-      // TEMP_DISABLED: console.log('🌐 [DEBUG] Appel uploadJobPhoto API...');
-      const newPhoto = await uploadJobPhoto(jobId, photoUri, description);
-      // TEMP_DISABLED: console.log('✅ [DEBUG] API uploadJobPhoto réussi:', newPhoto);
-      // Alert removed
+      // ✅ Session 10 FIX: Passer userId au service pour le backend
+      const userId = profile?.id?.toString();
+      console.log('📸 [useJobPhotos] Calling uploadJobPhoto', { jobId, userId, hasDescription: !!description });
+      const newPhoto = await uploadJobPhoto(jobId, photoUri, description, userId);
+      console.log('✅ [useJobPhotos] Photo uploaded successfully:', newPhoto?.id);
       
-      // TEMP_DISABLED: console.log('✅ [DEBUG] ÉTAPE 3: Success (API)');
       // ✅ ÉTAPE 3: Success (API)
       setUploadStatus(String(newPhoto.id), {
         status: 'success',

@@ -59,16 +59,25 @@ export interface UploadPhotoResponse {
 /**
  * Upload une seule image à un job
  * Route: POST /swift-app/v1/job/{jobId}/image
+ * 
+ * ✅ Session 10 FIX: Ajout de job_id et user_id dans FormData (requis par backend)
  */
 export async function uploadJobPhoto(
   jobId: string, 
   photoUri: string, 
-  description?: string
+  description?: string,
+  userId?: string
 ): Promise<JobPhotoAPI> {
   const headers = await getAuthHeaders();
   
   // Créer FormData pour l'upload
   const formData = new FormData();
+  
+  // ✅ Session 10 FIX: Ajouter job_id et user_id (requis par backend)
+  formData.append('job_id', jobId);
+  if (userId) {
+    formData.append('user_id', userId);
+  }
   
   // Ajouter l'image
   const filename = photoUri.split('/').pop() || `photo_${Date.now()}.jpg`;
@@ -82,6 +91,8 @@ export async function uploadJobPhoto(
   if (description) {
     formData.append('description', description);
   }
+  
+  console.log('📸 [jobPhotos] Uploading photo', { jobId, userId, hasDescription: !!description });
 
   const res = await fetch(`${API}v1/job/${jobId}/image`, {
     method: 'POST',
