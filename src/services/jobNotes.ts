@@ -59,12 +59,14 @@ export async function fetchJobNotes(jobId: string, limit?: number, offset?: numb
 
 /**
  * Récupère une note spécifique par son ID
- * Route: GET /swift-app/v1/notes/:id
+ * Route: GET /swift-app/v1/job/:jobId/notes/:noteId
+ * 
+ * ✅ Session 10 FIX: Route mise à jour pour correspondre au backend
  */
-export async function fetchJobNoteById(noteId: string): Promise<JobNoteAPI> {
+export async function fetchJobNoteById(jobId: string, noteId: string): Promise<JobNoteAPI> {
   const headers = await getAuthHeaders();
   
-  const res = await fetch(`${API}v1/notes/${noteId}`, {
+  const res = await fetch(`${API}v1/job/${jobId}/notes/${noteId}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -125,13 +127,15 @@ export async function addJobNote(jobId: string, noteData: CreateJobNoteRequest):
 
 /**
  * Met à jour une note de job
- * Route: PATCH /swift-app/v1/notes/:id
- * Payload: { title, content }
+ * Route: PATCH /swift-app/v1/job/:jobId/notes/:noteId
+ * Payload: { title, content, note_type }
+ * 
+ * ✅ Session 10 FIX: Route mise à jour pour correspondre au backend
  */
-export async function updateJobNote(noteId: string, noteData: UpdateJobNoteRequest): Promise<JobNoteAPI> {
+export async function updateJobNote(jobId: string, noteId: string, noteData: UpdateJobNoteRequest): Promise<JobNoteAPI> {
   const headers = await getAuthHeaders();
   
-  const res = await fetch(`${API}v1/notes/${noteId}`, {
+  const res = await fetch(`${API}v1/job/${jobId}/notes/${noteId}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',

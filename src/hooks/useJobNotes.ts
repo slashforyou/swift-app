@@ -182,8 +182,11 @@ export const useJobNotes = (jobId: string): UseJobNotesReturn => {
   }, [jobId, notes, profile]);
 
   const updateNote = useCallback(async (noteId: string, noteData: UpdateJobNoteRequest): Promise<JobNoteAPI | null> => {
+    if (!jobId) return null;
+    
     try {
-      const updatedNote = await updateJobNote(noteId, noteData);
+      // ✅ Session 10 FIX: Ajout de jobId comme premier paramètre
+      const updatedNote = await updateJobNote(jobId, noteId, noteData);
       
       // Mettre à jour la note dans la liste locale
       setNotes(prevNotes => 
@@ -198,7 +201,7 @@ export const useJobNotes = (jobId: string): UseJobNotesReturn => {
       setError(`Erreur lors de la mise à jour de la note: ${errorMessage}`);
       return null;
     }
-  }, []);
+  }, [jobId]);
 
   const deleteNote = useCallback(async (noteId: string): Promise<boolean> => {
     if (!jobId) return false;

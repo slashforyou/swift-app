@@ -145,10 +145,11 @@ describe('JobNotes Service', () => {
         json: () => Promise.resolve({ note: updatedNote })
       });
 
-      const result = await updateJobNote(mockNoteId, updateData);
+      // ✅ Session 10 FIX: Ajout de mockJobId comme premier paramètre
+      const result = await updateJobNote(mockJobId, mockNoteId, updateData);
       
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://test-api.com/swift-app/v1/notes/test-note-456',
+        'https://test-api.com/swift-app/v1/job/test-job-123/notes/test-note-456',
         expect.objectContaining({
           method: 'PATCH',
           headers: expect.objectContaining({
