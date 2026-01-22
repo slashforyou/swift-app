@@ -33,6 +33,12 @@ export const updateJobStep = async (
 ): Promise<JobStepResponse> => {
   const startTime = Date.now();
   
+  console.log('📡 [API_STEP] updateJobStep called', {
+    jobId,
+    current_step,
+    hasNotes: !!notes
+  });
+  
   try {
     // ✅ SESSION 9 FIX: Extraire ID numérique depuis CODE si nécessaire
     let numericId = jobId;
@@ -40,15 +46,17 @@ export const updateJobStep = async (
       const match = jobId.match(/(\d+)$/);
       if (match) {
         numericId = parseInt(match[1], 10).toString();
+        console.log('🔄 [API_STEP] Extracted numeric ID from code', { original: jobId, numericId });
       }
     }
     
     // ✅ Phase 2.3: Utiliser API Discovery avec support des patterns dynamiques
     const endpoint = `/swift-app/v1/job/${numericId}/advance-step`;
+    console.log('🔍 [API_STEP] Checking endpoint availability', { endpoint });
     const isAvailable = await apiDiscovery.isEndpointAvailable(endpoint, 'POST');
     
     if (!isAvailable) {
-      console.debug(`📊 [UPDATE JOB STEP] Endpoint not available, step saved locally only`, {
+      console.log(`⚠️ [API_STEP] Endpoint not available, step saved locally only`, {
         jobId,
         current_step,
         endpoint
@@ -66,6 +74,7 @@ export const updateJobStep = async (
 
     const authHeaders = await getAuthHeaders();
     if (!authHeaders) {
+      console.error('❌ [API_STEP] No authentication token available');
       throw new Error('No authentication token available');
     }
 
@@ -74,12 +83,10 @@ export const updateJobStep = async (
       ...(notes && { notes })
     };
 
-    console.log('📊 [UPDATE JOB STEP] Calling API:', {
-      jobId,
-      numericId,
-      current_step,
-      notes,
-      endpoint
+    console.log('📤 [API_STEP] Sending request', {
+      url: `${API_BASE_URL}/job/${numericId}/advance-step`,
+      method: 'POST',
+      payload
     });
 
     const response = await fetch(`${API_BASE_URL}/job/${numericId}/advance-step`, {
@@ -92,6 +99,12 @@ export const updateJobStep = async (
     });
 
     const duration = Date.now() - startTime;
+    console.log('📥 [API_STEP] Response received', {
+      status: response.status,
+      statusText: response.statusText,
+      duration: `${duration}ms`
+    });
+    
     trackAPICall(`/job/${numericId}/advance-step`, 'POST', duration, response.status);
 
     if (!response.ok) {
@@ -99,7 +112,7 @@ export const updateJobStep = async (
       
       // ✅ SESSION 9: Distinguer 404 (endpoint absent) vs vraie erreur
       if (response.status === 404) {
-        console.debug('📊 [UPDATE JOB STEP] Endpoint returned 404, invalidating cache and using local fallback', {
+        console.log('⚠️ [API_STEP] Endpoint returned 404, using local fallback', {
           jobId,
           current_step,
           endpoint
@@ -122,7 +135,11 @@ export const updateJobStep = async (
       }
       
       // Vraie erreur (500, 401, etc.) → log et retourner erreur
-      console.warn(`⚠️ Failed to update job step: ${response.status} ${response.statusText}`, errorText);
+      console.error(`❌ [API_STEP] Request failed`, {
+        status: response.status,
+        statusText: response.statusText,
+        errorBody: errorText
+      });
       
       analytics.trackError({
         error_type: 'api_error',
@@ -137,7 +154,11 @@ export const updateJobStep = async (
     }
 
     const data = await response.json();
-    // TEMP_DISABLED: console.log('✅ Job step updated successfully:', data);
+    console.log('✅ [API_STEP] Step updated successfully', { 
+      jobId: numericId, 
+      current_step,
+      responseData: data 
+    });
     
     // 📊 Track successful job step advancement
     trackJobStep(jobId, current_step, 5, notes); // Assuming 5 total steps, adjust as needed
@@ -600,6 +621,11 @@ export const syncTimerToBackend = async (
 ): Promise<SyncTimerResponse> => {
   const startTime = Date.now();
   
+  console.log('📡 [API_SYNC] syncTimerToBackend called', {
+    jobId,
+    timerData
+  });
+  
   try {
     // Extraire ID numérique si c'est un code
     let numericId = jobId;
@@ -607,6 +633,7 @@ export const syncTimerToBackend = async (
       const match = jobId.match(/(\d+)$/);
       if (match) {
         numericId = parseInt(match[1], 10).toString();
+        console.log('🔄 [API_SYNC] Extracted numeric ID from code', { original: jobId, numericId });
       }
     }
     
@@ -614,14 +641,14 @@ export const syncTimerToBackend = async (
     
     const authHeaders = await getAuthHeaders();
     if (!authHeaders) {
+      console.error('❌ [API_SYNC] No authentication token available');
       throw new Error('No authentication token available');
     }
 
-    console.log('📤 [SYNC TIMER] Syncing timer to backend:', {
-      jobId,
-      numericId,
-      ...timerData,
-      endpoint
+    console.log('📤 [API_SYNC] Sending request', {
+      url: `${API_BASE_URL}/job/${numericId}/sync-timer`,
+      method: 'POST',
+      payload: timerData
     });
 
     const response = await fetch(`${API_BASE_URL}/job/${numericId}/sync-timer`, {
@@ -634,11 +661,19 @@ export const syncTimerToBackend = async (
     });
 
     const duration = Date.now() - startTime;
+    console.log('📥 [API_SYNC] Response received', {
+      status: response.status,
+      statusText: response.statusText,
+      duration: `${duration}ms`
+    });
     trackAPICall(endpoint, 'POST', duration, response.status);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.warn('⚠️ [SYNC TIMER] Failed:', response.status, errorData);
+      console.error('❌ [API_SYNC] Request failed', { 
+        status: response.status, 
+        errorData 
+      });
       
       return {
         success: false,
@@ -647,7 +682,10 @@ export const syncTimerToBackend = async (
     }
 
     const data = await response.json();
-    console.log('✅ [SYNC TIMER] Timer synced successfully:', data);
+    console.log('✅ [API_SYNC] Timer synced successfully', { 
+      jobId: numericId, 
+      responseData: data 
+    });
     
     return {
       success: true,
@@ -655,7 +693,7 @@ export const syncTimerToBackend = async (
       data: data.data,
     };
   } catch (error) {
-    console.error('❌ [SYNC TIMER] Error:', error);
+    console.error('❌ [API_SYNC] Error:', error);
     
     return {
       success: false,

@@ -54,6 +54,10 @@ const JobSummary = ({ job, setJob, onOpenPaymentPanel } : { job: any, setJob: Re
     const { showSuccess, showError } = useToast();
 
     const handleSignContract = () => {
+        console.log('✍️ [SUMMARY_ACTION] handleSignContract called', { 
+            jobId: job?.id, 
+            jobCode: job?.code 
+        });
         track.userAction('contract_signing_opened', { 
             jobId: job?.id, 
             jobCode: job?.code 
@@ -63,6 +67,12 @@ const JobSummary = ({ job, setJob, onOpenPaymentPanel } : { job: any, setJob: Re
 
     // Gestion des notes avec API - nouvelle structure
     const handleAddNote = async (content: string, note_type: 'general' | 'important' | 'client' | 'internal' = 'general', title?: string) => {
+        console.log('📝 [SUMMARY_ACTION] handleAddNote called', {
+            jobId: job?.id,
+            note_type,
+            content_length: content.length,
+            hasTitle: !!title
+        });
         try {
             track.userAction('note_add_started', { 
                 jobId: job?.id, 
@@ -77,6 +87,7 @@ const JobSummary = ({ job, setJob, onOpenPaymentPanel } : { job: any, setJob: Re
             });
             
             if (result) {
+                console.log('✅ [SUMMARY_ACTION] Note added successfully');
                 track.businessEvent('note_added', { 
                     jobId: job?.id, 
                     note_type: note_type,
@@ -88,7 +99,7 @@ const JobSummary = ({ job, setJob, onOpenPaymentPanel } : { job: any, setJob: Re
                 throw new Error(t('jobDetails.messages.noteAddErrorMessage'));
             }
         } catch (error) {
-
+            console.error('❌ [SUMMARY_ACTION] Error adding note:', error);
             track.error('api_error', `Failed to add note: ${error}`, { 
                 jobId: job?.id, 
                 note_type: note_type 
@@ -101,6 +112,10 @@ const JobSummary = ({ job, setJob, onOpenPaymentPanel } : { job: any, setJob: Re
 
     // Gestion des photos avec API
     const handlePhotoSelected = async (photoUri: string) => {
+        console.log('📸 [SUMMARY_ACTION] handlePhotoSelected called', {
+            jobId: job?.id,
+            photoUri: photoUri.substring(0, 50)
+        });
         try {
             track.userAction('photo_upload_started', { 
                 jobId: job?.id,
@@ -109,6 +124,7 @@ const JobSummary = ({ job, setJob, onOpenPaymentPanel } : { job: any, setJob: Re
             
             const result = await uploadPhoto(photoUri, `${t('jobDetails.messages.photoDescription')} ${job?.id || 'N/A'}`);
             if (result) {
+                console.log('✅ [SUMMARY_ACTION] Photo uploaded successfully');
                 track.businessEvent('photo_uploaded', { 
                     jobId: job?.id,
                     success: true 
@@ -118,7 +134,7 @@ const JobSummary = ({ job, setJob, onOpenPaymentPanel } : { job: any, setJob: Re
                 throw new Error(t('jobDetails.messages.photoAddErrorMessage'));
             }
         } catch (error) {
-
+            console.error('❌ [SUMMARY_ACTION] Error uploading photo:', error);
             console.error('Error uploading photo:', error);
             showError(t('jobDetails.messages.photoAddError'), t('jobDetails.messages.photoAddErrorMessage'));
         }
@@ -126,26 +142,32 @@ const JobSummary = ({ job, setJob, onOpenPaymentPanel } : { job: any, setJob: Re
 
     // ✅ Gestion de l'avancement des étapes avec nouvelle API backend
     const handleAdvanceStep = async (targetStep: number) => {
+        console.log('⏭️ [SUMMARY_ACTION] handleAdvanceStep called', {
+            jobId: job?.id,
+            currentStep: job?.step?.actualStep,
+            targetStep,
+            contextCurrentStep: currentStep
+        });
         try {
             // Utiliser l'ID numérique du job pour l'API
             const jobId = job?.id?.toString(); 
             
-            // TEMP_DISABLED: console.log('� [SUMMARY] Updating step:', {
-                // jobId: jobId,
-                // targetStep,
-                // jobObject: job ? Object.keys(job) : 'no job'
-            // });
+            console.log('📊 [SUMMARY_ACTION] Preparing API call', {
+                jobId: jobId,
+                targetStep,
+                jobKeys: job ? Object.keys(job) : 'no job'
+            });
             
             if (!jobId) {
                 throw new Error('No job ID available');
             }
 
-            // TEMP_DISABLED: console.log(`📊 [SUMMARY] Calling updateJobStep API for job ${jobId}, step ${targetStep}`);
+            console.log(`📡 [SUMMARY_ACTION] Calling updateJobStep API for job ${jobId}, step ${targetStep}`);
             
             const response = await updateJobStep(jobId, targetStep);
             
             if (response.success) {
-                // TEMP_DISABLED: console.log(`✅ [SUMMARY] Step updated successfully:`, response.data);
+                console.log(`✅ [SUMMARY_ACTION] Step updated successfully:`, response.data);
                 
                 // ✅ Mettre à jour l'objet job local
                 setJob((prevJob: any) => {
@@ -157,10 +179,10 @@ const JobSummary = ({ job, setJob, onOpenPaymentPanel } : { job: any, setJob: Re
                         }
                     };
                     
-                    // TEMP_DISABLED: console.log('🔍 [SUMMARY] Job updated locally:', {
-                        // oldStep: prevJob?.step?.actualStep,
-                        // newStep: targetStep
-                    // });
+                    console.log('🔍 [SUMMARY_ACTION] Job updated locally:', {
+                        oldStep: prevJob?.step?.actualStep,
+                        newStep: targetStep
+                    });
                     
                     return updatedJob;
                 });
@@ -170,7 +192,7 @@ const JobSummary = ({ job, setJob, onOpenPaymentPanel } : { job: any, setJob: Re
                     `${t('jobDetails.messages.advancedToStep')} ${targetStep}`
                 );
             } else {
-                console.error('❌ [SUMMARY] API returned error:', response.error);
+                console.error('❌ [SUMMARY_ACTION] API returned error:', response.error);
                 showError(
                     t('jobDetails.messages.syncError'),
                     response.error || t('jobDetails.messages.syncErrorMessage')
@@ -180,8 +202,7 @@ const JobSummary = ({ job, setJob, onOpenPaymentPanel } : { job: any, setJob: Re
             
             return Promise.resolve();
         } catch (error) {
-
-            console.error('❌ [SUMMARY] Error advancing step:', error);
+            console.error('❌ [SUMMARY_ACTION] Error advancing step:', error);
             showError(
                 t('jobDetails.messages.stepUpdateError'),
                 t('jobDetails.messages.stepUpdateErrorMessage')
@@ -196,24 +217,34 @@ const JobSummary = ({ job, setJob, onOpenPaymentPanel } : { job: any, setJob: Re
     // 2. Appelle syncStepToBackend (API)
     // 3. Appelle onStepChange (met à jour job local via jobDetails)
     const handleNextStep = async () => {
+        console.log('⏭️ [SUMMARY_ACTION] handleNextStep called', {
+            jobId: job?.id,
+            currentStep,
+            totalSteps,
+            willAdvanceTo: currentStep + 1
+        });
         if (currentStep < totalSteps) {
             try {
+                console.log('🔄 [SUMMARY_ACTION] Calling nextStep()...');
                 // ✅ nextStep() fait TOUT - pas besoin d'appeler handleAdvanceStep
                 nextStep();
                 
                 // Afficher le message de succès
                 const targetStep = currentStep + 1;
+                console.log('✅ [SUMMARY_ACTION] nextStep() completed, target step:', targetStep);
                 showSuccess(
                     t('jobDetails.messages.nextStep'), 
                     `${t('jobDetails.messages.advancedToStep')} ${targetStep}`
                 );
             } catch (error) {
-                console.error('Failed to advance step:', error);
+                console.error('❌ [SUMMARY_ACTION] Failed to advance step:', error);
                 showError(
                     t('jobDetails.messages.stepUpdateError'),
                     t('jobDetails.messages.stepUpdateErrorMessage')
                 );
             }
+        } else {
+            console.log('⚠️ [SUMMARY_ACTION] Cannot advance, already at last step');
         }
     };
 

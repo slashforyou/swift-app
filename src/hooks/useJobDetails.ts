@@ -95,19 +95,19 @@ export const useJobDetails = (jobId: string) => {
   const updateJob = useCallback(async (data: any) => {
     if (!jobId) return false;
 
-    // TEMP_DISABLED: console.log('🔄 [useJobDetails] Updating job...', data);
+    console.log('📝 [HOOK_ACTION] updateJob called', { jobId, data: JSON.stringify(data, null, 2) });
     setIsUpdating(true);
     setError(null);
 
     try {
       await updateJobService(jobId, data);
-      // TEMP_DISABLED: console.log('✅ [useJobDetails] Job updated successfully');
+      console.log('✅ [HOOK_ACTION] updateJob completed successfully');
       await refreshJobDetails(); // Recharger les données après mise à jour
       return true;
     } catch (err: any) {
 
       const errorMessage = err?.message || 'Failed to update job';
-      console.error('❌ [useJobDetails] Error updating job:', err);
+      console.error('❌ [HOOK_ACTION] Error updating job:', err);
       setError(errorMessage);
       return false;
     } finally {
@@ -119,19 +119,19 @@ export const useJobDetails = (jobId: string) => {
   const addNote = useCallback(async (note: { type: string; content: string }) => {
     if (!jobId) return false;
 
-    // TEMP_DISABLED: console.log('🔄 [useJobDetails] Adding note...', note);
+    console.log('📝 [HOOK_ACTION] addNote called', { jobId, note });
     setIsAddingNote(true);
     setError(null);
 
     try {
       await addJobNoteService(jobId, note);
-      // TEMP_DISABLED: console.log('✅ [useJobDetails] Note added successfully');
+      console.log('✅ [HOOK_ACTION] addNote completed successfully');
       await refreshJobDetails(); // Recharger les données après ajout de note
       return true;
     } catch (err: any) {
 
       const errorMessage = err?.message || 'Failed to add note';
-      console.error('❌ [useJobDetails] Error adding note:', err);
+      console.error('❌ [HOOK_ACTION] Error adding note:', err);
       setError(errorMessage);
       return false;
     } finally {
@@ -143,19 +143,19 @@ export const useJobDetails = (jobId: string) => {
   const startJob = useCallback(async () => {
     if (!jobId) return false;
 
-    // TEMP_DISABLED: console.log('🔄 [useJobDetails] Starting job...');
+    console.log('🚀 [HOOK_ACTION] startJob called', { jobId });
     setIsPerformingAction(true);
     setError(null);
 
     try {
       await startJobService(jobId);
-      // TEMP_DISABLED: console.log('✅ [useJobDetails] Job started successfully');
+      console.log('✅ [HOOK_ACTION] startJob completed successfully');
       await refreshJobDetails();
       return true;
     } catch (err: any) {
 
       const errorMessage = err?.message || 'Failed to start job';
-      console.error('❌ [useJobDetails] Error starting job:', err);
+      console.error('❌ [HOOK_ACTION] Error starting job:', err);
       setError(errorMessage);
       return false;
     } finally {
@@ -167,19 +167,19 @@ export const useJobDetails = (jobId: string) => {
   const pauseJob = useCallback(async () => {
     if (!jobId) return false;
 
-    // TEMP_DISABLED: console.log('🔄 [useJobDetails] Pausing job...');
+    console.log('⏸️ [HOOK_ACTION] pauseJob called', { jobId });
     setIsPerformingAction(true);
     setError(null);
 
     try {
       await pauseJobService(jobId);
-      // TEMP_DISABLED: console.log('✅ [useJobDetails] Job paused successfully');
+      console.log('✅ [HOOK_ACTION] pauseJob completed successfully');
       await refreshJobDetails();
       return true;
     } catch (err: any) {
 
       const errorMessage = err?.message || 'Failed to pause job';
-      console.error('❌ [useJobDetails] Error pausing job:', err);
+      console.error('❌ [HOOK_ACTION] Error pausing job:', err);
       setError(errorMessage);
       return false;
     } finally {
@@ -191,19 +191,19 @@ export const useJobDetails = (jobId: string) => {
   const resumeJob = useCallback(async () => {
     if (!jobId) return false;
 
-    // TEMP_DISABLED: console.log('🔄 [useJobDetails] Resuming job...');
+    console.log('▶️ [HOOK_ACTION] resumeJob called', { jobId });
     setIsPerformingAction(true);
     setError(null);
 
     try {
       await resumeJobService(jobId);
-      // TEMP_DISABLED: console.log('✅ [useJobDetails] Job resumed successfully');
+      console.log('✅ [HOOK_ACTION] resumeJob completed successfully');
       await refreshJobDetails();
       return true;
     } catch (err: any) {
 
       const errorMessage = err?.message || 'Failed to resume job';
-      console.error('❌ [useJobDetails] Error resuming job:', err);
+      console.error('❌ [HOOK_ACTION] Error resuming job:', err);
       setError(errorMessage);
       return false;
     } finally {
@@ -215,19 +215,19 @@ export const useJobDetails = (jobId: string) => {
   const completeJob = useCallback(async (data?: { signature?: string; notes?: string }) => {
     if (!jobId) return false;
 
-    // TEMP_DISABLED: console.log('🔄 [useJobDetails] Completing job...', data);
+    console.log('🏁 [HOOK_ACTION] completeJob called', { jobId, hasSignature: !!data?.signature, hasNotes: !!data?.notes });
     setIsPerformingAction(true);
     setError(null);
 
     try {
       await completeJobService(jobId);
-      // TEMP_DISABLED: console.log('✅ [useJobDetails] Job completed successfully');
+      console.log('✅ [HOOK_ACTION] completeJob completed successfully');
       await refreshJobDetails();
       return true;
     } catch (err: any) {
 
       const errorMessage = err?.message || 'Failed to complete job';
-      console.error('❌ [useJobDetails] Error completing job:', err);
+      console.error('❌ [HOOK_ACTION] Error completing job:', err);
       setError(errorMessage);
       return false;
     } finally {

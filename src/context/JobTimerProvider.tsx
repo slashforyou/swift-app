@@ -92,31 +92,48 @@ export const JobTimerProvider: React.FC<JobTimerProviderProps> = ({
 
     // ✅ Helper pour avancer à l'étape suivante
     const nextStep = useCallback(() => {
+        console.log('⏭️ [TIMER_ACTION] nextStep called', {
+            jobId: safeJobId,
+            currentStep: timer.currentStep,
+            targetStep: timer.currentStep + 1,
+            safeTotalSteps
+        });
         try {
             if (timer.currentStep < safeTotalSteps) {
                 const newStep = timer.currentStep + 1;
+                console.log('🔄 [TIMER_ACTION] Advancing step...', { from: timer.currentStep, to: newStep });
                 isInternalUpdateRef.current = true; // ✅ Marquer comme update interne
                 timer.advanceStep(newStep);
                 
                 // Notifier le parent (jobDetails) du changement d'étape
                 if (onStepChange) {
+                    console.log('📢 [TIMER_ACTION] Notifying parent of step change');
                     onStepChange(newStep);
                 }
+                
+                console.log('✅ [TIMER_ACTION] Step advanced to', newStep);
                 
                 // Reset après un court délai
                 setTimeout(() => {
                     isInternalUpdateRef.current = false;
                 }, 100);
+            } else {
+                console.log('⚠️ [TIMER_ACTION] Cannot advance, already at last step');
             }
         } catch (error) {
-
+            console.error('❌ [TIMER_ACTION] Error in nextStep:', error);
             timerLogger.error('nextStep', error);
             isInternalUpdateRef.current = false;
         }
-    }, [timer.currentStep, timer.advanceStep, safeTotalSteps, onStepChange]);
+    }, [timer.currentStep, timer.advanceStep, safeTotalSteps, onStepChange, safeJobId]);
 
     // ✅ Helper pour arrêter le timer (dernière étape)
     const stopTimer = useCallback(() => {
+        console.log('🛑 [TIMER_ACTION] stopTimer called', {
+            jobId: safeJobId,
+            currentStep: timer.currentStep,
+            targetStep: safeTotalSteps
+        });
         try {
             timerLogger.sync('toContext', safeTotalSteps);
             isInternalUpdateRef.current = true; // ✅ Marquer comme update interne
@@ -124,41 +141,52 @@ export const JobTimerProvider: React.FC<JobTimerProviderProps> = ({
             
             // Notifier le parent
             if (onStepChange) {
+                console.log('📢 [TIMER_ACTION] Notifying parent of job completion');
                 onStepChange(safeTotalSteps);
             }
+            
+            console.log('✅ [TIMER_ACTION] Timer stopped');
             
             // Reset après un court délai
             setTimeout(() => {
                 isInternalUpdateRef.current = false;
             }, 100);
         } catch (error) {
-
+            console.error('❌ [TIMER_ACTION] Error in stopTimer:', error);
             timerLogger.error('stopTimer', error);
             isInternalUpdateRef.current = false;
         }
-    }, [timer.advanceStep, safeTotalSteps, onStepChange]);
+    }, [timer.advanceStep, safeTotalSteps, onStepChange, safeJobId, timer.currentStep]);
 
     // ✅ Wrapper pour advanceStep avec notification
     const advanceStepWithCallback = useCallback((step: number) => {
+        console.log('⏭️ [TIMER_ACTION] advanceStepWithCallback called', {
+            jobId: safeJobId,
+            currentStep: timer.currentStep,
+            targetStep: step
+        });
         try {
             isInternalUpdateRef.current = true; // ✅ Marquer comme update interne
             timer.advanceStep(step);
             
             // Notifier le parent du changement d'étape
             if (onStepChange) {
+                console.log('📢 [TIMER_ACTION] Notifying parent of step change to', step);
                 onStepChange(step);
             }
+            
+            console.log('✅ [TIMER_ACTION] Step advanced to', step);
             
             // Reset après un court délai
             setTimeout(() => {
                 isInternalUpdateRef.current = false;
             }, 100);
         } catch (error) {
-
+            console.error('❌ [TIMER_ACTION] Error in advanceStepWithCallback:', error);
             timerLogger.error('advanceStepWithCallback', error);
             isInternalUpdateRef.current = false;
         }
-    }, [timer.advanceStep, onStepChange]);
+    }, [timer.advanceStep, onStepChange, safeJobId, timer.currentStep]);
 
     // ✅ Synchroniser avec les changements externes de currentStep (depuis jobDetails)
     // IMPORTANT: Garde contre les loops infinis - ne synchronise que si vraiment différent

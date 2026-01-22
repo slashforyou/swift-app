@@ -233,39 +233,51 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
     
     // Handle Edit Job
     const handleEditJob = useCallback(() => {
+        console.log('📝 [JOB_ACTION] handleEditJob called', { jobId: actualJobId });
         setIsEditModalVisible(true);
-    }, []);
+    }, [actualJobId]);
     
     // Handle Update Job (called from EditJobModal)
     const handleUpdateJob = useCallback(async (updateData: UpdateJobRequest) => {
+        console.log('📝 [JOB_ACTION] handleUpdateJob called', { 
+            jobId: actualJobId, 
+            updateData: JSON.stringify(updateData, null, 2) 
+        });
         if (!actualJobId) return;
         await updateJobAPI(actualJobId, updateData);
+        console.log('✅ [JOB_ACTION] handleUpdateJob completed');
         await refreshJobDetails(); // Refresh after update
     }, [actualJobId, refreshJobDetails]);
     
     // Handle Assign Staff
     const handleOpenAssignStaff = useCallback(() => {
+        console.log('👥 [JOB_ACTION] handleOpenAssignStaff called', { jobId: actualJobId });
         setIsAssignStaffModalVisible(true);
-    }, []);
+    }, [actualJobId]);
     
     const handleAssignStaff = useCallback(async (staffId: string) => {
+        console.log('👥 [JOB_ACTION] handleAssignStaff called', { jobId: actualJobId, staffId });
         if (!actualJobId) return;
         try {
             if (staffId === '') {
+                console.log('👥 [JOB_ACTION] Unassigning all staff...');
                 // Unassign: retirer tous les membres du crew
                 const currentCrew = await getJobCrew(actualJobId);
                 await Promise.all(
                     currentCrew.map(member => removeCrewMember(actualJobId, member.id))
                 );
+                console.log('✅ [JOB_ACTION] Staff unassigned successfully');
                 showToast(t('staff.unassignSuccess') || 'Staff unassigned successfully', 'success');
             } else {
+                console.log('👥 [JOB_ACTION] Assigning staff to job...');
                 // Assign: ajouter au crew via POST /job/:id/crew
                 await assignStaffToJob(actualJobId, staffId);
+                console.log('✅ [JOB_ACTION] Staff assigned successfully');
                 showToast(t('staff.assignSuccess') || 'Staff assigned successfully', 'success');
             }
             await refreshJobDetails();
         } catch (error) {
-            console.error('Error assigning staff:', error);
+            console.error('❌ [JOB_ACTION] Error assigning staff:', error);
             showToast(t('staff.assignError') || 'Failed to assign staff', 'error');
             throw error;
         }
@@ -273,6 +285,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
     
     // Handle Delete Job
     const handleDeleteJob = useCallback(() => {
+        console.log('🗑️ [JOB_ACTION] handleDeleteJob called', { jobId: actualJobId });
         Alert.alert(
             t('jobs.deleteConfirmTitle') || 'Delete Job',
             t('jobs.deleteConfirmMessage') || 'Are you sure you want to delete this job? This action cannot be undone.',
@@ -286,11 +299,13 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
                     style: 'destructive',
                     onPress: async () => {
                         try {
+                            console.log('🗑️ [JOB_ACTION] Deleting job...', { jobId: actualJobId });
                             await deleteJob(actualJobId);
+                            console.log('✅ [JOB_ACTION] Job deleted successfully');
                             showToast(t('jobs.deleteSuccess') || 'Job deleted successfully', 'success');
                             navigation.goBack();
                         } catch (error) {
-                            console.error('Error deleting job:', error);
+                            console.error('❌ [JOB_ACTION] Error deleting job:', error);
                             showToast(t('jobs.deleteError') || 'Failed to delete job', 'error');
                         }
                     },
@@ -497,7 +512,8 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
 
     // ✅ Handler pour mettre à jour l'étape du job quand le timer change
     const handleStepChange = (newStep: number) => {
-        console.log('🔄 [JobDetails] Step change requested:', {
+        console.log('🔄 [JOB_ACTION] handleStepChange called', {
+            jobId: actualJobId,
             oldStep: job.step?.actualStep,
             newStep,
             totalSteps: job.steps?.length || 5
@@ -510,11 +526,16 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
             },
             current_step: newStep
         }));
+        console.log('✅ [JOB_ACTION] Step updated locally to', newStep);
     };
 
     // ✅ Handler pour la complétion du job
     const handleJobCompleted = (finalCost: number, billableHours: number) => {
-        // TEMP_DISABLED: console.log('🎉 [JobDetails] Job completed!', { finalCost, billableHours });
+        console.log('🎉 [JOB_ACTION] handleJobCompleted called', { 
+            jobId: actualJobId,
+            finalCost, 
+            billableHours 
+        });
         
         // Basculer automatiquement vers le panel de paiement
         setJobPanel('payment');
@@ -528,6 +549,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({ route, navigation, jobId, day, 
 
     // Handler pour TabMenu
     const handleTabPress = (tabId: string) => {
+        console.log('📑 [JOB_ACTION] Tab pressed:', tabId);
         setJobPanel(tabId);
     };
 
