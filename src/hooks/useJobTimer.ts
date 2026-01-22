@@ -89,6 +89,12 @@ export const useJobTimer = (
         return DEFAULT_JOB_STEPS[step as keyof typeof DEFAULT_JOB_STEPS] || `Étape ${step}`;
     }, [stepNames]);
 
+    // ✅ FIX BOUCLE INFINIE: Ref pour getStepName (évite recréation de loadTimerData)
+    const getStepNameRef = useRef(getStepName);
+    useEffect(() => {
+        getStepNameRef.current = getStepName;
+    }, [getStepName]);
+
     // Met à jour l'heure actuelle toutes les secondes
     useEffect(() => {
         const interval = setInterval(() => {
@@ -184,7 +190,7 @@ export const useJobTimer = (
                             currentStep: stepValue,
                             stepTimes: Array.from({ length: stepValue }, (_, i) => ({
                                 step: i + 1,
-                                stepName: getStepName(i + 1),
+                                stepName: getStepNameRef.current(i + 1),
                                 startTime: estimatedStartTime + (i * 60 * 60 * 1000), // 1h par step
                                 endTime: i < stepValue - 1 ? estimatedStartTime + ((i + 1) * 60 * 60 * 1000) : undefined,
                                 duration: i < stepValue - 1 ? 60 * 60 * 1000 : undefined
@@ -241,7 +247,7 @@ export const useJobTimer = (
         } finally {
             isLoadingRef.current = false;
         }
-    }, [jobId, getStepName]); // ✅ FIX: currentStep retiré - on utilise currentStepRef
+    }, [jobId]); // ✅ FIX BOUCLE INFINIE: Seulement jobId - on utilise les refs pour le reste
 
     // Sauvegarder les données du timer
     const saveTimerData = useCallback(async (data: JobTimerData) => {
