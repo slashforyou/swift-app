@@ -1,6 +1,6 @@
 import Ionicons from '@react-native-vector-icons/ionicons';
 import React from 'react';
-import { Pressable, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DESIGN_TOKENS } from '../constants/Styles';
 import { useCommonThemedStyles } from '../hooks/useCommonStyles';
@@ -9,6 +9,7 @@ import { HStack } from './primitives/Stack';
 interface JobMenuProps {
     jobPanel: number;
     setJobPanel: (panelIndex: number) => void;
+    unreadNotesCount?: number;
 }
 
 interface TabItemProps {
@@ -16,9 +17,10 @@ interface TabItemProps {
     isActive: boolean;
     onPress: () => void;
     accessibilityLabel: string;
+    badge?: number;
 }
 
-const TabItem: React.FC<TabItemProps> = ({ icon, isActive, onPress, accessibilityLabel }) => {
+const TabItem: React.FC<TabItemProps> = ({ icon, isActive, onPress, accessibilityLabel, badge }) => {
     const { colors } = useCommonThemedStyles();
     
     return (
@@ -41,22 +43,53 @@ const TabItem: React.FC<TabItemProps> = ({ icon, isActive, onPress, accessibilit
             accessibilityLabel={accessibilityLabel}
             accessibilityState={{ selected: isActive }}
         >
-            <Ionicons 
-                name={icon as any}
-                size={24}
-                color={isActive 
-                    ? colors.tint 
-                    : colors.textMuted
-                }
-                style={{
-                    marginBottom: DESIGN_TOKENS.spacing.xs, // 4pt spacing between icon and potential label
-                }}
-            />
+            <View style={{ position: 'relative' }}>
+                <Ionicons 
+                    name={icon as any}
+                    size={24}
+                    color={isActive 
+                        ? colors.tint 
+                        : colors.textMuted
+                    }
+                    style={{
+                        marginBottom: DESIGN_TOKENS.spacing.xs, // 4pt spacing between icon and potential label
+                    }}
+                />
+                {badge !== undefined && badge > 0 && (
+                    <View
+                        style={{
+                            position: 'absolute',
+                            top: -4,
+                            right: -8,
+                            backgroundColor: colors.error,
+                            borderRadius: 10,
+                            minWidth: 18,
+                            height: 18,
+                            paddingHorizontal: 4,
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            borderWidth: 2,
+                            borderColor: colors.background,
+                        }}
+                    >
+                        <Text
+                            style={{
+                                color: '#FFFFFF',
+                                fontSize: 11,
+                                fontWeight: '700',
+                                textAlign: 'center',
+                            }}
+                        >
+                            {badge > 9 ? '9+' : badge}
+                        </Text>
+                    </View>
+                )}
+            </View>
         </Pressable>
     );
 };
 
-const JobMenu: React.FC<JobMenuProps> = ({ jobPanel, setJobPanel }) => {
+const JobMenu: React.FC<JobMenuProps> = ({ jobPanel, setJobPanel, unreadNotesCount }) => {
     const insets = useSafeAreaInsets();
     const { colors } = useCommonThemedStyles();
     
@@ -67,11 +100,11 @@ const JobMenu: React.FC<JobMenuProps> = ({ jobPanel, setJobPanel }) => {
     };
 
     const tabs = [
-        { icon: 'bookmark', label: 'Favoris', index: 0 },
-        { icon: 'construct', label: 'Travaux', index: 1 },
-        { icon: 'person', label: 'Client', index: 2 },
-        { icon: 'chatbubble', label: 'Notes', index: 3 },
-        { icon: 'card', label: 'Paiement', index: 4 },
+        { icon: 'bookmark', label: 'Favoris', index: 0, badge: undefined },
+        { icon: 'construct', label: 'Travaux', index: 1, badge: undefined },
+        { icon: 'person', label: 'Client', index: 2, badge: undefined },
+        { icon: 'chatbubble', label: 'Notes', index: 3, badge: unreadNotesCount },
+        { icon: 'card', label: 'Paiement', index: 4, badge: undefined },
     ];
 
     return (
@@ -106,6 +139,7 @@ const JobMenu: React.FC<JobMenuProps> = ({ jobPanel, setJobPanel }) => {
                         isActive={jobPanel === tab.index}
                         onPress={() => switchJobPanel(tab.index)}
                         accessibilityLabel={tab.label}
+                        badge={tab.badge}
                     />
                 ))}
             </HStack>

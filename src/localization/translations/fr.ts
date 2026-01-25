@@ -1,6 +1,37 @@
 import { TranslationKeys } from "../types";
 
 export const frTranslations: TranslationKeys = {
+  // ============================================================================
+  // JOB STEPS - Configuration centralisée des étapes de job
+  // ============================================================================
+  jobSteps: {
+    notStarted: "Pas commencé",
+    notStartedShort: "Pas commencé",
+    notStartedDesc: "Le job n'a pas encore démarré",
+    // Trajet vers adresse
+    travelToAddress: "Trajet vers Adresse {n}",
+    travelToAddressShort: "Trajet {n}",
+    travelToAddressDesc: "En route vers {address}",
+    // Travail à l'adresse
+    atAddress: "Adresse {n}",
+    atAddressShort: "Adr. {n}",
+    atAddressDesc: "Travail à {address}",
+    // Trajet retour
+    travelReturn: "Trajet retour",
+    travelReturnShort: "Retour",
+    travelReturnDesc: "En route vers le dépôt",
+    // Arrivée/Fin
+    arrivalEnd: "Arrivée / Fin",
+    arrivalEndShort: "Fin",
+    arrivalEndDesc: "Arrivé au dépôt - Job terminé",
+    // Utilitaires
+    skipReturn: "Passer le retour",
+    skipReturnDesc: "Enchaîner sur un autre job sans retour",
+    payment: "Paiement",
+    paymentDesc: "Étape de paiement - Génération de la facture",
+    address: "Adresse",
+  },
+
   common: {
     save: "Enregistrer",
     cancel: "Annuler",
@@ -143,6 +174,8 @@ export const frTranslations: TranslationKeys = {
 
   jobs: {
     title: "Travaux",
+    editJob: "Modifier le job",
+    statusLabel: "Statut",
     createNewJob: "Créer un nouveau travail",
     createJob: "Créer le travail",
     createSuccess: "Travail créé avec succès !",
@@ -194,6 +227,20 @@ export const frTranslations: TranslationKeys = {
     depositAmount: "Montant de l'acompte",
     depositPaid: "Acompte déjà versé",
     paymentSummary: "Récapitulatif du paiement",
+    // Pricing translations
+    pricing: "Tarification",
+    pricingDescription: "Configurer les taux de facturation",
+    pricingConfig: "Configuration tarifaire",
+    pricingSummary: "Récapitulatif tarifaire",
+    hourlyRate: "Taux horaire",
+    callOutFee: "Frais de déplacement",
+    minimumCharge: "Minimum facturé",
+    rounding: "Arrondi",
+    depotToDepot: "Dépôt à Dépôt",
+    depotToDepotLabel: "Facturer du départ au retour dépôt",
+    depotToDepotActiveDesc: "Tout le temps de trajet est facturé, pas de frais de déplacement",
+    depotToDepotInactiveDesc: "Frais de déplacement fixes, trajet non facturé séparément",
+    timeRounding: "Arrondi du temps",
     estimatedDuration: "Durée estimée (heures)",
     selectStaff: "Sélectionner un membre du staff...",
     assignStaff: "Assigner un staff (optionnel)",
@@ -467,7 +514,9 @@ export const frTranslations: TranslationKeys = {
     client: {
       firstTimeClient: "Nouveau client",
       title: "Détails du client",
+      subtitle: "Coordonnées et informations client",
       loading: "Chargement des données client...",
+      name: "Nom du client",
       firstName: "Prénom",
       lastName: "Nom",
       phone: "Téléphone",
@@ -476,8 +525,11 @@ export const frTranslations: TranslationKeys = {
       address: "Adresse",
       notes: "Notes",
       notSpecified: "Non spécifié",
+      unknown: "Client inconnu",
+      noPhone: "Pas de téléphone",
+      noEmail: "Pas d'email",
       quickActions: "Actions rapides",
-      call: "Appeler",
+      call: "Appeler le client",
       sms: "SMS",
       emailAction: "Email",
     },
@@ -524,6 +576,7 @@ export const frTranslations: TranslationKeys = {
         "Commencez à documenter les informations importantes de ce job",
       count: "note",
       countPlural: "notes",
+      unread: "NON LU",
       localSyncInfo:
         "Certaines notes sont sauvegardées localement et seront synchronisées plus tard.",
       types: {

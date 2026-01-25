@@ -1,6 +1,8 @@
 /**
  * JobDetails - Écran principal des détails de tâche
  * Architecture moderne avec gestion correcte des Safe Areas et marges
+ *
+ * ⚠️ Utilise JobStepsConfig.ts comme source unique de vérité pour les steps
  */
 import React, { useCallback, useRef, useState } from "react";
 import { Alert, ScrollView, Text, View } from "react-native";
@@ -10,12 +12,16 @@ import AssignStaffModal from "../components/modals/AssignStaffModal";
 import EditJobModal from "../components/modals/EditJobModal";
 import TabMenu from "../components/ui/TabMenu";
 import Toast from "../components/ui/toastNotification";
-import { getTemplateSteps, JobTemplate } from "../constants/JobSteps";
+import {
+  generateStepsFromAddresses,
+  DEFAULT_STEPS,
+} from "../constants/JobStepsConfig";
 import { DESIGN_TOKENS } from "../constants/Styles";
 import { JobStateProvider } from "../context/JobStateProvider";
 import { JobTimerProvider } from "../context/JobTimerProvider";
 import { useTheme } from "../context/ThemeProvider";
 import { useJobDetails } from "../hooks/useJobDetails";
+import { useJobNotes } from "../hooks/useJobNotes";
 import { usePerformanceMetrics } from "../hooks/usePerformanceMetrics";
 import { useLocalization } from "../localization/useLocalization";
 import {
@@ -59,6 +65,69 @@ interface ToastState {
   status: boolean;
 }
 
+/**
+ * Merge les données client de façon intelligente
+ * Ne remplace un champ que s'il a une vraie valeur (non null, non vide)
+ */
+const mergeClientData = (
+  prevClient: any,
+  apiClient: any,
+  jobData: any,
+): any => {
+  // Helper: retourne la valeur si elle est "vraie" (non null, non undefined, non vide)
+  const getValidValue = (...sources: any[]) => {
+    for (const val of sources) {
+      if (val !== null && val !== undefined && val !== "" && val !== "N/A") {
+        return val;
+      }
+    }
+    return null;
+  };
+
+  const firstName =
+    getValidValue(
+      apiClient?.firstName,
+      jobData?.client_first_name,
+      prevClient?.firstName,
+    ) || "Client";
+
+  const lastName =
+    getValidValue(
+      apiClient?.lastName,
+      jobData?.client_last_name,
+      prevClient?.lastName,
+    ) || "";
+
+  const phone =
+    getValidValue(apiClient?.phone, jobData?.client_phone, prevClient?.phone) ||
+    "N/A";
+
+  const email =
+    getValidValue(apiClient?.email, jobData?.client_email, prevClient?.email) ||
+    "N/A";
+
+  const name = getValidValue(
+    apiClient?.name,
+    apiClient?.fullName,
+    prevClient?.name,
+    // Construire le nom si firstName et lastName existent
+    firstName && lastName && firstName !== "Client"
+      ? `${firstName} ${lastName}`.trim()
+      : null,
+  );
+
+  const type = getValidValue(apiClient?.type, prevClient?.type) || "Client";
+
+  return {
+    firstName,
+    lastName,
+    phone,
+    email,
+    name,
+    type,
+  };
+};
+
 // Hook personnalisé pour les toasts
 const useToast = () => {
   const [toastDetails, setToastDetails] = useState<ToastState>({
@@ -96,6 +165,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({
 
   // Récupération de l'ID du job depuis les paramètres de route ou props
   const actualJobId = route?.params?.jobId || jobId || route?.params?.id;
+  
   // Hook principal pour les données du job
   const {
     jobDetails,
@@ -112,6 +182,11 @@ const JobDetails: React.FC<JobDetailsProps> = ({
     isPerformingAction,
     isSessionExpired,
   } = useJobDetails(actualJobId);
+  
+  // Hook pour les notes avec compteur de non lues
+  // Utiliser jobDetails?.job?.id (ID numérique) au lieu de actualJobId (code du job)
+  const numericJobId = jobDetails?.job?.id || actualJobId;
+  const { unreadCount, markAllAsRead } = useJobNotes(numericJobId);
 
   // États locaux pour l'UI et données adaptées des vraies données API
   const [job, setJob] = useState({
@@ -139,8 +214,8 @@ const JobDetails: React.FC<JobDetailsProps> = ({
         },
       ],
     },
-    // ✅ Steps dynamiques du nouveau système
-    steps: getTemplateSteps(JobTemplate.SIMPLE_MOVE), // Template par défaut
+    // ✅ Steps dynamiques depuis JobStepsConfig (source unique de vérité)
+    steps: DEFAULT_STEPS,
     client: {
       firstName: "Client A",
       lastName: "Last Name",
@@ -502,38 +577,31 @@ const JobDetails: React.FC<JobDetailsProps> = ({
 
       // Mise à jour des données avec les vraies données de l'API transformées
       setJob((prevJob: any) => {
-        // Déterminer le template basé sur les données du job
-        let jobTemplate = JobTemplate.SIMPLE_MOVE; // Par défaut
+        // ✅ NOUVEAU: Générer les steps dynamiquement depuis les adresses
+        const jobAddresses =
+          jobDetails.addresses && jobDetails.addresses.length > 0
+            ? jobDetails.addresses
+            : [{ street: "Adresse 1" }, { street: "Adresse 2" }]; // Fallback 2 adresses
 
-        // Template avec stockage si has_storage est true
-        if (jobDetails.job?.has_storage) {
-          jobTemplate = JobTemplate.WITH_STORAGE;
-        }
-        // Template multi-stop si plus de 2 adresses
-        else if (jobDetails.addresses && jobDetails.addresses.length > 2) {
-          jobTemplate = JobTemplate.MULTI_STOP;
-        }
-
-        const dynamicSteps = getTemplateSteps(jobTemplate);
+        const dynamicSteps = generateStepsFromAddresses(jobAddresses, true, t);
 
         return {
           ...prevJob,
           id: jobDetails.job?.id || actualJobId,
           code: jobDetails.job?.code || actualJobId, // Ajouter le code du job
-          // ✅ Steps dynamiques basés sur le job
+          // ✅ Steps dynamiques basés sur les adresses (source unique: JobStepsConfig)
           steps: dynamicSteps,
           step: {
             ...prevJob.step,
             actualStep:
               jobDetails.job?.current_step || prevJob.step?.actualStep || 0,
           },
-          client: {
-            firstName: jobDetails.client?.firstName || "Client",
-            lastName: jobDetails.client?.lastName || "Inconnu",
-            phone: jobDetails.client?.phone || "N/A",
-            email: jobDetails.job?.client_email || "N/A", // Fallback sur job.client_email
-            type: "Client", // Pour l'instant on met une valeur par défaut
-          },
+          // ✅ MERGE CLIENT: On ne remplace que les champs qui ont de vraies valeurs
+          client: mergeClientData(
+            prevJob.client,
+            jobDetails.client,
+            jobDetails.job,
+          ),
           notes:
             jobDetails.notes?.map((note: any) => ({
               id: parseInt(note.id),
@@ -605,10 +673,9 @@ const JobDetails: React.FC<JobDetailsProps> = ({
   const notificationCounts = React.useMemo(() => {
     const counts: Record<string, number> = {};
 
-    // Nombre de notes
-    const notesCount = jobDetails?.notes?.length || job?.notes?.length || 0;
-    if (notesCount > 0) {
-      counts["notes"] = notesCount;
+    // Nombre de notes NON LUES (API v1.1.0+)
+    if (unreadCount > 0) {
+      counts["notes"] = unreadCount;
     }
 
     // Nombre d'items non cochés
@@ -627,15 +694,17 @@ const JobDetails: React.FC<JobDetailsProps> = ({
     }
 
     return counts;
-  }, [jobDetails?.notes, job?.notes, job?.items, job?.payment?.status]);
+  }, [unreadCount, job?.items, job?.payment?.status]);
 
   // ✅ Handler pour mettre à jour l'étape du job quand le timer change
   const handleStepChange = (newStep: number) => {
+    const addressCount = job.addresses?.length || 2;
+    const dynamicTotalSteps = 2 + addressCount * 2;
     console.log("🔄 [JOB_ACTION] handleStepChange called", {
       jobId: actualJobId,
       oldStep: job.step?.actualStep,
       newStep,
-      totalSteps: job.steps?.length || 5,
+      totalSteps: dynamicTotalSteps,
     });
     setJob((prevJob: any) => ({
       ...prevJob,
@@ -670,6 +739,12 @@ const JobDetails: React.FC<JobDetailsProps> = ({
   const handleTabPress = (tabId: string) => {
     console.log("📑 [JOB_ACTION] Tab pressed:", tabId);
     setJobPanel(tabId);
+    
+    // ✅ Marquer toutes les notes comme lues quand l'utilisateur ouvre l'onglet Notes
+    if (tabId === "notes" && unreadCount > 0) {
+      console.log("🔔 [NOTES] Marking all notes as read, unreadCount:", unreadCount);
+      markAllAsRead();
+    }
   };
 
   // Titres des panneaux
@@ -755,15 +830,17 @@ const JobDetails: React.FC<JobDetailsProps> = ({
   }
 
   const currentStep = job.step.actualStep || 0;
-  // ✅ FIX: Utiliser la longueur du tableau steps dynamique (depuis getTemplateSteps)
-  // job.steps contient les steps du template (JobTemplate) qui peut varier (3-7 steps)
-  const totalSteps = job.steps?.length || 5;
+  // ✅ NOUVEAU: Calcul dynamique basé sur les adresses
+  // Formule: 1 (départ) + 2×N (arrivée + fin par adresse) + 1 (retour) = 2 + 2×N
+  const addressCount = job.addresses?.length || 2;
+  const totalSteps = 2 + addressCount * 2; // Pour 2 adresses = 6 steps (+ step 0 = 7 total)
 
   // 🔍 DEBUG: Afficher les infos de step pour diagnostiquer le problème
   console.log("🔍 [JobDetails] Step configuration:", {
     actualStep: job.step?.actualStep,
     currentStep,
     totalSteps,
+    addressCount,
     stepsArray: job.steps?.map((s) => s.name),
     jobStatus: jobDetails?.job?.status,
     isCompleted: currentStep >= totalSteps,
@@ -774,6 +851,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({
       jobId={actualJobId}
       currentStep={currentStep}
       totalSteps={totalSteps}
+      addresses={job.addresses || []} // ✅ NOUVEAU: Passer les adresses pour calcul dynamique des steps
       jobStatus={jobDetails?.job?.status}
       onStepChange={handleStepChange}
       onJobCompleted={handleJobCompleted}
@@ -815,9 +893,11 @@ const JobDetails: React.FC<JobDetailsProps> = ({
               onOpenPaymentPanel={() => setJobPanel("payment")}
             />
           )}
-          {jobPanel === "job" && <JobPage job={job} setJob={setJob} isVisible={jobPanel === "job"} />}
+          {jobPanel === "job" && (
+            <JobPage job={job} setJob={setJob} isVisible={jobPanel === "job"} />
+          )}
           {jobPanel === "client" && <JobClient job={job} setJob={setJob} />}
-          {jobPanel === "notes" && <JobNote job={job} setJob={setJob} />}
+          {jobPanel === "notes" && <JobNote job={job} setJob={setJob} jobId={numericJobId} />}
           {jobPanel === "payment" && (
             <PaymentScreen job={job} setJob={setJob} />
           )}

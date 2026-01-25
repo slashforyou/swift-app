@@ -33,6 +33,7 @@ import {
     CreateClientRequest,
 } from "../../services/clients";
 import { CreateJobRequest } from "../../services/jobs";
+import { TravelBillingMode } from "../../services/pricing";
 
 interface CreateJobModalProps {
   visible: boolean;
@@ -47,6 +48,7 @@ type Step =
   | "address"
   | "schedule"
   | "details"
+  | "pricing"
   | "confirmation";
 
 const PRIORITY_OPTIONS = [
@@ -104,6 +106,23 @@ const PAYMENT_METHOD_OPTIONS = [
   { key: "card", label: "Card", emoji: "💳" },
   { key: "bank_transfer", label: "Bank Transfer", emoji: "🏦" },
   { key: "invoice", label: "Invoice Later", emoji: "📄" },
+];
+
+// Options d'arrondi du temps
+const TIME_ROUNDING_OPTIONS = [
+  { key: 1, label: "1 min", marginMinutes: 0 },
+  { key: 15, label: "15 min", marginMinutes: 2 },
+  { key: 30, label: "30 min", marginMinutes: 7 },
+  { key: 60, label: "1h", marginMinutes: 7 },
+];
+
+// Options de call-out fee (en minutes)
+const CALL_OUT_FEE_OPTIONS = [
+  { key: 0, label: "0 min" },
+  { key: 15, label: "15 min" },
+  { key: 30, label: "30 min" },
+  { key: 45, label: "45 min" },
+  { key: 60, label: "1h" },
 ];
 
 export default function CreateJobModal({
@@ -165,6 +184,12 @@ export default function CreateJobModal({
   const [depositPercentage, setDepositPercentage] = useState("50");
   const [depositPaid, setDepositPaid] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
+
+  // 💰 Pricing state
+  const [hourlyRate, setHourlyRate] = useState("180"); // $180 AUD par défaut
+  const [callOutFeeMinutes, setCallOutFeeMinutes] = useState(30); // 30 min par défaut
+  const [depotToDepot, setDepotToDepot] = useState(false); // Désactivé par défaut
+  const [timeRounding, setTimeRounding] = useState(30); // 30 min par défaut
 
   // New client form state
   const [newClientData, setNewClientData] = useState<CreateClientRequest>({
@@ -240,6 +265,11 @@ export default function CreateJobModal({
     setDepositPercentage("50");
     setDepositPaid(false);
     setPaymentMethod(null);
+    // Reset pricing state
+    setHourlyRate("180");
+    setCallOutFeeMinutes(30);
+    setDepotToDepot(false);
+    setTimeRounding(30);
     setNewClientData({
       firstName: "",
       lastName: "",
@@ -426,6 +456,7 @@ export default function CreateJobModal({
       "address",
       "schedule",
       "details",
+      "pricing",
       "confirmation",
     ];
     return steps.indexOf(s) + 1;
@@ -433,7 +464,7 @@ export default function CreateJobModal({
 
   const renderProgressBar = () => (
     <View style={styles.progressContainer}>
-      {["client", "address", "schedule", "details", "confirmation"].map(
+      {["client", "address", "schedule", "details", "pricing", "confirmation"].map(
         (s, index) => (
           <React.Fragment key={s}>
             <View
@@ -456,7 +487,7 @@ export default function CreateJobModal({
                 {index + 1}
               </Text>
             </View>
-            {index < 4 && (
+            {index < 5 && (
               <View
                 style={[
                   styles.progressLine,
@@ -1472,7 +1503,7 @@ export default function CreateJobModal({
               styles.buttonPrimary,
               { backgroundColor: colors.primary },
             ]}
-            onPress={() => setStep("confirmation")}
+            onPress={() => setStep("pricing")}
           >
             <Text
               style={[styles.buttonText, { color: colors.buttonPrimaryText }]}
@@ -1484,6 +1515,316 @@ export default function CreateJobModal({
       </KeyboardAwareScrollView>
     </View>
   );
+
+  // 💰 Étape de configuration du pricing
+  const renderPricingStep = () => {
+    // Calcul du call-out fee en dollars
+    const callOutFeeAmount = depotToDepot
+      ? 0
+      : (callOutFeeMinutes / 60) * parseFloat(hourlyRate || "0");
+
+    // Trouver la marge d'arrondi pour l'option sélectionnée
+    const roundingMargin =
+      TIME_ROUNDING_OPTIONS.find((opt) => opt.key === timeRounding)
+        ?.marginMinutes || 0;
+
+    return (
+      <View style={styles.stepContent}>
+        <Text style={[styles.stepTitle, { color: colors.text }]}>
+          {t("jobs.pricing") || "Pricing"}
+        </Text>
+        <Text style={[styles.stepDescription, { color: colors.textSecondary }]}>
+          {t("jobs.pricingDescription") ||
+            "Configure billing rates and options"}
+        </Text>
+
+        <KeyboardAwareScrollView
+          showsVerticalScrollIndicator={false}
+          enableOnAndroid={true}
+          extraScrollHeight={120}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Hourly Rate */}
+          <Text style={[styles.sectionLabel, { color: colors.text }]}>
+            💵 {t("jobs.hourlyRate") || "Hourly Rate"}
+          </Text>
+          <View
+            style={[
+              styles.inputGroup,
+              { backgroundColor: colors.backgroundSecondary },
+            ]}
+          >
+            <Text style={{ color: colors.text, fontSize: 18, fontWeight: "600" }}>
+              $
+            </Text>
+            <TextInput
+              style={[styles.input, { color: colors.text, fontSize: 18 }]}
+              placeholder="180"
+              placeholderTextColor={colors.textSecondary}
+              value={hourlyRate}
+              onChangeText={setHourlyRate}
+              keyboardType="decimal-pad"
+            />
+            <Text style={{ color: colors.textSecondary }}>/h</Text>
+          </View>
+
+          {/* Depot to Depot Toggle */}
+          <Text
+            style={[
+              styles.sectionLabel,
+              { color: colors.text, marginTop: DESIGN_TOKENS.spacing.lg },
+            ]}
+          >
+            🚛 {t("jobs.depotToDepot") || "Depot to Depot"}
+          </Text>
+          <Pressable
+            style={[
+              styles.inputGroup,
+              {
+                backgroundColor: depotToDepot
+                  ? colors.primary + "20"
+                  : colors.backgroundSecondary,
+                borderWidth: 1,
+                borderColor: depotToDepot ? colors.primary : colors.border,
+              },
+            ]}
+            onPress={() => setDepotToDepot(!depotToDepot)}
+          >
+            <Ionicons
+              name={depotToDepot ? "checkbox" : "square-outline"}
+              size={24}
+              color={depotToDepot ? colors.primary : colors.textSecondary}
+            />
+            <View style={{ flex: 1, marginLeft: DESIGN_TOKENS.spacing.sm }}>
+              <Text style={[styles.input, { color: colors.text }]}>
+                {t("jobs.depotToDepotLabel") ||
+                  "Bill from depot departure to return"}
+              </Text>
+              <Text
+                style={{
+                  color: colors.textSecondary,
+                  fontSize: 12,
+                  marginTop: 2,
+                }}
+              >
+                {depotToDepot
+                  ? t("jobs.depotToDepotActiveDesc") ||
+                    "All travel time is billable, no call-out fee"
+                  : t("jobs.depotToDepotInactiveDesc") ||
+                    "Fixed call-out fee, travel time not billed separately"}
+              </Text>
+            </View>
+          </Pressable>
+
+          {/* Call Out Fee - Hidden if Depot to Depot is active */}
+          {!depotToDepot && (
+            <>
+              <Text
+                style={[
+                  styles.sectionLabel,
+                  { color: colors.text, marginTop: DESIGN_TOKENS.spacing.lg },
+                ]}
+              >
+                📞 {t("jobs.callOutFee") || "Call-Out Fee"}
+              </Text>
+              <View style={styles.priorityGrid}>
+                {CALL_OUT_FEE_OPTIONS.map((option) => (
+                  <Pressable
+                    key={option.key}
+                    style={[
+                      styles.priorityCard,
+                      {
+                        backgroundColor:
+                          callOutFeeMinutes === option.key
+                            ? colors.primary + "20"
+                            : colors.backgroundSecondary,
+                        borderColor:
+                          callOutFeeMinutes === option.key
+                            ? colors.primary
+                            : colors.border,
+                      },
+                    ]}
+                    onPress={() => setCallOutFeeMinutes(option.key)}
+                  >
+                    <Text style={[styles.priorityLabel, { color: colors.text }]}>
+                      {option.label}
+                    </Text>
+                    {callOutFeeMinutes === option.key && (
+                      <Text
+                        style={{
+                          color: colors.primary,
+                          fontSize: 12,
+                          marginTop: 2,
+                        }}
+                      >
+                        ${callOutFeeAmount.toFixed(0)}
+                      </Text>
+                    )}
+                  </Pressable>
+                ))}
+              </View>
+            </>
+          )}
+
+          {/* Time Rounding */}
+          <Text
+            style={[
+              styles.sectionLabel,
+              { color: colors.text, marginTop: DESIGN_TOKENS.spacing.lg },
+            ]}
+          >
+            ⏱️ {t("jobs.timeRounding") || "Time Rounding"}
+          </Text>
+          <View style={styles.priorityGrid}>
+            {TIME_ROUNDING_OPTIONS.map((option) => (
+              <Pressable
+                key={option.key}
+                style={[
+                  styles.priorityCard,
+                  {
+                    backgroundColor:
+                      timeRounding === option.key
+                        ? colors.primary + "20"
+                        : colors.backgroundSecondary,
+                    borderColor:
+                      timeRounding === option.key
+                        ? colors.primary
+                        : colors.border,
+                  },
+                ]}
+                onPress={() => setTimeRounding(option.key)}
+              >
+                <Text style={[styles.priorityLabel, { color: colors.text }]}>
+                  {option.label}
+                </Text>
+                {timeRounding === option.key && option.marginMinutes > 0 && (
+                  <Text
+                    style={{
+                      color: colors.textSecondary,
+                      fontSize: 10,
+                      marginTop: 2,
+                    }}
+                  >
+                    +{option.marginMinutes}min margin
+                  </Text>
+                )}
+              </Pressable>
+            ))}
+          </View>
+
+          {/* Pricing Summary */}
+          <View
+            style={[
+              styles.confirmationCard,
+              {
+                backgroundColor: colors.backgroundSecondary,
+                marginTop: DESIGN_TOKENS.spacing.xl,
+              },
+            ]}
+          >
+            <Text
+              style={[styles.confirmationLabel, { color: colors.textSecondary }]}
+            >
+              📋 {t("jobs.pricingSummary") || "Pricing Summary"}
+            </Text>
+            <View style={{ marginTop: DESIGN_TOKENS.spacing.sm }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  marginBottom: 4,
+                }}
+              >
+                <Text style={{ color: colors.text }}>
+                  {t("jobs.hourlyRate") || "Hourly Rate"}:
+                </Text>
+                <Text style={{ color: colors.text, fontWeight: "600" }}>
+                  ${hourlyRate}/h
+                </Text>
+              </View>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  marginBottom: 4,
+                }}
+              >
+                <Text style={{ color: colors.text }}>
+                  {t("jobs.callOutFee") || "Call-Out Fee"}:
+                </Text>
+                <Text style={{ color: colors.text, fontWeight: "600" }}>
+                  {depotToDepot ? "N/A (Depot-Depot)" : `$${callOutFeeAmount.toFixed(0)}`}
+                </Text>
+              </View>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  marginBottom: 4,
+                }}
+              >
+                <Text style={{ color: colors.text }}>
+                  {t("jobs.minimumCharge") || "Minimum Charge"}:
+                </Text>
+                <Text style={{ color: colors.text, fontWeight: "600" }}>
+                  2h + {depotToDepot ? "travel" : "call-out"} = $
+                  {(2 * parseFloat(hourlyRate || "0") + callOutFeeAmount).toFixed(0)}
+                </Text>
+              </View>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Text style={{ color: colors.text }}>
+                  {t("jobs.rounding") || "Rounding"}:
+                </Text>
+                <Text style={{ color: colors.text, fontWeight: "600" }}>
+                  {timeRounding} min ({roundingMargin > 0 ? `+${roundingMargin}min margin` : "exact"})
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Navigation Buttons */}
+          <View
+            style={[
+              styles.buttonRow,
+              { marginBottom: 20, marginTop: DESIGN_TOKENS.spacing.lg },
+            ]}
+          >
+            <Pressable
+              style={[
+                styles.button,
+                styles.buttonSecondary,
+                { borderColor: colors.border },
+              ]}
+              onPress={() => setStep("details")}
+            >
+              <Text style={[styles.buttonText, { color: colors.text }]}>
+                {t("common.back") || "Back"}
+              </Text>
+            </Pressable>
+            <Pressable
+              style={[
+                styles.button,
+                styles.buttonPrimary,
+                { backgroundColor: colors.primary },
+              ]}
+              onPress={() => setStep("confirmation")}
+            >
+              <Text
+                style={[styles.buttonText, { color: colors.buttonPrimaryText }]}
+              >
+                {t("common.next") || "Next"}
+              </Text>
+            </Pressable>
+          </View>
+        </KeyboardAwareScrollView>
+      </View>
+    );
+  };
 
   const renderConfirmationStep = () => (
     <View style={styles.stepContent}>
@@ -1701,6 +2042,48 @@ export default function CreateJobModal({
           </View>
         )}
 
+        {/* Pricing Summary */}
+        <View
+          style={[
+            styles.confirmationCard,
+            { backgroundColor: colors.backgroundSecondary },
+          ]}
+        >
+          <Text
+            style={[
+              styles.confirmationLabel,
+              { color: colors.textSecondary },
+            ]}
+          >
+            💵 {t("jobs.pricingConfig") || "Pricing Configuration"}
+          </Text>
+          <Text style={[styles.confirmationValue, { color: colors.text }]}>
+            ${hourlyRate}/h
+          </Text>
+          <Text
+            style={[
+              styles.confirmationSubvalue,
+              { color: colors.textSecondary },
+            ]}
+          >
+            {depotToDepot
+              ? "🚛 Depot-to-Depot (travel time billable)"
+              : `📞 Call-out: ${callOutFeeMinutes}min ($${((callOutFeeMinutes / 60) * parseFloat(hourlyRate || "0")).toFixed(0)})`}
+          </Text>
+          <Text
+            style={[
+              styles.confirmationSubvalue,
+              { color: colors.textSecondary },
+            ]}
+          >
+            ⏱️ Rounding: {timeRounding}min
+            {TIME_ROUNDING_OPTIONS.find((o) => o.key === timeRounding)
+              ?.marginMinutes
+              ? ` (+${TIME_ROUNDING_OPTIONS.find((o) => o.key === timeRounding)?.marginMinutes}min margin)`
+              : " (exact)"}
+          </Text>
+        </View>
+
         {/* Payment Summary */}
         {(amountTotal || paymentMethod || depositRequired) && (
           <View
@@ -1765,7 +2148,7 @@ export default function CreateJobModal({
               styles.buttonSecondary,
               { borderColor: colors.border },
             ]}
-            onPress={() => setStep("details")}
+            onPress={() => setStep("pricing")}
             disabled={isLoading}
           >
             <Text style={[styles.buttonText, { color: colors.text }]}>
@@ -2089,6 +2472,8 @@ export default function CreateJobModal({
         return renderScheduleStep();
       case "details":
         return renderDetailsStep();
+      case "pricing":
+        return renderPricingStep();
       case "confirmation":
         return renderConfirmationStep();
       default:

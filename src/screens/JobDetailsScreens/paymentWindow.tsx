@@ -86,7 +86,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
   const getPaymentAmount = () => {
     // Utiliser le coût calculé en temps réel
     const costData = calculateCost(billableTime);
-    const realTimeCost = costData.cost;
+    const realTimeCost = costData.total;
     
     // Fallback sur les données du job si le timer n'a pas encore démarré
     const jobData = job?.job || job;
@@ -459,7 +459,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
             fontWeight: '600',
             color: colors.tint,
           }}>
-            {formatTime(billableTime)} • {costData.hours.toFixed(2)}h @ {HOURLY_RATE_AUD} AUD/h
+            {formatTime(billableTime)} • {costData.billableHours.toFixed(2)}h @ {HOURLY_RATE_AUD} AUD/h
           </Text>
         </View>
       )}
@@ -630,7 +630,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
             <Text style={{ fontSize: 12, color: colors.textSecondary }}>{t('payments.hourlyRate')}</Text>
             <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text }}>
-              {costData.hours.toFixed(2)}h × {HOURLY_RATE_AUD} AUD/h
+              {costData.billableHours.toFixed(2)}h × {HOURLY_RATE_AUD} AUD/h
             </Text>
           </View>
         </View>
@@ -827,7 +827,7 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
             <Text style={{ fontSize: 12, color: colors.textSecondary }}>{t('jobDetails.payment.billingBreakdown.hourlyRate')}</Text>
             <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text }}>
-              {costData.hours.toFixed(2)}h × {HOURLY_RATE_AUD} AUD/h
+              {costData.billableHours.toFixed(2)}h × {HOURLY_RATE_AUD} AUD/h
             </Text>
           </View>
         </View>

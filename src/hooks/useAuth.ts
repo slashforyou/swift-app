@@ -2,15 +2,23 @@
  * useAuth - Hook d'authentification
  */
 
-import { createContext, useContext } from 'react';
+import { createContext, useContext } from "react";
+
+// Import types from user service
+import type { Company, CompanyRole } from "../services/user";
 
 export interface User {
   id: string;
   email: string;
   name: string;
   avatar?: string;
-  role: 'user' | 'admin';
+  role: "user" | "admin";
   createdAt: Date;
+
+  // New company relationship fields (API v1.1.0)
+  company_id?: number;
+  company_role?: CompanyRole;
+  company?: Company | null;
 }
 
 interface AuthContextType {
@@ -19,7 +27,9 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
-  register: (userData: Partial<User> & { password: string }) => Promise<boolean>;
+  register: (
+    userData: Partial<User> & { password: string },
+  ) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

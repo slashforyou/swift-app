@@ -117,13 +117,13 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
     const getRealTimePaymentInfo = () => {
         const costData = calculateCost(billableTime);
         const estimatedCost = job?.job?.estimatedCost || job?.estimatedCost || 0;
-        const currentCost = costData.cost;
+        const currentCost = costData.total;
         const isPaid = job?.job?.isPaid || job?.isPaid || false;
         
         return {
             estimated: estimatedCost,
             current: currentCost,
-            billableHours: costData.hours,
+            billableHours: costData.billableHours,
             actualTime: billableTime,
             totalTime: totalElapsed,
             currency: 'AUD',

@@ -1,32 +1,37 @@
 /**
  * JobPhotosSection - Section photos pour les détails de job
  * Permet l'upload, affichage, édition de description et suppression des photos
+ *
+ * TODO: Ajouter un système de slide/carousel pour naviguer entre les photos
+ * en mode plein écran (swipe gauche/droite pour passer d'une photo à l'autre).
+ * Voir: react-native-image-gallery ou react-native-reanimated-carousel
  */
-import Ionicons from '@react-native-vector-icons/ionicons';
-import { Image as ExpoImage } from 'expo-image';
-import React, { useState } from 'react';
+import Ionicons from "@react-native-vector-icons/ionicons";
+import { Image as ExpoImage } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
+import React, { useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Animated,
-    Dimensions,
-    FlatList,
-    Image,
-    Modal,
-    Pressable,
-    ScrollView,
-    Text,
-    TextInput,
-    View
-} from 'react-native';
-import { DESIGN_TOKENS } from '../../../constants/Styles';
-import { useCommonThemedStyles } from '../../../hooks/useCommonStyles';
-import { useJobPhotos } from '../../../hooks/useJobPhotos';
-import { useLocalization } from '../../../localization/useLocalization';
-import { JobPhotoAPI } from '../../../services/jobPhotos';
-import { HStack, VStack } from '../../primitives/Stack';
-import { Card } from '../../ui/Card';
-import PhotoSelectionModal from '../modals/PhotoSelectionModal';
+  ActivityIndicator,
+  Alert,
+  Animated,
+  Dimensions,
+  FlatList,
+  Image,
+  Modal,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import { DESIGN_TOKENS } from "../../../constants/Styles";
+import { useCommonThemedStyles } from "../../../hooks/useCommonStyles";
+import { useJobPhotos } from "../../../hooks/useJobPhotos";
+import { useLocalization } from "../../../localization/useLocalization";
+import { JobPhotoAPI } from "../../../services/jobPhotos";
+import { HStack, VStack } from "../../primitives/Stack";
+import { Card } from "../../ui/Card";
+import PhotoSelectionModal from "../modals/PhotoSelectionModal";
 
 // Créer une version animée d'ExpoImage
 const AnimatedExpoImage = Animated.createAnimatedComponent(ExpoImage);
@@ -38,8 +43,8 @@ interface JobPhotosSectionProps {
 
 // Helper pour formater la date en français
 const formatPhotoDate = (dateString?: string): string => {
-  if (!dateString) return '';
-  
+  if (!dateString) return "";
+
   try {
     const date = new Date(dateString);
     const now = new Date();
@@ -47,48 +52,47 @@ const formatPhotoDate = (dateString?: string): string => {
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
-    
+
     // Si moins d'1 heure : "Il y a X min"
     if (diffMins < 60) {
       return `Il y a ${diffMins} min`;
     }
-    
+
     // Si moins de 24h : "Il y a X h"
     if (diffHours < 24) {
       return `Il y a ${diffHours}h`;
     }
-    
+
     // Si moins de 7 jours : "Il y a X jours"
     if (diffDays < 7) {
       return `Il y a ${diffDays}j`;
     }
-    
+
     // Sinon format complet : "30/10/2025 14:30"
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
     const year = date.getFullYear();
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    
+    const hours = date.getHours().toString().padStart(2, "0");
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+
     return `${day}/${month}/${year} ${hours}:${minutes}`;
   } catch (e) {
-
-    return '';
+    return "";
   }
 };
 
 // Helper pour formater le stage en français
 const formatStage = (stage?: string): string => {
-  if (!stage) return '';
-  
+  if (!stage) return "";
+
   const stageLabels: Record<string, string> = {
-    'pickup': '📍 Ramassage',
-    'delivery': '🚚 Livraison',
-    'other': '📸 Autre',
-    'before': '⏪ Avant',
-    'after': '⏩ Après',
+    pickup: "📍 Ramassage",
+    delivery: "🚚 Livraison",
+    other: "📸 Autre",
+    before: "⏪ Avant",
+    after: "⏩ Après",
   };
-  
+
   return stageLabels[stage.toLowerCase()] || stage;
 };
 
@@ -107,44 +111,56 @@ interface PhotoItemProps {
   onDelete: (photoId: string) => void;
 }
 
-const SectionHeader: React.FC<{ icon: string; title: string; badge?: string }> = ({ 
-  icon, 
-  title, 
-  badge 
-}) => {
+const SectionHeader: React.FC<{
+  icon: string;
+  title: string;
+  badge?: string;
+}> = ({ icon, title, badge }) => {
   const { colors } = useCommonThemedStyles();
   return (
-    <HStack gap="sm" align="center" style={{ marginBottom: DESIGN_TOKENS.spacing.md }}>
-      <View style={{
-        width: 32,
-        height: 32,
-        borderRadius: 16,
-        backgroundColor: colors.primary + '20',
-        justifyContent: 'center',
-        alignItems: 'center'
-      }}>
+    <HStack
+      gap="sm"
+      align="center"
+      style={{ marginBottom: DESIGN_TOKENS.spacing.md }}
+    >
+      <View
+        style={{
+          width: 32,
+          height: 32,
+          borderRadius: 16,
+          backgroundColor: colors.primary + "20",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
         <Ionicons name={icon as any} size={18} color={colors.primary} />
       </View>
-      <Text style={{
-        fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
-        fontWeight: '600',
-        color: colors.text,
-        flex: 1
-      }}>
+      <Text
+        style={{
+          fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
+          fontWeight: "600",
+          color: colors.text,
+          flex: 1,
+        }}
+      >
         {title}
       </Text>
       {badge && (
-        <View style={{
-          backgroundColor: colors.primary,
-          paddingHorizontal: 8,
-          paddingVertical: 4,
-          borderRadius: 12,
-        }}>
-          <Text style={{
-            fontSize: 12,
-            fontWeight: '600',
-            color: 'white'
-          }}>
+        <View
+          style={{
+            backgroundColor: colors.primary,
+            paddingHorizontal: 8,
+            paddingVertical: 4,
+            borderRadius: 12,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 12,
+              fontWeight: "600",
+              color: "white",
+            }}
+          >
             {badge}
           </Text>
         </View>
@@ -153,26 +169,26 @@ const SectionHeader: React.FC<{ icon: string; title: string; badge?: string }> =
   );
 };
 
-const PhotoViewModal: React.FC<PhotoViewModalProps> = ({ 
-  visible, 
-  photo, 
-  onClose, 
-  onEdit, 
-  onDelete 
+const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
+  visible,
+  photo,
+  onClose,
+  onEdit,
+  onDelete,
 }) => {
   const { colors } = useCommonThemedStyles();
   const { t } = useLocalization();
   const [editMode, setEditMode] = useState(false);
-  const [description, setDescription] = useState('');
-  const screenWidth = Dimensions.get('window').width;
-  
+  const [description, setDescription] = useState("");
+  const screenWidth = Dimensions.get("window").width;
+
   // État pour le zoom
   const [isZoomed, setIsZoomed] = useState(false);
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
-  
+
   React.useEffect(() => {
     if (photo) {
-      setDescription(photo.description || '');
+      setDescription(photo.description || "");
     }
   }, [photo]);
 
@@ -182,23 +198,23 @@ const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
       setEditMode(false);
     }
   };
-  
+
   const handleDoubleTap = () => {
     const toValue = isZoomed ? 1 : 2.5;
     setIsZoomed(!isZoomed);
-    
+
     Animated.spring(scaleAnim, {
       toValue,
       useNativeDriver: true,
       friction: 7,
     }).start();
   };
-  
+
   let lastTap = 0;
   const handleImagePress = () => {
     const now = Date.now();
     const DOUBLE_TAP_DELAY = 300;
-    
+
     if (now - lastTap < DOUBLE_TAP_DELAY) {
       handleDoubleTap();
     }
@@ -208,19 +224,19 @@ const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
   const handleDelete = () => {
     if (photo) {
       Alert.alert(
-        t('jobDetails.components.photos.deleteTitle'),
-        t('jobDetails.components.photos.deleteConfirm'),
+        t("jobDetails.components.photos.deleteTitle"),
+        t("jobDetails.components.photos.deleteConfirm"),
         [
-          { text: t('jobDetails.components.photos.cancel'), style: 'cancel' },
-          { 
-            text: t('jobDetails.components.photos.delete'), 
-            style: 'destructive',
+          { text: t("jobDetails.components.photos.cancel"), style: "cancel" },
+          {
+            text: t("jobDetails.components.photos.delete"),
+            style: "destructive",
             onPress: () => {
               onDelete(String(photo.id));
               onClose();
-            }
-          }
-        ]
+            },
+          },
+        ],
       );
     }
   };
@@ -234,251 +250,306 @@ const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <View style={{
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.9)',
-        justifyContent: 'center',
-        alignItems: 'center'
-      }}>
-        <ScrollView
-          contentContainerStyle={{
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            padding: DESIGN_TOKENS.spacing.lg
-          }}
-          maximumZoomScale={3}
-          minimumZoomScale={1}
-        >
-          {/* Header avec actions */}
-          <View style={{
-            position: 'absolute',
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "rgba(0,0,0,0.95)",
+        }}
+      >
+        {/* Header avec actions */}
+        <View
+          style={{
+            position: "absolute",
             top: 50,
             left: 0,
             right: 0,
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
             paddingHorizontal: DESIGN_TOKENS.spacing.lg,
-            zIndex: 1
-          }}>
+            zIndex: 10,
+          }}
+        >
+          <Pressable
+            onPress={onClose}
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 22,
+              backgroundColor: "rgba(0,0,0,0.5)",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Ionicons name="close" size={24} color="white" />
+          </Pressable>
+
+          <HStack gap="sm">
             <Pressable
-              onPress={onClose}
+              onPress={() => setEditMode(!editMode)}
               style={{
                 width: 44,
                 height: 44,
                 borderRadius: 22,
-                backgroundColor: 'rgba(0,0,0,0.5)',
-                justifyContent: 'center',
-                alignItems: 'center'
+                backgroundColor: "rgba(0,0,0,0.5)",
+                justifyContent: "center",
+                alignItems: "center",
               }}
             >
-              <Ionicons name="close" size={24} color="white" />
+              <Ionicons name="create-outline" size={20} color="white" />
             </Pressable>
-            
-            <HStack gap="sm">
-              <Pressable
-                onPress={() => setEditMode(!editMode)}
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 22,
-                  backgroundColor: 'rgba(0,0,0,0.5)',
-                  justifyContent: 'center',
-                  alignItems: 'center'
-                }}
-              >
-                <Ionicons name="create-outline" size={20} color="white" />
-              </Pressable>
-              
-              <Pressable
-                onPress={handleDelete}
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 22,
-                  backgroundColor: 'rgba(220,20,60,0.8)',
-                  justifyContent: 'center',
-                  alignItems: 'center'
-                }}
-              >
-                <Ionicons name="trash-outline" size={20} color="white" />
-              </Pressable>
-            </HStack>
-          </View>
 
-          {/* Image avec zoom (double-tap) */}
-          <Pressable onPress={handleImagePress}>
-            <AnimatedExpoImage
-              source={{ 
-                uri: photo.url 
-                  ? photo.url.replace(/\/\/uploads\//g, '/uploads/')  // ✅ PRIORITÉ 1: Signed URL (avec workaround double slash)
-                  : String(photo.id).startsWith('local-') 
-                    ? photo.filename  // ✅ PRIORITÉ 2: Photo locale
-                    : (() => {
-                        // ⚠️ FALLBACK: Nettoyer le path pour éviter les doubles slashes
-                        const path = (photo.filename || photo.filePath || photo.file_path || '').replace(/^\/+/, '');
-                        return `https://storage.googleapis.com/swift-images/${path}`;
-                      })()
-              }}
+            <Pressable
+              onPress={handleDelete}
               style={{
-                width: screenWidth - 40,
-                height: screenWidth - 40,
-                borderRadius: DESIGN_TOKENS.radius.lg,
-                marginVertical: 60,
-                transform: [{ scale: scaleAnim }]
+                width: 44,
+                height: 44,
+                borderRadius: 22,
+                backgroundColor: "rgba(220,20,60,0.8)",
+                justifyContent: "center",
+                alignItems: "center",
               }}
-              contentFit="contain"
-              transition={200}
-              onError={(error) => console.error('❌ [PhotoViewModal] Image load error:', error)}
-            />
-          </Pressable>
-          
-          {/* Indicateur de zoom */}
-          {isZoomed && (
-            <View style={{
-              position: 'absolute',
-              top: 100,
-              alignSelf: 'center',
-              backgroundColor: 'rgba(0,0,0,0.7)',
+            >
+              <Ionicons name="trash-outline" size={20} color="white" />
+            </Pressable>
+          </HStack>
+        </View>
+
+        {/* Image centrée */}
+        <Pressable
+          onPress={handleImagePress}
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <AnimatedExpoImage
+            source={{
+              uri: photo.url
+                ? photo.url.replace(/\/\/uploads\//g, "/uploads/")
+                : String(photo.id).startsWith("local-")
+                  ? photo.filename
+                  : (() => {
+                      const path = (
+                        photo.filename ||
+                        photo.filePath ||
+                        photo.file_path ||
+                        ""
+                      ).replace(/^\/+/, "");
+                      return `https://storage.googleapis.com/swift-images/${path}`;
+                    })(),
+            }}
+            style={{
+              width: screenWidth,
+              height: "100%",
+              transform: [{ scale: scaleAnim }],
+            }}
+            contentFit="contain"
+            transition={200}
+            onError={(error) =>
+              console.error("❌ [PhotoViewModal] Image load error:", error)
+            }
+          />
+        </Pressable>
+
+        {/* Dégradé en bas pour lisibilité du texte */}
+        <LinearGradient
+          colors={["transparent", "rgba(0,0,0,0.85)"]}
+          style={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 180,
+            pointerEvents: "none",
+          }}
+        />
+
+        {/* Indicateur de zoom */}
+        {isZoomed && (
+          <View
+            style={{
+              position: "absolute",
+              top: 110,
+              alignSelf: "center",
+              backgroundColor: "rgba(0,0,0,0.7)",
               paddingHorizontal: 12,
               paddingVertical: 6,
-              borderRadius: 16
-            }}>
-              <Text style={{ color: 'white', fontSize: 12 }}>
-                Double-tap pour dézoomer
-              </Text>
-            </View>
-          )}
+              borderRadius: 16,
+            }}
+          >
+            <Text style={{ color: "white", fontSize: 12 }}>
+              Double-tap pour dézoomer
+            </Text>
+          </View>
+        )}
 
-          {/* Description */}
-          <View style={{
-            position: 'absolute',
-            bottom: 50,
+        {/* Description - overlay sur le dégradé */}
+        <View
+          style={{
+            position: "absolute",
+            bottom: 40,
             left: 20,
             right: 20,
-            backgroundColor: 'rgba(0,0,0,0.8)',
             padding: DESIGN_TOKENS.spacing.md,
-            borderRadius: DESIGN_TOKENS.radius.lg
-          }}>
-            {editMode ? (
-              <VStack gap="sm">
-                <TextInput
-                  value={description}
-                  onChangeText={setDescription}
-                  placeholder="Ajouter une description..."
-                  placeholderTextColor="rgba(255,255,255,0.6)"
-                  multiline
-                  style={{
-                    color: 'white',
-                    fontSize: 16,
-                    minHeight: 60,
-                    textAlignVertical: 'top',
-                    paddingVertical: DESIGN_TOKENS.spacing.sm
-                  }}
-                />
-                <HStack gap="sm" justify="flex-end">
-                  <Pressable
-                    onPress={() => setEditMode(false)}
-                    style={{
-                      paddingHorizontal: DESIGN_TOKENS.spacing.md,
-                      paddingVertical: DESIGN_TOKENS.spacing.sm,
-                      borderRadius: DESIGN_TOKENS.radius.sm,
-                      backgroundColor: 'rgba(255,255,255,0.2)'
-                    }}
-                  >
-                    <Text style={{ color: 'white', fontWeight: '600' }}>
-                      {t('jobDetails.components.photos.cancel')}
-                    </Text>
-                  </Pressable>
-                  <Pressable
-                    onPress={handleSaveDescription}
-                    style={{
-                      paddingHorizontal: DESIGN_TOKENS.spacing.md,
-                      paddingVertical: DESIGN_TOKENS.spacing.sm,
-                      borderRadius: DESIGN_TOKENS.radius.sm,
-                      backgroundColor: colors.primary
-                    }}
-                  >
-                    <Text style={{ color: 'white', fontWeight: '600' }}>
-                      {t('jobDetails.components.photos.save')}
-                    </Text>
-                  </Pressable>
-                </HStack>
-              </VStack>
-            ) : (
-              <VStack gap="sm">
-                {/* Date et Stage */}
-                <HStack gap="md" align="center" style={{ marginBottom: 4 }}>
-                  {formatPhotoDate(photo.capturedAt || photo.createdAt || photo.created_at) ? (
-                    <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 14 }}>
-                      📅 {formatPhotoDate(photo.capturedAt || photo.createdAt || photo.created_at)}
-                    </Text>
-                  ) : null}
-                  {formatStage(photo.stage) ? (
-                    <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 14, fontWeight: '500' }}>
-                      {formatStage(photo.stage)}
-                    </Text>
-                  ) : null}
-                </HStack>
-                
-                {/* Description */}
-                <Text style={{
-                  color: 'white',
+          }}
+        >
+          {editMode ? (
+            <VStack gap="sm">
+              <TextInput
+                value={description}
+                onChangeText={setDescription}
+                placeholder="Ajouter une description..."
+                placeholderTextColor="rgba(255,255,255,0.6)"
+                multiline
+                style={{
+                  color: "white",
                   fontSize: 16,
-                  lineHeight: 24
-                }}>
-                  {photo.description || t('jobDetails.components.photos.noDescription')}
-                </Text>
-              </VStack>
-            )}
-          </View>
-        </ScrollView>
+                  minHeight: 60,
+                  textAlignVertical: "top",
+                  paddingVertical: DESIGN_TOKENS.spacing.sm,
+                }}
+              />
+              <HStack gap="sm" justify="flex-end">
+                <Pressable
+                  onPress={() => setEditMode(false)}
+                  style={{
+                    paddingHorizontal: DESIGN_TOKENS.spacing.md,
+                    paddingVertical: DESIGN_TOKENS.spacing.sm,
+                    borderRadius: DESIGN_TOKENS.radius.sm,
+                    backgroundColor: "rgba(255,255,255,0.2)",
+                  }}
+                >
+                  <Text style={{ color: "white", fontWeight: "600" }}>
+                    {t("jobDetails.components.photos.cancel")}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={handleSaveDescription}
+                  style={{
+                    paddingHorizontal: DESIGN_TOKENS.spacing.md,
+                    paddingVertical: DESIGN_TOKENS.spacing.sm,
+                    borderRadius: DESIGN_TOKENS.radius.sm,
+                    backgroundColor: colors.primary,
+                  }}
+                >
+                  <Text style={{ color: "white", fontWeight: "600" }}>
+                    {t("jobDetails.components.photos.save")}
+                  </Text>
+                </Pressable>
+              </HStack>
+            </VStack>
+          ) : (
+            <VStack gap="sm">
+              {/* Date et Stage */}
+              <HStack gap="md" align="center" style={{ marginBottom: 4 }}>
+                {formatPhotoDate(
+                  photo.capturedAt || photo.createdAt || photo.created_at,
+                ) ? (
+                  <Text
+                    style={{ color: "rgba(255,255,255,0.8)", fontSize: 14 }}
+                  >
+                    📅{" "}
+                    {formatPhotoDate(
+                      photo.capturedAt || photo.createdAt || photo.created_at,
+                    )}
+                  </Text>
+                ) : null}
+                {formatStage(photo.stage) ? (
+                  <Text
+                    style={{
+                      color: "rgba(255,255,255,0.9)",
+                      fontSize: 14,
+                      fontWeight: "500",
+                    }}
+                  >
+                    {formatStage(photo.stage)}
+                  </Text>
+                ) : null}
+              </HStack>
+
+              {/* Description */}
+              <Text
+                style={{
+                  color: "white",
+                  fontSize: 16,
+                  lineHeight: 24,
+                }}
+              >
+                {photo.description ||
+                  t("jobDetails.components.photos.noDescription")}
+              </Text>
+            </VStack>
+          )}
+        </View>
       </View>
     </Modal>
   );
 };
 
-const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete }) => {
+const PhotoItem: React.FC<PhotoItemProps> = ({
+  photo,
+  onPress,
+  onEdit,
+  onDelete,
+}) => {
   const { colors } = useCommonThemedStyles();
   const { t } = useLocalization();
   const [imageError, setImageError] = React.useState(false);
   const [showEditModal, setShowEditModal] = React.useState(false);
-  const [editDescription, setEditDescription] = React.useState(photo.description || '');
-  const [imageDimensions, setImageDimensions] = React.useState<{ width: number; height: number } | null>(null);
-  
+  const [editDescription, setEditDescription] = React.useState(
+    photo.description || "",
+  );
+  const [imageDimensions, setImageDimensions] = React.useState<{
+    width: number;
+    height: number;
+  } | null>(null);
+
   // Convertir l'ID en string pour vérifier si c'est une photo locale
   const photoId = String(photo.id);
-  const isLocalPhoto = photoId.startsWith('local-');
-  
+  const isLocalPhoto = photoId.startsWith("local-");
+
   // Vérifier si le fichier est une image valide
   const isValidImageFile = React.useMemo(() => {
-    const filename = (photo.filename || '').toLowerCase();
-    const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'];
-    return validExtensions.some(ext => filename.endsWith(ext));
+    const filename = (photo.filename || "").toLowerCase();
+    const validExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp"];
+    return validExtensions.some((ext) => filename.endsWith(ext));
   }, [photo.filename]);
-  
+
   // Construire l'URL de la photo
   const photoUrl = React.useMemo(() => {
     // ✅ PRIORITÉ 1: Si le backend a renvoyé une signed URL, l'utiliser
     if (photo.url) {
       // 🔧 WORKAROUND: Le backend génère parfois des URLs avec double slash (//uploads/)
       // On corrige ici en attendant le fix backend
-      return photo.url.replace(/\/\/uploads\//g, '/uploads/');
+      return photo.url.replace(/\/\/uploads\//g, "/uploads/");
     }
-    
+
     // ✅ PRIORITÉ 2: Photo locale (non uploadée)
     if (isLocalPhoto) {
       return photo.filename;
     }
-    
+
     // ⚠️ FALLBACK: URL publique GCS (ne marchera que si bucket public)
     // Note: Nettoyer le path pour éviter les doubles slashes
-    const path = (photo.filename || photo.filePath || photo.file_path || '').replace(/^\/+/, ''); // Enlever les / au début
+    const path = (
+      photo.filename ||
+      photo.filePath ||
+      photo.file_path ||
+      ""
+    ).replace(/^\/+/, ""); // Enlever les / au début
     const gcsUrl = `https://storage.googleapis.com/swift-images/${path}`;
     return gcsUrl;
-  }, [photo.url, isLocalPhoto, photo.filename, photo.filePath, photo.file_path, photo.id]);
-  
+  }, [
+    photo.url,
+    isLocalPhoto,
+    photo.filename,
+    photo.filePath,
+    photo.file_path,
+    photo.id,
+  ]);
+
   // Récupérer les dimensions réelles de l'image
   React.useEffect(() => {
     if (photoUrl && isValidImageFile && !imageError) {
@@ -489,47 +560,65 @@ const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete 
           // Debug code disabled
         },
         (error) => {
-          console.warn(`⚠️ [PhotoItem ${photo.id}] Impossible de récupérer dimensions:`, error);
-        }
+          console.warn(
+            `⚠️ [PhotoItem ${photo.id}] Impossible de récupérer dimensions:`,
+            error,
+          );
+        },
       );
     }
   }, [photoUrl, isValidImageFile, imageError, photo.id, photo.filename]);
-  
-  const handleImageError = React.useCallback((error: any) => {
-    if (!imageError) {
-      setImageError(true);
-      // Log silencieux pour ne pas polluer la console avec des erreurs connues
-      const errorMsg = error?.nativeEvent?.error || 'Unknown error';
-      if (errorMsg !== 'Problem decoding into existing bitmap' && errorMsg !== 'unknown image format') {
-        console.error('❌ [PhotoItem] Image load error:', JSON.stringify({ 
-          id: photo.id, 
-          url: photoUrl, 
-          errorMessage: errorMsg,
-          filename: photo.filename
-        }, null, 2));
+
+  const handleImageError = React.useCallback(
+    (error: any) => {
+      if (!imageError) {
+        setImageError(true);
+        // Log silencieux pour ne pas polluer la console avec des erreurs connues
+        const errorMsg = error?.nativeEvent?.error || "Unknown error";
+        if (
+          errorMsg !== "Problem decoding into existing bitmap" &&
+          errorMsg !== "unknown image format"
+        ) {
+          console.error(
+            "❌ [PhotoItem] Image load error:",
+            JSON.stringify(
+              {
+                id: photo.id,
+                url: photoUrl,
+                errorMessage: errorMsg,
+                filename: photo.filename,
+              },
+              null,
+              2,
+            ),
+          );
+        }
       }
-    }
-  }, [imageError, photo.id, photoUrl, photo.filename]);
-  
+    },
+    [imageError, photo.id, photoUrl, photo.filename],
+  );
+
   const handleSaveDescription = () => {
     onEdit(photoId, editDescription);
     setShowEditModal(false);
   };
-  
-  const photoDate = formatPhotoDate(photo.capturedAt || photo.createdAt || photo.created_at);
+
+  const photoDate = formatPhotoDate(
+    photo.capturedAt || photo.createdAt || photo.created_at,
+  );
   const stageLabel = formatStage(photo.stage);
-  
+
   return (
     <>
       <Pressable
         onPress={onPress}
         style={{
-          width: '48%',
+          width: "48%",
           borderRadius: DESIGN_TOKENS.radius.md,
-          overflow: 'hidden',
+          overflow: "hidden",
           backgroundColor: colors.background,
           elevation: 2,
-          shadowColor: '#000',
+          shadowColor: "#000",
           shadowOffset: { width: 0, height: 1 },
           shadowOpacity: 0.22,
           shadowRadius: 2.22,
@@ -538,108 +627,178 @@ const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete 
       >
         {/* Image avec fallback */}
         {!isValidImageFile || imageError ? (
-          <View style={{
-            width: '100%',
-            height: 140,
-            backgroundColor: colors.border,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}>
-            <Ionicons 
-              name={!isValidImageFile ? "document-outline" : "image-outline"} 
-              size={48} 
-              color={colors.textSecondary} 
+          <View
+            style={{
+              width: "100%",
+              height: 140,
+              backgroundColor: colors.border,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Ionicons
+              name={!isValidImageFile ? "document-outline" : "image-outline"}
+              size={48}
+              color={colors.textSecondary}
             />
-            <Text style={{ 
-              fontSize: 11, 
-              color: colors.textSecondary, 
-              marginTop: 8,
-              textAlign: 'center',
-              paddingHorizontal: 8
-            }}>
-              {!isValidImageFile ? t('jobDetails.components.photos.nonImageFile') : t('jobDetails.components.photos.loadError')}
+            <Text
+              style={{
+                fontSize: 11,
+                color: colors.textSecondary,
+                marginTop: 8,
+                textAlign: "center",
+                paddingHorizontal: 8,
+              }}
+            >
+              {!isValidImageFile
+                ? t("jobDetails.components.photos.nonImageFile")
+                : t("jobDetails.components.photos.loadError")}
             </Text>
           </View>
         ) : (
-          <View style={{ width: '100%', aspectRatio: 1, backgroundColor: colors.border, overflow: 'hidden', position: 'relative' }}>
+          <View
+            style={{
+              width: "100%",
+              aspectRatio: 1,
+              backgroundColor: colors.border,
+              overflow: "hidden",
+              position: "relative",
+            }}
+          >
             <ExpoImage
               source={{ uri: photoUrl }}
-              style={{ width: '100%', height: '100%' }}
-              contentFit="cover"
+              style={{ width: "100%", height: "100%" }}
+              contentFit="contain"
               transition={200}
               onError={handleImageError}
             />
-            
+
+            {/* Dégradé en bas pour lisibilité du texte */}
+            <LinearGradient
+              colors={["transparent", "rgba(0,0,0,0.7)"]}
+              style={{
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: 60,
+              }}
+            />
+
+            {/* Date et Stage sur l'image */}
+            <View
+              style={{
+                position: "absolute",
+                bottom: 8,
+                left: 8,
+                right: 8,
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              {photoDate ? (
+                <Text
+                  style={{
+                    fontSize: 11,
+                    color: "white",
+                    fontWeight: "500",
+                    textShadowColor: "rgba(0,0,0,0.5)",
+                    textShadowOffset: { width: 0, height: 1 },
+                    textShadowRadius: 2,
+                  }}
+                >
+                  {photoDate}
+                </Text>
+              ) : null}
+              {stageLabel ? (
+                <Text
+                  style={{
+                    fontSize: 11,
+                    color: "white",
+                    fontWeight: "600",
+                    textShadowColor: "rgba(0,0,0,0.5)",
+                    textShadowOffset: { width: 0, height: 1 },
+                    textShadowRadius: 2,
+                  }}
+                >
+                  {stageLabel}
+                </Text>
+              ) : null}
+            </View>
+
             {/* Badge debug dimensions (en haut à gauche) */}
             {imageDimensions && (
-              <View style={{
-                position: 'absolute',
-                top: 4,
-                left: 4,
-                backgroundColor: 'rgba(0,0,0,0.7)',
-                paddingHorizontal: 6,
-                paddingVertical: 3,
-                borderRadius: 4
-              }}>
-                <Text style={{ color: 'white', fontSize: 9, fontWeight: '600' }}>
+              <View
+                style={{
+                  position: "absolute",
+                  top: 4,
+                  left: 4,
+                  backgroundColor: "rgba(0,0,0,0.7)",
+                  paddingHorizontal: 6,
+                  paddingVertical: 3,
+                  borderRadius: 4,
+                }}
+              >
+                <Text
+                  style={{ color: "white", fontSize: 9, fontWeight: "600" }}
+                >
                   {imageDimensions.width}×{imageDimensions.height}
                 </Text>
-                <Text style={{ color: 'white', fontSize: 8 }}>
-                  {imageDimensions.height > imageDimensions.width ? '📱' : imageDimensions.width > imageDimensions.height ? '🖼️' : '⬛'}
-                  {' '}
+                <Text style={{ color: "white", fontSize: 8 }}>
+                  {imageDimensions.height > imageDimensions.width
+                    ? "📱"
+                    : imageDimensions.width > imageDimensions.height
+                      ? "🖼️"
+                      : "⬛"}{" "}
                   {(imageDimensions.width / imageDimensions.height).toFixed(2)}
                 </Text>
               </View>
             )}
           </View>
         )}
-        
-        {/* Info section */}
-        <View style={{
-          padding: DESIGN_TOKENS.spacing.xs,
-          backgroundColor: colors.background,
-        }}>
-          {/* Date et Stage */}
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-            {photoDate ? (
-              <Text style={{ fontSize: 10, color: colors.textSecondary }}>
-                {photoDate}
-              </Text>
-            ) : null}
-            {stageLabel ? (
-              <Text style={{ fontSize: 10, color: colors.primary, fontWeight: '500' }}>
-                {stageLabel}
-              </Text>
-            ) : null}
-          </View>
-          
+
+        {/* Description section (sans date/stage car maintenant sur l'image) */}
+        <View
+          style={{
+            padding: DESIGN_TOKENS.spacing.xs,
+            backgroundColor: colors.background,
+          }}
+        >
           {/* Description avec bouton edit */}
-          <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 4 }}>
-            <Text 
+          <View
+            style={{ flexDirection: "row", alignItems: "flex-start", gap: 4 }}
+          >
+            <Text
               numberOfLines={2}
               style={{
                 flex: 1,
                 fontSize: 11,
                 color: colors.text,
-                lineHeight: 14
+                lineHeight: 14,
               }}
             >
-              {photo.description || t('jobDetails.components.photos.withoutDescription')}
+              {photo.description ||
+                t("jobDetails.components.photos.withoutDescription")}
             </Text>
-            <Pressable 
+            <Pressable
               onPress={(e) => {
                 e.stopPropagation();
-                setEditDescription(photo.description || '');
+                setEditDescription(photo.description || "");
                 setShowEditModal(true);
               }}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Ionicons name="create-outline" size={14} color={colors.primary} />
+              <Ionicons
+                name="create-outline"
+                size={14}
+                color={colors.primary}
+              />
             </Pressable>
           </View>
         </View>
       </Pressable>
-      
+
       {/* Modal d'édition de description */}
       <Modal
         visible={showEditModal}
@@ -647,38 +806,40 @@ const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete 
         animationType="fade"
         onRequestClose={() => setShowEditModal(false)}
       >
-        <Pressable 
+        <Pressable
           style={{
             flex: 1,
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            justifyContent: 'center',
-            alignItems: 'center',
+            backgroundColor: "rgba(0,0,0,0.5)",
+            justifyContent: "center",
+            alignItems: "center",
           }}
           onPress={() => setShowEditModal(false)}
         >
-          <Pressable 
+          <Pressable
             style={{
-              width: '85%',
+              width: "85%",
               backgroundColor: colors.background,
               borderRadius: DESIGN_TOKENS.radius.lg,
               padding: DESIGN_TOKENS.spacing.lg,
               elevation: 5,
-              shadowColor: '#000',
+              shadowColor: "#000",
               shadowOffset: { width: 0, height: 2 },
               shadowOpacity: 0.25,
               shadowRadius: 3.84,
             }}
             onPress={(e) => e.stopPropagation()}
           >
-            <Text style={{
-              fontSize: 18,
-              fontWeight: '600',
-              color: colors.text,
-              marginBottom: DESIGN_TOKENS.spacing.md
-            }}>
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: "600",
+                color: colors.text,
+                marginBottom: DESIGN_TOKENS.spacing.md,
+              }}
+            >
               Modifier la description
             </Text>
-            
+
             <TextInput
               value={editDescription}
               onChangeText={setEditDescription}
@@ -694,13 +855,15 @@ const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete 
                 fontSize: 14,
                 color: colors.text,
                 minHeight: 80,
-                textAlignVertical: 'top',
+                textAlignVertical: "top",
                 backgroundColor: colors.backgroundSecondary,
-                marginBottom: DESIGN_TOKENS.spacing.md
+                marginBottom: DESIGN_TOKENS.spacing.md,
               }}
             />
-            
-            <View style={{ flexDirection: 'row', gap: DESIGN_TOKENS.spacing.sm }}>
+
+            <View
+              style={{ flexDirection: "row", gap: DESIGN_TOKENS.spacing.sm }}
+            >
               <Pressable
                 onPress={() => setShowEditModal(false)}
                 style={{
@@ -708,16 +871,22 @@ const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete 
                   padding: DESIGN_TOKENS.spacing.sm,
                   borderRadius: DESIGN_TOKENS.radius.md,
                   backgroundColor: colors.backgroundSecondary,
-                  alignItems: 'center',
+                  alignItems: "center",
                   borderWidth: 1,
-                  borderColor: colors.border
+                  borderColor: colors.border,
                 }}
               >
-                <Text style={{ color: colors.text, fontSize: 14, fontWeight: '500' }}>
-                  {t('jobDetails.components.photos.cancel')}
+                <Text
+                  style={{
+                    color: colors.text,
+                    fontSize: 14,
+                    fontWeight: "500",
+                  }}
+                >
+                  {t("jobDetails.components.photos.cancel")}
                 </Text>
               </Pressable>
-              
+
               <Pressable
                 onPress={handleSaveDescription}
                 style={{
@@ -725,11 +894,13 @@ const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete 
                   padding: DESIGN_TOKENS.spacing.sm,
                   borderRadius: DESIGN_TOKENS.radius.md,
                   backgroundColor: colors.primary,
-                  alignItems: 'center'
+                  alignItems: "center",
                 }}
               >
-                <Text style={{ color: 'white', fontSize: 14, fontWeight: '600' }}>
-                  {t('jobDetails.components.photos.save')}
+                <Text
+                  style={{ color: "white", fontSize: 14, fontWeight: "600" }}
+                >
+                  {t("jobDetails.components.photos.save")}
                 </Text>
               </Pressable>
             </View>
@@ -740,7 +911,10 @@ const PhotoItem: React.FC<PhotoItemProps> = ({ photo, onPress, onEdit, onDelete 
   );
 };
 
-export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId, isVisible = true }) => {
+export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({
+  jobId,
+  isVisible = true,
+}) => {
   const { colors } = useCommonThemedStyles();
   const { t } = useLocalization();
   const [showPhotoModal, setShowPhotoModal] = useState(false);
@@ -748,7 +922,7 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId, isVis
   const [showViewModal, setShowViewModal] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false); // ✅ Collapsible state
   const prevIsVisibleRef = React.useRef(isVisible);
-  
+
   const {
     photos,
     isLoading,
@@ -761,13 +935,15 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId, isVis
     // ✅ Pagination
     hasMore,
     loadMore,
-    isLoadingMore
+    isLoadingMore,
   } = useJobPhotos(jobId);
 
   // ✅ Session 10: Refetch quand l'onglet devient visible (false -> true)
   React.useEffect(() => {
     if (isVisible && !prevIsVisibleRef.current) {
-      console.log('📸 [JobPhotosSection] Tab became visible, refetching photos...');
+      console.log(
+        "📸 [JobPhotosSection] Tab became visible, refetching photos...",
+      );
       refetch();
     }
     prevIsVisibleRef.current = isVisible;
@@ -776,25 +952,34 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId, isVis
   const handlePhotoSelection = async (photoUri: string) => {
     // TEMP_DISABLED: console.log('🎯 [DEBUG] handlePhotoSelection - REÇU du modal');
     // TEMP_DISABLED: console.log('🎯 [DEBUG] photoUri reçu:', photoUri);
-    
+
     setShowPhotoModal(false);
     // TEMP_DISABLED: console.log('✅ [DEBUG] Modal fermé');
-    
+
     try {
-        const result = await uploadPhoto(photoUri, '');
-      
+      const result = await uploadPhoto(photoUri, "");
+
       // TEMP_DISABLED: console.log('✅ [DEBUG] uploadPhoto terminé:', result);
-      
-      if (result) {await refetch();
+
+      if (result) {
+        await refetch();
         // TEMP_DISABLED: console.log('✅ [DEBUG] Photos rechargées');
-        
-        Alert.alert(t('jobDetails.components.photos.success'), t('jobDetails.components.photos.addedSuccess'));
+
+        Alert.alert(
+          t("jobDetails.components.photos.success"),
+          t("jobDetails.components.photos.addedSuccess"),
+        );
       }
     } catch (err) {
-
-      console.error('❌ [DEBUG] Erreur dans uploadPhoto:', err);
-      console.error('❌ [DEBUG] Stack trace:', err instanceof Error ? err.stack : 'N/A');
-      Alert.alert(t('jobDetails.components.photos.error'), t('jobDetails.components.photos.updateError'));
+      console.error("❌ [DEBUG] Erreur dans uploadPhoto:", err);
+      console.error(
+        "❌ [DEBUG] Stack trace:",
+        err instanceof Error ? err.stack : "N/A",
+      );
+      Alert.alert(
+        t("jobDetails.components.photos.error"),
+        t("jobDetails.components.photos.updateError"),
+      );
     }
   };
 
@@ -803,31 +988,44 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId, isVis
     setShowViewModal(true);
   };
 
-  const handleEditDescription = async (photoId: string, description: string) => {
+  const handleEditDescription = async (
+    photoId: string,
+    description: string,
+  ) => {
     try {
       await updatePhotoDescription(photoId, description);
-      
+
       // ✅ Recharger toutes les photos depuis le serveur
       await refetch();
-      
-      Alert.alert(t('jobDetails.components.photos.success'), t('jobDetails.components.photos.descriptionUpdated'));
-    } catch (err) {
 
-      Alert.alert(t('jobDetails.components.photos.error'), t('jobDetails.components.photos.updateError'));
+      Alert.alert(
+        t("jobDetails.components.photos.success"),
+        t("jobDetails.components.photos.descriptionUpdated"),
+      );
+    } catch (err) {
+      Alert.alert(
+        t("jobDetails.components.photos.error"),
+        t("jobDetails.components.photos.updateError"),
+      );
     }
   };
 
   const handleDeletePhoto = async (photoId: string) => {
     try {
       await deletePhoto(photoId);
-      
+
       // ✅ Recharger toutes les photos depuis le serveur
       await refetch();
-      
-      Alert.alert(t('jobDetails.components.photos.success'), t('jobDetails.components.photos.deleted'));
-    } catch (err) {
 
-      Alert.alert(t('jobDetails.components.photos.error'), t('jobDetails.components.photos.updateError'));
+      Alert.alert(
+        t("jobDetails.components.photos.success"),
+        t("jobDetails.components.photos.deleted"),
+      );
+    } catch (err) {
+      Alert.alert(
+        t("jobDetails.components.photos.error"),
+        t("jobDetails.components.photos.updateError"),
+      );
     }
   };
 
@@ -836,26 +1034,34 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId, isVis
   }
 
   // ✅ Render d'un item de la FlatList (2 colonnes)
-  const renderPhotoItem = ({ item, index }: { item: JobPhotoAPI; index: number }) => {
+  const renderPhotoItem = ({
+    item,
+    index,
+  }: {
+    item: JobPhotoAPI;
+    index: number;
+  }) => {
     // Prendre 2 photos à la fois pour layout 2 colonnes
     if (index % 2 !== 0) return null;
-    
+
     const photo1 = item;
     const photo2 = photos[index + 1];
-    
+
     return (
-      <View style={{
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: DESIGN_TOKENS.spacing.sm
-      }}>
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          marginBottom: DESIGN_TOKENS.spacing.sm,
+        }}
+      >
         <PhotoItem
           photo={photo1}
           onPress={() => handlePhotoPress(photo1)}
           onEdit={handleEditDescription}
           onDelete={handleDeletePhoto}
         />
-        
+
         {photo2 && (
           <PhotoItem
             photo={photo2}
@@ -864,7 +1070,7 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId, isVis
             onDelete={handleDeletePhoto}
           />
         )}
-        {!photo2 && <View style={{ width: '48%' }} />}
+        {!photo2 && <View style={{ width: "48%" }} />}
       </View>
     );
   };
@@ -872,12 +1078,14 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId, isVis
   // ✅ Footer pour infinite scroll
   const renderFooter = () => {
     if (!isLoadingMore) return null;
-    
+
     return (
-      <View style={{ padding: DESIGN_TOKENS.spacing.md, alignItems: 'center' }}>
+      <View style={{ padding: DESIGN_TOKENS.spacing.md, alignItems: "center" }}>
         <ActivityIndicator size="small" color={colors.primary} />
-        <Text style={{ marginTop: 8, color: colors.textSecondary, fontSize: 12 }}>
-          {t('jobDetails.components.photos.loading')}
+        <Text
+          style={{ marginTop: 8, color: colors.textSecondary, fontSize: 12 }}
+        >
+          {t("jobDetails.components.photos.loading")}
         </Text>
       </View>
     );
@@ -888,95 +1096,107 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({ jobId, isVis
       <Card style={{ padding: DESIGN_TOKENS.spacing.lg }}>
         <VStack gap="md">
           {/* Header avec toggle pour expand/collapse */}
-          <Pressable 
+          <Pressable
             onPress={() => setIsExpanded(!isExpanded)}
-            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
           >
-            <SectionHeader 
-              icon="camera-outline" 
-              title="Photos" 
+            <SectionHeader
+              icon="camera-outline"
+              title="Photos"
               badge={totalPhotos > 0 ? totalPhotos.toString() : undefined}
             />
-            <Ionicons 
-              name={isExpanded ? "chevron-up-outline" : "chevron-down-outline"} 
-              size={24} 
-              color={colors.textSecondary} 
+            <Ionicons
+              name={isExpanded ? "chevron-up-outline" : "chevron-down-outline"}
+              size={24}
+              color={colors.textSecondary}
             />
           </Pressable>
-          
+
           {/* Contenu conditionnel (sans Collapsible complex) */}
           {isExpanded && (
             <>
               {isLoading && (!Array.isArray(photos) || photos.length === 0) ? (
-              <View style={{
-                padding: DESIGN_TOKENS.spacing.lg,
-                alignItems: 'center'
-              }}>
-                <ActivityIndicator size="large" color={colors.primary} />
-                <Text style={{
-                  marginTop: DESIGN_TOKENS.spacing.sm,
-                  color: colors.textSecondary,
-                  fontSize: 14
-                }}>
-                  {t('jobDetails.components.photos.loadingPhotos')}
+                <View
+                  style={{
+                    padding: DESIGN_TOKENS.spacing.lg,
+                    alignItems: "center",
+                  }}
+                >
+                  <ActivityIndicator size="large" color={colors.primary} />
+                  <Text
+                    style={{
+                      marginTop: DESIGN_TOKENS.spacing.sm,
+                      color: colors.textSecondary,
+                      fontSize: 14,
+                    }}
+                  >
+                    {t("jobDetails.components.photos.loadingPhotos")}
+                  </Text>
+                </View>
+              ) : Array.isArray(photos) && photos.length > 0 ? (
+                <FlatList
+                  data={photos}
+                  renderItem={renderPhotoItem}
+                  keyExtractor={(item) => String(item.id)}
+                  numColumns={1}
+                  scrollEnabled={false} // Désactiver scroll interne (on scroll la page parente)
+                  onEndReached={() => {
+                    // TEMP_DISABLED: console.log('📸 [FlatList] onEndReached - hasMore:', hasMore, 'isLoadingMore:', isLoadingMore);
+                    if (hasMore && !isLoadingMore) {
+                      loadMore();
+                    }
+                  }}
+                  onEndReachedThreshold={0.5} // Charger quand on atteint 50% de la fin
+                  ListFooterComponent={renderFooter}
+                  contentContainerStyle={{
+                    paddingBottom: DESIGN_TOKENS.spacing.sm,
+                  }}
+                />
+              ) : (
+                <Text
+                  style={{
+                    fontSize: 14,
+                    color: colors.textSecondary,
+                    fontStyle: "italic",
+                    textAlign: "center",
+                    paddingVertical: DESIGN_TOKENS.spacing.lg,
+                  }}
+                >
+                  Aucune photo pour le moment
                 </Text>
-              </View>
-            ) : Array.isArray(photos) && photos.length > 0 ? (
-              <FlatList
-                data={photos}
-                renderItem={renderPhotoItem}
-                keyExtractor={(item) => String(item.id)}
-                numColumns={1}
-                scrollEnabled={false} // Désactiver scroll interne (on scroll la page parente)
-                onEndReached={() => {
-                  // TEMP_DISABLED: console.log('📸 [FlatList] onEndReached - hasMore:', hasMore, 'isLoadingMore:', isLoadingMore);
-                  if (hasMore && !isLoadingMore) {
-                    loadMore();
-                  }
-                }}
-                onEndReachedThreshold={0.5} // Charger quand on atteint 50% de la fin
-                ListFooterComponent={renderFooter}
-                contentContainerStyle={{
-                  paddingBottom: DESIGN_TOKENS.spacing.sm
-                }}
-              />
-            ) : (
-              <Text style={{
-                fontSize: 14,
-                color: colors.textSecondary,
-                fontStyle: 'italic',
-                textAlign: 'center',
-                paddingVertical: DESIGN_TOKENS.spacing.lg
-              }}>
-                Aucune photo pour le moment
-              </Text>
-            )}
+              )}
             </>
           )}
-          
+
           {/* Bouton Ajouter une photo */}
           <Pressable
             onPress={() => setShowPhotoModal(true)}
             style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
               padding: DESIGN_TOKENS.spacing.md,
               borderWidth: 2,
               borderColor: colors.primary,
-              borderStyle: 'dashed',
+              borderStyle: "dashed",
               borderRadius: DESIGN_TOKENS.radius.md,
-              backgroundColor: colors.primary + '10',
-              marginTop: DESIGN_TOKENS.spacing.sm
+              backgroundColor: colors.primary + "10",
+              marginTop: DESIGN_TOKENS.spacing.sm,
             }}
           >
             <Ionicons name="camera-outline" size={20} color={colors.primary} />
-            <Text style={{
-              fontSize: 16,
-              fontWeight: '600',
-              color: colors.primary,
-              marginLeft: DESIGN_TOKENS.spacing.xs
-            }}>
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: "600",
+                color: colors.primary,
+                marginLeft: DESIGN_TOKENS.spacing.xs,
+              }}
+            >
               Ajouter une photo
             </Text>
           </Pressable>

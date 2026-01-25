@@ -2,65 +2,65 @@
  * EditJobModal - Modal pour modifier un job existant
  * Permet de modifier client, adresse, date/heure, priorité et notes
  */
-import { Ionicons } from '@expo/vector-icons'
-import React, { useEffect, useState } from 'react'
+import { Ionicons } from "@expo/vector-icons";
+import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
-} from 'react-native'
-import { DESIGN_TOKENS } from '../../constants/Styles'
-import { useTheme } from '../../context/ThemeProvider'
-import { useTranslation } from '../../localization'
-import { UpdateJobRequest } from '../../services/jobs'
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import { DESIGN_TOKENS } from "../../constants/Styles";
+import { useTheme } from "../../context/ThemeProvider";
+import { useTranslation } from "../../localization";
+import { UpdateJobRequest } from "../../services/jobs";
 
 interface EditJobModalProps {
-  visible: boolean
-  onClose: () => void
-  onUpdateJob: (data: UpdateJobRequest) => Promise<void>
+  visible: boolean;
+  onClose: () => void;
+  onUpdateJob: (data: UpdateJobRequest) => Promise<void>;
   job: {
-    id: string
-    status?: string
-    priority?: 'low' | 'medium' | 'high' | 'urgent'
+    id: string;
+    status?: string;
+    priority?: "low" | "medium" | "high" | "urgent";
     addresses?: {
-      type: string
-      street: string
-      city: string
-      state: string
-      zip: string
-    }[]
+      type: string;
+      street: string;
+      city: string;
+      state: string;
+      zip: string;
+    }[];
     time?: {
-      startWindowStart?: string
-      startWindowEnd?: string
-      endWindowStart?: string
-      endWindowEnd?: string
-    }
-    estimatedDuration?: number
-    notes?: string
-  } | null
+      startWindowStart?: string;
+      startWindowEnd?: string;
+      endWindowStart?: string;
+      endWindowEnd?: string;
+    };
+    estimatedDuration?: number;
+    notes?: string;
+  } | null;
 }
 
 const PRIORITY_OPTIONS = [
-  { key: 'low' as const, label: 'Low', emoji: '🟢', color: '#22c55e' },
-  { key: 'medium' as const, label: 'Medium', emoji: '🟡', color: '#eab308' },
-  { key: 'high' as const, label: 'High', emoji: '🟠', color: '#f97316' },
-  { key: 'urgent' as const, label: 'Urgent', emoji: '🔴', color: '#ef4444' },
-]
+  { key: "low" as const, label: "Low", emoji: "🟢", color: "#22c55e" },
+  { key: "medium" as const, label: "Medium", emoji: "🟡", color: "#eab308" },
+  { key: "high" as const, label: "High", emoji: "🟠", color: "#f97316" },
+  { key: "urgent" as const, label: "Urgent", emoji: "🔴", color: "#ef4444" },
+];
 
 const STATUS_OPTIONS = [
-  { key: 'pending' as const, label: 'Pending', emoji: '⏳' },
-  { key: 'in-progress' as const, label: 'In Progress', emoji: '🔄' },
-  { key: 'completed' as const, label: 'Completed', emoji: '✅' },
-  { key: 'cancelled' as const, label: 'Cancelled', emoji: '❌' },
-]
+  { key: "pending" as const, label: "Pending", emoji: "⏳" },
+  { key: "in-progress" as const, label: "In Progress", emoji: "🔄" },
+  { key: "completed" as const, label: "Completed", emoji: "✅" },
+  { key: "cancelled" as const, label: "Cancelled", emoji: "❌" },
+];
 
 export default function EditJobModal({
   visible,
@@ -68,57 +68,62 @@ export default function EditJobModal({
   onUpdateJob,
   job,
 }: EditJobModalProps) {
-  const { colors } = useTheme()
-  const { t } = useTranslation()
-  
-  const [isLoading, setIsLoading] = useState(false)
+  const { colors } = useTheme();
+  const { t } = useTranslation();
+
+  const [isLoading, setIsLoading] = useState(false);
 
   // Form state
-  const [status, setStatus] = useState<UpdateJobRequest['status']>('pending')
-  const [priority, setPriority] = useState<UpdateJobRequest['priority']>('medium')
-  const [addresses, setAddresses] = useState<UpdateJobRequest['addresses']>([])
-  const [startTime, setStartTime] = useState('09:00')
-  const [endTime, setEndTime] = useState('17:00')
-  const [estimatedDuration, setEstimatedDuration] = useState('4')
-  const [notes, setNotes] = useState('')
+  const [status, setStatus] = useState<UpdateJobRequest["status"]>("pending");
+  const [priority, setPriority] =
+    useState<UpdateJobRequest["priority"]>("medium");
+  const [addresses, setAddresses] = useState<UpdateJobRequest["addresses"]>([]);
+  const [startTime, setStartTime] = useState("09:00");
+  const [endTime, setEndTime] = useState("17:00");
+  const [estimatedDuration, setEstimatedDuration] = useState("4");
+  const [notes, setNotes] = useState("");
 
   // Initialize form when job changes
   useEffect(() => {
     if (job && visible) {
-      setStatus(job.status as UpdateJobRequest['status'] || 'pending')
-      setPriority(job.priority || 'medium')
-      setAddresses(job.addresses || [])
-      setNotes(job.notes || '')
-      
+      setStatus((job.status as UpdateJobRequest["status"]) || "pending");
+      setPriority(job.priority || "medium");
+      setAddresses(job.addresses || []);
+      setNotes(job.notes || "");
+
       // Parse times
       if (job.time?.startWindowStart) {
-        const start = new Date(job.time.startWindowStart)
-        setStartTime(`${start.getHours().toString().padStart(2, '0')}:${start.getMinutes().toString().padStart(2, '0')}`)
+        const start = new Date(job.time.startWindowStart);
+        setStartTime(
+          `${start.getHours().toString().padStart(2, "0")}:${start.getMinutes().toString().padStart(2, "0")}`,
+        );
       }
       if (job.time?.endWindowEnd) {
-        const end = new Date(job.time.endWindowEnd)
-        setEndTime(`${end.getHours().toString().padStart(2, '0')}:${end.getMinutes().toString().padStart(2, '0')}`)
+        const end = new Date(job.time.endWindowEnd);
+        setEndTime(
+          `${end.getHours().toString().padStart(2, "0")}:${end.getMinutes().toString().padStart(2, "0")}`,
+        );
       }
       if (job.estimatedDuration) {
-        setEstimatedDuration(Math.round(job.estimatedDuration / 60).toString())
+        setEstimatedDuration(Math.round(job.estimatedDuration / 60).toString());
       }
     }
-  }, [job, visible])
+  }, [job, visible]);
 
   const handleClose = () => {
-    onClose()
-  }
+    onClose();
+  };
 
   const updateAddress = (index: number, field: string, value: string) => {
-    const newAddresses = [...(addresses || [])]
+    const newAddresses = [...(addresses || [])];
     if (newAddresses[index]) {
-      newAddresses[index] = { ...newAddresses[index], [field]: value }
-      setAddresses(newAddresses)
+      newAddresses[index] = { ...newAddresses[index], [field]: value };
+      setAddresses(newAddresses);
     }
-  }
+  };
 
   const handleSubmit = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       const updateData: UpdateJobRequest = {
         status,
@@ -126,68 +131,68 @@ export default function EditJobModal({
         addresses,
         estimatedDuration: parseInt(estimatedDuration) * 60,
         notes: notes || undefined,
-      }
+      };
 
       // Add time if we have a date context
       if (job?.time?.startWindowStart) {
-        const baseDate = new Date(job.time.startWindowStart)
-        const [startHour, startMinute] = startTime.split(':')
-        const [endHour, endMinute] = endTime.split(':')
-        
-        const startDateTime = new Date(baseDate)
-        startDateTime.setHours(parseInt(startHour), parseInt(startMinute))
-        
-        const endDateTime = new Date(baseDate)
-        endDateTime.setHours(parseInt(endHour), parseInt(endMinute))
-        
+        const baseDate = new Date(job.time.startWindowStart);
+        const [startHour, startMinute] = startTime.split(":");
+        const [endHour, endMinute] = endTime.split(":");
+
+        const startDateTime = new Date(baseDate);
+        startDateTime.setHours(parseInt(startHour), parseInt(startMinute));
+
+        const endDateTime = new Date(baseDate);
+        endDateTime.setHours(parseInt(endHour), parseInt(endMinute));
+
         updateData.time = {
           startWindowStart: startDateTime.toISOString(),
           startWindowEnd: startDateTime.toISOString(),
           endWindowStart: endDateTime.toISOString(),
           endWindowEnd: endDateTime.toISOString(),
-        }
+        };
       }
 
-      await onUpdateJob(updateData)
-      handleClose()
+      await onUpdateJob(updateData);
+      handleClose();
       Alert.alert(
-        t('common.success'),
-        t('jobs.updateSuccess') || 'Job updated successfully!'
-      )
+        t("common.success"),
+        t("jobs.updateSuccess") || "Job updated successfully!",
+      );
     } catch (error) {
-      console.error('Error updating job:', error)
+      console.error("Error updating job:", error);
       Alert.alert(
-        t('common.error'),
-        t('jobs.updateError') || 'Failed to update job. Please try again.'
-      )
+        t("common.error"),
+        t("jobs.updateError") || "Failed to update job. Please try again.",
+      );
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const styles = StyleSheet.create({
     modalOverlay: {
       flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      justifyContent: 'flex-end',
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      justifyContent: "flex-end",
     },
     modalContent: {
       backgroundColor: colors.background,
       borderTopLeftRadius: DESIGN_TOKENS.radius.xl,
       borderTopRightRadius: DESIGN_TOKENS.radius.xl,
-      maxHeight: '85%',
+      maxHeight: "85%",
     },
     header: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
       padding: DESIGN_TOKENS.spacing.lg,
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
     },
     headerTitle: {
       fontSize: DESIGN_TOKENS.typography.title.fontSize,
-      fontWeight: '700',
+      fontWeight: "700",
       color: colors.text,
     },
     closeButton: {
@@ -198,19 +203,19 @@ export default function EditJobModal({
     },
     sectionLabel: {
       fontSize: DESIGN_TOKENS.typography.body.fontSize,
-      fontWeight: '600',
+      fontWeight: "600",
       color: colors.text,
       marginBottom: DESIGN_TOKENS.spacing.sm,
       marginTop: DESIGN_TOKENS.spacing.md,
     },
     optionsGrid: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
+      flexDirection: "row",
+      flexWrap: "wrap",
       gap: DESIGN_TOKENS.spacing.sm,
     },
     optionCard: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       paddingHorizontal: DESIGN_TOKENS.spacing.md,
       paddingVertical: DESIGN_TOKENS.spacing.sm,
       borderRadius: DESIGN_TOKENS.radius.md,
@@ -222,24 +227,24 @@ export default function EditJobModal({
     },
     optionLabel: {
       fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-      fontWeight: '500',
+      fontWeight: "500",
     },
     addressBlock: {
       marginBottom: DESIGN_TOKENS.spacing.md,
     },
     addressHeader: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       marginBottom: DESIGN_TOKENS.spacing.xs,
     },
     addressLabel: {
       fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-      fontWeight: '600',
+      fontWeight: "600",
       marginLeft: DESIGN_TOKENS.spacing.xs,
     },
     inputGroup: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       paddingHorizontal: DESIGN_TOKENS.spacing.md,
       paddingVertical: DESIGN_TOKENS.spacing.sm,
       borderRadius: DESIGN_TOKENS.radius.md,
@@ -250,14 +255,14 @@ export default function EditJobModal({
       fontSize: DESIGN_TOKENS.typography.body.fontSize,
     },
     inputRow: {
-      flexDirection: 'row',
+      flexDirection: "row",
       gap: DESIGN_TOKENS.spacing.sm,
     },
     inputHalf: {
       flex: 1,
     },
     timeSection: {
-      flexDirection: 'row',
+      flexDirection: "row",
       gap: DESIGN_TOKENS.spacing.md,
     },
     timeBlock: {
@@ -277,16 +282,16 @@ export default function EditJobModal({
       minHeight: 80,
     },
     buttonRow: {
-      flexDirection: 'row',
+      flexDirection: "row",
       gap: DESIGN_TOKENS.spacing.md,
       marginTop: DESIGN_TOKENS.spacing.xl,
       paddingBottom: DESIGN_TOKENS.spacing.lg,
     },
     button: {
       flex: 1,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
       paddingVertical: DESIGN_TOKENS.spacing.md,
       borderRadius: DESIGN_TOKENS.radius.md,
     },
@@ -295,11 +300,11 @@ export default function EditJobModal({
     },
     buttonText: {
       fontSize: DESIGN_TOKENS.typography.body.fontSize,
-      fontWeight: '600',
+      fontWeight: "600",
     },
-  })
+  });
 
-  if (!job) return null
+  if (!job) return null;
 
   return (
     <Modal
@@ -309,34 +314,41 @@ export default function EditJobModal({
       onRequestClose={handleClose}
     >
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.modalOverlay}
       >
         <View style={styles.modalContent}>
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.headerTitle}>
-              {t('jobs.editJob') || 'Edit Job'}
+              {t("jobs.editJob") || "Edit Job"}
             </Text>
             <Pressable style={styles.closeButton} onPress={handleClose}>
               <Ionicons name="close" size={24} color={colors.text} />
             </Pressable>
           </View>
 
-          <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={styles.content}
+            showsVerticalScrollIndicator={false}
+          >
             {/* Status */}
             <Text style={styles.sectionLabel}>
-              {t('jobs.status') || 'Status'}
+              {t("jobs.statusLabel") || "Status"}
             </Text>
             <View style={styles.optionsGrid}>
-              {STATUS_OPTIONS.map(option => (
+              {STATUS_OPTIONS.map((option) => (
                 <Pressable
                   key={option.key}
                   style={[
                     styles.optionCard,
                     {
-                      backgroundColor: status === option.key ? colors.primary + '20' : colors.backgroundSecondary,
-                      borderColor: status === option.key ? colors.primary : colors.border,
+                      backgroundColor:
+                        status === option.key
+                          ? colors.primary + "20"
+                          : colors.backgroundSecondary,
+                      borderColor:
+                        status === option.key ? colors.primary : colors.border,
                     },
                   ]}
                   onPress={() => setStatus(option.key)}
@@ -351,17 +363,21 @@ export default function EditJobModal({
 
             {/* Priority */}
             <Text style={styles.sectionLabel}>
-              {t('jobs.priority') || 'Priority'}
+              {t("jobs.priority") || "Priority"}
             </Text>
             <View style={styles.optionsGrid}>
-              {PRIORITY_OPTIONS.map(option => (
+              {PRIORITY_OPTIONS.map((option) => (
                 <Pressable
                   key={option.key}
                   style={[
                     styles.optionCard,
                     {
-                      backgroundColor: priority === option.key ? option.color + '20' : colors.backgroundSecondary,
-                      borderColor: priority === option.key ? option.color : colors.border,
+                      backgroundColor:
+                        priority === option.key
+                          ? option.color + "20"
+                          : colors.backgroundSecondary,
+                      borderColor:
+                        priority === option.key ? option.color : colors.border,
                     },
                   ]}
                   onPress={() => setPriority(option.key)}
@@ -378,44 +394,72 @@ export default function EditJobModal({
             {addresses && addresses.length > 0 && (
               <>
                 <Text style={styles.sectionLabel}>
-                  {t('jobs.addresses') || 'Addresses'}
+                  {t("jobs.addresses") || "Addresses"}
                 </Text>
                 {addresses.map((address, index) => (
                   <View key={index} style={styles.addressBlock}>
                     <View style={styles.addressHeader}>
                       <Text style={{ fontSize: 16 }}>
-                        {address.type === 'pickup' ? '📦' : '🏠'}
+                        {address.type === "pickup" ? "📦" : "🏠"}
                       </Text>
-                      <Text style={[styles.addressLabel, { color: colors.textSecondary }]}>
-                        {address.type === 'pickup' ? 'Pickup' : 'Delivery'}
+                      <Text
+                        style={[
+                          styles.addressLabel,
+                          { color: colors.textSecondary },
+                        ]}
+                      >
+                        {address.type === "pickup" ? "Pickup" : "Delivery"}
                       </Text>
                     </View>
-                    <View style={[styles.inputGroup, { backgroundColor: colors.backgroundSecondary }]}>
+                    <View
+                      style={[
+                        styles.inputGroup,
+                        { backgroundColor: colors.backgroundSecondary },
+                      ]}
+                    >
                       <TextInput
                         style={[styles.input, { color: colors.text }]}
                         placeholder="Street"
                         placeholderTextColor={colors.textSecondary}
                         value={address.street}
-                        onChangeText={(value) => updateAddress(index, 'street', value)}
+                        onChangeText={(value) =>
+                          updateAddress(index, "street", value)
+                        }
                       />
                     </View>
                     <View style={styles.inputRow}>
-                      <View style={[styles.inputGroup, styles.inputHalf, { backgroundColor: colors.backgroundSecondary }]}>
+                      <View
+                        style={[
+                          styles.inputGroup,
+                          styles.inputHalf,
+                          { backgroundColor: colors.backgroundSecondary },
+                        ]}
+                      >
                         <TextInput
                           style={[styles.input, { color: colors.text }]}
                           placeholder="City"
                           placeholderTextColor={colors.textSecondary}
                           value={address.city}
-                          onChangeText={(value) => updateAddress(index, 'city', value)}
+                          onChangeText={(value) =>
+                            updateAddress(index, "city", value)
+                          }
                         />
                       </View>
-                      <View style={[styles.inputGroup, styles.inputHalf, { backgroundColor: colors.backgroundSecondary }]}>
+                      <View
+                        style={[
+                          styles.inputGroup,
+                          styles.inputHalf,
+                          { backgroundColor: colors.backgroundSecondary },
+                        ]}
+                      >
                         <TextInput
                           style={[styles.input, { color: colors.text }]}
                           placeholder="State"
                           placeholderTextColor={colors.textSecondary}
                           value={address.state}
-                          onChangeText={(value) => updateAddress(index, 'state', value)}
+                          onChangeText={(value) =>
+                            updateAddress(index, "state", value)
+                          }
                         />
                       </View>
                     </View>
@@ -426,15 +470,27 @@ export default function EditJobModal({
 
             {/* Time */}
             <Text style={styles.sectionLabel}>
-              {t('jobs.schedule') || 'Schedule'}
+              {t("jobs.schedule") || "Schedule"}
             </Text>
             <View style={styles.timeSection}>
               <View style={styles.timeBlock}>
                 <Text style={styles.timeLabel}>Start Time</Text>
-                <View style={[styles.inputGroup, { backgroundColor: colors.backgroundSecondary }]}>
-                  <Ionicons name="time" size={18} color={colors.textSecondary} />
+                <View
+                  style={[
+                    styles.inputGroup,
+                    { backgroundColor: colors.backgroundSecondary },
+                  ]}
+                >
+                  <Ionicons
+                    name="time"
+                    size={18}
+                    color={colors.textSecondary}
+                  />
                   <TextInput
-                    style={[styles.input, { color: colors.text, marginLeft: 8 }]}
+                    style={[
+                      styles.input,
+                      { color: colors.text, marginLeft: 8 },
+                    ]}
                     placeholder="09:00"
                     placeholderTextColor={colors.textSecondary}
                     value={startTime}
@@ -444,10 +500,22 @@ export default function EditJobModal({
               </View>
               <View style={styles.timeBlock}>
                 <Text style={styles.timeLabel}>End Time</Text>
-                <View style={[styles.inputGroup, { backgroundColor: colors.backgroundSecondary }]}>
-                  <Ionicons name="time" size={18} color={colors.textSecondary} />
+                <View
+                  style={[
+                    styles.inputGroup,
+                    { backgroundColor: colors.backgroundSecondary },
+                  ]}
+                >
+                  <Ionicons
+                    name="time"
+                    size={18}
+                    color={colors.textSecondary}
+                  />
                   <TextInput
-                    style={[styles.input, { color: colors.text, marginLeft: 8 }]}
+                    style={[
+                      styles.input,
+                      { color: colors.text, marginLeft: 8 },
+                    ]}
                     placeholder="17:00"
                     placeholderTextColor={colors.textSecondary}
                     value={endTime}
@@ -459,12 +527,17 @@ export default function EditJobModal({
 
             {/* Notes */}
             <Text style={styles.sectionLabel}>
-              {t('jobs.notes') || 'Notes'}
+              {t("jobs.notes") || "Notes"}
             </Text>
-            <View style={[styles.textareaContainer, { backgroundColor: colors.backgroundSecondary }]}>
+            <View
+              style={[
+                styles.textareaContainer,
+                { backgroundColor: colors.backgroundSecondary },
+              ]}
+            >
               <TextInput
                 style={[styles.textarea, { color: colors.text }]}
-                placeholder={t('jobs.notesPlaceholder') || 'Add notes...'}
+                placeholder={t("jobs.notesPlaceholder") || "Add notes..."}
                 placeholderTextColor={colors.textSecondary}
                 value={notes}
                 onChangeText={setNotes}
@@ -476,12 +549,16 @@ export default function EditJobModal({
             {/* Buttons */}
             <View style={styles.buttonRow}>
               <Pressable
-                style={[styles.button, styles.buttonSecondary, { borderColor: colors.border }]}
+                style={[
+                  styles.button,
+                  styles.buttonSecondary,
+                  { borderColor: colors.border },
+                ]}
                 onPress={handleClose}
                 disabled={isLoading}
               >
                 <Text style={[styles.buttonText, { color: colors.text }]}>
-                  {t('common.cancel') || 'Cancel'}
+                  {t("common.cancel") || "Cancel"}
                 </Text>
               </Pressable>
               <Pressable
@@ -490,12 +567,24 @@ export default function EditJobModal({
                 disabled={isLoading}
               >
                 {isLoading ? (
-                  <ActivityIndicator size="small" color={colors.buttonPrimaryText} />
+                  <ActivityIndicator
+                    size="small"
+                    color={colors.buttonPrimaryText}
+                  />
                 ) : (
                   <>
-                    <Ionicons name="checkmark" size={20} color={colors.buttonPrimaryText} />
-                    <Text style={[styles.buttonText, { color: colors.buttonPrimaryText, marginLeft: 8 }]}>
-                      {t('common.save') || 'Save'}
+                    <Ionicons
+                      name="checkmark"
+                      size={20}
+                      color={colors.buttonPrimaryText}
+                    />
+                    <Text
+                      style={[
+                        styles.buttonText,
+                        { color: colors.buttonPrimaryText, marginLeft: 8 },
+                      ]}
+                    >
+                      {t("common.save") || "Save"}
                     </Text>
                   </>
                 )}
@@ -505,5 +594,5 @@ export default function EditJobModal({
         </View>
       </KeyboardAvoidingView>
     </Modal>
-  )
+  );
 }

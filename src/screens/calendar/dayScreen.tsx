@@ -20,6 +20,7 @@ import {
 import CreateJobModal from "../../components/modals/CreateJobModal";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useCommonThemedStyles } from "../../hooks/useCommonStyles";
+import { useCompanyPermissions } from "../../hooks/useCompanyPermissions";
 import { Job, useJobsForDay } from "../../hooks/useJobsForDay";
 import { useLocalization, useTranslation } from "../../localization";
 import { formatDateWithDay } from "../../localization/formatters";
@@ -52,6 +53,9 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
   const { colors, styles: commonStyles } = useCommonThemedStyles();
   const { t } = useTranslation();
   const { currentLanguage } = useLocalization();
+
+  // Get company permissions
+  const { canCreateJob } = useCompanyPermissions();
 
   // Custom hook for jobs data
   const {
@@ -391,8 +395,12 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* Header unifié avec style Business */}
-      <CalendarHeader navigation={navigation} title={formattedDate} />
+      {/* Header unifié avec style Business et label dynamique */}
+      <CalendarHeader
+        navigation={navigation}
+        title={formattedDate}
+        useCompanyLabel={true}
+      />
 
       {/* Stats */}
       <View style={styles.statsContainer}>
@@ -491,7 +499,7 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
         )}
       </View>
 
-      {/* FAB - Create Job Button - Hidden for past dates */}
+      {/* FAB - Create Job Button - Hidden for past dates OR if user doesn't have permission */}
       {(() => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -503,7 +511,8 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
         selectedDateObj.setHours(0, 0, 0, 0);
         const isPastDate = selectedDateObj < today;
 
-        if (isPastDate) return null;
+        // Hide button if past date OR user doesn't have permission to create jobs
+        if (isPastDate || !canCreateJob) return null;
 
         return (
           <Pressable

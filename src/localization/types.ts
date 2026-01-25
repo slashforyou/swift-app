@@ -21,6 +21,34 @@ export interface LanguageInfo {
 }
 
 export interface TranslationKeys {
+  // Job Steps - Centralized step configuration
+  jobSteps: {
+    notStarted: string;
+    notStartedShort: string;
+    notStartedDesc: string;
+    // Trajet vers adresse
+    travelToAddress: string;
+    travelToAddressShort: string;
+    travelToAddressDesc: string;
+    // Travail à l'adresse
+    atAddress: string;
+    atAddressShort: string;
+    atAddressDesc: string;
+    // Trajet retour
+    travelReturn: string;
+    travelReturnShort: string;
+    travelReturnDesc: string;
+    // Arrivée/Fin
+    arrivalEnd: string;
+    arrivalEndShort: string;
+    arrivalEndDesc: string;
+    // Utilitaires
+    skipReturn: string;
+    skipReturnDesc: string;
+    payment: string;
+    paymentDesc: string;
+    address: string;
+  };
   // Common
   common: {
     save: string;
@@ -114,6 +142,8 @@ export interface TranslationKeys {
   // Job Management
   jobs: {
     title: string;
+    editJob: string;
+    statusLabel: string;
     createNewJob: string;
     createJob: string;
     createSuccess: string;
@@ -149,6 +179,20 @@ export interface TranslationKeys {
     depositAmount: string;
     depositPaid: string;
     paymentSummary: string;
+    // Pricing translations
+    pricing: string;
+    pricingDescription: string;
+    pricingConfig: string;
+    pricingSummary: string;
+    hourlyRate: string;
+    callOutFee: string;
+    minimumCharge: string;
+    rounding: string;
+    depotToDepot: string;
+    depotToDepotLabel: string;
+    depotToDepotActiveDesc: string;
+    depotToDepotInactiveDesc: string;
+    timeRounding: string;
     estimatedDuration: string;
     status: {
       pending: string;
@@ -444,7 +488,9 @@ export interface TranslationKeys {
       firstTimeClient: string;
       // Client screen labels
       title: string;
+      subtitle: string;
       loading: string;
+      name: string;
       firstName: string;
       lastName: string;
       phone: string;
@@ -453,6 +499,9 @@ export interface TranslationKeys {
       address: string;
       notes: string;
       notSpecified: string;
+      unknown: string;
+      noPhone: string;
+      noEmail: string;
       quickActions: string;
       call: string;
       sms: string;

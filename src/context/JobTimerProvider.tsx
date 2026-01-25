@@ -1,6 +1,8 @@
 /**
  * JobTimerProvider - Context centralisé pour la gestion du timer
  * Partage le même état de timer entre toutes les pages (summary, job, payment)
+ *
+ * ⚠️ Utilise JobStepsConfig.ts comme source unique de vérité pour les steps
  */
 
 import React, {
@@ -9,10 +11,16 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
 } from "react";
+import {
+  calculateTotalSteps,
+  isJobCompleted as checkIsJobCompleted,
+} from "../constants/JobStepsConfig";
 import { JobTimerData, useJobTimer } from "../hooks/useJobTimer";
 import { syncTimerToBackend } from "../services/jobSteps";
+import { type PricingResult } from "../services/pricing";
 import { timerLogger } from "../utils/logger";
 
 interface JobTimerContextValue {
@@ -40,11 +48,7 @@ interface JobTimerContextValue {
 
   // Utilitaires
   formatTime: (milliseconds: number, includeSeconds?: boolean) => string;
-  calculateCost: (milliseconds: number) => {
-    hours: number;
-    cost: number;
-    rawHours: number;
-  };
+  calculateCost: (milliseconds: number) => PricingResult;
   HOURLY_RATE_AUD: number;
 }
 
@@ -57,8 +61,9 @@ interface JobTimerProviderProps {
   jobId: string;
   currentStep: number;
   totalSteps?: number;
-  stepNames?: string[]; // ✅ NOUVEAU: Noms des steps depuis job.steps
-  jobStatus?: string; // ✅ NOUVEAU: Statut du job ('completed', 'in_progress', etc.)
+  stepNames?: string[]; // ✅ Noms des steps depuis job.steps
+  addresses?: any[]; // ✅ NOUVEAU: Adresses du job pour calcul dynamique des steps
+  jobStatus?: string; // ✅ Statut du job ('completed', 'in_progress', etc.)
   onStepChange?: (newStep: number) => void; // ✅ Callback pour synchroniser avec job.step.actualStep
   onJobCompleted?: (finalCost: number, billableHours: number) => void;
 }
@@ -67,8 +72,9 @@ export const JobTimerProvider: React.FC<JobTimerProviderProps> = ({
   children,
   jobId,
   currentStep,
-  totalSteps = 6,
+  totalSteps: totalStepsProp,
   stepNames = [], // ✅ Par défaut vide
+  addresses = [], // ✅ Par défaut vide
   jobStatus, // ✅ NOUVEAU
   onStepChange,
   onJobCompleted,
@@ -79,10 +85,17 @@ export const JobTimerProvider: React.FC<JobTimerProviderProps> = ({
   // ✅ FIX BOUCLE INFINIE #2: Tracker le dernier step synchronisé
   const lastSyncedStepRef = useRef<number>(currentStep);
 
+  // ✅ Calcul dynamique du nombre de steps basé sur les adresses
+  const totalSteps = useMemo(() => {
+    if (totalStepsProp) return totalStepsProp;
+    const addressCount = addresses.length || 2; // Minimum 2 adresses
+    return calculateTotalSteps(addressCount, true);
+  }, [totalStepsProp, addresses]);
+
   // ✅ Validation des props
   const safeJobId = jobId || "unknown";
   const safeCurrentStep = Math.max(0, currentStep || 0);
-  const safeTotalSteps = Math.max(1, totalSteps || 5);
+  const safeTotalSteps = Math.max(1, totalSteps || 7); // 7 steps par défaut (2 adresses + retour)
 
   // ✅ FIX BOUCLE INFINIE: Logger uniquement quand les valeurs changent (dans useEffect)
   useEffect(() => {
@@ -92,6 +105,7 @@ export const JobTimerProvider: React.FC<JobTimerProviderProps> = ({
   const timer = useJobTimer(safeJobId, safeCurrentStep, {
     totalSteps: safeTotalSteps,
     stepNames, // ✅ Passer les noms des steps
+    addresses, // ✅ NOUVEAU: Passer les adresses pour calcul dynamique
     onJobCompleted,
   });
 

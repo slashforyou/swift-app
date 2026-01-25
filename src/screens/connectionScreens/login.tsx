@@ -82,9 +82,13 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         }
 
         setIsLoading(true);
+        
+        console.log("🔐 [LoginScreen] Starting login with email:", email);
 
         try {
             await login(email, password);
+            
+            console.log("✅ [LoginScreen] Login successful");
             
             // Load user permissions after successful login
             try {
@@ -102,7 +106,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             }, 1500);
             
         } catch (error: any) {
-            // Silencieux - l'erreur est affichée via showAlert à l'utilisateur
+            // Log pour débugger
+            console.error("❌ [LoginScreen] Login error:", error);
+            console.error("❌ [LoginScreen] Error message:", error?.message);
+            console.error("❌ [LoginScreen] Error stack:", error?.stack);
             
             // Messages d'erreur personnalisés basés sur les nouveaux codes
             let errorMessage = t('auth.errors.generic');

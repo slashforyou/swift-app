@@ -1,6 +1,37 @@
 import { TranslationKeys } from "../types";
 
 export const enTranslations: TranslationKeys = {
+  // ============================================================================
+  // JOB STEPS - Configuration centralisée des étapes de job
+  // ============================================================================
+  jobSteps: {
+    notStarted: "Not started",
+    notStartedShort: "Not started",
+    notStartedDesc: "The job has not started yet",
+    // Trajet vers adresse
+    travelToAddress: "Travel to Address {n}",
+    travelToAddressShort: "Travel {n}",
+    travelToAddressDesc: "Traveling to {address}",
+    // Travail à l'adresse
+    atAddress: "Address {n}",
+    atAddressShort: "Addr. {n}",
+    atAddressDesc: "Working at {address}",
+    // Trajet retour
+    travelReturn: "Return trip",
+    travelReturnShort: "Return",
+    travelReturnDesc: "Traveling back to depot",
+    // Arrivée/Fin
+    arrivalEnd: "Arrival / End",
+    arrivalEndShort: "End",
+    arrivalEndDesc: "Arrived at depot - Job completed",
+    // Utilitaires
+    skipReturn: "Skip return",
+    skipReturnDesc: "Chain to another job without returning",
+    payment: "Payment",
+    paymentDesc: "Payment step - Invoice generation",
+    address: "Address",
+  },
+
   common: {
     save: "Save",
     cancel: "Cancel",
@@ -143,6 +174,8 @@ export const enTranslations: TranslationKeys = {
 
   jobs: {
     title: "Jobs",
+    editJob: "Edit Job",
+    statusLabel: "Status",
     createNewJob: "Create New Job",
     createJob: "Create Job",
     createSuccess: "Job created successfully!",
@@ -178,6 +211,20 @@ export const enTranslations: TranslationKeys = {
     depositAmount: "Deposit amount",
     depositPaid: "Deposit Already Paid",
     paymentSummary: "Payment Summary",
+    // Pricing translations
+    pricing: "Pricing",
+    pricingDescription: "Configure billing rates and options",
+    pricingConfig: "Pricing Configuration",
+    pricingSummary: "Pricing Summary",
+    hourlyRate: "Hourly Rate",
+    callOutFee: "Call-Out Fee",
+    minimumCharge: "Minimum Charge",
+    rounding: "Rounding",
+    depotToDepot: "Depot to Depot",
+    depotToDepotLabel: "Bill from depot departure to return",
+    depotToDepotActiveDesc: "All travel time is billable, no call-out fee",
+    depotToDepotInactiveDesc: "Fixed call-out fee, travel time not billed separately",
+    timeRounding: "Time Rounding",
     estimatedDuration: "Estimated Duration (hours)",
     status: {
       pending: "Pending",
@@ -467,7 +514,9 @@ export const enTranslations: TranslationKeys = {
     client: {
       firstTimeClient: "First Time Client",
       title: "Client Details",
+      subtitle: "Contact details and client information",
       loading: "Loading client data...",
+      name: "Client Name",
       firstName: "First Name",
       lastName: "Last Name",
       phone: "Phone",
@@ -476,8 +525,11 @@ export const enTranslations: TranslationKeys = {
       address: "Address",
       notes: "Notes",
       notSpecified: "Not specified",
+      unknown: "Unknown client",
+      noPhone: "No phone number",
+      noEmail: "No email address",
       quickActions: "Quick Actions",
-      call: "Call",
+      call: "Call Client",
       sms: "SMS",
       emailAction: "Email",
     },
@@ -524,6 +576,7 @@ export const enTranslations: TranslationKeys = {
         "Start documenting important information about this job",
       count: "note",
       countPlural: "notes",
+      unread: "UNREAD",
       localSyncInfo: "Some notes are saved locally and will be synced later.",
       types: {
         general: "General Note",

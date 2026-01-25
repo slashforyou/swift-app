@@ -1,0 +1,189 @@
+# 📋 Backend Changes Required: Job Pricing Configuration
+
+**Date:** January 24, 2026  
+**Priority:** High  
+**Feature:** Job-level pricing configuration
+
+---
+
+## 🎯 Summary
+
+The mobile app now supports configurable pricing per job. We need the backend to accept and store these new pricing fields when creating/updating jobs.
+
+---
+
+## 📦 New Fields to Add to Job Model
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `hourly_rate` | DECIMAL(10,2) | 180.00 | Hourly rate in AUD |
+| `call_out_fee_minutes` | INTEGER | 30 | Call-out fee duration in minutes (0, 15, 30, 45, 60) |
+| `depot_to_depot` | BOOLEAN | false | If true, all travel time is billable and call-out fee is ignored |
+| `time_rounding_minutes` | INTEGER | 30 | Time rounding interval (1, 15, 30, 60 minutes) |
+| `time_rounding_margin` | INTEGER | 7 | Margin in minutes before rounding up |
+
+---
+
+## 🔢 Rounding Rules
+
+The `time_rounding_margin` depends on `time_rounding_minutes`:
+
+| Rounding Interval | Margin (minutes) | Example |
+|-------------------|------------------|---------|
+| 1 min | 0 | Exact billing |
+| 15 min | 2 | 2-16 min → 15 min, 17-31 min → 30 min |
+| 30 min | 7 | 7-36 min → 30 min, 37-66 min → 60 min |
+| 60 min | 7 | 7-66 min → 60 min, 67+ → 120 min |
+
+---
+
+## 🚛 Depot-to-Depot Mode
+
+When `depot_to_depot = true`:
+- All travel time is billable at `hourly_rate`
+- `call_out_fee_minutes` is ignored (set to 0 in calculations)
+- No fixed call-out fee is added
+
+When `depot_to_depot = false` (default):
+- Travel time is NOT billed separately
+- A fixed call-out fee is added: `(call_out_fee_minutes / 60) * hourly_rate`
+- Example: 30 min call-out @ $180/h = $90 call-out fee
+
+---
+
+## 💰 Pricing Calculation Formula
+
+### Mode: Fixed Call-Out Fee (depot_to_depot = false)
+```
+Total = (Work Hours * hourly_rate) + Call-Out Fee
+Where:
+  Work Hours = rounded_hours (rounded according to time_rounding_minutes)
+  Call-Out Fee = (call_out_fee_minutes / 60) * hourly_rate
+  Minimum = 2 hours work + call-out fee
+```
+
+### Mode: Depot-to-Depot (depot_to_depot = true)
+```
+Total = (Total Hours * hourly_rate)
+Where:
+  Total Hours = rounded(travel_time + work_time)
+  Minimum = 2 hours total
+```
+
+---
+
+## 📡 API Payload Changes
+
+### Create Job Request (POST /api/jobs)
+
+Add these fields to the accepted payload:
+
+```json
+{
+  "client_id": 27,
+  "status": "pending",
+  "priority": "medium",
+  "addresses": [...],
+  "time": {...},
+  "estimatedDuration": 240,
+  
+  // NEW PRICING FIELDS
+  "hourly_rate": 180.00,
+  "call_out_fee_minutes": 30,
+  "depot_to_depot": false,
+  "time_rounding_minutes": 30,
+  "time_rounding_margin": 7
+}
+```
+
+### Update Job Request (PUT /api/jobs/:id)
+
+Same new fields should be accepted.
+
+### Get Job Response
+
+Include the pricing fields in the job response:
+
+```json
+{
+  "id": 27,
+  "code": "JOB-JEAN-20260124-369",
+  "client_id": 27,
+  
+  // ... existing fields ...
+  
+  // NEW PRICING FIELDS
+  "hourly_rate": "180.00",
+  "call_out_fee_minutes": 30,
+  "depot_to_depot": false,
+  "time_rounding_minutes": 30,
+  "time_rounding_margin": 7
+}
+```
+
+---
+
+## 🗄️ Database Migration
+
+```sql
+ALTER TABLE jobs
+ADD COLUMN hourly_rate DECIMAL(10,2) DEFAULT 180.00,
+ADD COLUMN call_out_fee_minutes INTEGER DEFAULT 30,
+ADD COLUMN depot_to_depot BOOLEAN DEFAULT FALSE,
+ADD COLUMN time_rounding_minutes INTEGER DEFAULT 30,
+ADD COLUMN time_rounding_margin INTEGER DEFAULT 7;
+```
+
+---
+
+## ✅ Validation Rules
+
+| Field | Validation |
+|-------|------------|
+| `hourly_rate` | Required, positive number, min: 0 |
+| `call_out_fee_minutes` | Optional, must be one of: 0, 15, 30, 45, 60 |
+| `depot_to_depot` | Optional, boolean |
+| `time_rounding_minutes` | Optional, must be one of: 1, 15, 30, 60 |
+| `time_rounding_margin` | Optional, auto-calculated based on rounding_minutes if not provided |
+
+---
+
+## 🔄 Default Values (if not provided)
+
+When creating a job without pricing fields, use these defaults:
+- `hourly_rate`: 180.00
+- `call_out_fee_minutes`: 30
+- `depot_to_depot`: false
+- `time_rounding_minutes`: 30
+- `time_rounding_margin`: 7
+
+---
+
+## 📱 Frontend Status
+
+✅ UI completed with pricing step in job creation  
+✅ Form state management implemented  
+✅ Translations added (EN/FR)  
+⏳ Waiting for backend to accept the new fields  
+
+---
+
+## 🧪 Test Scenarios
+
+1. **Create job with default pricing** - Should use defaults
+2. **Create job with custom hourly rate** - $200/h instead of $180
+3. **Create job with depot-to-depot** - Call-out fee should be 0
+4. **Create job with 1-min rounding** - Exact billing
+5. **Create job with 60-min rounding** - Hourly billing
+
+---
+
+## 📞 Questions for Backend
+
+1. Should we store `time_rounding_margin` separately or calculate it from `time_rounding_minutes`?
+2. Do we need to track pricing history if rates change?
+3. Should the timer/payment calculation use these job-level settings or global settings?
+
+---
+
+*Document generated by Swift App Mobile Team*

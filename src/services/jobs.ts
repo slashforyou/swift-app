@@ -6,6 +6,7 @@ const API = ServerData.serverUrl;
 
 export interface JobAPI {
   id: string;
+  code?: string; // Job code (e.g., JOB-TEST-20260124-947)
   status: "pending" | "in-progress" | "completed" | "cancelled";
   priority: "low" | "medium" | "high" | "urgent";
   client_id: string;
@@ -17,6 +18,14 @@ export interface JobAPI {
     lastName: string;
     role?: string;
   };
+
+  // New fields from API v1.1.0
+  contractor_company_id?: number; // Auto-assigned company ID
+  created_by_user_id?: number; // User who created the job
+  created_by_first_name?: string;
+  created_by_last_name?: string;
+  created_by_email?: string;
+
   client?: {
     id: string;
     firstName: string;

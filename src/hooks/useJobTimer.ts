@@ -40,19 +40,24 @@ export interface JobTimerData {
 }
 
 const TIMER_STORAGE_KEY = "jobTimers";
-const HOURLY_RATE_AUD = 110; // Prix fixe par heure en dollars australiens
 
-// ✅ Définition des étapes par défaut (fallback)
-// Ces steps sont utilisés si aucune configuration dynamique n'est fournie
-const DEFAULT_JOB_STEPS = {
-  0: "Job pas commencé",
-  1: "Départ (entrepôt/client)",
-  2: "Arrivé première adresse",
-  3: "Départ première adresse",
-  4: "Arrivé adresse suivante/dépôt",
-  5: "Départ dernière adresse",
-  6: "Arrivé au dépôt - Fin",
-};
+// ✅ Import du service de pricing centralisé
+import {
+  PricingService,
+  DEFAULT_PRICING_CONFIG,
+  type JobPricingConfig,
+  type PricingResult,
+} from "../services/pricing";
+
+// ✅ Imports depuis la configuration centralisée des steps
+import {
+  generateStepsFromAddresses,
+  getStepName as getStepNameFromConfig,
+  calculateTotalSteps,
+  isPaymentStep as checkIsPaymentStep,
+  isJobCompleted as checkIsJobCompleted,
+  JobStepConfig,
+} from "../constants/JobStepsConfig";
 
 export const useJobTimer = (
   jobId: string,
@@ -60,6 +65,8 @@ export const useJobTimer = (
   options?: {
     totalSteps?: number; // ✅ Nombre total d'étapes (dynamique)
     stepNames?: string[]; // ✅ NOUVEAU: Noms des steps dynamiques depuis job.steps
+    addresses?: any[]; // ✅ NOUVEAU: Adresses pour calcul dynamique
+    pricingConfig?: Partial<JobPricingConfig>; // ✅ NOUVEAU: Configuration de pricing
     onJobCompleted?: (finalCost: number, billableHours: number) => void; // ✅ Callback de complétion
   },
 ) => {
@@ -70,10 +77,27 @@ export const useJobTimer = (
     null,
   ); // ✅ Heures finales freezées
 
-  const totalSteps = options?.totalSteps || 6; // ✅ Par défaut 6, mais peut être changé
+  // ✅ Calcul dynamique du nombre de steps basé sur les adresses
+  const addresses = options?.addresses || [];
+  const addressCount = addresses.length || 2; // Minimum 2 adresses
+  const totalSteps =
+    options?.totalSteps || calculateTotalSteps(addressCount, true);
+
+  // ✅ Génération dynamique des noms de steps
+  const dynamicSteps = useMemo(
+    () =>
+      generateStepsFromAddresses(
+        addresses.length > 0
+          ? addresses
+          : [{ street: "Adresse 1" }, { street: "Adresse 2" }],
+        true,
+      ),
+    [addresses],
+  );
+
   const stepNames = useMemo(
-    () => options?.stepNames || [],
-    [options?.stepNames],
+    () => options?.stepNames || dynamicSteps.map((s) => s.name),
+    [options?.stepNames, dynamicSteps],
   ); // ✅ Mémorisé
   const onJobCompleted = options?.onJobCompleted; // ✅ Callback
 
@@ -83,21 +107,24 @@ export const useJobTimer = (
     currentStepRef.current = currentStep;
   }, [currentStep]);
 
-  // ✅ Helper pour obtenir le nom d'un step (dynamique ou fallback)
+  // ✅ Helper pour obtenir le nom d'un step (dynamique depuis JobStepsConfig)
   const getStepName = useCallback(
     (step: number): string => {
-      // Priorité 1: Utiliser stepNames dynamique si fourni
+      // Priorité 1: Utiliser stepNames fourni
       if (stepNames.length > 0 && step >= 0 && step < stepNames.length) {
         return stepNames[step];
       }
 
-      // Priorité 2: Fallback sur DEFAULT_JOB_STEPS
-      return (
-        DEFAULT_JOB_STEPS[step as keyof typeof DEFAULT_JOB_STEPS] ||
-        `Étape ${step}`
-      );
+      // Priorité 2: Utiliser les steps dynamiques générés
+      const stepConfig = dynamicSteps.find((s) => s.id === step);
+      if (stepConfig) {
+        return stepConfig.name;
+      }
+
+      // Fallback
+      return `Étape ${step}`;
     },
-    [stepNames],
+    [stepNames, dynamicSteps],
   );
 
   // ✅ FIX BOUCLE INFINIE: Ref pour getStepName (évite recréation de loadTimerData)
@@ -329,37 +356,26 @@ export const useJobTimer = (
       });
   }, [timerData, saveTimerData, getStepName, jobId]);
 
-  // Calculer le coût basé sur le temps écoulé
-  const calculateCost = useCallback((milliseconds: number) => {
-    const hours = milliseconds / (1000 * 60 * 60);
+  // ✅ NOUVEAU: Utiliser le service de pricing centralisé
+  // La config peut venir des options ou utiliser les défauts
+  const pricingConfig: Partial<JobPricingConfig> = useMemo(() => ({
+    hourlyRate: options?.pricingConfig?.hourlyRate || DEFAULT_PRICING_CONFIG.hourlyRate,
+    travelRate: options?.pricingConfig?.travelRate,
+    minimumHours: options?.pricingConfig?.minimumHours ?? DEFAULT_PRICING_CONFIG.minimumHours,
+    callOutFee: options?.pricingConfig?.callOutFee ?? 0, // Pas de call-out par défaut
+    roundToHalfHour: options?.pricingConfig?.roundToHalfHour ?? DEFAULT_PRICING_CONFIG.roundToHalfHour,
+    travelTimeIsBillable: options?.pricingConfig?.travelTimeIsBillable ?? true,
+    pauseTimeIsBillable: false, // Les pauses ne sont JAMAIS facturables
+  }), [options?.pricingConfig]);
 
-    // Règles de facturation :
-    // - Minimum 2h (minimum wage)
-    // - Call-out fee : 30 min
-    // - Arrondir à la demi-heure près à partir de 7 min
+  // Calculer le coût basé sur le temps écoulé (utilise le service centralisé)
+  const calculateCost = useCallback((milliseconds: number): PricingResult => {
+    const pauseTimeMs = timerData?.totalBreakTime || 0;
+    return PricingService.calculateSimplePrice(milliseconds, pauseTimeMs, pricingConfig);
+  }, [pricingConfig, timerData?.totalBreakTime]);
 
-    let billableHours = Math.max(hours, 2); // Minimum 2h
-
-    // Ajouter le call-out fee (30 min = 0.5h)
-    billableHours += 0.5;
-
-    // Arrondir à la demi-heure près (7 min règle)
-    const fractionalHour = billableHours % 1;
-    if (fractionalHour > 0.117) {
-      // 7 minutes = 0.117 heure
-      billableHours = Math.floor(billableHours) + 0.5;
-      if (fractionalHour > 0.5 && fractionalHour > 0.617) {
-        // 37 min = 0.617 heure
-        billableHours = Math.ceil(billableHours);
-      }
-    }
-
-    return {
-      hours: billableHours,
-      cost: billableHours * HOURLY_RATE_AUD,
-      rawHours: hours,
-    };
-  }, []);
+  // Taux horaire pour compatibilité (export depuis la config)
+  const HOURLY_RATE_AUD = pricingConfig.hourlyRate || DEFAULT_PRICING_CONFIG.hourlyRate;
 
   // Avancer à l'étape suivante
   const advanceStep = useCallback(
@@ -405,13 +421,13 @@ export const useJobTimer = (
 
         // Calculer le coût final
         const costData = calculateCost(billableTime);
-        setFinalCost(costData.cost);
-        setFinalBillableHours(costData.hours);
+        setFinalCost(costData.total);
+        setFinalBillableHours(costData.billableHours);
 
         // ✅ Appeler le callback de complétion
         if (onJobCompleted) {
-          timerLogger.complete(jobId, costData.cost, costData.hours);
-          onJobCompleted(costData.cost, costData.hours);
+          timerLogger.complete(jobId, costData.total, costData.billableHours);
+          onJobCompleted(costData.total, costData.billableHours);
         }
       }
 
@@ -471,7 +487,13 @@ export const useJobTimer = (
   );
 
   // Calculer le temps total écoulé - SIMPLIFIÉ
+  // ✅ FIX: Ne pas calculer si step 0 (job pas démarré)
   const getTotalElapsed = useCallback(() => {
+    // Step 0 = job pas démarré, pas de temps
+    if (currentStepRef.current === 0) {
+      return 0;
+    }
+
     if (!timerData || timerData.startTime === 0) {
       return 0;
     }

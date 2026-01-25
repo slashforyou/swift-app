@@ -2,13 +2,15 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useState } from "react";
 import {
-  addJobNote,
-  CreateJobNoteRequest,
-  deleteJobNote,
-  fetchJobNotes,
-  JobNoteAPI,
-  updateJobNote,
-  UpdateJobNoteRequest,
+    addJobNote,
+    CreateJobNoteRequest,
+    deleteJobNote,
+    fetchJobNotes,
+    JobNoteAPI,
+    markAllNotesAsRead,
+    markNoteAsRead,
+    updateJobNote,
+    UpdateJobNoteRequest,
 } from "../services/jobNotes";
 import { isLoggedIn } from "../utils/auth";
 import { useUserProfile } from "./useUserProfile";
@@ -51,10 +53,14 @@ interface UseJobNotesReturn {
   ) => Promise<JobNoteAPI | null>;
   deleteNote: (noteId: string) => Promise<boolean>;
   totalNotes: number;
+  unreadCount: number;
+  markAllAsRead: () => Promise<void>;
+  markNoteAsRead: (noteId: string | number) => Promise<void>;
 }
 
 export const useJobNotes = (jobId: string): UseJobNotesReturn => {
   const [notes, setNotes] = useState<JobNoteAPI[]>([]);
+  const [unreadCount, setUnreadCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { profile } = useUserProfile();
@@ -80,8 +86,9 @@ export const useJobNotes = (jobId: string): UseJobNotesReturn => {
 
       // Essayer l'API réelle, mais gérer les cas où elle n'est pas encore disponible
       try {
-        const apiNotes = await fetchJobNotes(jobId);
-        setNotes(apiNotes);
+        const response = await fetchJobNotes(jobId);
+        setNotes(response.notes);
+        setUnreadCount(response.unread_count || 0);
       } catch (apiError: any) {
         // Si l'endpoint n'existe pas (404) ou n'est pas encore implémenté (400),
         // on utilise un stockage local temporaire
@@ -186,7 +193,7 @@ export const useJobNotes = (jobId: string): UseJobNotesReturn => {
             title: noteData.title,
             content: noteData.content,
             note_type: noteData.note_type || "general",
-            created_by: userId, // ✅ FIX: Utiliser userId au lieu de profile.id
+            created_by: userId,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           };
@@ -197,8 +204,10 @@ export const useJobNotes = (jobId: string): UseJobNotesReturn => {
           const updatedNotes = [localNote, ...notes];
           setNotes(updatedNotes);
 
-          // Sauvegarder dans AsyncStorage
-          await saveLocalNotes(jobId, updatedNotes);
+          // Sauvegarder dans AsyncStorage sans await pour éviter le double error log
+          saveLocalNotes(jobId, updatedNotes).catch((saveErr) => {
+            console.error("Error saving note:", saveErr);
+          });
 
           return localNote;
         } else {
@@ -212,18 +221,21 @@ export const useJobNotes = (jobId: string): UseJobNotesReturn => {
 
   const updateNote = useCallback(
     async (
-      noteId: string,
+      noteId: string | number,
       noteData: UpdateJobNoteRequest,
     ): Promise<JobNoteAPI | null> => {
       if (!jobId) return null;
 
       try {
-        // ✅ Session 10 FIX: Ajout de jobId comme premier paramètre
-        const updatedNote = await updateJobNote(jobId, noteId, noteData);
+        // Convertir l'ID en string pour l'API
+        const noteIdStr = String(noteId);
+        const updatedNote = await updateJobNote(jobId, noteIdStr, noteData);
 
         // Mettre à jour la note dans la liste locale
         setNotes((prevNotes) =>
-          prevNotes.map((note) => (note.id === noteId ? updatedNote : note)),
+          prevNotes.map((note) =>
+            String(note.id) === noteIdStr ? updatedNote : note,
+          ),
         );
 
         return updatedNote;
@@ -239,14 +251,18 @@ export const useJobNotes = (jobId: string): UseJobNotesReturn => {
   );
 
   const deleteNote = useCallback(
-    async (noteId: string): Promise<boolean> => {
+    async (noteId: string | number): Promise<boolean> => {
       if (!jobId) return false;
 
       try {
-        await deleteJobNote(jobId, noteId);
+        // Convertir l'ID en string pour l'API
+        const noteIdStr = String(noteId);
+        await deleteJobNote(jobId, noteIdStr);
 
         // Supprimer la note de la liste locale
-        setNotes((prevNotes) => prevNotes.filter((note) => note.id !== noteId));
+        setNotes((prevNotes) =>
+          prevNotes.filter((note) => String(note.id) !== noteIdStr),
+        );
 
         return true;
       } catch (err) {
@@ -264,6 +280,82 @@ export const useJobNotes = (jobId: string): UseJobNotesReturn => {
     fetchNotes();
   }, [fetchNotes]);
 
+  // Marquer toutes les notes comme lues
+  const markAllAsRead = useCallback(async () => {
+    if (!jobId) return;
+
+    console.log('🔔 [NOTES] Step 1: Starting mark all as read process');
+    
+    try {
+      // Étape 1: Envoyer à la BDD (les logs sont dans markAllNotesAsRead)
+      await markAllNotesAsRead(jobId);
+      
+      console.log('🔔 [NOTES] Step 2: 🎨 UPDATING UI IMMEDIATELY (setting is_read=true locally)');
+      
+      // Étape 2: Mettre à jour localement immédiatement pour l'UI
+      setNotes((prevNotes) => {
+        const updatedNotes = prevNotes.map((note) => ({ ...note, is_read: true }));
+        console.log('🔔 [NOTES] Local notes updated:', {
+          totalNotes: updatedNotes.length,
+          allMarkedAsRead: updatedNotes.every(n => n.is_read)
+        });
+        return updatedNotes;
+      });
+      setUnreadCount(0);
+      
+      console.log('🔔 [NOTES] Step 3: 🔄 Fetching fresh data from server...');
+      
+      // Étape 3: Recharger depuis le serveur pour obtenir les données fraîches
+      await fetchNotes();
+      console.log('✅ [NOTES] Step 4: ✅ ALL COMPLETE - Notes refreshed from server');
+    } catch (err: any) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      
+      // Si l'endpoint n'est pas encore implémenté (404), marquer localement quand même
+      if (errorMessage.includes('404')) {
+        console.warn('⚠️ [NOTES] Backend endpoint not implemented yet (404), marking as read locally only');
+        
+        // Mettre à jour localement même sans API
+        setNotes((prevNotes) =>
+          prevNotes.map((note) => ({ ...note, is_read: true }))
+        );
+        setUnreadCount(0);
+      } else {
+        console.error('❌ [NOTES] Error marking all notes as read:', errorMessage);
+      }
+    }
+  }, [jobId, fetchNotes]);
+
+  // Marquer une note spécifique comme lue
+  const markNoteAsReadCallback = useCallback(
+    async (noteId: string | number) => {
+      if (!jobId) return;
+
+      try {
+        await markNoteAsRead(jobId, noteId);
+        
+        // Mettre à jour localement
+        const noteIdStr = String(noteId);
+        setNotes((prevNotes) =>
+          prevNotes.map((note) =>
+            String(note.id) === noteIdStr ? { ...note, is_read: true } : note
+          )
+        );
+        
+        // Décrémenter le compteur si la note était non lue
+        const wasUnread = notes.find(
+          (n) => String(n.id) === noteIdStr && !n.is_read
+        );
+        if (wasUnread) {
+          setUnreadCount((prev) => Math.max(0, prev - 1));
+        }
+      } catch (err) {
+        console.error("Error marking note as read:", err);
+      }
+    },
+    [jobId, notes]
+  );
+
   // Calculs dérivés
   const totalNotes = notes.length;
 
@@ -276,5 +368,8 @@ export const useJobNotes = (jobId: string): UseJobNotesReturn => {
     updateNote,
     deleteNote,
     totalNotes,
+    unreadCount,
+    markAllAsRead,
+    markNoteAsRead: markNoteAsReadCallback,
   };
 };
