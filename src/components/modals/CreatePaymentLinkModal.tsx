@@ -2,77 +2,94 @@
  * CreatePaymentLinkModal - Modal pour créer un lien de paiement Stripe
  * Permet de générer des liens partageables par SMS/email
  */
-import Ionicons from '@react-native-vector-icons/ionicons'
-import * as Clipboard from 'expo-clipboard'
-import React, { useState } from 'react'
+import Ionicons from "@react-native-vector-icons/ionicons";
+import * as Clipboard from "expo-clipboard";
+import React, { useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    ScrollView,
-    Share,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
-} from 'react-native'
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  Share,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
-import { DESIGN_TOKENS } from '../../constants/Styles'
-import { useTheme } from '../../context/ThemeProvider'
-import { useStripePaymentLinks } from '../../hooks/useStripe'
-import type { PaymentLink } from '../../services/StripeService'
+import { DESIGN_TOKENS } from "../../constants/Styles";
+import { useTheme } from "../../context/ThemeProvider";
+import { useStripePaymentLinks } from "../../hooks/useStripe";
+import type { PaymentLink } from "../../services/StripeService";
 
 interface CreatePaymentLinkModalProps {
-  visible: boolean
-  onClose: () => void
-  onSuccess?: (paymentLink: PaymentLink) => void
+  visible: boolean;
+  onClose: () => void;
+  onSuccess?: (paymentLink: PaymentLink) => void;
   // Pré-remplissage optionnel pour les jobs
   prefill?: {
-    amount?: number
-    description?: string
-    customerEmail?: string
-    jobId?: string
-  }
+    amount?: number;
+    description?: string;
+    customerEmail?: string;
+    jobId?: string;
+  };
+  accountId?: string;
 }
 
 export default function CreatePaymentLinkModal({
   visible,
   onClose,
   onSuccess,
-  prefill
+  prefill,
+  accountId,
 }: CreatePaymentLinkModalProps) {
-  const { colors } = useTheme()
-  const { createPaymentLink, creating, error } = useStripePaymentLinks()
+  const { colors } = useTheme();
+  const { createPaymentLink, creating, error } = useStripePaymentLinks({
+    autoLoad: false,
+    accountId,
+  });
 
   // Form state
-  const [amount, setAmount] = useState(prefill?.amount?.toString() || '')
-  const [description, setDescription] = useState(prefill?.description || '')
-  const [customerEmail, setCustomerEmail] = useState(prefill?.customerEmail || '')
-  const [currency] = useState('AUD')
+  const [amount, setAmount] = useState(prefill?.amount?.toString() || "");
+  const [description, setDescription] = useState(prefill?.description || "");
+  const [customerEmail, setCustomerEmail] = useState(
+    prefill?.customerEmail || "",
+  );
+  const [currency] = useState("AUD");
 
   // Result state
-  const [createdLink, setCreatedLink] = useState<PaymentLink | null>(null)
+  const [createdLink, setCreatedLink] = useState<PaymentLink | null>(null);
 
   const resetForm = () => {
-    setAmount(prefill?.amount?.toString() || '')
-    setDescription(prefill?.description || '')
-    setCustomerEmail(prefill?.customerEmail || '')
-    setCreatedLink(null)
-  }
+    setAmount(prefill?.amount?.toString() || "");
+    setDescription(prefill?.description || "");
+    setCustomerEmail(prefill?.customerEmail || "");
+    setCreatedLink(null);
+  };
 
   const handleClose = () => {
-    resetForm()
-    onClose()
-  }
+    resetForm();
+    onClose();
+  };
 
   const handleCreate = async () => {
-    const amountValue = parseFloat(amount)
+    if (!accountId) {
+      Alert.alert(
+        "Aucun compte Stripe",
+        "Impossible de créer un lien sans compte Stripe actif.",
+      );
+      return;
+    }
+    const amountValue = parseFloat(amount);
     if (isNaN(amountValue) || amountValue <= 0) {
-      Alert.alert('Invalid Amount', 'Please enter a valid amount greater than 0')
-      return
+      Alert.alert(
+        "Invalid Amount",
+        "Please enter a valid amount greater than 0",
+      );
+      return;
     }
 
     try {
@@ -81,22 +98,22 @@ export default function CreatePaymentLinkModal({
         currency: currency.toLowerCase(),
         description: description || undefined,
         customer_email: customerEmail || undefined,
-        metadata: prefill?.jobId ? { job_id: prefill.jobId } : undefined
-      })
+        metadata: prefill?.jobId ? { job_id: prefill.jobId } : undefined,
+      });
 
-      setCreatedLink(paymentLink)
-      onSuccess?.(paymentLink)
+      setCreatedLink(paymentLink);
+      onSuccess?.(paymentLink);
     } catch (err) {
-      Alert.alert('Error', error || 'Failed to create payment link')
+      Alert.alert("Error", error || "Failed to create payment link");
     }
-  }
+  };
 
   const handleCopyLink = async () => {
     if (createdLink?.url) {
-      await Clipboard.setStringAsync(createdLink.url)
-      Alert.alert('Copied!', 'Payment link copied to clipboard')
+      await Clipboard.setStringAsync(createdLink.url);
+      Alert.alert("Copied!", "Payment link copied to clipboard");
     }
-  }
+  };
 
   const handleShareLink = async () => {
     if (createdLink?.url) {
@@ -104,67 +121,67 @@ export default function CreatePaymentLinkModal({
         await Share.share({
           message: `Payment Link: ${createdLink.url}`,
           url: createdLink.url,
-          title: 'Share Payment Link'
-        })
+          title: "Share Payment Link",
+        });
       } catch (err) {
-        console.error('Share error:', err)
+        console.error("Share error:", err);
       }
     }
-  }
+  };
 
   const formatCurrency = (value: string) => {
-    const num = parseFloat(value)
-    if (isNaN(num)) return '$0.00'
-    return new Intl.NumberFormat('en-AU', {
-      style: 'currency',
-      currency: currency
-    }).format(num)
-  }
+    const num = parseFloat(value);
+    if (isNaN(num)) return "$0.00";
+    return new Intl.NumberFormat("en-AU", {
+      style: "currency",
+      currency: currency,
+    }).format(num);
+  };
 
   const styles = StyleSheet.create({
     overlay: {
       flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      justifyContent: 'flex-end'
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      justifyContent: "flex-end",
     },
     container: {
       backgroundColor: colors.background,
       borderTopLeftRadius: DESIGN_TOKENS.radius.xl,
       borderTopRightRadius: DESIGN_TOKENS.radius.xl,
-      maxHeight: '90%'
+      maxHeight: "90%",
     },
     header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
       padding: DESIGN_TOKENS.spacing.lg,
       borderBottomWidth: 1,
-      borderBottomColor: colors.border
+      borderBottomColor: colors.border,
     },
     headerTitle: {
       fontSize: DESIGN_TOKENS.typography.title.fontSize,
       fontWeight: DESIGN_TOKENS.typography.title.fontWeight,
-      color: colors.text
+      color: colors.text,
     },
     closeButton: {
-      padding: DESIGN_TOKENS.spacing.xs
+      padding: DESIGN_TOKENS.spacing.xs,
     },
     content: {
-      padding: DESIGN_TOKENS.spacing.lg
+      padding: DESIGN_TOKENS.spacing.lg,
     },
     inputGroup: {
-      marginBottom: DESIGN_TOKENS.spacing.lg
+      marginBottom: DESIGN_TOKENS.spacing.lg,
     },
     label: {
       fontSize: DESIGN_TOKENS.typography.body.fontSize,
-      fontWeight: '600' as const,
+      fontWeight: "600" as const,
       color: colors.text,
-      marginBottom: DESIGN_TOKENS.spacing.xs
+      marginBottom: DESIGN_TOKENS.spacing.xs,
     },
     labelOptional: {
       fontSize: DESIGN_TOKENS.typography.caption.fontSize,
       color: colors.textSecondary,
-      fontWeight: 'normal' as const
+      fontWeight: "normal" as const,
     },
     input: {
       backgroundColor: colors.backgroundSecondary,
@@ -173,146 +190,146 @@ export default function CreatePaymentLinkModal({
       fontSize: DESIGN_TOKENS.typography.body.fontSize,
       color: colors.text,
       borderWidth: 1,
-      borderColor: colors.border
+      borderColor: colors.border,
     },
     amountContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       backgroundColor: colors.backgroundSecondary,
       borderRadius: DESIGN_TOKENS.radius.md,
       borderWidth: 1,
-      borderColor: colors.border
+      borderColor: colors.border,
     },
     currencyPrefix: {
       paddingLeft: DESIGN_TOKENS.spacing.md,
       fontSize: DESIGN_TOKENS.typography.title.fontSize,
-      fontWeight: '600' as const,
-      color: colors.text
+      fontWeight: "600" as const,
+      color: colors.text,
     },
     amountInput: {
       flex: 1,
       padding: DESIGN_TOKENS.spacing.md,
       fontSize: DESIGN_TOKENS.typography.title.fontSize,
-      fontWeight: '600' as const,
-      color: colors.text
+      fontWeight: "600" as const,
+      color: colors.text,
     },
     currencySuffix: {
       paddingRight: DESIGN_TOKENS.spacing.md,
       fontSize: DESIGN_TOKENS.typography.body.fontSize,
-      color: colors.textSecondary
+      color: colors.textSecondary,
     },
     previewCard: {
       backgroundColor: colors.backgroundSecondary,
       borderRadius: DESIGN_TOKENS.radius.lg,
       padding: DESIGN_TOKENS.spacing.lg,
       marginBottom: DESIGN_TOKENS.spacing.lg,
-      alignItems: 'center'
+      alignItems: "center",
     },
     previewAmount: {
       fontSize: 32,
-      fontWeight: '700' as const,
+      fontWeight: "700" as const,
       color: colors.text,
-      marginBottom: DESIGN_TOKENS.spacing.xs
+      marginBottom: DESIGN_TOKENS.spacing.xs,
     },
     previewDescription: {
       fontSize: DESIGN_TOKENS.typography.body.fontSize,
       color: colors.textSecondary,
-      textAlign: 'center'
+      textAlign: "center",
     },
     createButton: {
       backgroundColor: colors.primary,
       borderRadius: DESIGN_TOKENS.radius.md,
       padding: DESIGN_TOKENS.spacing.md,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: DESIGN_TOKENS.spacing.sm
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: DESIGN_TOKENS.spacing.sm,
     },
     createButtonDisabled: {
-      opacity: 0.6
+      opacity: 0.6,
     },
     createButtonText: {
       fontSize: DESIGN_TOKENS.typography.body.fontSize,
-      fontWeight: '600' as const,
-      color: colors.buttonPrimaryText
+      fontWeight: "600" as const,
+      color: colors.buttonPrimaryText,
     },
     // Success state
     successContainer: {
       padding: DESIGN_TOKENS.spacing.lg,
-      alignItems: 'center'
+      alignItems: "center",
     },
     successIcon: {
       width: 80,
       height: 80,
       borderRadius: 40,
-      backgroundColor: colors.success + '20',
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginBottom: DESIGN_TOKENS.spacing.lg
+      backgroundColor: colors.success + "20",
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: DESIGN_TOKENS.spacing.lg,
     },
     successTitle: {
       fontSize: DESIGN_TOKENS.typography.title.fontSize,
       fontWeight: DESIGN_TOKENS.typography.title.fontWeight,
       color: colors.text,
-      marginBottom: DESIGN_TOKENS.spacing.sm
+      marginBottom: DESIGN_TOKENS.spacing.sm,
     },
     successText: {
       fontSize: DESIGN_TOKENS.typography.body.fontSize,
       color: colors.textSecondary,
-      textAlign: 'center',
-      marginBottom: DESIGN_TOKENS.spacing.lg
+      textAlign: "center",
+      marginBottom: DESIGN_TOKENS.spacing.lg,
     },
     linkBox: {
       backgroundColor: colors.backgroundSecondary,
       borderRadius: DESIGN_TOKENS.radius.md,
       padding: DESIGN_TOKENS.spacing.md,
-      width: '100%',
-      marginBottom: DESIGN_TOKENS.spacing.lg
+      width: "100%",
+      marginBottom: DESIGN_TOKENS.spacing.lg,
     },
     linkText: {
       fontSize: DESIGN_TOKENS.typography.caption.fontSize,
       color: colors.primary,
-      textAlign: 'center'
+      textAlign: "center",
     },
     actionButtons: {
-      flexDirection: 'row',
+      flexDirection: "row",
       gap: DESIGN_TOKENS.spacing.md,
-      width: '100%'
+      width: "100%",
     },
     actionButton: {
       flex: 1,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
       gap: DESIGN_TOKENS.spacing.sm,
       backgroundColor: colors.backgroundSecondary,
       borderRadius: DESIGN_TOKENS.radius.md,
-      padding: DESIGN_TOKENS.spacing.md
+      padding: DESIGN_TOKENS.spacing.md,
     },
     actionButtonText: {
       fontSize: DESIGN_TOKENS.typography.body.fontSize,
-      fontWeight: '600' as const,
-      color: colors.text
+      fontWeight: "600" as const,
+      color: colors.text,
     },
     doneButton: {
       backgroundColor: colors.primary,
       borderRadius: DESIGN_TOKENS.radius.md,
       padding: DESIGN_TOKENS.spacing.md,
-      width: '100%',
+      width: "100%",
       marginTop: DESIGN_TOKENS.spacing.lg,
-      alignItems: 'center'
+      alignItems: "center",
     },
     doneButtonText: {
       fontSize: DESIGN_TOKENS.typography.body.fontSize,
-      fontWeight: '600' as const,
-      color: colors.buttonPrimaryText
+      fontWeight: "600" as const,
+      color: colors.buttonPrimaryText,
     },
     errorText: {
       fontSize: DESIGN_TOKENS.typography.caption.fontSize,
       color: colors.error,
-      marginTop: DESIGN_TOKENS.spacing.sm
-    }
-  })
+      marginTop: DESIGN_TOKENS.spacing.sm,
+    },
+  });
 
   // Render success state
   if (createdLink) {
@@ -327,19 +344,27 @@ export default function CreatePaymentLinkModal({
           <View style={styles.container}>
             <View style={styles.header}>
               <Text style={styles.headerTitle}>Payment Link Created</Text>
-              <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={handleClose}
+              >
                 <Ionicons name="close" size={24} color={colors.text} />
               </TouchableOpacity>
             </View>
 
             <View style={styles.successContainer}>
               <View style={styles.successIcon}>
-                <Ionicons name="checkmark-circle" size={48} color={colors.success} />
+                <Ionicons
+                  name="checkmark-circle"
+                  size={48}
+                  color={colors.success}
+                />
               </View>
 
               <Text style={styles.successTitle}>Link Ready!</Text>
               <Text style={styles.successText}>
-                Your payment link has been created. Share it with your customer via SMS, email, or any messaging app.
+                Your payment link has been created. Share it with your customer
+                via SMS, email, or any messaging app.
               </Text>
 
               <View style={styles.linkBox}>
@@ -349,13 +374,23 @@ export default function CreatePaymentLinkModal({
               </View>
 
               <View style={styles.actionButtons}>
-                <TouchableOpacity style={styles.actionButton} onPress={handleCopyLink}>
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={handleCopyLink}
+                >
                   <Ionicons name="copy-outline" size={20} color={colors.text} />
                   <Text style={styles.actionButtonText}>Copy</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.actionButton} onPress={handleShareLink}>
-                  <Ionicons name="share-outline" size={20} color={colors.text} />
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={handleShareLink}
+                >
+                  <Ionicons
+                    name="share-outline"
+                    size={20}
+                    color={colors.text}
+                  />
                   <Text style={styles.actionButtonText}>Share</Text>
                 </TouchableOpacity>
               </View>
@@ -367,7 +402,7 @@ export default function CreatePaymentLinkModal({
           </View>
         </View>
       </Modal>
-    )
+    );
   }
 
   // Render form
@@ -378,9 +413,9 @@ export default function CreatePaymentLinkModal({
       animationType="slide"
       onRequestClose={handleClose}
     >
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         style={styles.overlay}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <View style={styles.container}>
           <View style={styles.header}>
@@ -394,10 +429,10 @@ export default function CreatePaymentLinkModal({
             {/* Amount Preview */}
             <View style={styles.previewCard}>
               <Text style={styles.previewAmount}>
-                {formatCurrency(amount || '0')}
+                {formatCurrency(amount || "0")}
               </Text>
               <Text style={styles.previewDescription}>
-                {description || 'Payment request'}
+                {description || "Payment request"}
               </Text>
             </View>
 
@@ -436,7 +471,8 @@ export default function CreatePaymentLinkModal({
             {/* Customer Email Input */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>
-                Customer Email <Text style={styles.labelOptional}>(optional)</Text>
+                Customer Email{" "}
+                <Text style={styles.labelOptional}>(optional)</Text>
               </Text>
               <TextInput
                 style={styles.input}
@@ -449,25 +485,32 @@ export default function CreatePaymentLinkModal({
               />
             </View>
 
-            {error && (
-              <Text style={styles.errorText}>{error}</Text>
-            )}
+            {error && <Text style={styles.errorText}>{error}</Text>}
 
             {/* Create Button */}
             <TouchableOpacity
               style={[
                 styles.createButton,
-                (creating || !amount) && styles.createButtonDisabled
+                (creating || !amount) && styles.createButtonDisabled,
               ]}
               onPress={handleCreate}
               disabled={creating || !amount}
             >
               {creating ? (
-                <ActivityIndicator color={colors.buttonPrimaryText} size="small" />
+                <ActivityIndicator
+                  color={colors.buttonPrimaryText}
+                  size="small"
+                />
               ) : (
                 <>
-                  <Ionicons name="link" size={20} color={colors.buttonPrimaryText} />
-                  <Text style={styles.createButtonText}>Create Payment Link</Text>
+                  <Ionicons
+                    name="link"
+                    size={20}
+                    color={colors.buttonPrimaryText}
+                  />
+                  <Text style={styles.createButtonText}>
+                    Create Payment Link
+                  </Text>
                 </>
               )}
             </TouchableOpacity>
@@ -475,5 +518,5 @@ export default function CreatePaymentLinkModal({
         </View>
       </KeyboardAvoidingView>
     </Modal>
-  )
+  );
 }

@@ -1,27 +1,27 @@
 /**
  * Hooks Stripe - Hooks React pour gérer les données Stripe
  */
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from "react";
 import {
-    createInstantPayout,
-    createStripePaymentLink,
-    deactivateStripePaymentLink,
-    fetchStripeAccount,
-    fetchStripeBalance,
-    fetchStripePaymentLinks,
-    fetchStripePayments,
-    fetchStripePayouts,
-    getStripeAccountSettings,
-    getStripePaymentLink,
-    getStripeSettingsHistory,
-    updateStripeAccountSettings,
-    updateStripePaymentLink,
-    type CreatePaymentLinkRequest,
-    type PaymentLink,
-    type SettingsHistoryEntry,
-    type StripeAccountSettings
-} from '../services/StripeService';
-import { type PaymentStatus, type PayoutStatus } from '../types/stripeTypes';
+  createInstantPayout,
+  createStripePaymentLink,
+  deactivateStripePaymentLink,
+  fetchStripeAccount,
+  fetchStripeBalance,
+  fetchStripePaymentLinks,
+  fetchStripePayments,
+  fetchStripePayouts,
+  getStripeAccountSettings,
+  getStripePaymentLink,
+  getStripeSettingsHistory,
+  updateStripeAccountSettings,
+  updateStripePaymentLink,
+  type CreatePaymentLinkRequest,
+  type PaymentLink,
+  type SettingsHistoryEntry,
+  type StripeAccountSettings,
+} from "../services/StripeService";
+import { type PaymentStatus, type PayoutStatus } from "../types/stripeTypes";
 
 // Types pour nos hooks
 export interface Payment {
@@ -44,8 +44,8 @@ export interface Payout {
   status: PayoutStatus;
   description: string;
   arrivalDate: string;
-  method: 'standard' | 'instant';
-  type: 'bank_account' | 'card';
+  method: "standard" | "instant";
+  type: "bank_account" | "card";
 }
 
 export interface AccountInfo {
@@ -77,94 +77,121 @@ export interface AccountInfo {
 /**
  * Hook pour gérer les paiements Stripe
  */
-export const useStripePayments = () => {
+type StripeFetchOptions = {
+  autoLoad?: boolean;
+};
+
+export const useStripePayments = ({
+  autoLoad = true,
+}: StripeFetchOptions = {}) => {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadPayments = useCallback(async (refresh = false) => {
-    if (loading && !refresh) return;
+  const loadPayments = useCallback(
+    async (refresh = false) => {
+      if (loading && !refresh) return;
 
-    setLoading(true);
-    setError(null);
+      setLoading(true);
+      setError(null);
 
-    try {
-      const data = await fetchStripePayments();
-      setPayments(data);
-    } catch (err) {
-
-      const errorMessage = err instanceof Error ? err.message : 'Erreur lors du chargement des paiements';
-      setError(errorMessage);
-      console.error('Error loading payments:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [loading]);
+      try {
+        const data = await fetchStripePayments();
+        setPayments(data);
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : "Erreur lors du chargement des paiements";
+        setError(errorMessage);
+        console.error("Error loading payments:", err);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [loading],
+  );
 
   useEffect(() => {
-    loadPayments();
-  }, []);
+    if (autoLoad) {
+      loadPayments();
+    }
+  }, [autoLoad, loadPayments]);
 
   return {
     payments,
     loading,
     error,
-    refresh: () => loadPayments(true)
+    refresh: () => loadPayments(true),
   };
 };
 
 /**
  * Hook pour gérer les virements Stripe
  */
-export const useStripePayouts = () => {
+export const useStripePayouts = ({
+  autoLoad = true,
+}: StripeFetchOptions = {}) => {
   const [payouts, setPayouts] = useState<Payout[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadPayouts = useCallback(async (refresh = false) => {
-    if (loading && !refresh) return;
+  const loadPayouts = useCallback(
+    async (refresh = false) => {
+      if (loading && !refresh) return;
 
-    setLoading(true);
-    setError(null);
+      setLoading(true);
+      setError(null);
 
-    try {
-      const data = await fetchStripePayouts();
-      setPayouts(data);
-    } catch (err) {
+      try {
+        const data = await fetchStripePayouts();
+        setPayouts(data);
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : "Erreur lors du chargement des virements";
+        setError(errorMessage);
+        console.error("Error loading payouts:", err);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [loading],
+  );
 
-      const errorMessage = err instanceof Error ? err.message : 'Erreur lors du chargement des virements';
-      setError(errorMessage);
-      console.error('Error loading payouts:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [loading]);
-
-  const createPayout = useCallback(async (amount: number): Promise<string> => {
-    setError(null);
-    try {
-      const payoutId = await createInstantPayout(amount);
-      // Refresh les données après création
-      await loadPayouts(true);
-      return payoutId;
-    } catch (err) {
-
-      const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la création du virement';
-      setError(errorMessage);
-      throw err;
-    }
-  }, [loadPayouts]);
+  const createPayout = useCallback(
+    async (amount: number): Promise<string> => {
+      setError(null);
+      try {
+        const payoutId = await createInstantPayout(amount);
+        // Refresh les données après création
+        await loadPayouts(true);
+        return payoutId;
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : "Erreur lors de la création du virement";
+        setError(errorMessage);
+        throw err;
+      }
+    },
+    [loadPayouts],
+  );
 
   useEffect(() => {
-    loadPayouts();
-  }, []);
+    if (autoLoad) {
+      loadPayouts();
+    }
+  }, [autoLoad, loadPayouts]);
 
   return {
     payouts,
     loading,
     error,
     refresh: () => loadPayouts(true),
-    createPayout
+    createPayout,
   };
 };
 
@@ -173,51 +200,64 @@ export const useStripePayouts = () => {
  */
 export const useStripeAccount = () => {
   const [account, setAccount] = useState<AccountInfo | null>(null);
-  const [balance, setBalance] = useState<{ available: number; pending: number }>({ available: 0, pending: 0 });
+  const [balance, setBalance] = useState<{
+    available: number;
+    pending: number;
+  }>({ available: 0, pending: 0 });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadAccount = useCallback(async (refresh = false) => {
-    if (loading && !refresh) return;
+  const loadAccount = useCallback(
+    async (refresh = false) => {
+      if (loading && !refresh) return;
 
-    setLoading(true);
-    setError(null);
+      setLoading(true);
+      setError(null);
 
-    try {
-      const [accountData, balanceData] = await Promise.all([
-        fetchStripeAccount(),
-        fetchStripeBalance()
-      ]);
+      try {
+        const [accountData, balanceData] = await Promise.all([
+          fetchStripeAccount(),
+          fetchStripeBalance(),
+        ]);
 
-      setAccount({
-        ...accountData,
-        available_balance: balanceData.available,
-        pending_balance: balanceData.pending
-      });
-      setBalance(balanceData);
-    } catch (err) {
+        setAccount({
+          ...accountData,
+          available_balance: balanceData.available,
+          pending_balance: balanceData.pending,
+        });
+        setBalance(balanceData);
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : "Erreur lors du chargement du compte";
+        setError(errorMessage);
+        console.error("Error loading account:", err);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [loading],
+  );
 
-      const errorMessage = err instanceof Error ? err.message : 'Erreur lors du chargement du compte';
-      setError(errorMessage);
-      console.error('Error loading account:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [loading]);
-
-  const updateSettings = useCallback(async (settings: Partial<Omit<StripeAccountSettings, 'account_status'>>) => {
-    setError(null);
-    try {
-      await updateStripeAccountSettings(settings);
-      // Refresh les données après mise à jour
-      await loadAccount(true);
-    } catch (err) {
-
-      const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la mise à jour';
-      setError(errorMessage);
-      throw err;
-    }
-  }, [loadAccount]);
+  const updateSettings = useCallback(
+    async (
+      settings: Partial<Omit<StripeAccountSettings, "account_status">>,
+    ) => {
+      setError(null);
+      try {
+        await updateStripeAccountSettings(settings);
+        // Refresh les données après mise à jour
+        await loadAccount(true);
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Erreur lors de la mise à jour";
+        setError(errorMessage);
+        throw err;
+      }
+    },
+    [loadAccount],
+  );
 
   useEffect(() => {
     loadAccount();
@@ -229,7 +269,7 @@ export const useStripeAccount = () => {
     loading,
     error,
     refresh: () => loadAccount(true),
-    updateSettings
+    updateSettings,
   };
 };
 
@@ -237,94 +277,141 @@ export const useStripeAccount = () => {
  * Hook pour créer des liens de paiement
  * Utilise les nouveaux endpoints Payment Links API
  */
-export const useStripePaymentLinks = () => {
+export const useStripePaymentLinks = (
+  options: { autoLoad?: boolean; accountId?: string } = {},
+) => {
+  const { autoLoad = true, accountId } = options;
   const [paymentLinks, setPaymentLinks] = useState<PaymentLink[]>([]);
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadPaymentLinks = useCallback(async (options?: { limit?: number; active?: boolean }) => {
-    setLoading(true);
-    setError(null);
+  const loadPaymentLinks = useCallback(
+    async (options?: { limit?: number; active?: boolean }) => {
+      if (!accountId) {
+        setPaymentLinks([]);
+        setError(null);
+        return;
+      }
+      setLoading(true);
+      setError(null);
 
-    try {
-      const data = await fetchStripePaymentLinks(options);
-      setPaymentLinks(data.payment_links);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erreur lors du chargement des liens';
-      setError(errorMessage);
-      console.error('Error loading payment links:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      try {
+        const data = await fetchStripePaymentLinks(options);
+        setPaymentLinks(data.payment_links);
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : "Erreur lors du chargement des liens";
+        setError(errorMessage);
+        console.error("Error loading payment links:", err);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
+  );
 
-  const createPaymentLink = useCallback(async (request: CreatePaymentLinkRequest): Promise<PaymentLink> => {
-    setCreating(true);
-    setError(null);
+  const createPaymentLink = useCallback(
+    async (request: CreatePaymentLinkRequest): Promise<PaymentLink> => {
+      setCreating(true);
+      setError(null);
 
-    try {
-      const paymentLink = await createStripePaymentLink(request);
-      // Ajouter le nouveau lien à la liste
-      setPaymentLinks(prev => [paymentLink, ...prev]);
-      return paymentLink;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la création du lien';
-      setError(errorMessage);
-      throw err;
-    } finally {
-      setCreating(false);
-    }
-  }, []);
+      try {
+        if (!accountId) {
+          throw new Error(
+            "Aucun compte Stripe n’est associé à cette entreprise",
+          );
+        }
+        const paymentLink = await createStripePaymentLink(request);
+        // Ajouter le nouveau lien à la liste
+        setPaymentLinks((prev) => [paymentLink, ...prev]);
+        return paymentLink;
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : "Erreur lors de la création du lien";
+        setError(errorMessage);
+        throw err;
+      } finally {
+        setCreating(false);
+      }
+    },
+    [],
+  );
 
-  const getPaymentLink = useCallback(async (linkId: string): Promise<PaymentLink> => {
-    setError(null);
-    try {
-      return await getStripePaymentLink(linkId);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la récupération du lien';
-      setError(errorMessage);
-      throw err;
-    }
-  }, []);
+  const getPaymentLink = useCallback(
+    async (linkId: string): Promise<PaymentLink> => {
+      setError(null);
+      try {
+        return await getStripePaymentLink(linkId);
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : "Erreur lors de la récupération du lien";
+        setError(errorMessage);
+        throw err;
+      }
+    },
+    [],
+  );
 
-  const updatePaymentLink = useCallback(async (
-    linkId: string,
-    updates: { active?: boolean; metadata?: Record<string, string> }
-  ): Promise<PaymentLink> => {
-    setError(null);
-    try {
-      const updatedLink = await updateStripePaymentLink(linkId, updates);
-      // Mettre à jour dans la liste locale
-      setPaymentLinks(prev => prev.map(link => 
-        link.id === linkId ? updatedLink : link
-      ));
-      return updatedLink;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la mise à jour du lien';
-      setError(errorMessage);
-      throw err;
-    }
-  }, []);
+  const updatePaymentLink = useCallback(
+    async (
+      linkId: string,
+      updates: { active?: boolean; metadata?: Record<string, string> },
+    ): Promise<PaymentLink> => {
+      setError(null);
+      try {
+        const updatedLink = await updateStripePaymentLink(linkId, updates);
+        // Mettre à jour dans la liste locale
+        setPaymentLinks((prev) =>
+          prev.map((link) => (link.id === linkId ? updatedLink : link)),
+        );
+        return updatedLink;
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : "Erreur lors de la mise à jour du lien";
+        setError(errorMessage);
+        throw err;
+      }
+    },
+    [],
+  );
 
-  const deactivatePaymentLink = useCallback(async (linkId: string): Promise<void> => {
-    setError(null);
-    try {
-      await deactivateStripePaymentLink(linkId);
-      // Mettre à jour le statut dans la liste locale
-      setPaymentLinks(prev => prev.map(link => 
-        link.id === linkId ? { ...link, active: false } : link
-      ));
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la désactivation du lien';
-      setError(errorMessage);
-      throw err;
-    }
-  }, []);
+  const deactivatePaymentLink = useCallback(
+    async (linkId: string): Promise<void> => {
+      setError(null);
+      try {
+        await deactivateStripePaymentLink(linkId);
+        // Mettre à jour le statut dans la liste locale
+        setPaymentLinks((prev) =>
+          prev.map((link) =>
+            link.id === linkId ? { ...link, active: false } : link,
+          ),
+        );
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : "Erreur lors de la désactivation du lien";
+        setError(errorMessage);
+        throw err;
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
-    loadPaymentLinks();
-  }, []);
+    if (autoLoad && accountId) {
+      loadPaymentLinks();
+    }
+  }, [autoLoad, accountId, loadPaymentLinks]);
 
   return {
     paymentLinks,
@@ -335,7 +422,7 @@ export const useStripePaymentLinks = () => {
     createPaymentLink,
     getPaymentLink,
     updatePaymentLink,
-    deactivatePaymentLink
+    deactivatePaymentLink,
   };
 };
 
@@ -358,32 +445,39 @@ export const useStripeSettings = () => {
       const data = await getStripeAccountSettings();
       setSettings(data);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erreur lors du chargement des paramètres';
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Erreur lors du chargement des paramètres";
       setError(errorMessage);
-      console.error('Error loading settings:', err);
+      console.error("Error loading settings:", err);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const updateSettings = useCallback(async (
-    newSettings: Partial<Omit<StripeAccountSettings, 'account_status'>>
-  ): Promise<StripeAccountSettings> => {
-    setSaving(true);
-    setError(null);
+  const updateSettings = useCallback(
+    async (
+      newSettings: Partial<Omit<StripeAccountSettings, "account_status">>,
+    ): Promise<StripeAccountSettings> => {
+      setSaving(true);
+      setError(null);
 
-    try {
-      const updatedSettings = await updateStripeAccountSettings(newSettings);
-      setSettings(updatedSettings);
-      return updatedSettings;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la mise à jour';
-      setError(errorMessage);
-      throw err;
-    } finally {
-      setSaving(false);
-    }
-  }, []);
+      try {
+        const updatedSettings = await updateStripeAccountSettings(newSettings);
+        setSettings(updatedSettings);
+        return updatedSettings;
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Erreur lors de la mise à jour";
+        setError(errorMessage);
+        throw err;
+      } finally {
+        setSaving(false);
+      }
+    },
+    [],
+  );
 
   const loadHistory = useCallback(async (limit?: number) => {
     setError(null);
@@ -391,9 +485,12 @@ export const useStripeSettings = () => {
       const historyData = await getStripeSettingsHistory(limit);
       setHistory(historyData);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erreur lors du chargement de l\'historique';
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Erreur lors du chargement de l'historique";
       setError(errorMessage);
-      console.error('Error loading history:', err);
+      console.error("Error loading history:", err);
     }
   }, []);
 
@@ -409,7 +506,7 @@ export const useStripeSettings = () => {
     error,
     refresh: loadSettings,
     updateSettings,
-    loadHistory
+    loadHistory,
   };
 };
 
@@ -438,6 +535,6 @@ export const useStripeData = () => {
     paymentLinks,
     refreshAll,
     isLoading,
-    hasError
+    hasError,
   };
 };
