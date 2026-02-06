@@ -18,7 +18,7 @@ export interface JobNoteAPI {
   created_by_first_name?: string;
   created_by_last_name?: string;
   created_by_email?: string;
-  
+
   // Read status (API v1.1.0+)
   is_read?: boolean;
 }
@@ -78,7 +78,7 @@ export async function fetchJobNotes(
   }
 
   const data = await res.json();
-  
+
   // Backend retourne: { success, notes, total, unread_count }
   return {
     notes: data.notes || [],
@@ -149,15 +149,15 @@ export async function addJobNote(
     ...headers,
   };
 
-  console.log("📤 [jobNotes] POST Request:", { 
+  console.log("📤 [jobNotes] POST Request:", {
     url,
     jobId: `${jobId} (${typeof jobId})`,
     payload,
     headers: {
       hasAuth: !!headers.Authorization,
       authHeader: headers.Authorization,
-      contentType: requestHeaders["Content-Type"]
-    }
+      contentType: requestHeaders["Content-Type"],
+    },
   });
 
   const res = await fetch(url, {
@@ -194,7 +194,7 @@ export async function updateJobNote(
   noteData: UpdateJobNoteRequest,
 ): Promise<JobNoteAPI> {
   const headers = await getAuthHeaders();
-  
+
   console.log("📝 [jobNotes] Updating note:", { jobId, noteId, noteData });
 
   const res = await fetch(`${API}v1/job/${jobId}/notes/${noteId}`, {
@@ -210,7 +210,10 @@ export async function updateJobNote(
     const error = await res
       .json()
       .catch(() => ({ message: "Failed to update job note" }));
-    console.error("❌ [jobNotes] Update failed:", { status: res.status, error });
+    console.error("❌ [jobNotes] Update failed:", {
+      status: res.status,
+      error,
+    });
     throw new Error(
       error.message || `HTTP ${res.status}: Failed to update job note`,
     );
@@ -230,16 +233,16 @@ export async function deleteJobNote(
   noteId: string,
 ): Promise<void> {
   const headers = await getAuthHeaders();
-  
+
   console.log("� [jobNotes] Auth headers for delete:", {
     hasAuthorization: !!headers.Authorization,
-    authPrefix: headers.Authorization?.substring(0, 20)
+    authPrefix: headers.Authorization?.substring(0, 20),
   });
-  console.log("🗑️ [jobNotes] Deleting note:", { 
-    jobId, 
+  console.log("🗑️ [jobNotes] Deleting note:", {
+    jobId,
     noteId,
     noteIdType: typeof noteId,
-    url: `${API}v1/job/${jobId}/notes/${noteId}`
+    url: `${API}v1/job/${jobId}/notes/${noteId}`,
   });
 
   // ⚠️ WORKAROUND: Copier exactement la structure de POST pour éviter le 401
@@ -257,12 +260,15 @@ export async function deleteJobNote(
     const error = await res
       .json()
       .catch(() => ({ message: "Failed to delete job note" }));
-    console.error("❌ [jobNotes] Delete failed:", { status: res.status, error });
+    console.error("❌ [jobNotes] Delete failed:", {
+      status: res.status,
+      error,
+    });
     throw new Error(
       error.message || `HTTP ${res.status}: Failed to delete job note`,
     );
   }
-  
+
   console.log("✅ [jobNotes] Note deleted successfully");
 }
 
@@ -275,7 +281,7 @@ export async function markNoteAsRead(
   noteId: string | number,
 ): Promise<void> {
   const headers = await getAuthHeaders();
-  
+
   const res = await fetch(`${API}v1/job/${jobId}/notes/${noteId}/read`, {
     method: "POST",
     headers: {
@@ -303,17 +309,17 @@ export async function markAllNotesAsRead(
   noteIds?: (string | number)[],
 ): Promise<{ marked_count: number }> {
   const headers = await getAuthHeaders();
-  
+
   const payload = noteIds ? { note_ids: noteIds } : {};
   const url = `${API}v1/job/${jobId}/notes/read-all`;
-  
-  console.log('🔔 [markAllNotesAsRead] 📤 SENDING TO DATABASE:', { 
-    url, 
-    jobId, 
-    noteCount: noteIds?.length || 'ALL',
-    payload 
+
+  console.log("🔔 [markAllNotesAsRead] 📤 SENDING TO DATABASE:", {
+    url,
+    jobId,
+    noteCount: noteIds?.length || "ALL",
+    payload,
   });
-  
+
   const res = await fetch(url, {
     method: "POST",
     headers: {
@@ -331,11 +337,11 @@ export async function markAllNotesAsRead(
       error.message || `HTTP ${res.status}: Failed to mark notes as read`,
     );
   }
-  
+
   const data = await res.json();
-  console.log('✅ [markAllNotesAsRead] ✅ DATABASE UPDATED SUCCESSFULLY:', {
+  console.log("✅ [markAllNotesAsRead] ✅ DATABASE UPDATED SUCCESSFULLY:", {
     markedCount: data.marked_count || 0,
-    jobId
+    jobId,
   });
   return { marked_count: data.marked_count || 0 };
 }

@@ -934,7 +934,7 @@ export const zhTranslations = {
   auth: {
     login: {
       title: "登录",
-      subtitle: "登录您的 Swift 账户",
+      subtitle: "登录您的 Cobbr 账户",
       email: "电子邮件",
       emailPlaceholder: "your@email.com",
       password: "密码",
@@ -947,7 +947,7 @@ export const zhTranslations = {
     },
     register: {
       title: "注册",
-      subtitle: "创建您的 Swift 账户",
+      subtitle: "创建您的 Cobbr 账户",
       firstName: "名",
       firstNamePlaceholder: "您的名字",
       lastName: "姓",
@@ -1017,7 +1017,7 @@ export const zhTranslations = {
       restartRegistration: "重新注册",
     },
     connection: {
-      title: "欢迎使用 Swift",
+      title: "欢迎使用 Cobbr",
       subtitle: "搬家专业人士的管理应用",
       loginButton: "登录",
       registerButton: "创建账户",

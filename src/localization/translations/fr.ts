@@ -238,8 +238,10 @@ export const frTranslations: TranslationKeys = {
     rounding: "Arrondi",
     depotToDepot: "Dépôt à Dépôt",
     depotToDepotLabel: "Facturer du départ au retour dépôt",
-    depotToDepotActiveDesc: "Tout le temps de trajet est facturé, pas de frais de déplacement",
-    depotToDepotInactiveDesc: "Frais de déplacement fixes, trajet non facturé séparément",
+    depotToDepotActiveDesc:
+      "Tout le temps de trajet est facturé, pas de frais de déplacement",
+    depotToDepotInactiveDesc:
+      "Frais de déplacement fixes, trajet non facturé séparément",
     timeRounding: "Arrondi du temps",
     estimatedDuration: "Durée estimée (heures)",
     selectStaff: "Sélectionner un membre du staff...",
@@ -256,6 +258,16 @@ export const frTranslations: TranslationKeys = {
     notesPlaceholder: "Ajouter des instructions spéciales...",
     startTime: "Heure de début",
     endTime: "Heure de fin",
+    // Job actions
+    deleteConfirmTitle: "Supprimer le job",
+    deleteConfirmMessage:
+      "Êtes-vous sûr de vouloir supprimer ce job ? Cette action est irréversible.",
+    deleteSuccess: "Job supprimé avec succès",
+    deleteError: "Échec de la suppression du job",
+    acceptSuccess: "Job accepté avec succès",
+    acceptError: "Échec de l'acceptation du job",
+    declineSuccess: "Job refusé avec succès",
+    declineError: "Échec du refus du job",
   },
 
   address: {
@@ -664,6 +676,7 @@ export const frTranslations: TranslationKeys = {
         verifying: "Vérification de la signature...",
         signJob: "Signer le job",
         payNow: "Payer maintenant",
+        paid: "Payé",
         jobSignedByClient: "Job signé par le client",
       },
       liveTracking: {
@@ -1176,7 +1189,7 @@ export const frTranslations: TranslationKeys = {
       toPay: "À payer",
       returnToPaymentMethod: "Retour au mode de paiement",
       close: "Fermer",
-      cardManualTitle: "Carte bancaire (Manuel)",
+      cardManualTitle: "Carte bancaire",
       cardInfo: "Informations de la carte",
       incorrectAmount: "Montant incorrect",
       incorrectAmountMessage: "Le montant doit être au moins {{amount}}",
@@ -1184,6 +1197,14 @@ export const frTranslations: TranslationKeys = {
       paymentSheetFallbackMessage:
         "Utilisons la méthode carte manuelle pour le moment. PaymentSheet sera activé en production.",
       cardNamePlaceholder: "Jean Dupont",
+      paymentConfirmed: "Paiement confirmé",
+      alreadyPaid: "Ce job a déjà été payé",
+      sendInvoice: "Envoyer la facture",
+      sendInvoiceConfirmTitle: "Envoyer la facture",
+      sendInvoiceConfirmMessage: "La facture sera envoyée au client par email",
+      cancel: "Annuler",
+      send: "Envoyer",
+      invoiceSent: "Facture envoyée !",
     },
     stripeConnect: {
       title: "Création de votre Compte Stripe",
@@ -1386,7 +1407,7 @@ export const frTranslations: TranslationKeys = {
   auth: {
     login: {
       title: "Connexion",
-      subtitle: "Connectez-vous à votre compte Swift",
+      subtitle: "Connectez-vous à votre compte Cobbr",
       email: "Email",
       emailPlaceholder: "votre@email.com",
       password: "Mot de passe",
@@ -1399,7 +1420,7 @@ export const frTranslations: TranslationKeys = {
     },
     register: {
       title: "Inscription",
-      subtitle: "Créez votre compte Swift",
+      subtitle: "Créez votre compte Cobbr",
       firstName: "Prénom",
       firstNamePlaceholder: "Votre prénom",
       lastName: "Nom",
@@ -1484,7 +1505,7 @@ export const frTranslations: TranslationKeys = {
       restartRegistration: "recommencez l'inscription",
     },
     connection: {
-      title: "Bienvenue sur Swift",
+      title: "Bienvenue sur Cobbr",
       subtitle:
         "L'application de gestion pour les professionnels du déménagement",
       loginButton: "Se connecter",
@@ -1513,6 +1534,191 @@ export const frTranslations: TranslationKeys = {
       completeSetup: "Compléter la configuration",
       checkingConnection: "Vérification de votre compte Stripe...",
       connectionError: "Erreur de connexion",
+      // Account Status
+      accountVerified: "Compte vérifié",
+      actionRequired: "Action requise",
+      pending: "En attente",
+      incomplete: "Incomplet",
+      // Requirements
+      missingInfo: "Informations manquantes",
+      urgentAction: "Action urgente requise",
+      completeProfile: "Compléter mon profil",
+      additionalParams: "autres paramètres",
+      // Errors
+      errorLoadingForm:
+        "Impossible de charger le formulaire. Vérifiez votre connexion.",
+    },
+    onboarding: {
+      welcome: {
+        title: "Activez vos paiements Stripe",
+        subtitle:
+          "Complétez votre compte en 5 étapes simples et commencez à recevoir des paiements.",
+        timeEstimate: "5 minutes de votre temps",
+        benefit1: "Recevez des paiements de vos clients",
+        benefit2: "Créez des liens de paiement en 2 clics",
+        benefit3: "Suivez vos revenus en temps réel",
+        benefit4: "Retraits instantanés vers votre compte",
+        whatYouNeedTitle: "Ce dont vous aurez besoin :",
+        requirement1: "Votre pièce d'identité (permis ou passport)",
+        requirement2: "Vos coordonnées bancaires (BSB + compte)",
+        requirement3: "5 minutes de votre temps",
+        startButton: "Commencer",
+        cancelButton: "Retour au tableau de bord",
+      },
+      personalInfo: {
+        step: "Étape 1/5",
+        title: "Informations personnelles",
+        subtitle:
+          "Ces informations seront utilisées pour vérifier votre identité avec Stripe.",
+        firstName: "Prénom",
+        firstNamePlaceholder: "Entrez votre prénom",
+        lastName: "Nom de famille",
+        lastNamePlaceholder: "Entrez votre nom",
+        dob: "Date de naissance",
+        dobPlaceholder: "JJ/MM/AAAA",
+        dobHelper: "Vous devez avoir au moins 18 ans",
+        email: "Email",
+        emailPlaceholder: "exemple@email.com",
+        phone: "Téléphone",
+        phonePlaceholder: "400 000 000",
+        phoneHelper: "Format: 10 chiffres sans espaces",
+        requiredNote: "* Champs obligatoires",
+        nextButton: "Suivant",
+        errors: {
+          firstNameRequired: "Le prénom est obligatoire",
+          lastNameRequired: "Le nom est obligatoire",
+          dobRequired: "La date de naissance est obligatoire",
+          dobMinAge: "Vous devez avoir au moins 18 ans",
+          emailRequired: "L'email est obligatoire",
+          emailInvalid: "Format d'email invalide",
+          phoneRequired: "Le téléphone est obligatoire",
+          phoneInvalid: "Le numéro doit contenir 9 ou 10 chiffres",
+          validationTitle: "Formulaire incomplet",
+          validationMessage:
+            "Veuillez corriger les erreurs avant de continuer.",
+        },
+      },
+      address: {
+        step: "Étape 2/5",
+        title: "Adresse de résidence",
+        subtitle:
+          "Cette adresse sera utilisée pour la vérification de votre compte.",
+        line1: "Numéro et rue",
+        line1Placeholder: "123 Main Street",
+        line2: "Complément d'adresse",
+        line2Placeholder: "Appartement, étage, etc.",
+        line2Helper:
+          "Ajoutez votre numéro d'appartement ou d'étage si nécessaire",
+        city: "Ville",
+        cityPlaceholder: "Sydney",
+        state: "État/Territoire",
+        statePlaceholder: "Sélectionnez un état",
+        postalCode: "Code postal",
+        postalCodePlaceholder: "2000",
+        statesAvailable:
+          "États disponibles: NSW, VIC, QLD, SA, WA, TAS, NT, ACT",
+        nextButton: "Suivant",
+        errors: {
+          line1Required: "L'adresse est obligatoire",
+          cityRequired: "La ville est obligatoire",
+          stateRequired: "L'état est obligatoire",
+          postalCodeRequired: "Le code postal est obligatoire",
+          postalCodeInvalid: "Le code postal doit contenir 4 chiffres",
+          validationTitle: "Formulaire incomplet",
+          validationMessage:
+            "Veuillez corriger les erreurs avant de continuer.",
+        },
+      },
+      bankAccount: {
+        step: "Étape 3/5",
+        title: "Compte bancaire",
+        subtitle:
+          "Pour recevoir vos paiements, nous avons besoin de vos coordonnées bancaires.",
+        holderName: "Nom du titulaire du compte",
+        holderNamePlaceholder: "John Doe",
+        bsb: "BSB",
+        bsbPlaceholder: "062-000",
+        bsbHelper: "Ex: 062-000 (6 chiffres)",
+        accountNumber: "Numéro de compte",
+        accountNumberPlaceholder: "123456789",
+        accountNumberHelper: "5 à 9 chiffres",
+        securityNote:
+          "🔒 Vos informations bancaires sont chiffrées et sécurisées par Stripe.",
+        infoNote:
+          "ℹ️ C'est le compte sur lequel vous recevrez vos paiements. Vous pourrez le modifier plus tard dans les paramètres.",
+        nextButton: "Suivant",
+        errors: {
+          holderNameRequired: "Le nom du titulaire est obligatoire",
+          bsbRequired: "Le BSB est obligatoire",
+          bsbInvalid: "Le BSB doit contenir 6 chiffres (format: XXX-XXX)",
+          accountNumberRequired: "Le numéro de compte est obligatoire",
+          accountNumberInvalid:
+            "Le numéro de compte doit contenir entre 5 et 9 chiffres",
+          validationTitle: "Formulaire incomplet",
+          validationMessage:
+            "Veuillez corriger les erreurs avant de continuer.",
+        },
+      },
+      documents: {
+        step: "Étape 4/5",
+        title: "Pièce d'identité",
+        subtitle:
+          "Pour vérifier votre identité, prenez une photo de votre permis de conduire ou passport.",
+        checklistTitle: "Assurez-vous que :",
+        checklist1: "Les photos sont nettes et bien éclairées",
+        checklist2: "Toutes les informations sont lisibles",
+        frontTitle: "Recto de votre pièce d'identité",
+        frontPlaceholder: "Prenez une photo du recto",
+        backTitle: "Verso de votre pièce d'identité",
+        backPlaceholder: "Prenez une photo du verso",
+        takePhotoButton: "Prendre une photo",
+        retakeButton: "Reprendre la photo",
+        nextButton: "Suivant",
+        errors: {
+          permissionTitle: "Permission requise",
+          permissionMessage:
+            "L'accès à la caméra est nécessaire pour prendre des photos de votre pièce d'identité.",
+          captureTitle: "Erreur",
+          captureMessage: "Impossible de prendre la photo. Veuillez réessayer.",
+          validationTitle: "Photos manquantes",
+          validationMessage:
+            "Veuillez prendre les photos du recto et du verso de votre pièce d'identité.",
+        },
+      },
+      review: {
+        step: "Étape 5/5",
+        title: "Vérification finale",
+        subtitle: "Vérifiez vos informations avant de valider.",
+        personalInfoTitle: "Informations personnelles",
+        addressTitle: "Adresse",
+        bankAccountTitle: "Compte bancaire",
+        documentsTitle: "Pièce d'identité",
+        editButton: "Modifier",
+        name: "Nom",
+        dob: "Date de naissance",
+        email: "Email",
+        phone: "Téléphone",
+        accountHolder: "Titulaire",
+        bsb: "BSB",
+        accountNumber: "Compte",
+        frontUploaded: "Recto uploadé",
+        backUploaded: "Verso uploadé",
+        tosText: "J'accepte les",
+        tosLink: "Conditions Générales de Stripe Connect",
+        tosTextEnd:
+          "et autorise Stripe à traiter mes informations personnelles.",
+        disclaimer:
+          "En activant votre compte, Stripe validera vos documents sous 24-48h. Vous serez notifié par email dès que votre compte sera opérationnel.",
+        activateButton: "Activer mon compte Stripe",
+        successTitle: "Compte créé !",
+        successMessage:
+          "Votre compte Stripe a été créé. Stripe validera vos documents sous 24-48h.",
+        errors: {
+          tosTitle: "CGU non acceptées",
+          tosMessage:
+            "Vous devez accepter les Conditions Générales pour continuer.",
+        },
+      },
     },
     settings: {
       title: "Paramètres Stripe",

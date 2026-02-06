@@ -25,11 +25,13 @@ export interface JobStepResponse {
  * @param jobId - The job ID (numeric) or CODE (ex: JOB-DEC-002)
  * @param current_step - The new step number (1-5)
  * @param notes - Optional notes for this step
+ * @param realNumericId - ✅ OPTIONAL: The REAL numeric job ID from database (recommended to avoid 404)
  */
 export const updateJobStep = async (
   jobId: string,
   current_step: number,
   notes?: string,
+  realNumericId?: number | string,
 ): Promise<JobStepResponse> => {
   const startTime = Date.now();
 
@@ -37,19 +39,36 @@ export const updateJobStep = async (
     jobId,
     current_step,
     hasNotes: !!notes,
+    realNumericId,
   });
 
   try {
-    // ✅ SESSION 9 FIX: Extraire ID numérique depuis CODE si nécessaire
-    let numericId = jobId;
-    if (/[a-zA-Z]/.test(jobId)) {
-      const match = jobId.match(/(\d+)$/);
-      if (match) {
-        numericId = parseInt(match[1], 10).toString();
-        console.log("🔄 [API_STEP] Extracted numeric ID from code", {
-          original: jobId,
-          numericId,
-        });
+    // ✅ FIX SESSION 10: Utiliser le vrai ID numérique en priorité pour éviter 404
+    let numericId: string;
+
+    if (realNumericId !== undefined && realNumericId !== null) {
+      // Priorité 1: Utiliser le vrai ID fourni (RECOMMANDÉ)
+      numericId = String(realNumericId);
+      console.log("✅ [API_STEP] Using real numeric ID", {
+        jobId,
+        realNumericId: numericId,
+      });
+    } else {
+      // Fallback: Extraire depuis le code (peut être incorrect!)
+      numericId = jobId;
+      if (/[a-zA-Z]/.test(jobId)) {
+        const match = jobId.match(/(\d+)$/);
+        if (match) {
+          numericId = parseInt(match[1], 10).toString();
+          console.warn(
+            "⚠️ [API_STEP] Extracted ID from code - may cause 404!",
+            {
+              original: jobId,
+              extracted: numericId,
+              recommendation: "Pass realNumericId parameter to fix 404 errors",
+            },
+          );
+        }
       }
     }
 
@@ -402,19 +421,37 @@ export const getJobStepsHistory = async (
  * API Endpoint: POST /v1/job/{jobId}/complete
  *
  * ✅ Session 9: Nouvelle fonction pour compléter un job
+ * ✅ Session 10 FIX: Accept realNumericId parameter to avoid ID extraction bug
  *
  * @param jobId - The job ID (numeric) or CODE (ex: JOB-DEC-002)
+ * @param realNumericId - Optional: The real numeric database ID to use instead of extracting from code
  */
-export const completeJob = async (jobId: string): Promise<JobStepResponse> => {
+export const completeJob = async (
+  jobId: string,
+  realNumericId?: number | string,
+): Promise<JobStepResponse> => {
   const startTime = Date.now();
 
   try {
-    // ✅ SESSION 9 FIX: Extraire ID numérique depuis CODE si nécessaire
+    // ✅ SESSION 10 FIX: Prioritize real numeric ID over code extraction
     let numericId = jobId;
-    if (/[a-zA-Z]/.test(jobId)) {
+
+    if (realNumericId) {
+      numericId = realNumericId.toString();
+      console.log("✅ [COMPLETE JOB] Using real numeric ID", {
+        jobId,
+        realNumericId,
+        numericId,
+      });
+    } else if (/[a-zA-Z]/.test(jobId)) {
+      // Fallback to extraction only if no realNumericId provided
       const match = jobId.match(/(\d+)$/);
       if (match) {
         numericId = parseInt(match[1], 10).toString();
+        console.warn("⚠️ [COMPLETE JOB] Extracting ID from code (fallback)", {
+          jobId,
+          extractedId: numericId,
+        });
       }
     }
 
@@ -556,20 +593,41 @@ export interface SyncStepResponse {
  *
  * @param jobId - Job ID (code ou numérique)
  * @param currentStep - Step actuel (0-5)
+ * @param realNumericId - ✅ OPTIONAL: The REAL numeric job ID from database (recommended to avoid 404)
  */
 export const syncStepToBackend = async (
   jobId: string,
   currentStep: number,
+  realNumericId?: number | string,
 ): Promise<SyncStepResponse> => {
   const startTime = Date.now();
 
   try {
-    // Extraire ID numérique si c'est un code
-    let numericId = jobId;
-    if (/[a-zA-Z]/.test(jobId)) {
-      const match = jobId.match(/(\d+)$/);
-      if (match) {
-        numericId = parseInt(match[1], 10).toString();
+    // ✅ FIX SESSION 10: Utiliser le vrai ID numérique en priorité
+    let numericId: string;
+
+    if (realNumericId !== undefined && realNumericId !== null) {
+      // Priorité 1: Utiliser le vrai ID fourni (RECOMMANDÉ)
+      numericId = String(realNumericId);
+      console.log("✅ [SYNC STEP] Using real numeric ID", {
+        jobId,
+        realNumericId: numericId,
+      });
+    } else {
+      // Fallback: Extraire ID depuis le code (peut être incorrect!)
+      numericId = jobId;
+      if (/[a-zA-Z]/.test(jobId)) {
+        const match = jobId.match(/(\d+)$/);
+        if (match) {
+          numericId = parseInt(match[1], 10).toString();
+          console.warn(
+            "⚠️ [SYNC STEP] Extracted ID from code - may cause 404!",
+            {
+              original: jobId,
+              extracted: numericId,
+            },
+          );
+        }
       }
     }
 

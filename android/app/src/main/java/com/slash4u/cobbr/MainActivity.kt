@@ -1,4 +1,4 @@
-package com.slash4u.swiftapp
+package com.slash4u.cobbr
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

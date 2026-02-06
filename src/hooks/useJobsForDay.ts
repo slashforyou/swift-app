@@ -5,8 +5,37 @@ import { isLoggedIn } from "../utils/auth";
 export interface Job {
   id: string; // ID numérique pour les appels API
   code?: string; // Code job pour l'affichage
-  status: "pending" | "in-progress" | "completed" | "cancelled";
+  status:
+    | "pending"
+    | "assigned"
+    | "accepted"
+    | "in-progress"
+    | "completed"
+    | "cancelled"
+    | "declined";
   priority: "low" | "medium" | "high" | "urgent";
+
+  // Ownership info
+  assignment_status?: "none" | "pending" | "accepted" | "declined";
+  contractee?: {
+    company_id: number;
+    company_name: string;
+    created_by_name?: string;
+  };
+  contractor?: {
+    company_id: number;
+    company_name: string;
+    assigned_staff_name?: string;
+  };
+  permissions?: {
+    is_owner: boolean;
+    is_assigned: boolean;
+    can_accept: boolean;
+    can_decline: boolean;
+    can_start: boolean;
+    can_edit: boolean;
+  };
+
   client: {
     name?: string; // Nom complet du client (prioritaire sur firstName/lastName)
     firstName: string;
@@ -88,6 +117,13 @@ function convertAPIJobToLocal(apiJob: any): Job {
     code: jobCode, // Ajouter le code séparément pour l'affichage
     status: mapApiStatus(apiJob.status),
     priority: apiJob.priority || "medium",
+
+    // Ownership info
+    assignment_status: apiJob.assignment_status,
+    contractee: apiJob.contractee,
+    contractor: apiJob.contractor,
+    permissions: apiJob.permissions,
+
     client: {
       name: fullName, // Utiliser le nom complet (prioritaire)
       firstName: firstName,
@@ -135,15 +171,33 @@ function convertAPIJobToLocal(apiJob: any): Job {
 // Fonctions helper pour convertir les données API
 function mapApiStatus(
   status: string,
-): "pending" | "in-progress" | "completed" | "cancelled" {
+):
+  | "pending"
+  | "assigned"
+  | "accepted"
+  | "in-progress"
+  | "completed"
+  | "cancelled"
+  | "declined" {
   const statusMap: Record<
     string,
-    "pending" | "in-progress" | "completed" | "cancelled"
+    | "pending"
+    | "assigned"
+    | "accepted"
+    | "in-progress"
+    | "completed"
+    | "cancelled"
+    | "declined"
   > = {
     scheduled: "pending",
+    pending: "pending",
+    assigned: "assigned",
+    accepted: "accepted",
     in_progress: "in-progress",
+    "in-progress": "in-progress",
     completed: "completed",
     cancelled: "cancelled",
+    declined: "declined",
     deleted: "cancelled",
   };
   return statusMap[status] || "pending";

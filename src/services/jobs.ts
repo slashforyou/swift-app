@@ -7,7 +7,14 @@ const API = ServerData.serverUrl;
 export interface JobAPI {
   id: string;
   code?: string; // Job code (e.g., JOB-TEST-20260124-947)
-  status: "pending" | "in-progress" | "completed" | "cancelled";
+  status:
+    | "pending"
+    | "assigned"
+    | "accepted"
+    | "in-progress"
+    | "completed"
+    | "cancelled"
+    | "declined";
   priority: "low" | "medium" | "high" | "urgent";
   client_id: string;
   assigned_staff_id?: string; // ID du staff assigné
@@ -25,6 +32,32 @@ export interface JobAPI {
   created_by_first_name?: string;
   created_by_last_name?: string;
   created_by_email?: string;
+
+  // New ownership fields (v1.2.0)
+  assignment_status?: "none" | "pending" | "accepted" | "declined";
+  contractee?: {
+    company_id: number;
+    company_name: string;
+    created_by_user_id?: number;
+    created_by_name?: string;
+    stripe_account_id?: string;
+  };
+  contractor?: {
+    company_id: number;
+    company_name: string;
+    assigned_staff_id?: string;
+    assigned_staff_name?: string;
+    assigned_at?: string;
+  };
+  permissions?: {
+    is_owner: boolean;
+    is_assigned: boolean;
+    can_accept: boolean;
+    can_decline: boolean;
+    can_start: boolean;
+    can_complete: boolean;
+    can_edit: boolean;
+  };
 
   client?: {
     id: string;
@@ -528,6 +561,104 @@ export async function getJobDetails(jobCode: string): Promise<any> {
     // finalTotalSteps: totalStepsFromAPI
     // });
 
+    // ✅ OWNERSHIP: Construire les objets contractee/contractor à partir des données API
+    // L'API retourne maintenant contractee_company, company, et assignment_status
+    const contractorCompanyId = data.job?.contractor_company_id;
+    const contracteeCompanyId = data.job?.contractee_company_id;
+    const companyData = data.company; // Entreprise exécutante (contractor) - peut être absent pour job interne
+    const contracteeCompanyData = data.contractee_company; // ✅ Entreprise créatrice - toujours présent
+    const assignmentStatus = data.job?.assignment_status || "none";
+    const isSameCompany = contracteeCompanyId === contractorCompanyId;
+
+    console.log("🏢 [OWNERSHIP] Traitement des données d'entreprise:", {
+      contractorCompanyId,
+      contracteeCompanyId,
+      hasCompanyData: !!companyData,
+      hasContracteeCompanyData: !!contracteeCompanyData,
+      assignmentStatus,
+      isSameCompany,
+    });
+
+    let contractorObj = null;
+    let contracteeObj = null;
+
+    // Construire l'objet contractee (entreprise créatrice) EN PREMIER
+    if (contracteeCompanyId && contracteeCompanyData) {
+      contracteeObj = {
+        company_id: contracteeCompanyId,
+        company_name: contracteeCompanyData.name || "Entreprise",
+        created_by_user_id: data.job?.created_by_user_id || undefined,
+        created_by_name:
+          data.job?.created_by_first_name && data.job?.created_by_last_name
+            ? `${data.job.created_by_first_name} ${data.job.created_by_last_name}`
+            : undefined,
+        stripe_account_id: contracteeCompanyData.stripe_account_id || undefined,
+      };
+      console.log(
+        `✅ [OWNERSHIP] Contractee construit (${isSameCompany ? "JOB INTERNE" : "MULTI-ENTREPRISE"}):`,
+        contracteeObj,
+      );
+    }
+
+    // Construire l'objet contractor (entreprise exécutante)
+    if (contractorCompanyId) {
+      if (isSameCompany && contracteeCompanyData) {
+        // Job interne - Réutiliser les données de contractee_company
+        contractorObj = {
+          company_id: contractorCompanyId,
+          company_name: contracteeCompanyData.name || "Entreprise",
+          assigned_staff_id:
+            data.job?.assigned_staff_id?.toString() || undefined,
+          assigned_staff_name: data.crew?.[0]
+            ? `${data.crew[0].first_name} ${data.crew[0].last_name}`
+            : undefined,
+          assigned_at: data.crew?.[0]?.assigned_at || undefined,
+        };
+        console.log(
+          "✅ [OWNERSHIP] Contractor construit (JOB INTERNE - réutilise contractee):",
+          contractorObj,
+        );
+      } else if (companyData) {
+        // Job multi-entreprise - Utiliser company de l'API
+        contractorObj = {
+          company_id: contractorCompanyId,
+          company_name: companyData.name || "Entreprise",
+          assigned_staff_id:
+            data.job?.assigned_staff_id?.toString() || undefined,
+          assigned_staff_name: data.crew?.[0]
+            ? `${data.crew[0].first_name} ${data.crew[0].last_name}`
+            : undefined,
+          assigned_at: data.crew?.[0]?.assigned_at || undefined,
+        };
+        console.log(
+          "✅ [OWNERSHIP] Contractor construit (MULTI-ENTREPRISE - company API):",
+          contractorObj,
+        );
+      } else {
+        console.warn(
+          "⚠️ [OWNERSHIP] Impossible de construire contractor - company absent pour job multi-entreprise",
+        );
+      }
+    }
+
+    // Calculer les permissions côté frontend
+    // TODO: Idéalement, le backend devrait retourner ces permissions calculées
+    const currentUserId = data.job?.current_user_id; // Si l'API le fournit
+    const permissions = {
+      is_owner: contracteeCompanyId === contractorCompanyId,
+      is_assigned: !!data.job?.assigned_staff_id,
+      can_accept:
+        assignmentStatus === "pending" && !contractorObj?.assigned_staff_id,
+      can_decline: assignmentStatus === "pending",
+      can_start:
+        assignmentStatus === "accepted" ||
+        contracteeCompanyId === contractorCompanyId,
+      can_complete: true,
+      can_edit: true,
+    };
+
+    console.log("🔐 [OWNERSHIP] Permissions calculées:", permissions);
+
     // Format attendu par useJobDetails
     const transformedData = {
       job: {
@@ -540,6 +671,11 @@ export async function getJobDetails(jobCode: string): Promise<any> {
         // ✅ SIGNATURE: Assurer que signature_blob est bien récupéré
         signature_blob: data.job?.signature_blob || null,
         signature_date: data.job?.signature_date || null,
+        // ✅ OWNERSHIP: Ajouter les objets transformés
+        assignment_status: assignmentStatus,
+        contractee: contracteeObj,
+        contractor: contractorObj,
+        permissions: permissions,
       },
       client: data.client,
       company: data.company,
@@ -564,17 +700,28 @@ export async function getJobDetails(jobCode: string): Promise<any> {
       addresses: data.addresses || [], // Ajouter les vraies adresses de l'API
     };
 
-    // TEMP_DISABLED: console.log('🔄 [getJobDetails] Data transformed for useJobDetails:', {
-    // hasJob: !!transformedData.job,
-    // jobId: transformedData.job?.id,
-    // jobCode: transformedData.job?.code,
-    // hasClient: !!transformedData.client,
-    // clientName: `${transformedData.client?.firstName || ''} ${transformedData.client?.lastName || ''}`.trim(),
-    // trucksCount: transformedData.trucks.length,
-    // workersCount: transformedData.workers.length,
-    // itemsCount: transformedData.items.length,
-    // notesCount: transformedData.notes.length,
-    // addressesCount: transformedData.addresses.length,
+    console.log("🔄 [getJobDetails] Data transformed for useJobDetails:", {
+      hasJob: !!transformedData.job,
+      jobId: transformedData.job?.id,
+      jobCode: transformedData.job?.code,
+      hasClient: !!transformedData.client,
+      clientName:
+        `${transformedData.client?.firstName || ""} ${transformedData.client?.lastName || ""}`.trim(),
+      trucksCount: transformedData.trucks.length,
+      workersCount: transformedData.workers.length,
+      itemsCount: transformedData.items.length,
+      notesCount: transformedData.notes.length,
+      addressesCount: transformedData.addresses.length,
+      // 🏢 Ownership data
+      hasContractee: !!transformedData.job.contractee,
+      hasContractor: !!transformedData.job.contractor,
+      assignmentStatus: transformedData.job.assignment_status,
+      contracteeName: transformedData.job.contractee?.company_name,
+      contractorName: transformedData.job.contractor?.company_name,
+      isOwner: transformedData.job.permissions?.is_owner,
+    });
+
+    // TEMP_DISABLED: console.log('🔍 [getJobDetails] OLD LOG - addressesCount: transformedData.addresses.length,
     // ✅ AJOUTER: Log du step transformé
     // stepActualStep: transformedData.job?.step?.actualStep,
     // stepTotalSteps: transformedData.job?.step?.totalSteps,
@@ -794,6 +941,74 @@ export async function updateJobItem(
     }
   } catch (error) {
     console.error(`[updateJobItem] Network/API error:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Accepter un job assigné
+ * POST /v1/jobs/{job_id}/accept
+ */
+export async function acceptJob(
+  jobId: string,
+  notes?: string,
+): Promise<{ success: boolean; message: string; data: any }> {
+  const headers = await getAuthHeaders();
+  const url = `${API}v1/jobs/${jobId}/accept`;
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        ...headers,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ notes }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => "");
+      throw new Error(`Failed to accept job: ${response.status} ${errorText}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error(`[acceptJob] Error accepting job ${jobId}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Refuser un job assigné
+ * POST /v1/jobs/{job_id}/decline
+ */
+export async function declineJob(
+  jobId: string,
+  reason: string,
+): Promise<{ success: boolean; message: string; data: any }> {
+  const headers = await getAuthHeaders();
+  const url = `${API}v1/jobs/${jobId}/decline`;
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        ...headers,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ reason }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => "");
+      throw new Error(`Failed to decline job: ${response.status} ${errorText}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error(`[declineJob] Error declining job ${jobId}:`, error);
     throw error;
   }
 }

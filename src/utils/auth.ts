@@ -7,23 +7,43 @@ const API = ServerData.serverUrl;
 
 export async function login(mail: string, password: string) {
   console.log("🔐 [AUTH] Starting login for:", mail);
-  
+
   const device = await collectDevicePayload();
 
   if (!device) throw new Error("device_info_unavailable");
-  
+
   console.log("🔐 [AUTH] Device info collected, making API call...");
 
-  const res = await fetch(`${API}auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "x-client": "mobile" },
-    body: JSON.stringify({
-      mail,
-      password,
-      device,
-      wantRefreshInBody: true,
-    }),
-  });
+  // ✅ Add timeout to prevent infinite loading (TEMP: increased to 60s for slow backend)
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    console.warn("⚠️ [AUTH] Login request timed out after 60 seconds");
+    controller.abort();
+  }, 60000); // 60 seconds timeout (temporary)
+
+  let res: Response;
+  try {
+    res = await fetch(`${API}auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-client": "mobile" },
+      body: JSON.stringify({
+        mail,
+        password,
+        device,
+        wantRefreshInBody: true,
+      }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    if (error.name === "AbortError") {
+      console.error("❌ [AUTH] Login request aborted due to timeout");
+      throw new Error("timeout");
+    }
+    console.error("❌ [AUTH] Network error during login:", error);
+    throw new Error("network_error");
+  }
 
   console.log("🔐 [AUTH] API response:", { status: res.status, ok: res.ok });
 
@@ -55,26 +75,29 @@ export async function login(mail: string, password: string) {
   }
 
   const json = await res.json();
-  
+
   console.log("🔐 [AUTH] Login response data:", {
     hasSessionToken: !!json.sessionToken,
     hasRefreshToken: !!json.refreshToken,
     hasSessionExpiry: !!json.sessionExpiry,
     success: json.success,
-    hasUser: !!json.user
+    hasUser: !!json.user,
   });
 
   const { sessionToken, refreshToken, success, user, sessionExpiry } = json;
 
   if (!sessionToken || !success) {
-    console.error("❌ [AUTH] Invalid login response:", { hasToken: !!sessionToken, success });
+    console.error("❌ [AUTH] Invalid login response:", {
+      hasToken: !!sessionToken,
+      success,
+    });
     throw new Error("invalid_login_response");
   }
-  
+
   console.log("✅ [AUTH] Login successful, storing tokens...");
 
   await SecureStore.setItemAsync("session_token", sessionToken);
-  
+
   // Store session expiry if provided (API v1.1.0+)
   if (sessionExpiry) {
     await SecureStore.setItemAsync("session_expiry", sessionExpiry);
@@ -111,9 +134,8 @@ export async function login(mail: string, password: string) {
 }
 
 export async function getAuthHeaders(): Promise<Record<string, string>> {
-  // ✅ Vérifier et rafraîchir le token si nécessaire
-  await ensureValidToken();
-  
+  // ✅ Ne pas bloquer sur ensureValidToken si ça prend trop de temps
+  // On récupère directement le token et on laisse fetchWithAuth gérer le 401
   const st = await SecureStore.getItemAsync("session_token");
 
   if (st) {
@@ -132,30 +154,30 @@ export async function getAuthHeaders(): Promise<Record<string, string>> {
 async function ensureValidToken(): Promise<void> {
   try {
     const sessionToken = await SecureStore.getItemAsync("session_token");
-    
+
     // Si pas de token, pas besoin de vérifier l'expiration
     if (!sessionToken) {
       return;
     }
-    
+
     const expiry = await SecureStore.getItemAsync("session_expiry");
-    
+
     if (!expiry) {
       // Pas d'expiry stocké, on considère le token comme valide
       // (compatibilité avec anciennes sessions)
       return;
     }
-    
+
     const expiryDate = new Date(expiry);
     const now = new Date();
-    
+
     // Rafraîchir 1 minute avant l'expiration pour éviter les races
     const shouldRefresh = now >= new Date(expiryDate.getTime() - 60000);
-    
+
     if (shouldRefresh) {
       // TEMP_DISABLED: console.log("🔄 Token about to expire, refreshing...");
       const refreshed = await refreshToken();
-      
+
       if (!refreshed) {
         // TEMP_DISABLED: console.warn("⚠️ Token refresh failed, token may be expired");
         // On laisse la requête continuer, elle échouera avec 401 si vraiment expiré
@@ -230,7 +252,12 @@ export async function refreshToken(): Promise<boolean> {
     // });
     // TEMP_DISABLED: console.log('✅ Token refresh response:', json);
 
-    const { sessionToken, refreshToken: newRefreshToken, success, sessionExpiry } = json;
+    const {
+      sessionToken,
+      refreshToken: newRefreshToken,
+      success,
+      sessionExpiry,
+    } = json;
 
     if (!sessionToken || !success) {
       // TEMP_DISABLED: console.log('🔍 [TOKEN REFRESH] ❌ Step 8: Invalid refresh response format');
@@ -242,7 +269,7 @@ export async function refreshToken(): Promise<boolean> {
     // Sauvegarder les nouveaux tokens
     await SecureStore.setItemAsync("session_token", sessionToken);
     // TEMP_DISABLED: console.log('🔍 [TOKEN REFRESH] Step 9: New session token saved');
-    
+
     // Store new session expiry (API v1.1.0+)
     if (sessionExpiry) {
       await SecureStore.setItemAsync("session_expiry", sessionExpiry);

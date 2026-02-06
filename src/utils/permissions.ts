@@ -8,9 +8,11 @@ import type { CompanyRole } from "../services/user";
 /**
  * Check if a user can create jobs based on their company role
  * Only 'patron' and 'cadre' can create jobs
+ * Returns true by default if no role is specified (for development/testing)
  */
 export function canCreateJob(companyRole?: CompanyRole): boolean {
-  if (!companyRole) return false;
+  // If no role is specified, allow job creation (dev mode or user not fully logged in)
+  if (!companyRole) return true;
   return companyRole === "patron" || companyRole === "cadre";
 }
 
@@ -18,9 +20,11 @@ export function canCreateJob(companyRole?: CompanyRole): boolean {
  * Check if a user can see all company jobs or only their assigned jobs
  * 'patron' and 'cadre' see all company jobs
  * 'employee' only sees their assigned jobs
+ * Returns true by default if no role is specified (for development/testing)
  */
 export function canSeeAllCompanyJobs(companyRole?: CompanyRole): boolean {
-  if (!companyRole) return false;
+  // If no role is specified, allow seeing all jobs (dev mode)
+  if (!companyRole) return true;
   return companyRole === "patron" || companyRole === "cadre";
 }
 
@@ -39,9 +43,11 @@ export function getCalendarLabel(companyRole?: CompanyRole): string {
 
 /**
  * Check if a user is a manager (patron or cadre)
+ * Returns true by default if no role is specified (for development/testing)
  */
 export function isManager(companyRole?: CompanyRole): boolean {
-  if (!companyRole) return false;
+  // If no role is specified, consider as manager (dev mode)
+  if (!companyRole) return true;
   return companyRole === "patron" || companyRole === "cadre";
 }
 

@@ -1,4 +1,4 @@
-package com.slash4u.swiftapp
+package com.slash4u.cobbr
 
 import android.app.Application
 import android.content.res.Configuration

@@ -67,7 +67,7 @@ const ImprovedNoteModal: React.FC<ImprovedNoteModalProps> = ({
       editMode,
       initialTitle,
       initialContent: initialContent?.substring(0, 50),
-      initialType
+      initialType,
     });
     // ✅ FIX: Ne reset que si le modal est visible pour éviter de vider les champs
     if (isVisible && editMode) {

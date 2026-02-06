@@ -11,6 +11,7 @@
 ### ✅ Ce qui FONCTIONNE DÉJÀ
 
 **Mode TEST (développement)** est **100% fonctionnel** :
+
 - ✅ Clé Stripe TEST configurée : `pk_test_51OsLQ8DYjI2sE1B...`
 - ✅ Localisation : [src/services/api.config.ts](../src/services/api.config.ts#L68)
 - ✅ Paiements de test fonctionnent (cartes `4242 4242 4242 4242`, etc.)
@@ -22,6 +23,7 @@
 ### ⚠️ Ce qui MANQUE
 
 **Mode PRODUCTION** :
+
 - ❌ Clé Stripe LIVE : `pk_live_VOTRE_CLE_STRIPE_PRODUCTION` (placeholder ligne 69)
 - ❌ Configuration backend Stripe Connect
 - ❌ Webhooks production
@@ -43,6 +45,7 @@
 3. Copier la **Publishable key** (commence par `pk_live_...`)
 
 **Exemple** :
+
 ```
 pk_live_51SV8KSIsgSU2xbMLWjg9V2X7hN8kP3Qw...
 ```
@@ -56,18 +59,20 @@ pk_live_51SV8KSIsgSU2xbMLWjg9V2X7hN8kP3Qw...
 #### Modification à effectuer (ligne 69)
 
 **AVANT** :
+
 ```typescript
 stripe: {
-  publishableKey: IS_DEV 
+  publishableKey: IS_DEV
     ? 'pk_test_51OsLQ8DYjI2sE1B1Gxw8SJ9xqJB...'  // ✅ Déjà configuré
     : 'pk_live_VOTRE_CLE_STRIPE_PRODUCTION',     // ❌ À remplacer
 },
 ```
 
 **APRÈS** :
+
 ```typescript
 stripe: {
-  publishableKey: IS_DEV 
+  publishableKey: IS_DEV
     ? 'pk_test_51OsLQ8DYjI2sE1B1Gxw8SJ9xqJB...'  // ✅ Garde la clé test
     : 'pk_live_51SV8KSIsgSU2xbMLWjg9V2X...',     // ✅ Vraie clé LIVE
 },
@@ -80,6 +85,7 @@ La clé TEST étant déjà configurée, voici comment vérifier que tout fonctio
 #### Vérifier les logs de démarrage
 
 **État actuel (clé test OK)** :
+
 ```
 📱 [ENV] Environment: development
 📱 [API] Stripe Key: pk_test_51Os...
@@ -87,6 +93,7 @@ La clé TEST étant déjà configurée, voici comment vérifier que tout fonctio
 ```
 
 **Si erreur (ne devrait pas arriver)** :
+
 ```
 ⚠️ [ENV] Invalid Stripe publishable key format!
 ```
@@ -111,13 +118,13 @@ npx expo start
 
 #### 3. Utiliser les cartes de test Stripe
 
-| Carte | Numéro | Résultat |
-|-------|--------|----------|
-| Succès | `4242 4242 4242 4242` | ✅ Paiement accepté |
-| Décliné | `4000 0000 0000 0002` | ❌ Carte déclinée |
-| 3D Secure | `4000 0000 0000 3220` | 🔒 Authentification requise |
-| Fonds insuffisants | `4000 0000 0000 9995` | ❌ Fonds insuffisants |
-| Expirée | `4000 0000 0000 0069` | ❌ Carte expirée |
+| Carte              | Numéro                | Résultat                    |
+| ------------------ | --------------------- | --------------------------- |
+| Succès             | `4242 4242 4242 4242` | ✅ Paiement accepté         |
+| Décliné            | `4000 0000 0000 0002` | ❌ Carte déclinée           |
+| 3D Secure          | `4000 0000 0000 3220` | 🔒 Authentification requise |
+| Fonds insuffisants | `4000 0000 0000 9995` | ❌ Fonds insuffisants       |
+| Expirée            | `4000 0000 0000 0069` | ❌ Carte expirée            |
 
 **Date d'expiration** : N'importe quelle date future (ex: `12/30`)  
 **CVC** : N'importe quel code à 3 chiffres (ex: `123`)
@@ -125,6 +132,7 @@ npx expo start
 #### 4. Résultat attendu
 
 **Avec clé test configurée (état actuel)** :
+
 ```
 ✅ Paiement créé : Payment Intent pi_1234567890
 ✅ Statut : succeeded
@@ -160,11 +168,13 @@ Doit retourner un lien Stripe Connect pour que l'entreprise complète son onboar
 **Endpoint backend à créer** : `POST /swift-app/v1/webhooks/stripe`
 
 Événements à écouter :
+
 - `payment_intent.succeeded` → Marquer job comme payé
 - `payment_intent.payment_failed` → Notifier échec
 - `charge.refunded` → Gérer remboursements
 
 **Configuration Stripe Dashboard** :
+
 1. Aller dans [Webhooks](https://dashboard.stripe.com/test/webhooks)
 2. Ajouter endpoint : `https://altivo.fr/swift-app/webhooks/stripe`
 3. Sélectionner événements ci-dessus
@@ -187,6 +197,7 @@ Le backend doit avoir ses propres clés **secrètes** (différentes du frontend)
 ### Checklist de Tests
 
 **Mode Développement (Disponible maintenant)** :
+
 - [x] Clé TEST configurée dans `api.config.ts`
 - [x] App démarre sans erreur Stripe
 - [ ] Test création Payment Intent (carte `4242...`)
@@ -196,6 +207,7 @@ Le backend doit avoir ses propres clés **secrètes** (différentes du frontend)
 - [ ] Analytics Stripe enregistrées (check logs)
 
 **Mode Production (Après configuration clé LIVE)** :
+
 - [ ] Clé LIVE configurée (ligne 69 `api.config.ts`)
 - [ ] Test paiement production avec vraie carte (montant minimal 1€)
 - [ ] Webhooks backend fonctionnels
@@ -229,16 +241,15 @@ Le backend doit avoir ses propres clés **secrètes** (différentes du frontend)
 
 1. **Payments** : [Dashboard Payments](https://dashboard.stripe.com/test/payments)
    - Les paiements de test apparaissent ici
-   
 2. **Logs** : [Dashboard Logs](https://dashboard.stripe.com/test/logs)
    - Tous les appels API sont loggés
-   
 3. **Webhooks** : [Dashboard Webhooks](https://dashboard.stripe.com/test/webhooks)
    - Vérifier que les événements sont reçus
 
 ### Analytics App
 
 Vérifier dans les logs de l'app :
+
 ```
 ✅ [Stripe] Payment started: job_123
 ✅ [Stripe] Payment Intent created: pi_1234567890
@@ -254,6 +265,7 @@ Vérifier dans les logs de l'app :
 **Cause** : Clé Stripe mal configurée ou invalide
 
 **Solution** :
+
 1. Vérifier que la clé commence par `pk_test_` ou `pk_live_`
 2. Copier/coller sans espaces ni caractères spéciaux
 3. Vérifier le mode (test vs live) dans Stripe Dashboard
@@ -263,6 +275,7 @@ Vérifier dans les logs de l'app :
 **Cause** : Environnement test/live non synchronisé
 
 **Solution** :
+
 1. Vérifier que backend et frontend utilisent le même mode (test ou live)
 2. Régénérer un Payment Intent
 
@@ -271,6 +284,7 @@ Vérifier dans les logs de l'app :
 **Cause** : Webhooks non configurés ou bloqués
 
 **Solution** :
+
 1. Vérifier configuration webhooks backend
 2. Tester endpoint webhook manuellement
 3. Vérifier logs Stripe Dashboard
@@ -280,6 +294,7 @@ Vérifier dans les logs de l'app :
 ## 🎯 Résumé
 
 ### État Actuel
+
 - ✅ Stripe **FONCTIONNEL en mode TEST**
 - ✅ Clé test configurée : `pk_test_51OsLQ8...`
 - ✅ Paiements de test opérationnels (cartes `4242...`)
@@ -288,18 +303,15 @@ Vérifier dans les logs de l'app :
 ### Actions Requises (Par Ordre)
 
 **Immédiatement (Tester)** :
+
 1. ✅ Clé TEST déjà configurée → **Tester dès maintenant !**
 2. Utiliser cartes de test Stripe (`4242 4242 4242 4242`)
 3. Valider le flux complet de paiement
 
-**Avant Production (Lancement public)** :
-4. Obtenir clé Stripe LIVE (coordination backend)
-5. Configurer `api.config.ts` ligne 69
-6. Coordonner avec backend (webhooks + Stripe Connect)
-7. Tester paiements production avec montants minimaux
-8. Déployer en production
+**Avant Production (Lancement public)** : 4. Obtenir clé Stripe LIVE (coordination backend) 5. Configurer `api.config.ts` ligne 69 6. Coordonner avec backend (webhooks + Stripe Connect) 7. Tester paiements production avec montants minimaux 8. Déployer en production
 
 ### Temps Estimé
+
 - **Tests actuels** : **Disponible immédiatement** ✅
 - **Configuration production** : 1 heure (clé LIVE)
 - **Coordination backend** : 2-3 jours

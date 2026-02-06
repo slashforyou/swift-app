@@ -1,5 +1,5 @@
-import { Ionicons } from '@expo/vector-icons'
-import React, { useRef, useState } from 'react'
+import { Ionicons } from "@expo/vector-icons";
+import React, { useRef, useState } from "react";
 import {
     ActivityIndicator,
     Modal,
@@ -8,19 +8,19 @@ import {
     StyleSheet,
     Text,
     TouchableOpacity,
-    View
-} from 'react-native'
-import { WebView } from 'react-native-webview'
-import { DESIGN_TOKENS } from '../../constants/Styles'
-import { useTheme } from '../../context/ThemeProvider'
-import { useLocalization } from '../../localization/useLocalization'
+    View,
+} from "react-native";
+import { WebView } from "react-native-webview";
+import { DESIGN_TOKENS } from "../../constants/Styles";
+import { useTheme } from "../../context/ThemeProvider";
+import { useLocalization } from "../../localization/useLocalization";
 
 interface StripeConnectWebViewProps {
-  visible: boolean
-  onClose: () => void
-  onSuccess?: () => void
-  onError?: (error: string) => void
-  accountLinkUrl?: string
+  visible: boolean;
+  onClose: () => void;
+  onSuccess?: () => void;
+  onError?: (error: string) => void;
+  accountLinkUrl?: string;
 }
 
 export const StripeConnectWebView: React.FC<StripeConnectWebViewProps> = ({
@@ -28,13 +28,13 @@ export const StripeConnectWebView: React.FC<StripeConnectWebViewProps> = ({
   onClose,
   onSuccess,
   onError,
-  accountLinkUrl
+  accountLinkUrl,
 }) => {
-  const { colors } = useTheme()
-  const { t } = useLocalization()
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const webViewRef = useRef<WebView>(null)
+  const { colors } = useTheme();
+  const { t } = useLocalization();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const webViewRef = useRef<WebView>(null);
 
   const styles = StyleSheet.create({
     modal: {
@@ -42,9 +42,9 @@ export const StripeConnectWebView: React.FC<StripeConnectWebViewProps> = ({
       backgroundColor: colors.background,
     },
     header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
       paddingHorizontal: DESIGN_TOKENS.spacing.lg,
       paddingVertical: DESIGN_TOKENS.spacing.md,
       backgroundColor: colors.backgroundSecondary,
@@ -53,10 +53,10 @@ export const StripeConnectWebView: React.FC<StripeConnectWebViewProps> = ({
     },
     headerTitle: {
       fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
-      fontWeight: '600',
+      fontWeight: "600",
       color: colors.text,
       flex: 1,
-      textAlign: 'center',
+      textAlign: "center",
       marginHorizontal: DESIGN_TOKENS.spacing.md,
     },
     closeButton: {
@@ -68,14 +68,14 @@ export const StripeConnectWebView: React.FC<StripeConnectWebViewProps> = ({
       flex: 1,
     },
     loadingContainer: {
-      position: 'absolute',
+      position: "absolute",
       top: 0,
       left: 0,
       right: 0,
       bottom: 0,
       backgroundColor: colors.background,
-      justifyContent: 'center',
-      alignItems: 'center',
+      justifyContent: "center",
+      alignItems: "center",
       zIndex: 1,
     },
     loadingText: {
@@ -85,8 +85,8 @@ export const StripeConnectWebView: React.FC<StripeConnectWebViewProps> = ({
     },
     errorContainer: {
       flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
+      justifyContent: "center",
+      alignItems: "center",
       padding: DESIGN_TOKENS.spacing.lg,
     },
     errorIcon: {
@@ -94,15 +94,15 @@ export const StripeConnectWebView: React.FC<StripeConnectWebViewProps> = ({
     },
     errorTitle: {
       fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
-      fontWeight: '600',
+      fontWeight: "600",
       color: colors.text,
-      textAlign: 'center',
+      textAlign: "center",
       marginBottom: DESIGN_TOKENS.spacing.sm,
     },
     errorText: {
       fontSize: DESIGN_TOKENS.typography.body.fontSize,
       color: colors.textSecondary,
-      textAlign: 'center',
+      textAlign: "center",
       lineHeight: 22,
     },
     retryButton: {
@@ -113,54 +113,58 @@ export const StripeConnectWebView: React.FC<StripeConnectWebViewProps> = ({
       borderRadius: DESIGN_TOKENS.radius.md,
     },
     retryButtonText: {
-      color: 'white',
+      color: "white",
       fontSize: DESIGN_TOKENS.typography.body.fontSize,
-      fontWeight: '600',
+      fontWeight: "600",
     },
-  })
+  });
 
   const handleNavigationStateChange = (navState: any) => {
     // TEMP_DISABLED: console.log('🌐 WebView navigation:', navState.url)
-    
-    // Détection des URLs de succès (backend configure: https://swiftapp.altivo.fr/settings/stripe/success)
-    if (navState.url.includes('/settings/stripe/success') || 
-        navState.url.includes('swiftapp://stripe/success')) {
-      onSuccess?.()
-      onClose()
-      return
+
+    // Détection des URLs de succès (backend configure: https://cobbr.altivo.fr/settings/stripe/success)
+    if (
+      navState.url.includes("/settings/stripe/success") ||
+      navState.url.includes("cobbr://stripe/success")
+    ) {
+      onSuccess?.();
+      onClose();
+      return;
     }
-    
-    // Détection des URLs de refresh/retry (backend configure: https://swiftapp.altivo.fr/settings/stripe/refresh)
-    if (navState.url.includes('/settings/stripe/refresh') || 
-        navState.url.includes('swiftapp://stripe/refresh')) {
+
+    // Détection des URLs de refresh/retry (backend configure: https://cobbr.altivo.fr/settings/stripe/refresh)
+    if (
+      navState.url.includes("/settings/stripe/refresh") ||
+      navState.url.includes("cobbr://stripe/refresh")
+    ) {
       // TEMP_DISABLED: console.log('🔄 Stripe Connect refresh requested')
-      webViewRef.current?.reload()
-      return
+      webViewRef.current?.reload();
+      return;
     }
-    
+
     // Détection d'erreurs Stripe
-    if (navState.url.includes('error') || navState.url.includes('cancel')) {
-      setError(t('payment.stripeConnect.canceledOrError'))
-      return
+    if (navState.url.includes("error") || navState.url.includes("cancel")) {
+      setError(t("payment.stripeConnect.canceledOrError"));
+      return;
     }
-  }
+  };
 
   const handleError = (error: any) => {
-    console.error('❌ WebView error:', error)
-    setError(t('payment.stripeConnect.loadError'))
-    onError?.('WebView loading error')
-  }
+    console.error("❌ WebView error:", error);
+    setError(t("payment.stripeConnect.loadError"));
+    onError?.("WebView loading error");
+  };
 
   const handleLoad = () => {
-    setLoading(false)
+    setLoading(false);
     // TEMP_DISABLED: console.log('✅ Stripe Connect WebView loaded successfully')
-  }
+  };
 
   const handleRetry = () => {
-    setError(null)
-    setLoading(true)
-    webViewRef.current?.reload()
-  }
+    setError(null);
+    setLoading(true);
+    webViewRef.current?.reload();
+  };
 
   return (
     <Modal
@@ -170,18 +174,21 @@ export const StripeConnectWebView: React.FC<StripeConnectWebViewProps> = ({
       onRequestClose={onClose}
     >
       <SafeAreaView style={styles.modal}>
-        <StatusBar barStyle="dark-content" backgroundColor={colors.backgroundSecondary} />
-        
+        <StatusBar
+          barStyle="dark-content"
+          backgroundColor={colors.backgroundSecondary}
+        />
+
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
             <Ionicons name="close" size={24} color={colors.textSecondary} />
           </TouchableOpacity>
-          
+
           <Text style={styles.headerTitle}>
-            {t('payment.stripeConnect.title')}
+            {t("payment.stripeConnect.title")}
           </Text>
-          
+
           <View style={{ width: 40 }}>
             {/* Spacer pour centrer le titre */}
           </View>
@@ -190,17 +197,21 @@ export const StripeConnectWebView: React.FC<StripeConnectWebViewProps> = ({
         {/* Contenu */}
         {error ? (
           <View style={styles.errorContainer}>
-            <Ionicons 
-              name="alert-circle-outline" 
-              size={64} 
-              color={colors.error} 
+            <Ionicons
+              name="alert-circle-outline"
+              size={64}
+              color={colors.error}
               style={styles.errorIcon}
             />
-            <Text style={styles.errorTitle}>{t('payment.stripeConnect.connectionError')}</Text>
+            <Text style={styles.errorTitle}>
+              {t("payment.stripeConnect.connectionError")}
+            </Text>
             <Text style={styles.errorText}>{error}</Text>
-            
+
             <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
-              <Text style={styles.retryButtonText}>{t('payment.stripeConnect.retry')}</Text>
+              <Text style={styles.retryButtonText}>
+                {t("payment.stripeConnect.retry")}
+              </Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -210,7 +221,7 @@ export const StripeConnectWebView: React.FC<StripeConnectWebViewProps> = ({
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color={colors.primary} />
                 <Text style={styles.loadingText}>
-                  {t('payment.stripeConnect.loading')}
+                  {t("payment.stripeConnect.loading")}
                 </Text>
               </View>
             )}
@@ -235,5 +246,5 @@ export const StripeConnectWebView: React.FC<StripeConnectWebViewProps> = ({
         )}
       </SafeAreaView>
     </Modal>
-  )
-}
+  );
+};

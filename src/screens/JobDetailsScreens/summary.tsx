@@ -11,12 +11,12 @@ import JobStepAdvanceModal from "../../components/jobDetails/modals/JobStepAdvan
 import PhotoSelectionModal from "../../components/jobDetails/modals/PhotoSelectionModal";
 import AddressesSection from "../../components/jobDetails/sections/AddressesSection";
 import ClientDetailsSection from "../../components/jobDetails/sections/ClientDetailsSection";
+import CompanyDetailsSection from "../../components/jobDetails/sections/CompanyDetailsSection";
 import ContactDetailsSection from "../../components/jobDetails/sections/ContactDetailsSection";
 import QuickActionsSection from "../../components/jobDetails/sections/QuickActionsSection";
 import TimeWindowsSection from "../../components/jobDetails/sections/TimeWindowsSection";
 import TruckDetailsSection from "../../components/jobDetails/sections/TruckDetailsSection";
 import SigningBloc from "../../components/signingBloc";
-import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useJobTimerContext } from "../../context/JobTimerProvider";
 import { useTheme } from "../../context/ThemeProvider";
 import { useToast } from "../../context/ToastProvider";
@@ -401,6 +401,9 @@ const JobSummary = ({
           onShowPhotoModal={() => setIsPhotoModalVisible(true)}
           onShowStepAdvanceModal={() => setIsStepAdvanceModalVisible(true)}
         />
+
+        {/* Informations entreprise (Contractee/Contractor) */}
+        <CompanyDetailsSection job={job} />
 
         {/* Informations client */}
         <ClientDetailsSection job={job} />

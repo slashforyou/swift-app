@@ -1,4 +1,4 @@
-# 🚚 Swift App
+# 🚚 Cobbr
 
 [![CI/CD Pipeline](https://github.com/slashforyou/swift-app/actions/workflows/ci.yml/badge.svg)](https://github.com/slashforyou/swift-app/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/slashforyou/swift-app/branch/main/graph/badge.svg)](https://codecov.io/gh/slashforyou/swift-app)
@@ -13,7 +13,7 @@ A mobile application for moving companies, offering smooth management of jobs, c
 
 ## Project Description
 
-Swift App is a solution designed to help moving companies digitize and simplify their day-to-day operations. It provides a unified interface to organize moving jobs, track client information, add notes per job, manage items to be moved, and plan routes on an integrated map. The goal is to centralize all data for a move to increase efficiency and visibility from the first client contact through job completion.
+Cobbr is a solution designed to help moving companies digitize and simplify their day-to-day operations. It provides a unified interface to organize moving jobs, track client information, add notes per job, manage items to be moved, and plan routes on an integrated map. The goal is to centralize all data for a move to increase efficiency and visibility from the first client contact through job completion.
 
 ## Key Features
 
@@ -66,17 +66,21 @@ Expo Go app on your mobile device (for quick testing)
 1 - Clone the repo to your machine.
 
 2 - Install dependencies:
+
 ```bash
 npm install
 # or
 yarn
 ```
+
 3 - Running the project locally
 
 Start the Expo dev server from the project root:
+
 ```bash
 npx expo start
 ```
+
 Then:
 
 On a mobile device: scan the QR code with Expo Go (iOS/Android).
@@ -89,17 +93,21 @@ Hot reload will reflect code changes instantly.
 You can generate production builds using Expo tooling:
 
 EAS Build (recommended) – Use Expo Application Services to build in the cloud:
+
 ```bash
 eas build --platform android
 eas build --platform ios
 ```
+
 Requires an Expo account and (optionally) an eas.json config. You’ll receive a link to download the .apk/.aab (Android) or .ipa (iOS) for store submission.
 
 Classic Expo CLI build – Legacy commands (Expo now favors EAS):
+
 ```bash
 expo build:android
 expo build:ios
 ```
+
 Prefer EAS for modern SDKs and App Store/Play Store requirements.
 
 After distribution, you can also use Expo Publish to deliver OTA (over-the-air) updates without a full store release.

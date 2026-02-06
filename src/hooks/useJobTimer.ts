@@ -6,12 +6,28 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  completeJob,
-  getTimerFromBackend,
-  syncStepToBackend,
-  updateJobStep,
+    completeJob,
+    getTimerFromBackend,
+    syncStepToBackend,
+    updateJobStep,
 } from "../services/jobSteps";
 import { timerLogger } from "../utils/logger";
+
+// ✅ Import du service de pricing centralisé
+import {
+    DEFAULT_PRICING_CONFIG,
+    PricingService,
+    type JobPricingConfig,
+    type PricingResult,
+} from "../services/pricing";
+
+// ✅ Imports depuis la configuration centralisée des steps
+import {
+    calculateTotalSteps,
+    generateStepsFromAddresses
+} from "../constants/JobStepsConfig";
+
+// ✅ FIX SESSION 10: Ajouter realJobId comme paramètre optionnel
 
 export interface JobStepTime {
   step: number;
@@ -41,28 +57,11 @@ export interface JobTimerData {
 
 const TIMER_STORAGE_KEY = "jobTimers";
 
-// ✅ Import du service de pricing centralisé
-import {
-  PricingService,
-  DEFAULT_PRICING_CONFIG,
-  type JobPricingConfig,
-  type PricingResult,
-} from "../services/pricing";
-
-// ✅ Imports depuis la configuration centralisée des steps
-import {
-  generateStepsFromAddresses,
-  getStepName as getStepNameFromConfig,
-  calculateTotalSteps,
-  isPaymentStep as checkIsPaymentStep,
-  isJobCompleted as checkIsJobCompleted,
-  JobStepConfig,
-} from "../constants/JobStepsConfig";
-
 export const useJobTimer = (
   jobId: string,
   currentStep: number = 0,
   options?: {
+    realJobId?: number | string; // ✅ FIX SESSION 10: Vrai ID numérique du job
     totalSteps?: number; // ✅ Nombre total d'étapes (dynamique)
     stepNames?: string[]; // ✅ NOUVEAU: Noms des steps dynamiques depuis job.steps
     addresses?: any[]; // ✅ NOUVEAU: Adresses pour calcul dynamique
@@ -254,7 +253,7 @@ export const useJobTimer = (
             setTimerData(correctedTimer);
 
             // Sync to API - utiliser updateJobStep pour démarrer
-            updateJobStep(jobId, 1, "Timer auto-started")
+            updateJobStep(jobId, 1, "Timer auto-started", options?.realJobId)
               .then(() => {
                 // TEMP_DISABLED: console.log('✅ [useJobTimer] Timer auto-started and synced to API');
               })
@@ -347,7 +346,7 @@ export const useJobTimer = (
     saveTimerData(updatedData);
 
     // ✅ FIX: Synchroniser le démarrage avec updateJobStep
-    updateJobStep(jobId, 1, "Timer started")
+    updateJobStep(jobId, 1, "Timer started", options?.realJobId)
       .then(() => {
         // TEMP_DISABLED: console.log('✅ [useJobTimer] Timer started and synced to API');
       })
@@ -358,24 +357,41 @@ export const useJobTimer = (
 
   // ✅ NOUVEAU: Utiliser le service de pricing centralisé
   // La config peut venir des options ou utiliser les défauts
-  const pricingConfig: Partial<JobPricingConfig> = useMemo(() => ({
-    hourlyRate: options?.pricingConfig?.hourlyRate || DEFAULT_PRICING_CONFIG.hourlyRate,
-    travelRate: options?.pricingConfig?.travelRate,
-    minimumHours: options?.pricingConfig?.minimumHours ?? DEFAULT_PRICING_CONFIG.minimumHours,
-    callOutFee: options?.pricingConfig?.callOutFee ?? 0, // Pas de call-out par défaut
-    roundToHalfHour: options?.pricingConfig?.roundToHalfHour ?? DEFAULT_PRICING_CONFIG.roundToHalfHour,
-    travelTimeIsBillable: options?.pricingConfig?.travelTimeIsBillable ?? true,
-    pauseTimeIsBillable: false, // Les pauses ne sont JAMAIS facturables
-  }), [options?.pricingConfig]);
+  const pricingConfig: Partial<JobPricingConfig> = useMemo(
+    () => ({
+      hourlyRate:
+        options?.pricingConfig?.hourlyRate || DEFAULT_PRICING_CONFIG.hourlyRate,
+      travelRate: options?.pricingConfig?.travelRate,
+      minimumHours:
+        options?.pricingConfig?.minimumHours ??
+        DEFAULT_PRICING_CONFIG.minimumHours,
+      callOutFee: options?.pricingConfig?.callOutFee ?? 0, // Pas de call-out par défaut
+      roundToHalfHour:
+        options?.pricingConfig?.roundToHalfHour ??
+        DEFAULT_PRICING_CONFIG.roundToHalfHour,
+      travelTimeIsBillable:
+        options?.pricingConfig?.travelTimeIsBillable ?? true,
+      pauseTimeIsBillable: false, // Les pauses ne sont JAMAIS facturables
+    }),
+    [options?.pricingConfig],
+  );
 
   // Calculer le coût basé sur le temps écoulé (utilise le service centralisé)
-  const calculateCost = useCallback((milliseconds: number): PricingResult => {
-    const pauseTimeMs = timerData?.totalBreakTime || 0;
-    return PricingService.calculateSimplePrice(milliseconds, pauseTimeMs, pricingConfig);
-  }, [pricingConfig, timerData?.totalBreakTime]);
+  const calculateCost = useCallback(
+    (milliseconds: number): PricingResult => {
+      const pauseTimeMs = timerData?.totalBreakTime || 0;
+      return PricingService.calculateSimplePrice(
+        milliseconds,
+        pauseTimeMs,
+        pricingConfig,
+      );
+    },
+    [pricingConfig, timerData?.totalBreakTime],
+  );
 
   // Taux horaire pour compatibilité (export depuis la config)
-  const HOURLY_RATE_AUD = pricingConfig.hourlyRate || DEFAULT_PRICING_CONFIG.hourlyRate;
+  const HOURLY_RATE_AUD =
+    pricingConfig.hourlyRate || DEFAULT_PRICING_CONFIG.hourlyRate;
 
   // Avancer à l'étape suivante
   const advanceStep = useCallback(
@@ -445,7 +461,7 @@ export const useJobTimer = (
       // ✅ NOUVEAU: Synchroniser avec l'API
       if (isLastStep) {
         // Si c'est la dernière étape, compléter le job
-        completeJob(jobId)
+        completeJob(jobId, options?.realJobId)
           .then(() => {
             // TEMP_DISABLED: console.log('✅ [useJobTimer] Job completed and synced to API');
           })
@@ -454,7 +470,7 @@ export const useJobTimer = (
           });
       } else {
         // ✅ NOUVEAU: Utiliser syncStepToBackend (PUT /job/:id/step) - Confirmé par backend
-        syncStepToBackend(jobId, newStep)
+        syncStepToBackend(jobId, newStep, options?.realJobId)
           .then((response) => {
             if (response.success) {
               console.log(`✅ [useJobTimer] Step ${newStep} synced to backend`);
@@ -463,15 +479,23 @@ export const useJobTimer = (
               console.warn(
                 "⚠️ [useJobTimer] syncStepToBackend failed, using fallback",
               );
-              updateJobStep(jobId, newStep, `Avancé à l'étape ${newStep}`);
+              updateJobStep(
+                jobId,
+                newStep,
+                `Avancé à l'étape ${newStep}`,
+                options?.realJobId,
+              );
             }
           })
           .catch((error) => {
             console.error("❌ [useJobTimer] Failed to sync step:", error);
             // Fallback silencieux
-            updateJobStep(jobId, newStep, `Avancé à l'étape ${newStep}`).catch(
-              () => {},
-            );
+            updateJobStep(
+              jobId,
+              newStep,
+              `Avancé à l'étape ${newStep}`,
+              options?.realJobId,
+            ).catch(() => {});
           });
       }
     },

@@ -6,17 +6,16 @@
  */
 
 import React, {
-  createContext,
-  ReactNode,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
+    createContext,
+    ReactNode,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
 } from "react";
 import {
-  calculateTotalSteps,
-  isJobCompleted as checkIsJobCompleted,
+    calculateTotalSteps
 } from "../constants/JobStepsConfig";
 import { JobTimerData, useJobTimer } from "../hooks/useJobTimer";
 import { syncTimerToBackend } from "../services/jobSteps";
@@ -59,6 +58,7 @@ const JobTimerContext = createContext<JobTimerContextValue | undefined>(
 interface JobTimerProviderProps {
   children: ReactNode;
   jobId: string;
+  realJobId?: number | string; // ✅ FIX SESSION 10: Le vrai ID numérique depuis job.id
   currentStep: number;
   totalSteps?: number;
   stepNames?: string[]; // ✅ Noms des steps depuis job.steps
@@ -71,6 +71,7 @@ interface JobTimerProviderProps {
 export const JobTimerProvider: React.FC<JobTimerProviderProps> = ({
   children,
   jobId,
+  realJobId, // ✅ FIX SESSION 10: Recevoir le vrai ID
   currentStep,
   totalSteps: totalStepsProp,
   stepNames = [], // ✅ Par défaut vide
@@ -103,6 +104,7 @@ export const JobTimerProvider: React.FC<JobTimerProviderProps> = ({
   }, [safeJobId, safeCurrentStep, safeTotalSteps]);
 
   const timer = useJobTimer(safeJobId, safeCurrentStep, {
+    realJobId, // ✅ FIX SESSION 10: Passer le vrai ID numérique
     totalSteps: safeTotalSteps,
     stepNames, // ✅ Passer les noms des steps
     addresses, // ✅ NOUVEAU: Passer les adresses pour calcul dynamique

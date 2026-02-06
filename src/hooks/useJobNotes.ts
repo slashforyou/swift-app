@@ -284,44 +284,56 @@ export const useJobNotes = (jobId: string): UseJobNotesReturn => {
   const markAllAsRead = useCallback(async () => {
     if (!jobId) return;
 
-    console.log('🔔 [NOTES] Step 1: Starting mark all as read process');
-    
+    console.log("🔔 [NOTES] Step 1: Starting mark all as read process");
+
     try {
       // Étape 1: Envoyer à la BDD (les logs sont dans markAllNotesAsRead)
       await markAllNotesAsRead(jobId);
-      
-      console.log('🔔 [NOTES] Step 2: 🎨 UPDATING UI IMMEDIATELY (setting is_read=true locally)');
-      
+
+      console.log(
+        "🔔 [NOTES] Step 2: 🎨 UPDATING UI IMMEDIATELY (setting is_read=true locally)",
+      );
+
       // Étape 2: Mettre à jour localement immédiatement pour l'UI
       setNotes((prevNotes) => {
-        const updatedNotes = prevNotes.map((note) => ({ ...note, is_read: true }));
-        console.log('🔔 [NOTES] Local notes updated:', {
+        const updatedNotes = prevNotes.map((note) => ({
+          ...note,
+          is_read: true,
+        }));
+        console.log("🔔 [NOTES] Local notes updated:", {
           totalNotes: updatedNotes.length,
-          allMarkedAsRead: updatedNotes.every(n => n.is_read)
+          allMarkedAsRead: updatedNotes.every((n) => n.is_read),
         });
         return updatedNotes;
       });
       setUnreadCount(0);
-      
-      console.log('🔔 [NOTES] Step 3: 🔄 Fetching fresh data from server...');
-      
+
+      console.log("🔔 [NOTES] Step 3: 🔄 Fetching fresh data from server...");
+
       // Étape 3: Recharger depuis le serveur pour obtenir les données fraîches
       await fetchNotes();
-      console.log('✅ [NOTES] Step 4: ✅ ALL COMPLETE - Notes refreshed from server');
+      console.log(
+        "✅ [NOTES] Step 4: ✅ ALL COMPLETE - Notes refreshed from server",
+      );
     } catch (err: any) {
       const errorMessage = err instanceof Error ? err.message : String(err);
-      
+
       // Si l'endpoint n'est pas encore implémenté (404), marquer localement quand même
-      if (errorMessage.includes('404')) {
-        console.warn('⚠️ [NOTES] Backend endpoint not implemented yet (404), marking as read locally only');
-        
+      if (errorMessage.includes("404")) {
+        console.warn(
+          "⚠️ [NOTES] Backend endpoint not implemented yet (404), marking as read locally only",
+        );
+
         // Mettre à jour localement même sans API
         setNotes((prevNotes) =>
-          prevNotes.map((note) => ({ ...note, is_read: true }))
+          prevNotes.map((note) => ({ ...note, is_read: true })),
         );
         setUnreadCount(0);
       } else {
-        console.error('❌ [NOTES] Error marking all notes as read:', errorMessage);
+        console.error(
+          "❌ [NOTES] Error marking all notes as read:",
+          errorMessage,
+        );
       }
     }
   }, [jobId, fetchNotes]);
@@ -333,18 +345,18 @@ export const useJobNotes = (jobId: string): UseJobNotesReturn => {
 
       try {
         await markNoteAsRead(jobId, noteId);
-        
+
         // Mettre à jour localement
         const noteIdStr = String(noteId);
         setNotes((prevNotes) =>
           prevNotes.map((note) =>
-            String(note.id) === noteIdStr ? { ...note, is_read: true } : note
-          )
+            String(note.id) === noteIdStr ? { ...note, is_read: true } : note,
+          ),
         );
-        
+
         // Décrémenter le compteur si la note était non lue
         const wasUnread = notes.find(
-          (n) => String(n.id) === noteIdStr && !n.is_read
+          (n) => String(n.id) === noteIdStr && !n.is_read,
         );
         if (wasUnread) {
           setUnreadCount((prev) => Math.max(0, prev - 1));
@@ -353,7 +365,7 @@ export const useJobNotes = (jobId: string): UseJobNotesReturn => {
         console.error("Error marking note as read:", err);
       }
     },
-    [jobId, notes]
+    [jobId, notes],
   );
 
   // Calculs dérivés

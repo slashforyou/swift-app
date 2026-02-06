@@ -1448,6 +1448,171 @@ export interface TranslationKeys {
       completeSetup: string;
       checkingConnection: string;
       connectionError: string;
+      // Account Status
+      accountVerified: string;
+      actionRequired: string;
+      pending: string;
+      incomplete: string;
+      // Requirements
+      missingInfo: string;
+      urgentAction: string;
+      completeProfile: string;
+      additionalParams: string;
+      // Errors
+      errorLoadingForm: string;
+    };
+    onboarding: {
+      welcome: {
+        title: string;
+        subtitle: string;
+        timeEstimate: string;
+        benefit1: string;
+        benefit2: string;
+        benefit3: string;
+        benefit4: string;
+        whatYouNeedTitle: string;
+        requirement1: string;
+        requirement2: string;
+        requirement3: string;
+        startButton: string;
+        cancelButton: string;
+      };
+      personalInfo: {
+        step: string;
+        title: string;
+        subtitle: string;
+        firstName: string;
+        firstNamePlaceholder: string;
+        lastName: string;
+        lastNamePlaceholder: string;
+        dob: string;
+        dobPlaceholder: string;
+        dobHelper: string;
+        email: string;
+        emailPlaceholder: string;
+        phone: string;
+        phonePlaceholder: string;
+        phoneHelper: string;
+        requiredNote: string;
+        nextButton: string;
+        errors: {
+          firstNameRequired: string;
+          lastNameRequired: string;
+          dobRequired: string;
+          dobMinAge: string;
+          emailRequired: string;
+          emailInvalid: string;
+          phoneRequired: string;
+          phoneInvalid: string;
+          validationTitle: string;
+          validationMessage: string;
+        };
+      };
+      address: {
+        step: string;
+        title: string;
+        subtitle: string;
+        line1: string;
+        line1Placeholder: string;
+        line2: string;
+        line2Placeholder: string;
+        line2Helper: string;
+        city: string;
+        cityPlaceholder: string;
+        state: string;
+        statePlaceholder: string;
+        postalCode: string;
+        postalCodePlaceholder: string;
+        statesAvailable: string;
+        nextButton: string;
+        errors: {
+          line1Required: string;
+          cityRequired: string;
+          stateRequired: string;
+          postalCodeRequired: string;
+          postalCodeInvalid: string;
+          validationTitle: string;
+          validationMessage: string;
+        };
+      };
+      bankAccount: {
+        step: string;
+        title: string;
+        subtitle: string;
+        holderName: string;
+        holderNamePlaceholder: string;
+        bsb: string;
+        bsbPlaceholder: string;
+        bsbHelper: string;
+        accountNumber: string;
+        accountNumberPlaceholder: string;
+        accountNumberHelper: string;
+        securityNote: string;
+        infoNote: string;
+        nextButton: string;
+        errors: {
+          holderNameRequired: string;
+          bsbRequired: string;
+          bsbInvalid: string;
+          accountNumberRequired: string;
+          accountNumberInvalid: string;
+          validationTitle: string;
+          validationMessage: string;
+        };
+      };
+      documents: {
+        step: string;
+        title: string;
+        subtitle: string;
+        checklistTitle: string;
+        checklist1: string;
+        checklist2: string;
+        frontTitle: string;
+        frontPlaceholder: string;
+        backTitle: string;
+        backPlaceholder: string;
+        takePhotoButton: string;
+        retakeButton: string;
+        nextButton: string;
+        errors: {
+          permissionTitle: string;
+          permissionMessage: string;
+          captureTitle: string;
+          captureMessage: string;
+          validationTitle: string;
+          validationMessage: string;
+        };
+      };
+      review: {
+        step: string;
+        title: string;
+        subtitle: string;
+        personalInfoTitle: string;
+        addressTitle: string;
+        bankAccountTitle: string;
+        documentsTitle: string;
+        editButton: string;
+        name: string;
+        dob: string;
+        email: string;
+        phone: string;
+        accountHolder: string;
+        bsb: string;
+        accountNumber: string;
+        frontUploaded: string;
+        backUploaded: string;
+        tosText: string;
+        tosLink: string;
+        tosTextEnd: string;
+        disclaimer: string;
+        activateButton: string;
+        successTitle: string;
+        successMessage: string;
+        errors: {
+          tosTitle: string;
+          tosMessage: string;
+        };
+      };
     };
     settings: {
       title: string;

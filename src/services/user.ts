@@ -146,6 +146,15 @@ export async function fetchUserProfile(): Promise<UserProfile> {
   // TEMP_DISABLED: console.log('🔍 [API FETCH] - success:', data.success);
   // TEMP_DISABLED: console.log('🔍 [API FETCH] - user exists:', !!data.user);
 
+  // ✅ LOG TEMPORAIRE: Vérifier si company_id est présent
+  console.log("🔍 [API FETCH] Raw user data from API:", {
+    hasUser: !!data.user,
+    company_id: data.user?.company_id,
+    companyId: data.user?.companyId,
+    hasCompany: !!data.user?.company,
+    companyInCompany: data.user?.company?.id,
+  });
+
   // Accepter les deux formats de réponse
   if (!data.user) {
     throw new Error("No user data received from server");

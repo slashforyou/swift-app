@@ -955,7 +955,7 @@ export const ptTranslations = {
   auth: {
     login: {
       title: "Login",
-      subtitle: "Entre na sua conta Swift",
+      subtitle: "Entre na sua conta Cobbr",
       email: "Email",
       emailPlaceholder: "seu@email.com",
       password: "Senha",
@@ -968,7 +968,7 @@ export const ptTranslations = {
     },
     register: {
       title: "Cadastro",
-      subtitle: "Crie sua conta Swift",
+      subtitle: "Crie sua conta Cobbr",
       firstName: "Nome",
       firstNamePlaceholder: "Seu nome",
       lastName: "Sobrenome",
@@ -1042,7 +1042,7 @@ export const ptTranslations = {
       restartRegistration: "reinicie o registro",
     },
     connection: {
-      title: "Bem-vindo ao Swift",
+      title: "Bem-vindo ao Cobbr",
       subtitle: "O app de gestão para profissionais de mudanças",
       loginButton: "Entrar",
       registerButton: "Criar conta",

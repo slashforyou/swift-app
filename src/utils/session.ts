@@ -22,59 +22,114 @@ async function fetchMe() {
       headers[key] = value;
     }
   });
-  const res = await fetch(`${API}auth/me`, { headers });
-  return res;
+
+  // ✅ Add timeout to prevent infinite loading
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 seconds timeout
+
+  try {
+    const res = await fetch(`${API}auth/me`, {
+      headers,
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    return res;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
 }
 
 // Ensure session: tries /me with a session token, if fails tries refresh, else clears session
 
 export async function ensureSession() {
+  try {
+    // ✅ Wrap entire session check in timeout to prevent infinite loading
+    const sessionCheckPromise = async () => {
+      // 1) If possible, get sessionToken, deviceId and refreshToken from storage
+      const [sessionToken, deviceId, refreshToken] = await Promise.all([
+        SecureStore.getItemAsync("session_token"),
+        SecureStore.getItemAsync("device_id"),
+        SecureStore.getItemAsync("refresh_token"),
+      ]);
 
-  // 1) If possible, get sessionToken, deviceId and refreshToken from storage
-  const [sessionToken, deviceId, refreshToken] = await Promise.all([
-    SecureStore.getItemAsync("session_token"),
-    SecureStore.getItemAsync("device_id"),
-    SecureStore.getItemAsync("refresh_token"),
-  ]);
+      // 2) If there is an session token, try /me
+      if (sessionToken) {
+        const res = await fetchMe();
 
-  // 2) If there is an session token, try /me
-  if (sessionToken) {
-    const res = await fetchMe();
+        if (res.status === 200) {
+          // We extract res.json() in a try/catch to avoid breaking if the response is not JSON (should not happen)
+          try {
+            const data = await res.json();
+            if (!data || typeof data !== "object" || !data.success) {
+              throw new Error("Invalid /me response");
+            }
 
-    if (res.status === 200) {
-        // We extract res.json() in a try/catch to avoid breaking if the response is not JSON (should not happen)
-        try {
-          const data = await res.json();
-          if(!data || typeof data !== 'object' || !data.success) {
-            throw new Error("Invalid /me response");
+            return {
+              authenticated: true,
+              user: data,
+              reason: "session_ok" as const,
+            };
+          } catch (e) {
+            return {
+              authenticated: false,
+              user: null,
+              reason: "invalid_response" as const,
+            };
           }
-
-          return { authenticated: true, user: data, reason: "session_ok" as const };
-        } catch (e) {
-          return { authenticated: false, user: null, reason: "invalid_response" as const };
         }
-    }
-    // else 401: try refresh below
-  }
-
-  // 3) If we have deviceId + refreshToken, try refresh
-  if (deviceId && refreshToken) {
-    try {
-      await refreshAuthToken(); // updates session_token (+ possibly refresh_token)
-      const res2 = await fetchMe();
-      if (res2.ok) {
-        const data2 = await res2.json().catch(() => ({}));
-        return { authenticated: true, user: data2, reason: "refreshed" as const };
+        // else 401: try refresh below
       }
-    } catch (e) {
-      // refresh ko: chute plus bas
-    }
+
+      // 3) If we have deviceId + refreshToken, try refresh
+      if (deviceId && refreshToken) {
+        try {
+          await refreshAuthToken(); // updates session_token (+ possibly refresh_token)
+          const res2 = await fetchMe();
+          if (res2.ok) {
+            const data2 = await res2.json().catch(() => ({}));
+            return {
+              authenticated: true,
+              user: data2,
+              reason: "refreshed" as const,
+            };
+          }
+        } catch (e) {
+          // refresh ko: chute plus bas
+        }
+      }
+
+      // 4) Tout a échoué -> on purge la session locale
+      await clearLocalSession();
+
+      return {
+        authenticated: false,
+        user: null,
+        reason: "signed_out" as const,
+      };
+    };
+
+    const timeoutPromise = new Promise<{
+      authenticated: false;
+      user: null;
+      reason: "timeout";
+    }>((resolve) =>
+      setTimeout(() => {
+        console.warn("⚠️ [Session] ensureSession timed out after 15 seconds");
+        resolve({
+          authenticated: false,
+          user: null,
+          reason: "timeout" as const,
+        });
+      }, 15000),
+    );
+
+    return await Promise.race([sessionCheckPromise(), timeoutPromise]);
+  } catch (error) {
+    console.error("❌ [Session] ensureSession error:", error);
+    await clearLocalSession();
+    return { authenticated: false, user: null, reason: "error" as const };
   }
-
-  // 4) Tout a échoué -> on purge la session locale
-  await clearLocalSession();
-
-  return { authenticated: false, user: null, reason: "signed_out" as const };
 }
 
 /**
@@ -85,9 +140,13 @@ export async function ensureSession() {
  * If the request fails due to authentication, it will attempt to refresh the token and retry once.
  */
 
-export async function fetchWithAuth(input: RequestInfo | URL, init: RequestInit = {}) {
+export async function fetchWithAuth(
+  input: RequestInfo | URL,
+  init: RequestInit = {},
+) {
   // Convert input to string if it's a URL
-  const fetchInput: RequestInfo = input instanceof URL ? input.toString() : input;
+  const fetchInput: RequestInfo =
+    input instanceof URL ? input.toString() : input;
 
   // Merge headers and ensure all values are strings and defined
   const rawHeaders = { ...(init.headers || {}), ...(await getAuthHeaders()) };

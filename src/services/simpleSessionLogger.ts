@@ -1,9 +1,9 @@
 // src/services/simpleSessionLogger.ts
-import { Platform } from 'react-native';
+import { Platform } from "react-native";
 
 interface LogEntry {
   timestamp: string;
-  level: 'ERROR' | 'WARN' | 'INFO' | 'DEBUG';
+  level: "ERROR" | "WARN" | "INFO" | "DEBUG";
   message: string;
   data?: any;
   context?: string;
@@ -16,12 +16,12 @@ class SimpleSessionLogger {
 
   constructor() {
     this.clearLogs();
-    this.logInfo('SwiftApp Session Started', 'session-start');
+    this.logInfo("SwiftApp Session Started", "session-start");
   }
 
   private addLog(entry: LogEntry) {
     this.logs.push(entry);
-        
+
     // Garder seulement les N derniers logs
     if (this.logs.length > this.maxLogs) {
       this.logs = this.logs.slice(-this.maxLogs);
@@ -45,18 +45,19 @@ class SimpleSessionLogger {
     // Log également dans la console
     const consoleMsg = `${entry.timestamp} [${entry.level}] ${entry.message}`;
     switch (entry.level) {
-      case 'ERROR':
+      case "ERROR":
         console.error(consoleMsg, entry.data);
         break;
-      case 'WARN':
+      case "WARN":
         console.warn(consoleMsg, entry.data);
         break;
-      case 'INFO':
+      case "INFO":
         // TEMP_DISABLED: console.log(consoleMsg, entry.data);
         break;
-      case 'DEBUG':
-        if (__DEV__) // TEMP_DISABLED: console.log(consoleMsg, entry.data);
-        break;
+      case "DEBUG":
+        if (__DEV__)
+          // TEMP_DISABLED: console.log(consoleMsg, entry.data);
+          break;
     }
   }
 
@@ -64,28 +65,28 @@ class SimpleSessionLogger {
   logError(message: string, error?: any, context?: string) {
     this.addLog({
       timestamp: new Date().toISOString(),
-      level: 'ERROR',
+      level: "ERROR",
       message,
       data: error,
-      context
+      context,
     });
   }
 
   logWarning(message: string, context?: string) {
     this.addLog({
       timestamp: new Date().toISOString(),
-      level: 'WARN',
+      level: "WARN",
       message,
-      context
+      context,
     });
   }
 
   logInfo(message: string, context?: string) {
     this.addLog({
       timestamp: new Date().toISOString(),
-      level: 'INFO',
+      level: "INFO",
       message,
-      context
+      context,
     });
   }
 
@@ -94,10 +95,10 @@ class SimpleSessionLogger {
 
     this.addLog({
       timestamp: new Date().toISOString(),
-      level: 'DEBUG',
+      level: "DEBUG",
       message,
       data,
-      context
+      context,
     });
   }
 
@@ -112,24 +113,26 @@ class SimpleSessionLogger {
 =================================================================
 🚀 SWIFT APP - SESSION LOG (Simple Memory)
 =================================================================
-📅 Session Started: ${this.logs[0]?.timestamp || 'Unknown'}
+📅 Session Started: ${this.logs[0]?.timestamp || "Unknown"}
 🏗️ Platform: ${Platform.OS} ${Platform.Version}
-🔧 Environment: ${__DEV__ ? 'Development' : 'Production'}
+🔧 Environment: ${__DEV__ ? "Development" : "Production"}
 📝 Total Logs: ${this.logs.length}
 =================================================================
 
 `;
 
-    const logLines = this.logs.map(log => {
-      let line = `${log.timestamp} [${log.level.padEnd(5)}] ${log.message}`;
-      if (log.context) {
-        line += ` (${log.context})`;
-      }
-      if (log.data) {
-        line += `\n  Data: ${JSON.stringify(log.data, null, 2)}`;
-      }
-      return line;
-    }).join('\n');
+    const logLines = this.logs
+      .map((log) => {
+        let line = `${log.timestamp} [${log.level.padEnd(5)}] ${log.message}`;
+        if (log.context) {
+          line += ` (${log.context})`;
+        }
+        if (log.data) {
+          line += `\n  Data: ${JSON.stringify(log.data, null, 2)}`;
+        }
+        return line;
+      })
+      .join("\n");
 
     return header + logLines;
   }
@@ -147,30 +150,31 @@ class SimpleSessionLogger {
       logs: this.logs.slice(start, end),
       totalPages: Math.ceil(this.logs.length / pageSize),
       currentPage: page,
-      total: this.logs.length
+      total: this.logs.length,
     };
   }
 
   // Filtrer les logs
   filterLogs(level?: string, context?: string, searchTerm?: string) {
     let filtered = [...this.logs];
-    
-    if (level && level !== 'ALL') {
-      filtered = filtered.filter(log => log.level === level);
+
+    if (level && level !== "ALL") {
+      filtered = filtered.filter((log) => log.level === level);
     }
-    
-    if (context && context !== 'ALL') {
-      filtered = filtered.filter(log => log.context === context);
+
+    if (context && context !== "ALL") {
+      filtered = filtered.filter((log) => log.context === context);
     }
-    
+
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(log => 
-        log.message.toLowerCase().includes(term) ||
-        (log.context && log.context.toLowerCase().includes(term))
+      filtered = filtered.filter(
+        (log) =>
+          log.message.toLowerCase().includes(term) ||
+          (log.context && log.context.toLowerCase().includes(term)),
       );
     }
-    
+
     return filtered;
   }
 
@@ -178,31 +182,31 @@ class SimpleSessionLogger {
   getStats() {
     const stats = {
       total: this.logs.length,
-      error: this.logs.filter(l => l.level === 'ERROR').length,
-      warn: this.logs.filter(l => l.level === 'WARN').length,
-      info: this.logs.filter(l => l.level === 'INFO').length,
-      debug: this.logs.filter(l => l.level === 'DEBUG').length,
-      contexts: [...new Set(this.logs.map(l => l.context).filter(Boolean))]
+      error: this.logs.filter((l) => l.level === "ERROR").length,
+      warn: this.logs.filter((l) => l.level === "WARN").length,
+      info: this.logs.filter((l) => l.level === "INFO").length,
+      debug: this.logs.filter((l) => l.level === "DEBUG").length,
+      contexts: [...new Set(this.logs.map((l) => l.context).filter(Boolean))],
     };
     return stats;
   }
 
   // Obtenir le chemin du fichier de logs (pour info)
   getLogFilePath() {
-    return 'swiftapp-logs.txt (in memory buffer)';
+    return "cobbr-logs.txt (in memory buffer)";
   }
 
   // Obtenir le contenu des logs comme si c'était un fichier
   getFileContent() {
-    const header = `=== SWIFTAPP SESSION LOGS ===
+    const header = `=== COBBR SESSION LOGS ===
 📅 Generated: ${new Date().toISOString()}
 🏗️ Platform: ${Platform.OS} ${Platform.Version}
-🔧 Environment: ${__DEV__ ? 'Development' : 'Production'}
+🔧 Environment: ${__DEV__ ? "Development" : "Production"}
 📝 Total Logs: ${this.logs.length}
 =================================================================
 
 `;
-    return header + this.fileBuffer.join('\n');
+    return header + this.fileBuffer.join("\n");
   }
 
   // Sauvegarder les logs dans un fichier virtuel (pour export)
@@ -215,14 +219,17 @@ class SimpleSessionLogger {
   // Résultat: Double interception → boucle infinie
   setupGlobalErrorCapture() {
     // NE RIEN FAIRE - logger.ts gère déjà l'interception de console.error
-    this.logInfo('⚠️ Global error capture delegated to logger.ts', 'error-capture');
-    
+    this.logInfo(
+      "⚠️ Global error capture delegated to logger.ts",
+      "error-capture",
+    );
+
     // try {
     //   // Capturer les erreurs console.error
     //   const originalError = console.error;
     //   console.error = (...args) => {
     //     originalError.apply(console, args);
-    //     
+    //
     //     this.logError(
     //       'Console Error Captured',
     //       { args: args.map(arg => String(arg)) },
@@ -242,16 +249,16 @@ class SimpleSessionLogger {
 export const simpleSessionLogger = new SimpleSessionLogger();
 
 // API simplifiée pour l'app
-export const logError = (message: string, error?: any, context?: string) => 
+export const logError = (message: string, error?: any, context?: string) =>
   simpleSessionLogger.logError(message, error, context);
 
-export const logWarning = (message: string, context?: string) => 
+export const logWarning = (message: string, context?: string) =>
   simpleSessionLogger.logWarning(message, context);
 
-export const logInfo = (message: string, context?: string) => 
+export const logInfo = (message: string, context?: string) =>
   simpleSessionLogger.logInfo(message, context);
 
-export const logDebug = (message: string, data?: any, context?: string) => 
+export const logDebug = (message: string, data?: any, context?: string) =>
   simpleSessionLogger.logDebug(message, data, context);
 
 export default simpleSessionLogger;

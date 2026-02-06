@@ -1,5 +1,5 @@
 // src/components/DevTools/SimpleSessionLogViewer.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
     Alert,
     Modal,
@@ -9,9 +9,9 @@ import {
     StyleSheet,
     Text,
     TouchableOpacity,
-    View
-} from 'react-native';
-import simpleSessionLogger from '../../services/simpleSessionLogger';
+    View,
+} from "react-native";
+import simpleSessionLogger from "../../services/simpleSessionLogger";
 
 interface SimpleSessionLogViewerProps {
   visible: boolean;
@@ -22,7 +22,7 @@ export const SimpleSessionLogViewer: React.FC<SimpleSessionLogViewerProps> = ({
   visible,
   onClose,
 }) => {
-  const [logContent, setLogContent] = useState<string>('');
+  const [logContent, setLogContent] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
 
   const loadLogs = async () => {
@@ -30,8 +30,8 @@ export const SimpleSessionLogViewer: React.FC<SimpleSessionLogViewerProps> = ({
     try {
       const content = simpleSessionLogger.getFormattedLogs();
       setLogContent(content);
-    } catch (error) {
-      Alert.alert('Erreur', 'Impossible de lire les logs de session');
+    } catch (error) {
+      Alert.alert("Erreur", "Impossible de lire les logs de session");
     } finally {
       setIsLoading(false);
     }
@@ -42,30 +42,33 @@ export const SimpleSessionLogViewer: React.FC<SimpleSessionLogViewerProps> = ({
       if (logContent) {
         await Share.share({
           message: logContent,
-          title: 'SwiftApp Session Logs (Simple)'
+          title: "Cobbr Session Logs (Simple)",
         });
       }
-    } catch (error) {
-      Alert.alert('Erreur', 'Impossible de partager les logs');
+    } catch (error) {
+      Alert.alert("Erreur", "Impossible de partager les logs");
     }
   };
 
   const clearLogs = () => {
     Alert.alert(
-      'Effacer les logs',
-      'Voulez-vous effacer les logs de la session actuelle ?',
+      "Effacer les logs",
+      "Voulez-vous effacer les logs de la session actuelle ?",
       [
-        { text: 'Annuler', style: 'cancel' },
+        { text: "Annuler", style: "cancel" },
         {
-          text: 'Effacer',
-          style: 'destructive',
+          text: "Effacer",
+          style: "destructive",
           onPress: () => {
             simpleSessionLogger.clearLogs();
-            simpleSessionLogger.logInfo('Logs cleared by user', 'log-management');
+            simpleSessionLogger.logInfo(
+              "Logs cleared by user",
+              "log-management",
+            );
             loadLogs();
-          }
-        }
-      ]
+          },
+        },
+      ],
     );
   };
 
@@ -130,7 +133,8 @@ export const SimpleSessionLogViewer: React.FC<SimpleSessionLogViewerProps> = ({
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            Logs en mémoire • Total: {simpleSessionLogger.getAllLogs().length} entrées
+            Logs en mémoire • Total: {simpleSessionLogger.getAllLogs().length}{" "}
+            entrées
           </Text>
         </View>
       </View>
@@ -166,26 +170,26 @@ export const SimpleSessionLogButton: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: "#1a1a1a",
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
-    backgroundColor: '#2a2a2a',
+    borderBottomColor: "#333",
+    backgroundColor: "#2a2a2a",
   },
   title: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     flex: 1,
   },
   headerButtons: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
   },
   button: {
@@ -193,35 +197,35 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 6,
     minWidth: 40,
-    alignItems: 'center',
+    alignItems: "center",
   },
   refreshButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: "#007AFF",
   },
   shareButton: {
-    backgroundColor: '#34C759',
+    backgroundColor: "#34C759",
   },
   clearButton: {
-    backgroundColor: '#FF9500',
+    backgroundColor: "#FF9500",
   },
   closeButton: {
-    backgroundColor: '#FF3B30',
+    backgroundColor: "#FF3B30",
   },
   buttonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   content: {
     flex: 1,
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingText: {
-    color: '#999',
+    color: "#999",
     fontSize: 16,
   },
   logContainer: {
@@ -229,42 +233,42 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   logText: {
-    color: '#00ff00',
+    color: "#00ff00",
     fontSize: 10,
     fontFamily: Platform.select({
-      ios: 'Courier',
-      android: 'monospace',
+      ios: "Courier",
+      android: "monospace",
     }),
     lineHeight: 14,
   },
   footer: {
     padding: 12,
     borderTopWidth: 1,
-    borderTopColor: '#333',
-    backgroundColor: '#2a2a2a',
+    borderTopColor: "#333",
+    backgroundColor: "#2a2a2a",
   },
   footerText: {
-    color: '#999',
+    color: "#999",
     fontSize: 10,
-    textAlign: 'center',
+    textAlign: "center",
   },
 });
 
 const logButtonStyles = StyleSheet.create({
   logButton: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 100,
     right: 20,
-    backgroundColor: '#007AFF',
+    backgroundColor: "#007AFF",
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
     zIndex: 1000,
   },
   logButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });
 

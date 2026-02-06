@@ -46,14 +46,25 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob, jobId }) => {
   // Hooks pour la gestion des notes
   // Utiliser jobId (ID numérique) au lieu de job?.id (code du job)
   const actualJobId = jobId || job?.id;
-  const { notes, isLoading, addNote, updateNote, deleteNote, refetch, unreadCount, markAllAsRead } =
-    useJobNotes(actualJobId);
+  const {
+    notes,
+    isLoading,
+    addNote,
+    updateNote,
+    deleteNote,
+    refetch,
+    unreadCount,
+    markAllAsRead,
+  } = useJobNotes(actualJobId);
   const { showSuccess, showError } = useToast();
 
   // ✅ Marquer automatiquement toutes les notes comme lues quand on ouvre la page
   useEffect(() => {
     if (unreadCount > 0) {
-      console.log("📖 [JobNote] Marking all notes as read on mount, unreadCount:", unreadCount);
+      console.log(
+        "📖 [JobNote] Marking all notes as read on mount, unreadCount:",
+        unreadCount,
+      );
       markAllAsRead();
     }
   }, []); // Exécuter seulement au montage du composant
@@ -165,19 +176,22 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob, jobId }) => {
               }
             } catch (error) {
               console.error("Error deleting note:", error);
-              const errorMsg = error instanceof Error ? error.message : "Failed to delete note";
-              
+              const errorMsg =
+                error instanceof Error
+                  ? error.message
+                  : "Failed to delete note";
+
               // Détection du problème de permissions
-              if (errorMsg.includes("401") || errorMsg.includes("Token invalide")) {
+              if (
+                errorMsg.includes("401") ||
+                errorMsg.includes("Token invalide")
+              ) {
                 showError(
                   t("common.error") || "Permission error",
                   "You may not have permission to delete this note. Only the creator can delete it.",
                 );
               } else {
-                showError(
-                  t("common.error") || "Delete error",
-                  errorMsg,
-                );
+                showError(t("common.error") || "Delete error", errorMsg);
               }
             }
           },
@@ -195,7 +209,7 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob, jobId }) => {
       content: note.content?.substring(0, 50),
       contentExists: !!note.content,
       type: note.note_type,
-      fullNote: note // Log complet pour voir la structure
+      fullNote: note, // Log complet pour voir la structure
     });
     setEditingNote(note);
     setIsNoteModalVisible(true);
@@ -411,14 +425,14 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob, jobId }) => {
                         borderLeftWidth: 4,
                         borderLeftColor: typeInfo.color,
                         opacity: isLocalNote ? 0.8 : 1,
-                        position: 'relative',
+                        position: "relative",
                       }}
                     >
                       {/* Indicateur de note non lue (point bleu) */}
                       {!note.is_read && !isLocalNote && (
                         <View
                           style={{
-                            position: 'absolute',
+                            position: "absolute",
                             top: DESIGN_TOKENS.spacing.lg,
                             right: DESIGN_TOKENS.spacing.lg,
                             width: 10,

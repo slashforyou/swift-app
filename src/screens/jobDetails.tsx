@@ -8,13 +8,14 @@ import React, { useCallback, useRef, useState } from "react";
 import { Alert, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import JobDetailsHeader from "../components/jobDetails/JobDetailsHeader";
+import { JobAssignmentActions, JobOwnershipBanner } from "../components/jobs";
 import AssignStaffModal from "../components/modals/AssignStaffModal";
 import EditJobModal from "../components/modals/EditJobModal";
 import TabMenu from "../components/ui/TabMenu";
 import Toast from "../components/ui/toastNotification";
 import {
-  generateStepsFromAddresses,
-  DEFAULT_STEPS,
+    DEFAULT_STEPS,
+    generateStepsFromAddresses,
 } from "../constants/JobStepsConfig";
 import { DESIGN_TOKENS } from "../constants/Styles";
 import { JobStateProvider } from "../context/JobStateProvider";
@@ -25,23 +26,25 @@ import { useJobNotes } from "../hooks/useJobNotes";
 import { usePerformanceMetrics } from "../hooks/usePerformanceMetrics";
 import { useLocalization } from "../localization/useLocalization";
 import {
-  assignStaffToJob,
-  getJobCrew,
-  removeCrewMember,
+    assignStaffToJob,
+    getJobCrew,
+    removeCrewMember,
 } from "../services/crewService";
 import {
-  filterServerCorrectableIssues,
-  requestServerCorrection,
+    filterServerCorrectableIssues,
+    requestServerCorrection,
 } from "../services/jobCorrection";
 import {
-  deleteJob,
-  updateJob as updateJobAPI,
-  UpdateJobRequest,
+    acceptJob,
+    declineJob,
+    deleteJob,
+    updateJob as updateJobAPI,
+    UpdateJobRequest,
 } from "../services/jobs";
 import { useAuthCheck } from "../utils/checkAuth";
 import {
-  formatValidationReport,
-  validateJobConsistency,
+    formatValidationReport,
+    validateJobConsistency,
 } from "../utils/jobValidation";
 import JobClient from "./JobDetailsScreens/client";
 import JobPage from "./JobDetailsScreens/job";
@@ -165,7 +168,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({
 
   // Récupération de l'ID du job depuis les paramètres de route ou props
   const actualJobId = route?.params?.jobId || jobId || route?.params?.id;
-  
+
   // Hook principal pour les données du job
   const {
     jobDetails,
@@ -182,7 +185,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({
     isPerformingAction,
     isSessionExpired,
   } = useJobDetails(actualJobId);
-  
+
   // Hook pour les notes avec compteur de non lues
   // Utiliser jobDetails?.job?.id (ID numérique) au lieu de actualJobId (code du job)
   const numericJobId = jobDetails?.job?.id || actualJobId;
@@ -453,6 +456,54 @@ const JobDetails: React.FC<JobDetailsProps> = ({
     );
   }, [actualJobId, navigation, showToast, t]);
 
+  // Handle Accept Job
+  const handleAcceptJob = useCallback(
+    async (notes?: string) => {
+      try {
+        console.log("✅ [JOB_ACTION] Accepting job...", {
+          jobId: actualJobId,
+          notes,
+        });
+        await acceptJob(actualJobId, notes);
+        console.log("✅ [JOB_ACTION] Job accepted successfully");
+        showToast(
+          t("jobs.acceptSuccess") || "Job accepted successfully",
+          "success",
+        );
+        await refreshJobDetails();
+      } catch (error) {
+        console.error("❌ [JOB_ACTION] Error accepting job:", error);
+        showToast(t("jobs.acceptError") || "Failed to accept job", "error");
+        throw error;
+      }
+    },
+    [actualJobId, refreshJobDetails, showToast, t],
+  );
+
+  // Handle Decline Job
+  const handleDeclineJob = useCallback(
+    async (reason: string) => {
+      try {
+        console.log("❌ [JOB_ACTION] Declining job...", {
+          jobId: actualJobId,
+          reason,
+        });
+        await declineJob(actualJobId, reason);
+        console.log("✅ [JOB_ACTION] Job declined successfully");
+        showToast(
+          t("jobs.declineSuccess") || "Job declined successfully",
+          "success",
+        );
+        navigation.goBack();
+      } catch (error) {
+        console.error("❌ [JOB_ACTION] Error declining job:", error);
+        showToast(t("jobs.declineError") || "Failed to decline job", "error");
+        throw error;
+      }
+    },
+    [actualJobId, navigation, showToast, t],
+  );
+
   // Effet pour mettre à jour les données locales quand jobDetails change
   React.useEffect(() => {
     if (jobDetails) {
@@ -655,6 +706,12 @@ const JobDetails: React.FC<JobDetailsProps> = ({
           end_window_end: jobDetails.job?.end_window_end,
           // Crew assigné au job
           crew: jobDetails.crew || [],
+          // ✅ Multi-entreprise: Ownership data
+          contractee: jobDetails.job?.contractee || prevJob.contractee,
+          contractor: jobDetails.job?.contractor || prevJob.contractor,
+          assignment_status:
+            jobDetails.job?.assignment_status || prevJob.assignment_status,
+          permissions: jobDetails.job?.permissions || prevJob.permissions,
         };
       });
       // TEMP_DISABLED: console.log('✅ [JobDetails] Local job data updated with API data');
@@ -739,10 +796,13 @@ const JobDetails: React.FC<JobDetailsProps> = ({
   const handleTabPress = (tabId: string) => {
     console.log("📑 [JOB_ACTION] Tab pressed:", tabId);
     setJobPanel(tabId);
-    
+
     // ✅ Marquer toutes les notes comme lues quand l'utilisateur ouvre l'onglet Notes
     if (tabId === "notes" && unreadCount > 0) {
-      console.log("🔔 [NOTES] Marking all notes as read, unreadCount:", unreadCount);
+      console.log(
+        "🔔 [NOTES] Marking all notes as read, unreadCount:",
+        unreadCount,
+      );
       markAllAsRead();
     }
   };
@@ -849,6 +909,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({
   return (
     <JobTimerProvider
       jobId={actualJobId}
+      realJobId={jobDetails?.job?.id} // ✅ FIX SESSION 10: Passer le vrai ID numérique
       currentStep={currentStep}
       totalSteps={totalSteps}
       addresses={job.addresses || []} // ✅ NOUVEAU: Passer les adresses pour calcul dynamique des steps
@@ -876,6 +937,34 @@ const JobDetails: React.FC<JobDetailsProps> = ({
           onAssignStaff={handleOpenAssignStaff}
         />
 
+        {/* Job Ownership Banner - Show if job is assigned from another company */}
+        {job.contractee &&
+          job.contractor &&
+          job.permissions &&
+          job.assignment_status && (
+            <JobOwnershipBanner
+              ownership={{
+                contractee: job.contractee,
+                contractor: job.contractor,
+                assignment_status: job.assignment_status,
+                permissions: job.permissions,
+              }}
+              variant="full"
+            />
+          )}
+
+        {/* Job Assignment Actions - Show if can accept or decline */}
+        {(job.permissions?.can_accept || job.permissions?.can_decline) && (
+          <JobAssignmentActions
+            jobId={job.id}
+            jobTitle={job.title || job.code || "Job"}
+            canAccept={job.permissions?.can_accept || false}
+            canDecline={job.permissions?.can_decline || false}
+            onAccept={handleAcceptJob}
+            onDecline={handleDeclineJob}
+          />
+        )}
+
         {/* ScrollView principal */}
         <ScrollView
           style={{ flex: 1 }}
@@ -897,7 +986,9 @@ const JobDetails: React.FC<JobDetailsProps> = ({
             <JobPage job={job} setJob={setJob} isVisible={jobPanel === "job"} />
           )}
           {jobPanel === "client" && <JobClient job={job} setJob={setJob} />}
-          {jobPanel === "notes" && <JobNote job={job} setJob={setJob} jobId={numericJobId} />}
+          {jobPanel === "notes" && (
+            <JobNote job={job} setJob={setJob} jobId={numericJobId} />
+          )}
           {jobPanel === "payment" && (
             <PaymentScreen job={job} setJob={setJob} />
           )}

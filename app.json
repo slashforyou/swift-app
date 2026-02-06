@@ -1,36 +1,41 @@
 {
   "expo": {
-    "name": "Swift App",
+    "name": "Cobbr",
     "slug": "swiftapp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "scheme": "swiftapp",
+    "scheme": "cobbr",
     "userInterfaceStyle": "automatic",
+    "icon": "./assets/images/logo-512.png",
+    "splash": {
+      "image": "./assets/images/logo-512.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F6F8FC"
+    },
     "entryPoint": "App.tsx",
     "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#7E3AF2"
-    },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.slash4u.swiftapp",
-      "buildNumber": "1"
+      "icon": "./assets/images/logo-512.png",
+      "bundleIdentifier": "com.slash4u.cobbr",
+      "buildNumber": "1",
+      "runtimeVersion": {
+        "policy": "appVersion"
+      }
     },
     "android": {
       "edgeToEdgeEnabled": true,
-      "package": "com.slash4u.swiftapp",
-      "versionCode": 1,
+      "icon": "./assets/images/logo-512.png",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#7E3AF2"
-      }
+        "foregroundImage": "./assets/images/logo-432.png",
+        "backgroundColor": "#F6F8FC"
+      },
+      "package": "com.slash4u.cobbr",
+      "versionCode": 1,
+      "runtimeVersion": "1.0.0"
     },
     "web": {
-      "bundler": "metro",
-      "favicon": "./assets/favicon.png"
+      "bundler": "metro"
     },
     "extra": {
       "APP_ENV": "development",
@@ -43,13 +48,25 @@
       "expo-font",
       "expo-web-browser",
       [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#F6F8FC",
+          "image": "./assets/images/logo-512.png",
+          "imageWidth": 120
+        }
+      ],
+      [
         "@stripe/stripe-react-native",
         {
-          "merchantIdentifier": "merchant.com.slash4u.swiftapp",
+          "merchantIdentifier": "merchant.com.slash4u.cobbr",
           "enableGooglePay": true
         }
-      ]
+      ],
+      "expo-asset"
     ],
-    "owner": "slash4u"
+    "owner": "slash4u",
+    "updates": {
+      "url": "https://u.expo.dev/197a33fd-1b2f-4c2e-b51b-b3ff8f976a80"
+    }
   }
 }

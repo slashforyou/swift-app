@@ -5,15 +5,16 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Modal,
-  Pressable,
-  Switch,
-  Text,
-  TextInput,
-  View,
+    ActivityIndicator,
+    Alert,
+    Modal,
+    Pressable,
+    Switch,
+    Text,
+    TextInput,
+    View,
 } from "react-native";
+import CompanyDetailsSection from "../../components/jobDetails/sections/CompanyDetailsSection";
 import { JobPhotosSection } from "../../components/jobDetails/sections/JobPhotosSection";
 import JobTimeSection from "../../components/jobDetails/sections/JobTimeSection";
 import { HStack, VStack } from "../../components/primitives/Stack";
@@ -1044,101 +1045,8 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob, isVisible = true }) => {
           </VStack>
         </Card>
 
-        {/* Contractor Details */}
-        {job.contractor &&
-          (job.contractor.Name ||
-            job.contractor.ContactName ||
-            job.contractor.Phone ||
-            job.contractor.Email) && (
-            <Card style={{ padding: DESIGN_TOKENS.spacing.lg }}>
-              <VStack gap="sm">
-                <SectionHeader
-                  icon="business-outline"
-                  title={t("jobDetails.job.contractor")}
-                />
-
-                {job.contractor.Name && (
-                  <InfoRow
-                    label={t("jobDetails.job.companyName")}
-                    value={job.contractor.Name}
-                  />
-                )}
-
-                {job.contractor.ContactName && (
-                  <InfoRow
-                    label={t("jobDetails.job.contactPerson")}
-                    value={job.contractor.ContactName}
-                  />
-                )}
-
-                {job.contractor.Phone && (
-                  <ContactRow
-                    label={t("jobDetails.client.phone")}
-                    value={job.contractor.Phone}
-                    contactType="tel"
-                    icon="call"
-                  />
-                )}
-
-                {job.contractor.Email && (
-                  <ContactRow
-                    label={t("jobDetails.client.email")}
-                    value={job.contractor.Email}
-                    contactType="mailto"
-                    icon="mail"
-                  />
-                )}
-              </VStack>
-            </Card>
-          )}
-
-        {/* Contractee Details */}
-        {job.contractee &&
-          (job.contractee.Name ||
-            job.contractee.ContactName ||
-            job.contractee.Phone ||
-            job.contractee.Email) && (
-            <Card style={{ padding: DESIGN_TOKENS.spacing.lg }}>
-              <VStack gap="sm">
-                <SectionHeader
-                  icon="people-outline"
-                  title={t("jobDetails.job.contractee")}
-                />
-
-                {job.contractee.Name && (
-                  <InfoRow
-                    label={t("jobDetails.job.companyName")}
-                    value={job.contractee.Name}
-                  />
-                )}
-
-                {job.contractee.ContactName && (
-                  <InfoRow
-                    label={t("jobDetails.job.contactPerson")}
-                    value={job.contractee.ContactName}
-                  />
-                )}
-
-                {job.contractee.Phone && (
-                  <ContactRow
-                    label={t("jobDetails.client.phone")}
-                    value={job.contractee.Phone}
-                    contactType="tel"
-                    icon="call"
-                  />
-                )}
-
-                {job.contractee.Email && (
-                  <ContactRow
-                    label={t("jobDetails.client.email")}
-                    value={job.contractee.Email}
-                    contactType="mailto"
-                    icon="mail"
-                  />
-                )}
-              </VStack>
-            </Card>
-          )}
+        {/* Company Details - Gère intelligemment job interne vs multi-entreprise */}
+        <CompanyDetailsSection job={job} />
       </VStack>
 
       {/* Modal d'ajout d'item */}

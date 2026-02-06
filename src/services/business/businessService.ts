@@ -2,8 +2,8 @@
  * BusinessService - Service API pour la gestion d'entreprise
  * Endpoints Company Management
  */
-import { ServerData } from '../../constants/ServerData';
-import { fetchWithAuth } from '../../utils/session';
+import { ServerData } from "../../constants/ServerData";
+import { fetchWithAuth } from "../../utils/session";
 
 // Types Business
 export interface BusinessInfo {
@@ -46,19 +46,19 @@ interface BusinessListResponse {
 
 // Mock data pour fallback
 const mockBusinessInfo: BusinessInfo = {
-  id: 'swift-removals-001',
-  name: 'Swift Removals',
-  abn: '12 345 678 901',
-  address: '123 Business Street',
-  city: 'Sydney',
-  state: 'NSW',
-  postcode: '2000',
-  phone: '+61 2 9000 0000',
-  email: 'info@swiftremoval.com.au',
-  businessType: 'Moving Services',
-  website: 'www.swiftremoval.com.au',
-  created_at: '2023-01-01T00:00:00Z',
-  updated_at: '2024-10-20T00:00:00Z'
+  id: "swift-removals-001",
+  name: "Swift Removals",
+  abn: "12 345 678 901",
+  address: "123 Business Street",
+  city: "Sydney",
+  state: "NSW",
+  postcode: "2000",
+  phone: "+61 2 9000 0000",
+  email: "info@swiftremoval.com.au",
+  businessType: "Moving Services",
+  website: "www.swiftremoval.com.au",
+  created_at: "2023-01-01T00:00:00Z",
+  updated_at: "2024-10-20T00:00:00Z",
 };
 
 const mockBusinessStats: BusinessStats = {
@@ -68,7 +68,7 @@ const mockBusinessStats: BusinessStats = {
   totalVehicles: 5,
   activeVehicles: 4,
   monthlyRevenue: 85000,
-  averageJobValue: 1250
+  averageJobValue: 1250,
 };
 
 /**
@@ -76,46 +76,78 @@ const mockBusinessStats: BusinessStats = {
  */
 export const fetchBusinessList = async (): Promise<BusinessInfo[]> => {
   try {
-    const response = await fetchWithAuth(`${ServerData.serverUrl}v1/companies`, {
-      method: 'GET',
-    });
+    console.log(
+      "[BusinessService] Fetching business list from:",
+      `${ServerData.serverUrl}v1/companies`,
+    );
+
+    const response = await fetchWithAuth(
+      `${ServerData.serverUrl}v1/companies`,
+      {
+        method: "GET",
+      },
+    );
+
+    console.log("[BusinessService] Response status:", response.status);
 
     if (!response.ok) {
+      console.warn(
+        "[BusinessService] API returned non-OK status, using fallback mock data",
+      );
       // Fallback silencieux sur mock data si l'API n'est pas disponible
       return [mockBusinessInfo];
     }
-    
+
     if (response.status >= 400) {
-      throw new Error(`Business List API failed with status ${response.status}`);
+      throw new Error(
+        `Business List API failed with status ${response.status}`,
+      );
     }
 
     const data: BusinessListResponse = await response.json();
-    
+    console.log("[BusinessService] API response data:", data);
+
     if (!data.success) {
+      console.warn(
+        "[BusinessService] API returned success=false, using fallback mock data",
+      );
       // Fallback silencieux sur mock data
       return [mockBusinessInfo];
     }
 
+    console.log(
+      "[BusinessService] Successfully fetched",
+      data.companies?.length || 0,
+      "companies",
+    );
     return data.companies || [];
   } catch (error) {
-
-    console.error('Error fetching business list:', error);
+    console.error("[BusinessService] Error fetching business list:", error);
     if (__DEV__) {
-      console.warn('Using mock business data as fallback in development');
+      console.warn(
+        "[BusinessService] Using mock business data as fallback in development",
+      );
       return [mockBusinessInfo];
     }
-    throw new Error(`Failed to fetch business list: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(
+      `Failed to fetch business list: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
 };
 
 /**
  * Récupère les détails d'une entreprise par ID
  */
-export const fetchBusinessDetails = async (companyId: string): Promise<BusinessInfo> => {
+export const fetchBusinessDetails = async (
+  companyId: string,
+): Promise<BusinessInfo> => {
   try {
-    const response = await fetchWithAuth(`${ServerData.serverUrl}v1/company/${companyId}`, {
-      method: 'GET',
-    });
+    const response = await fetchWithAuth(
+      `${ServerData.serverUrl}v1/company/${companyId}`,
+      {
+        method: "GET",
+      },
+    );
 
     if (!response.ok) {
       // Fallback silencieux sur mock data
@@ -123,7 +155,7 @@ export const fetchBusinessDetails = async (companyId: string): Promise<BusinessI
     }
 
     const data: BusinessResponse = await response.json();
-    
+
     if (!data.success || !data.company) {
       // Fallback silencieux sur mock data
       return { ...mockBusinessInfo, id: companyId };
@@ -131,13 +163,14 @@ export const fetchBusinessDetails = async (companyId: string): Promise<BusinessI
 
     return data.company;
   } catch (error) {
-
-    console.error('Error fetching business details:', error);
+    console.error("Error fetching business details:", error);
     if (__DEV__) {
-      console.warn('Using mock business details as fallback in development');
+      console.warn("Using mock business details as fallback in development");
       return { ...mockBusinessInfo, id: companyId };
     }
-    throw new Error(`Failed to fetch business details for ${companyId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(
+      `Failed to fetch business details for ${companyId}: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
 };
 
@@ -145,33 +178,35 @@ export const fetchBusinessDetails = async (companyId: string): Promise<BusinessI
  * Met à jour les informations d'une entreprise
  */
 export const updateBusinessInfo = async (
-  companyId: string, 
-  updates: Partial<Omit<BusinessInfo, 'id' | 'created_at' | 'updated_at'>>
+  companyId: string,
+  updates: Partial<Omit<BusinessInfo, "id" | "created_at" | "updated_at">>,
 ): Promise<BusinessInfo> => {
   try {
-    const response = await fetchWithAuth(`${ServerData.serverUrl}v1/company/${companyId}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
+    const response = await fetchWithAuth(
+      `${ServerData.serverUrl}v1/company/${companyId}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updates),
       },
-      body: JSON.stringify(updates),
-    });
+    );
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data: BusinessResponse = await response.json();
-    
+
     if (!data.success || !data.company) {
-      throw new Error('API returned invalid business data');
+      throw new Error("API returned invalid business data");
     }
 
     return data.company;
   } catch (error) {
-
-    console.error('Error updating business info:', error);
-    throw new Error('Failed to update business information');
+    console.error("Error updating business info:", error);
+    throw new Error("Failed to update business information");
   }
 };
 
@@ -179,13 +214,13 @@ export const updateBusinessInfo = async (
  * Crée une nouvelle entreprise
  */
 export const createBusiness = async (
-  businessData: Omit<BusinessInfo, 'id' | 'created_at' | 'updated_at'>
+  businessData: Omit<BusinessInfo, "id" | "created_at" | "updated_at">,
 ): Promise<BusinessInfo> => {
   try {
     const response = await fetchWithAuth(`${ServerData.serverUrl}v1/company`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(businessData),
     });
@@ -195,16 +230,15 @@ export const createBusiness = async (
     }
 
     const data: BusinessResponse = await response.json();
-    
+
     if (!data.success || !data.company) {
-      throw new Error('API returned invalid business data');
+      throw new Error("API returned invalid business data");
     }
 
     return data.company;
   } catch (error) {
-
-    console.error('Error creating business:', error);
-    throw new Error('Failed to create business');
+    console.error("Error creating business:", error);
+    throw new Error("Failed to create business");
   }
 };
 
@@ -214,11 +248,16 @@ export const createBusiness = async (
 /**
  * Récupère les statistiques d'une entreprise
  */
-export const fetchBusinessStats = async (companyId: string): Promise<BusinessStats> => {
+export const fetchBusinessStats = async (
+  companyId: string,
+): Promise<BusinessStats> => {
   try {
-    const response = await fetchWithAuth(`${ServerData.serverUrl}v1/company/${companyId}/stats`, {
-      method: 'GET',
-    });
+    const response = await fetchWithAuth(
+      `${ServerData.serverUrl}v1/company/${companyId}/stats`,
+      {
+        method: "GET",
+      },
+    );
 
     if (!response.ok) {
       // Fallback silencieux sur mock data
@@ -226,7 +265,7 @@ export const fetchBusinessStats = async (companyId: string): Promise<BusinessSta
     }
 
     const data = await response.json();
-    
+
     if (!data.success || !data.stats) {
       // Fallback silencieux sur mock data
       return mockBusinessStats;
@@ -241,22 +280,24 @@ export const fetchBusinessStats = async (companyId: string): Promise<BusinessSta
 
 export const deleteBusiness = async (companyId: string): Promise<void> => {
   try {
-    const response = await fetchWithAuth(`${ServerData.serverUrl}v1/company/${companyId}`, {
-      method: 'DELETE',
-    });
+    const response = await fetchWithAuth(
+      `${ServerData.serverUrl}v1/company/${companyId}`,
+      {
+        method: "DELETE",
+      },
+    );
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();
-    
+
     if (!data.success) {
-      throw new Error('API returned success: false');
+      throw new Error("API returned success: false");
     }
   } catch (error) {
-
-    console.error('Error deleting business:', error);
-    throw new Error('Failed to delete business');
+    console.error("Error deleting business:", error);
+    throw new Error("Failed to delete business");
   }
 };
