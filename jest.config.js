@@ -23,7 +23,6 @@ module.exports = {
     '/__tests__/hooks/useJobTimer.test.ts',
     '/__tests__/utils/jobValidation.test.ts',
     '/__tests__/components/JobsBillingScreen.test.tsx',
-    '/src/__tests__/localization.test.ts',
   ],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',

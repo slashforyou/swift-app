@@ -1,8 +1,8 @@
 /**
  * PayoutDetailModal - Modal affichant les détails d'un payout Stripe
  */
-import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
+import { Ionicons } from "@expo/vector-icons";
+import React from "react";
 import {
     Modal,
     Pressable,
@@ -10,11 +10,16 @@ import {
     StyleSheet,
     Text,
     View,
-} from 'react-native';
-import { DESIGN_TOKENS } from '../../constants/Styles';
-import { useTheme } from '../../context/ThemeProvider';
-import type { Payout } from '../../hooks/useStripe';
-import { formatDateWithDay, formatCurrency as formatLocalizedCurrency, formatTime as formatLocalizedTime, useLocalization } from '../../localization';
+} from "react-native";
+import { DESIGN_TOKENS } from "../../constants/Styles";
+import { useTheme } from "../../context/ThemeProvider";
+import type { Payout } from "../../hooks/useStripe";
+import {
+    formatDateWithDay,
+    formatCurrency as formatLocalizedCurrency,
+    formatTime as formatLocalizedTime,
+    useLocalization,
+} from "../../localization";
 
 interface PayoutDetailModalProps {
   visible: boolean;
@@ -28,64 +33,68 @@ export default function PayoutDetailModal({
   onClose,
 }: PayoutDetailModalProps) {
   const { colors } = useTheme();
-  const { currentLanguage } = useLocalization();
+  const { currentLanguage, t } = useLocalization();
 
   if (!payout) return null;
 
-  const formatCurrency = (amount: number, currency: string = 'EUR') => {
-    return formatLocalizedCurrency(amount * 100, currentLanguage, currency.toUpperCase());
+  const formatCurrency = (amount: number, currency: string = "EUR") => {
+    return formatLocalizedCurrency(
+      amount * 100,
+      currentLanguage,
+      currency.toUpperCase(),
+    );
   };
 
   const formatDate = (dateString: string) => {
-    return formatDateWithDay(dateString, currentLanguage);
+    return formatDateWithDay(dateString, currentLanguage, t);
   };
 
   const formatTime = (dateString: string) => {
     return formatLocalizedTime(dateString, currentLanguage);
   };
 
-  const getStatusColor = (status: Payout['status']) => {
+  const getStatusColor = (status: Payout["status"]) => {
     switch (status) {
-      case 'paid':
+      case "paid":
         return colors.success;
-      case 'in_transit':
+      case "in_transit":
         return colors.warning;
-      case 'pending':
+      case "pending":
         return colors.info;
-      case 'failed':
+      case "failed":
         return colors.error;
       default:
         return colors.textSecondary;
     }
   };
 
-  const getStatusLabel = (status: Payout['status']) => {
+  const getStatusLabel = (status: Payout["status"]) => {
     switch (status) {
-      case 'paid':
-        return 'Completed';
-      case 'in_transit':
-        return 'In Transit';
-      case 'pending':
-        return 'Pending';
-      case 'failed':
-        return 'Failed';
+      case "paid":
+        return "Completed";
+      case "in_transit":
+        return "In Transit";
+      case "pending":
+        return "Pending";
+      case "failed":
+        return "Failed";
       default:
         return status;
     }
   };
 
-  const getStatusIcon = (status: Payout['status']) => {
+  const getStatusIcon = (status: Payout["status"]) => {
     switch (status) {
-      case 'paid':
-        return 'checkmark-circle';
-      case 'in_transit':
-        return 'airplane';
-      case 'pending':
-        return 'time';
-      case 'failed':
-        return 'close-circle';
+      case "paid":
+        return "checkmark-circle";
+      case "in_transit":
+        return "airplane";
+      case "pending":
+        return "time";
+      case "failed":
+        return "close-circle";
       default:
-        return 'help-circle';
+        return "help-circle";
     }
   };
 
@@ -108,35 +117,62 @@ export default function PayoutDetailModal({
           <View style={{ width: 44 }} />
         </View>
 
-        <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
+        <ScrollView
+          style={styles.content}
+          contentContainerStyle={styles.contentContainer}
+        >
           {/* Amount Card */}
-          <View style={[styles.amountCard, { backgroundColor: colors.primary }]}>
+          <View
+            style={[styles.amountCard, { backgroundColor: colors.primary }]}
+          >
             <Text style={styles.amountLabel}>Amount</Text>
-            <Text style={[styles.amountValue, { color: colors.buttonPrimaryText }]}>
+            <Text
+              style={[styles.amountValue, { color: colors.buttonPrimaryText }]}
+            >
               {formatCurrency(payout.amount, payout.currency)}
             </Text>
-            <View style={[styles.statusBadge, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
+            <View
+              style={[
+                styles.statusBadge,
+                { backgroundColor: "rgba(255,255,255,0.2)" },
+              ]}
+            >
               <Ionicons
                 name={getStatusIcon(payout.status) as any}
                 size={16}
                 color={colors.buttonPrimaryText}
               />
-              <Text style={[styles.statusText, { color: colors.buttonPrimaryText }]}>{getStatusLabel(payout.status)}</Text>
+              <Text
+                style={[styles.statusText, { color: colors.buttonPrimaryText }]}
+              >
+                {getStatusLabel(payout.status)}
+              </Text>
             </View>
           </View>
 
           {/* Details Section */}
-          <View style={[styles.section, { backgroundColor: colors.backgroundSecondary }]}>
+          <View
+            style={[
+              styles.section,
+              { backgroundColor: colors.backgroundSecondary },
+            ]}
+          >
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
               Transaction Details
             </Text>
 
             <View style={styles.detailRow}>
               <View style={styles.detailIcon}>
-                <Ionicons name="finger-print-outline" size={20} color={colors.textSecondary} />
+                <Ionicons
+                  name="finger-print-outline"
+                  size={20}
+                  color={colors.textSecondary}
+                />
               </View>
               <View style={styles.detailContent}>
-                <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
+                <Text
+                  style={[styles.detailLabel, { color: colors.textSecondary }]}
+                >
                   Payout ID
                 </Text>
                 <Text style={[styles.detailValue, { color: colors.text }]}>
@@ -147,10 +183,16 @@ export default function PayoutDetailModal({
 
             <View style={styles.detailRow}>
               <View style={styles.detailIcon}>
-                <Ionicons name="calendar-outline" size={20} color={colors.textSecondary} />
+                <Ionicons
+                  name="calendar-outline"
+                  size={20}
+                  color={colors.textSecondary}
+                />
               </View>
               <View style={styles.detailContent}>
-                <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
+                <Text
+                  style={[styles.detailLabel, { color: colors.textSecondary }]}
+                >
                   Created Date
                 </Text>
                 <Text style={[styles.detailValue, { color: colors.text }]}>
@@ -161,48 +203,79 @@ export default function PayoutDetailModal({
 
             <View style={styles.detailRow}>
               <View style={styles.detailIcon}>
-                <Ionicons name="time-outline" size={20} color={colors.textSecondary} />
+                <Ionicons
+                  name="time-outline"
+                  size={20}
+                  color={colors.textSecondary}
+                />
               </View>
               <View style={styles.detailContent}>
-                <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
+                <Text
+                  style={[styles.detailLabel, { color: colors.textSecondary }]}
+                >
                   Expected Arrival
                 </Text>
                 <Text style={[styles.detailValue, { color: colors.text }]}>
-                  {formatDate(payout.arrivalDate)} at {formatTime(payout.arrivalDate)}
+                  {formatDate(payout.arrivalDate)} at{" "}
+                  {formatTime(payout.arrivalDate)}
                 </Text>
               </View>
             </View>
 
             <View style={styles.detailRow}>
               <View style={styles.detailIcon}>
-                <Ionicons name="swap-horizontal-outline" size={20} color={colors.textSecondary} />
+                <Ionicons
+                  name="swap-horizontal-outline"
+                  size={20}
+                  color={colors.textSecondary}
+                />
               </View>
               <View style={styles.detailContent}>
-                <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
+                <Text
+                  style={[styles.detailLabel, { color: colors.textSecondary }]}
+                >
                   Type
                 </Text>
                 <Text style={[styles.detailValue, { color: colors.text }]}>
-                  {payout.type === 'bank_account' ? 'Bank Transfer' : payout.type}
+                  {payout.type === "bank_account"
+                    ? "Bank Transfer"
+                    : payout.type}
                 </Text>
               </View>
             </View>
           </View>
 
           {/* Bank Details */}
-          <View style={[styles.section, { backgroundColor: colors.backgroundSecondary }]}>
+          <View
+            style={[
+              styles.section,
+              { backgroundColor: colors.backgroundSecondary },
+            ]}
+          >
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
               Destination
             </Text>
 
             <View style={styles.bankInfo}>
-              <View style={[styles.bankIcon, { backgroundColor: colors.primary + '20' }]}>
-                <Ionicons name="business-outline" size={24} color={colors.primary} />
+              <View
+                style={[
+                  styles.bankIcon,
+                  { backgroundColor: colors.primary + "20" },
+                ]}
+              >
+                <Ionicons
+                  name="business-outline"
+                  size={24}
+                  color={colors.primary}
+                />
               </View>
               <View style={styles.bankDetails}>
                 <Text style={[styles.bankName, { color: colors.text }]}>
                   Bank Account
                 </Text>
-                <Text style={[styles.bankAccount, { color: colors.textSecondary }]}>
+                <Text
+                  style={[styles.bankAccount, { color: colors.textSecondary }]}
+                >
                   •••• •••• •••• (ending with bank account)
                 </Text>
               </View>
@@ -210,7 +283,12 @@ export default function PayoutDetailModal({
           </View>
 
           {/* Status Timeline */}
-          <View style={[styles.section, { backgroundColor: colors.backgroundSecondary }]}>
+          <View
+            style={[
+              styles.section,
+              { backgroundColor: colors.backgroundSecondary },
+            ]}
+          >
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
               Status Timeline
             </Text>
@@ -227,16 +305,26 @@ export default function PayoutDetailModal({
               <TimelineItem
                 icon="airplane"
                 title="In Transit"
-                subtitle={payout.status === 'in_transit' || payout.status === 'paid' ? 'Processing...' : 'Pending'}
-                isCompleted={payout.status === 'in_transit' || payout.status === 'paid'}
+                subtitle={
+                  payout.status === "in_transit" || payout.status === "paid"
+                    ? "Processing..."
+                    : "Pending"
+                }
+                isCompleted={
+                  payout.status === "in_transit" || payout.status === "paid"
+                }
                 isLast={false}
                 colors={colors}
               />
               <TimelineItem
                 icon="checkmark-done-circle"
                 title="Delivered"
-                subtitle={payout.status === 'paid' ? formatDate(payout.arrivalDate) : 'Pending'}
-                isCompleted={payout.status === 'paid'}
+                subtitle={
+                  payout.status === "paid"
+                    ? formatDate(payout.arrivalDate)
+                    : "Pending"
+                }
+                isCompleted={payout.status === "paid"}
                 isLast={true}
                 colors={colors}
               />
@@ -258,13 +346,22 @@ interface TimelineItemProps {
   colors: any;
 }
 
-const TimelineItem = ({ icon, title, subtitle, isCompleted, isLast, colors }: TimelineItemProps) => (
+const TimelineItem = ({
+  icon,
+  title,
+  subtitle,
+  isCompleted,
+  isLast,
+  colors,
+}: TimelineItemProps) => (
   <View style={styles.timelineItem}>
     <View style={styles.timelineLeft}>
-      <View style={[
-        styles.timelineIcon,
-        { backgroundColor: isCompleted ? colors.success : colors.border }
-      ]}>
+      <View
+        style={[
+          styles.timelineIcon,
+          { backgroundColor: isCompleted ? colors.success : colors.border },
+        ]}
+      >
         <Ionicons
           name={icon as any}
           size={16}
@@ -272,15 +369,21 @@ const TimelineItem = ({ icon, title, subtitle, isCompleted, isLast, colors }: Ti
         />
       </View>
       {!isLast && (
-        <View style={[
-          styles.timelineLine,
-          { backgroundColor: isCompleted ? colors.success : colors.border }
-        ]} />
+        <View
+          style={[
+            styles.timelineLine,
+            { backgroundColor: isCompleted ? colors.success : colors.border },
+          ]}
+        />
       )}
     </View>
     <View style={styles.timelineContent}>
-      <Text style={[styles.timelineTitle, { color: colors.text }]}>{title}</Text>
-      <Text style={[styles.timelineSubtitle, { color: colors.textSecondary }]}>{subtitle}</Text>
+      <Text style={[styles.timelineTitle, { color: colors.text }]}>
+        {title}
+      </Text>
+      <Text style={[styles.timelineSubtitle, { color: colors.textSecondary }]}>
+        {subtitle}
+      </Text>
     </View>
   </View>
 );
@@ -290,21 +393,21 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     padding: DESIGN_TOKENS.spacing.md,
     borderBottomWidth: 1,
   },
   closeButton: {
     width: 44,
     height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   content: {
     flex: 1,
@@ -316,31 +419,31 @@ const styles = StyleSheet.create({
   amountCard: {
     padding: DESIGN_TOKENS.spacing.xl,
     borderRadius: DESIGN_TOKENS.radius.lg,
-    alignItems: 'center',
+    alignItems: "center",
   },
   amountLabel: {
-    color: 'rgba(255,255,255,0.8)',
+    color: "rgba(255,255,255,0.8)",
     fontSize: 14,
     marginBottom: DESIGN_TOKENS.spacing.xs,
   },
   amountValue: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 36,
-    fontWeight: '700',
+    fontWeight: "700",
     marginBottom: DESIGN_TOKENS.spacing.md,
   },
   statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: DESIGN_TOKENS.spacing.md,
     paddingVertical: DESIGN_TOKENS.spacing.sm,
     borderRadius: 999,
     gap: DESIGN_TOKENS.spacing.xs,
   },
   statusText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   section: {
     padding: DESIGN_TOKENS.spacing.lg,
@@ -348,19 +451,19 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: DESIGN_TOKENS.spacing.md,
   },
   detailRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
     marginBottom: DESIGN_TOKENS.spacing.md,
   },
   detailIcon: {
     width: 40,
     height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   detailContent: {
     flex: 1,
@@ -371,26 +474,26 @@ const styles = StyleSheet.create({
   },
   detailValue: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   bankInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: DESIGN_TOKENS.spacing.md,
   },
   bankIcon: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   bankDetails: {
     flex: 1,
   },
   bankName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 2,
   },
   bankAccount: {
@@ -400,19 +503,19 @@ const styles = StyleSheet.create({
     paddingLeft: DESIGN_TOKENS.spacing.xs,
   },
   timelineItem: {
-    flexDirection: 'row',
+    flexDirection: "row",
     minHeight: 60,
   },
   timelineLeft: {
-    alignItems: 'center',
+    alignItems: "center",
     width: 40,
   },
   timelineIcon: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   timelineLine: {
     width: 2,
@@ -426,7 +529,7 @@ const styles = StyleSheet.create({
   },
   timelineTitle: {
     fontSize: 15,
-    fontWeight: '500',
+    fontWeight: "500",
     marginBottom: 2,
   },
   timelineSubtitle: {

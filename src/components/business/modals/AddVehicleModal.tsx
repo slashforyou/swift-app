@@ -22,6 +22,7 @@ import { HStack, VStack } from '../../primitives/Stack';
 // Hooks & Utils
 import { DESIGN_TOKENS } from '../../../constants/Styles';
 import { useTheme } from '../../../context/ThemeProvider';
+import { useTranslation } from '../../../localization';
 
 // Types
 interface Vehicle {
@@ -77,6 +78,7 @@ const AddVehicleModal: React.FC<AddVehicleModalProps> = ({
   onSubmit,
 }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   
   // État du formulaire
   const [formData, setFormData] = useState<Vehicle>({
@@ -399,9 +401,16 @@ const AddVehicleModal: React.FC<AddVehicleModalProps> = ({
       
       onClose();
       
-      Alert.alert('Success', 'Vehicle added successfully!');
-    } catch (error) {
-      Alert.alert('Error', 'Failed to add vehicle. Please try again.');
+      Alert.alert(
+        t('businessModals.addVehicle.successTitle'),
+        t('businessModals.addVehicle.successMessage'),
+      );
+    } catch (error) {
+
+      Alert.alert(
+        t('businessModals.addVehicle.errorTitle'),
+        t('businessModals.addVehicle.errorMessage'),
+      );
     } finally {
       setIsSubmitting(false);
     }

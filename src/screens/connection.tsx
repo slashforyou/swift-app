@@ -1,13 +1,9 @@
 import React, { useEffect, useState } from "react";
-import {
-    ActivityIndicator,
-    Image,
-    Pressable,
-    Text,
-    View,
-    useColorScheme,
-} from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import HeaderLogo from "../components/ui/HeaderLogo";
+import RoundLanguageButton from "../components/ui/RoundLanguageButton";
+import MascotLoading from "../components/ui/MascotLoading";
 import { useCommonThemedStyles } from "../hooks/useCommonStyles";
 import { useTranslation } from "../localization";
 import { ensureSession } from "../utils/session";
@@ -29,7 +25,6 @@ interface ConnectionScreenProps {
 const ConnectionScreen: React.FC<ConnectionScreenProps> = ({ navigation }) => {
   const { colors, styles } = useCommonThemedStyles();
   const { t } = useTranslation();
-  const colorScheme = useColorScheme();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -53,46 +48,33 @@ const ConnectionScreen: React.FC<ConnectionScreenProps> = ({ navigation }) => {
   }, [navigation]);
 
   if (isLoading) {
-    return (
-      <SafeAreaView style={styles.containerCentered}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text
-          style={[
-            styles.body,
-            { color: colors.textSecondary, marginTop: 16, textAlign: "center" },
-          ]}
-        >
-          {t("common.loading")}
-        </Text>
-      </SafeAreaView>
-    );
+    return <MascotLoading text={t("common.loading")} />;
   }
 
   return (
     <SafeAreaView style={styles.container}>
+      <View
+        style={{
+          position: "absolute",
+          top: 28,
+          right: 32,
+          zIndex: 10,
+        }}
+      >
+        <RoundLanguageButton />
+      </View>
       <View style={styles.containerCentered}>
         {/* Logo Section */}
         <View
           style={{
             width: 200,
-            height: 200,
+            height: 100,
             justifyContent: "center",
             alignItems: "center",
             marginBottom: 30,
           }}
         >
-          <Image
-            source={
-              colorScheme === "dark"
-                ? require("../../assets/images/logo-nom-dark-512.png")
-                : require("../../assets/images/logo-nom-512.png")
-            }
-            style={{
-              width: 200,
-              height: 200,
-              resizeMode: "contain",
-            }}
-          />
+          <HeaderLogo preset="md" variant="square" marginVertical={0} />
         </View>
 
         {/* Welcome Text */}

@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import { Alert, ScrollView, View } from 'react-native';
+import { useTranslation } from '../localization';
 
 // Import du design system complet
 import {
@@ -25,6 +26,7 @@ import {
 } from '@/src/design-system/components';
 
 const DesignSystemDemo: React.FC = () => {
+  const { t } = useTranslation();
   const [inputValue, setInputValue] = useState('');
   const [inputError, setInputError] = useState('');
   
@@ -32,13 +34,16 @@ const DesignSystemDemo: React.FC = () => {
   const { theme, colors } = useTheme();
 
   const handleButtonPress = (variant: string) => {
-    Alert.alert('Bouton pressé', `Variant: ${variant}`);
+    Alert.alert(
+      t('devTools.designSystemDemo.buttonPressedTitle'),
+      t('devTools.designSystemDemo.buttonPressedMessage', { variant }),
+    );
   };
 
   const handleInputChange = (text: string) => {
     setInputValue(text);
     if (text.length < 3 && text.length > 0) {
-      setInputError('Minimum 3 caractères');
+      setInputError(t('devTools.designSystemDemo.minCharsError'));
     } else {
       setInputError('');
     }

@@ -8,7 +8,11 @@
 import { useCallback } from "react";
 import { Alert } from "react-native";
 import { useJobTimerContext } from "../context/JobTimerProvider";
-import { createStripeInvoice } from "../services/StripeService";
+import {
+  confirmInvoicePayment,
+  createInvoicePaymentIntent,
+  createStripeInvoice,
+} from "../services/StripeService";
 import type { Invoice } from "../services/pricing/PricingConfig";
 import { PricingService } from "../services/pricing/PricingService";
 
@@ -151,21 +155,28 @@ export const useInvoice = () => {
                     job,
                     sendByEmail: true,
                     onSuccess: () => {
-                      Alert.alert("✅", t("payment.window.invoiceSent"));
+                      Alert.alert(
+                        t("common.success"),
+                        t("payment.window.invoiceSent"),
+                      );
                       resolve();
                     },
                     onError: (error) => {
                       Alert.alert(
-                        "Erreur",
-                        `Impossible d'envoyer la facture: ${error.message}`,
+                        t("payment.window.invoiceSendErrorTitle"),
+                        t("payment.window.invoiceSendErrorMessage", {
+                          message: error.message,
+                        } as any),
                       );
                       reject(error);
                     },
                   });
                 } catch (error) {
                   Alert.alert(
-                    "Erreur",
-                    `Impossible d'envoyer la facture: ${(error as Error).message}`,
+                    t("payment.window.invoiceSendErrorTitle"),
+                    t("payment.window.invoiceSendErrorMessage", {
+                      message: (error as Error).message,
+                    } as any),
                   );
                   reject(error);
                 }
@@ -178,9 +189,31 @@ export const useInvoice = () => {
     [sendInvoice],
   );
 
+  const createPaymentIntent = useCallback(
+    async (invoiceId: number, options?: { save_card?: boolean }) => {
+      return createInvoicePaymentIntent({
+        invoice_id: invoiceId,
+        save_card: options?.save_card,
+      });
+    },
+    [],
+  );
+
+  const confirmPayment = useCallback(
+    async (paymentIntentId: string, paymentMethod?: string) => {
+      return confirmInvoicePayment({
+        payment_intent_id: paymentIntentId,
+        payment_method: paymentMethod,
+      });
+    },
+    [],
+  );
+
   return {
     generateInvoiceData,
     sendInvoice,
     sendInvoiceWithConfirmation,
+    createPaymentIntent,
+    confirmPayment,
   };
 };

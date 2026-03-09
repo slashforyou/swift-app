@@ -5,16 +5,24 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React from "react";
 import {
+    ActivityIndicator,
+    Alert,
     ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
     View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+    SafeAreaView,
+    useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { DESIGN_TOKENS } from "../../../constants/Styles";
 import { useTheme } from "../../../context/ThemeProvider";
+import { useStripeAccount } from "../../../hooks/useStripe";
 import { useTranslation } from "../../../localization";
+import { startOnboarding } from "../../../services/StripeService";
+import { getStartOnboardingStep, resolveBusinessType } from "./onboardingSteps";
 
 interface WelcomeScreenProps {
   navigation: any;
@@ -22,11 +30,52 @@ interface WelcomeScreenProps {
 
 export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+  const stripeAccount = useStripeAccount();
+  const [isStarting, setIsStarting] = React.useState(false);
 
-  const handleStart = () => {
+  const handleStart = async () => {
     console.log("🚀 [Onboarding] Starting Stripe onboarding flow");
-    navigation.navigate("PersonalInfo");
+
+    setIsStarting(true);
+
+    try {
+      // Check if user already has a Stripe account
+      const hasStripeAccount = stripeAccount.account?.stripe_account_id;
+
+      if (!hasStripeAccount) {
+        // Create Stripe Custom account first
+        console.log("🆕 [Onboarding] No Stripe account, creating one...");
+        const result = await startOnboarding("company");
+        console.log(
+          "✅ [Onboarding] Account created:",
+          result.stripe_account_id,
+        );
+
+        // Refresh the stripe account in context
+        await stripeAccount.refresh?.();
+      }
+
+      const businessType = resolveBusinessType(
+        stripeAccount.account?.business_type ||
+          stripeAccount.account?.businessType,
+        stripeAccount.account?.requirements,
+      );
+      const startStep = getStartOnboardingStep(
+        stripeAccount.account?.requirements,
+        businessType,
+      );
+      navigation.navigate(startStep);
+    } catch (error: any) {
+      console.error("❌ [Onboarding] Error starting:", error);
+      Alert.alert(
+        t("stripe.onboarding.errors.startTitle"),
+        error.message || t("stripe.onboarding.errors.startMessage"),
+      );
+    } finally {
+      setIsStarting(false);
+    }
   };
 
   const handleGoBack = () => {
@@ -131,7 +180,7 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
     buttonContainer: {
       gap: DESIGN_TOKENS.spacing.md,
       marginTop: "auto",
-      paddingBottom: DESIGN_TOKENS.spacing.lg,
+      paddingBottom: Math.max(DESIGN_TOKENS.spacing.lg, insets.bottom + 12),
     },
     primaryButton: {
       backgroundColor: colors.primary,
@@ -304,13 +353,22 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
         {/* Boutons d'action */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity
-            style={styles.primaryButton}
+            style={[styles.primaryButton, isStarting && { opacity: 0.7 }]}
             onPress={handleStart}
             activeOpacity={0.8}
+            disabled={isStarting}
           >
-            <Ionicons name="rocket" size={20} color="white" />
+            {isStarting ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <Ionicons name="rocket" size={20} color="white" />
+            )}
             <Text style={styles.primaryButtonText}>
-              {t("stripe.onboarding.welcome.startButton")}
+              {isStarting
+                ? t("stripe.onboarding.welcome.startingButton", {
+                    defaultValue: "Création en cours...",
+                  })
+                : t("stripe.onboarding.welcome.startButton")}
             </Text>
           </TouchableOpacity>
 
@@ -318,6 +376,7 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
             style={styles.secondaryButton}
             onPress={handleGoBack}
             activeOpacity={0.7}
+            disabled={isStarting}
           >
             <Text style={styles.secondaryButtonText}>
               {t("stripe.onboarding.welcome.cancelButton")}

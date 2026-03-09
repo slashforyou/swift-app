@@ -6,22 +6,21 @@ import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useState } from "react";
 import {
     Alert,
-    Linking,
     ScrollView,
     StyleSheet,
-    Switch,
     Text,
+    TextInput,
     TouchableOpacity,
     View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import MascotLoading from "../../components/ui/MascotLoading";
 
 // Context
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
 import { useStripeAccount, useStripeSettings } from "../../hooks/useStripe";
 import { useTranslation } from "../../localization/useLocalization";
-import { getStripeConnectOnboardingLink } from "../../services/StripeService";
 
 // Types
 interface StripeConfig {
@@ -48,7 +47,9 @@ export default function StripeSettingsScreen({
 }: StripeSettingsScreenProps) {
   const { colors } = useTheme();
   const { t } = useTranslation();
+
   const [isProcessing, setIsProcessing] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
 
   // Utilisation du hook Stripe pour récupérer les vraies données
   const {
@@ -57,14 +58,16 @@ export default function StripeSettingsScreen({
     loading: isLoading,
     error,
     refresh,
-    updateSettings,
   } = useStripeAccount();
 
   // Hook pour les paramètres avancés
   const {
     settings,
     updateSettings: updateStripeSettings,
+    refresh: refreshStripeSettings,
+    loading: settingsLoading,
     saving,
+    error: settingsError,
   } = useStripeSettings();
 
   // ✅ Log pour debug: vérifier quel compte Stripe est chargé
@@ -82,161 +85,167 @@ export default function StripeSettingsScreen({
     }
   }, [account, isLoading]);
 
-  // Configuration transformée à partir des données du compte
-  const config = account
-    ? {
-        accountId: account.stripe_account_id,
-        displayName: account.business_name,
-        country: account.country,
-        currency: account.default_currency,
-        isLive: false, // Toujours en test pour le développement
-        chargesEnabled: account.charges_enabled,
-        payoutsEnabled: account.payouts_enabled,
-        detailsSubmitted: account.details_submitted,
-        webhooksEnabled: true, // Valeur par défaut
-        instantPayouts: false, // Valeur par défaut
-        emailReceipts: true, // Valeur par défaut
-        smsNotifications: false, // Valeur par défaut
-      }
-    : null;
+  // Draft (editable) fields driven by Stripe Account Settings API
+  const [draftDisplayName, setDraftDisplayName] = useState("");
+  const [draftSupportEmail, setDraftSupportEmail] = useState("");
+  const [draftSupportPhone, setDraftSupportPhone] = useState("");
+  const [draftSupportUrl, setDraftSupportUrl] = useState("");
+  const [draftStatementDescriptor, setDraftStatementDescriptor] = useState("");
+  const [draftPayoutInterval, setDraftPayoutInterval] = useState<
+    "manual" | "daily" | "weekly" | "monthly"
+  >("daily");
+  const [draftDebitNegativeBalances, setDraftDebitNegativeBalances] =
+    useState(false);
 
-  const handleToggleSwitch = async (key: string, value: boolean) => {
+  React.useEffect(() => {
+    if (!settings) return;
+    const nextDisplayName = settings.dashboard?.display_name ?? "";
+    const nextSupportEmail = settings.dashboard?.support_email ?? "";
+    const nextSupportPhone = settings.dashboard?.support_phone ?? "";
+    const nextSupportUrl = settings.dashboard?.support_url ?? "";
+    const nextStatementDescriptor =
+      settings.payments?.statement_descriptor ?? "";
+    const nextInterval = settings.payouts?.schedule?.interval ?? "daily";
+    const nextDebit = Boolean(settings.payouts?.debit_negative_balances);
+
+    setDraftDisplayName(nextDisplayName);
+    setDraftSupportEmail(nextSupportEmail);
+    setDraftSupportPhone(nextSupportPhone);
+    setDraftSupportUrl(nextSupportUrl);
+    setDraftStatementDescriptor(nextStatementDescriptor);
+    setDraftPayoutInterval(nextInterval);
+    setDraftDebitNegativeBalances(nextDebit);
+    setHasChanges(false);
+  }, [settings]);
+
+  const markChanged = () => setHasChanges(true);
+
+  const buildSettingsPatch = (): Partial<
+    Omit<
+      import("../../services/StripeService").StripeAccountSettings,
+      "account_status"
+    >
+  > => {
+    const patch: any = {};
+    const currentDisplayName = settings?.dashboard?.display_name ?? "";
+    const currentSupportEmail = settings?.dashboard?.support_email ?? "";
+    const currentSupportPhone = settings?.dashboard?.support_phone ?? "";
+    const currentSupportUrl = settings?.dashboard?.support_url ?? "";
+    const currentStatementDescriptor =
+      settings?.payments?.statement_descriptor ?? "";
+    const currentInterval = settings?.payouts?.schedule?.interval ?? "daily";
+    const currentDebit = Boolean(settings?.payouts?.debit_negative_balances);
+
+    const clean = (value: string) => value.trim();
+
+    const nextDashboard: any = {};
+    if (clean(draftDisplayName) !== clean(currentDisplayName)) {
+      nextDashboard.display_name = clean(draftDisplayName) || null;
+    }
+    if (clean(draftSupportEmail) !== clean(currentSupportEmail)) {
+      nextDashboard.support_email = clean(draftSupportEmail) || null;
+    }
+    if (clean(draftSupportPhone) !== clean(currentSupportPhone)) {
+      nextDashboard.support_phone = clean(draftSupportPhone) || null;
+    }
+    if (clean(draftSupportUrl) !== clean(currentSupportUrl)) {
+      nextDashboard.support_url = clean(draftSupportUrl) || null;
+    }
+    if (Object.keys(nextDashboard).length > 0) {
+      patch.dashboard = nextDashboard;
+    }
+
+    if (clean(draftStatementDescriptor) !== clean(currentStatementDescriptor)) {
+      patch.payments = {
+        statement_descriptor: clean(draftStatementDescriptor) || null,
+      };
+    }
+
+    if (
+      draftPayoutInterval !== currentInterval ||
+      draftDebitNegativeBalances !== currentDebit
+    ) {
+      patch.payouts = {
+        schedule: {
+          interval: draftPayoutInterval,
+        },
+        debit_negative_balances: draftDebitNegativeBalances,
+      };
+    }
+
+    return patch;
+  };
+
+  const handleSave = async () => {
+    if (!settings) return;
+    const patch = buildSettingsPatch();
+    if (Object.keys(patch).length === 0) {
+      setHasChanges(false);
+      return;
+    }
+
     try {
-      // Utilise la fonction updateSettings du hook pour vraiment sauvegarder
-      await updateSettings({ [key]: value });
-    } catch (_error) {
-      Alert.alert(t("common.error"), t("stripe.settings.alerts.errorUpdate"));
+      setIsProcessing(true);
+      await updateStripeSettings(patch);
+      await refresh();
+      await refreshStripeSettings();
+      setHasChanges(false);
+      Alert.alert(
+        t("common.success", { defaultValue: "Succès" }),
+        t("stripe.settings.alerts.successUpdate", {
+          defaultValue: "Paramètres mis à jour.",
+        }),
+      );
+    } catch (err) {
+      Alert.alert(
+        t("common.error"),
+        err instanceof Error
+          ? err.message
+          : t("stripe.settings.alerts.errorUpdate"),
+      );
+    } finally {
+      setIsProcessing(false);
     }
   };
 
-  const handleAccountSetup = async () => {
-    Alert.alert(
-      t("stripe.settings.alerts.setupTitle"),
-      t("stripe.settings.alerts.setupMessage"),
-      [
-        { text: t("common.cancel"), style: "cancel" },
-        {
-          text: t("common.continue"),
-          onPress: async () => {
-            try {
-              setIsProcessing(true);
-              const onboardingUrl = await getStripeConnectOnboardingLink();
-              if (onboardingUrl) {
-                await Linking.openURL(onboardingUrl);
-              }
-            } catch (_err) {
-              Alert.alert(
-                t("common.error"),
-                t("stripe.settings.alerts.setupMessage"),
-              );
-            } finally {
-              setIsProcessing(false);
-            }
-          },
-        },
-      ],
-    );
-  };
+  const Section = ({ title, children }: { title: string; children: any }) => (
+    <View style={styles.section}>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>{title}</Text>
+      </View>
+      {children}
+    </View>
+  );
 
-  const handleWebhooksSetup = () => {
-    Alert.alert(
-      t("stripe.settings.alerts.webhookTitle"),
-      t("stripe.settings.alerts.webhookMessage"),
-      [{ text: t("common.ok") }],
-    );
-  };
-
-  const handleTestPayment = () => {
-    Alert.alert(
-      t("stripe.settings.alerts.testPaymentTitle"),
-      t("stripe.settings.alerts.testPaymentMessage"),
-      [
-        { text: t("common.cancel"), style: "cancel" },
-        {
-          text: t("stripe.settings.alerts.createTestPayment"),
-          onPress: () => {
-            // Navigation vers StripeHub pour créer un lien de paiement
-            if (navigation?.navigate) {
-              navigation.navigate("StripeHub");
-            }
-          },
-        },
-      ],
-    );
-  };
-
-  const handleDisconnect = () => {
-    Alert.alert(
-      t("stripe.settings.alerts.disconnectTitle"),
-      t("stripe.settings.alerts.disconnectMessage"),
-      [{ text: t("common.ok") }],
-    );
-  };
-
-  const SettingRow = ({
-    title,
-    subtitle,
+  const FieldRow = ({
+    label,
     value,
-    onValueChange,
-    type = "switch",
-    onPress,
-    icon,
-    danger = false,
+    onChangeText,
+    placeholder,
+    keyboardType,
   }: {
-    title: string;
-    subtitle?: string;
-    value?: boolean;
-    onValueChange?: (value: boolean) => void;
-    type?: "switch" | "button";
-    onPress?: () => void;
-    icon: string;
-    danger?: boolean;
+    label: string;
+    value: string;
+    onChangeText: (text: string) => void;
+    placeholder?: string;
+    keyboardType?: "default" | "email-address" | "phone-pad" | "url";
   }) => (
-    <TouchableOpacity
-      style={[styles.settingRow, type === "switch" && styles.settingRowSwitch]}
-      onPress={type === "button" ? onPress : undefined}
-      disabled={type === "switch"}
-    >
-      <View style={styles.settingIcon}>
-        <Ionicons
-          name={icon as any}
-          size={20}
-          color={danger ? colors.error : colors.textSecondary}
-        />
-      </View>
-      <View style={styles.settingContent}>
-        <Text
-          style={[
-            styles.settingTitle,
-            { color: danger ? colors.error : colors.text },
-          ]}
-        >
-          {title}
-        </Text>
-        {subtitle && (
-          <Text
-            style={[styles.settingSubtitle, { color: colors.textSecondary }]}
-          >
-            {subtitle}
-          </Text>
-        )}
-      </View>
-      {type === "switch" && value !== undefined && onValueChange && (
-        <Switch
-          value={value}
-          onValueChange={onValueChange}
-          trackColor={{ false: colors.border, true: colors.primary + "40" }}
-          thumbColor={value ? colors.primary : colors.textSecondary}
-        />
-      )}
-      {type === "button" && (
-        <Ionicons
-          name="chevron-forward"
-          size={20}
-          color={colors.textSecondary}
-        />
-      )}
-    </TouchableOpacity>
+    <View style={styles.fieldRow}>
+      <Text style={styles.fieldLabel}>{label}</Text>
+      <TextInput
+        style={styles.fieldInput}
+        value={value}
+        onChangeText={(text) => {
+          onChangeText(text);
+          markChanged();
+        }}
+        placeholder={placeholder}
+        placeholderTextColor={colors.textSecondary}
+        keyboardType={keyboardType || "default"}
+        autoCapitalize="none"
+        editable={!hubBusy}
+      />
+    </View>
   );
 
   const styles = StyleSheet.create({
@@ -267,6 +276,10 @@ export default function StripeSettingsScreen({
     section: {
       backgroundColor: colors.backgroundSecondary,
       marginTop: DESIGN_TOKENS.spacing.lg,
+      borderRadius: DESIGN_TOKENS.radius.md,
+      overflow: "hidden",
+      borderWidth: 1,
+      borderColor: colors.border,
     },
     sectionHeader: {
       padding: DESIGN_TOKENS.spacing.lg,
@@ -342,22 +355,6 @@ export default function StripeSettingsScreen({
       color: colors.text,
       fontWeight: "500",
     },
-    settingRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      padding: DESIGN_TOKENS.spacing.lg,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border,
-    },
-    settingRowSwitch: {
-      backgroundColor: colors.backgroundSecondary,
-    },
-    settingIcon: {
-      marginRight: DESIGN_TOKENS.spacing.md,
-    },
-    settingContent: {
-      flex: 1,
-    },
     settingTitle: {
       fontSize: DESIGN_TOKENS.typography.body.fontSize,
       fontWeight: "500",
@@ -366,10 +363,103 @@ export default function StripeSettingsScreen({
     settingSubtitle: {
       fontSize: DESIGN_TOKENS.typography.caption.fontSize,
     },
+    fieldRow: {
+      paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+      paddingVertical: DESIGN_TOKENS.spacing.md,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    fieldLabel: {
+      fontSize: DESIGN_TOKENS.typography.caption.fontSize,
+      color: colors.textSecondary,
+      marginBottom: DESIGN_TOKENS.spacing.xs,
+      fontWeight: "600",
+    },
+    fieldInput: {
+      fontSize: DESIGN_TOKENS.typography.body.fontSize,
+      color: colors.text,
+      paddingVertical: DESIGN_TOKENS.spacing.sm,
+      paddingHorizontal: DESIGN_TOKENS.spacing.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: DESIGN_TOKENS.radius.sm,
+      backgroundColor: colors.background,
+    },
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+      paddingVertical: DESIGN_TOKENS.spacing.md,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    rowTitle: {
+      fontSize: DESIGN_TOKENS.typography.body.fontSize,
+      color: colors.text,
+      fontWeight: "600",
+    },
+    rowValue: {
+      fontSize: DESIGN_TOKENS.typography.body.fontSize,
+      color: colors.textSecondary,
+      fontWeight: "500",
+    },
+    segmented: {
+      flexDirection: "row",
+      gap: DESIGN_TOKENS.spacing.xs,
+      paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+      paddingVertical: DESIGN_TOKENS.spacing.md,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    segmentButton: {
+      flex: 1,
+      paddingVertical: DESIGN_TOKENS.spacing.sm,
+      borderRadius: DESIGN_TOKENS.radius.sm,
+      borderWidth: 1,
+      borderColor: colors.border,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.background,
+    },
+    segmentButtonActive: {
+      backgroundColor: colors.primary + "20",
+      borderColor: colors.primary,
+    },
+    segmentText: {
+      fontSize: DESIGN_TOKENS.typography.caption.fontSize,
+      fontWeight: "700",
+      color: colors.textSecondary,
+    },
+    segmentTextActive: {
+      color: colors.primary,
+    },
+    saveBar: {
+      padding: DESIGN_TOKENS.spacing.lg,
+    },
+    saveButton: {
+      backgroundColor: colors.primary,
+      borderRadius: DESIGN_TOKENS.radius.md,
+      paddingVertical: DESIGN_TOKENS.spacing.md,
+      alignItems: "center",
+      justifyContent: "center",
+      flexDirection: "row",
+      gap: DESIGN_TOKENS.spacing.sm,
+    },
+    saveButtonDisabled: {
+      backgroundColor: colors.border,
+    },
+    saveButtonText: {
+      color: colors.background,
+      fontSize: DESIGN_TOKENS.typography.body.fontSize,
+      fontWeight: "700",
+    },
   });
 
+  const hubBusy = isProcessing || saving || isLoading || settingsLoading;
+
   // Loading ou erreur - affichage d'un écran simple
-  if (isLoading || !config) {
+  if (isLoading || settingsLoading || !account || !settings) {
     return (
       <View
         style={[
@@ -377,11 +467,23 @@ export default function StripeSettingsScreen({
           { justifyContent: "center", alignItems: "center" },
         ]}
       >
-        <Text style={[styles.settingTitle, { textAlign: "center" }]}>
-          {isLoading
-            ? t("stripe.settings.loading")
-            : t("stripe.settings.noAccountData")}
-        </Text>
+        <MascotLoading
+          text={t("stripe.settings.loading", { defaultValue: "Chargement" })}
+        />
+        {(error || settingsError) && (
+          <Text
+            style={[
+              styles.settingSubtitle,
+              {
+                textAlign: "center",
+                marginTop: DESIGN_TOKENS.spacing.sm,
+                color: colors.error,
+              },
+            ]}
+          >
+            {(error || settingsError) as any}
+          </Text>
+        )}
       </View>
     );
   }
@@ -396,7 +498,9 @@ export default function StripeSettingsScreen({
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.title}>{t("stripe.settings.title")}</Text>
+        <Text style={styles.title}>
+          {t("stripe.settings.title", { defaultValue: "Paramètres Stripe" })}
+        </Text>
       </View>
 
       <ScrollView style={styles.content}>
@@ -407,37 +511,45 @@ export default function StripeSettingsScreen({
               <Ionicons name="business" size={24} color={colors.primary} />
             </View>
             <View style={styles.accountInfo}>
-              <Text style={styles.accountName}>{config.displayName}</Text>
+              <Text style={styles.accountName}>{account.business_name}</Text>
               <Text style={styles.accountId}>
-                {config.accountId.slice(0, 20)}...
+                {account.stripe_account_id.slice(0, 20)}...
               </Text>
             </View>
             <View
               style={[
                 styles.statusBadge,
                 {
-                  backgroundColor: config.isLive
+                  backgroundColor: account.charges_enabled
                     ? colors.success + "20"
                     : colors.warning + "20",
                 },
               ]}
             >
               <Ionicons
-                name={config.isLive ? "checkmark-circle" : "warning"}
+                name={account.charges_enabled ? "checkmark-circle" : "warning"}
                 size={14}
-                color={config.isLive ? colors.success : colors.warning}
+                color={
+                  account.charges_enabled ? colors.success : colors.warning
+                }
               />
               <Text
                 style={[
                   styles.statusText,
                   {
-                    color: config.isLive ? colors.success : colors.warning,
+                    color: account.charges_enabled
+                      ? colors.success
+                      : colors.warning,
                   },
                 ]}
               >
-                {config.isLive
-                  ? t("stripe.settings.liveMode")
-                  : t("stripe.settings.testMode")}
+                {account.charges_enabled
+                  ? t("stripe.hub.paymentsEnabled", {
+                      defaultValue: "Paiements activés",
+                    })
+                  : t("stripe.hub.actionRequired", {
+                      defaultValue: "Action requise",
+                    })}
               </Text>
             </View>
           </View>
@@ -447,124 +559,183 @@ export default function StripeSettingsScreen({
               <Text style={styles.detailLabel}>
                 {t("stripe.settings.country")}
               </Text>
-              <Text style={styles.detailValue}>{config.country}</Text>
+              <Text style={styles.detailValue}>{account.country}</Text>
             </View>
             <View style={styles.detailItem}>
               <Text style={styles.detailLabel}>
                 {t("stripe.settings.currency")}
               </Text>
-              <Text style={styles.detailValue}>{config.currency}</Text>
+              <Text style={styles.detailValue}>{account.default_currency}</Text>
+            </View>
+          </View>
+
+          <View
+            style={{
+              flexDirection: "row",
+              gap: DESIGN_TOKENS.spacing.md,
+              marginTop: DESIGN_TOKENS.spacing.md,
+            }}
+          >
+            <View style={styles.detailItem}>
+              <Text style={styles.detailLabel}>
+                {t("stripe.hub.availableBalance", {
+                  defaultValue: "Disponible",
+                })}
+              </Text>
+              <Text style={styles.detailValue}>
+                {balance.available.toFixed(2)}
+              </Text>
+            </View>
+            <View style={styles.detailItem}>
+              <Text style={styles.detailLabel}>
+                {t("stripe.hub.pendingBalance", {
+                  defaultValue: "En attente",
+                })}
+              </Text>
+              <Text style={styles.detailValue}>
+                {balance.pending.toFixed(2)}
+              </Text>
             </View>
           </View>
         </View>
 
-        {/* Account Setup */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>
-              {t("stripe.settings.sections.accountSetup")}
+        <Section title={t("stripe.settings.sections.accountSetup")}>
+          <FieldRow
+            label={t("stripe.settings.displayName")}
+            value={draftDisplayName}
+            onChangeText={setDraftDisplayName}
+            placeholder={account.business_name}
+          />
+          <FieldRow
+            label={t("stripe.settings.supportEmail")}
+            value={draftSupportEmail}
+            onChangeText={setDraftSupportEmail}
+            placeholder={t("stripe.settings.placeholders.supportEmail")}
+            keyboardType="email-address"
+          />
+          <FieldRow
+            label={t("stripe.settings.supportPhone")}
+            value={draftSupportPhone}
+            onChangeText={setDraftSupportPhone}
+            placeholder={t("stripe.settings.placeholders.supportPhone")}
+            keyboardType="phone-pad"
+          />
+          <FieldRow
+            label={t("stripe.settings.supportUrl")}
+            value={draftSupportUrl}
+            onChangeText={setDraftSupportUrl}
+            placeholder={t("stripe.settings.placeholders.supportUrl")}
+            keyboardType="url"
+          />
+        </Section>
+
+        <Section title={t("stripe.settings.sections.paymentSettings")}>
+          <FieldRow
+            label={t("stripe.settings.statementDescriptor")}
+            value={draftStatementDescriptor}
+            onChangeText={setDraftStatementDescriptor}
+            placeholder={t("stripe.settings.statementDescriptorPlaceholder")}
+          />
+        </Section>
+
+        <Section
+          title={t("stripe.settings.sections.payoutSettings", {
+            defaultValue: "Virements",
+          })}
+        >
+          <View style={styles.row}>
+            <Text style={styles.rowTitle}>
+              {t("stripe.settings.payoutInterval", {
+                defaultValue: "Fréquence des virements",
+              })}
             </Text>
+            <Text style={styles.rowValue}>{draftPayoutInterval}</Text>
+          </View>
+          <View style={styles.segmented}>
+            {(
+              [
+                { key: "manual", label: "Manual" },
+                { key: "daily", label: "Daily" },
+                { key: "weekly", label: "Weekly" },
+                { key: "monthly", label: "Monthly" },
+              ] as const
+            ).map((option) => {
+              const isActive = draftPayoutInterval === option.key;
+              return (
+                <TouchableOpacity
+                  key={option.key}
+                  style={[
+                    styles.segmentButton,
+                    isActive && styles.segmentButtonActive,
+                  ]}
+                  onPress={() => {
+                    if (hubBusy) return;
+                    setDraftPayoutInterval(option.key);
+                    markChanged();
+                  }}
+                  disabled={hubBusy}
+                >
+                  <Text
+                    style={[
+                      styles.segmentText,
+                      isActive && styles.segmentTextActive,
+                    ]}
+                  >
+                    {option.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
 
-          <SettingRow
-            title={t("stripe.settings.completeSetup")}
-            subtitle={t("stripe.settings.completeSetupDesc")}
-            icon="settings"
-            type="button"
-            onPress={handleAccountSetup}
-          />
-
-          <SettingRow
-            title={t("stripe.settings.testIntegration")}
-            subtitle={t("stripe.settings.testIntegrationDesc")}
-            icon="flash"
-            type="button"
-            onPress={handleTestPayment}
-          />
-        </View>
-
-        {/* Payment Settings */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>
-              {t("stripe.settings.sections.paymentSettings")}
+          <TouchableOpacity
+            style={styles.row}
+            onPress={() => {
+              if (hubBusy) return;
+              setDraftDebitNegativeBalances((v) => !v);
+              markChanged();
+            }}
+            disabled={hubBusy}
+          >
+            <Text style={styles.rowTitle}>
+              {t("stripe.settings.debitNegativeBalances", {
+                defaultValue: "Déduire les soldes négatifs",
+              })}
             </Text>
-          </View>
+            <Ionicons
+              name={draftDebitNegativeBalances ? "checkbox" : "square-outline"}
+              size={22}
+              color={
+                draftDebitNegativeBalances
+                  ? colors.primary
+                  : colors.textSecondary
+              }
+            />
+          </TouchableOpacity>
+        </Section>
 
-          <SettingRow
-            title={t("stripe.settings.instantPayouts")}
-            subtitle={t("stripe.settings.instantPayoutsDesc")}
-            icon="flash"
-            value={config.instantPayouts}
-            onValueChange={(value) =>
-              handleToggleSwitch("instantPayouts", value)
-            }
-          />
-
-          <SettingRow
-            title={t("stripe.settings.emailReceipts")}
-            subtitle={t("stripe.settings.emailReceiptsDesc")}
-            icon="mail"
-            value={config.emailReceipts}
-            onValueChange={(value) =>
-              handleToggleSwitch("emailReceipts", value)
-            }
-          />
-
-          <SettingRow
-            title={t("stripe.settings.smsNotifications")}
-            subtitle={t("stripe.settings.smsNotificationsDesc")}
-            icon="chatbubble"
-            value={config.smsNotifications}
-            onValueChange={(value) =>
-              handleToggleSwitch("smsNotifications", value)
-            }
-          />
-        </View>
-
-        {/* Developer Settings */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>
-              {t("stripe.settings.sections.developerSettings")}
+        <View style={styles.saveBar}>
+          <TouchableOpacity
+            style={[
+              styles.saveButton,
+              (!hasChanges || hubBusy) && styles.saveButtonDisabled,
+            ]}
+            onPress={handleSave}
+            disabled={!hasChanges || hubBusy}
+          >
+            {hubBusy ? (
+              <ActivityIndicator size="small" color={colors.background} />
+            ) : (
+              <Ionicons
+                name="save-outline"
+                size={20}
+                color={colors.background}
+              />
+            )}
+            <Text style={styles.saveButtonText}>
+              {t("common.save", { defaultValue: "Enregistrer" })}
             </Text>
-          </View>
-
-          <SettingRow
-            title={t("stripe.settings.webhooks")}
-            subtitle={t("stripe.settings.webhooksDesc")}
-            icon="globe"
-            value={config.webhooksEnabled}
-            onValueChange={(value) =>
-              handleToggleSwitch("webhooksEnabled", value)
-            }
-          />
-
-          <SettingRow
-            title={t("stripe.settings.webhookConfig")}
-            subtitle={t("stripe.settings.webhookConfigDesc")}
-            icon="code-slash"
-            type="button"
-            onPress={handleWebhooksSetup}
-          />
-        </View>
-
-        {/* Danger Zone */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>
-              {t("stripe.settings.sections.dangerZone")}
-            </Text>
-          </View>
-
-          <SettingRow
-            title={t("stripe.settings.disconnectAccount")}
-            subtitle={t("stripe.settings.disconnectAccountDesc")}
-            icon="unlink"
-            type="button"
-            onPress={handleDisconnect}
-            danger
-          />
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>

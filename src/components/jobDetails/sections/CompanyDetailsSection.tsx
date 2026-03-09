@@ -6,344 +6,321 @@ import React from "react";
 import { Text, View } from "react-native";
 import { DESIGN_TOKENS } from "../../../constants/Styles";
 import { useTheme } from "../../../context/ThemeProvider";
+import { useLocalization } from "../../../localization/useLocalization";
+import type { JobSummaryData } from "../../../types/jobSummary";
 import SectionCard from "../SectionCard";
 
 interface CompanyDetailsSectionProps {
-  job: any;
+  job: JobSummaryData;
 }
 
-const CompanyDetailsSection: React.FC<CompanyDetailsSectionProps> = ({
-  job,
-}) => {
-  const { colors } = useTheme();
+const CompanyDetailsSection: React.FC<CompanyDetailsSectionProps> = React.memo(
+  ({ job }) => {
+    const { colors } = useTheme();
+    const { t } = useLocalization();
 
-  // Vérifier si c'est un job multi-entreprise
-  const hasContractee = !!job?.contractee;
-  const hasContractor = !!job?.contractor;
+    const hasContractee = !!job?.contractee;
+    const hasContractor = !!job?.contractor;
 
-  // Déterminer si c'est la même entreprise ou non
-  const isDifferentCompany =
-    hasContractee &&
-    hasContractor &&
-    job.contractee.company_id !== job.contractor.company_id;
+    const isDifferentCompany =
+      hasContractee &&
+      hasContractor &&
+      job.contractee.company_id !== job.contractor.company_id;
 
-  console.log("🏢 [CompanyDetailsSection] Rendu:", {
-    hasContractee,
-    hasContractor,
-    isDifferentCompany,
-    // Détails contractee
-    contractee: job?.contractee
-      ? {
-          id: job.contractee.company_id,
-          name: job.contractee.company_name,
-        }
-      : null,
-    // Détails contractor
-    contractor: job?.contractor
-      ? {
-          id: job.contractor.company_id,
-          name: job.contractor.company_name,
-        }
-      : null,
-  });
+    if (!hasContractee && !hasContractor) {
+      return null;
+    }
 
-  // Si pas de données d'ownership, ne rien afficher
-  if (!hasContractee && !hasContractor) {
-    console.log(
-      "⚠️ [CompanyDetailsSection] Aucune donnée ownership - composant masqué",
-    );
-    return null;
-  }
+    const mainCompanyName = isDifferentCompany
+      ? job.contractor?.company_name
+      : job.contractee?.company_name || job.contractor?.company_name;
 
-  console.log(
-    `✅ [CompanyDetailsSection] Affichage: ${isDifferentCompany ? "MULTI-ENTREPRISE (2 sections)" : "JOB INTERNE (1 section)"}`,
-  );
+    const formatAssignedDate = (dateString: string) => {
+      try {
+        return new Date(dateString).toLocaleDateString(undefined, {
+          day: "2-digit",
+          month: "long",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      } catch {
+        return dateString;
+      }
+    };
 
-  // Nom de l'entreprise principale (contractor ou contractee si même entreprise)
-  const mainCompanyName = isDifferentCompany
-    ? job.contractor?.company_name
-    : job.contractee?.company_name || job.contractor?.company_name;
-
-  return (
-    <SectionCard level="secondary">
-      <View style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
-        <Text
-          style={{
-            fontSize: 18,
-            fontWeight: "600",
-            color: colors.text,
-            marginBottom: DESIGN_TOKENS.spacing.xs,
-          }}
-        >
-          {isDifferentCompany ? "Entreprises Impliquées" : "Entreprise"}
-        </Text>
-        <Text
-          style={{
-            fontSize: 14,
-            color: colors.textSecondary,
-          }}
-        >
-          {isDifferentCompany
-            ? "Job multi-entreprise - Informations de facturation et d'exécution"
-            : "Entreprise responsable du job"}
-        </Text>
-      </View>
-
-      {/* Si job multi-entreprise, afficher les deux rôles */}
-      {isDifferentCompany ? (
-        <>
-          {/* Contractee (Créateur - Reçoit le paiement) */}
-          <View
-            style={{
-              marginBottom: DESIGN_TOKENS.spacing.lg,
-              padding: DESIGN_TOKENS.spacing.md,
-              backgroundColor: colors.success + "10",
-              borderRadius: DESIGN_TOKENS.radius.md,
-              borderLeftWidth: 3,
-              borderLeftColor: colors.success,
-            }}
-          >
-            <View style={{ marginBottom: DESIGN_TOKENS.spacing.sm }}>
-              <Text
-                style={{
-                  fontSize: 12,
-                  color: colors.textSecondary,
-                  fontWeight: "600",
-                  marginBottom: DESIGN_TOKENS.spacing.xs,
-                  textTransform: "uppercase",
-                  letterSpacing: 0.5,
-                }}
-              >
-                💰 Créateur du job (Contractee)
-              </Text>
-              <Text
-                style={{
-                  fontSize: 11,
-                  color: colors.textSecondary,
-                  fontStyle: "italic",
-                }}
-              >
-                Entreprise qui reçoit le paiement
-              </Text>
-            </View>
-
-            <Text
-              style={{
-                fontSize: 16,
-                color: colors.text,
-                fontWeight: "600",
-                marginBottom: DESIGN_TOKENS.spacing.xs,
-              }}
-            >
-              {job.contractee.company_name}
-            </Text>
-
-            {job.contractee.created_by_name && (
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  marginTop: DESIGN_TOKENS.spacing.xs,
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 13,
-                    color: colors.textSecondary,
-                  }}
-                >
-                  👤 Créé par:{" "}
-                  <Text style={{ fontWeight: "500", color: colors.text }}>
-                    {job.contractee.created_by_name}
-                  </Text>
-                </Text>
-              </View>
-            )}
-
-            {job.contractee.stripe_account_id && (
-              <View
-                style={{
-                  marginTop: DESIGN_TOKENS.spacing.sm,
-                  paddingTop: DESIGN_TOKENS.spacing.sm,
-                  borderTopWidth: 1,
-                  borderTopColor: colors.border + "30",
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 11,
-                    color: colors.textSecondary,
-                  }}
-                >
-                  Stripe:{" "}
-                  <Text style={{ fontFamily: "monospace", fontSize: 10 }}>
-                    {job.contractee.stripe_account_id.substring(0, 16)}...
-                  </Text>
-                </Text>
-              </View>
-            )}
-          </View>
-
-          {/* Contractor (Exécutant) */}
-          <View
-            style={{
-              padding: DESIGN_TOKENS.spacing.md,
-              backgroundColor: colors.info + "10",
-              borderRadius: DESIGN_TOKENS.radius.md,
-              borderLeftWidth: 3,
-              borderLeftColor: colors.info,
-            }}
-          >
-            <View style={{ marginBottom: DESIGN_TOKENS.spacing.sm }}>
-              <Text
-                style={{
-                  fontSize: 12,
-                  color: colors.textSecondary,
-                  fontWeight: "600",
-                  marginBottom: DESIGN_TOKENS.spacing.xs,
-                  textTransform: "uppercase",
-                  letterSpacing: 0.5,
-                }}
-              >
-                🔧 Exécutant (Contractor)
-              </Text>
-              <Text
-                style={{
-                  fontSize: 11,
-                  color: colors.textSecondary,
-                  fontStyle: "italic",
-                }}
-              >
-                Entreprise qui effectue le travail
-              </Text>
-            </View>
-
-            <Text
-              style={{
-                fontSize: 16,
-                color: colors.text,
-                fontWeight: "600",
-                marginBottom: DESIGN_TOKENS.spacing.xs,
-              }}
-            >
-              {job.contractor.company_name}
-            </Text>
-
-            {job.contractor.assigned_staff_name && (
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  marginTop: DESIGN_TOKENS.spacing.xs,
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 13,
-                    color: colors.textSecondary,
-                  }}
-                >
-                  👷 Staff assigné:{" "}
-                  <Text style={{ fontWeight: "500", color: colors.text }}>
-                    {job.contractor.assigned_staff_name}
-                  </Text>
-                </Text>
-              </View>
-            )}
-
-            {job.contractor.assigned_at && (
-              <View
-                style={{
-                  marginTop: DESIGN_TOKENS.spacing.sm,
-                  paddingTop: DESIGN_TOKENS.spacing.sm,
-                  borderTopWidth: 1,
-                  borderTopColor: colors.border + "30",
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 11,
-                    color: colors.textSecondary,
-                  }}
-                >
-                  Assigné le:{" "}
-                  {new Date(job.contractor.assigned_at).toLocaleDateString(
-                    "fr-FR",
-                    {
-                      day: "2-digit",
-                      month: "long",
-                      year: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    },
-                  )}
-                </Text>
-              </View>
-            )}
-          </View>
-        </>
-      ) : (
-        /* Si même entreprise, afficher seulement l'entreprise principale */
-        <View style={{ marginBottom: DESIGN_TOKENS.spacing.md }}>
+    return (
+      <SectionCard level="secondary">
+        <View style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
           <Text
             style={{
-              fontSize: 12,
-              color: colors.textSecondary,
-              fontWeight: "500",
-              marginBottom: DESIGN_TOKENS.spacing.xs,
-              textTransform: "uppercase",
-              letterSpacing: 0.5,
-            }}
-          >
-            🏢 Entreprise
-          </Text>
-          <Text
-            style={{
-              fontSize: 16,
-              color: colors.text,
+              fontSize: 18,
               fontWeight: "600",
+              color: colors.text,
+              marginBottom: DESIGN_TOKENS.spacing.xs,
             }}
           >
-            {mainCompanyName}
+            {isDifferentCompany
+              ? t("jobDetails.components.company.titleMulti")
+              : t("jobDetails.components.company.titleSingle")}
           </Text>
+          <Text
+            style={{
+              fontSize: 14,
+              color: colors.textSecondary,
+            }}
+          >
+            {isDifferentCompany
+              ? t("jobDetails.components.company.subtitleMulti")
+              : t("jobDetails.components.company.subtitleSingle")}
+          </Text>
+        </View>
 
-          {(job.contractee?.created_by_name ||
-            job.contractor?.assigned_staff_name) && (
-            <View style={{ marginTop: DESIGN_TOKENS.spacing.sm }}>
-              {job.contractee?.created_by_name && (
+        {isDifferentCompany ? (
+          <>
+            {/* Contractee */}
+            <View
+              style={{
+                marginBottom: DESIGN_TOKENS.spacing.lg,
+                padding: DESIGN_TOKENS.spacing.md,
+                backgroundColor: colors.success + "10",
+                borderRadius: DESIGN_TOKENS.radius.md,
+                borderLeftWidth: 3,
+                borderLeftColor: colors.success,
+              }}
+            >
+              <View style={{ marginBottom: DESIGN_TOKENS.spacing.sm }}>
                 <Text
                   style={{
-                    fontSize: 13,
+                    fontSize: 12,
                     color: colors.textSecondary,
+                    fontWeight: "600",
                     marginBottom: DESIGN_TOKENS.spacing.xs,
+                    textTransform: "uppercase",
+                    letterSpacing: 0.5,
                   }}
                 >
-                  👤 Créé par:{" "}
-                  <Text style={{ fontWeight: "500", color: colors.text }}>
-                    {job.contractee.created_by_name}
-                  </Text>
+                  {t("jobDetails.components.company.contracteeRole")}
                 </Text>
+                <Text
+                  style={{
+                    fontSize: 11,
+                    color: colors.textSecondary,
+                    fontStyle: "italic",
+                  }}
+                >
+                  {t("jobDetails.components.company.receivesPayment")}
+                </Text>
+              </View>
+
+              <Text
+                style={{
+                  fontSize: 16,
+                  color: colors.text,
+                  fontWeight: "600",
+                  marginBottom: DESIGN_TOKENS.spacing.xs,
+                }}
+              >
+                {job.contractee.company_name}
+              </Text>
+
+              {job.contractee.created_by_name && (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    marginTop: DESIGN_TOKENS.spacing.xs,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      color: colors.textSecondary,
+                    }}
+                  >
+                    {t("jobDetails.components.company.createdBy")}{" "}
+                    <Text style={{ fontWeight: "500", color: colors.text }}>
+                      {job.contractee.created_by_name}
+                    </Text>
+                  </Text>
+                </View>
               )}
 
-              {job.contractor?.assigned_staff_name && (
-                <Text
+              {job.contractee.stripe_account_id && (
+                <View
                   style={{
-                    fontSize: 13,
-                    color: colors.textSecondary,
+                    marginTop: DESIGN_TOKENS.spacing.sm,
+                    paddingTop: DESIGN_TOKENS.spacing.sm,
+                    borderTopWidth: 1,
+                    borderTopColor: colors.border + "30",
                   }}
                 >
-                  👷 Staff assigné:{" "}
-                  <Text style={{ fontWeight: "500", color: colors.text }}>
-                    {job.contractor.assigned_staff_name}
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      color: colors.textSecondary,
+                    }}
+                  >
+                    Stripe:{" "}
+                    <Text style={{ fontFamily: "monospace", fontSize: 10 }}>
+                      {job.contractee.stripe_account_id.substring(0, 16)}...
+                    </Text>
                   </Text>
-                </Text>
+                </View>
               )}
             </View>
-          )}
-        </View>
-      )}
-    </SectionCard>
-  );
-};
+
+            {/* Contractor */}
+            <View
+              style={{
+                padding: DESIGN_TOKENS.spacing.md,
+                backgroundColor: colors.info + "10",
+                borderRadius: DESIGN_TOKENS.radius.md,
+                borderLeftWidth: 3,
+                borderLeftColor: colors.info,
+              }}
+            >
+              <View style={{ marginBottom: DESIGN_TOKENS.spacing.sm }}>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color: colors.textSecondary,
+                    fontWeight: "600",
+                    marginBottom: DESIGN_TOKENS.spacing.xs,
+                    textTransform: "uppercase",
+                    letterSpacing: 0.5,
+                  }}
+                >
+                  {t("jobDetails.components.company.contractorRole")}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 11,
+                    color: colors.textSecondary,
+                    fontStyle: "italic",
+                  }}
+                >
+                  {t("jobDetails.components.company.performsWork")}
+                </Text>
+              </View>
+
+              <Text
+                style={{
+                  fontSize: 16,
+                  color: colors.text,
+                  fontWeight: "600",
+                  marginBottom: DESIGN_TOKENS.spacing.xs,
+                }}
+              >
+                {job.contractor.company_name}
+              </Text>
+
+              {job.contractor.assigned_staff_name && (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    marginTop: DESIGN_TOKENS.spacing.xs,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      color: colors.textSecondary,
+                    }}
+                  >
+                    {t("jobDetails.components.company.assignedStaff")}{" "}
+                    <Text style={{ fontWeight: "500", color: colors.text }}>
+                      {job.contractor.assigned_staff_name}
+                    </Text>
+                  </Text>
+                </View>
+              )}
+
+              {job.contractor.assigned_at && (
+                <View
+                  style={{
+                    marginTop: DESIGN_TOKENS.spacing.sm,
+                    paddingTop: DESIGN_TOKENS.spacing.sm,
+                    borderTopWidth: 1,
+                    borderTopColor: colors.border + "30",
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      color: colors.textSecondary,
+                    }}
+                  >
+                    {t("jobDetails.components.company.assignedOn")}{" "}
+                    {formatAssignedDate(job.contractor.assigned_at)}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </>
+        ) : (
+          <View style={{ marginBottom: DESIGN_TOKENS.spacing.md }}>
+            <Text
+              style={{
+                fontSize: 12,
+                color: colors.textSecondary,
+                fontWeight: "500",
+                marginBottom: DESIGN_TOKENS.spacing.xs,
+                textTransform: "uppercase",
+                letterSpacing: 0.5,
+              }}
+            >
+              {t("jobDetails.components.company.companyLabel")}
+            </Text>
+            <Text
+              style={{
+                fontSize: 16,
+                color: colors.text,
+                fontWeight: "600",
+              }}
+            >
+              {mainCompanyName}
+            </Text>
+
+            {(job.contractee?.created_by_name ||
+              job.contractor?.assigned_staff_name) && (
+              <View style={{ marginTop: DESIGN_TOKENS.spacing.sm }}>
+                {job.contractee?.created_by_name && (
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      color: colors.textSecondary,
+                      marginBottom: DESIGN_TOKENS.spacing.xs,
+                    }}
+                  >
+                    {t("jobDetails.components.company.createdBy")}{" "}
+                    <Text style={{ fontWeight: "500", color: colors.text }}>
+                      {job.contractee.created_by_name}
+                    </Text>
+                  </Text>
+                )}
+
+                {job.contractor?.assigned_staff_name && (
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      color: colors.textSecondary,
+                    }}
+                  >
+                    {t("jobDetails.components.company.assignedStaff")}{" "}
+                    <Text style={{ fontWeight: "500", color: colors.text }}>
+                      {job.contractor.assigned_staff_name}
+                    </Text>
+                  </Text>
+                )}
+              </View>
+            )}
+          </View>
+        )}
+      </SectionCard>
+    );
+  },
+);
 
 export default CompanyDetailsSection;

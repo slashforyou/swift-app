@@ -3,7 +3,7 @@
  * Utilise le timer en temps réel pour calculer les coûts
  */
 import Ionicons from "@react-native-vector-icons/ionicons";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
@@ -18,9 +18,11 @@ import SigningBloc from "../../components/signingBloc";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useJobTimerContext } from "../../context/JobTimerProvider";
 import { useTheme } from "../../context/ThemeProvider";
+import { useInvoice } from "../../hooks/useInvoice";
 import { useJobDetails } from "../../hooks/useJobDetails";
 import { useLocalization } from "../../localization/useLocalization";
 import { checkJobSignatureExists } from "../../services/jobDetails";
+import { checkStripeConnectionStatus } from "../../services/StripeService";
 import PaymentWindow from "./paymentWindow";
 
 // Interfaces
@@ -38,6 +40,7 @@ interface AdditionalItem {
 const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
   const { colors } = useTheme();
   const { t } = useLocalization();
+  const { sendInvoiceWithConfirmation } = useInvoice();
   const [paymentWindowVisible, setPaymentWindowVisible] = useState<
     string | null
   >(null);
@@ -46,6 +49,24 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
   // État pour les éléments additionnels de la facture
   const [additionalItems, setAdditionalItems] = useState<AdditionalItem[]>([]);
   const [isAddItemModalVisible, setIsAddItemModalVisible] = useState(false);
+
+  // ✅ Guard Stripe : vérifier que le compte Stripe est actif avant autoriser paiement
+  const [stripeAccountStatus, setStripeAccountStatus] = useState<
+    "loading" | "active" | "inactive"
+  >("loading");
+
+  useEffect(() => {
+    checkStripeConnectionStatus()
+      .then((result) => {
+        setStripeAccountStatus(
+          result.status === "active" ? "active" : "inactive",
+        );
+      })
+      .catch(() => {
+        // En cas d'erreur réseau, on laisse passer (ne pas bloquer sur erreur transitoire)
+        setStripeAccountStatus("active");
+      });
+  }, []);
   const [newItemDescription, setNewItemDescription] = useState("");
   const [newItemAmount, setNewItemAmount] = useState("");
 
@@ -98,9 +119,12 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
       // });
 
       // Merge pour garder modifications locales + ajouter données backend
+      // ⚠️ L'API /full retourne le client dans jobDetails.client (sibling), PAS dans jobDetails.job
       setJob((prev: any) => ({
         ...prev,
         ...jobDetails.job,
+        // Préserver les données client embarquées (non retournées dans jobDetails.job)
+        client: prev?.client,
         // Préserver certains champs locaux si nécessaire
         signatureDataUrl:
           prev.signatureDataUrl || jobDetails.job.signature_blob,
@@ -134,7 +158,12 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
     const costData = calculateCost(billableTime);
     const estimatedCost = job?.job?.estimatedCost || job?.estimatedCost || 0;
     const currentCost = costData.total;
-    const isPaid = job?.job?.isPaid || job?.isPaid || false;
+    const isPaid =
+      job?.job?.payment_status === "paid" ||
+      job?.payment_status === "paid" ||
+      job?.job?.isPaid ||
+      job?.isPaid ||
+      false;
 
     return {
       estimated: estimatedCost,
@@ -327,6 +356,16 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
       return;
     }
 
+    // ✅ Guard Stripe : bloquer si le compte Stripe n'est pas actif
+    if (stripeAccountStatus === "inactive") {
+      Alert.alert(
+        "Compte Stripe incomplet",
+        "Vous devez compléter la configuration de votre compte Stripe avant de pouvoir recevoir des paiements. Rendez-vous dans Paramètres > Stripe pour finaliser votre inscription.",
+        [{ text: "OK" }],
+      );
+      return;
+    }
+
     if (paymentInfo.status === "pending") {
       setPaymentWindowVisible("paymentWindow");
     } else {
@@ -336,6 +375,27 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
       );
     }
   };
+
+  // ✅ Handler pour envoyer la facture au client (quand déjà payé)
+  const handleSendInvoice = useCallback(async () => {
+    try {
+      const jobData = {
+        id: job?.id || job?.job?.id,
+        code: job?.code || job?.job?.code,
+        client: job?.client,
+        amount_total: paymentInfo.current + additionalItemsTotal,
+      };
+      await sendInvoiceWithConfirmation(jobData, t);
+    } catch (error) {
+      console.error("❌ [Payment] Error sending invoice:", error);
+    }
+  }, [
+    job,
+    paymentInfo.current,
+    additionalItemsTotal,
+    sendInvoiceWithConfirmation,
+    t,
+  ]);
 
   if (paymentWindowVisible === "paymentWindow") {
     return (
@@ -367,7 +427,51 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
         style={{ flex: 1, backgroundColor: colors.background }}
         contentContainerStyle={{ padding: DESIGN_TOKENS.spacing.md }}
       >
-        {/* Header avec statuts et bouton de paiement */}
+        {/* ===== STRIPE ACCOUNT GUARD BANNER ===== */}
+        {stripeAccountStatus === "inactive" && (
+          <View
+            style={{
+              backgroundColor: colors.warning + "20",
+              borderRadius: DESIGN_TOKENS.radius.md,
+              borderWidth: 1,
+              borderColor: colors.warning + "60",
+              padding: DESIGN_TOKENS.spacing.md,
+              marginBottom: DESIGN_TOKENS.spacing.lg,
+              flexDirection: "row",
+              alignItems: "flex-start",
+              gap: DESIGN_TOKENS.spacing.sm,
+            }}
+          >
+            <Ionicons
+              name="warning-outline"
+              size={20}
+              color={colors.warning}
+              style={{ marginTop: 1 }}
+            />
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: "700",
+                  color: colors.warning,
+                  marginBottom: 4,
+                }}
+              >
+                Compte Stripe incomplet
+              </Text>
+              <Text
+                style={{ fontSize: 13, color: colors.text, lineHeight: 18 }}
+              >
+                Votre compte Stripe n'est pas encore actif. Finalisez la
+                configuration dans{" "}
+                <Text style={{ fontWeight: "700" }}>Paramètres › Stripe</Text>{" "}
+                pour pouvoir recevoir des paiements.
+              </Text>
+            </View>
+          </View>
+        )}
+
+        {/* ===== 1. BILLING BREAKDOWN (en premier) ===== */}
         <View
           style={{
             backgroundColor: colors.backgroundSecondary,
@@ -376,81 +480,57 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
             marginBottom: DESIGN_TOKENS.spacing.lg,
           }}
         >
-          {/* Titre */}
-          <Text
-            style={{
-              fontSize: 22,
-              fontWeight: "700",
-              color: colors.text,
-              marginBottom: DESIGN_TOKENS.spacing.md,
-            }}
-          >
-            {t("jobDetails.payment.title")}
-          </Text>
-
-          {/* Badges de statut */}
+          {/* Header avec icône */}
           <View
             style={{
               flexDirection: "row",
+              alignItems: "center",
               gap: DESIGN_TOKENS.spacing.sm,
-              flexWrap: "wrap",
               marginBottom: DESIGN_TOKENS.spacing.lg,
             }}
           >
-            {/* Badge de statut du job */}
             <View
               style={{
-                backgroundColor: isJobCompleted
-                  ? colors.success + "20"
-                  : colors.warning + "20",
-                borderRadius: DESIGN_TOKENS.radius.lg,
-                paddingHorizontal: DESIGN_TOKENS.spacing.md,
-                paddingVertical: DESIGN_TOKENS.spacing.xs,
-                flexDirection: "row",
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                backgroundColor: colors.primary + "20",
+                justifyContent: "center",
                 alignItems: "center",
-                gap: DESIGN_TOKENS.spacing.xs,
               }}
             >
-              <Ionicons
-                name={
-                  isJobCompleted ? "checkmark-circle-outline" : "time-outline"
-                }
-                size={16}
-                color={isJobCompleted ? colors.success : colors.warning}
-              />
-              <Text
-                style={{
-                  fontSize: 14,
-                  fontWeight: "600",
-                  color: isJobCompleted ? colors.success : colors.warning,
-                }}
-              >
-                {isJobCompleted
-                  ? t("jobDetails.payment.jobStatus.completed")
-                  : t("jobDetails.payment.jobStatus.inProgress")}
-              </Text>
+              <Ionicons name="receipt" size={18} color={colors.primary} />
             </View>
-
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: "700",
+                color: colors.text,
+                flex: 1,
+              }}
+            >
+              {t("jobDetails.payment.billingBreakdown.title")}
+            </Text>
             {/* Badge de statut de paiement */}
             <View
               style={{
                 backgroundColor: statusInfo.bgColor,
                 borderRadius: DESIGN_TOKENS.radius.lg,
-                paddingHorizontal: DESIGN_TOKENS.spacing.md,
-                paddingVertical: DESIGN_TOKENS.spacing.xs,
+                paddingHorizontal: DESIGN_TOKENS.spacing.sm,
+                paddingVertical: 3,
                 flexDirection: "row",
                 alignItems: "center",
-                gap: DESIGN_TOKENS.spacing.xs,
+                gap: 4,
               }}
             >
               <Ionicons
                 name={statusInfo.icon as any}
-                size={16}
+                size={14}
                 color={statusInfo.color}
               />
               <Text
                 style={{
-                  fontSize: 14,
+                  fontSize: 12,
                   fontWeight: "600",
                   color: statusInfo.color,
                 }}
@@ -460,271 +540,593 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
             </View>
           </View>
 
-          {/* ✅ Bouton de signature ou paiement selon l'état */}
-          {isJobCompleted && (
-            <View style={{ marginTop: DESIGN_TOKENS.spacing.md }}>
-              {signatureFromServer.isLoading ? (
-                // Afficher un loader pendant la vérification serveur
-                <View
-                  style={{
-                    paddingVertical: DESIGN_TOKENS.spacing.md,
-                    alignItems: "center",
-                    flexDirection: "row",
-                    justifyContent: "center",
-                    gap: DESIGN_TOKENS.spacing.sm,
-                  }}
-                >
-                  <ActivityIndicator size="small" color={colors.primary} />
-                  <Text style={{ color: colors.textSecondary, fontSize: 14 }}>
-                    {t("jobDetails.payment.signature.verifying")}
-                  </Text>
-                </View>
-              ) : !hasSignature ? (
-                // Bouton pour signer si pas encore signé
-                <Pressable
-                  onPress={handleOpenSignature}
-                  style={({ pressed }) => ({
-                    backgroundColor: pressed
-                      ? colors.primary + "DD"
-                      : colors.primary,
-                    paddingHorizontal: DESIGN_TOKENS.spacing.lg,
-                    paddingVertical: DESIGN_TOKENS.spacing.md,
-                    borderRadius: DESIGN_TOKENS.radius.lg,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: DESIGN_TOKENS.spacing.sm,
-                    minHeight: 56,
-                  })}
-                >
-                  <Ionicons name="create" size={20} color={colors.background} />
-                  <Text
-                    style={{
-                      color: colors.background,
-                      fontWeight: "700",
-                      fontSize: 16,
-                    }}
-                  >
-                    {t("jobDetails.payment.signature.signJob")}
-                  </Text>
-                </Pressable>
-              ) : (
-                // Bouton pour payer si signé (ou afficher état payé)
-                <Pressable
-                  onPress={paymentInfo.isPaid ? undefined : handlePayment}
-                  disabled={paymentInfo.isPaid}
-                  style={({ pressed }) => ({
-                    backgroundColor: paymentInfo.isPaid
-                      ? colors.success + "40"
-                      : pressed
-                        ? colors.successLight
-                        : colors.success,
-                    paddingHorizontal: DESIGN_TOKENS.spacing.lg,
-                    paddingVertical: DESIGN_TOKENS.spacing.md,
-                    borderRadius: DESIGN_TOKENS.radius.lg,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: DESIGN_TOKENS.spacing.sm,
-                    minHeight: 56,
-                    opacity: paymentInfo.isPaid ? 1 : 1,
-                  })}
-                >
-                  <Ionicons
-                    name={paymentInfo.isPaid ? "checkmark-circle" : "card"}
-                    size={20}
-                    color={
-                      paymentInfo.isPaid ? colors.success : colors.background
-                    }
-                  />
-                  <Text
-                    style={{
-                      color: paymentInfo.isPaid
-                        ? colors.success
-                        : colors.background,
-                      fontWeight: "700",
-                      fontSize: 16,
-                    }}
-                  >
-                    {paymentInfo.isPaid
-                      ? t("jobDetails.payment.signature.paid")
-                      : t("jobDetails.payment.signature.payNow")}
-                  </Text>
-                </Pressable>
-              )}
-
-              {/* Indicateur si signé */}
-              {hasSignature && (
-                <View
-                  style={{
-                    marginTop: DESIGN_TOKENS.spacing.sm,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: DESIGN_TOKENS.spacing.xs,
-                  }}
-                >
-                  <Ionicons
-                    name="checkmark-circle"
-                    size={16}
-                    color={colors.success}
-                  />
-                  <Text
-                    style={{
-                      fontSize: 14,
-                      color: colors.success,
-                      fontWeight: "600",
-                    }}
-                  >
-                    {t("jobDetails.payment.signature.jobSignedByClient")}
-                  </Text>
-                </View>
-              )}
-            </View>
-          )}
-        </View>
-
-        {/* Suivi du temps en temps réel */}
-        {paymentInfo.isRunning && (
-          <View
-            style={{
-              backgroundColor: colors.backgroundSecondary,
-              borderRadius: DESIGN_TOKENS.radius.lg,
-              padding: DESIGN_TOKENS.spacing.lg,
-              marginBottom: DESIGN_TOKENS.spacing.lg,
-              borderWidth: 2,
-              borderColor: colors.primary + "30",
-            }}
-          >
+          {/* Calcul détaillé */}
+          <View style={{ gap: DESIGN_TOKENS.spacing.md }}>
+            {/* Temps de travail réel */}
             <View
               style={{
                 flexDirection: "row",
+                justifyContent: "space-between",
                 alignItems: "center",
-                gap: DESIGN_TOKENS.spacing.sm,
-                marginBottom: DESIGN_TOKENS.spacing.lg,
+              }}
+            >
+              <Text style={{ fontSize: 14, color: colors.text }}>
+                {t("jobDetails.payment.billingBreakdown.actualWorkTime")}
+              </Text>
+              <Text
+                style={{ fontSize: 14, fontWeight: "500", color: colors.text }}
+              >
+                {formatTime(paymentInfo.totalTime)}
+              </Text>
+            </View>
+
+            {/* Pauses (si > 0) */}
+            {paymentInfo.totalTime > paymentInfo.actualTime && (
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ fontSize: 14, color: colors.textSecondary }}>
+                  {t("jobDetails.payment.billingBreakdown.pausesNotBillable")}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: "500",
+                    color: colors.warning,
+                  }}
+                >
+                  -{formatTime(paymentInfo.totalTime - paymentInfo.actualTime)}
+                </Text>
+              </View>
+            )}
+
+            {/* Séparateur */}
+            <View
+              style={{
+                height: 1,
+                backgroundColor: colors.border,
+              }}
+            />
+
+            {/* Temps facturable brut */}
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Text
+                style={{ fontSize: 14, color: colors.text, fontWeight: "600" }}
+              >
+                {t("jobDetails.payment.billingBreakdown.grossBillableTime")}
+              </Text>
+              <Text
+                style={{ fontSize: 14, fontWeight: "600", color: colors.text }}
+              >
+                {formatTime(paymentInfo.actualTime)}
+              </Text>
+            </View>
+
+            {/* Minimum facturable (2h) */}
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 14, color: colors.text }}>
+                  {t("jobDetails.payment.billingBreakdown.minimumBillable")}
+                </Text>
+                <Text style={{ fontSize: 11, color: colors.textSecondary }}>
+                  {t("jobDetails.payment.billingBreakdown.minimumPolicy")}
+                </Text>
+              </View>
+              <Text
+                style={{ fontSize: 14, fontWeight: "500", color: colors.text }}
+              >
+                2h00min
+              </Text>
+            </View>
+
+            {/* Call-out fee */}
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 14, color: colors.text }}>
+                  {t("jobDetails.payment.billingBreakdown.callOutFee")}
+                </Text>
+                <Text style={{ fontSize: 11, color: colors.textSecondary }}>
+                  {t("jobDetails.payment.billingBreakdown.travelFee")}
+                </Text>
+              </View>
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: "500",
+                  color: colors.primary,
+                }}
+              >
+                +0h30min
+              </Text>
+            </View>
+
+            {/* Arrondi (règle 7min) */}
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 14, color: colors.text }}>
+                  {t("jobDetails.payment.billingBreakdown.halfHourRounding")}
+                </Text>
+                <Text style={{ fontSize: 11, color: colors.textSecondary }}>
+                  {t("jobDetails.payment.billingBreakdown.sevenMinuteRule")}
+                </Text>
+              </View>
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: "500",
+                  color: colors.primary,
+                }}
+              >
+                {t("jobDetails.payment.billingBreakdown.auto")}
+              </Text>
+            </View>
+
+            {/* Séparateur double */}
+            <View
+              style={{
+                height: 2,
+                backgroundColor: colors.border,
+              }}
+            />
+
+            {/* Total heures facturables */}
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                backgroundColor: colors.backgroundTertiary + "30",
+                padding: DESIGN_TOKENS.spacing.md,
+                borderRadius: DESIGN_TOKENS.radius.md,
+              }}
+            >
+              <Text
+                style={{ fontSize: 15, color: colors.text, fontWeight: "700" }}
+              >
+                {t("jobDetails.payment.billingBreakdown.totalBillableHours")}
+              </Text>
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "700",
+                  color: colors.primary,
+                }}
+              >
+                {paymentInfo.billableHours}h
+              </Text>
+            </View>
+
+            {/* Taux horaire */}
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ fontSize: 14, color: colors.textSecondary }}>
+                {t("jobDetails.payment.billingBreakdown.hourlyRate")}
+              </Text>
+              <Text
+                style={{ fontSize: 14, fontWeight: "500", color: colors.text }}
+              >
+                {formatCurrency(HOURLY_RATE_AUD)}/h
+              </Text>
+            </View>
+
+            {/* Section Éléments Additionnels — masqué si payé */}
+            {!paymentInfo.isPaid && (
+              <View
+                style={{
+                  marginTop: DESIGN_TOKENS.spacing.sm,
+                  marginBottom: DESIGN_TOKENS.spacing.sm,
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: DESIGN_TOKENS.spacing.sm,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 15,
+                      color: colors.text,
+                      fontWeight: "600",
+                    }}
+                  >
+                    {t("jobDetails.payment.additionalItems.title") ||
+                      "Additional Items"}
+                  </Text>
+                  <Pressable
+                    onPress={() => setIsAddItemModalVisible(true)}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      backgroundColor: colors.primary,
+                      paddingHorizontal: DESIGN_TOKENS.spacing.md,
+                      paddingVertical: DESIGN_TOKENS.spacing.xs,
+                      borderRadius: DESIGN_TOKENS.radius.md,
+                      gap: DESIGN_TOKENS.spacing.xs,
+                    }}
+                  >
+                    <Ionicons
+                      name="add"
+                      size={16}
+                      color={colors.buttonPrimaryText}
+                    />
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        color: colors.buttonPrimaryText,
+                        fontWeight: "600",
+                      }}
+                    >
+                      {t("jobDetails.payment.additionalItems.addItem") ||
+                        "Add Item"}
+                    </Text>
+                  </Pressable>
+                </View>
+
+                {additionalItems.length > 0 ? (
+                  <View style={{ gap: DESIGN_TOKENS.spacing.xs }}>
+                    {additionalItems.map((item) => (
+                      <View
+                        key={item.id}
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          backgroundColor: colors.backgroundTertiary + "30",
+                          padding: DESIGN_TOKENS.spacing.sm,
+                          borderRadius: DESIGN_TOKENS.radius.sm,
+                        }}
+                      >
+                        <Text
+                          style={{ fontSize: 14, color: colors.text, flex: 1 }}
+                        >
+                          {item.description}
+                        </Text>
+                        <Text
+                          style={{
+                            fontSize: 14,
+                            fontWeight: "500",
+                            color: colors.text,
+                            marginRight: DESIGN_TOKENS.spacing.sm,
+                          }}
+                        >
+                          {formatCurrency(item.amount)}
+                        </Text>
+                        <Pressable onPress={() => handleRemoveItem(item.id)}>
+                          <Ionicons
+                            name="close-circle"
+                            size={20}
+                            color={colors.error}
+                          />
+                        </Pressable>
+                      </View>
+                    ))}
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        paddingTop: DESIGN_TOKENS.spacing.xs,
+                        borderTopWidth: 1,
+                        borderTopColor: colors.border,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 14,
+                          color: colors.textSecondary,
+                          fontWeight: "600",
+                        }}
+                      >
+                        {t("jobDetails.payment.additionalItems.subtotal") ||
+                          "Subtotal"}
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: 14,
+                          fontWeight: "600",
+                          color: colors.text,
+                        }}
+                      >
+                        {formatCurrency(additionalItemsTotal)}
+                      </Text>
+                    </View>
+                  </View>
+                ) : (
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      color: colors.textSecondary,
+                      fontStyle: "italic",
+                    }}
+                  >
+                    {t("jobDetails.payment.additionalItems.noItems") ||
+                      "No additional items"}
+                  </Text>
+                )}
+              </View>
+            )}
+
+            {/* Séparateur épais */}
+            <View
+              style={{
+                height: 3,
+                backgroundColor: colors.primary + "30",
+                marginVertical: DESIGN_TOKENS.spacing.xs,
+              }}
+            />
+
+            {/* MONTANT FINAL */}
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                backgroundColor: colors.primary + "10",
+                padding: DESIGN_TOKENS.spacing.lg,
+                borderRadius: DESIGN_TOKENS.radius.md,
+                borderWidth: 2,
+                borderColor: colors.primary + "30",
+              }}
+            >
+              <Text
+                style={{ fontSize: 17, color: colors.text, fontWeight: "700" }}
+              >
+                {t("jobDetails.payment.billingBreakdown.finalAmount")}
+              </Text>
+              <Text
+                style={{
+                  fontSize: 22,
+                  fontWeight: "700",
+                  color: colors.primary,
+                }}
+              >
+                {formatCurrency(paymentInfo.current + additionalItemsTotal)}
+              </Text>
+            </View>
+
+            {/* ===== BOUTON D'ACTION (juste après le final amount) ===== */}
+            {isJobCompleted && (
+              <View style={{ marginTop: DESIGN_TOKENS.spacing.sm }}>
+                {signatureFromServer.isLoading ? (
+                  <View
+                    style={{
+                      paddingVertical: DESIGN_TOKENS.spacing.md,
+                      alignItems: "center",
+                      flexDirection: "row",
+                      justifyContent: "center",
+                      gap: DESIGN_TOKENS.spacing.sm,
+                    }}
+                  >
+                    <ActivityIndicator size="small" color={colors.primary} />
+                    <Text style={{ color: colors.textSecondary, fontSize: 14 }}>
+                      {t("jobDetails.payment.signature.verifying")}
+                    </Text>
+                  </View>
+                ) : !hasSignature ? (
+                  // Pas encore signé → bouton signature
+                  <Pressable
+                    onPress={handleOpenSignature}
+                    style={({ pressed }) => ({
+                      backgroundColor: pressed
+                        ? colors.primary + "DD"
+                        : colors.primary,
+                      paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+                      paddingVertical: DESIGN_TOKENS.spacing.md,
+                      borderRadius: DESIGN_TOKENS.radius.lg,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: DESIGN_TOKENS.spacing.sm,
+                      minHeight: 52,
+                    })}
+                  >
+                    <Ionicons
+                      name="create"
+                      size={20}
+                      color={colors.background}
+                    />
+                    <Text
+                      style={{
+                        color: colors.background,
+                        fontWeight: "700",
+                        fontSize: 16,
+                      }}
+                    >
+                      {t("jobDetails.payment.signature.signJob")}
+                    </Text>
+                  </Pressable>
+                ) : paymentInfo.isPaid ? (
+                  // Déjà payé → bouton envoyer facture
+                  <Pressable
+                    onPress={handleSendInvoice}
+                    style={({ pressed }) => ({
+                      backgroundColor: pressed
+                        ? colors.primary + "DD"
+                        : colors.primary,
+                      paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+                      paddingVertical: DESIGN_TOKENS.spacing.md,
+                      borderRadius: DESIGN_TOKENS.radius.lg,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: DESIGN_TOKENS.spacing.sm,
+                      minHeight: 52,
+                    })}
+                  >
+                    <Ionicons name="send" size={20} color={colors.background} />
+                    <Text
+                      style={{
+                        color: colors.background,
+                        fontWeight: "700",
+                        fontSize: 16,
+                      }}
+                    >
+                      {t("payment.window.sendInvoice") || "Send Invoice"}
+                    </Text>
+                  </Pressable>
+                ) : (
+                  // Signé mais pas payé → bouton payer
+                  <Pressable
+                    onPress={handlePayment}
+                    style={({ pressed }) => ({
+                      backgroundColor: pressed
+                        ? colors.successLight
+                        : colors.success,
+                      paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+                      paddingVertical: DESIGN_TOKENS.spacing.md,
+                      borderRadius: DESIGN_TOKENS.radius.lg,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: DESIGN_TOKENS.spacing.sm,
+                      minHeight: 52,
+                    })}
+                  >
+                    <Ionicons name="card" size={20} color={colors.background} />
+                    <Text
+                      style={{
+                        color: colors.background,
+                        fontWeight: "700",
+                        fontSize: 16,
+                      }}
+                    >
+                      {t("jobDetails.payment.signature.payNow")}
+                    </Text>
+                  </Pressable>
+                )}
+
+                {/* Indicateur si signé */}
+                {hasSignature && (
+                  <View
+                    style={{
+                      marginTop: DESIGN_TOKENS.spacing.sm,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: DESIGN_TOKENS.spacing.xs,
+                    }}
+                  >
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={16}
+                      color={colors.success}
+                    />
+                    <Text
+                      style={{
+                        fontSize: 13,
+                        color: colors.success,
+                        fontWeight: "600",
+                      }}
+                    >
+                      {t("jobDetails.payment.signature.jobSignedByClient")}
+                    </Text>
+                  </View>
+                )}
+                {paymentInfo.isPaid && (
+                  <View
+                    style={{
+                      marginTop: 4,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: DESIGN_TOKENS.spacing.xs,
+                    }}
+                  >
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={16}
+                      color={colors.success}
+                    />
+                    <Text
+                      style={{
+                        fontSize: 13,
+                        color: colors.success,
+                        fontWeight: "600",
+                      }}
+                    >
+                      {t("jobDetails.payment.signature.paid")}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            )}
+
+            {/* Note explicative */}
+            <View
+              style={{
+                backgroundColor: colors.backgroundTertiary + "30",
+                borderRadius: DESIGN_TOKENS.radius.md,
+                padding: DESIGN_TOKENS.spacing.md,
+                marginTop: DESIGN_TOKENS.spacing.sm,
+                borderLeftWidth: 3,
+                borderLeftColor: colors.primary,
               }}
             >
               <View
                 style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 16,
-                  backgroundColor: colors.primary + "20",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                <Ionicons name="time" size={18} color={colors.primary} />
-              </View>
-              <Text
-                style={{
-                  fontSize: 18,
-                  fontWeight: "600",
-                  color: colors.text,
-                  flex: 1,
-                }}
-              >
-                {t("jobDetails.payment.liveTracking.title")}
-              </Text>
-              <View
-                style={{
-                  backgroundColor: colors.success,
-                  borderRadius: 8,
-                  paddingHorizontal: 8,
-                  paddingVertical: 4,
                   flexDirection: "row",
-                  alignItems: "center",
-                  gap: 4,
+                  alignItems: "flex-start",
+                  gap: DESIGN_TOKENS.spacing.sm,
                 }}
               >
-                <View
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: 4,
-                    backgroundColor: colors.buttonPrimaryText,
-                  }}
+                <Ionicons
+                  name="information-circle"
+                  size={18}
+                  color={colors.primary}
+                  style={{ marginTop: 2 }}
                 />
                 <Text
                   style={{
                     fontSize: 12,
-                    fontWeight: "600",
-                    color: colors.buttonPrimaryText,
+                    color: colors.textSecondary,
+                    flex: 1,
+                    lineHeight: 18,
                   }}
                 >
-                  {t("jobDetails.payment.liveTracking.live")}
-                </Text>
-              </View>
-            </View>
-
-            <View style={{ gap: DESIGN_TOKENS.spacing.md }}>
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <Text style={{ fontSize: 14, color: colors.textSecondary }}>
-                  {t("jobDetails.payment.liveTracking.totalTimeElapsed")}
-                </Text>
-                <Text
-                  style={{
-                    fontSize: 16,
-                    fontWeight: "600",
-                    color: colors.text,
-                  }}
-                >
-                  {formatTime(paymentInfo.totalTime)}
-                </Text>
-              </View>
-
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <Text style={{ fontSize: 14, color: colors.textSecondary }}>
-                  {t("jobDetails.payment.liveTracking.billableTime")}
-                </Text>
-                <Text
-                  style={{
-                    fontSize: 16,
-                    fontWeight: "600",
-                    color: colors.text,
-                  }}
-                >
-                  {formatTime(paymentInfo.actualTime)}
-                </Text>
-              </View>
-
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <Text style={{ fontSize: 14, color: colors.textSecondary }}>
-                  {t("jobDetails.payment.liveTracking.currentCost")}
-                </Text>
-                <Text
-                  style={{
-                    fontSize: 18,
-                    fontWeight: "700",
-                    color: colors.primary,
-                  }}
-                >
-                  {formatCurrency(paymentInfo.current)}
+                  {t("jobDetails.payment.billingBreakdown.explanatoryNote")}
                 </Text>
               </View>
             </View>
           </View>
-        )}
+        </View>
 
-        {/* Résumé financier */}
+        {/* ===== 2. RÉSUMÉ FINANCIER ===== */}
         <View
           style={{
             backgroundColor: colors.backgroundSecondary,
@@ -898,490 +1300,16 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
           </View>
         </View>
 
-        {/* 💰 BREAKDOWN DÉTAILLÉ DE FACTURATION */}
-        <View
-          style={{
-            backgroundColor: colors.backgroundSecondary,
-            borderRadius: DESIGN_TOKENS.radius.lg,
-            padding: DESIGN_TOKENS.spacing.lg,
-            marginBottom: DESIGN_TOKENS.spacing.lg,
-            borderWidth: 2,
-            borderColor: colors.primary + "20",
-          }}
-        >
+        {/* ===== 3. SUIVI TEMPS RÉEL (si timer actif) ===== */}
+        {paymentInfo.isRunning && (
           <View
             style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: DESIGN_TOKENS.spacing.sm,
-              marginBottom: DESIGN_TOKENS.spacing.lg,
-            }}
-          >
-            <View
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 16,
-                backgroundColor: colors.primary + "20",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <Ionicons name="receipt" size={18} color={colors.primary} />
-            </View>
-            <Text
-              style={{
-                fontSize: 18,
-                fontWeight: "700",
-                color: colors.text,
-                flex: 1,
-              }}
-            >
-              {t("jobDetails.payment.billingBreakdown.title")}
-            </Text>
-          </View>
-
-          {/* Calcul détaillé */}
-          <View style={{ gap: DESIGN_TOKENS.spacing.md }}>
-            {/* Ligne 1: Temps de travail réel */}
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                paddingBottom: DESIGN_TOKENS.spacing.sm,
-              }}
-            >
-              <Text style={{ fontSize: 14, color: colors.text }}>
-                {t("jobDetails.payment.billingBreakdown.actualWorkTime")}
-              </Text>
-              <Text
-                style={{ fontSize: 14, fontWeight: "500", color: colors.text }}
-              >
-                {formatTime(paymentInfo.totalTime)}
-              </Text>
-            </View>
-
-            {/* Ligne 2: Pauses (si > 0) */}
-            {paymentInfo.totalTime > paymentInfo.actualTime && (
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  paddingBottom: DESIGN_TOKENS.spacing.sm,
-                }}
-              >
-                <Text style={{ fontSize: 14, color: colors.textSecondary }}>
-                  {t("jobDetails.payment.billingBreakdown.pausesNotBillable")}
-                </Text>
-                <Text
-                  style={{
-                    fontSize: 14,
-                    fontWeight: "500",
-                    color: colors.warning,
-                  }}
-                >
-                  -{formatTime(paymentInfo.totalTime - paymentInfo.actualTime)}
-                </Text>
-              </View>
-            )}
-
-            {/* Séparateur */}
-            <View
-              style={{
-                height: 1,
-                backgroundColor: colors.border,
-                marginVertical: DESIGN_TOKENS.spacing.xs,
-              }}
-            />
-
-            {/* Ligne 3: Temps facturable brut */}
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                paddingBottom: DESIGN_TOKENS.spacing.sm,
-              }}
-            >
-              <Text
-                style={{ fontSize: 14, color: colors.text, fontWeight: "600" }}
-              >
-                {t("jobDetails.payment.billingBreakdown.grossBillableTime")}
-              </Text>
-              <Text
-                style={{ fontSize: 14, fontWeight: "600", color: colors.text }}
-              >
-                {formatTime(paymentInfo.actualTime)}
-              </Text>
-            </View>
-
-            {/* Ligne 4: Minimum facturable (2h) */}
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 14, color: colors.text }}>
-                  {t("jobDetails.payment.billingBreakdown.minimumBillable")}
-                </Text>
-                <Text style={{ fontSize: 11, color: colors.textSecondary }}>
-                  {t("jobDetails.payment.billingBreakdown.minimumPolicy")}
-                </Text>
-              </View>
-              <Text
-                style={{ fontSize: 14, fontWeight: "500", color: colors.text }}
-              >
-                2h00min
-              </Text>
-            </View>
-
-            {/* Ligne 5: Call-out fee */}
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 14, color: colors.text }}>
-                  {t("jobDetails.payment.billingBreakdown.callOutFee")}
-                </Text>
-                <Text style={{ fontSize: 11, color: colors.textSecondary }}>
-                  {t("jobDetails.payment.billingBreakdown.travelFee")}
-                </Text>
-              </View>
-              <Text
-                style={{
-                  fontSize: 14,
-                  fontWeight: "500",
-                  color: colors.primary,
-                }}
-              >
-                +0h30min
-              </Text>
-            </View>
-
-            {/* Ligne 6: Arrondi (règle 7min) */}
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                paddingBottom: DESIGN_TOKENS.spacing.sm,
-              }}
-            >
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 14, color: colors.text }}>
-                  {t("jobDetails.payment.billingBreakdown.halfHourRounding")}
-                </Text>
-                <Text style={{ fontSize: 11, color: colors.textSecondary }}>
-                  {t("jobDetails.payment.billingBreakdown.sevenMinuteRule")}
-                </Text>
-              </View>
-              <Text
-                style={{
-                  fontSize: 14,
-                  fontWeight: "500",
-                  color: colors.primary,
-                }}
-              >
-                {t("jobDetails.payment.billingBreakdown.auto")}
-              </Text>
-            </View>
-
-            {/* Double séparateur */}
-            <View
-              style={{
-                height: 2,
-                backgroundColor: colors.border,
-                marginVertical: DESIGN_TOKENS.spacing.xs,
-              }}
-            />
-
-            {/* Ligne 7: Total heures facturables */}
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                backgroundColor: colors.backgroundTertiary + "30",
-                padding: DESIGN_TOKENS.spacing.md,
-                borderRadius: DESIGN_TOKENS.radius.md,
-                marginBottom: DESIGN_TOKENS.spacing.sm,
-              }}
-            >
-              <Text
-                style={{ fontSize: 15, color: colors.text, fontWeight: "700" }}
-              >
-                {t("jobDetails.payment.billingBreakdown.totalBillableHours")}
-              </Text>
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: "700",
-                  color: colors.primary,
-                }}
-              >
-                {paymentInfo.billableHours}h
-              </Text>
-            </View>
-
-            {/* Ligne 8: Taux horaire */}
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                paddingBottom: DESIGN_TOKENS.spacing.md,
-              }}
-            >
-              <Text style={{ fontSize: 14, color: colors.textSecondary }}>
-                {t("jobDetails.payment.billingBreakdown.hourlyRate")}
-              </Text>
-              <Text
-                style={{ fontSize: 14, fontWeight: "500", color: colors.text }}
-              >
-                {formatCurrency(HOURLY_RATE_AUD)}/h
-              </Text>
-            </View>
-
-            {/* Section Éléments Additionnels */}
-            <View
-              style={{
-                marginTop: DESIGN_TOKENS.spacing.md,
-                marginBottom: DESIGN_TOKENS.spacing.md,
-              }}
-            >
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: DESIGN_TOKENS.spacing.sm,
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 15,
-                    color: colors.text,
-                    fontWeight: "600",
-                  }}
-                >
-                  {t("jobDetails.payment.additionalItems.title") ||
-                    "Additional Items"}
-                </Text>
-                <Pressable
-                  onPress={() => setIsAddItemModalVisible(true)}
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    backgroundColor: colors.primary,
-                    paddingHorizontal: DESIGN_TOKENS.spacing.md,
-                    paddingVertical: DESIGN_TOKENS.spacing.xs,
-                    borderRadius: DESIGN_TOKENS.radius.md,
-                    gap: DESIGN_TOKENS.spacing.xs,
-                  }}
-                >
-                  <Ionicons
-                    name="add"
-                    size={16}
-                    color={colors.buttonPrimaryText}
-                  />
-                  <Text
-                    style={{
-                      fontSize: 12,
-                      color: colors.buttonPrimaryText,
-                      fontWeight: "600",
-                    }}
-                  >
-                    {t("jobDetails.payment.additionalItems.addItem") ||
-                      "Add Item"}
-                  </Text>
-                </Pressable>
-              </View>
-
-              {additionalItems.length > 0 ? (
-                <View style={{ gap: DESIGN_TOKENS.spacing.xs }}>
-                  {additionalItems.map((item) => (
-                    <View
-                      key={item.id}
-                      style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        backgroundColor: colors.backgroundTertiary + "30",
-                        padding: DESIGN_TOKENS.spacing.sm,
-                        borderRadius: DESIGN_TOKENS.radius.sm,
-                      }}
-                    >
-                      <Text
-                        style={{ fontSize: 14, color: colors.text, flex: 1 }}
-                      >
-                        {item.description}
-                      </Text>
-                      <Text
-                        style={{
-                          fontSize: 14,
-                          fontWeight: "500",
-                          color: colors.text,
-                          marginRight: DESIGN_TOKENS.spacing.sm,
-                        }}
-                      >
-                        {formatCurrency(item.amount)}
-                      </Text>
-                      <Pressable onPress={() => handleRemoveItem(item.id)}>
-                        <Ionicons
-                          name="close-circle"
-                          size={20}
-                          color={colors.error}
-                        />
-                      </Pressable>
-                    </View>
-                  ))}
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      paddingTop: DESIGN_TOKENS.spacing.xs,
-                      borderTopWidth: 1,
-                      borderTopColor: colors.border,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontSize: 14,
-                        color: colors.textSecondary,
-                        fontWeight: "600",
-                      }}
-                    >
-                      {t("jobDetails.payment.additionalItems.subtotal") ||
-                        "Subtotal"}
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: 14,
-                        fontWeight: "600",
-                        color: colors.text,
-                      }}
-                    >
-                      {formatCurrency(additionalItemsTotal)}
-                    </Text>
-                  </View>
-                </View>
-              ) : (
-                <Text
-                  style={{
-                    fontSize: 13,
-                    color: colors.textSecondary,
-                    fontStyle: "italic",
-                  }}
-                >
-                  {t("jobDetails.payment.additionalItems.noItems") ||
-                    "No additional items"}
-                </Text>
-              )}
-            </View>
-
-            {/* Triple séparateur */}
-            <View
-              style={{
-                height: 3,
-                backgroundColor: colors.primary + "30",
-                marginVertical: DESIGN_TOKENS.spacing.sm,
-              }}
-            />
-
-            {/* Ligne 9: MONTANT FINAL */}
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                backgroundColor: colors.primary + "10",
-                padding: DESIGN_TOKENS.spacing.lg,
-                borderRadius: DESIGN_TOKENS.radius.md,
-                borderWidth: 2,
-                borderColor: colors.primary + "30",
-              }}
-            >
-              <Text
-                style={{ fontSize: 17, color: colors.text, fontWeight: "700" }}
-              >
-                {t("jobDetails.payment.billingBreakdown.finalAmount")}
-              </Text>
-              <Text
-                style={{
-                  fontSize: 22,
-                  fontWeight: "700",
-                  color: colors.primary,
-                }}
-              >
-                {formatCurrency(paymentInfo.current + additionalItemsTotal)}
-              </Text>
-            </View>
-
-            {/* Note explicative */}
-            <View
-              style={{
-                backgroundColor: colors.backgroundTertiary + "30",
-                borderRadius: DESIGN_TOKENS.radius.md,
-                padding: DESIGN_TOKENS.spacing.md,
-                marginTop: DESIGN_TOKENS.spacing.sm,
-                borderLeftWidth: 3,
-                borderLeftColor: colors.primary,
-              }}
-            >
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "flex-start",
-                  gap: DESIGN_TOKENS.spacing.sm,
-                }}
-              >
-                <Ionicons
-                  name="information-circle"
-                  size={18}
-                  color={colors.primary}
-                  style={{ marginTop: 2 }}
-                />
-                <Text
-                  style={{
-                    fontSize: 12,
-                    color: colors.textSecondary,
-                    flex: 1,
-                    lineHeight: 18,
-                  }}
-                >
-                  {t("jobDetails.payment.billingBreakdown.explanatoryNote")}
-                </Text>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        {/* Section détails du job (suite existante...) */}
-        <View
-          style={{
-            backgroundColor: colors.backgroundSecondary,
-            borderRadius: DESIGN_TOKENS.radius.lg,
-            padding: DESIGN_TOKENS.spacing.lg,
-            marginBottom: DESIGN_TOKENS.spacing.lg,
-          }}
-        >
-          {/* Détails de facturation */}
-          <View
-            style={{
-              backgroundColor: colors.backgroundTertiary + "50",
+              backgroundColor: colors.backgroundSecondary,
               borderRadius: DESIGN_TOKENS.radius.lg,
-              padding: DESIGN_TOKENS.spacing.md,
-              marginTop: DESIGN_TOKENS.spacing.md,
+              padding: DESIGN_TOKENS.spacing.lg,
+              marginBottom: DESIGN_TOKENS.spacing.lg,
+              borderWidth: 2,
+              borderColor: colors.primary + "30",
             }}
           >
             <View
@@ -1389,157 +1317,128 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                 flexDirection: "row",
                 alignItems: "center",
                 gap: DESIGN_TOKENS.spacing.sm,
-                marginBottom: DESIGN_TOKENS.spacing.sm,
+                marginBottom: DESIGN_TOKENS.spacing.lg,
               }}
             >
-              <Ionicons
-                name="calculator"
-                size={16}
-                color={colors.textSecondary}
-              />
+              <View
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  backgroundColor: colors.primary + "20",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Ionicons name="time" size={18} color={colors.primary} />
+              </View>
               <Text
                 style={{
-                  fontSize: 14,
+                  fontSize: 18,
                   fontWeight: "600",
-                  color: colors.textSecondary,
-                }}
-              >
-                {t("jobDetails.payment.jobDetailsSection.billingDetails")}
-              </Text>
-            </View>
-
-            <View style={{ gap: DESIGN_TOKENS.spacing.xs }}>
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                }}
-              >
-                <Text style={{ fontSize: 12, color: colors.textSecondary }}>
-                  {t("jobDetails.payment.jobDetailsSection.billableHours")}
-                </Text>
-                <Text
-                  style={{
-                    fontSize: 12,
-                    fontWeight: "500",
-                    color: colors.text,
-                  }}
-                >
-                  {paymentInfo.billableHours.toFixed(1)}h
-                </Text>
-              </View>
-
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                }}
-              >
-                <Text style={{ fontSize: 12, color: colors.textSecondary }}>
-                  {t("jobDetails.payment.jobDetailsSection.hourlyRate")}
-                </Text>
-                <Text
-                  style={{
-                    fontSize: 12,
-                    fontWeight: "500",
-                    color: colors.text,
-                  }}
-                >
-                  {formatCurrency(HOURLY_RATE_AUD)}/h
-                </Text>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        {/* Informations du job */}
-        <View
-          style={{
-            backgroundColor: colors.backgroundSecondary,
-            borderRadius: DESIGN_TOKENS.radius.lg,
-            padding: DESIGN_TOKENS.spacing.lg,
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 18,
-              fontWeight: "600",
-              color: colors.text,
-              marginBottom: DESIGN_TOKENS.spacing.lg,
-            }}
-          >
-            {t("jobDetails.payment.jobDetailsSection.title")}
-          </Text>
-
-          <View style={{ gap: DESIGN_TOKENS.spacing.md }}>
-            <View>
-              <Text
-                style={{
-                  fontSize: 14,
-                  color: colors.textSecondary,
-                  marginBottom: 4,
-                }}
-              >
-                {t("jobDetails.payment.jobDetailsSection.jobTitle")}
-              </Text>
-              <Text
-                style={{
-                  fontSize: 16,
                   color: colors.text,
+                  flex: 1,
                 }}
               >
-                {job?.job?.title ||
-                  job?.title ||
-                  t("jobDetails.payment.jobDetailsSection.untitledJob")}
+                {t("jobDetails.payment.liveTracking.title")}
               </Text>
-            </View>
-
-            {job?.client && (
-              <View>
+              <View
+                style={{
+                  backgroundColor: colors.success,
+                  borderRadius: 8,
+                  paddingHorizontal: 8,
+                  paddingVertical: 4,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 4,
+                }}
+              >
+                <View
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor: colors.buttonPrimaryText,
+                  }}
+                />
                 <Text
                   style={{
-                    fontSize: 14,
-                    color: colors.textSecondary,
-                    marginBottom: 4,
+                    fontSize: 12,
+                    fontWeight: "600",
+                    color: colors.buttonPrimaryText,
                   }}
                 >
-                  {t("jobDetails.payment.jobDetailsSection.client")}
+                  {t("jobDetails.payment.liveTracking.live")}
+                </Text>
+              </View>
+            </View>
+
+            <View style={{ gap: DESIGN_TOKENS.spacing.md }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ fontSize: 14, color: colors.textSecondary }}>
+                  {t("jobDetails.payment.liveTracking.totalTimeElapsed")}
                 </Text>
                 <Text
                   style={{
                     fontSize: 16,
+                    fontWeight: "600",
                     color: colors.text,
                   }}
                 >
-                  {job.client.name ||
-                    `${job.client.firstName} ${job.client.lastName}`}
+                  {formatTime(paymentInfo.totalTime)}
                 </Text>
               </View>
-            )}
 
-            <View>
-              <Text
+              <View
                 style={{
-                  fontSize: 14,
-                  color: colors.textSecondary,
-                  marginBottom: 4,
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
                 }}
               >
-                {t("jobDetails.payment.jobDetailsSection.estimatedDuration")}
-              </Text>
-              <Text
+                <Text style={{ fontSize: 14, color: colors.textSecondary }}>
+                  {t("jobDetails.payment.liveTracking.billableTime")}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: "600",
+                    color: colors.text,
+                  }}
+                >
+                  {formatTime(paymentInfo.actualTime)}
+                </Text>
+              </View>
+
+              <View
                 style={{
-                  fontSize: 16,
-                  color: colors.text,
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
                 }}
               >
-                {job?.job?.estimatedDuration
-                  ? `${Math.round(job.job.estimatedDuration / 60)} ${t("jobDetails.payment.jobDetailsSection.hours")}`
-                  : t("jobDetails.payment.jobDetailsSection.notDefined")}
-              </Text>
+                <Text style={{ fontSize: 14, color: colors.textSecondary }}>
+                  {t("jobDetails.payment.liveTracking.currentCost")}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 18,
+                    fontWeight: "700",
+                    color: colors.primary,
+                  }}
+                >
+                  {formatCurrency(paymentInfo.current)}
+                </Text>
+              </View>
             </View>
           </View>
-        </View>
+        )}
       </ScrollView>
 
       {/* Modal pour ajouter un élément */}
@@ -1617,7 +1516,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                 marginBottom: DESIGN_TOKENS.spacing.xs,
               }}
             >
-              {t("jobDetails.payment.additionalItems.amount") || "Amount (AUD)"}
+              {t("jobDetails.payment.additionalItems.amount")}
             </Text>
             <TextInput
               style={{
@@ -1628,7 +1527,9 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                 color: colors.text,
                 marginBottom: DESIGN_TOKENS.spacing.lg,
               }}
-              placeholder="0.00"
+              placeholder={t(
+                "jobDetails.payment.additionalItems.amountPlaceholder",
+              )}
               placeholderTextColor={colors.textSecondary}
               value={newItemAmount}
               onChangeText={setNewItemAmount}

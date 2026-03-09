@@ -1,5 +1,5 @@
 // src/components/DevTools/SessionLogViewer.tsx
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
     Alert,
     Modal,
@@ -12,6 +12,7 @@ import {
     View,
 } from "react-native";
 import { sessionLogger } from "../../services/sessionLogger";
+import { useTranslation } from "../../localization";
 
 interface SessionLogViewerProps {
   visible: boolean;
@@ -22,20 +23,24 @@ export const SessionLogViewer: React.FC<SessionLogViewerProps> = ({
   visible,
   onClose,
 }) => {
+  const { t } = useTranslation();
   const [logContent, setLogContent] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const loadLogs = async () => {
+  const loadLogs = useCallback(async () => {
     setIsLoading(true);
     try {
       const content = await sessionLogger.readLogContent();
       setLogContent(content);
-    } catch (error) {
-      Alert.alert("Erreur", "Impossible de lire les logs de session");
+    } catch {
+      Alert.alert(
+        t("devTools.sessionLogs.readErrorTitle"),
+        t("devTools.sessionLogs.readErrorMessage"),
+      );
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [t]);
 
   const shareLogs = async () => {
     try {
@@ -45,23 +50,26 @@ export const SessionLogViewer: React.FC<SessionLogViewerProps> = ({
           title: "Cobbr Session Logs",
         });
       }
-    } catch (error) {
-      Alert.alert("Erreur", "Impossible de partager les logs");
+    } catch {
+      Alert.alert(
+        t("devTools.sessionLogs.shareErrorTitle"),
+        t("devTools.sessionLogs.shareErrorMessage"),
+      );
     }
   };
 
   const clearLogs = () => {
     Alert.alert(
-      "Effacer les logs",
-      "Voulez-vous effacer les logs de la session actuelle ?",
+      t("devTools.sessionLogs.clearTitle"),
+      t("devTools.sessionLogs.clearMessage"),
       [
-        { text: "Annuler", style: "cancel" },
+        { text: t("common.cancel"), style: "cancel" },
         {
-          text: "Effacer",
+          text: t("devTools.sessionLogs.clearButton"),
           style: "destructive",
           onPress: () => {
             setLogContent(
-              "Logs effacés - Redémarrer l'app pour de nouveaux logs",
+              t("devTools.sessionLogs.clearedContent"),
             );
           },
         },
@@ -73,7 +81,7 @@ export const SessionLogViewer: React.FC<SessionLogViewerProps> = ({
     if (visible) {
       loadLogs();
     }
-  }, [visible]);
+  }, [visible, loadLogs]);
 
   if (!__DEV__) {
     return null; // Composant disponible seulement en dev

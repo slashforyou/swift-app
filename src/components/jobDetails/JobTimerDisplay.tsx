@@ -1,25 +1,35 @@
 /**
- * JobTimerDisplay - Composant fusionné simplifié
- * Combine le chrono + la progression sur une seule ligne
+ * JobTimerDisplay - Composant de timer/progression du job
  *
- * Affichage :
- * ┌────────────────────────────────────────────────────────┐
- * │ ⏱️ 02:34:18                          🚛 En route (2/5) │
- * │ ○────●────○────○────○                          [Pause] │
- * │ [⏭️ Étape suivante]  [🏁 Terminer]                     │
- * └────────────────────────────────────────────────────────┘
+ * États d'affichage:
+ * - Loading: Spinner pendant le chargement des données
+ * - Step 0: Bouton "Start" uniquement
+ * - Step 1 à avant-dernier: Temps + steps + bouton "Suivant" + bouton "Pause"
+ * - Job en pause: Temps + step en cours + bouton "Play"
+ * - Step final, pas signé: Temps arrêté + "Job terminé" + bouton "Signature requise"
+ * - Step final, signé pas payé: Temps arrêté + "Job terminé" + bouton "Paiement"
+ * - Step final, signé et payé: Temps arrêté + "Job terminé"
  */
 
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@react-native-vector-icons/ionicons";
 import React from "react";
-import { Alert, Pressable, ScrollView, Text, View } from "react-native";
+import {
+    ActivityIndicator,
+    Modal,
+    Pressable,
+    ScrollView,
+    Text,
+    View,
+} from "react-native";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useJobTimerContext } from "../../context/JobTimerProvider";
 import { useTheme } from "../../context/ThemeProvider";
 import { useTranslation } from "../../localization";
+import { checkJobSignatureExists } from "../../services/jobDetails";
+import type { JobSummaryData } from "../../types/jobSummary";
 
 interface JobTimerDisplayProps {
-  job: any;
+  job: JobSummaryData;
   onOpenSignatureModal?: () => void;
   onOpenPaymentPanel?: () => void;
 }
@@ -41,116 +51,242 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({
     isCompleted,
     currentStep,
     totalSteps,
-    togglePause, // ✅ V1.0: Simple Play/Pause toggle
+    togglePause,
     nextStep,
     stopTimer,
   } = useJobTimerContext();
 
-  // 🔍 DEBUG: Log chaque fois que le composant re-render
+  // Refs pour callbacks stables
+  const nextStepRef = React.useRef(nextStep);
+  const stopTimerRef = React.useRef(stopTimer);
   React.useEffect(() => {
-    // TEMP_DISABLED: console.log(`🔍 [JobTimerDisplay] Rendering: Step ${currentStep}/${totalSteps}, Job Step ${job?.step?.actualStep}`);
-  }, [currentStep, totalSteps, job?.step?.actualStep]);
+    nextStepRef.current = nextStep;
+    stopTimerRef.current = stopTimer;
+  }, [nextStep, stopTimer]);
 
-  // 🔍 DEBUG: Log des boutons
+  // Modal state
+  const [showNextStepModal, setShowNextStepModal] = React.useState(false);
+  const [nextStepInfo, setNextStepInfo] = React.useState({
+    name: "",
+    number: 0,
+  });
+
+  // ✅ Loading state: attendre que les données soient prêtes
+  const [isLoadingSignature, setIsLoadingSignature] = React.useState(true);
+  const [hasSignatureFromAPI, setHasSignatureFromAPI] = React.useState(false);
+
+  // Charger la signature depuis l'API au montage et quand le job change
   React.useEffect(() => {
-    // TEMP_DISABLED: console.log(`🔍 [BUTTON DEBUG] Running: ${isRunning}, Break: ${isOnBreak}, Step: ${currentStep}/${totalSteps}`);
-  }, [isRunning, isOnBreak, currentStep, totalSteps]);
+    let cancelled = false;
+    const checkSignature = async () => {
+      if (!job?.id) return;
+      setIsLoadingSignature(true);
+      try {
+        const result = await checkJobSignatureExists(job.id, "client");
+        if (!cancelled) {
+          setHasSignatureFromAPI(result.exists);
+        }
+      } catch (e) {
+        // Silently fail - fallback to local check
+      } finally {
+        if (!cancelled) setIsLoadingSignature(false);
+      }
+    };
+    checkSignature();
+    return () => {
+      cancelled = true;
+    };
+  }, [job?.id, job?.signature_blob, job?.signatureDataUrl]);
 
-  // ✅ FIX: Si le timer n'a jamais démarré, on est au step 0
+  // ===== Computed values =====
   const timerHasStarted = totalElapsed > 0;
   const effectiveCurrentStep = timerHasStarted ? currentStep : 0;
 
-  // Config de l'étape actuelle
+  const isJobCompleted = job?.status === "completed" || isCompleted;
+  const isAtFinalStep = effectiveCurrentStep >= totalSteps;
+  const isTimerFrozen = isJobCompleted || isAtFinalStep;
+
+  // Signature: local OU API
+  const hasSignature =
+    hasSignatureFromAPI ||
+    !!job?.signature_blob ||
+    !!job?.signatureDataUrl ||
+    !!job?.signatureFileUri;
+
+  // Paiement
+  const isPaid = job?.payment_status === "paid";
+  const needsPayment =
+    !isPaid && parseFloat(job?.amount_due || job?.amount_total || "0") > 0;
+
+  // Loading: on attend d'avoir signature_check terminé si le job est completed
+  const isLoading = isJobCompleted && isLoadingSignature;
+
+  // Step config
   const currentStepConfig = React.useMemo(() => {
     if (!job?.steps || job.steps.length === 0) return null;
-    // ✅ FIX: Chercher le step par son ID, en utilisant effectiveCurrentStep
     return (
       job.steps.find((step: any) => step.id === effectiveCurrentStep) || null
     );
   }, [job?.steps, effectiveCurrentStep]);
 
-  // ✅ Vérifier si le job est vraiment terminé (status completed)
-  const isJobCompleted = job?.status === "completed";
-
-  // Vérifier si on est à la dernière étape
-  const isAtFinalStep = effectiveCurrentStep === totalSteps;
-
-  // ✅ Le timer est "figé" si le job est completed OU à l'étape finale
-  const isTimerFrozen = isJobCompleted || isAtFinalStep;
-
-  // Log pour debug
-  React.useEffect(() => {
-    // TEMP_DISABLED: console.log(`🔍 [TIMER FROZEN DEBUG] Status: ${job?.status}, Frozen: ${isTimerFrozen}, Step: ${effectiveCurrentStep}/${totalSteps}`);
-  }, [
-    job?.status,
-    isJobCompleted,
-    effectiveCurrentStep,
-    totalSteps,
-    isAtFinalStep,
-    isTimerFrozen,
-  ]);
-
-  // Vérifier si signature présente
-  // ✅ Vérifier signature (local OU API)
-  const hasSignature =
-    job?.signature_blob ||
-    job?.job?.signature_blob ||
-    job?.signatureDataUrl ||
-    job?.signatureFileUri;
-
-  // Vérifier si paiement nécessaire
-  const needsPayment =
-    job?.payment_status === null && parseFloat(job?.amount_due || "0") > 0;
-
-  // Handler pour terminer le job
-  const handleStopTimer = () => {
-    if (!hasSignature) {
-      Alert.alert(
-        "✍️ Signature requise",
-        "Vous devez faire signer le client avant de finaliser le job.",
-        [
-          { text: "Annuler", style: "cancel" },
-          {
-            text: "Signer maintenant",
-            onPress: () => onOpenSignatureModal?.(),
-            style: "default",
-          },
-        ],
-      );
-      return;
-    }
-
-    Alert.alert(
-      "🏁 Terminer le job",
-      "Êtes-vous sûr ? La facturation sera déclenchée immédiatement.",
-      [
-        { text: "Annuler", style: "cancel" },
-        { text: "Terminer", onPress: stopTimer, style: "destructive" },
-      ],
-    );
-  };
-
-  // Handler pour passer à l'étape suivante
-  const handleNextStep = () => {
-    const nextStepNumber = currentStep + 1;
-    const nextStepName =
-      job?.steps?.[currentStep]?.name || `Étape ${nextStepNumber}`;
-
-    Alert.alert(
-      "⏭️ Étape suivante",
-      `Passer à "${nextStepName}" (${nextStepNumber}/${totalSteps}) ?`,
-      [
-        { text: "Annuler", style: "cancel" },
-        { text: "Continuer", onPress: nextStep },
-      ],
-    );
-  };
-
-  // ✅ Step 0 = "Job not started" - On affiche quand même le bloc mais avec chrono à 0
-  // Le chrono ne tourne qu'à partir du step 1
+  // Time display
   const displayTime =
     currentStep === 0 ? 0 : isRunning || totalElapsed > 0 ? totalElapsed : 0;
 
+  // ===== Handlers =====
+  const handleNextStep = () => {
+    if (showNextStepModal) return;
+    console.log("🔘 [JobTimerDisplay] handleNextStep clicked", {
+      currentStep,
+      totalSteps,
+      isRunning,
+      isOnBreak,
+      effectiveCurrentStep,
+    });
+    const nextStepNumber = currentStep + 1;
+    const nextStepName =
+      job?.steps?.[currentStep]?.name || `Étape ${nextStepNumber}`;
+    setNextStepInfo({ name: nextStepName, number: nextStepNumber });
+    setShowNextStepModal(true);
+  };
+
+  const handleConfirmNextStep = () => {
+    console.log("✅ [JobTimerDisplay] User confirmed next step");
+    setShowNextStepModal(false);
+    nextStepRef.current();
+  };
+
+  const handleCancelNextStep = () => {
+    setShowNextStepModal(false);
+  };
+
+  // ===== RENDER =====
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <View
+        style={{
+          backgroundColor: colors.backgroundSecondary,
+          borderRadius: DESIGN_TOKENS.radius.xl,
+          padding: DESIGN_TOKENS.spacing.xl,
+          marginBottom: DESIGN_TOKENS.spacing.lg,
+          borderWidth: 2,
+          borderColor: colors.border,
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: 120,
+        }}
+      >
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text
+          style={{ color: colors.textSecondary, marginTop: 12, fontSize: 14 }}
+        >
+          Chargement du statut...
+        </Text>
+      </View>
+    );
+  }
+
+  // ===== DETERMINE DISPLAY STATE =====
+  // State machine clair:
+  // 1. Step 0 (pas démarré) -> Bouton Start seulement
+  // 2. Steps intermédiaires, running -> Temps + steps + Next + Pause
+  // 3. Steps intermédiaires, paused -> Temps + step courant + Play
+  // 4. Final step, pas signé -> Temps arrêté + "Job terminé" + "Signature requise"
+  // 5. Final step, signé, pas payé -> Temps arrêté + "Job terminé" + "Paiement"
+  // 6. Final step, signé et payé -> Temps arrêté + "Job terminé"
+
+  type DisplayState =
+    | "NOT_STARTED"
+    | "RUNNING"
+    | "PAUSED"
+    | "COMPLETED_NEEDS_SIGNATURE"
+    | "COMPLETED_NEEDS_PAYMENT"
+    | "COMPLETED_DONE";
+
+  const getDisplayState = (): DisplayState => {
+    // Job terminé (status backend OU dernière étape atteinte)
+    if (isJobCompleted || isAtFinalStep) {
+      if (!hasSignature) return "COMPLETED_NEEDS_SIGNATURE";
+      if (needsPayment) return "COMPLETED_NEEDS_PAYMENT";
+      return "COMPLETED_DONE";
+    }
+    // Pas encore démarré
+    if (!timerHasStarted) return "NOT_STARTED";
+    // En pause
+    if (isOnBreak || !isRunning) return "PAUSED";
+    // En cours
+    return "RUNNING";
+  };
+
+  const displayState = getDisplayState();
+
+  // Border color par état
+  const borderColor =
+    displayState === "COMPLETED_DONE" ||
+    displayState === "COMPLETED_NEEDS_PAYMENT"
+      ? colors.success
+      : displayState === "COMPLETED_NEEDS_SIGNATURE"
+        ? colors.warning
+        : displayState === "RUNNING"
+          ? colors.primary
+          : colors.border;
+
+  // ===== STATE: NOT_STARTED (Step 0) =====
+  if (displayState === "NOT_STARTED") {
+    return (
+      <View
+        style={{
+          backgroundColor: colors.backgroundSecondary,
+          borderRadius: DESIGN_TOKENS.radius.xl,
+          padding: DESIGN_TOKENS.spacing.xl,
+          marginBottom: DESIGN_TOKENS.spacing.lg,
+          borderWidth: 2,
+          borderColor: colors.border,
+          alignItems: "center",
+        }}
+      >
+        {/* Step name */}
+        {currentStepConfig && (
+          <Text
+            style={{
+              fontSize: 16,
+              fontWeight: "600",
+              color: colors.text,
+              marginBottom: 16,
+              textAlign: "center",
+            }}
+          >
+            {currentStepConfig.name}
+          </Text>
+        )}
+
+        {/* Bouton Start */}
+        <Pressable
+          onPress={togglePause}
+          style={({ pressed }) => ({
+            paddingHorizontal: 32,
+            paddingVertical: 14,
+            borderRadius: DESIGN_TOKENS.radius.lg,
+            backgroundColor: pressed ? colors.success + "DD" : colors.success,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 10,
+            minWidth: 180,
+            justifyContent: "center",
+          })}
+        >
+          <Ionicons name="play" size={22} color="#FFFFFF" />
+          <Text style={{ color: "#FFFFFF", fontSize: 17, fontWeight: "700" }}>
+            {t("jobs.timer.start")}
+          </Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  // ===== STATES: RUNNING, PAUSED, COMPLETED_* =====
   return (
     <View
       style={{
@@ -159,14 +295,10 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({
         padding: DESIGN_TOKENS.spacing.lg,
         marginBottom: DESIGN_TOKENS.spacing.lg,
         borderWidth: 2,
-        borderColor: isJobCompleted
-          ? colors.success
-          : isRunning
-            ? colors.primary
-            : colors.border,
+        borderColor,
       }}
     >
-      {/* LIGNE 1: Temps uniquement */}
+      {/* ROW 1: Timer display */}
       <View
         style={{
           flexDirection: "row",
@@ -175,70 +307,62 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({
           marginBottom: DESIGN_TOKENS.spacing.md,
         }}
       >
-        {/* Temps */}
-        <View style={{ flexDirection: "row", alignItems: "baseline" }}>
-          <Ionicons
-            name={isJobCompleted ? "checkmark-circle" : "time"}
-            size={20}
-            color={
-              isJobCompleted
-                ? colors.success
-                : isRunning
-                  ? colors.primary
-                  : colors.textSecondary
-            }
-            style={{ marginRight: 8 }}
-          />
+        <Ionicons
+          name={isTimerFrozen ? "checkmark-circle" : "time"}
+          size={20}
+          color={
+            isTimerFrozen
+              ? colors.success
+              : displayState === "RUNNING"
+                ? colors.primary
+                : colors.textSecondary
+          }
+          style={{ marginRight: 8 }}
+        />
+        <Text
+          style={{
+            fontSize: 28,
+            fontWeight: "700",
+            fontFamily: "monospace",
+            color: isTimerFrozen
+              ? colors.success
+              : displayState === "RUNNING"
+                ? colors.primary
+                : colors.text,
+          }}
+        >
+          {formatTime(displayTime, false)}
+        </Text>
+        <Text
+          style={{
+            fontSize: 18,
+            fontWeight: "600",
+            fontFamily: "monospace",
+            color: isTimerFrozen
+              ? colors.success
+              : displayState === "RUNNING"
+                ? colors.primary
+                : colors.textSecondary,
+          }}
+        >
+          :{String(Math.floor((displayTime / 1000) % 60)).padStart(2, "0")}
+        </Text>
+        {isTimerFrozen && (
           <Text
             style={{
-              fontSize: 28,
-              fontWeight: "700",
-              fontFamily: "monospace",
-              color: isJobCompleted
-                ? colors.success
-                : isRunning
-                  ? colors.primary
-                  : colors.text,
-            }}
-          >
-            {formatTime(displayTime, false)}
-          </Text>
-          <Text
-            style={{
-              fontSize: 18,
+              fontSize: 14,
               fontWeight: "600",
-              fontFamily: "monospace",
-              color: isJobCompleted
-                ? colors.success
-                : isRunning
-                  ? colors.primary
-                  : colors.textSecondary,
+              color: colors.success,
+              marginLeft: 8,
             }}
           >
-            :{String(Math.floor((displayTime / 1000) % 60)).padStart(2, "0")}
+            (Terminé)
           </Text>
-          {isJobCompleted && (
-            <Text
-              style={{
-                fontSize: 14,
-                fontWeight: "600",
-                color: colors.success,
-                marginLeft: 8,
-              }}
-            >
-              (Terminé)
-            </Text>
-          )}
-        </View>
+        )}
       </View>
 
-      {/* LIGNE 2: Stepper avec scroll horizontal */}
-      <View
-        style={{
-          marginBottom: DESIGN_TOKENS.spacing.lg,
-        }}
-      >
-        {/* ScrollView horizontal des cercles */}
+      {/* ROW 2: Stepper - affiché dans TOUS les états sauf si on veut simplifier en pause */}
+      <View style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -250,99 +374,82 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({
           }}
         >
           {job?.steps?.map((step: any, index: number) => {
-            // ✅ FIX: Utiliser step.id directement (0, 1, 2, ...) au lieu de index + 1
             const stepNumber = step.id ?? index;
-
-            // ✅ FIX: Si le timer n'a jamais démarré (totalElapsed = 0), on est au step 0
-            // Le step 0 ne peut être validé que si le timer a démarré
-            const timerHasStarted = totalElapsed > 0;
-            const effectiveCurrentStep = timerHasStarted ? currentStep : 0;
-
-            // Step 0 n'est validé que si timer a démarré ET currentStep > 0
             const isStepCompleted =
               timerHasStarted && stepNumber < effectiveCurrentStep;
             const isCurrent = stepNumber === effectiveCurrentStep;
 
             return (
-              <React.Fragment key={step.id || index}>
-                {/* Cercle du step */}
-                <View
-                  style={{
-                    alignItems: "center",
-                    position: "relative",
-                  }}
-                >
-                  {/* Halo lumineux pour l'étape active */}
-                  {isCurrent && (
-                    <View
-                      style={{
-                        position: "absolute",
-                        width: 56,
-                        height: 56,
-                        borderRadius: 28,
-                        backgroundColor: colors.primary + "25",
-                        top: -4,
-                        left: -4,
-                      }}
-                    />
-                  )}
+              <View
+                key={step.id || index}
+                style={{ alignItems: "center", position: "relative" }}
+              >
+                {isCurrent && (
                   <View
                     style={{
-                      width: isCurrent ? 48 : 40,
-                      height: isCurrent ? 48 : 40,
-                      borderRadius: isCurrent ? 24 : 20,
-                      backgroundColor: isStepCompleted
-                        ? colors.success
-                        : isCurrent
-                          ? colors.primary
-                          : colors.backgroundSecondary,
-                      borderWidth: isCurrent ? 3 : 2,
-                      borderColor: isStepCompleted
-                        ? colors.success
-                        : isCurrent
-                          ? colors.primary
-                          : colors.border,
-                      justifyContent: "center",
-                      alignItems: "center",
-                      shadowColor: isCurrent ? colors.primary : "transparent",
-                      shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: isCurrent ? 0.4 : 0,
-                      shadowRadius: 4,
-                      elevation: isCurrent ? 4 : 0,
+                      position: "absolute",
+                      width: 56,
+                      height: 56,
+                      borderRadius: 28,
+                      backgroundColor: colors.primary + "25",
+                      top: -4,
+                      left: -4,
                     }}
-                  >
-                    {isStepCompleted ? (
-                      <Ionicons
-                        name="checkmark"
-                        size={22}
-                        color={colors.background}
-                      />
-                    ) : (
-                      <Text
-                        style={{
-                          fontSize: isCurrent ? 18 : 14,
-                          fontWeight: "700",
-                          color: isCurrent
-                            ? colors.background
-                            : colors.textSecondary,
-                        }}
-                      >
-                        {stepNumber}
-                      </Text>
-                    )}
-                  </View>
+                  />
+                )}
+                <View
+                  style={{
+                    width: isCurrent ? 48 : 40,
+                    height: isCurrent ? 48 : 40,
+                    borderRadius: isCurrent ? 24 : 20,
+                    backgroundColor: isStepCompleted
+                      ? colors.success
+                      : isCurrent
+                        ? colors.primary
+                        : colors.backgroundSecondary,
+                    borderWidth: isCurrent ? 3 : 2,
+                    borderColor: isStepCompleted
+                      ? colors.success
+                      : isCurrent
+                        ? colors.primary
+                        : colors.border,
+                    justifyContent: "center",
+                    alignItems: "center",
+                    shadowColor: isCurrent ? colors.primary : "transparent",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: isCurrent ? 0.4 : 0,
+                    shadowRadius: 4,
+                    elevation: isCurrent ? 4 : 0,
+                  }}
+                >
+                  {isStepCompleted ? (
+                    <Ionicons
+                      name="checkmark"
+                      size={22}
+                      color={colors.background}
+                    />
+                  ) : (
+                    <Text
+                      style={{
+                        fontSize: isCurrent ? 18 : 14,
+                        fontWeight: "700",
+                        color: isCurrent
+                          ? colors.background
+                          : colors.textSecondary,
+                      }}
+                    >
+                      {stepNumber}
+                    </Text>
+                  )}
                 </View>
-              </React.Fragment>
+              </View>
             );
           })}
         </ScrollView>
 
-        {/* Nom du step actuel avec joli encadrement */}
+        {/* Current step name badge */}
         <View
-          style={{
-            alignItems: "center",
-            marginTop: DESIGN_TOKENS.spacing.md,
-          }}
+          style={{ alignItems: "center", marginTop: DESIGN_TOKENS.spacing.md }}
         >
           <View
             style={{
@@ -367,14 +474,13 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({
                 textAlign: "center",
               }}
             >
-              {currentStepConfig?.name || `Étape ${currentStep}`}
+              {currentStepConfig?.name || `Étape ${effectiveCurrentStep}`}
             </Text>
           </View>
         </View>
       </View>
 
-      {/* LIGNE 2.5: Boutons de contrôle (sous la timeline) */}
-      {/* ✅ Hiérarchie CTA claire: Primaire = action principale, Secondaire = action optionnelle */}
+      {/* ROW 3: Action buttons - depends on state */}
       <View
         style={{
           flexDirection: "row",
@@ -382,208 +488,175 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({
           marginBottom: DESIGN_TOKENS.spacing.lg,
         }}
       >
-        {/* ✅ Bouton PRIMAIRE: Play/Pause (action principale) */}
-        {!isTimerFrozen && (
+        {/* === RUNNING: Pause + Next === */}
+        {displayState === "RUNNING" && (
+          <>
+            <Pressable
+              onPress={togglePause}
+              style={({ pressed }) => ({
+                paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+                paddingVertical: DESIGN_TOKENS.spacing.md,
+                borderRadius: DESIGN_TOKENS.radius.md,
+                backgroundColor: pressed
+                  ? colors.warning + "DD"
+                  : colors.warning,
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 8,
+                flex: 1,
+                justifyContent: "center",
+                minHeight: 48,
+              })}
+            >
+              <Ionicons name="pause" size={20} color="#FFFFFF" />
+              <Text
+                style={{ color: "#FFFFFF", fontSize: 15, fontWeight: "700" }}
+                numberOfLines={1}
+              >
+                {t("jobs.timer.pause")}
+              </Text>
+            </Pressable>
+
+            <Pressable
+              onPress={handleNextStep}
+              disabled={showNextStepModal}
+              style={({ pressed }) => ({
+                flex: 1,
+                paddingHorizontal: DESIGN_TOKENS.spacing.md,
+                paddingVertical: DESIGN_TOKENS.spacing.md,
+                borderRadius: DESIGN_TOKENS.radius.md,
+                backgroundColor: pressed
+                  ? colors.backgroundTertiary
+                  : colors.backgroundSecondary,
+                borderWidth: 1.5,
+                borderColor: colors.primary,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+                minHeight: 48,
+                opacity: showNextStepModal ? 0.5 : 1,
+              })}
+            >
+              <Ionicons name="arrow-forward" size={18} color={colors.primary} />
+              <Text
+                style={{
+                  color: colors.primary,
+                  fontSize: 14,
+                  fontWeight: "600",
+                }}
+                numberOfLines={1}
+              >
+                {t("jobs.timer.nextStep")}
+              </Text>
+            </Pressable>
+          </>
+        )}
+
+        {/* === PAUSED: Play button only === */}
+        {displayState === "PAUSED" && (
           <Pressable
             onPress={togglePause}
             style={({ pressed }) => ({
               paddingHorizontal: DESIGN_TOKENS.spacing.lg,
               paddingVertical: DESIGN_TOKENS.spacing.md,
               borderRadius: DESIGN_TOKENS.radius.md,
-              backgroundColor: pressed
-                ? isRunning
-                  ? colors.warning + "DD"
-                  : colors.success + "DD"
-                : isRunning
-                  ? colors.warning
-                  : colors.success,
+              backgroundColor: pressed ? colors.success + "DD" : colors.success,
               flexDirection: "row",
               alignItems: "center",
               gap: 8,
-              flex: isRunning ? 1 : 2, // Plus large quand c'est "Démarrer"
-              justifyContent: "center",
-              minHeight: 48, // Touch target minimum
-            })}
-          >
-            <Ionicons
-              name={isRunning ? "pause" : "play"}
-              size={20}
-              color={colors.background}
-            />
-            <Text
-              style={{
-                color: colors.background,
-                fontSize: 15,
-                fontWeight: "700",
-              }}
-              numberOfLines={1}
-            >
-              {isRunning ? t("jobs.timer.pause") : t("jobs.timer.start")}
-            </Text>
-          </Pressable>
-        )}
-
-        {/* ✅ Bouton SECONDAIRE: Étape suivante (outline style, moins proéminent) */}
-        {isRunning && !isOnBreak && (
-          <Pressable
-            onPress={
-              currentStep < totalSteps ? handleNextStep : handleStopTimer
-            }
-            style={({ pressed }) => ({
               flex: 1,
-              paddingHorizontal: DESIGN_TOKENS.spacing.md,
-              paddingVertical: DESIGN_TOKENS.spacing.md,
-              borderRadius: DESIGN_TOKENS.radius.md,
-              backgroundColor: pressed
-                ? colors.backgroundTertiary
-                : colors.backgroundSecondary,
-              borderWidth: 1.5,
-              borderColor:
-                currentStep < totalSteps ? colors.primary : colors.success,
-              flexDirection: "row",
-              alignItems: "center",
               justifyContent: "center",
-              gap: 6,
               minHeight: 48,
             })}
           >
-            <Ionicons
-              name={
-                currentStep < totalSteps ? "arrow-forward" : "checkmark-circle"
-              }
-              size={18}
-              color={currentStep < totalSteps ? colors.primary : colors.success}
-            />
+            <Ionicons name="play" size={20} color="#FFFFFF" />
             <Text
-              style={{
-                color:
-                  currentStep < totalSteps ? colors.primary : colors.success,
-                fontSize: 14,
-                fontWeight: "600",
-              }}
+              style={{ color: "#FFFFFF", fontSize: 15, fontWeight: "700" }}
               numberOfLines={1}
             >
-              {currentStep < totalSteps
-                ? t("jobs.timer.nextStep")
-                : t("jobs.timer.finish")}
+              {t("jobs.timer.start")}
             </Text>
           </Pressable>
         )}
+
+        {/* === COMPLETED_NEEDS_SIGNATURE: Signature button === */}
+        {displayState === "COMPLETED_NEEDS_SIGNATURE" && (
+          <Pressable
+            onPress={() => onOpenSignatureModal?.()}
+            style={({ pressed }) => ({
+              flex: 1,
+              paddingVertical: DESIGN_TOKENS.spacing.md,
+              borderRadius: DESIGN_TOKENS.radius.lg,
+              backgroundColor: pressed ? colors.primary + "DD" : colors.primary,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+            })}
+          >
+            <Ionicons name="create" size={18} color="#FFFFFF" />
+            <Text style={{ color: "#FFFFFF", fontSize: 15, fontWeight: "600" }}>
+              Signature requise
+            </Text>
+          </Pressable>
+        )}
+
+        {/* === COMPLETED_NEEDS_PAYMENT: Payment button === */}
+        {displayState === "COMPLETED_NEEDS_PAYMENT" && (
+          <Pressable
+            onPress={() => onOpenPaymentPanel?.()}
+            style={({ pressed }) => ({
+              flex: 1,
+              paddingVertical: DESIGN_TOKENS.spacing.md,
+              borderRadius: DESIGN_TOKENS.radius.lg,
+              backgroundColor: pressed ? colors.success + "DD" : colors.success,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+            })}
+          >
+            <Ionicons name="card" size={18} color="#FFFFFF" />
+            <Text style={{ color: "#FFFFFF", fontSize: 15, fontWeight: "600" }}>
+              Passer au paiement
+            </Text>
+          </Pressable>
+        )}
+
+        {/* === COMPLETED_DONE: Status badge === */}
+        {displayState === "COMPLETED_DONE" && (
+          <View
+            style={{
+              flex: 1,
+              paddingVertical: DESIGN_TOKENS.spacing.md,
+              borderRadius: DESIGN_TOKENS.radius.lg,
+              backgroundColor: colors.success + "20",
+              borderWidth: 2,
+              borderColor: colors.success,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+            }}
+          >
+            <Ionicons
+              name="checkmark-circle"
+              size={20}
+              color={colors.success}
+            />
+            <Text
+              style={{ color: colors.success, fontSize: 15, fontWeight: "600" }}
+            >
+              {isPaid ? "Job terminé et payé" : "Job terminé"}
+            </Text>
+          </View>
+        )}
       </View>
 
-      {/* LIGNE 3: Boutons d'action pour jobs terminés */}
-      {/* ✅ CORRECTION: Si job terminé (completed), afficher bouton Signature ou Paiement */}
-      {isJobCompleted && (
-        <View
-          style={{
-            flexDirection: "row",
-            gap: DESIGN_TOKENS.spacing.md,
-          }}
-        >
-          {!hasSignature ? (
-            // Pas de signature: Bouton "Signer"
-            <Pressable
-              onPress={() => onOpenSignatureModal?.()}
-              style={({ pressed }) => ({
-                flex: 1,
-                paddingVertical: DESIGN_TOKENS.spacing.md,
-                borderRadius: DESIGN_TOKENS.radius.lg,
-                backgroundColor: pressed
-                  ? colors.primary + "DD"
-                  : colors.primary,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-              })}
-            >
-              <Ionicons name="create" size={18} color={colors.background} />
-              <Text
-                style={{
-                  color: colors.background,
-                  fontSize: 15,
-                  fontWeight: "600",
-                }}
-              >
-                Signature requise
-              </Text>
-            </Pressable>
-          ) : needsPayment ? (
-            // Signature OK, mais paiement nécessaire
-            <Pressable
-              onPress={() => {
-                if (onOpenPaymentPanel) {
-                  onOpenPaymentPanel();
-                } else {
-                  Alert.alert(
-                    "Paiement",
-                    "Configuration du paiement nécessaire",
-                  );
-                }
-              }}
-              style={({ pressed }) => ({
-                flex: 1,
-                paddingVertical: DESIGN_TOKENS.spacing.md,
-                borderRadius: DESIGN_TOKENS.radius.lg,
-                backgroundColor: pressed
-                  ? colors.success + "DD"
-                  : colors.success,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-              })}
-            >
-              <Ionicons name="card" size={18} color={colors.background} />
-              <Text
-                style={{
-                  color: colors.background,
-                  fontSize: 15,
-                  fontWeight: "600",
-                }}
-              >
-                Passer au paiement
-              </Text>
-            </Pressable>
-          ) : (
-            // Tout est terminé
-            <View
-              style={{
-                flex: 1,
-                paddingVertical: DESIGN_TOKENS.spacing.md,
-                borderRadius: DESIGN_TOKENS.radius.lg,
-                backgroundColor: colors.success + "20",
-                borderWidth: 2,
-                borderColor: colors.success,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-              }}
-            >
-              <Ionicons
-                name="checkmark-circle"
-                size={20}
-                color={colors.success}
-              />
-              <Text
-                style={{
-                  color: colors.success,
-                  fontSize: 15,
-                  fontWeight: "600",
-                }}
-              >
-                Job terminé et payé
-              </Text>
-            </View>
-          )}
-        </View>
-      )}
-
-      {/* Footer: Temps facturable */}
+      {/* Footer: Temps facturable / total */}
       <View
         style={{
-          marginTop: DESIGN_TOKENS.spacing.md,
           paddingTop: DESIGN_TOKENS.spacing.md,
           borderTopWidth: 1,
           borderTopColor: colors.border,
@@ -608,6 +681,107 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({
           </Text>
         </View>
       </View>
+
+      {/* Modal: Confirmation étape suivante */}
+      <Modal
+        visible={showNextStepModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={handleCancelNextStep}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            justifyContent: "center",
+            alignItems: "center",
+            padding: 20,
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: colors.background,
+              borderRadius: 16,
+              padding: 24,
+              width: "100%",
+              maxWidth: 340,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+              elevation: 8,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: "700",
+                color: colors.text,
+                marginBottom: 12,
+                textAlign: "center",
+              }}
+            >
+              ⏭️ Étape suivante
+            </Text>
+            <Text
+              style={{
+                fontSize: 15,
+                color: colors.textSecondary,
+                marginBottom: 24,
+                textAlign: "center",
+                lineHeight: 22,
+              }}
+            >
+              Passer à "{nextStepInfo.name}" ({nextStepInfo.number}/{totalSteps}
+              ) ?
+            </Text>
+            <View style={{ flexDirection: "row", gap: 12 }}>
+              <Pressable
+                onPress={handleCancelNextStep}
+                style={{
+                  flex: 1,
+                  paddingVertical: 14,
+                  borderRadius: 10,
+                  backgroundColor: colors.surface,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                }}
+              >
+                <Text
+                  style={{
+                    textAlign: "center",
+                    fontWeight: "600",
+                    color: colors.text,
+                    fontSize: 15,
+                  }}
+                >
+                  Annuler
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={handleConfirmNextStep}
+                style={{
+                  flex: 1,
+                  paddingVertical: 14,
+                  borderRadius: 10,
+                  backgroundColor: colors.primary,
+                }}
+              >
+                <Text
+                  style={{
+                    textAlign: "center",
+                    fontWeight: "600",
+                    color: "#FFFFFF",
+                    fontSize: 15,
+                  }}
+                >
+                  Continuer
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };

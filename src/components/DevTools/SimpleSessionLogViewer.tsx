@@ -12,6 +12,7 @@ import {
     View,
 } from "react-native";
 import simpleSessionLogger from "../../services/simpleSessionLogger";
+import { useTranslation } from "../../localization";
 
 interface SimpleSessionLogViewerProps {
   visible: boolean;
@@ -22,6 +23,7 @@ export const SimpleSessionLogViewer: React.FC<SimpleSessionLogViewerProps> = ({
   visible,
   onClose,
 }) => {
+  const { t } = useTranslation();
   const [logContent, setLogContent] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -31,7 +33,10 @@ export const SimpleSessionLogViewer: React.FC<SimpleSessionLogViewerProps> = ({
       const content = simpleSessionLogger.getFormattedLogs();
       setLogContent(content);
     } catch (error) {
-      Alert.alert("Erreur", "Impossible de lire les logs de session");
+      Alert.alert(
+        t("devTools.sessionLogs.readErrorTitle"),
+        t("devTools.sessionLogs.readErrorMessage"),
+      );
     } finally {
       setIsLoading(false);
     }
@@ -46,18 +51,21 @@ export const SimpleSessionLogViewer: React.FC<SimpleSessionLogViewerProps> = ({
         });
       }
     } catch (error) {
-      Alert.alert("Erreur", "Impossible de partager les logs");
+      Alert.alert(
+        t("devTools.sessionLogs.shareErrorTitle"),
+        t("devTools.sessionLogs.shareErrorMessage"),
+      );
     }
   };
 
   const clearLogs = () => {
     Alert.alert(
-      "Effacer les logs",
-      "Voulez-vous effacer les logs de la session actuelle ?",
+      t("devTools.sessionLogs.clearTitle"),
+      t("devTools.sessionLogs.clearMessage"),
       [
-        { text: "Annuler", style: "cancel" },
+        { text: t("common.cancel"), style: "cancel" },
         {
-          text: "Effacer",
+          text: t("devTools.sessionLogs.clearButton"),
           style: "destructive",
           onPress: () => {
             simpleSessionLogger.clearLogs();

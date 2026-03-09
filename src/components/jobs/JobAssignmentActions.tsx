@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
+import { useTranslation } from "../../localization";
 
 interface JobAssignmentActionsProps {
   jobId: string;
@@ -34,6 +35,7 @@ export const JobAssignmentActions: React.FC<JobAssignmentActionsProps> = ({
   onDecline,
 }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const [showDeclineModal, setShowDeclineModal] = useState(false);
   const [declineReason, setDeclineReason] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -60,20 +62,20 @@ export const JobAssignmentActions: React.FC<JobAssignmentActionsProps> = ({
 
   const handleAccept = async () => {
     Alert.alert(
-      "Accepter le Job",
-      `Voulez-vous accepter le job "${jobTitle}" ?`,
+      t("jobs.acceptConfirmTitle"),
+      t("jobs.acceptConfirmMessage", { jobTitle }),
       [
-        { text: "Annuler", style: "cancel" },
+        { text: t("common.cancel"), style: "cancel" },
         {
-          text: "Accepter",
+          text: t("jobs.acceptButton"),
           style: "default",
           onPress: async () => {
             setIsLoading(true);
             try {
               await onAccept();
-              Alert.alert("Succès", "Job accepté avec succès");
+              Alert.alert(t("common.success"), t("jobs.acceptSuccess"));
             } catch {
-              Alert.alert("Erreur", "Impossible d'accepter le job");
+              Alert.alert(t("common.error"), t("jobs.acceptError"));
             } finally {
               setIsLoading(false);
             }
@@ -85,7 +87,7 @@ export const JobAssignmentActions: React.FC<JobAssignmentActionsProps> = ({
 
   const handleDecline = async () => {
     if (!declineReason.trim()) {
-      Alert.alert("Attention", "Veuillez indiquer une raison pour le refus");
+      Alert.alert(t("common.warning"), t("jobs.declineReasonRequired"));
       return;
     }
 
@@ -94,9 +96,9 @@ export const JobAssignmentActions: React.FC<JobAssignmentActionsProps> = ({
       await onDecline(declineReason);
       setShowDeclineModal(false);
       setDeclineReason("");
-      Alert.alert("Succès", "Job refusé. Le créateur a été notifié.");
+      Alert.alert(t("common.success"), t("jobs.declineSuccess"));
     } catch {
-      Alert.alert("Erreur", "Impossible de refuser le job");
+      Alert.alert(t("common.error"), t("jobs.declineError"));
     } finally {
       setIsLoading(false);
     }

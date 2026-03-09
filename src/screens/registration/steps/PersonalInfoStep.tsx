@@ -210,7 +210,7 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
         </Text>
         <TextInput
           style={styles.inputBase}
-          placeholder="+61 4XX XXX XXX"
+          placeholder={t("registration.fields.placeholders.phone")}
           placeholderTextColor={colors.textSecondary}
           value={phone}
           onChangeText={handlePhoneChange}
@@ -234,7 +234,7 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
         </Text>
         <TextInput
           style={styles.inputBase}
-          placeholder="YYYY-MM-DD"
+          placeholder={t("registration.fields.placeholders.dateOfBirthYMD")}
           placeholderTextColor={colors.textSecondary}
           value={dateOfBirth}
           onChangeText={setDateOfBirth}

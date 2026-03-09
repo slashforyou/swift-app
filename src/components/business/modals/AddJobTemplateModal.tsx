@@ -22,6 +22,7 @@ import { HStack, VStack } from '../../primitives/Stack';
 // Hooks & Utils
 import { DESIGN_TOKENS } from '../../../constants/Styles';
 import { useTheme } from '../../../context/ThemeProvider';
+import { useTranslation } from '../../../localization';
 
 // Types
 interface JobTemplate {
@@ -135,6 +136,7 @@ const AddJobTemplateModal: React.FC<AddJobTemplateModalProps> = ({
   onSubmit,
 }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   
   // État du formulaire
   const [formData, setFormData] = useState<JobTemplate>({
@@ -618,10 +620,16 @@ const AddJobTemplateModal: React.FC<AddJobTemplateModalProps> = ({
       
       onClose();
       
-      Alert.alert('Success', 'Job template created successfully!');
+      Alert.alert(
+        t('businessModals.addJobTemplate.successTitle'),
+        t('businessModals.addJobTemplate.successMessage'),
+      );
     } catch {
 
-      Alert.alert('Error', 'Failed to create job template. Please try again.');
+      Alert.alert(
+        t('businessModals.addJobTemplate.errorTitle'),
+        t('businessModals.addJobTemplate.errorMessage'),
+      );
     } finally {
       setIsSubmitting(false);
     }

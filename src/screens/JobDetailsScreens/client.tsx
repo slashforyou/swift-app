@@ -1,10 +1,10 @@
 /**
- * Client Page - Affichage des informations client avec actions rapides
+ * Client Page - Format profil avec avatar, nom en avant et actions rapides
  * Conforme aux normes mobiles iOS/Android - Touch targets ≥44pt, 8pt grid
  */
 import Ionicons from "@react-native-vector-icons/ionicons";
-import React, { useCallback, useEffect, useState } from "react";
-import { Pressable, Text } from "react-native";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Pressable, Text, View } from "react-native";
 import SignatureSection from "../../components/jobDetails/sections/SignatureSection";
 import { HStack, VStack } from "../../components/primitives/Stack";
 import SigningBloc from "../../components/signingBloc";
@@ -22,37 +22,109 @@ interface JobClientProps {
   setJob: (job: any) => void;
 }
 
-interface InfoRowProps {
-  label: string;
-  value: string;
-}
+// Avatar avec initiales
+const ProfileAvatar: React.FC<{
+  firstName?: string;
+  lastName?: string;
+  size?: number;
+  colors: any;
+}> = ({ firstName, lastName, size = 80, colors }) => {
+  const initials =
+    `${(firstName || "?")[0]}${(lastName || "")[0] || ""}`.toUpperCase();
 
-// Composant réutilisable pour afficher les informations client
-const InfoRow: React.FC<
-  InfoRowProps & { colors: any; notSpecifiedText: string }
-> = ({ label, value, colors, notSpecifiedText }) => (
-  <VStack gap="xs" style={{ paddingVertical: DESIGN_TOKENS.spacing.sm }}>
+  return (
+    <View
+      style={{
+        width: size,
+        height: size,
+        borderRadius: size / 2,
+        backgroundColor: colors.tint,
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <Text
+        style={{
+          fontSize: size * 0.38,
+          fontWeight: "700",
+          color: "#FFFFFF",
+          letterSpacing: 1,
+        }}
+      >
+        {initials}
+      </Text>
+    </View>
+  );
+};
+
+// Bouton d'action rapide (icône ronde)
+const QuickActionButton: React.FC<{
+  icon: string;
+  label: string;
+  onPress: () => void;
+  colors: any;
+}> = ({ icon, label, onPress, colors }) => (
+  <Pressable
+    onPress={onPress}
+    hitSlop={DESIGN_TOKENS.touch.hitSlop}
+    style={({ pressed }) => ({
+      alignItems: "center",
+      opacity: pressed ? 0.7 : 1,
+    })}
+    accessibilityRole="button"
+    accessibilityLabel={label}
+  >
+    <View
+      style={{
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        backgroundColor: colors.backgroundSecondary,
+        alignItems: "center",
+        justifyContent: "center",
+        marginBottom: DESIGN_TOKENS.spacing.xs,
+      }}
+    >
+      <Ionicons name={icon as any} size={22} color={colors.tint} />
+    </View>
     <Text
       style={{
-        fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-        lineHeight: DESIGN_TOKENS.typography.caption.lineHeight,
-        fontWeight: DESIGN_TOKENS.typography.caption.fontWeight,
-        color: colors.textSecondary,
+        fontSize: 11,
+        fontWeight: "500",
+        color: colors.tint,
+        textAlign: "center",
       }}
     >
       {label}
     </Text>
+  </Pressable>
+);
+
+// Ligne d'info compacte pour les détails secondaires
+const DetailRow: React.FC<{
+  icon: string;
+  value: string;
+  colors: any;
+}> = ({ icon, value, colors }) => (
+  <HStack
+    gap="sm"
+    style={{
+      alignItems: "center",
+      paddingVertical: DESIGN_TOKENS.spacing.sm,
+    }}
+  >
+    <Ionicons name={icon as any} size={18} color={colors.textSecondary} />
     <Text
       style={{
         fontSize: DESIGN_TOKENS.typography.body.fontSize,
         lineHeight: DESIGN_TOKENS.typography.body.lineHeight,
-        fontWeight: DESIGN_TOKENS.typography.body.fontWeight,
         color: colors.text,
+        flex: 1,
       }}
     >
-      {value || notSpecifiedText}
+      {value}
     </Text>
-  </VStack>
+  </HStack>
 );
 
 const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
@@ -78,9 +150,13 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
       // });
 
       // Merge pour garder modifications locales + ajouter données backend
+      // ⚠️ L'API /full retourne le client dans jobDetails.client (sibling), PAS dans jobDetails.job
+      // Si data.job.client est null, le spread écraserait job.client → les détails client disparaissent
       setJob((prev: any) => ({
         ...prev,
         ...jobDetails.job,
+        // Préserver les données client embarquées (non retournées dans jobDetails.job)
+        client: prev?.client,
         // Préserver certains champs locaux si nécessaire
         signatureDataUrl:
           prev?.signatureDataUrl || jobDetails.job.signature_blob,
@@ -101,18 +177,42 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
 
   // Fonction pour charger les données client étendues depuis l'API
   const loadExtendedClientData = useCallback(async () => {
-    if (!job?.client_id) return;
+    if (!job?.client_id) {
+      console.log(
+        "👤 [JobClient] loadExtendedClientData: no client_id, skipping",
+      );
+      return;
+    }
 
     try {
       setIsLoadingClient(true);
       const loggedIn = await isLoggedIn();
 
       if (loggedIn) {
-        const clientData = await fetchClientById(job.client_id);
-        setExtendedClientData(clientData);
+        console.log(
+          "👤 [JobClient] Fetching extended client data for ID:",
+          job.client_id,
+        );
+        const result = await fetchClientById(job.client_id);
+        console.log("👤 [JobClient] Extended client data received:", {
+          hasData: !!result,
+          firstName: result?.firstName,
+          lastName: result?.lastName,
+          phone: !!result?.phone,
+          email: !!result?.email,
+          keys: result ? Object.keys(result) : [],
+        });
+        setExtendedClientData(result);
+      } else {
+        console.log(
+          "👤 [JobClient] Not logged in, skipping extended client fetch",
+        );
       }
-    } catch (error) {
-      // TEMP_DISABLED: console.error('Error loading extended client data:', error);
+    } catch (error: any) {
+      console.warn(
+        "⚠️ [JobClient] Error loading extended client data:",
+        error?.message || error,
+      );
       // En cas d'erreur, on continue avec les données de base du job
     } finally {
       setIsLoadingClient(false);
@@ -123,8 +223,41 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
     loadExtendedClientData();
   }, [loadExtendedClientData]);
 
-  // Utiliser les données étendues si disponibles, sinon les données de base
-  const clientData = extendedClientData || job.client;
+  // ✅ FIX: Merger les deux sources intelligemment
+  // extendedClientData peut être un objet non-null mais avec des champs null
+  // → ne PAS utiliser || car un objet {} est truthy même si tous ses champs sont null
+  const clientData = useMemo(() => {
+    const base = job.client || {};
+    const extended = extendedClientData;
+
+    if (!extended) {
+      console.log("👤 [JobClient] clientData: using job.client only", {
+        firstName: base?.firstName,
+        lastName: base?.lastName,
+        phone: !!base?.phone,
+        email: !!base?.email,
+      });
+      return base;
+    }
+
+    // Merge: on garde les champs non-null de extended, sinon fallback sur base
+    const merged = { ...base };
+    for (const [key, value] of Object.entries(extended)) {
+      if (value !== null && value !== undefined && value !== "") {
+        (merged as any)[key] = value;
+      }
+    }
+
+    console.log("👤 [JobClient] clientData: merged extended + base", {
+      firstName: merged?.firstName,
+      lastName: merged?.lastName,
+      phone: !!merged?.phone,
+      email: !!merged?.email,
+      source: "merged",
+    });
+
+    return merged;
+  }, [extendedClientData, job.client]);
 
   // Extraction robuste du prénom et nom
   // L'API peut retourner soit firstName/lastName séparés, soit un champ "name" combiné
@@ -146,194 +279,206 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
     return undefined;
   };
 
-  // Données client pour éviter la répétition
-  const clientInfo = [
-    { label: t("jobDetails.client.firstName"), value: getFirstName() },
-    { label: t("jobDetails.client.lastName"), value: getLastName() },
-    { label: t("jobDetails.client.phone"), value: clientData?.phone },
-    { label: t("jobDetails.client.email"), value: clientData?.email },
-    { label: t("jobDetails.client.company"), value: clientData?.company },
-    {
-      label: t("jobDetails.client.address"),
-      value: clientData?.address
-        ? `${clientData.address.street}, ${clientData.address.city} ${clientData.address.zip}`
-        : null,
-    },
-    { label: t("jobDetails.client.notes"), value: clientData?.notes },
-  ].filter((item) => item.value); // Ne montre que les champs renseignés
+  const firstName = getFirstName();
+  const lastName = getLastName();
+  const phone = clientData?.phone;
+  const email = clientData?.email;
+  const company = clientData?.company;
+  const address = clientData?.address
+    ? `${clientData.address.street}, ${clientData.address.city} ${clientData.address.zip}`
+    : null;
+  const notes = clientData?.notes;
+  const fullName =
+    [firstName, lastName].filter(Boolean).join(" ") ||
+    t("jobDetails.client.notSpecified");
+
+  // Actions disponibles
+  const actions = useMemo(() => {
+    const list: { icon: string; label: string; onPress: () => void }[] = [];
+    if (phone) {
+      list.push({
+        icon: "call",
+        label: t("jobDetails.client.call"),
+        onPress: () => contactLink(phone, "tel"),
+      });
+      list.push({
+        icon: "chatbubble",
+        label: t("jobDetails.client.sms"),
+        onPress: () => contactLink(phone, "sms"),
+      });
+    }
+    if (email) {
+      list.push({
+        icon: "mail",
+        label: t("jobDetails.client.emailAction"),
+        onPress: () => contactLink(email, "mailto"),
+      });
+    }
+    return list;
+  }, [phone, email, t]);
+
+  // Détails secondaires (company, address, notes)
+  const secondaryDetails = useMemo(() => {
+    const items: { icon: string; value: string }[] = [];
+    if (company) items.push({ icon: "business", value: company });
+    if (address) items.push({ icon: "location", value: address });
+    if (notes) items.push({ icon: "document-text", value: notes });
+    return items;
+  }, [company, address, notes]);
+
+  // 🔍 DIAGNOSTIC
+  console.log("👤 [JobClient] render:", {
+    fullName,
+    phone: !!phone,
+    email: !!email,
+    actionsCount: actions.length,
+    secondaryCount: secondaryDetails.length,
+    isLoading: isLoadingClient,
+  });
 
   return (
     <>
       <VStack gap="lg">
-        {/* Informations Client */}
-        <Card style={{ padding: DESIGN_TOKENS.spacing.lg }}>
-          <VStack gap="sm">
-            <Text
+        {/* ===== PROFILE CARD ===== */}
+        <Card
+          style={{ padding: DESIGN_TOKENS.spacing.xl, alignItems: "center" }}
+        >
+          {isLoadingClient ? (
+            <VStack
+              gap="md"
               style={{
-                fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
-                lineHeight: DESIGN_TOKENS.typography.subtitle.lineHeight,
-                fontWeight: DESIGN_TOKENS.typography.subtitle.fontWeight,
-                color: colors.text,
-                marginBottom: DESIGN_TOKENS.spacing.sm,
+                alignItems: "center",
+                paddingVertical: DESIGN_TOKENS.spacing.xl,
               }}
             >
-              {t("jobDetails.client.title")}
-            </Text>
+              {/* Skeleton avatar */}
+              <View
+                style={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: 40,
+                  backgroundColor: colors.backgroundSecondary,
+                }}
+              />
+              <View
+                style={{
+                  width: 140,
+                  height: 20,
+                  borderRadius: DESIGN_TOKENS.radius.sm,
+                  backgroundColor: colors.backgroundSecondary,
+                }}
+              />
+              <View
+                style={{
+                  width: 100,
+                  height: 14,
+                  borderRadius: DESIGN_TOKENS.radius.sm,
+                  backgroundColor: colors.backgroundSecondary,
+                }}
+              />
+            </VStack>
+          ) : (
+            <VStack gap="md" style={{ alignItems: "center", width: "100%" }}>
+              {/* Avatar */}
+              <ProfileAvatar
+                firstName={firstName}
+                lastName={lastName}
+                size={80}
+                colors={colors}
+              />
 
-            {isLoadingClient ? (
-              <Text
-                style={{ color: colors.textSecondary, fontStyle: "italic" }}
-              >
-                {t("jobDetails.client.loading")}
-              </Text>
-            ) : (
-              clientInfo.map((info) => (
-                <InfoRow
-                  key={info.label}
-                  label={info.label}
-                  value={info.value}
-                  colors={colors}
-                  notSpecifiedText={t("jobDetails.client.notSpecified")}
-                />
-              ))
-            )}
-          </VStack>
-        </Card>
-
-        {/* Actions Rapides */}
-        <Card style={{ padding: DESIGN_TOKENS.spacing.lg }}>
-          <VStack gap="lg">
-            <Text
-              style={{
-                fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
-                lineHeight: DESIGN_TOKENS.typography.subtitle.lineHeight,
-                fontWeight: DESIGN_TOKENS.typography.subtitle.fontWeight,
-                color: colors.text,
-              }}
-            >
-              {t("jobDetails.client.quickActions")}
-            </Text>
-
-            <VStack gap="sm">
-              {/* Actions téléphone */}
-              {job.client?.phone && (
-                <HStack gap="sm">
-                  <Pressable
-                    onPress={() => contactLink(job.client?.phone, "tel")}
-                    hitSlop={DESIGN_TOKENS.touch.hitSlop}
-                    style={({ pressed }) => [
-                      {
-                        flex: 1,
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        paddingVertical: DESIGN_TOKENS.spacing.md,
-                        paddingHorizontal: DESIGN_TOKENS.spacing.lg,
-                        backgroundColor: pressed
-                          ? colors.backgroundSecondary
-                          : colors.backgroundTertiary,
-                        borderRadius: DESIGN_TOKENS.radius.md,
-                        borderWidth: 1,
-                        borderColor: colors.border,
-                        minHeight: DESIGN_TOKENS.touch.minSize,
-                      },
-                    ]}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Call ${job.client?.firstName || "client"}`}
-                  >
-                    <Ionicons name="call" size={20} color={colors.tint} />
-                    <Text
-                      style={{
-                        fontSize: DESIGN_TOKENS.typography.body.fontSize,
-                        fontWeight: DESIGN_TOKENS.typography.body.fontWeight,
-                        color: colors.tint,
-                        marginLeft: DESIGN_TOKENS.spacing.xs,
-                      }}
-                    >
-                      {t("jobDetails.client.call")}
-                    </Text>
-                  </Pressable>
-
-                  <Pressable
-                    onPress={() => contactLink(job.client?.phone, "sms")}
-                    hitSlop={DESIGN_TOKENS.touch.hitSlop}
-                    style={({ pressed }) => [
-                      {
-                        flex: 1,
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        paddingVertical: DESIGN_TOKENS.spacing.md,
-                        paddingHorizontal: DESIGN_TOKENS.spacing.lg,
-                        backgroundColor: pressed
-                          ? colors.backgroundSecondary
-                          : colors.backgroundTertiary,
-                        borderRadius: DESIGN_TOKENS.radius.md,
-                        borderWidth: 1,
-                        borderColor: colors.border,
-                        minHeight: DESIGN_TOKENS.touch.minSize,
-                      },
-                    ]}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Send SMS to ${job.client?.firstName || "client"}`}
-                  >
-                    <Ionicons name="chatbubble" size={20} color={colors.tint} />
-                    <Text
-                      style={{
-                        fontSize: DESIGN_TOKENS.typography.body.fontSize,
-                        fontWeight: DESIGN_TOKENS.typography.body.fontWeight,
-                        color: colors.tint,
-                        marginLeft: DESIGN_TOKENS.spacing.xs,
-                      }}
-                    >
-                      {t("jobDetails.client.sms")}
-                    </Text>
-                  </Pressable>
-                </HStack>
-              )}
-
-              {/* Action email */}
-              {job.client?.email && (
-                <Pressable
-                  onPress={() => contactLink(job.client?.email, "mailto")}
-                  hitSlop={DESIGN_TOKENS.touch.hitSlop}
-                  style={({ pressed }) => [
-                    {
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      paddingVertical: DESIGN_TOKENS.spacing.md,
-                      paddingHorizontal: DESIGN_TOKENS.spacing.lg,
-                      backgroundColor: pressed
-                        ? colors.backgroundSecondary
-                        : colors.backgroundTertiary,
-                      borderRadius: DESIGN_TOKENS.radius.md,
-                      borderWidth: 1,
-                      borderColor: colors.border,
-                      minHeight: DESIGN_TOKENS.touch.minSize,
-                    },
-                  ]}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Send email to ${job.client?.firstName || "client"}`}
+              {/* Nom */}
+              <VStack gap="xs" style={{ alignItems: "center" }}>
+                <Text
+                  style={{
+                    fontSize: 22,
+                    fontWeight: "700",
+                    color: colors.text,
+                    textAlign: "center",
+                  }}
                 >
-                  <Ionicons name="mail" size={20} color={colors.tint} />
+                  {fullName}
+                </Text>
+
+                {/* Contact secondaire sous le nom */}
+                {phone && phone !== "N/A" && (
                   <Text
                     style={{
                       fontSize: DESIGN_TOKENS.typography.body.fontSize,
-                      fontWeight: DESIGN_TOKENS.typography.body.fontWeight,
-                      color: colors.tint,
-                      marginLeft: DESIGN_TOKENS.spacing.xs,
+                      color: colors.textSecondary,
                     }}
                   >
-                    {t("jobDetails.client.emailAction")}
+                    {phone}
                   </Text>
-                </Pressable>
+                )}
+                {email && email !== "N/A" && (
+                  <Text
+                    style={{
+                      fontSize: DESIGN_TOKENS.typography.caption.fontSize,
+                      color: colors.textSecondary,
+                    }}
+                  >
+                    {email}
+                  </Text>
+                )}
+              </VStack>
+
+              {/* Quick Actions */}
+              {actions.length > 0 && (
+                <HStack
+                  gap="xl"
+                  style={{
+                    justifyContent: "center",
+                    paddingTop: DESIGN_TOKENS.spacing.md,
+                  }}
+                >
+                  {actions.map((action) => (
+                    <QuickActionButton
+                      key={action.icon}
+                      icon={action.icon}
+                      label={action.label}
+                      onPress={action.onPress}
+                      colors={colors}
+                    />
+                  ))}
+                </HStack>
               )}
             </VStack>
-          </VStack>
+          )}
         </Card>
 
-        {/* Section signature plus moderne */}
+        {/* ===== DETAILS SECONDAIRES ===== */}
+        {secondaryDetails.length > 0 && (
+          <Card
+            style={{
+              paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+              paddingVertical: DESIGN_TOKENS.spacing.md,
+            }}
+          >
+            <VStack gap="none">
+              {secondaryDetails.map((detail, index) => (
+                <React.Fragment key={detail.icon}>
+                  <DetailRow
+                    icon={detail.icon}
+                    value={detail.value}
+                    colors={colors}
+                  />
+                  {index < secondaryDetails.length - 1 && (
+                    <View
+                      style={{
+                        height: 1,
+                        backgroundColor: colors.border,
+                        marginLeft: 30,
+                      }}
+                    />
+                  )}
+                </React.Fragment>
+              ))}
+            </VStack>
+          </Card>
+        )}
+
+        {/* Section signature */}
         <SignatureSection job={job} onSignContract={handleSignContract} />
       </VStack>
 

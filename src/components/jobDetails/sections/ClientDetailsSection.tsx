@@ -1,195 +1,181 @@
 /**
- * ClientDetailsSection - Section modulaire pour les informations client
+ * ClientDetailsSection - Carte contact client moderne
+ * Affiche avatar initiales + nom + actions inline (appeler, email, copier)
  */
-import React from "react";
-import { Text, View, Pressable } from "react-native";
-import { useTheme } from "../../../context/ThemeProvider";
+import Ionicons from "@react-native-vector-icons/ionicons";
+import React, { useMemo } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { DESIGN_TOKENS } from "../../../constants/Styles";
+import { useTheme } from "../../../context/ThemeProvider";
 import { useLocalization } from "../../../localization/useLocalization";
-import SectionCard from "../SectionCard";
-import { Button } from "../../ui/Button";
-import copyToClipBoard from "../../../services/copyToClipBoard";
 import contactLink from "../../../services/contactLink";
+import copyToClipBoard from "../../../services/copyToClipBoard";
+import type { JobSummaryData } from "../../../types/jobSummary";
+import SectionCard from "../SectionCard";
 
 interface ClientDetailsSectionProps {
-  job: any;
+  job: JobSummaryData;
 }
 
 const ClientDetailsSection: React.FC<ClientDetailsSectionProps> = ({ job }) => {
   const { colors } = useTheme();
   const { t } = useLocalization();
 
-  // Extraire les infos client avec fallbacks robustes
-  const client = job?.client || {};
+  const client = job?.client;
 
-  // Nom: priorité à name, sinon firstName + lastName
+  // Ne rien afficher si aucune donnée client réelle
+  const hasRealData =
+    client &&
+    ((client.firstName && client.firstName !== "Client") ||
+      client.lastName ||
+      client.name ||
+      (client.phone && client.phone !== "N/A" && client.phone !== "") ||
+      (client.email && client.email !== "N/A" && client.email !== ""));
+
   const clientName =
-    client.name ||
-    (client.firstName && client.lastName
-      ? `${client.firstName} ${client.lastName}`.trim()
-      : client.firstName || client.lastName || t("jobDetails.client.unknown"));
+    client?.name ||
+    [client?.firstName, client?.lastName].filter(Boolean).join(" ").trim() ||
+    t("jobDetails.client.unknown");
 
-  // Téléphone avec fallback
-  const clientPhone = client.phone || t("jobDetails.client.noPhone");
-  const hasPhone = client.phone && client.phone !== "N/A";
+  const initials = useMemo(() => {
+    const first = (client?.firstName || clientName || "?")[0] || "?";
+    const last = (client?.lastName || "")[0] || "";
+    return (first + last).toUpperCase();
+  }, [client?.firstName, client?.lastName, clientName]);
 
-  // Email avec fallback
-  const clientEmail = client.email || t("jobDetails.client.noEmail");
-  const hasEmail = client.email && client.email !== "N/A";
+  const hasPhone =
+    client?.phone && client.phone !== "N/A" && client.phone !== "";
+  const hasEmail =
+    client?.email && client.email !== "N/A" && client.email !== "";
+
+  const themedStyles = useMemo(
+    () =>
+      StyleSheet.create({
+        header: {
+          flexDirection: "row",
+          alignItems: "center",
+          marginBottom: DESIGN_TOKENS.spacing.lg,
+        },
+        avatar: {
+          width: 48,
+          height: 48,
+          borderRadius: 24,
+          backgroundColor: colors.primary + "18",
+          alignItems: "center",
+          justifyContent: "center",
+          marginRight: DESIGN_TOKENS.spacing.md,
+        },
+        avatarText: {
+          fontSize: 18,
+          fontWeight: "700",
+          color: colors.primary,
+        },
+        nameContainer: {
+          flex: 1,
+        },
+        name: {
+          fontSize: 17,
+          fontWeight: "600",
+          color: colors.text,
+        },
+        label: {
+          fontSize: 12,
+          color: colors.textSecondary,
+          marginTop: 2,
+        },
+        infoRow: {
+          flexDirection: "row",
+          alignItems: "center",
+          paddingVertical: DESIGN_TOKENS.spacing.sm + 2,
+          borderTopWidth: StyleSheet.hairlineWidth,
+          borderTopColor: colors.border + "60",
+        },
+        infoIcon: {
+          width: 32,
+          height: 32,
+          borderRadius: 16,
+          backgroundColor: colors.backgroundTertiary,
+          alignItems: "center",
+          justifyContent: "center",
+          marginRight: DESIGN_TOKENS.spacing.sm,
+        },
+        infoText: {
+          flex: 1,
+          fontSize: 15,
+          color: colors.text,
+        },
+        actionBtn: {
+          width: 36,
+          height: 36,
+          borderRadius: 18,
+          alignItems: "center",
+          justifyContent: "center",
+        },
+      }),
+    [colors],
+  );
+
+  if (!hasRealData) return null;
 
   return (
     <SectionCard level="secondary">
-      <View style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
-        <Text
-          style={{
-            fontSize: 18,
-            fontWeight: "600",
-            color: colors.text,
-            marginBottom: DESIGN_TOKENS.spacing.xs,
-          }}
-        >
-          {t("jobDetails.client.title")}
-        </Text>
-        <Text
-          style={{
-            fontSize: 14,
-            color: colors.textSecondary,
-            marginBottom: DESIGN_TOKENS.spacing.lg,
-          }}
-        >
-          {t("jobDetails.client.subtitle")}
-        </Text>
+      {/* Avatar + Nom */}
+      <View style={themedStyles.header}>
+        <View style={themedStyles.avatar}>
+          <Text style={themedStyles.avatarText}>{initials}</Text>
+        </View>
+        <View style={themedStyles.nameContainer}>
+          <Text style={themedStyles.name}>{clientName}</Text>
+          <Text style={themedStyles.label}>{t("jobDetails.client.title")}</Text>
+        </View>
       </View>
 
-      {/* Nom du client */}
-      <View style={{ marginBottom: DESIGN_TOKENS.spacing.md }}>
-        <Text
-          style={{
-            fontSize: 12,
-            color: colors.textSecondary,
-            fontWeight: "500",
-            marginBottom: DESIGN_TOKENS.spacing.xs,
-            textTransform: "uppercase",
-            letterSpacing: 0.5,
-          }}
-        >
-          {t("jobDetails.client.name")}
-        </Text>
-        <Text
-          style={{
-            fontSize: 16,
-            color: colors.text,
-            fontWeight: "500",
-          }}
-        >
-          {clientName}
-        </Text>
-      </View>
-
-      {/* Numéro de téléphone */}
-      <View style={{ marginBottom: DESIGN_TOKENS.spacing.md }}>
-        <Text
-          style={{
-            fontSize: 12,
-            color: colors.textSecondary,
-            fontWeight: "500",
-            marginBottom: DESIGN_TOKENS.spacing.xs,
-            textTransform: "uppercase",
-            letterSpacing: 0.5,
-          }}
-        >
-          {t("jobDetails.client.phone")}
-        </Text>
-        {hasPhone ? (
+      {/* Téléphone */}
+      {hasPhone && (
+        <View style={themedStyles.infoRow}>
+          <View style={themedStyles.infoIcon}>
+            <Ionicons name="call-outline" size={16} color={colors.success} />
+          </View>
           <Pressable
-            onPress={() => copyToClipBoard(clientPhone)}
-            hitSlop={{
-              top: DESIGN_TOKENS.touch.hitSlop,
-              bottom: DESIGN_TOKENS.touch.hitSlop,
-              left: DESIGN_TOKENS.touch.hitSlop,
-              right: DESIGN_TOKENS.touch.hitSlop,
-            }}
+            style={{ flex: 1 }}
+            onPress={() => copyToClipBoard(client!.phone!)}
           >
-            <Text
-              style={{
-                fontSize: 16,
-                color: colors.primary,
-                fontWeight: "500",
-                textDecorationLine: "underline",
-              }}
-            >
-              {clientPhone}
-            </Text>
+            <Text style={themedStyles.infoText}>{client!.phone}</Text>
           </Pressable>
-        ) : (
-          <Text
-            style={{
-              fontSize: 16,
-              color: colors.textSecondary,
-              fontStyle: "italic",
-            }}
+          <Pressable
+            style={[
+              themedStyles.actionBtn,
+              { backgroundColor: colors.success + "15" },
+            ]}
+            onPress={() => contactLink(client!.phone!, "tel")}
           >
-            {clientPhone}
-          </Text>
-        )}
-      </View>
+            <Ionicons name="call" size={18} color={colors.success} />
+          </Pressable>
+        </View>
+      )}
 
       {/* Email */}
-      <View style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
-        <Text
-          style={{
-            fontSize: 12,
-            color: colors.textSecondary,
-            fontWeight: "500",
-            marginBottom: DESIGN_TOKENS.spacing.xs,
-            textTransform: "uppercase",
-            letterSpacing: 0.5,
-          }}
-        >
-          {t("jobDetails.client.email")}
-        </Text>
-        {hasEmail ? (
+      {hasEmail && (
+        <View style={themedStyles.infoRow}>
+          <View style={themedStyles.infoIcon}>
+            <Ionicons name="mail-outline" size={16} color={colors.primary} />
+          </View>
           <Pressable
-            onPress={() => copyToClipBoard(clientEmail)}
-            hitSlop={{
-              top: DESIGN_TOKENS.touch.hitSlop,
-              bottom: DESIGN_TOKENS.touch.hitSlop,
-              left: DESIGN_TOKENS.touch.hitSlop,
-              right: DESIGN_TOKENS.touch.hitSlop,
-            }}
+            style={{ flex: 1 }}
+            onPress={() => copyToClipBoard(client!.email!)}
           >
-            <Text
-              style={{
-                fontSize: 16,
-                color: colors.primary,
-                fontWeight: "500",
-                textDecorationLine: "underline",
-              }}
-            >
-              {clientEmail}
-            </Text>
+            <Text style={themedStyles.infoText}>{client!.email}</Text>
           </Pressable>
-        ) : (
-          <Text
-            style={{
-              fontSize: 16,
-              color: colors.textSecondary,
-              fontStyle: "italic",
-            }}
+          <Pressable
+            style={[
+              themedStyles.actionBtn,
+              { backgroundColor: colors.primary + "15" },
+            ]}
+            onPress={() => contactLink(client!.email!, "mail")}
           >
-            {clientEmail}
-          </Text>
-        )}
-      </View>
-
-      {/* Bouton d'appel - seulement si téléphone disponible */}
-      {hasPhone && (
-        <Button
-          title={`📞 ${t("jobDetails.client.call")}`}
-          variant="secondary"
-          onPress={() => contactLink(clientPhone, "tel")}
-          style={{ width: "100%" }}
-        />
+            <Ionicons name="mail" size={18} color={colors.primary} />
+          </Pressable>
+        </View>
       )}
     </SectionCard>
   );

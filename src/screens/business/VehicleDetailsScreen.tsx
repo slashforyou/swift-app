@@ -2,24 +2,26 @@
  * VehicleDetailsScreen - Page détaillée d'un véhicule
  * Affichage complet des informations avec historique et actions
  */
-import { Ionicons } from '@expo/vector-icons'
-import React, { useState } from 'react'
+import { Ionicons } from "@expo/vector-icons";
+import React, { useState } from "react";
 import {
-    ActivityIndicator,
     Alert,
     Pressable,
     ScrollView,
     StyleSheet,
     Text,
     View,
-} from 'react-native'
-import EditVehicleModal, { VehicleEditData } from '../../components/modals/EditVehicleModal'
-import VehiclePhotoModal from '../../components/modals/VehiclePhotoModal'
-import { DESIGN_TOKENS } from '../../constants/Styles'
-import { useTheme } from '../../context/ThemeProvider'
-import { useVehicleDetails } from '../../hooks/useVehicles'
-import { useTranslation } from '../../localization/useLocalization'
-import { uploadVehiclePhoto, VehicleAPI } from '../../services/vehiclesService'
+} from "react-native";
+import EditVehicleModal, {
+    VehicleEditData,
+} from "../../components/modals/EditVehicleModal";
+import VehiclePhotoModal from "../../components/modals/VehiclePhotoModal";
+import MascotLoading from "../../components/ui/MascotLoading";
+import { DESIGN_TOKENS } from "../../constants/Styles";
+import { useTheme } from "../../context/ThemeProvider";
+import { useVehicleDetails } from "../../hooks/useVehicles";
+import { useTranslation } from "../../localization/useLocalization";
+import { uploadVehiclePhoto, VehicleAPI } from "../../services/vehiclesService";
 
 // =====================================
 // HELPER FUNCTIONS - Type Mapping
@@ -28,17 +30,17 @@ import { uploadVehiclePhoto, VehicleAPI } from '../../services/vehiclesService'
 /**
  * Convert API vehicle type to UI type
  */
-const apiToUIType = (apiType: VehicleAPI['type']): Vehicle['type'] => {
-  const mapping: Record<VehicleAPI['type'], Vehicle['type']> = {
-    'truck': 'moving-truck',
-    'van': 'van',
-    'trailer': 'trailer',
-    'ute': 'ute',
-    'dolly': 'dolly',
-    'tool': 'tools',
-  }
-  return mapping[apiType] || 'moving-truck'
-}
+const apiToUIType = (apiType: VehicleAPI["type"]): Vehicle["type"] => {
+  const mapping: Record<VehicleAPI["type"], Vehicle["type"]> = {
+    truck: "moving-truck",
+    van: "van",
+    trailer: "trailer",
+    ute: "ute",
+    dolly: "dolly",
+    tool: "tools",
+  };
+  return mapping[apiType] || "moving-truck";
+};
 
 /**
  * Convert API vehicle to UI vehicle format
@@ -54,51 +56,51 @@ const apiToVehicle = (api: VehicleAPI): Vehicle => ({
   status: api.status,
   nextService: api.nextService,
   location: api.location,
-  capacity: api.capacity || '',
-  assignedTo: api.assignedStaff || '',
+  capacity: api.capacity || "",
+  assignedTo: api.assignedStaff || "",
   // Ces champs ne sont pas encore retournés par l'API - valeurs par défaut utilisées
   // Voir BACKEND_REQUIREMENTS_27DEC2025.md pour les ajouter si nécessaire
   mileage: (api as any).mileage || 0,
-  purchaseDate: (api as any).purchaseDate || '',
-  lastService: (api as any).lastService || '',
-})
+  purchaseDate: (api as any).purchaseDate || "",
+  lastService: (api as any).lastService || "",
+});
 
 // Types
 interface Vehicle {
-  id: string
-  name: string
-  type: 'moving-truck' | 'van' | 'trailer' | 'ute' | 'dolly' | 'tools'
-  registration: string
-  make: string
-  model: string
-  year: number
-  status: 'available' | 'in-use' | 'maintenance' | 'out-of-service'
-  nextService: string
-  location: string
-  capacity?: string
-  assignedTo?: string
-  mileage?: number
-  purchaseDate?: string
-  lastService?: string
+  id: string;
+  name: string;
+  type: "moving-truck" | "van" | "trailer" | "ute" | "dolly" | "tools";
+  registration: string;
+  make: string;
+  model: string;
+  year: number;
+  status: "available" | "in-use" | "maintenance" | "out-of-service";
+  nextService: string;
+  location: string;
+  capacity?: string;
+  assignedTo?: string;
+  mileage?: number;
+  purchaseDate?: string;
+  lastService?: string;
 }
 
 interface MaintenanceRecord {
-  id: string
-  date: string
-  type: 'routine' | 'repair' | 'inspection' | 'emergency'
-  description: string
-  cost: number
-  performedBy: string
+  id: string;
+  date: string;
+  type: "routine" | "repair" | "inspection" | "emergency";
+  description: string;
+  cost: number;
+  performedBy: string;
 }
 
 interface VehicleDetailsScreenProps {
   // Option 1: Pass vehicleId to use hook
-  vehicleId?: string
+  vehicleId?: string;
   // Option 2: Pass vehicle object directly (legacy mode)
-  vehicle?: Vehicle
-  onBack: () => void
-  onUpdate?: (vehicle: Vehicle) => void
-  onDelete?: (vehicle: Vehicle) => void
+  vehicle?: Vehicle;
+  onBack: () => void;
+  onUpdate?: (vehicle: Vehicle) => void;
+  onDelete?: (vehicle: Vehicle) => void;
 }
 
 export default function VehicleDetailsScreen({
@@ -108,10 +110,10 @@ export default function VehicleDetailsScreen({
   onUpdate,
   onDelete,
 }: VehicleDetailsScreenProps) {
-  const { colors } = useTheme()
-  const { t } = useTranslation()
-  const [isEditModalVisible, setIsEditModalVisible] = useState(false)
-  const [isPhotoModalVisible, setIsPhotoModalVisible] = useState(false)
+  const { colors } = useTheme();
+  const { t } = useTranslation();
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [isPhotoModalVisible, setIsPhotoModalVisible] = useState(false);
 
   // Use hook if vehicleId is provided
   const {
@@ -122,85 +124,88 @@ export default function VehicleDetailsScreen({
     updateVehicle: updateVehicleApi,
     addMaintenanceRecord,
     refetch,
-  } = useVehicleDetails(vehicleId || '')
+  } = useVehicleDetails(vehicleId || "");
 
   // Determine which vehicle to use (hook or prop)
-  const vehicle = vehicleId && apiVehicle 
-    ? apiToVehicle(apiVehicle)
-    : vehicleProp
+  const vehicle =
+    vehicleId && apiVehicle ? apiToVehicle(apiVehicle) : vehicleProp;
 
   // Use API maintenance history if available, otherwise use empty array
-  const maintenanceHistory = vehicleId && apiMaintenanceHistory.length > 0
-    ? apiMaintenanceHistory
-    : []
+  const maintenanceHistory =
+    vehicleId && apiMaintenanceHistory.length > 0 ? apiMaintenanceHistory : [];
 
-  const getTypeEmoji = (type: Vehicle['type']): string => {
+  const getTypeEmoji = (type: Vehicle["type"]): string => {
     const emojis = {
-      'moving-truck': '🚛',
-      'van': '🚐',
-      'trailer': '🚜',
-      'ute': '🛻',
-      'dolly': '🛒',
-      'tools': '🔧',
-    }
-    return emojis[type] || '🚛'
-  }
+      "moving-truck": "🚛",
+      van: "🚐",
+      trailer: "🚜",
+      ute: "🛻",
+      dolly: "🛒",
+      tools: "🔧",
+    };
+    return emojis[type] || "🚛";
+  };
 
-  const getTypeLabel = (type: Vehicle['type']): string => {
-    const labels: Record<Vehicle['type'], string> = {
-      'moving-truck': t('vehicles.types.movingTruck'),
-      'van': t('vehicles.types.van'),
-      'trailer': t('vehicles.types.trailer'),
-      'ute': t('vehicles.types.ute'),
-      'dolly': t('vehicles.types.dolly'),
-      'tools': t('vehicles.types.tools'),
-    }
-    return labels[type] || t('vehicles.types.vehicle')
-  }
+  const getTypeLabel = (type: Vehicle["type"]): string => {
+    const labels: Record<Vehicle["type"], string> = {
+      "moving-truck": t("vehicles.types.movingTruck"),
+      van: t("vehicles.types.van"),
+      trailer: t("vehicles.types.trailer"),
+      ute: t("vehicles.types.ute"),
+      dolly: t("vehicles.types.dolly"),
+      tools: t("vehicles.types.tools"),
+    };
+    return labels[type] || t("vehicles.types.vehicle");
+  };
 
-  const getStatusColor = (status: Vehicle['status']): { bg: string; text: string } => {
+  const getStatusColor = (
+    status: Vehicle["status"],
+  ): { bg: string; text: string } => {
     const statusColors = {
       available: { bg: colors.success, text: colors.success },
-      'in-use': { bg: colors.warning, text: colors.warning },
+      "in-use": { bg: colors.warning, text: colors.warning },
       maintenance: { bg: colors.error, text: colors.error },
-      'out-of-service': { bg: colors.textSecondary, text: colors.textSecondary },
-    }
-    return statusColors[status] || statusColors['out-of-service']
-  }
+      "out-of-service": {
+        bg: colors.textSecondary,
+        text: colors.textSecondary,
+      },
+    };
+    return statusColors[status] || statusColors["out-of-service"];
+  };
 
-  const getStatusLabel = (status: Vehicle['status']): string => {
-    const labels: Record<Vehicle['status'], string> = {
-      available: t('vehicles.available'),
-      'in-use': t('vehicles.inUse'),
-      maintenance: t('vehicles.maintenance'),
-      'out-of-service': t('vehicles.outOfService'),
-    }
-    return labels[status] || status
-  }
+  const getStatusLabel = (status: Vehicle["status"]): string => {
+    const labels: Record<Vehicle["status"], string> = {
+      available: t("vehicles.available"),
+      "in-use": t("vehicles.inUse"),
+      maintenance: t("vehicles.maintenance"),
+      "out-of-service": t("vehicles.outOfService"),
+    };
+    return labels[status] || status;
+  };
 
-  const getMaintenanceTypeIcon = (type: MaintenanceRecord['type']): string => {
+  const getMaintenanceTypeIcon = (type: MaintenanceRecord["type"]): string => {
     const icons = {
-      routine: 'checkmark-circle',
-      repair: 'build',
-      inspection: 'eye',
-      emergency: 'alert-circle',
-    }
-    return icons[type] || 'document'
-  }
+      routine: "checkmark-circle",
+      repair: "build",
+      inspection: "eye",
+      emergency: "alert-circle",
+    };
+    return icons[type] || "document";
+  };
 
-  const getMaintenanceTypeColor = (type: MaintenanceRecord['type']): string => {
+  const getMaintenanceTypeColor = (type: MaintenanceRecord["type"]): string => {
     const maintenanceColors: Record<string, string> = {
       routine: colors.success,
       repair: colors.error,
       inspection: colors.warning,
       emergency: colors.error,
-    }
-    return maintenanceColors[type] || colors.textSecondary
-  }
+    };
+    return maintenanceColors[type] || colors.textSecondary;
+  };
 
   const handleUpdateVehicle = async (data: VehicleEditData) => {
-    if (!vehicle) return
-    
+    if (!vehicle) return;
+
     // If using hook (vehicleId provided), use API
     if (vehicleId && updateVehicleApi) {
       try {
@@ -212,19 +217,18 @@ export default function VehicleDetailsScreen({
           capacity: data.capacity,
           nextService: data.nextService,
           location: data.location,
-        })
-        
+        });
+
         if (result) {
-          setIsEditModalVisible(false)
-          Alert.alert(t('common.success'), t('vehicles.updateSuccess'))
-          await refetch() // Refresh data
+          setIsEditModalVisible(false);
+          Alert.alert(t("common.success"), t("vehicles.updateSuccess"));
+          await refetch(); // Refresh data
         } else {
-          Alert.alert(t('common.error'), error || t('vehicles.updateError'))
+          Alert.alert(t("common.error"), error || t("vehicles.updateError"));
         }
       } catch (err) {
-
-        console.error('Error updating vehicle:', err)
-        Alert.alert(t('common.error'), t('vehicles.alerts.addError.message'))
+        console.error("Error updating vehicle:", err);
+        Alert.alert(t("common.error"), t("vehicles.alerts.addError.message"));
       }
     } else if (onUpdate) {
       // Legacy mode: use callback
@@ -238,112 +242,132 @@ export default function VehicleDetailsScreen({
         nextService: data.nextService,
         location: data.location,
         name: `${data.make} ${data.model}`,
-      }
-      onUpdate(updatedVehicle)
-      setIsEditModalVisible(false)
+      };
+      onUpdate(updatedVehicle);
+      setIsEditModalVisible(false);
     }
-  }
+  };
 
   const handleDelete = () => {
-    if (!vehicle || !onDelete) return
-    
+    if (!vehicle || !onDelete) return;
+
     Alert.alert(
-      t('vehicles.deleteTitle'),
-      t('vehicles.alerts.deleteConfirm.message', { vehicleName: vehicle.name }),
+      t("vehicles.deleteTitle"),
+      t("vehicles.alerts.deleteConfirm.message", { vehicleName: vehicle.name }),
       [
-        { text: t('vehicles.actions.cancel'), style: 'cancel' },
+        { text: t("vehicles.actions.cancel"), style: "cancel" },
         {
-          text: t('vehicles.actions.delete'),
-          style: 'destructive',
+          text: t("vehicles.actions.delete"),
+          style: "destructive",
           onPress: () => onDelete(vehicle),
         },
-      ]
-    )
-  }
+      ],
+    );
+  };
 
   const handleChangeStatus = () => {
-    if (!vehicle || !onUpdate) return
-    
-    Alert.alert(
-      t('vehicles.changeStatus'),
-      t('vehicles.selectNewStatus'),
-      [
-        { text: t('vehicles.actions.cancel'), style: 'cancel' },
-        {
-          text: t('vehicles.available'),
-          onPress: () => onUpdate({ ...vehicle, status: 'available' }),
-        },
-        {
-          text: t('vehicles.inUse'),
-          onPress: () => onUpdate({ ...vehicle, status: 'in-use' }),
-        },
-        {
-          text: t('vehicles.maintenance'),
-          onPress: () => onUpdate({ ...vehicle, status: 'maintenance' }),
-        },
-        {
-          text: t('vehicles.outOfService'),
-          onPress: () => onUpdate({ ...vehicle, status: 'out-of-service' }),
-        },
-      ]
-    )
-  }
+    if (!vehicle || !onUpdate) return;
+
+    Alert.alert(t("vehicles.changeStatus"), t("vehicles.selectNewStatus"), [
+      { text: t("vehicles.actions.cancel"), style: "cancel" },
+      {
+        text: t("vehicles.available"),
+        onPress: () => onUpdate({ ...vehicle, status: "available" }),
+      },
+      {
+        text: t("vehicles.inUse"),
+        onPress: () => onUpdate({ ...vehicle, status: "in-use" }),
+      },
+      {
+        text: t("vehicles.maintenance"),
+        onPress: () => onUpdate({ ...vehicle, status: "maintenance" }),
+      },
+      {
+        text: t("vehicles.outOfService"),
+        onPress: () => onUpdate({ ...vehicle, status: "out-of-service" }),
+      },
+    ]);
+  };
 
   const handleScheduleService = () => {
-    Alert.alert(t('vehicles.scheduleService'), t('vehicles.featureComingSoon'))
-  }
+    Alert.alert(t("vehicles.scheduleService"), t("vehicles.featureComingSoon"));
+  };
 
   const handleAssignStaff = () => {
-    Alert.alert(t('vehicles.assignStaff'), t('vehicles.featureComingSoon'))
-  }
+    Alert.alert(t("vehicles.assignStaff"), t("vehicles.featureComingSoon"));
+  };
 
   // VEH-03: Handle vehicle photo
   const handleTakePhoto = () => {
-    setIsPhotoModalVisible(true)
-  }
+    setIsPhotoModalVisible(true);
+  };
 
   const handlePhotoSelected = async (photoUri: string) => {
-    if (!vehicle || !vehicleId) return
+    if (!vehicle || !vehicleId) return;
 
     try {
       // Upload the photo to the server
-      await uploadVehiclePhoto('swift-removals-001', vehicleId, photoUri)
+      await uploadVehiclePhoto("swift-removals-001", vehicleId, photoUri);
       Alert.alert(
-        t('common.success') || 'Success',
-        t('vehicles.photo.uploadSuccess') || 'Photo uploaded successfully'
-      )
-      await refetch() // Refresh to get updated photo URL
+        t("common.success") || "Success",
+        t("vehicles.photo.uploadSuccess") || "Photo uploaded successfully",
+      );
+      await refetch(); // Refresh to get updated photo URL
     } catch (error: any) {
-      console.error('Error uploading photo:', error)
+      console.error("Error uploading photo:", error);
       // Check if it's a 404 (endpoint not available)
-      if (error.message?.includes('404') || error.message?.includes('not available')) {
+      if (
+        error.message?.includes("404") ||
+        error.message?.includes("not available")
+      ) {
         Alert.alert(
-          t('vehicles.photo.notAvailable') || 'Feature Not Available',
-          t('vehicles.photo.backendRequired') || 'Photo upload requires backend implementation.'
-        )
+          t("vehicles.photo.notAvailable") || "Feature Not Available",
+          t("vehicles.photo.backendRequired") ||
+            "Photo upload requires backend implementation.",
+        );
       } else {
-        throw error // Re-throw to let modal handle it
+        throw error; // Re-throw to let modal handle it
       }
     }
-  }
+  };
 
   // Loading state
   if (isLoading) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={{ marginTop: 16, color: colors.textSecondary }}>{t('vehicles.loadingDetails')}</Text>
-      </View>
-    )
+    return <MascotLoading text={t("vehicles.loadingDetails")} />;
   }
 
   // Error state
   if (error && !vehicle) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background, padding: 20 }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: colors.background,
+          padding: 20,
+        }}
+      >
         <Text style={{ fontSize: 48, marginBottom: 16 }}>⚠️</Text>
-        <Text style={{ fontSize: 18, fontWeight: '600', color: colors.text, marginBottom: 8 }}>{t('vehicles.errors.loadingTitle')}</Text>
-        <Text style={{ color: colors.textSecondary, textAlign: 'center', marginBottom: 20 }}>{error}</Text>
+        <Text
+          style={{
+            fontSize: 18,
+            fontWeight: "600",
+            color: colors.text,
+            marginBottom: 8,
+          }}
+        >
+          {t("vehicles.errors.loadingTitle")}
+        </Text>
+        <Text
+          style={{
+            color: colors.textSecondary,
+            textAlign: "center",
+            marginBottom: 20,
+          }}
+        >
+          {error}
+        </Text>
         <Pressable
           onPress={refetch}
           style={{
@@ -353,33 +377,46 @@ export default function VehicleDetailsScreen({
             borderRadius: 8,
           }}
         >
-          <Text style={{ color: colors.background, fontWeight: '600' }}>{t('common.retry')}</Text>
+          <Text style={{ color: colors.background, fontWeight: "600" }}>
+            {t("common.retry")}
+          </Text>
         </Pressable>
       </View>
-    )
+    );
   }
 
   // No vehicle found
   if (!vehicle) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: colors.background,
+        }}
+      >
         <Text style={{ fontSize: 48, marginBottom: 16 }}>🚛</Text>
-        <Text style={{ fontSize: 18, fontWeight: '600', color: colors.text }}>{t('vehicles.notFound')}</Text>
+        <Text style={{ fontSize: 18, fontWeight: "600", color: colors.text }}>
+          {t("vehicles.notFound")}
+        </Text>
       </View>
-    )
+    );
   }
 
-  const statusColors = getStatusColor(vehicle.status)
+  const statusColors = getStatusColor(vehicle.status);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={[styles.header, { backgroundColor: colors.backgroundSecondary }]}>
+      <View
+        style={[styles.header, { backgroundColor: colors.backgroundSecondary }]}
+      >
         <Pressable onPress={onBack} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </Pressable>
         <Text style={[styles.headerTitle, { color: colors.text }]}>
-          {t('vehicles.details')}
+          {t("vehicles.details")}
         </Text>
         <View style={styles.headerSpacer} />
       </View>
@@ -390,20 +427,39 @@ export default function VehicleDetailsScreen({
         showsVerticalScrollIndicator={false}
       >
         {/* Vehicle Card */}
-        <View style={[styles.vehicleCard, { backgroundColor: colors.backgroundSecondary }]}>
+        <View
+          style={[
+            styles.vehicleCard,
+            { backgroundColor: colors.backgroundSecondary },
+          ]}
+        >
           <View style={styles.vehicleHeader}>
-            <View style={[styles.vehicleIcon, { backgroundColor: colors.primary + '20' }]}>
-              <Text style={styles.vehicleEmoji}>{getTypeEmoji(vehicle.type)}</Text>
+            <View
+              style={[
+                styles.vehicleIcon,
+                { backgroundColor: colors.primary + "20" },
+              ]}
+            >
+              <Text style={styles.vehicleEmoji}>
+                {getTypeEmoji(vehicle.type)}
+              </Text>
             </View>
             <View style={styles.vehicleInfo}>
               <Text style={[styles.vehicleName, { color: colors.text }]}>
                 {vehicle.name}
               </Text>
-              <Text style={[styles.vehicleType, { color: colors.textSecondary }]}>
+              <Text
+                style={[styles.vehicleType, { color: colors.textSecondary }]}
+              >
                 {getTypeLabel(vehicle.type)}
               </Text>
             </View>
-            <View style={[styles.statusBadge, { backgroundColor: statusColors.bg + '20' }]}>
+            <View
+              style={[
+                styles.statusBadge,
+                { backgroundColor: statusColors.bg + "20" },
+              ]}
+            >
               <Text style={[styles.statusText, { color: statusColors.text }]}>
                 {getStatusLabel(vehicle.status)}
               </Text>
@@ -416,10 +472,19 @@ export default function VehicleDetailsScreen({
           <View style={styles.detailsGrid}>
             <View style={styles.detailRow}>
               <View style={styles.detailItem}>
-                <Ionicons name="card-outline" size={20} color={colors.textSecondary} />
+                <Ionicons
+                  name="card-outline"
+                  size={20}
+                  color={colors.textSecondary}
+                />
                 <View style={styles.detailContent}>
-                  <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
-                    {t('vehicles.registration')}
+                  <Text
+                    style={[
+                      styles.detailLabel,
+                      { color: colors.textSecondary },
+                    ]}
+                  >
+                    {t("vehicles.registration")}
                   </Text>
                   <Text style={[styles.detailValue, { color: colors.text }]}>
                     {vehicle.registration}
@@ -428,10 +493,19 @@ export default function VehicleDetailsScreen({
               </View>
 
               <View style={styles.detailItem}>
-                <Ionicons name="calendar-outline" size={20} color={colors.textSecondary} />
+                <Ionicons
+                  name="calendar-outline"
+                  size={20}
+                  color={colors.textSecondary}
+                />
                 <View style={styles.detailContent}>
-                  <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
-                    {t('vehicles.year')}
+                  <Text
+                    style={[
+                      styles.detailLabel,
+                      { color: colors.textSecondary },
+                    ]}
+                  >
+                    {t("vehicles.year")}
                   </Text>
                   <Text style={[styles.detailValue, { color: colors.text }]}>
                     {vehicle.year}
@@ -442,10 +516,19 @@ export default function VehicleDetailsScreen({
 
             <View style={styles.detailRow}>
               <View style={styles.detailItem}>
-                <Ionicons name="business-outline" size={20} color={colors.textSecondary} />
+                <Ionicons
+                  name="business-outline"
+                  size={20}
+                  color={colors.textSecondary}
+                />
                 <View style={styles.detailContent}>
-                  <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
-                    {t('vehicles.make')}
+                  <Text
+                    style={[
+                      styles.detailLabel,
+                      { color: colors.textSecondary },
+                    ]}
+                  >
+                    {t("vehicles.make")}
                   </Text>
                   <Text style={[styles.detailValue, { color: colors.text }]}>
                     {vehicle.make}
@@ -454,10 +537,19 @@ export default function VehicleDetailsScreen({
               </View>
 
               <View style={styles.detailItem}>
-                <Ionicons name="car-sport-outline" size={20} color={colors.textSecondary} />
+                <Ionicons
+                  name="car-sport-outline"
+                  size={20}
+                  color={colors.textSecondary}
+                />
                 <View style={styles.detailContent}>
-                  <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
-                    {t('vehicles.model')}
+                  <Text
+                    style={[
+                      styles.detailLabel,
+                      { color: colors.textSecondary },
+                    ]}
+                  >
+                    {t("vehicles.model")}
                   </Text>
                   <Text style={[styles.detailValue, { color: colors.text }]}>
                     {vehicle.model}
@@ -469,10 +561,19 @@ export default function VehicleDetailsScreen({
             {vehicle.capacity && (
               <View style={styles.detailRow}>
                 <View style={styles.detailItem}>
-                  <Ionicons name="cube-outline" size={20} color={colors.textSecondary} />
+                  <Ionicons
+                    name="cube-outline"
+                    size={20}
+                    color={colors.textSecondary}
+                  />
                   <View style={styles.detailContent}>
-                    <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
-                      {t('vehicles.capacity')}
+                    <Text
+                      style={[
+                        styles.detailLabel,
+                        { color: colors.textSecondary },
+                      ]}
+                    >
+                      {t("vehicles.capacity")}
                     </Text>
                     <Text style={[styles.detailValue, { color: colors.text }]}>
                       {vehicle.capacity}
@@ -484,10 +585,19 @@ export default function VehicleDetailsScreen({
 
             <View style={styles.detailRow}>
               <View style={styles.detailItem}>
-                <Ionicons name="location-outline" size={20} color={colors.textSecondary} />
+                <Ionicons
+                  name="location-outline"
+                  size={20}
+                  color={colors.textSecondary}
+                />
                 <View style={styles.detailContent}>
-                  <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
-                    {t('vehicles.location')}
+                  <Text
+                    style={[
+                      styles.detailLabel,
+                      { color: colors.textSecondary },
+                    ]}
+                  >
+                    {t("vehicles.location")}
                   </Text>
                   <Text style={[styles.detailValue, { color: colors.text }]}>
                     {vehicle.location}
@@ -498,10 +608,19 @@ export default function VehicleDetailsScreen({
 
             <View style={styles.detailRow}>
               <View style={styles.detailItem}>
-                <Ionicons name="build-outline" size={20} color={colors.textSecondary} />
+                <Ionicons
+                  name="build-outline"
+                  size={20}
+                  color={colors.textSecondary}
+                />
                 <View style={styles.detailContent}>
-                  <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
-                    {t('vehicles.nextService')}
+                  <Text
+                    style={[
+                      styles.detailLabel,
+                      { color: colors.textSecondary },
+                    ]}
+                  >
+                    {t("vehicles.nextService")}
                   </Text>
                   <Text style={[styles.detailValue, { color: colors.text }]}>
                     {vehicle.nextService}
@@ -513,12 +632,23 @@ export default function VehicleDetailsScreen({
             {vehicle.assignedTo && (
               <View style={styles.detailRow}>
                 <View style={styles.detailItem}>
-                  <Ionicons name="person-outline" size={20} color={colors.primary} />
+                  <Ionicons
+                    name="person-outline"
+                    size={20}
+                    color={colors.primary}
+                  />
                   <View style={styles.detailContent}>
-                    <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
-                      {t('vehicles.assignedTo')}
+                    <Text
+                      style={[
+                        styles.detailLabel,
+                        { color: colors.textSecondary },
+                      ]}
+                    >
+                      {t("vehicles.assignedTo")}
                     </Text>
-                    <Text style={[styles.detailValue, { color: colors.primary }]}>
+                    <Text
+                      style={[styles.detailValue, { color: colors.primary }]}
+                    >
                       {vehicle.assignedTo}
                     </Text>
                   </View>
@@ -531,63 +661,105 @@ export default function VehicleDetailsScreen({
         {/* Quick Actions */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            {t('vehicles.quickActions')}
+            {t("vehicles.quickActions")}
           </Text>
           <View style={styles.actionsGrid}>
             <Pressable
-              style={[styles.actionCard, { backgroundColor: colors.backgroundSecondary }]}
+              style={[
+                styles.actionCard,
+                { backgroundColor: colors.backgroundSecondary },
+              ]}
               onPress={() => setIsEditModalVisible(true)}
             >
-              <Ionicons name="create-outline" size={24} color={colors.primary} />
-              <Text style={[styles.actionText, { color: colors.text }]}>{t('vehicles.actions.edit')}</Text>
+              <Ionicons
+                name="create-outline"
+                size={24}
+                color={colors.primary}
+              />
+              <Text style={[styles.actionText, { color: colors.text }]}>
+                {t("vehicles.actions.edit")}
+              </Text>
             </Pressable>
 
             <Pressable
-              style={[styles.actionCard, { backgroundColor: colors.backgroundSecondary }]}
+              style={[
+                styles.actionCard,
+                { backgroundColor: colors.backgroundSecondary },
+              ]}
               onPress={handleTakePhoto}
             >
-              <Ionicons name="camera-outline" size={24} color={colors.primary} />
+              <Ionicons
+                name="camera-outline"
+                size={24}
+                color={colors.primary}
+              />
               <Text style={[styles.actionText, { color: colors.text }]}>
-                {t('vehicles.actions.photo') || 'Photo'}
+                {t("vehicles.actions.photo") || "Photo"}
               </Text>
             </Pressable>
 
             <Pressable
-              style={[styles.actionCard, { backgroundColor: colors.backgroundSecondary }]}
+              style={[
+                styles.actionCard,
+                { backgroundColor: colors.backgroundSecondary },
+              ]}
               onPress={handleChangeStatus}
             >
-              <Ionicons name="swap-horizontal-outline" size={24} color={colors.primary} />
+              <Ionicons
+                name="swap-horizontal-outline"
+                size={24}
+                color={colors.primary}
+              />
               <Text style={[styles.actionText, { color: colors.text }]}>
-                {t('vehicles.changeStatus')}
+                {t("vehicles.changeStatus")}
               </Text>
             </Pressable>
 
             <Pressable
-              style={[styles.actionCard, { backgroundColor: colors.backgroundSecondary }]}
+              style={[
+                styles.actionCard,
+                { backgroundColor: colors.backgroundSecondary },
+              ]}
               onPress={handleScheduleService}
             >
-              <Ionicons name="calendar-outline" size={24} color={colors.primary} />
+              <Ionicons
+                name="calendar-outline"
+                size={24}
+                color={colors.primary}
+              />
               <Text style={[styles.actionText, { color: colors.text }]}>
-                {t('vehicles.scheduleService')}
+                {t("vehicles.scheduleService")}
               </Text>
             </Pressable>
 
             <Pressable
-              style={[styles.actionCard, { backgroundColor: colors.backgroundSecondary }]}
+              style={[
+                styles.actionCard,
+                { backgroundColor: colors.backgroundSecondary },
+              ]}
               onPress={handleAssignStaff}
             >
-              <Ionicons name="people-outline" size={24} color={colors.primary} />
+              <Ionicons
+                name="people-outline"
+                size={24}
+                color={colors.primary}
+              />
               <Text style={[styles.actionText, { color: colors.text }]}>
-                {t('vehicles.assignStaff')}
+                {t("vehicles.assignStaff")}
               </Text>
             </Pressable>
 
             <Pressable
-              style={[styles.actionCard, { backgroundColor: colors.backgroundSecondary }]}
+              style={[
+                styles.actionCard,
+                { backgroundColor: colors.backgroundSecondary },
+              ]}
               onPress={handleDelete}
             >
               <Ionicons name="trash-outline" size={24} color={colors.error} />
-              <Text style={[styles.actionText, { color: colors.error }]}>{t('vehicles.actions.delete')}</Text>
+              <Text style={[styles.actionText, { color: colors.error }]}>
+                {t("vehicles.actions.delete")}
+              </Text>
             </Pressable>
           </View>
         </View>
@@ -595,7 +767,7 @@ export default function VehicleDetailsScreen({
         {/* Maintenance History */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            {t('vehicles.maintenanceHistory')}
+            {t("vehicles.maintenanceHistory")}
           </Text>
           <View style={styles.maintenanceList}>
             {maintenanceHistory.map((record) => (
@@ -614,15 +786,27 @@ export default function VehicleDetailsScreen({
                       color={getMaintenanceTypeColor(record.type)}
                     />
                     <View>
-                      <Text style={[styles.maintenanceDescription, { color: colors.text }]}>
+                      <Text
+                        style={[
+                          styles.maintenanceDescription,
+                          { color: colors.text },
+                        ]}
+                      >
                         {record.description}
                       </Text>
-                      <Text style={[styles.maintenanceDate, { color: colors.textSecondary }]}>
+                      <Text
+                        style={[
+                          styles.maintenanceDate,
+                          { color: colors.textSecondary },
+                        ]}
+                      >
                         {record.date} • {record.performedBy}
                       </Text>
                     </View>
                   </View>
-                  <Text style={[styles.maintenanceCost, { color: colors.text }]}>
+                  <Text
+                    style={[styles.maintenanceCost, { color: colors.text }]}
+                  >
                     ${record.cost}
                   </Text>
                 </View>
@@ -644,7 +828,7 @@ export default function VehicleDetailsScreen({
                 model: vehicle.model,
                 year: vehicle.year,
                 registration: vehicle.registration,
-                capacity: vehicle.capacity || '',
+                capacity: vehicle.capacity || "",
                 nextService: vehicle.nextService,
                 location: vehicle.location,
               }
@@ -657,13 +841,13 @@ export default function VehicleDetailsScreen({
       {/* VEH-03: Photo Modal */}
       <VehiclePhotoModal
         visible={isPhotoModalVisible}
-        vehicleId={vehicleId || vehicle?.id || ''}
-        vehicleName={vehicle?.name || ''}
+        vehicleId={vehicleId || vehicle?.id || ""}
+        vehicleName={vehicle?.name || ""}
         onPhotoSelected={handlePhotoSelected}
         onClose={() => setIsPhotoModalVisible(false)}
       />
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -671,19 +855,19 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     padding: DESIGN_TOKENS.spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.1)',
+    borderBottomColor: "rgba(0,0,0,0.1)",
   },
   backButton: {
     padding: DESIGN_TOKENS.spacing.xs,
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   headerSpacer: {
     width: 40,
@@ -700,16 +884,16 @@ const styles = StyleSheet.create({
     marginBottom: DESIGN_TOKENS.spacing.lg,
   },
   vehicleHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: DESIGN_TOKENS.spacing.md,
   },
   vehicleIcon: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   vehicleEmoji: {
     fontSize: 30,
@@ -719,7 +903,7 @@ const styles = StyleSheet.create({
   },
   vehicleName: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   vehicleType: {
     fontSize: 14,
@@ -732,23 +916,23 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   divider: {
     height: 1,
-    backgroundColor: 'rgba(0,0,0,0.1)',
+    backgroundColor: "rgba(0,0,0,0.1)",
     marginVertical: DESIGN_TOKENS.spacing.lg,
   },
   detailsGrid: {
     gap: DESIGN_TOKENS.spacing.md,
   },
   detailRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: DESIGN_TOKENS.spacing.md,
   },
   detailItem: {
     flex: 1,
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: DESIGN_TOKENS.spacing.sm,
   },
   detailContent: {
@@ -760,31 +944,31 @@ const styles = StyleSheet.create({
   },
   detailValue: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   section: {
     marginBottom: DESIGN_TOKENS.spacing.xl,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: DESIGN_TOKENS.spacing.md,
   },
   actionsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: DESIGN_TOKENS.spacing.sm,
   },
   actionCard: {
-    width: '48%',
+    width: "48%",
     padding: DESIGN_TOKENS.spacing.md,
     borderRadius: DESIGN_TOKENS.radius.md,
-    alignItems: 'center',
+    alignItems: "center",
     gap: DESIGN_TOKENS.spacing.xs,
   },
   actionText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   maintenanceList: {
     gap: DESIGN_TOKENS.spacing.sm,
@@ -794,18 +978,18 @@ const styles = StyleSheet.create({
     borderRadius: DESIGN_TOKENS.radius.md,
   },
   maintenanceHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   maintenanceLeft: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: DESIGN_TOKENS.spacing.sm,
     flex: 1,
   },
   maintenanceDescription: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   maintenanceDate: {
     fontSize: 12,
@@ -813,6 +997,6 @@ const styles = StyleSheet.create({
   },
   maintenanceCost: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
-})
+});

@@ -14,9 +14,7 @@ import React, {
     useMemo,
     useRef,
 } from "react";
-import {
-    calculateTotalSteps
-} from "../constants/JobStepsConfig";
+import { calculateTotalSteps } from "../constants/JobStepsConfig";
 import { JobTimerData, useJobTimer } from "../hooks/useJobTimer";
 import { syncTimerToBackend } from "../services/jobSteps";
 import { type PricingResult } from "../services/pricing";
@@ -109,6 +107,7 @@ export const JobTimerProvider: React.FC<JobTimerProviderProps> = ({
     stepNames, // ✅ Passer les noms des steps
     addresses, // ✅ NOUVEAU: Passer les adresses pour calcul dynamique
     onJobCompleted,
+    jobStatus, // ✅ FIX: Passer le statut du job pour détecter "completed"
   });
 
   // ✅ NOUVEAU: Arrêter le timer automatiquement si le job est completed
@@ -126,6 +125,8 @@ export const JobTimerProvider: React.FC<JobTimerProviderProps> = ({
       currentStep: timer.currentStep,
       targetStep: timer.currentStep + 1,
       safeTotalSteps,
+      timerIsRunning: timer.isRunning,
+      timerDataExists: !!timer.timerData,
     });
     try {
       if (timer.currentStep < safeTotalSteps) {
@@ -150,7 +151,10 @@ export const JobTimerProvider: React.FC<JobTimerProviderProps> = ({
           isInternalUpdateRef.current = false;
         }, 100);
       } else {
-        console.log("⚠️ [TIMER_ACTION] Cannot advance, already at last step");
+        console.log("⚠️ [TIMER_ACTION] Cannot advance, already at last step", {
+          currentStep: timer.currentStep,
+          safeTotalSteps,
+        });
       }
     } catch (error) {
       console.error("❌ [TIMER_ACTION] Error in nextStep:", error);
@@ -163,6 +167,8 @@ export const JobTimerProvider: React.FC<JobTimerProviderProps> = ({
     safeTotalSteps,
     onStepChange,
     safeJobId,
+    timer.isRunning,
+    timer.timerData,
   ]);
 
   // ✅ Helper pour arrêter le timer (dernière étape)
@@ -329,31 +335,55 @@ export const JobTimerProvider: React.FC<JobTimerProviderProps> = ({
     safeJobId,
   ]);
 
-  const value: JobTimerContextValue = {
-    timerData: timer.timerData,
-    totalElapsed: timer.totalElapsed,
-    billableTime: timer.billableTime,
-    isRunning: timer.isRunning,
-    isOnBreak: timer.isOnBreak,
-    currentStep: timer.currentStep,
-    totalSteps: timer.totalSteps,
-    isCompleted: timer.isCompleted,
-    stepTimes: timer.timerData?.stepTimes || [], // ✅ NOUVEAU: Exposer stepTimes
-    finalCost: timer.finalCost,
-    finalBillableHours: timer.finalBillableHours,
+  // ✅ FIX PERFORMANCE: Mémoiser le context value pour éviter les re-renders inutiles
+  // Les actions (fonctions) ne changent pas à chaque seconde, seulement les valeurs du timer
+  const value: JobTimerContextValue = useMemo(
+    () => ({
+      timerData: timer.timerData,
+      totalElapsed: timer.totalElapsed,
+      billableTime: timer.billableTime,
+      isRunning: timer.isRunning,
+      isOnBreak: timer.isOnBreak,
+      currentStep: timer.currentStep,
+      totalSteps: timer.totalSteps,
+      isCompleted: timer.isCompleted,
+      stepTimes: timer.timerData?.stepTimes || [], // ✅ NOUVEAU: Exposer stepTimes
+      finalCost: timer.finalCost,
+      finalBillableHours: timer.finalBillableHours,
 
-    // Actions
-    startTimer: timer.startTimer,
-    advanceStep: advanceStepWithCallback,
-    nextStep,
-    stopTimer,
-    togglePause: timer.togglePause, // ✅ V1.0: Simple Play/Pause
+      // Actions
+      startTimer: timer.startTimer,
+      advanceStep: advanceStepWithCallback,
+      nextStep,
+      stopTimer,
+      togglePause: timer.togglePause, // ✅ V1.0: Simple Play/Pause
 
-    // Utilitaires
-    formatTime: timer.formatTime,
-    calculateCost: timer.calculateCost,
-    HOURLY_RATE_AUD: timer.HOURLY_RATE_AUD,
-  };
+      // Utilitaires
+      formatTime: timer.formatTime,
+      calculateCost: timer.calculateCost,
+      HOURLY_RATE_AUD: timer.HOURLY_RATE_AUD,
+    }),
+    [
+      timer.timerData,
+      timer.totalElapsed,
+      timer.billableTime,
+      timer.isRunning,
+      timer.isOnBreak,
+      timer.currentStep,
+      timer.totalSteps,
+      timer.isCompleted,
+      timer.finalCost,
+      timer.finalBillableHours,
+      timer.startTimer,
+      advanceStepWithCallback,
+      nextStep,
+      stopTimer,
+      timer.togglePause,
+      timer.formatTime,
+      timer.calculateCost,
+      timer.HOURLY_RATE_AUD,
+    ],
+  );
 
   return (
     <JobTimerContext.Provider value={value}>

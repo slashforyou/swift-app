@@ -2,13 +2,16 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
     Alert,
+    Image,
+    LayoutAnimation,
     Modal,
+    Platform,
     Pressable,
     ScrollView,
     Text,
     TextInput,
+    UIManager,
     View,
 } from "react-native";
 import {
@@ -18,28 +21,185 @@ import {
 
 // Utiliser le système unifié au lieu du design system avancé
 import LanguageButton from "../components/calendar/LanguageButton";
+import MascotLoading from "../components/ui/MascotLoading";
 import { DESIGN_TOKENS } from "../constants/Styles";
 import { useTheme } from "../context/ThemeProvider";
 import { getUserCompanyData } from "../hooks/useCompanyPermissions";
 import { useUserProfile } from "../hooks/useUserProfile";
 import { useTranslation } from "../localization/useLocalization";
 import type { Company, CompanyRole } from "../services/user";
+import { changePassword, requestEmailChange } from "../services/user";
 
-// Avatar options - fun and professional avatars for moving company employees
-const AVATAR_OPTIONS = [
-  { id: "truck", icon: "bus", color: "#4A90D9" },
-  { id: "mover", icon: "person", color: "#50C878" },
-  { id: "box", icon: "cube", color: "#FF8C00" },
-  { id: "star", icon: "star", color: "#FFD700" },
-  { id: "rocket", icon: "rocket", color: "#9B59B6" },
-  { id: "heart", icon: "heart", color: "#E91E63" },
-  { id: "flash", icon: "flash", color: "#00BCD4" },
-  { id: "shield", icon: "shield-checkmark", color: "#2E7D32" },
-  { id: "trophy", icon: "trophy", color: "#FFC107" },
-  { id: "compass", icon: "compass", color: "#795548" },
-  { id: "briefcase", icon: "briefcase", color: "#607D8B" },
-  { id: "home", icon: "home", color: "#3F51B5" },
-];
+// Enable LayoutAnimation on Android
+try {
+  if (
+    Platform.OS === "android" &&
+    UIManager.setLayoutAnimationEnabledExperimental
+  ) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+  }
+} catch (e) {
+  console.warn("Failed to enable LayoutAnimation:", e);
+}
+
+// CollapsibleSection component
+interface CollapsibleSectionProps {
+  title: string;
+  emoji: string;
+  children: React.ReactNode;
+  isExpanded: boolean;
+  onToggle: () => void;
+  colors: any;
+  // Edit functionality (optional)
+  onEdit?: () => void;
+  isEditing?: boolean;
+  onCancel?: () => void;
+  onSave?: () => void;
+}
+
+const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
+  title,
+  emoji,
+  children,
+  isExpanded,
+  onToggle,
+  colors,
+  onEdit,
+  isEditing,
+  onCancel,
+  onSave,
+}) => {
+  const handleToggle = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    onToggle();
+  };
+
+  return (
+    <View
+      style={{
+        backgroundColor: colors.backgroundTertiary,
+        borderRadius: 16,
+        marginBottom: DESIGN_TOKENS.spacing.md,
+        shadowColor: colors.shadow,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+        overflow: "hidden",
+      }}
+    >
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          paddingRight: DESIGN_TOKENS.spacing.md,
+        }}
+      >
+        <Pressable
+          onPress={handleToggle}
+          style={({ pressed }) => ({
+            flexDirection: "row",
+            alignItems: "center",
+            flex: 1,
+            padding: DESIGN_TOKENS.spacing.lg,
+            backgroundColor: pressed
+              ? colors.backgroundSecondary
+              : "transparent",
+          })}
+        >
+          <Text style={{ fontSize: 20, marginRight: DESIGN_TOKENS.spacing.sm }}>
+            {emoji}
+          </Text>
+          <Text
+            style={{
+              fontSize: 17,
+              fontWeight: "700",
+              color: colors.text,
+              flex: 1,
+            }}
+          >
+            {title}
+          </Text>
+          <Ionicons
+            name={isExpanded ? "chevron-up" : "chevron-down"}
+            size={22}
+            color={colors.textSecondary}
+          />
+        </Pressable>
+        {/* Edit/Save/Cancel buttons in header */}
+        {onEdit && !isEditing && (
+          <Pressable
+            onPress={onEdit}
+            style={({ pressed }) => ({
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              backgroundColor: pressed
+                ? colors.backgroundSecondary
+                : colors.primary + "15",
+              justifyContent: "center",
+              alignItems: "center",
+              marginLeft: DESIGN_TOKENS.spacing.sm,
+            })}
+          >
+            <Ionicons name="pencil" size={18} color={colors.primary} />
+          </Pressable>
+        )}
+        {isEditing && onCancel && onSave && (
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <Pressable
+              onPress={onCancel}
+              style={({ pressed }) => ({
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                borderRadius: 8,
+                backgroundColor: pressed
+                  ? colors.backgroundSecondary
+                  : colors.buttonDisabled,
+              })}
+            >
+              <Text
+                style={{ color: colors.text, fontSize: 14, fontWeight: "600" }}
+              >
+                ✕
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={onSave}
+              style={({ pressed }) => ({
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                borderRadius: 8,
+                backgroundColor: pressed ? colors.primaryDark : colors.primary,
+              })}
+            >
+              <Text
+                style={{
+                  color: colors.buttonPrimaryText,
+                  fontSize: 14,
+                  fontWeight: "600",
+                }}
+              >
+                ✓
+              </Text>
+            </Pressable>
+          </View>
+        )}
+      </View>
+      {isExpanded && (
+        <View
+          style={{
+            paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+            paddingBottom: DESIGN_TOKENS.spacing.lg,
+          }}
+        >
+          {children}
+        </View>
+      )}
+    </View>
+  );
+};
 
 interface ProfileFormFieldProps {
   label: string;
@@ -107,10 +267,26 @@ const ProfileScreen: React.FC = () => {
   const { profile, isLoading, updateProfile } = useUserProfile();
 
   const [isEditing, setIsEditing] = useState(false);
-  const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
-  const [selectedAvatar, setSelectedAvatar] = useState(AVATAR_OPTIONS[0]);
+
+  // Collapsible sections state - all collapsed by default
+  const [expandedSections, setExpandedSections] = useState<{
+    personalInfo: boolean;
+    companyInfo: boolean;
+    security: boolean;
+  }>({
+    personalInfo: false,
+    companyInfo: false,
+    security: false,
+  });
+
+  const toggleSection = (section: keyof typeof expandedSections) => {
+    setExpandedSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
 
   // Password change state
   const [passwordData, setPasswordData] = useState({
@@ -221,14 +397,24 @@ const ProfileScreen: React.FC = () => {
       Alert.alert(t("common.error"), t("profile.security.passwordTooShort"));
       return;
     }
-    // TODO: Implement actual password change API call
-    Alert.alert(t("common.success"), t("profile.messages.passwordChanged"));
-    setShowPasswordModal(false);
-    setPasswordData({
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    });
+    try {
+      await changePassword(
+        passwordData.currentPassword,
+        passwordData.newPassword,
+      );
+      Alert.alert(t("common.success"), t("profile.messages.passwordChanged"));
+      setShowPasswordModal(false);
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+    } catch (error: any) {
+      Alert.alert(
+        t("common.error"),
+        error.message || t("profile.messages.updateError"),
+      );
+    }
   };
 
   // Handle email change
@@ -237,42 +423,22 @@ const ProfileScreen: React.FC = () => {
       Alert.alert(t("common.error"), t("profile.messages.emailChangeError"));
       return;
     }
-    // TODO: Implement actual email change API call
-    Alert.alert(t("common.success"), t("profile.messages.emailChanged"));
-    setShowEmailModal(false);
-    setNewEmail("");
-  };
-
-  // Handle avatar selection
-  const handleAvatarSelect = (avatar: (typeof AVATAR_OPTIONS)[0]) => {
-    setSelectedAvatar(avatar);
-    setShowAvatarModal(false);
-    Alert.alert(t("common.success"), t("profile.messages.avatarUpdated"));
+    try {
+      await requestEmailChange(newEmail);
+      Alert.alert(t("common.success"), t("profile.messages.emailChanged"));
+      setShowEmailModal(false);
+      setNewEmail("");
+    } catch (error: any) {
+      Alert.alert(
+        t("common.error"),
+        error.message || t("profile.messages.emailChangeError"),
+      );
+    }
   };
 
   // Show loading state
   if (isLoading) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: colors.background,
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text
-          style={{
-            marginTop: DESIGN_TOKENS.spacing.md,
-            color: colors.text,
-            fontSize: 16,
-          }}
-        >
-          {t("profile.loading")}
-        </Text>
-      </View>
-    );
+    return <MascotLoading text={t("profile.loading")} />;
   }
 
   return (
@@ -342,73 +508,50 @@ const ProfileScreen: React.FC = () => {
         }}
       >
         {/* Avatar Section */}
-        <Pressable
-          onPress={() => setShowAvatarModal(true)}
-          style={({ pressed }) => ({
+        <View
+          style={{
             alignItems: "center",
             marginBottom: DESIGN_TOKENS.spacing.xl,
-            opacity: pressed ? 0.8 : 1,
-          })}
+          }}
         >
           <View
             style={{
               width: 100,
               height: 100,
               borderRadius: 50,
-              backgroundColor: selectedAvatar.color,
-              justifyContent: "center",
-              alignItems: "center",
+              overflow: "hidden",
               shadowColor: colors.shadow,
               shadowOffset: { width: 0, height: 4 },
               shadowOpacity: 0.2,
               shadowRadius: 8,
               elevation: 6,
+              borderWidth: 3,
+              borderColor: "#FF8C00",
             }}
           >
-            <Ionicons
-              name={selectedAvatar.icon as any}
-              size={50}
-              color="white"
+            <Image
+              source={require("../../assets/images/mascot/mascotte_profil.png")}
+              style={{
+                width: "100%",
+                height: "100%",
+              }}
+              resizeMode="cover"
             />
           </View>
-          <Text
-            style={{
-              marginTop: DESIGN_TOKENS.spacing.sm,
-              fontSize: 14,
-              color: colors.primary,
-              fontWeight: "500",
-            }}
-          >
-            {t("profile.actions.chooseAvatar")}
-          </Text>
-        </Pressable>
+        </View>
 
-        {/* Card contenant tous les champs */}
-        <View
-          style={{
-            backgroundColor: colors.backgroundTertiary,
-            borderRadius: 16,
-            padding: DESIGN_TOKENS.spacing.lg,
-            shadowColor: colors.shadow,
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.1,
-            shadowRadius: 8,
-            elevation: 4,
-            marginBottom: DESIGN_TOKENS.spacing.lg,
-          }}
+        {/* Personal Information Section */}
+        <CollapsibleSection
+          title={t("profile.personalInfo")}
+          emoji="👤"
+          isExpanded={expandedSections.personalInfo}
+          onToggle={() => toggleSection("personalInfo")}
+          colors={colors}
+          onEdit={() => setIsEditing(true)}
+          isEditing={isEditing}
+          onCancel={handleCancel}
+          onSave={handleSave}
         >
-          {/* Section informations personnelles */}
-          <Text
-            style={{
-              fontSize: 18,
-              fontWeight: "700",
-              color: colors.text,
-              marginBottom: DESIGN_TOKENS.spacing.lg,
-            }}
-          >
-            {t("profile.personalInfo")}
-          </Text>
-
           <ProfileFormField
             label={t("profile.fields.firstName")}
             value={formData.firstName}
@@ -483,44 +626,17 @@ const ProfileScreen: React.FC = () => {
             }
             editable={isEditing}
           />
-        </View>
+        </CollapsibleSection>
 
         {/* Company Information Section (API v1.1.0) - Read-only, managed by backend */}
         {companyData && companyData.company && (
-          <View
-            style={{
-              backgroundColor: colors.backgroundTertiary,
-              borderRadius: 16,
-              padding: DESIGN_TOKENS.spacing.lg,
-              shadowColor: colors.shadow,
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.1,
-              shadowRadius: 8,
-              elevation: 4,
-              marginBottom: DESIGN_TOKENS.spacing.lg,
-            }}
+          <CollapsibleSection
+            title={t("profile.companyInfo") || "Company Information"}
+            emoji="🏢"
+            isExpanded={expandedSections.companyInfo}
+            onToggle={() => toggleSection("companyInfo")}
+            colors={colors}
           >
-            {/* Section header */}
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                marginBottom: DESIGN_TOKENS.spacing.lg,
-              }}
-            >
-              <Ionicons name="business" size={20} color={colors.primary} />
-              <Text
-                style={{
-                  fontSize: 18,
-                  fontWeight: "700",
-                  color: colors.text,
-                  marginLeft: DESIGN_TOKENS.spacing.sm,
-                }}
-              >
-                {t("profile.companyInfo") || "Company Information"}
-              </Text>
-            </View>
-
             {/* Company Name */}
             <View style={{ marginBottom: DESIGN_TOKENS.spacing.md }}>
               <Text
@@ -666,116 +782,17 @@ const ProfileScreen: React.FC = () => {
                   "Company information is managed by your organization administrator."}
               </Text>
             </View>
-          </View>
-        )}
-
-        {/* Boutons d'action */}
-        {isEditing ? (
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              marginTop: DESIGN_TOKENS.spacing.lg,
-            }}
-          >
-            <Pressable
-              style={({ pressed }) => ({
-                flex: 1,
-                marginRight: DESIGN_TOKENS.spacing.sm,
-                backgroundColor: colors.buttonDisabled,
-                borderRadius: 12,
-                paddingVertical: DESIGN_TOKENS.spacing.md,
-                justifyContent: "center",
-                alignItems: "center",
-                transform: [{ scale: pressed ? 0.95 : 1 }],
-              })}
-              onPress={handleCancel}
-            >
-              <Text
-                style={{
-                  color: colors.text,
-                  fontSize: 16,
-                  fontWeight: "600",
-                }}
-              >
-                {t("profile.actions.cancel")}
-              </Text>
-            </Pressable>
-
-            <Pressable
-              style={({ pressed }) => ({
-                flex: 1,
-                marginLeft: DESIGN_TOKENS.spacing.sm,
-                backgroundColor: colors.primary,
-                borderRadius: 12,
-                paddingVertical: DESIGN_TOKENS.spacing.md,
-                justifyContent: "center",
-                alignItems: "center",
-                transform: [{ scale: pressed ? 0.95 : 1 }],
-              })}
-              onPress={handleSave}
-            >
-              <Text
-                style={{
-                  color: colors.buttonPrimaryText,
-                  fontSize: 16,
-                  fontWeight: "600",
-                }}
-              >
-                {t("profile.actions.save")}
-              </Text>
-            </Pressable>
-          </View>
-        ) : (
-          <Pressable
-            style={({ pressed }) => ({
-              backgroundColor: colors.primary,
-              borderRadius: 12,
-              paddingVertical: DESIGN_TOKENS.spacing.md,
-              justifyContent: "center",
-              alignItems: "center",
-              marginTop: DESIGN_TOKENS.spacing.lg,
-              transform: [{ scale: pressed ? 0.95 : 1 }],
-            })}
-            onPress={() => setIsEditing(true)}
-          >
-            <Text
-              style={{
-                color: colors.buttonPrimaryText,
-                fontSize: 16,
-                fontWeight: "600",
-              }}
-            >
-              {t("profile.actions.edit")}
-            </Text>
-          </Pressable>
+          </CollapsibleSection>
         )}
 
         {/* Security Section */}
-        <View
-          style={{
-            backgroundColor: colors.backgroundTertiary,
-            borderRadius: 16,
-            padding: DESIGN_TOKENS.spacing.lg,
-            shadowColor: colors.shadow,
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.1,
-            shadowRadius: 8,
-            elevation: 4,
-            marginTop: DESIGN_TOKENS.spacing.xl,
-          }}
+        <CollapsibleSection
+          title={t("profile.security.title")}
+          emoji="🔒"
+          isExpanded={expandedSections.security}
+          onToggle={() => toggleSection("security")}
+          colors={colors}
         >
-          <Text
-            style={{
-              fontSize: 18,
-              fontWeight: "700",
-              color: colors.text,
-              marginBottom: DESIGN_TOKENS.spacing.lg,
-            }}
-          >
-            {t("profile.security.title")}
-          </Text>
-
           {/* Change Password Button */}
           <Pressable
             onPress={() => setShowPasswordModal(true)}
@@ -862,104 +879,8 @@ const ProfileScreen: React.FC = () => {
               color={colors.textSecondary}
             />
           </Pressable>
-        </View>
+        </CollapsibleSection>
       </ScrollView>
-
-      {/* Avatar Selection Modal */}
-      <Modal
-        visible={showAvatarModal}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setShowAvatarModal(false)}
-      >
-        <View
-          style={{
-            flex: 1,
-            justifyContent: "flex-end",
-            backgroundColor: "rgba(0,0,0,0.5)",
-          }}
-        >
-          <View
-            style={{
-              backgroundColor: colors.background,
-              borderTopLeftRadius: 24,
-              borderTopRightRadius: 24,
-              padding: DESIGN_TOKENS.spacing.xl,
-              paddingBottom: insets.bottom + DESIGN_TOKENS.spacing.xl,
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 20,
-                fontWeight: "700",
-                color: colors.text,
-                textAlign: "center",
-                marginBottom: DESIGN_TOKENS.spacing.sm,
-              }}
-            >
-              {t("profile.avatar.title")}
-            </Text>
-            <Text
-              style={{
-                fontSize: 14,
-                color: colors.textSecondary,
-                textAlign: "center",
-                marginBottom: DESIGN_TOKENS.spacing.xl,
-              }}
-            >
-              {t("profile.avatar.selectAvatar")}
-            </Text>
-
-            <View
-              style={{
-                flexDirection: "row",
-                flexWrap: "wrap",
-                justifyContent: "center",
-                gap: DESIGN_TOKENS.spacing.md,
-              }}
-            >
-              {AVATAR_OPTIONS.map((avatar) => (
-                <Pressable
-                  key={avatar.id}
-                  onPress={() => handleAvatarSelect(avatar)}
-                  style={({ pressed }) => ({
-                    width: 70,
-                    height: 70,
-                    borderRadius: 35,
-                    backgroundColor: avatar.color,
-                    justifyContent: "center",
-                    alignItems: "center",
-                    opacity: pressed ? 0.7 : 1,
-                    borderWidth: selectedAvatar.id === avatar.id ? 3 : 0,
-                    borderColor: colors.text,
-                  })}
-                >
-                  <Ionicons name={avatar.icon as any} size={35} color="white" />
-                </Pressable>
-              ))}
-            </View>
-
-            <Pressable
-              onPress={() => setShowAvatarModal(false)}
-              style={{
-                marginTop: DESIGN_TOKENS.spacing.xl,
-                padding: DESIGN_TOKENS.spacing.md,
-                alignItems: "center",
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 16,
-                  color: colors.primary,
-                  fontWeight: "600",
-                }}
-              >
-                {t("common.cancel")}
-              </Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
 
       {/* Password Change Modal */}
       <Modal

@@ -4,7 +4,8 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useThemeColors } from "../../../hooks/useThemeColor";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { Job } from "../../hooks/useJobsForDay";
-import { useTranslation } from "../../localization";
+import { useLocalization } from "../../localization";
+import { getLocale } from "../../localization/formatters";
 // Modern job box component with enhanced UI and animations
 
 interface JobBoxProps {
@@ -25,7 +26,7 @@ const JobBox: React.FC<JobBoxProps> = ({
   year,
 }) => {
   const colors = useThemeColors();
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useLocalization();
 
   // Status configuration
   const getStatusConfig = (status: string) => {
@@ -36,6 +37,27 @@ const JobBox: React.FC<JobBoxProps> = ({
           backgroundColor: colors.backgroundTertiary,
           icon: "time-outline" as const,
           text: t("calendar.jobStatus.pending"),
+        };
+      case "assigned":
+        return {
+          color: colors.info,
+          backgroundColor: colors.backgroundTertiary,
+          icon: "person-add-outline" as const,
+          text: "Assigné",
+        };
+      case "accepted":
+        return {
+          color: colors.success,
+          backgroundColor: colors.backgroundTertiary,
+          icon: "checkmark-circle-outline" as const,
+          text: "Accepté",
+        };
+      case "declined":
+        return {
+          color: colors.error,
+          backgroundColor: colors.backgroundTertiary,
+          icon: "close-circle-outline" as const,
+          text: "Refusé",
         };
       case "in-progress":
         return {
@@ -67,6 +89,22 @@ const JobBox: React.FC<JobBoxProps> = ({
         };
     }
   };
+
+  // ──────────────────────────────────────────────────────
+  // Contractor / Assigned job helpers
+  // ──────────────────────────────────────────────────────
+  const isExternalJob =
+    !!job.contractee &&
+    !!job.contractor &&
+    job.contractee.company_id !== job.contractor.company_id;
+
+  const isPendingAssignment =
+    job.assignment_status === "pending" && isExternalJob;
+  const isAcceptedAssignment =
+    job.assignment_status === "accepted" && isExternalJob;
+  const isNegotiatingAssignment =
+    job.assignment_status === "negotiating" && isExternalJob;
+  const contracteeName = job.contractee?.company_name || "";
 
   // Priority configuration
   const getPriorityConfig = (priority: string) => {
@@ -106,7 +144,7 @@ const JobBox: React.FC<JobBoxProps> = ({
 
   // Format time
   const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleTimeString("en-US", {
+    return new Date(dateString).toLocaleTimeString(getLocale(currentLanguage), {
       hour: "2-digit",
       minute: "2-digit",
       hour12: false,
@@ -298,6 +336,32 @@ const JobBox: React.FC<JobBoxProps> = ({
       fontSize: DESIGN_TOKENS.typography.caption.fontSize,
       fontWeight: "600",
     },
+    // Contractor assignment banner
+    assignmentBanner: {
+      flexDirection: "row" as const,
+      alignItems: "center" as const,
+      paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+      paddingVertical: 8,
+      gap: 6,
+      borderBottomWidth: 1,
+    },
+    assignmentBannerText: {
+      fontSize: 12,
+      fontWeight: "700" as const,
+      flex: 1,
+    },
+    assignmentActionBadge: {
+      flexDirection: "row" as const,
+      alignItems: "center" as const,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: DESIGN_TOKENS.radius.sm,
+      gap: 3,
+    },
+    assignmentActionBadgeText: {
+      fontSize: 11,
+      fontWeight: "700" as const,
+    },
     // Styles modernes pour la section truck
     modernTruckSection: {
       flexDirection: "row",
@@ -371,9 +435,128 @@ const JobBox: React.FC<JobBoxProps> = ({
         ...styles.jobCard,
         transform: pressed ? [{ scale: 0.98 }] : [{ scale: 1 }],
         opacity: pressed ? 0.9 : 1,
+        borderColor: isPendingAssignment
+          ? colors.warning
+          : isNegotiatingAssignment
+            ? colors.info + "80"
+            : isAcceptedAssignment
+              ? colors.success + "80"
+              : colors.border,
+        borderWidth:
+          isPendingAssignment || isAcceptedAssignment || isNegotiatingAssignment
+            ? 1.5
+            : 1,
       })}
       onPress={onPress}
     >
+      {/* ── Contractor assignment banner ── */}
+      {isExternalJob && (
+        <View
+          style={[
+            styles.assignmentBanner,
+            {
+              backgroundColor: isPendingAssignment
+                ? colors.warning + "18"
+                : isNegotiatingAssignment
+                  ? colors.info + "15"
+                  : colors.success + "15",
+              borderBottomColor: isPendingAssignment
+                ? colors.warning + "40"
+                : isNegotiatingAssignment
+                  ? colors.info + "30"
+                  : colors.success + "30",
+            },
+          ]}
+        >
+          <Ionicons
+            name="business-outline"
+            size={14}
+            color={
+              isPendingAssignment
+                ? colors.warning
+                : isNegotiatingAssignment
+                  ? colors.info
+                  : colors.success
+            }
+          />
+          <Text
+            style={[
+              styles.assignmentBannerText,
+              {
+                color: isPendingAssignment
+                  ? colors.warning
+                  : isNegotiatingAssignment
+                    ? colors.info
+                    : colors.success,
+              },
+            ]}
+            numberOfLines={1}
+          >
+            {isPendingAssignment
+              ? `Assigné par : ${contracteeName}`
+              : `${contracteeName}`}
+          </Text>
+          {isPendingAssignment && (
+            <View
+              style={[
+                styles.assignmentActionBadge,
+                { backgroundColor: colors.warning + "25" },
+              ]}
+            >
+              <Ionicons name="alert-circle" size={11} color={colors.warning} />
+              <Text
+                style={[
+                  styles.assignmentActionBadgeText,
+                  { color: colors.warning },
+                ]}
+              >
+                Action requise
+              </Text>
+            </View>
+          )}
+          {isAcceptedAssignment && (
+            <View
+              style={[
+                styles.assignmentActionBadge,
+                { backgroundColor: colors.success + "20" },
+              ]}
+            >
+              <Ionicons
+                name="checkmark-circle"
+                size={11}
+                color={colors.success}
+              />
+              <Text
+                style={[
+                  styles.assignmentActionBadgeText,
+                  { color: colors.success },
+                ]}
+              >
+                Accepté
+              </Text>
+            </View>
+          )}
+          {isNegotiatingAssignment && (
+            <View
+              style={[
+                styles.assignmentActionBadge,
+                { backgroundColor: colors.info + "20" },
+              ]}
+            >
+              <Ionicons name="swap-horizontal" size={11} color={colors.info} />
+              <Text
+                style={[
+                  styles.assignmentActionBadgeText,
+                  { color: colors.info },
+                ]}
+              >
+                En négociation
+              </Text>
+            </View>
+          )}
+        </View>
+      )}
+
       {/* Header avec référence */}
       <View style={styles.cardHeader}>
         <View style={styles.refBadge}>
@@ -460,7 +643,9 @@ const JobBox: React.FC<JobBoxProps> = ({
         {/* Time Section */}
         <View style={styles.timeSection}>
           <View style={styles.timeRow}>
-            <Text style={styles.timeLabel}>🕐 Créneau horaire</Text>
+            <Text style={styles.timeLabel}>
+              🕐 {t("calendar.dayScreen.timeSlot")}
+            </Text>
             <Text style={styles.timeValue}>{getDisplayTimeWindow()}</Text>
           </View>
         </View>
@@ -474,8 +659,9 @@ const JobBox: React.FC<JobBoxProps> = ({
             opacity: pressed ? 0.7 : 1,
           })}
           onPress={() => {
-            // TODO: Navigation vers les détails du véhicule quand l'id sera disponible
-            // Le type Job.truck ne contient actuellement que licensePlate et name
+            if (job.truck.id) {
+              navigation.navigate("Business", { initialTab: "Trucks" });
+            }
           }}
         >
           <View style={styles.truckIconContainer}>

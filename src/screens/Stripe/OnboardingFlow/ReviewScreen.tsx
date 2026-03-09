@@ -1,23 +1,35 @@
 /**
- * ReviewScreen - Étape 5/5 de l'onboarding Stripe
+ * ReviewScreen - Étape 6/6 de l'onboarding Stripe
  * Récapitulatif final + validation CGU + activation compte
  */
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+    SafeAreaView,
+    useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { DESIGN_TOKENS } from "../../../constants/Styles";
 import { useTheme } from "../../../context/ThemeProvider";
+import { useStripeAccount } from "../../../hooks/useStripe";
 import { useTranslation } from "../../../localization";
-import { completeOnboarding } from "../../../services/StripeService";
+import {
+    completeOnboarding,
+    verifyOnboarding,
+} from "../../../services/StripeService";
+import {
+    getOnboardingStepMeta,
+    getStartOnboardingStep,
+    resolveBusinessType,
+} from "./onboardingSteps";
 
 interface ReviewScreenProps {
   navigation: any;
@@ -26,7 +38,20 @@ interface ReviewScreenProps {
 
 export default function ReviewScreen({ navigation, route }: ReviewScreenProps) {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+  const stripeAccount = useStripeAccount();
+
+  const businessType = resolveBusinessType(
+    stripeAccount.account?.business_type || stripeAccount.account?.businessType,
+    stripeAccount.account?.requirements,
+  );
+  const stepMeta = getOnboardingStepMeta("Review", businessType);
+  const stepLabel = t("stripe.onboarding.stepLabel", {
+    current: stepMeta.index + 1,
+    total: stepMeta.total,
+  });
+  const onFileText = t("stripe.onboarding.review.onFile");
 
   const [tosAccepted, setTosAccepted] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -58,28 +83,120 @@ export default function ReviewScreen({ navigation, route }: ReviewScreenProps) {
     setIsSubmitting(true);
 
     try {
-      console.log("🎉 [Review] Completing onboarding...");
+      console.log("🎉 [Review] Verifying onboarding...");
 
-      const response = await completeOnboarding(true);
+      const response = await verifyOnboarding(tosAccepted);
 
-      console.log("✅ [Review] Onboarding completed!");
-      console.log("📊 Account Status:", response.accountStatus);
+      console.log("✅ [Review] Verification response:", response);
 
-      // Navigation vers l'écran de validation finale
-      navigation.navigate("Completion", {
-        accountStatus: response.accountStatus || {
-          charges_enabled: false,
-          payouts_enabled: false,
-          details_submitted: true,
-        },
-      });
+      if (response.success && response.onboarding_complete) {
+        // Backend v3: finalize ToS via /complete only once requirements are cleared
+        await completeOnboarding(true);
+
+        // Navigation vers l'écran de validation finale
+        navigation.navigate("Completion", {
+          accountStatus: {
+            charges_enabled: response.charges_enabled,
+            payouts_enabled: response.payouts_enabled,
+            details_submitted: true,
+          },
+        });
+      } else {
+        const pendingItems = response.requirements?.currently_due || [];
+        const previewCount = 5;
+        const pendingPreview = pendingItems.slice(0, previewCount);
+        const pendingSuffix =
+          pendingItems.length > previewCount
+            ? `\n+${pendingItems.length - previewCount} other field(s)`
+            : "";
+        const fallbackMessage =
+          pendingItems.length > 0
+            ? t("stripe.onboarding.review.errors.missingInfoList", {
+                count: pendingItems.length,
+                items: pendingPreview.join("\n- "),
+                suffix: pendingSuffix,
+              })
+            : t("stripe.onboarding.review.errors.verificationInProgress");
+
+        Alert.alert(
+          t("stripe.onboarding.review.errors.incompleteTitle"),
+          fallbackMessage,
+        );
+
+        // Redirect to the first missing step so the user can continue onboarding.
+        // This keeps the UX consistent with other screens that auto-skip/auto-advance.
+        if (response.requirements) {
+          const due = response.requirements.currently_due || [];
+          const needsCompanyDetails = due.some((f) =>
+            [
+              "company.phone",
+              "company.registration_number",
+              "company.name",
+              "company.tax_id",
+            ].includes(f),
+          );
+          const needsDocuments = due.some(
+            (f) =>
+              f.startsWith("individual.verification.") ||
+              f.includes(".verification."),
+          );
+          const needsPersons = due.some(
+            (f) =>
+              f === "company.directors_provided" ||
+              f === "company.executives_provided" ||
+              f === "company.owners_provided" ||
+              f.startsWith("person_") ||
+              f.startsWith("representative.") ||
+              f.startsWith("directors.") ||
+              f.startsWith("executives.") ||
+              f.startsWith("owners."),
+          );
+
+          const nextStep = needsCompanyDetails
+            ? "CompanyDetails"
+            : needsDocuments
+              ? "Documents"
+              : needsPersons
+                ? "Representative"
+                : getStartOnboardingStep(response.requirements, businessType);
+
+          if (nextStep && nextStep !== "Review") {
+            navigation.navigate(nextStep, {
+              personalInfo,
+              address,
+              bankAccount,
+              documents,
+            });
+          }
+        }
+      }
     } catch (error: any) {
-      console.error("❌ [Review] Error completing onboarding:", error);
-      Alert.alert(
-        "Erreur",
-        error.message ||
-          "Une erreur est survenue lors de l'activation de votre compte.",
-      );
+      const errorMessage =
+        error instanceof Error ? error.message : String(error || "");
+
+      // Detect Stripe permission error (Express account trying to use Custom-only features)
+      const isPermissionError =
+        error.code === "STRIPE_PERMISSION_DENIED" ||
+        errorMessage.includes("required permissions") ||
+        error.status === 403;
+
+      console.error("❌ [Review] Error completing onboarding:", {
+        message: errorMessage,
+        raw: error,
+      });
+
+      if (isPermissionError) {
+        Alert.alert(
+          t("stripe.onboarding.errors.permissionDeniedTitle"),
+          t("stripe.onboarding.errors.permissionDeniedMessage"),
+          [{ text: t("common.ok") }],
+        );
+      } else {
+        Alert.alert(
+          t("stripe.onboarding.errors.genericTitle"),
+          errorMessage || t("stripe.onboarding.errors.genericMessage"),
+        );
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -130,6 +247,7 @@ export default function ReviewScreen({ navigation, route }: ReviewScreenProps) {
     },
     scrollContent: {
       padding: DESIGN_TOKENS.spacing.lg,
+      paddingBottom: Math.max(DESIGN_TOKENS.spacing.xl, insets.bottom + 12),
     },
     titleSection: {
       marginBottom: DESIGN_TOKENS.spacing.lg,
@@ -307,17 +425,17 @@ export default function ReviewScreen({ navigation, route }: ReviewScreenProps) {
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.stepText}>
-          {t("stripe.onboarding.review.step")}
-        </Text>
+        <Text style={styles.stepText}>{stepLabel}</Text>
       </View>
 
       {/* Progress Bar */}
       <View style={styles.progressContainer}>
         <View style={styles.progressBar}>
-          <View style={styles.progressFill} />
+          <View
+            style={[styles.progressFill, { width: `${stepMeta.progress}%` }]}
+          />
         </View>
-        <Text style={styles.progressText}>100%</Text>
+        <Text style={styles.progressText}>{`${stepMeta.progress}%`}</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -363,7 +481,9 @@ export default function ReviewScreen({ navigation, route }: ReviewScreenProps) {
                   {t("stripe.onboarding.review.name")}:
                 </Text>
                 <Text style={styles.infoValue}>
-                  {personalInfo?.firstName} {personalInfo?.lastName}
+                  {personalInfo?.firstName || personalInfo?.lastName
+                    ? `${personalInfo?.firstName || ""} ${personalInfo?.lastName || ""}`.trim()
+                    : onFileText}
                 </Text>
               </View>
               <View style={styles.infoRow}>
@@ -371,20 +491,28 @@ export default function ReviewScreen({ navigation, route }: ReviewScreenProps) {
                   {t("stripe.onboarding.review.dob")}:
                 </Text>
                 <Text style={styles.infoValue}>
-                  {formatDate(personalInfo?.dob)}
+                  {personalInfo?.dob
+                    ? formatDate(personalInfo.dob)
+                    : onFileText}
                 </Text>
               </View>
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>
                   {t("stripe.onboarding.review.email")}:
                 </Text>
-                <Text style={styles.infoValue}>{personalInfo?.email}</Text>
+                <Text style={styles.infoValue}>
+                  {personalInfo?.email || onFileText}
+                </Text>
               </View>
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>
                   {t("stripe.onboarding.review.phone")}:
                 </Text>
-                <Text style={styles.infoValue}>+61 {personalInfo?.phone}</Text>
+                <Text style={styles.infoValue}>
+                  {personalInfo?.phone
+                    ? `+61 ${personalInfo.phone}`
+                    : onFileText}
+                </Text>
               </View>
             </View>
           </View>
@@ -415,17 +543,22 @@ export default function ReviewScreen({ navigation, route }: ReviewScreenProps) {
             <View style={styles.cardContent}>
               <View style={styles.infoRow}>
                 <Text style={styles.infoValue}>
-                  {address?.line1}
-                  {address?.line2 ? `, ${address.line2}` : ""}
+                  {address?.line1
+                    ? `${address.line1}${address.line2 ? `, ${address.line2}` : ""}`
+                    : onFileText}
                 </Text>
               </View>
               <View style={styles.infoRow}>
                 <Text style={styles.infoValue}>
-                  {address?.city}, {address?.state} {address?.postalCode}
+                  {address?.city
+                    ? `${address.city}, ${address?.state || ""} ${address?.postalCode || ""}`.trim()
+                    : onFileText}
                 </Text>
               </View>
               <View style={styles.infoRow}>
-                <Text style={styles.infoValue}>Australia</Text>
+                <Text style={styles.infoValue}>
+                  {address?.city ? "Australia" : onFileText}
+                </Text>
               </View>
             </View>
           </View>
@@ -459,21 +592,25 @@ export default function ReviewScreen({ navigation, route }: ReviewScreenProps) {
                   {t("stripe.onboarding.review.accountHolder")}:
                 </Text>
                 <Text style={styles.infoValue}>
-                  {bankAccount?.accountHolderName}
+                  {bankAccount?.accountHolderName || onFileText}
                 </Text>
               </View>
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>
                   {t("stripe.onboarding.review.bsb")}:
                 </Text>
-                <Text style={styles.infoValue}>{bankAccount?.bsb}</Text>
+                <Text style={styles.infoValue}>
+                  {bankAccount?.bsb || onFileText}
+                </Text>
               </View>
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>
                   {t("stripe.onboarding.review.accountNumber")}:
                 </Text>
                 <Text style={styles.infoValue}>
-                  {maskAccountNumber(bankAccount?.accountNumber)}
+                  {bankAccount?.accountNumber
+                    ? maskAccountNumber(bankAccount.accountNumber)
+                    : onFileText}
                 </Text>
               </View>
             </View>
@@ -503,18 +640,32 @@ export default function ReviewScreen({ navigation, route }: ReviewScreenProps) {
               </TouchableOpacity>
             </View>
             <View style={styles.cardContent}>
-              <View style={styles.checkmarkRow}>
-                <Ionicons name="checkmark-circle" size={20} color="#10B981" />
-                <Text style={styles.checkmarkText}>
-                  {t("stripe.onboarding.review.frontUploaded")}
-                </Text>
-              </View>
-              <View style={styles.checkmarkRow}>
-                <Ionicons name="checkmark-circle" size={20} color="#10B981" />
-                <Text style={styles.checkmarkText}>
-                  {t("stripe.onboarding.review.backUploaded")}
-                </Text>
-              </View>
+              {documents?.frontImage && documents?.backImage ? (
+                <>
+                  <View style={styles.checkmarkRow}>
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={20}
+                      color="#10B981"
+                    />
+                    <Text style={styles.checkmarkText}>
+                      {t("stripe.onboarding.review.frontUploaded")}
+                    </Text>
+                  </View>
+                  <View style={styles.checkmarkRow}>
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={20}
+                      color="#10B981"
+                    />
+                    <Text style={styles.checkmarkText}>
+                      {t("stripe.onboarding.review.backUploaded")}
+                    </Text>
+                  </View>
+                </>
+              ) : (
+                <Text style={styles.infoValue}>{onFileText}</Text>
+              )}
             </View>
           </View>
         </View>

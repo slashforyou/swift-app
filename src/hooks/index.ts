@@ -16,6 +16,16 @@ export { useStripeConnect } from "./useStripeConnect";
 // Company permissions - API v1.1.0
 export {
     getCompanyPermissions,
-    getUserCompanyData, useCompanyPermissions, type CompanyPermissions
+    getUserCompanyData,
+    useCompanyPermissions,
+    type CompanyPermissions
 } from "./useCompanyPermissions";
+
+// Permissions centralisées (user-level + job-level)
+export {
+    useAppPermissions,
+    type AppPermissions,
+    type JobPermissionGates,
+    type JobPermissionInput
+} from "./useAppPermissions";
 

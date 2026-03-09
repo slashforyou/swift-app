@@ -34,7 +34,12 @@ export interface JobAPI {
   created_by_email?: string;
 
   // New ownership fields (v1.2.0)
-  assignment_status?: "none" | "pending" | "accepted" | "declined";
+  assignment_status?:
+    | "none"
+    | "pending"
+    | "accepted"
+    | "declined"
+    | "negotiating";
   contractee?: {
     company_id: number;
     company_name: string;
@@ -50,14 +55,26 @@ export interface JobAPI {
     assigned_at?: string;
   };
   permissions?: {
-    is_owner: boolean;
+    is_owner: boolean; // Job interne (même entreprise)
+    is_contractee: boolean; // Viewer = créateur du job
+    is_contractor: boolean; // Viewer = exécutant (cessionnaire)
     is_assigned: boolean;
     can_accept: boolean;
     can_decline: boolean;
     can_start: boolean;
     can_complete: boolean;
     can_edit: boolean;
+    can_delete: boolean;
+    // Transferts B2B
+    can_create_transfer?: boolean;
+    can_cancel_transfer?: boolean;
+    can_respond_transfer?: boolean;
+    // Ressources (équipe & véhicule)
+    can_assign_resources?: boolean;
   };
+
+  // Transfert actif sur ce job (délégation B2B)
+  active_transfer?: import("../types/jobTransfer").JobTransfer;
 
   client?: {
     id: string;
@@ -114,6 +131,12 @@ export interface CreateJobRequest {
   deposit_required?: boolean; // Acompte requis
   deposit_percentage?: number; // Pourcentage d'acompte (ex: 50)
   deposit_paid?: boolean; // Acompte déjà versé
+  // Pricing configuration
+  hourly_rate?: number; // Taux horaire ($/h)
+  minimum_hours?: number; // Heures minimum facturables (ex: 2)
+  call_out_fee_minutes?: number; // Forfait déplacement en minutes (0 si depot-to-depot)
+  depot_to_depot?: boolean; // true = tarification dépôt-à-dépôt
+  time_rounding_minutes?: number; // Arrondi temps (1, 15, 30, 60)
 }
 
 export interface UpdateJobRequest {
@@ -125,6 +148,14 @@ export interface UpdateJobRequest {
   estimatedDuration?: number;
   notes?: string;
   assigned_staff_id?: string; // ID du staff à assigner
+  payment_status?: string;
+  payment_method?: string;
+  payment_time?: string;
+  amount_paid?: number;
+  amount_due?: number;
+  payment_details?: string;
+  transaction_id?: string;
+  currency?: string;
 }
 
 // Fonction helper pour faire des appels API avec retry automatique
@@ -323,6 +354,12 @@ export async function createJob(jobData: CreateJobRequest): Promise<JobAPI> {
       deposit_required: jobData.deposit_required ? 1 : 0,
       deposit_percentage: jobData.deposit_percentage || null,
       deposit_paid: jobData.deposit_paid ? 1 : 0,
+      // Pricing configuration
+      hourly_rate: jobData.hourly_rate || null,
+      minimum_hours: jobData.minimum_hours || null,
+      call_out_fee_minutes: jobData.call_out_fee_minutes ?? null,
+      depot_to_depot: jobData.depot_to_depot ? 1 : 0,
+      time_rounding_minutes: jobData.time_rounding_minutes || null,
     };
 
     console.log(
@@ -365,10 +402,20 @@ export async function updateJob(
   try {
     // TEMP_DISABLED: console.log('📡 [updateJob] Updating job:', jobId);
 
-    const res = await authenticatedFetch(`${API}v1/jobs/${jobId}`, {
+    const primaryUrl = `${API}v1/jobs/${jobId}`;
+    const fallbackUrl = `${API}v1/job/${jobId}`;
+
+    let res = await authenticatedFetch(primaryUrl, {
       method: "PATCH",
       body: JSON.stringify(jobData),
     });
+
+    if (!res.ok && res.status === 404) {
+      res = await authenticatedFetch(fallbackUrl, {
+        method: "PATCH",
+        body: JSON.stringify(jobData),
+      });
+    }
 
     if (!res.ok) {
       console.error(`❌ [updateJob] HTTP ${res.status}: ${res.statusText}`);
@@ -641,20 +688,39 @@ export async function getJobDetails(jobCode: string): Promise<any> {
       }
     }
 
-    // Calculer les permissions côté frontend
-    // TODO: Idéalement, le backend devrait retourner ces permissions calculées
-    const currentUserId = data.job?.current_user_id; // Si l'API le fournit
+    // Calculer les permissions selon le rôle du viewer (contractee = créateur, contractor = exécutant)
+    // Le backend retourne viewer_company_id = company_id de l'utilisateur connecté
+    const viewerCompanyId = data.viewer_company_id ?? null;
+    // Fallback permissif si le backend ne retourne pas viewer_company_id
+    const isContractee =
+      !viewerCompanyId || viewerCompanyId === contracteeCompanyId;
+    const isContractor =
+      !isContractee && viewerCompanyId === contractorCompanyId;
     const permissions = {
-      is_owner: contracteeCompanyId === contractorCompanyId,
+      is_owner: isSameCompany, // Même entreprise = job interne
+      is_contractee: isContractee, // Créateur du job
+      is_contractor: isContractor, // Exécutant (cessionnaire)
       is_assigned: !!data.job?.assigned_staff_id,
+      // Accepter/refuser : uniquement le contractor pour les transferts
       can_accept:
-        assignmentStatus === "pending" && !contractorObj?.assigned_staff_id,
-      can_decline: assignmentStatus === "pending",
-      can_start:
-        assignmentStatus === "accepted" ||
-        contracteeCompanyId === contractorCompanyId,
+        assignmentStatus === "pending" && (isContractor || isSameCompany),
+      can_decline:
+        assignmentStatus === "pending" && (isContractor || isSameCompany),
+      // Démarrer/compléter : le contractor ou job interne
+      can_start: isContractor || isSameCompany,
       can_complete: true,
-      can_edit: true,
+      // Éditer/supprimer : uniquement le contractee (créateur) ou job interne
+      can_edit: isContractee || isSameCompany,
+      can_delete: isContractee || isSameCompany,
+      // Transferts : seul le contractee peut initier/annuler
+      // Uniquement si aucune délégation en cours ("none") ou si refusée ("declined")
+      can_create_transfer:
+        (isContractee || isSameCompany) &&
+        (assignmentStatus === "none" || assignmentStatus === "declined"),
+      can_cancel_transfer: isContractee || isSameCompany,
+      can_respond_transfer: isContractor,
+      // Ressources : le contractor affecte son équipe une fois le job accepté
+      can_assign_resources: isContractor || isSameCompany,
     };
 
     console.log("🔐 [OWNERSHIP] Permissions calculées:", permissions);
@@ -1010,5 +1076,164 @@ export async function declineJob(
   } catch (error) {
     console.error(`[declineJob] Error declining job ${jobId}:`, error);
     throw error;
+  }
+}
+
+/**
+ * Faire une contre-proposition sur un job assigné
+ * POST /v1/jobs/{job_id}/counter_proposal
+ * Met assignment_status → "negotiating"
+ */
+export interface CounterProposalData {
+  proposed_start: string; // ISO datetime
+  proposed_end: string; // ISO datetime
+  proposed_price?: number; // nouveau prix proposé en A$
+  price_type?: "hourly" | "flat" | "daily"; // type de prix
+  vehicle_id?: string | null; // véhicule proposé
+  proposed_drivers?: number; // nombre de chauffeurs proposés
+  proposed_offsiders?: number; // nombre d'offsiders proposés
+  proposed_packers?: number; // nombre de packers proposés
+  note?: string;
+}
+
+// ─────────────────────────────────────────────
+// Type for pending contractor assignment
+// ─────────────────────────────────────────────
+export interface PendingAssignment {
+  id: string;
+  code: string | null;
+  status: string;
+  assignment_status: string;
+  start_window_start: string;
+  start_window_end: string;
+  contractee_company_id: number | null;
+  contractee_company_name: string | null;
+  client_name: string | null;
+  requested_drivers: number | null;
+  requested_offsiders: number | null;
+  pricing_amount: number | null;
+  pricing_type: "flat" | "hourly" | "daily" | null;
+  transfer_message: string | null;
+}
+
+export async function counterProposalJob(
+  jobId: string,
+  proposal: CounterProposalData,
+): Promise<{ success: boolean; message: string; data: any }> {
+  const headers = await getAuthHeaders();
+  const url = `${API}v1/jobs/${jobId}/counter_proposal`;
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        ...headers,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(proposal),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => "");
+      throw new Error(
+        `Failed to submit counter proposal: ${response.status} ${errorText}`,
+      );
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error(`[counterProposalJob] Error for job ${jobId}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Accepter une contre-proposition (côté contractee)
+ * POST /v1/jobs/{job_id}/accept_counter_proposal
+ * Met assignment_status → "accepted"
+ */
+export async function acceptCounterProposal(
+  jobId: string,
+): Promise<{ success: boolean; message: string; data: any }> {
+  const headers = await getAuthHeaders();
+  const url = `${API}v1/jobs/${jobId}/accept_counter_proposal`;
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { ...headers, "Content-Type": "application/json" },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => "");
+      throw new Error(
+        `Failed to accept counter proposal: ${response.status} ${errorText}`,
+      );
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error(`[acceptCounterProposal] Error for job ${jobId}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Rejeter une contre-proposition (côté contractee) → retour à "pending"
+ * POST /v1/jobs/{job_id}/reject_counter_proposal
+ * Met assignment_status → "pending"
+ */
+export async function rejectCounterProposal(
+  jobId: string,
+  reason?: string,
+): Promise<{ success: boolean; message: string; data: any }> {
+  const headers = await getAuthHeaders();
+  const url = `${API}v1/jobs/${jobId}/reject_counter_proposal`;
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { ...headers, "Content-Type": "application/json" },
+      body: JSON.stringify({ reason }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => "");
+      throw new Error(
+        `Failed to reject counter proposal: ${response.status} ${errorText}`,
+      );
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error(`[rejectCounterProposal] Error for job ${jobId}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * GET /v1/jobs/pending-assignments
+ * Récupère tous les jobs en attente de réponse pour le contractor connecté.
+ */
+export async function fetchPendingAssignments(): Promise<PendingAssignment[]> {
+  const headers = await getAuthHeaders();
+  const url = `${API}v1/jobs/pending-assignments`;
+
+  try {
+    const response = await fetch(url, { method: "GET", headers });
+
+    if (!response.ok) {
+      console.warn(
+        `[fetchPendingAssignments] HTTP ${response.status} – returning []`,
+      );
+      return [];
+    }
+
+    const data = await response.json();
+    return data?.data?.jobs ?? [];
+  } catch (error) {
+    console.error(`[fetchPendingAssignments] Error:`, error);
+    return [];
   }
 }

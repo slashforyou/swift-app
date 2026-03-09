@@ -1,0 +1,445 @@
+{
+  "project": {
+    "name": "Cobbr",
+    "repo": "slashforyou/swift-app",
+    "audit_type": "repository_checklist_status_audit",
+    "goal": "prepare MVP release",
+    "confidence_note": "This audit reflects what is implemented or documented in the repository. It does not prove end-to-end validation on real devices, real backend, or production Stripe.",
+    "sources": {
+      "core_status_doc": "docs/STATUS_PROJET_25JAN2026.md",
+      "master_tasks": "docs/Roadmap/MASTER_TASKS.md",
+      "app_config": "app.json",
+      "package_json": "package.json",
+      "theme_provider": "src/context/ThemeProvider.tsx",
+      "settings_screen": "src/screens/parameters.tsx",
+      "app_entry": "src/App.tsx",
+      "push_service": "src/services/pushNotifications.ts",
+      "notifications_provider": "src/context/NotificationsProvider.tsx",
+      "roles_screen": "src/screens/settings/RolesManagementScreen.tsx",
+      "job_details_screen": "src/screens/jobDetails.tsx",
+      "env_config": "src/config/environment.ts",
+      "stripe_onboarding_complete": "docs/STRIPE_ONBOARDING_COMPLETE.md",
+      "logo_resize_readme": "scripts/README-resize-logos.md"
+    }
+  },
+  "global_assessment": {
+    "mvp_readiness": "close_but_not_final",
+    "summary": "The repo shows a strong MVP foundation. Core UI, Stripe onboarding/profile completion, job details architecture, theme work, icons pipeline, and settings redesign are present. The main gaps before release are production Stripe readiness, clear implementation of pricing/commissions/plans, and real-world validation of push notifications and multi-user job flows. :contentReference[oaicite:0]{index=0} :contentReference[oaicite:1]{index=1} :contentReference[oaicite:2]{index=2}",
+    "priority_blockers": [
+      "production_stripe_live_configuration",
+      "subscription_and_commission_logic",
+      "real_device_push_notification_validation",
+      "multi_user_job_flow_validation",
+      "payment_access_guard_based_on_stripe_account_status"
+    ]
+  },
+  "checklist_audit": [
+    {
+      "id": "check_01",
+      "label": "Vérifier que Stripe fonctionne à 100%",
+      "status": "partial",
+      "status_label": "Implemented in test/dev, not fully locked for production",
+      "repo_evidence": {
+        "found": true,
+        "details": [
+          "StripeProvider is wired in the app entrypoint. :contentReference[oaicite:3]{index=3}",
+          "Stripe onboarding/profile completion is documented as backend + frontend operational and production ready for that specific flow. :contentReference[oaicite:4]{index=4}",
+          "Environment config still contains a production placeholder publishable key: pk_live_VOTRE_CLE_STRIPE_PRODUCTION. :contentReference[oaicite:5]{index=5}"
+        ]
+      },
+      "assessment": {
+        "frontend_state": "strong",
+        "backend_state": "appears_present_for_onboarding",
+        "production_state": "not_fully_ready",
+        "risk_level": "high"
+      },
+      "missing_or_uncertain": [
+        "real production Stripe live key not configured in repo",
+        "full end-to-end prod payment validation not proven by repo alone"
+      ],
+      "recommended_next_actions": [
+        "Set real live publishable key in production config",
+        "Run real low-value payment tests in production-safe flow",
+        "Validate webhooks and account status refresh on live environment"
+      ]
+    },
+    {
+      "id": "check_02",
+      "label": "Ajouter commissions Stripe",
+      "status": "not_found",
+      "status_label": "No clear implementation found in this repo",
+      "repo_evidence": {
+        "found": false,
+        "details": [
+          "The repo contains extensive Stripe integration and docs, but no clear pricing-engine or commission-by-plan logic was found during the audit. :contentReference[oaicite:6]{index=6} :contentReference[oaicite:7]{index=7}"
+        ]
+      },
+      "assessment": {
+        "frontend_state": "unclear",
+        "backend_state": "unclear_or_missing",
+        "risk_level": "high"
+      },
+      "missing_or_uncertain": [
+        "commission percentages by plan",
+        "application fee logic",
+        "per-job fee calculation and persistence",
+        "billing UI showing current plan impact"
+      ],
+      "recommended_next_actions": [
+        "Define a source of truth for plans and fee percentages",
+        "Implement backend fee calculation",
+        "Expose fee summary in app and payment flow",
+        "Add tests for each plan scenario"
+      ]
+    },
+    {
+      "id": "check_03",
+      "label": "Préparer chaque forfait mais ne rendre que le forfait gratuit public",
+      "status": "not_found",
+      "status_label": "No clear subscription/plan gating system found",
+      "repo_evidence": {
+        "found": false,
+        "details": [
+          "No explicit subscription-plan system or release gating for free/pro/private plans was identified in the audited files. The repo focuses more on operational workflows than plan availability control. :contentReference[oaicite:8]{index=8}"
+        ]
+      },
+      "assessment": {
+        "frontend_state": "unclear",
+        "backend_state": "unclear",
+        "risk_level": "high"
+      },
+      "missing_or_uncertain": [
+        "plan model",
+        "public vs hidden plan flags",
+        "upgrade flow",
+        "billing entitlement checks"
+      ],
+      "recommended_next_actions": [
+        "Create plan schema with visibility flags",
+        "Only expose free plan in onboarding/signup flow",
+        "Keep paid plans in backend/admin config until launch",
+        "Add entitlement checks for future premium features"
+      ]
+    },
+    {
+      "id": "check_04",
+      "label": "Mettre en place notif push",
+      "status": "partial",
+      "status_label": "Frontend infrastructure is advanced, runtime validation still needed",
+      "repo_evidence": {
+        "found": true,
+        "details": [
+          "expo-notifications is installed in dependencies. :contentReference[oaicite:9]{index=9}",
+          "A complete push notification service exists with permissions, Expo token retrieval, backend registration, preferences, badges, and listeners. :contentReference[oaicite:10]{index=10}",
+          "A NotificationsProvider exists and is mounted in the app. :contentReference[oaicite:11]{index=11} :contentReference[oaicite:12]{index=12}",
+          "Project status and master tasks still treated push notifications as not fully complete / phase-2 dependent. :contentReference[oaicite:13]{index=13} :contentReference[oaicite:14]{index=14}"
+        ]
+      },
+      "assessment": {
+        "frontend_state": "advanced",
+        "backend_state": "expected_but_not_proven",
+        "production_state": "uncertain",
+        "risk_level": "medium_high"
+      },
+      "missing_or_uncertain": [
+        "real backend push delivery",
+        "device token registration validation on physical devices",
+        "foreground/background/open-app behavior verified on iOS/Android"
+      ],
+      "recommended_next_actions": [
+        "Test on physical iPhone and Android device",
+        "Confirm push token registration reaches backend",
+        "Send real push test payloads",
+        "Validate badges, app-open routing, and permission edge cases"
+      ]
+    },
+    {
+      "id": "check_05",
+      "label": "Vérifier que le passage de jobs fonctionne bien chez chaque user",
+      "status": "partial",
+      "status_label": "Strong multi-user foundations, but not fully proven end-to-end",
+      "repo_evidence": {
+        "found": true,
+        "details": [
+          "jobDetails contains crew assignment/removal via real services and includes ownership, permissions, notes counters, payment state, and multi-role behavior. :contentReference[oaicite:15]{index=15}",
+          "The project status doc states multi-user read-status for notes is operational. :contentReference[oaicite:16]{index=16}"
+        ]
+      },
+      "assessment": {
+        "frontend_state": "advanced",
+        "backend_state": "appears_present_for_core_flow",
+        "production_state": "not_proven",
+        "risk_level": "medium_high"
+      },
+      "missing_or_uncertain": [
+        "real multi-account testing across companies/users",
+        "job handoff validation for all permission combinations",
+        "assignment/accept/decline/payout interactions between users"
+      ],
+      "recommended_next_actions": [
+        "Test with at least 3 account profiles: owner, manager, worker",
+        "Test accept/decline/assign/unassign scenarios",
+        "Test cross-company assignment and ownership banners",
+        "Document any permission leaks or dead ends"
+      ]
+    },
+    {
+      "id": "check_06",
+      "label": "Affiner le contrôle des rôles",
+      "status": "partial_to_advanced",
+      "status_label": "Good UI and structure present, but still not unquestionably complete",
+      "repo_evidence": {
+        "found": true,
+        "details": [
+          "A dedicated RolesManagementScreen exists with create/edit/delete/view permissions and scopes. :contentReference[oaicite:17]{index=17}",
+          "Roles-related services/hooks/context are present in the repo search results. :contentReference[oaicite:18]{index=18} :contentReference[oaicite:19]{index=19}",
+          "Parameters screen links to Roles & Permissions. :contentReference[oaicite:20]{index=20}",
+          "Master tasks still classify roles/permissions as phase-2/backend-required in parts of the roadmap. :contentReference[oaicite:21]{index=21}"
+        ]
+      },
+      "assessment": {
+        "frontend_state": "good",
+        "backend_state": "partially_uncertain",
+        "risk_level": "medium"
+      },
+      "missing_or_uncertain": [
+        "full backend enforcement for every screen and endpoint",
+        "real-world permission matrix validation",
+        "enterprise-grade completeness"
+      ],
+      "recommended_next_actions": [
+        "Create a permission matrix for all critical screens/actions",
+        "Test each role against each action",
+        "Ensure backend rejects unauthorized actions even if UI is bypassed"
+      ]
+    },
+    {
+      "id": "check_07",
+      "label": "Page job details → améliorer la section ressources",
+      "status": "partial",
+      "status_label": "Job details is heavily improved, but this specific sub-item is not explicitly confirmed",
+      "repo_evidence": {
+        "found": true,
+        "details": [
+          "jobDetails is a large, actively developed screen with sections for summary, job, client, notes, payment, crew handling, ownership, timer, validation, and modals. :contentReference[oaicite:22]{index=22}",
+          "Recent commits show continuing work on photos, pagination, and Job Details UX. ",
+          "The checklist phrase 'resources section' does not map cleanly to one clearly finished component in the audited files."
+        ]
+      },
+      "assessment": {
+        "frontend_state": "strong_overall",
+        "specific_item_state": "ambiguous",
+        "risk_level": "medium_low"
+      },
+      "missing_or_uncertain": [
+        "definition of what exactly counts as the resources section",
+        "whether your intended resources block has all required content/actions"
+      ],
+      "recommended_next_actions": [
+        "Define the exact resources block expected in MVP",
+        "Compare intended UX vs current Job Details sections",
+        "Mark this done only after visual/manual review"
+      ]
+    },
+    {
+      "id": "check_08",
+      "label": "Changer l’ensemble des icônes de l’app",
+      "status": "mostly_done",
+      "status_label": "Icons pipeline and app config are in place",
+      "repo_evidence": {
+        "found": true,
+        "details": [
+          "app.json points to dedicated Cobbr assets for app icons and splash. :contentReference[oaicite:24]{index=24}",
+          "There is a dedicated logo resizing workflow and documentation for generating all required icon sizes. :contentReference[oaicite:25]{index=25}"
+        ]
+      },
+      "assessment": {
+        "frontend_state": "good",
+        "risk_level": "low"
+      },
+      "missing_or_uncertain": ["final visual validation on installed builds"],
+      "recommended_next_actions": [
+        "Check icon rendering on Android adaptive icon",
+        "Check iOS home screen icon",
+        "Check splash/logo visual consistency"
+      ]
+    },
+    {
+      "id": "check_09",
+      "label": "Modifier design settings",
+      "status": "done",
+      "status_label": "Modernized settings screen exists",
+      "repo_evidence": {
+        "found": true,
+        "details": [
+          "parameters.tsx is a redesigned settings screen with structured sections, toggles, account/business/payment/roles/teams links, and logout flow. :contentReference[oaicite:26]{index=26}"
+        ]
+      },
+      "assessment": {
+        "frontend_state": "done",
+        "risk_level": "low"
+      },
+      "recommended_next_actions": [
+        "Run a quick visual pass on small screens and dark/light themes"
+      ]
+    },
+    {
+      "id": "check_10",
+      "label": "Améliorer design light",
+      "status": "done",
+      "status_label": "Theme/design audit and cleanup are clearly present",
+      "repo_evidence": {
+        "found": true,
+        "details": [
+          "Master tasks document extensive light/dark audit and migration progress. :contentReference[oaicite:27]{index=27}",
+          "A major style-system audit commit describes calibration of colors, screens, and unified design behavior. "
+        ]
+      },
+      "assessment": {
+        "frontend_state": "done",
+        "risk_level": "low"
+      },
+      "recommended_next_actions": [
+        "Do final device-level visual QA in light mode"
+      ]
+    },
+    {
+      "id": "check_11",
+      "label": "Bloquer section payment si compte Stripe inactif ou incomplet",
+      "status": "partial",
+      "status_label": "Stripe status detection exists, but explicit payment lock was not clearly proven",
+      "repo_evidence": {
+        "found": true,
+        "details": [
+          "Stripe onboarding completion doc defines complete/pending/restricted/incomplete account states and requirements display. :contentReference[oaicite:29]{index=29}",
+          "Type/status artifacts around Stripe account state are present in the repo. :contentReference[oaicite:30]{index=30}",
+          "No audited file clearly proved that the Job payment section is hard-blocked when Stripe account is inactive/incomplete."
+        ]
+      },
+      "assessment": {
+        "frontend_state": "status_awareness_present",
+        "business_guard_state": "uncertain_or_partial",
+        "risk_level": "medium_high"
+      },
+      "missing_or_uncertain": [
+        "explicit guard in payment entry flow",
+        "clear disable state + explanatory UI in job payment screen"
+      ],
+      "recommended_next_actions": [
+        "Add a central guard before entering or using payment flow",
+        "Block payment CTA when account is incomplete/restricted",
+        "Show reason + deep link to complete Stripe profile"
+      ]
+    }
+  ],
+  "repo_signals": {
+    "strong_signals": [
+      {
+        "name": "settings_redesign",
+        "evidence": "Modern parameters screen is implemented. :contentReference[oaicite:31]{index=31}"
+      },
+      {
+        "name": "theme_and_light_mode_work",
+        "evidence": "ThemeProvider plus design audit/migration work are present. :contentReference[oaicite:32]{index=32} :contentReference[oaicite:33]{index=33}"
+      },
+      {
+        "name": "push_notifications_foundation",
+        "evidence": "Push service and notifications provider are implemented and mounted. :contentReference[oaicite:34]{index=34} :contentReference[oaicite:35]{index=35} :contentReference[oaicite:36]{index=36}"
+      },
+      {
+        "name": "job_details_maturity",
+        "evidence": "jobDetails is feature-rich and integrates many operational flows. :contentReference[oaicite:37]{index=37}"
+      },
+      {
+        "name": "roles_ui_present",
+        "evidence": "RolesManagementScreen is present and linked from settings. :contentReference[oaicite:38]{index=38} :contentReference[oaicite:39]{index=39}"
+      },
+      {
+        "name": "stripe_onboarding_completion_flow",
+        "evidence": "Stripe profile completion flow is documented as complete. :contentReference[oaicite:40]{index=40}"
+      }
+    ],
+    "warning_signals": [
+      {
+        "name": "production_stripe_key_placeholder",
+        "severity": "critical",
+        "evidence": "Production env still contains placeholder live key. :contentReference[oaicite:41]{index=41}"
+      },
+      {
+        "name": "push_notifications_not_fully_proven",
+        "severity": "high",
+        "evidence": "Docs still treat notifications as not fully complete in practice. :contentReference[oaicite:42]{index=42} :contentReference[oaicite:43]{index=43}"
+      },
+      {
+        "name": "plan_and_commission_logic_not_visible",
+        "severity": "critical",
+        "evidence": "No clear implementation of plan visibility or commission rules found during audit."
+      },
+      {
+        "name": "payment_guard_not_explicitly_verified",
+        "severity": "high",
+        "evidence": "Stripe status UX exists, but explicit payment blocking was not clearly located. :contentReference[oaicite:44]{index=44}"
+      }
+    ]
+  },
+  "mvp_release_recommendation": {
+    "release_decision": "not_yet_without_final_pass",
+    "reasoning": [
+      "Core app structure looks close to MVP-ready. :contentReference[oaicite:45]{index=45}",
+      "Production Stripe still has a hard blocker in config. :contentReference[oaicite:46]{index=46}",
+      "Plan/commission system is not clearly represented in this repo.",
+      "Push and multi-user flows still require real validation."
+    ],
+    "must_finish_before_release": [
+      {
+        "priority": 1,
+        "task": "configure_and_validate_live_stripe"
+      },
+      {
+        "priority": 2,
+        "task": "implement_or_confirm_plan_and_commission_logic"
+      },
+      {
+        "priority": 3,
+        "task": "add_payment_guard_for_incomplete_stripe_accounts"
+      },
+      {
+        "priority": 4,
+        "task": "run_real_device_push_notification_tests"
+      },
+      {
+        "priority": 5,
+        "task": "run_multi_user_job_flow_tests"
+      }
+    ]
+  },
+  "dev_ai_action_plan": {
+    "done": [
+      "settings_redesign",
+      "light_mode_design_improvements",
+      "icons_pipeline_and_config",
+      "stripe_profile_completion_flow",
+      "advanced_job_details_foundation"
+    ],
+    "to_test": [
+      "stripe_end_to_end_in_production",
+      "push_notifications_real_devices",
+      "multi_user_job_assignment_and_handoff",
+      "roles_permissions_matrix",
+      "payment_blocking_when_stripe_incomplete",
+      "final_icon_rendering_on_installed_builds"
+    ],
+    "to_code": [
+      "plan_visibility_system",
+      "commission_logic_per_plan",
+      "payment_guard_when_stripe_not_ready",
+      "possible_missing_backend_enforcement_for_roles"
+    ]
+  },
+  "suggested_labels_for_internal_tracking": {
+    "done": "implemented_in_repo",
+    "partial": "implemented_but_not_validated_or_not_complete",
+    "not_found": "not_visible_in_repo",
+    "blocked": "requires_backend_or_prod_configuration"
+  }
+}

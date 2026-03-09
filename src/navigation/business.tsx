@@ -16,6 +16,7 @@ import { useLocalization } from "../localization/useLocalization";
 import {
     PaymentsListScreen,
     PayoutsScreen,
+    RelationsScreen,
     StaffCrewScreen,
     StripeHub,
     StripeSettingsScreen,
@@ -57,9 +58,12 @@ const useToast = () => {
 const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
   const insets = useSafeAreaInsets();
   const { toastDetails, showToast } = useToast();
-  const { isLoading: authLoading, LoadingComponent } = useAuthCheck(navigation);
   const { colors } = useTheme();
   const { t } = useLocalization();
+  const { isLoading: authLoading, LoadingComponent } = useAuthCheck(
+    navigation,
+    t("common.checkingAuth"),
+  );
 
   // Support navigation with initialTab or initialStripeScreen params
   const initialTab = route?.params?.initialTab || "BusinessInfo";
@@ -120,7 +124,7 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
     >
       {/* Logo */}
       <HeaderLogo
-        size={44}
+        preset="sm"
         variant="rectangle"
         marginVertical={4}
         marginHorizontal={20}
@@ -166,6 +170,7 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
                 mainNavigation={navigation}
               />
             )}
+            {businessPanel === "Relations" && <RelationsScreen />}
           </>
         )}
       </ScrollView>

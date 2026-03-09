@@ -3,37 +3,47 @@
  * Remplace JobsBillingScreen avec une interface moderne pour Stripe
  */
 import Ionicons from "@react-native-vector-icons/ionicons";
+import { useFocusEffect } from "@react-navigation/native";
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Alert,
+    Image,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import MascotLoading from "../../components/ui/MascotLoading";
+
+// Mascot Stripe image
+const mascotStripeImage = require("../../../assets/images/mascot/mascotte_stripe.png");
+
 // Context
 import {
-  getRequirementIcon,
-  getRequirementLabel,
+    getRequirementIcon,
+    getRequirementLabel,
 } from "../../constants/stripeRequirements";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
 import {
-  useStripeAccount,
-  useStripePayments,
-  useStripePayouts,
+    useStripeAccount,
+    useStripePayments,
+    useStripePayouts,
 } from "../../hooks/useStripe";
 import { useStripeConnection } from "../../hooks/useStripeConnection";
 import { useTranslation } from "../../localization";
 import {
-  deleteStripeAccount,
-  startStripeOnboarding,
+    deleteStripeAccount,
+    startStripeOnboarding,
 } from "../../services/StripeService";
+import {
+    getStartOnboardingStep,
+    resolveBusinessType,
+} from "../Stripe/OnboardingFlow/onboardingSteps";
 // Components
 import CreatePaymentLinkModal from "../../components/modals/CreatePaymentLinkModal";
 
@@ -68,6 +78,7 @@ export default function StripeHub({
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const [showPaymentLinkModal, setShowPaymentLinkModal] = useState(false);
+  const hasFocusedOnceRef = React.useRef(false);
 
   // Hook pour détecter la connexion Stripe réelle
   const stripeConnection = useStripeConnection();
@@ -141,7 +152,18 @@ export default function StripeHub({
     stripeAccount.account?.stripe_account_id ||
     stripeAccount.account?.accountId;
 
+  const hubBusy =
+    isLoading ||
+    stripeAccount.loading ||
+    stripeConnection.loading ||
+    stripePayments.loading ||
+    stripePayouts.loading;
+
+  const hubBusyRef = React.useRef(false);
+  hubBusyRef.current = hubBusy;
+
   const handleRefresh = async () => {
+    if (hubBusy) return;
     setIsLoading(true);
     // 🔄 NOUVEAU: Refresh les vraies données Stripe
     try {
@@ -174,6 +196,24 @@ export default function StripeHub({
     setIsLoading(false);
   };
 
+  // Refresh Stripe data when coming back to this screen (e.g. after onboarding)
+  // ⚠️ Important: useFocusEffect will re-run if the callback changes while focused.
+  // Use refs to avoid a refresh loop caused by loading state updates.
+  const handleRefreshRef = React.useRef<() => Promise<void>>(async () => {});
+  handleRefreshRef.current = handleRefresh;
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (!hasFocusedOnceRef.current) {
+        hasFocusedOnceRef.current = true;
+        return;
+      }
+
+      if (hubBusyRef.current) return;
+      void handleRefreshRef.current();
+    }, []),
+  );
+
   const handleCompleteProfile = async () => {
     console.log("🟡 [StripeHub] handleCompleteProfile appelé!");
     console.log("🔍 [StripeHub] mainNavigation disponible:", !!mainNavigation);
@@ -190,10 +230,20 @@ export default function StripeHub({
     try {
       console.log("🔄 [StripeHub] Reprise de l'onboarding Stripe...");
 
+      const businessType = resolveBusinessType(
+        stripeAccount.account?.business_type ||
+          stripeAccount.account?.businessType,
+        stripeAccount.account?.requirements,
+      );
+      const startStep = getStartOnboardingStep(
+        stripeAccount.account?.requirements,
+        businessType,
+      );
+
       console.log("🚀 [StripeHub] Navigation vers StripeOnboarding...");
       // Navigation vers le stack d'onboarding
       mainNavigation.navigate("StripeOnboarding", {
-        screen: "Welcome",
+        screen: startStep,
       });
       console.log("✅ [StripeHub] Navigation réussie!");
     } catch (error) {
@@ -205,12 +255,12 @@ export default function StripeHub({
   // Handler: Supprimer le compte Stripe
   const handleDeleteAccount = async () => {
     Alert.alert(
-      "Supprimer le compte",
-      "Êtes-vous sûr de vouloir supprimer votre compte Stripe ? Cette action est irréversible et supprimera toutes vos données de paiement.",
+      t("stripe.hub.deleteAccountTitle"),
+      t("stripe.hub.deleteAccountConfirm"),
       [
-        { text: "Annuler", style: "cancel" },
+        { text: t("common.cancel"), style: "cancel" },
         {
-          text: "Supprimer",
+          text: t("stripe.hub.deleteAccount"),
           style: "destructive",
           onPress: async () => {
             try {
@@ -220,16 +270,10 @@ export default function StripeHub({
               // Recharger les données
               await handleRefresh();
 
-              Alert.alert(
-                "Succès",
-                "Votre compte Stripe a été supprimé avec succès.",
-              );
+              Alert.alert(t("common.success"), t("stripe.hub.deleteSuccess"));
             } catch (error) {
               console.error("❌ [StripeHub] Delete error:", error);
-              Alert.alert(
-                "Erreur",
-                "Impossible de supprimer le compte. Veuillez réessayer.",
-              );
+              Alert.alert(t("common.error"), t("stripe.hub.deleteError"));
             }
           },
         },
@@ -240,10 +284,7 @@ export default function StripeHub({
   const handleStripeConnect = async () => {
     console.log("🔵 [StripeHub] handleStripeConnect appelé!");
     console.log("🔍 [StripeHub] mainNavigation disponible:", !!mainNavigation);
-    console.log(
-      "🔍 [StripeHub] Compte existant:",
-      stripeAccount.account?.accountId,
-    );
+    console.log("🔍 [StripeHub] Compte existant:", accountId);
 
     if (!mainNavigation) {
       console.error("❌ [StripeHub] mainNavigation est undefined!");
@@ -256,24 +297,33 @@ export default function StripeHub({
 
     try {
       console.log("🔧 [StripeHub] Démarrage de l'onboarding Stripe natif...");
-      setIsLoading(true);
-
       // Si un compte existe déjà, naviguer directement sans créer de compte
-      if (stripeAccount.account?.accountId) {
+      if (accountId) {
         console.log(
           "⚠️ [StripeHub] Compte existant détecté, navigation directe vers onboarding",
         );
+        const businessType = resolveBusinessType(
+          stripeAccount.account?.business_type ||
+            stripeAccount.account?.businessType,
+          stripeAccount.account?.requirements,
+        );
+        const startStep = getStartOnboardingStep(
+          stripeAccount.account?.requirements,
+          businessType,
+        );
         mainNavigation.navigate("StripeOnboarding", {
-          screen: "Welcome",
+          screen: startStep,
         });
         return;
       }
 
+      setIsLoading(true);
+
       // Appel API pour démarrer l'onboarding (créer nouveau compte)
-      const result = await startStripeOnboarding();
+      const result = await startStripeOnboarding("company");
 
       console.log("✅ [StripeHub] Onboarding démarré:", {
-        accountId: result.accountId,
+        stripeAccountId: result.stripeAccountId,
         progress: result.progress,
       });
 
@@ -296,15 +346,18 @@ export default function StripeHub({
 
   const handleTestConnection = () => {
     Alert.alert(
-      "🔍 Test Connexion Stripe",
-      `Statut: ${stripeConnection.status}\n` +
-        `Connecté: ${stripeConnection.isConnected ? "Oui" : "Non"}\n` +
-        `Chargement: ${stripeConnection.loading ? "Oui" : "Non"}\n` +
-        `Détails: ${stripeConnection.details || "Aucun"}\n` +
-        `Erreur: ${stripeConnection.error || "Aucune"}`,
+      `🔍 ${t("stripe.hub.testConnection")}`,
+      `${t("stripe.hub.status")}: ${stripeConnection.status}\n` +
+        `${t("stripe.hub.connected")}: ${stripeConnection.isConnected ? t("common.yes") : t("common.no")}\n` +
+        `${t("stripe.hub.loading")}: ${stripeConnection.loading ? t("common.yes") : t("common.no")}\n` +
+        `${t("stripe.hub.details")}: ${stripeConnection.details || t("common.none")}\n` +
+        `${t("stripe.hub.errorLabel")}: ${stripeConnection.error || t("common.none")}`,
       [
         { text: "OK", style: "default" },
-        { text: "Retester", onPress: () => stripeConnection.refresh() },
+        {
+          text: t("stripe.hub.retest"),
+          onPress: () => stripeConnection.refresh(),
+        },
       ],
     );
   };
@@ -340,7 +393,9 @@ export default function StripeHub({
       backgroundColor: colors.background,
     },
     content: {
-      padding: DESIGN_TOKENS.spacing.lg,
+      paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+      paddingTop: DESIGN_TOKENS.spacing.sm,
+      paddingBottom: DESIGN_TOKENS.spacing.lg,
       gap: DESIGN_TOKENS.spacing.lg,
     },
     header: {
@@ -475,10 +530,35 @@ export default function StripeHub({
       stripeAccount.account?.accountId
     );
     const accountInfo = stripeAccount.account;
+    const requirements = accountInfo?.requirements;
+    const hasMissingRequirements =
+      (requirements?.currently_due?.length || 0) > 0 ||
+      (requirements?.past_due?.length || 0) > 0 ||
+      (requirements?.eventually_due?.length || 0) > 0;
+
+    const statusLabel = (() => {
+      switch (stripeConnection.status) {
+        case "active":
+          return t("stripe.hub.accountVerified");
+        case "restricted":
+          return t("stripe.hub.actionRequired");
+        case "pending":
+          return t("stripe.hub.pending");
+        case "incomplete":
+          return t("stripe.hub.incomplete");
+        default:
+          return t("stripe.hub.incomplete");
+      }
+    })();
+
+    const missingNow = requirements?.currently_due || [];
+    const missingPast = requirements?.past_due || [];
+    const missingEventually = requirements?.eventually_due || [];
+    const missingTotal =
+      missingNow.length + missingPast.length + missingEventually.length;
 
     // ✅ Vérifier si l'onboarding est complet
-    const isOnboardingComplete =
-      accountInfo?.details_submitted || accountInfo?.onboarding_completed;
+    const isOnboardingComplete = hasAccount && !hasMissingRequirements;
 
     // 🔍 DEBUG: Voir la vraie valeur
     console.log("🔍 [renderOnboardingScreen] DEBUG:");
@@ -510,40 +590,22 @@ export default function StripeHub({
         >
           {/* Loading état */}
           {stripeConnection.loading && (
-            <View style={{ alignItems: "center", marginBottom: 30 }}>
-              <ActivityIndicator size="large" color={colors.primary} />
-              <Text
-                style={[
-                  styles.title,
-                  { color: colors.textSecondary, marginTop: 15 },
-                ]}
-              >
-                {t("stripe.hub.checkingConnection")}
-              </Text>
-            </View>
+            <MascotLoading text={t("stripe.hub.checkingConnection")} />
           )}
 
           {/* ✅ FIX: État erreur de connexion */}
           {!stripeConnection.loading && stripeConnection.error && (
             <>
               <View style={{ alignItems: "center", marginBottom: 40 }}>
-                <View
+                <Image
+                  source={mascotStripeImage}
                   style={{
-                    backgroundColor: colors.error + "20",
-                    width: 80,
-                    height: 80,
-                    borderRadius: 40,
+                    width: 100,
+                    height: 100,
                     marginBottom: 20,
-                    alignItems: "center",
-                    justifyContent: "center",
                   }}
-                >
-                  <Ionicons
-                    name="cloud-offline"
-                    size={40}
-                    color={colors.error}
-                  />
-                </View>
+                  resizeMode="contain"
+                />
 
                 <Text
                   style={[
@@ -604,23 +666,15 @@ export default function StripeHub({
             hasAccount && (
               <>
                 <View style={{ alignItems: "center", marginBottom: 30 }}>
-                  <View
+                  <Image
+                    source={mascotStripeImage}
                     style={{
-                      backgroundColor: colors.warning + "20",
-                      width: 80,
-                      height: 80,
-                      borderRadius: 40,
+                      width: 100,
+                      height: 100,
                       marginBottom: 20,
-                      alignItems: "center",
-                      justifyContent: "center",
                     }}
-                  >
-                    <Ionicons
-                      name="hourglass"
-                      size={40}
-                      color={colors.warning}
-                    />
-                  </View>
+                    resizeMode="contain"
+                  />
 
                   <Text
                     style={[
@@ -628,7 +682,7 @@ export default function StripeHub({
                       { textAlign: "center", marginBottom: 10 },
                     ]}
                   >
-                    Compte Stripe incomplet
+                    {t("stripe.hub.accountInactive")}
                   </Text>
 
                   <Text
@@ -639,8 +693,7 @@ export default function StripeHub({
                       fontSize: 14,
                     }}
                   >
-                    Votre compte existe mais nécessite des informations
-                    supplémentaires
+                    {t("stripe.hub.accountInactiveDesc")}
                   </Text>
                 </View>
 
@@ -663,7 +716,7 @@ export default function StripeHub({
                       fontWeight: "600",
                     }}
                   >
-                    INFORMATIONS ENREGISTRÉES
+                    {t("stripe.hub.savedInfo")}
                   </Text>
 
                   {(accountInfo?.business_name ||
@@ -735,7 +788,30 @@ export default function StripeHub({
                       <Text
                         style={{ color: colors.textSecondary, fontSize: 13 }}
                       >
-                        Paiements
+                        {t("stripe.hub.status")}
+                      </Text>
+                      <Text
+                        style={{
+                          color: colors.text,
+                          fontSize: 13,
+                          fontWeight: "600",
+                        }}
+                      >
+                        {statusLabel}
+                      </Text>
+                    </View>
+
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        marginBottom: 6,
+                      }}
+                    >
+                      <Text
+                        style={{ color: colors.textSecondary, fontSize: 13 }}
+                      >
+                        {t("stripe.hub.payments")}
                       </Text>
                       <View
                         style={{ flexDirection: "row", alignItems: "center" }}
@@ -769,11 +845,24 @@ export default function StripeHub({
                         >
                           {accountInfo?.charges_enabled ||
                           accountInfo?.chargesEnabled
-                            ? "Activés"
-                            : "Désactivés"}
+                            ? t("stripe.hub.paymentsEnabled")
+                            : t("stripe.hub.paymentsDisabled")}
                         </Text>
                       </View>
                     </View>
+
+                    <Text
+                      style={{
+                        marginTop: 2,
+                        color: colors.textSecondary,
+                        fontSize: 12,
+                      }}
+                    >
+                      {accountInfo?.charges_enabled ||
+                      accountInfo?.chargesEnabled
+                        ? t("stripe.hub.paymentsHintEnabled")
+                        : t("stripe.hub.paymentsHintDisabled")}
+                    </Text>
 
                     <View
                       style={{
@@ -784,7 +873,7 @@ export default function StripeHub({
                       <Text
                         style={{ color: colors.textSecondary, fontSize: 13 }}
                       >
-                        Virements
+                        {t("stripe.hub.payoutsLabel")}
                       </Text>
                       <View
                         style={{ flexDirection: "row", alignItems: "center" }}
@@ -818,15 +907,124 @@ export default function StripeHub({
                         >
                           {accountInfo?.payouts_enabled ||
                           accountInfo?.payoutsEnabled
-                            ? "Activés"
-                            : "Désactivés"}
+                            ? t("stripe.hub.payoutsEnabled")
+                            : t("stripe.hub.payoutsDisabled")}
                         </Text>
                       </View>
                     </View>
+
+                    {requirements?.disabled_reason && (
+                      <View
+                        style={{
+                          marginTop: 8,
+                          paddingTop: 8,
+                          borderTopWidth: 1,
+                          borderTopColor: colors.border,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: colors.textSecondary,
+                            fontSize: 12,
+                          }}
+                        >
+                          {t("stripe.hub.reason")}:{" "}
+                          {requirements.disabled_reason}
+                        </Text>
+                      </View>
+                    )}
                   </View>
                 </View>
 
-                {/* Bouton principal: Compléter le profil */}
+                {hasMissingRequirements && (
+                  <View
+                    style={{
+                      backgroundColor: colors.backgroundSecondary,
+                      borderRadius: 12,
+                      padding: 16,
+                      marginBottom: 20,
+                      borderWidth: 1,
+                      borderColor: colors.border,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        color: colors.textSecondary,
+                        marginBottom: 8,
+                        fontWeight: "600",
+                      }}
+                    >
+                      {t("stripe.hub.missingFields", { count: missingTotal })}
+                    </Text>
+
+                    <Text
+                      style={{
+                        color: colors.textSecondary,
+                        fontSize: 12,
+                        lineHeight: 18,
+                        marginBottom: 10,
+                      }}
+                    >
+                      {t("stripe.hub.missingFieldsDesc")}
+                    </Text>
+
+                    {(missingPast.length > 0 || missingNow.length > 0) && (
+                      <View>
+                        {(missingPast.length > 0 ? missingPast : missingNow)
+                          .slice(0, 3)
+                          .map((field, index) => (
+                            <View
+                              key={`missing_${index}`}
+                              style={{
+                                flexDirection: "row",
+                                alignItems: "center",
+                                marginTop: 4,
+                              }}
+                            >
+                              <Ionicons
+                                name={getRequirementIcon(field)}
+                                size={14}
+                                color={
+                                  missingPast.length > 0
+                                    ? colors.error
+                                    : colors.warning
+                                }
+                              />
+                              <Text
+                                style={{
+                                  marginLeft: 6,
+                                  fontSize: 12,
+                                  color:
+                                    missingPast.length > 0
+                                      ? colors.error
+                                      : colors.warning,
+                                }}
+                              >
+                                {getRequirementLabel(field, "fr")}
+                              </Text>
+                            </View>
+                          ))}
+
+                        {missingTotal > 3 && (
+                          <Text
+                            style={{
+                              marginTop: 8,
+                              fontSize: 11,
+                              color: colors.textSecondary,
+                            }}
+                          >
+                            {t("stripe.hub.otherFields", {
+                              count: missingTotal - 3,
+                            })}
+                          </Text>
+                        )}
+                      </View>
+                    )}
+                  </View>
+                )}
+
+                {/* Bouton principal: Rafraichir le statut */}
                 <TouchableOpacity
                   style={[
                     styles.actionButton,
@@ -837,14 +1035,18 @@ export default function StripeHub({
                       marginBottom: 12,
                     },
                   ]}
-                  onPress={handleCompleteProfile}
-                  disabled={isLoading}
+                  onPress={handleRefresh}
+                  disabled={hubBusy}
                 >
                   {isLoading ? (
                     <ActivityIndicator size="small" color="white" />
                   ) : (
                     <>
-                      <Ionicons name="pencil" size={24} color="white" />
+                      <Ionicons
+                        name="refresh-outline"
+                        size={24}
+                        color="white"
+                      />
                       <Text
                         style={[
                           styles.actionText,
@@ -856,10 +1058,44 @@ export default function StripeHub({
                           },
                         ]}
                       >
-                        Compléter mon profil
+                        {t("common.refresh")}
                       </Text>
                     </>
                   )}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.actionButton,
+                    {
+                      backgroundColor: colors.backgroundSecondary,
+                      paddingVertical: 12,
+                      borderRadius: 8,
+                      borderWidth: 1,
+                      borderColor: colors.border,
+                      marginBottom: 12,
+                    },
+                  ]}
+                  onPress={handleCompleteProfile}
+                  disabled={hubBusy}
+                >
+                  <Ionicons
+                    name="pencil"
+                    size={20}
+                    color={colors.textSecondary}
+                  />
+                  <Text
+                    style={[
+                      styles.actionText,
+                      {
+                        color: colors.textSecondary,
+                        fontSize: 14,
+                        marginLeft: 8,
+                      },
+                    ]}
+                  >
+                    {t("stripe.hub.completeProfile")}
+                  </Text>
                 </TouchableOpacity>
 
                 {/* Bouton secondaire: Supprimer le compte */}
@@ -875,6 +1111,7 @@ export default function StripeHub({
                     },
                   ]}
                   onPress={handleDeleteAccount}
+                  disabled={hubBusy}
                 >
                   <Ionicons
                     name="trash-outline"
@@ -891,7 +1128,7 @@ export default function StripeHub({
                       },
                     ]}
                   >
-                    Supprimer le compte
+                    {t("stripe.hub.deleteAccount")}
                   </Text>
                 </TouchableOpacity>
               </>
@@ -903,19 +1140,15 @@ export default function StripeHub({
             !hasAccount && (
               <>
                 <View style={{ alignItems: "center", marginBottom: 40 }}>
-                  <View
+                  <Image
+                    source={mascotStripeImage}
                     style={{
-                      backgroundColor: colors.warning + "20",
-                      width: 80,
-                      height: 80,
-                      borderRadius: 40,
+                      width: 100,
+                      height: 100,
                       marginBottom: 20,
-                      alignItems: "center",
-                      justifyContent: "center",
                     }}
-                  >
-                    <Ionicons name="warning" size={40} color={colors.warning} />
-                  </View>
+                    resizeMode="contain"
+                  />
 
                   <Text
                     style={[
@@ -951,6 +1184,7 @@ export default function StripeHub({
                       },
                     ]}
                     onPress={handleStripeConnect}
+                    disabled={hubBusy}
                   >
                     <Ionicons
                       name="add-circle-outline"
@@ -984,6 +1218,7 @@ export default function StripeHub({
                       },
                     ]}
                     onPress={handleTestConnection}
+                    disabled={hubBusy}
                   >
                     <Ionicons
                       name="refresh-outline"
@@ -1025,7 +1260,7 @@ export default function StripeHub({
                       },
                     ]}
                   >
-                    Statut: {stripeConnection.status} •{" "}
+                    {t("stripe.hub.status")}: {stripeConnection.status} •{" "}
                     {stripeConnection.details}
                   </Text>
                 </View>
@@ -1104,27 +1339,49 @@ export default function StripeHub({
           contentContainerStyle={styles.content}
           refreshControl={
             <RefreshControl
-              refreshing={isLoading}
+              refreshing={hubBusy}
               onRefresh={handleRefresh}
               colors={[colors.primary]}
             />
           }
         >
           {/* Header avec statut du compte */}
-          <View style={styles.header}>
-            <Text style={styles.title}>{t("stripe.hub.title")}</Text>
+          <View
+            style={[
+              styles.header,
+              {
+                flexDirection: "column",
+                alignItems: "center",
+                marginBottom: 8,
+              },
+            ]}
+          >
+            <Image
+              source={mascotStripeImage}
+              style={{
+                width: 120,
+                height: 120,
+                resizeMode: "contain",
+              }}
+            />
             <View
-              style={[
-                styles.statusBadge,
-                { backgroundColor: statusBadge.bgColor },
-              ]}
+              style={{
+                marginTop: 8,
+                paddingVertical: 6,
+                paddingHorizontal: 12,
+                borderRadius: 8,
+                borderWidth: 1.5,
+                borderColor: statusBadge.color,
+              }}
             >
-              <Ionicons
-                name={statusBadge.icon}
-                size={14}
-                color={statusBadge.color}
-              />
-              <Text style={[styles.statusText, { color: statusBadge.color }]}>
+              <Text
+                style={{
+                  color: statusBadge.color,
+                  fontSize: 13,
+                  fontWeight: "600",
+                  textAlign: "center",
+                }}
+              >
                 {statusBadge.text}
               </Text>
             </View>
@@ -1133,8 +1390,13 @@ export default function StripeHub({
           {/* Informations du compte Stripe */}
           <View style={styles.card}>
             <View style={styles.cardHeader}>
-              <Text style={styles.cardTitle}>Account Information</Text>
-              <TouchableOpacity onPress={handleStripeConnect}>
+              <Text style={styles.cardTitle}>
+                {t("stripe.hub.accountInfo")}
+              </Text>
+              <TouchableOpacity
+                onPress={handleStripeConnect}
+                disabled={hubBusy}
+              >
                 <Ionicons
                   name="settings-outline"
                   size={20}
@@ -1162,10 +1424,10 @@ export default function StripeHub({
                 color={colors.textSecondary}
               />
               <Text style={styles.accountText}>
-                Account ID:{" "}
+                {t("stripe.hub.accountId")}:{" "}
                 {stripeAccount.account?.stripe_account_id
                   ? `${stripeAccount.account.stripe_account_id.slice(0, 20)}...`
-                  : "Not connected"}
+                  : t("stripe.hub.notConnected")}
               </Text>
             </View>
 
@@ -1359,7 +1621,9 @@ export default function StripeHub({
                   color={colors.textSecondary}
                   style={styles.quickActionIcon}
                 />
-                <Text style={styles.quickActionText}>Settings</Text>
+                <Text style={styles.quickActionText}>
+                  {t("stripe.hub.settingsAction")}
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -1372,7 +1636,9 @@ export default function StripeHub({
                   color={colors.textSecondary}
                   style={styles.quickActionIcon}
                 />
-                <Text style={styles.quickActionText}>Payouts</Text>
+                <Text style={styles.quickActionText}>
+                  {t("stripe.hub.payoutsLabel")}
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -1385,7 +1651,9 @@ export default function StripeHub({
                   color={colors.textSecondary}
                   style={styles.quickActionIcon}
                 />
-                <Text style={styles.quickActionText}>Payment Link</Text>
+                <Text style={styles.quickActionText}>
+                  {t("stripe.hub.paymentLinkAction")}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -1393,7 +1661,9 @@ export default function StripeHub({
           {/* Statistiques */}
           <View style={styles.card}>
             <View style={styles.cardHeader}>
-              <Text style={styles.cardTitle}>Revenue Overview</Text>
+              <Text style={styles.cardTitle}>
+                {t("stripe.hub.revenueOverview")}
+              </Text>
               <Ionicons name="trending-up" size={20} color={colors.success} />
             </View>
 
@@ -1402,28 +1672,36 @@ export default function StripeHub({
                 <Text style={styles.statValue}>
                   {formatCurrency(stripeStats.totalRevenue)}
                 </Text>
-                <Text style={styles.statLabel}>Total Revenue</Text>
+                <Text style={styles.statLabel}>
+                  {t("stripe.hub.totalRevenue")}
+                </Text>
               </View>
 
               <View style={styles.statItem}>
                 <Text style={styles.statValue}>
                   {formatCurrency(stripeStats.monthlyRevenue)}
                 </Text>
-                <Text style={styles.statLabel}>This Month</Text>
+                <Text style={styles.statLabel}>
+                  {t("stripe.hub.thisMonth")}
+                </Text>
               </View>
 
               <View style={styles.statItem}>
                 <Text style={styles.statValue}>
                   {formatCurrency(stripeStats.pendingPayouts)}
                 </Text>
-                <Text style={styles.statLabel}>Pending Payouts</Text>
+                <Text style={styles.statLabel}>
+                  {t("stripe.hub.pendingPayouts")}
+                </Text>
               </View>
 
               <View style={styles.statItem}>
                 <Text style={styles.statValue}>
                   {stripeStats.successfulPayments}
                 </Text>
-                <Text style={styles.statLabel}>Successful Payments</Text>
+                <Text style={styles.statLabel}>
+                  {t("stripe.hub.successfulPayments")}
+                </Text>
               </View>
             </View>
           </View>
@@ -1436,7 +1714,7 @@ export default function StripeHub({
                 { marginBottom: DESIGN_TOKENS.spacing.md },
               ]}
             >
-              Quick Actions
+              {t("stripe.hub.quickActions")}
             </Text>
 
             <TouchableOpacity
@@ -1449,7 +1727,7 @@ export default function StripeHub({
                 color={colors.backgroundTertiary}
               />
               <Text style={[styles.actionText, styles.actionTextPrimary]}>
-                Create Payment Link
+                {t("stripe.hub.createPaymentLink")}
               </Text>
             </TouchableOpacity>
 
@@ -1462,7 +1740,9 @@ export default function StripeHub({
                 size={20}
                 color={colors.textSecondary}
               />
-              <Text style={styles.actionText}>View All Payments</Text>
+              <Text style={styles.actionText}>
+                {t("stripe.hub.viewAllPayments")}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -1474,19 +1754,23 @@ export default function StripeHub({
                 size={20}
                 color={colors.textSecondary}
               />
-              <Text style={styles.actionText}>Manage Payouts</Text>
+              <Text style={styles.actionText}>
+                {t("stripe.hub.managePayouts")}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.actionButton}
-              onPress={handleStripeConnect}
+              onPress={() => navigation?.navigate?.("StripeSettings")}
             >
               <Ionicons
                 name="settings-outline"
                 size={20}
                 color={colors.textSecondary}
               />
-              <Text style={styles.actionText}>Account Settings</Text>
+              <Text style={styles.actionText}>
+                {t("stripe.hub.accountSettings")}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -1498,7 +1782,7 @@ export default function StripeHub({
             >
               <Ionicons name="bug-outline" size={20} color={colors.primary} />
               <Text style={[styles.actionText, { color: colors.primary }]}>
-                🔍 Test Connexion
+                🔍 {t("stripe.hub.testConnection")}
               </Text>
             </TouchableOpacity>
           </View>
@@ -1511,7 +1795,7 @@ export default function StripeHub({
             }}
           >
             <Text style={[styles.accountText, { textAlign: "center" }]}>
-              Powered by Stripe • Secure payments worldwide
+              {t("stripe.hub.poweredByStripe")}
             </Text>
           </View>
         </ScrollView>
@@ -1520,23 +1804,25 @@ export default function StripeHub({
   }; // ✅ Close renderConnectedScreen function
 
   // Logique d'affichage conditionnelle selon le statut de connexion Stripe
-  if (stripeConnection.loading) {
-    return renderOnboardingScreen(); // Afficher le loading
-  }
-
   // ✅ Vérifier l'existence du compte (snake_case et camelCase)
   const accountExists = !!(
     stripeAccount.account?.stripe_account_id || stripeAccount.account?.accountId
   );
 
-  // ✅ Vérifier si l'onboarding est complet (pas besoin que charges/payouts soient activés)
-  const isOnboardingComplete =
-    stripeAccount.account?.details_submitted ||
-    stripeAccount.account?.onboarding_completed;
+  // Pendant le chargement du hook de connexion, afficher un écran de chargement
+  // qui ne peut pas retourner null (sinon écran vide / “chargement infini”).
+  if (stripeConnection.loading && !accountExists) {
+    return <MascotLoading text={t("stripe.hub.checkingConnection")} />;
+  }
+
+  const isAccountActive = !!(
+    stripeAccount.account?.charges_enabled ||
+    stripeAccount.account?.chargesEnabled
+  );
 
   console.log("🔍 [StripeHub] Display logic:", {
     accountExists,
-    isOnboardingComplete,
+    isAccountActive,
     details_submitted: stripeAccount.account?.details_submitted,
     charges_enabled:
       stripeAccount.account?.charges_enabled ||
@@ -1546,8 +1832,8 @@ export default function StripeHub({
       stripeAccount.account?.payoutsEnabled,
   });
 
-  // Cas 1: Compte existe ET onboarding complet → Dashboard complet
-  if (accountExists && isOnboardingComplete) {
+  // Cas 1: Compte existe ET paiements activés → Dashboard complet
+  if (accountExists && isAccountActive) {
     console.log("✅ [StripeHub] Affichage du dashboard complet");
     return (
       <>

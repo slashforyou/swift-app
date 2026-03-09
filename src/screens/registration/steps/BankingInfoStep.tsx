@@ -103,7 +103,7 @@ const BankingInfoStep: React.FC<BankingInfoStepProps> = ({
         </Text>
         <TextInput
           style={styles.inputBase}
-          placeholder="XXX-XXX"
+          placeholder={t("registration.fields.placeholders.bsb")}
           placeholderTextColor={colors.textSecondary}
           value={bsb}
           onChangeText={setBsb}
@@ -120,7 +120,7 @@ const BankingInfoStep: React.FC<BankingInfoStepProps> = ({
         </Text>
         <TextInput
           style={styles.inputBase}
-          placeholder="12345678"
+          placeholder={t("registration.fields.placeholders.accountNumber")}
           placeholderTextColor={colors.textSecondary}
           value={accountNumber}
           onChangeText={setAccountNumber}

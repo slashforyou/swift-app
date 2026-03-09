@@ -2,10 +2,9 @@
  * RolesManagementScreen - Gestion des rôles et permissions
  * Interface pour créer, modifier et supprimer les rôles de l'entreprise
  */
-import { Ionicons } from '@expo/vector-icons';
-import React, { useCallback, useState } from 'react';
+import { Ionicons } from "@expo/vector-icons";
+import React, { useCallback, useState } from "react";
 import {
-    ActivityIndicator,
     Alert,
     FlatList,
     Modal,
@@ -14,26 +13,27 @@ import {
     TextInput,
     TouchableOpacity,
     View,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // Components
-import { AdminOnly } from '../../components/PermissionGate';
-import { Screen } from '../../components/primitives/Screen';
-import { HStack, VStack } from '../../components/primitives/Stack';
-import { Card } from '../../components/ui/Card';
+import { AdminOnly } from "../../components/PermissionGate";
+import { Screen } from "../../components/primitives/Screen";
+import { HStack, VStack } from "../../components/primitives/Stack";
+import { Card } from "../../components/ui/Card";
+import MascotLoading from "../../components/ui/MascotLoading";
 
 // Hooks & Utils
-import { DESIGN_TOKENS } from '../../constants/Styles';
-import { useTheme } from '../../context/ThemeProvider';
-import { useRoles } from '../../hooks/useRoles';
-import { useTranslation } from '../../localization';
+import { DESIGN_TOKENS } from "../../constants/Styles";
+import { useTheme } from "../../context/ThemeProvider";
+import { useRoles } from "../../hooks/useRoles";
+import { useTranslation } from "../../localization";
 import {
     AVAILABLE_PERMISSIONS,
     PERMISSION_CATEGORIES,
     Role,
     getPermissionDisplayName,
-} from '../../services/rolesService';
+} from "../../services/rolesService";
 
 // ============================================================================
 // Types
@@ -65,37 +65,37 @@ interface PermissionCategoryProps {
 // ============================================================================
 
 const ROLE_ICONS: Record<string, string> = {
-  owner: 'shield-checkmark',
-  admin: 'key',
-  manager: 'briefcase',
-  dispatcher: 'git-branch',
-  crew_leader: 'people',
-  mover: 'body',
-  viewer: 'eye',
-  custom: 'create',
+  owner: "shield-checkmark",
+  admin: "key",
+  manager: "briefcase",
+  dispatcher: "git-branch",
+  crew_leader: "people",
+  mover: "body",
+  viewer: "eye",
+  custom: "create",
 };
 
 const ROLE_COLORS: Record<string, string> = {
-  owner: '#8B5CF6',
-  admin: '#EF4444',
-  manager: '#3B82F6',
-  dispatcher: '#10B981',
-  crew_leader: '#F59E0B',
-  mover: '#6366F1',
-  viewer: '#6B7280',
-  custom: '#EC4899',
+  owner: "#8B5CF6",
+  admin: "#EF4444",
+  manager: "#3B82F6",
+  dispatcher: "#10B981",
+  crew_leader: "#F59E0B",
+  mover: "#6366F1",
+  viewer: "#6B7280",
+  custom: "#EC4899",
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
-  jobs: '📋 Jobs',
-  staff: '👥 Personnel',
-  vehicles: '🚛 Véhicules',
-  clients: '🏢 Clients',
-  teams: '👨‍👩‍👧‍👦 Équipes',
-  finances: '💰 Finances',
-  reports: '📊 Rapports',
-  settings: '⚙️ Paramètres',
-  roles: '🔐 Rôles',
+  jobs: "📋 Jobs",
+  staff: "👥 Personnel",
+  vehicles: "🚛 Véhicules",
+  clients: "🏢 Clients",
+  teams: "👨‍👩‍👧‍👦 Équipes",
+  finances: "💰 Finances",
+  reports: "📊 Rapports",
+  settings: "⚙️ Paramètres",
+  roles: "🔐 Rôles",
 };
 
 // ============================================================================
@@ -130,8 +130,8 @@ const RoleCard: React.FC<RoleCardProps> = ({
                 height: 48,
                 borderRadius: 24,
                 backgroundColor: `${roleColor}20`,
-                justifyContent: 'center',
-                alignItems: 'center',
+                justifyContent: "center",
+                alignItems: "center",
               }}
             >
               <Ionicons name={roleIcon as any} size={24} color={roleColor} />
@@ -141,7 +141,7 @@ const RoleCard: React.FC<RoleCardProps> = ({
                 <Text
                   style={{
                     fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
-                    fontWeight: '600',
+                    fontWeight: "600",
                     color: colors.text,
                   }}
                 >
@@ -150,7 +150,7 @@ const RoleCard: React.FC<RoleCardProps> = ({
                 {role.is_system && (
                   <View
                     style={{
-                      backgroundColor: colors.primary + '20',
+                      backgroundColor: colors.primary + "20",
                       paddingHorizontal: 8,
                       paddingVertical: 2,
                       borderRadius: 4,
@@ -159,7 +159,7 @@ const RoleCard: React.FC<RoleCardProps> = ({
                     <Text
                       style={{
                         fontSize: 10,
-                        fontWeight: '600',
+                        fontWeight: "600",
                         color: colors.primary,
                       }}
                     >
@@ -175,7 +175,7 @@ const RoleCard: React.FC<RoleCardProps> = ({
                 }}
                 numberOfLines={2}
               >
-                {role.description || 'Aucune description'}
+                {role.description || "Aucune description"}
               </Text>
             </VStack>
           </HStack>
@@ -187,7 +187,7 @@ const RoleCard: React.FC<RoleCardProps> = ({
             <Text
               style={{
                 fontSize: 20,
-                fontWeight: '700',
+                fontWeight: "700",
                 color: roleColor,
               }}
             >
@@ -213,7 +213,7 @@ const RoleCard: React.FC<RoleCardProps> = ({
             <Text
               style={{
                 fontSize: 20,
-                fontWeight: '700',
+                fontWeight: "700",
                 color: colors.text,
               }}
             >
@@ -239,11 +239,11 @@ const RoleCard: React.FC<RoleCardProps> = ({
             <Text
               style={{
                 fontSize: 12,
-                fontWeight: '600',
+                fontWeight: "600",
                 color: colors.textSecondary,
               }}
             >
-              {role.scope || 'all'}
+              {role.scope || "all"}
             </Text>
             <Text
               style={{
@@ -261,8 +261,8 @@ const RoleCard: React.FC<RoleCardProps> = ({
           <TouchableOpacity
             onPress={() => onViewPermissions(role)}
             style={{
-              flexDirection: 'row',
-              alignItems: 'center',
+              flexDirection: "row",
+              alignItems: "center",
               gap: 4,
               paddingHorizontal: 12,
               paddingVertical: 8,
@@ -280,12 +280,12 @@ const RoleCard: React.FC<RoleCardProps> = ({
             <TouchableOpacity
               onPress={() => onEdit(role)}
               style={{
-                flexDirection: 'row',
-                alignItems: 'center',
+                flexDirection: "row",
+                alignItems: "center",
                 gap: 4,
                 paddingHorizontal: 12,
                 paddingVertical: 8,
-                backgroundColor: colors.primary + '15',
+                backgroundColor: colors.primary + "15",
                 borderRadius: DESIGN_TOKENS.radius.sm,
               }}
             >
@@ -300,12 +300,12 @@ const RoleCard: React.FC<RoleCardProps> = ({
             <TouchableOpacity
               onPress={() => onDelete(role)}
               style={{
-                flexDirection: 'row',
-                alignItems: 'center',
+                flexDirection: "row",
+                alignItems: "center",
                 gap: 4,
                 paddingHorizontal: 12,
                 paddingVertical: 8,
-                backgroundColor: colors.error + '15',
+                backgroundColor: colors.error + "15",
                 borderRadius: DESIGN_TOKENS.radius.sm,
               }}
             >
@@ -329,9 +329,7 @@ const PermissionCategory: React.FC<PermissionCategoryProps> = ({
   colors,
   disabled = false,
 }) => {
-  const allSelected = permissions.every((p) =>
-    selectedPermissions.includes(p)
-  );
+  const allSelected = permissions.every((p) => selectedPermissions.includes(p));
   const someSelected =
     !allSelected && permissions.some((p) => selectedPermissions.includes(p));
 
@@ -363,7 +361,7 @@ const PermissionCategory: React.FC<PermissionCategoryProps> = ({
           <Text
             style={{
               fontSize: 15,
-              fontWeight: '600',
+              fontWeight: "600",
               color: colors.text,
             }}
           >
@@ -372,10 +370,10 @@ const PermissionCategory: React.FC<PermissionCategoryProps> = ({
           <Ionicons
             name={
               allSelected
-                ? 'checkbox'
+                ? "checkbox"
                 : someSelected
-                ? 'remove-circle'
-                : 'square-outline'
+                  ? "remove-circle"
+                  : "square-outline"
             }
             size={22}
             color={allSelected ? colors.success : colors.textSecondary}
@@ -392,14 +390,14 @@ const PermissionCategory: React.FC<PermissionCategoryProps> = ({
               onPress={() => onToggle(permission)}
               disabled={disabled}
               style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
                 paddingVertical: 8,
                 paddingHorizontal: 8,
                 backgroundColor: isSelected
-                  ? colors.primary + '10'
-                  : 'transparent',
+                  ? colors.primary + "10"
+                  : "transparent",
                 borderRadius: DESIGN_TOKENS.radius.sm,
               }}
             >
@@ -412,7 +410,7 @@ const PermissionCategory: React.FC<PermissionCategoryProps> = ({
                 {getPermissionDisplayName(permission)}
               </Text>
               <Ionicons
-                name={isSelected ? 'checkmark-circle' : 'ellipse-outline'}
+                name={isSelected ? "checkmark-circle" : "ellipse-outline"}
                 size={20}
                 color={isSelected ? colors.primary : colors.border}
               />
@@ -455,11 +453,11 @@ export default function RolesManagementScreen({
 
   // Form state
   const [formData, setFormData] = useState({
-    name: '',
-    display_name: '',
-    description: '',
+    name: "",
+    display_name: "",
+    description: "",
     permissions: [] as string[],
-    scope: 'all' as 'all' | 'team' | 'assigned',
+    scope: "all" as "all" | "team" | "assigned",
   });
   const [isSaving, setIsSaving] = useState(false);
 
@@ -471,11 +469,11 @@ export default function RolesManagementScreen({
     setSelectedRole(null);
     setIsCreating(true);
     setFormData({
-      name: '',
-      display_name: '',
-      description: '',
+      name: "",
+      display_name: "",
+      description: "",
       permissions: [],
-      scope: 'all',
+      scope: "all",
     });
     setIsEditModalVisible(true);
   }, []);
@@ -486,9 +484,9 @@ export default function RolesManagementScreen({
     setFormData({
       name: role.name,
       display_name: role.display_name || role.name,
-      description: role.description || '',
+      description: role.description || "",
       permissions: [...(role.permissions || [])],
-      scope: role.scope || 'all',
+      scope: role.scope || "all",
     });
     setIsEditModalVisible(true);
   }, []);
@@ -501,40 +499,46 @@ export default function RolesManagementScreen({
   const handleDelete = useCallback(
     (role: Role) => {
       Alert.alert(
-        t('roles.confirmDelete.title'),
-        t('roles.confirmDelete.message', { name: role.display_name || role.name, count: role.staff_count || 0 }),
+        t("roles.confirmDelete.title"),
+        t("roles.confirmDelete.message", {
+          name: role.display_name || role.name,
+          count: role.staff_count || 0,
+        }),
         [
-          { text: t('common.cancel'), style: 'cancel' },
+          { text: t("common.cancel"), style: "cancel" },
           {
-            text: t('common.delete'),
-            style: 'destructive',
+            text: t("common.delete"),
+            style: "destructive",
             onPress: async () => {
               try {
                 await deleteRole(role.id);
-                Alert.alert(t('common.success'), t('roles.alerts.deleteSuccess'));
+                Alert.alert(
+                  t("common.success"),
+                  t("roles.alerts.deleteSuccess"),
+                );
               } catch {
-                Alert.alert(t('common.error'), t('roles.alerts.deleteError'));
+                Alert.alert(t("common.error"), t("roles.alerts.deleteError"));
               }
             },
           },
-        ]
+        ],
       );
     },
-    [deleteRole, t]
+    [deleteRole, t],
   );
 
   const handleSave = useCallback(async () => {
     // Validation
     if (!formData.display_name.trim()) {
-      Alert.alert(t('common.error'), t('roles.validation.nameRequired'));
+      Alert.alert(t("common.error"), t("roles.validation.nameRequired"));
       return;
     }
     if (isCreating && !formData.name.trim()) {
-      Alert.alert(t('common.error'), t('roles.validation.slugRequired'));
+      Alert.alert(t("common.error"), t("roles.validation.slugRequired"));
       return;
     }
     if (formData.permissions.length === 0) {
-      Alert.alert(t('common.error'), t('roles.validation.permissionsRequired'));
+      Alert.alert(t("common.error"), t("roles.validation.permissionsRequired"));
       return;
     }
 
@@ -542,13 +546,13 @@ export default function RolesManagementScreen({
     try {
       if (isCreating) {
         await createRole({
-          name: formData.name.toLowerCase().replace(/\s+/g, '_'),
+          name: formData.name.toLowerCase().replace(/\s+/g, "_"),
           display_name: formData.display_name,
           description: formData.description,
           permissions: formData.permissions,
           scope: formData.scope,
         });
-        Alert.alert(t('common.success'), t('roles.alerts.createSuccess'));
+        Alert.alert(t("common.success"), t("roles.alerts.createSuccess"));
       } else if (selectedRole) {
         await updateRole(selectedRole.id, {
           display_name: formData.display_name,
@@ -556,11 +560,11 @@ export default function RolesManagementScreen({
           permissions: formData.permissions,
           scope: formData.scope,
         });
-        Alert.alert(t('common.success'), t('roles.alerts.updateSuccess'));
+        Alert.alert(t("common.success"), t("roles.alerts.updateSuccess"));
       }
       setIsEditModalVisible(false);
     } catch {
-      Alert.alert(t('common.error'), t('roles.alerts.genericError'));
+      Alert.alert(t("common.error"), t("roles.alerts.genericError"));
     } finally {
       setIsSaving(false);
     }
@@ -589,7 +593,7 @@ export default function RolesManagementScreen({
           style={{ flex: 1, padding: DESIGN_TOKENS.spacing.xl }}
         >
           <Ionicons name="alert-circle" size={48} color={colors.error} />
-          <Text style={{ color: colors.error, textAlign: 'center' }}>
+          <Text style={{ color: colors.error, textAlign: "center" }}>
             {error}
           </Text>
           <TouchableOpacity
@@ -601,7 +605,7 @@ export default function RolesManagementScreen({
               borderRadius: DESIGN_TOKENS.radius.md,
             }}
           >
-            <Text style={{ color: '#fff', fontWeight: '600' }}>Réessayer</Text>
+            <Text style={{ color: "#fff", fontWeight: "600" }}>Réessayer</Text>
           </TouchableOpacity>
         </VStack>
       </Screen>
@@ -631,22 +635,18 @@ export default function RolesManagementScreen({
                   height: 40,
                   borderRadius: 20,
                   backgroundColor: colors.backgroundSecondary,
-                  justifyContent: 'center',
-                  alignItems: 'center',
+                  justifyContent: "center",
+                  alignItems: "center",
                 }}
               >
-                <Ionicons
-                  name="arrow-back"
-                  size={24}
-                  color={colors.text}
-                />
+                <Ionicons name="arrow-back" size={24} color={colors.text} />
               </TouchableOpacity>
             )}
             <VStack>
               <Text
                 style={{
                   fontSize: 24,
-                  fontWeight: '700',
+                  fontWeight: "700",
                   color: colors.text,
                 }}
               >
@@ -667,8 +667,8 @@ export default function RolesManagementScreen({
             <TouchableOpacity
               onPress={handleCreateNew}
               style={{
-                flexDirection: 'row',
-                alignItems: 'center',
+                flexDirection: "row",
+                alignItems: "center",
                 gap: 6,
                 backgroundColor: colors.primary,
                 paddingHorizontal: 16,
@@ -677,9 +677,7 @@ export default function RolesManagementScreen({
               }}
             >
               <Ionicons name="add" size={20} color="#fff" />
-              <Text style={{ color: '#fff', fontWeight: '600' }}>
-                Nouveau
-              </Text>
+              <Text style={{ color: "#fff", fontWeight: "600" }}>Nouveau</Text>
             </TouchableOpacity>
           </AdminOnly>
         </HStack>
@@ -687,12 +685,7 @@ export default function RolesManagementScreen({
 
       {/* Content */}
       {isLoading ? (
-        <VStack align="center" justify="center" style={{ flex: 1 }}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={{ color: colors.textSecondary, marginTop: 12 }}>
-            Chargement des rôles...
-          </Text>
-        </VStack>
+        <MascotLoading text={t("roles.loading")} />
       ) : (
         <FlatList
           data={roles}
@@ -719,7 +712,7 @@ export default function RolesManagementScreen({
               <Text
                 style={{
                   fontSize: 18,
-                  fontWeight: '600',
+                  fontWeight: "600",
                   color: colors.text,
                 }}
               >
@@ -728,7 +721,7 @@ export default function RolesManagementScreen({
               <Text
                 style={{
                   color: colors.textSecondary,
-                  textAlign: 'center',
+                  textAlign: "center",
                 }}
               >
                 Créez votre premier rôle personnalisé
@@ -764,18 +757,16 @@ export default function RolesManagementScreen({
             }}
           >
             <TouchableOpacity onPress={() => setIsEditModalVisible(false)}>
-              <Text style={{ color: colors.error, fontSize: 16 }}>
-                Annuler
-              </Text>
+              <Text style={{ color: colors.error, fontSize: 16 }}>Annuler</Text>
             </TouchableOpacity>
             <Text
               style={{
                 fontSize: 17,
-                fontWeight: '600',
+                fontWeight: "600",
                 color: colors.text,
               }}
             >
-              {isCreating ? 'Nouveau rôle' : 'Modifier le rôle'}
+              {isCreating ? "Nouveau rôle" : "Modifier le rôle"}
             </Text>
             <TouchableOpacity onPress={handleSave} disabled={isSaving}>
               {isSaving ? (
@@ -785,7 +776,7 @@ export default function RolesManagementScreen({
                   style={{
                     color: colors.primary,
                     fontSize: 16,
-                    fontWeight: '600',
+                    fontWeight: "600",
                   }}
                 >
                   Enregistrer
@@ -803,22 +794,25 @@ export default function RolesManagementScreen({
           >
             {/* Name field (only for new roles) */}
             {isCreating && (
-              <VStack gap="xs" style={{ marginBottom: DESIGN_TOKENS.spacing.md }}>
+              <VStack
+                gap="xs"
+                style={{ marginBottom: DESIGN_TOKENS.spacing.md }}
+              >
                 <Text
                   style={{
                     fontSize: 14,
-                    fontWeight: '600',
+                    fontWeight: "600",
                     color: colors.text,
                   }}
                 >
-                  {t('roles.form.slugLabel')}
+                  {t("roles.form.slugLabel")}
                 </Text>
                 <TextInput
                   value={formData.name}
                   onChangeText={(text) =>
                     setFormData((prev) => ({ ...prev, name: text }))
                   }
-                  placeholder={t('roles.form.slugPlaceholder')}
+                  placeholder={t("roles.form.slugPlaceholder")}
                   placeholderTextColor={colors.textSecondary}
                   autoCapitalize="none"
                   style={{
@@ -837,7 +831,7 @@ export default function RolesManagementScreen({
                     color: colors.textSecondary,
                   }}
                 >
-                  {t('roles.form.slugHint')}
+                  {t("roles.form.slugHint")}
                 </Text>
               </VStack>
             )}
@@ -847,18 +841,18 @@ export default function RolesManagementScreen({
               <Text
                 style={{
                   fontSize: 14,
-                  fontWeight: '600',
+                  fontWeight: "600",
                   color: colors.text,
                 }}
               >
-                {t('roles.form.displayNameLabel')}
+                {t("roles.form.displayNameLabel")}
               </Text>
               <TextInput
                 value={formData.display_name}
                 onChangeText={(text) =>
                   setFormData((prev) => ({ ...prev, display_name: text }))
                 }
-                placeholder={t('roles.form.displayNamePlaceholder')}
+                placeholder={t("roles.form.displayNamePlaceholder")}
                 placeholderTextColor={colors.textSecondary}
                 style={{
                   backgroundColor: colors.backgroundSecondary,
@@ -877,18 +871,18 @@ export default function RolesManagementScreen({
               <Text
                 style={{
                   fontSize: 14,
-                  fontWeight: '600',
+                  fontWeight: "600",
                   color: colors.text,
                 }}
               >
-                {t('roles.form.descriptionLabel')}
+                {t("roles.form.descriptionLabel")}
               </Text>
               <TextInput
                 value={formData.description}
                 onChangeText={(text) =>
                   setFormData((prev) => ({ ...prev, description: text }))
                 }
-                placeholder={t('roles.form.descriptionPlaceholder')}
+                placeholder={t("roles.form.descriptionPlaceholder")}
                 placeholderTextColor={colors.textSecondary}
                 multiline
                 numberOfLines={3}
@@ -901,7 +895,7 @@ export default function RolesManagementScreen({
                   fontSize: 16,
                   color: colors.text,
                   minHeight: 80,
-                  textAlignVertical: 'top',
+                  textAlignVertical: "top",
                 }}
               />
             </VStack>
@@ -911,19 +905,17 @@ export default function RolesManagementScreen({
               <Text
                 style={{
                   fontSize: 14,
-                  fontWeight: '600',
+                  fontWeight: "600",
                   color: colors.text,
                 }}
               >
-                {t('roles.form.scopeLabel')}
+                {t("roles.form.scopeLabel")}
               </Text>
               <HStack gap="sm">
-                {(['all', 'team', 'assigned'] as const).map((scope) => (
+                {(["all", "team", "assigned"] as const).map((scope) => (
                   <TouchableOpacity
                     key={scope}
-                    onPress={() =>
-                      setFormData((prev) => ({ ...prev, scope }))
-                    }
+                    onPress={() => setFormData((prev) => ({ ...prev, scope }))}
                     style={{
                       flex: 1,
                       paddingVertical: 12,
@@ -932,7 +924,7 @@ export default function RolesManagementScreen({
                           ? colors.primary
                           : colors.backgroundSecondary,
                       borderRadius: DESIGN_TOKENS.radius.sm,
-                      alignItems: 'center',
+                      alignItems: "center",
                       borderWidth: 1,
                       borderColor:
                         formData.scope === scope
@@ -944,17 +936,17 @@ export default function RolesManagementScreen({
                       style={{
                         color:
                           formData.scope === scope
-                            ? '#fff'
+                            ? "#fff"
                             : colors.textSecondary,
-                        fontWeight: '600',
+                        fontWeight: "600",
                         fontSize: 13,
                       }}
                     >
-                      {scope === 'all'
-                        ? 'Tout'
-                        : scope === 'team'
-                        ? 'Équipe'
-                        : 'Assigné'}
+                      {scope === "all"
+                        ? "Tout"
+                        : scope === "team"
+                          ? "Équipe"
+                          : "Assigné"}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -965,11 +957,11 @@ export default function RolesManagementScreen({
                   color: colors.textSecondary,
                 }}
               >
-                {formData.scope === 'all'
-                  ? 'Accès à toutes les ressources de l\'entreprise'
-                  : formData.scope === 'team'
-                  ? 'Accès limité aux ressources de son équipe'
-                  : 'Accès limité aux ressources assignées directement'}
+                {formData.scope === "all"
+                  ? "Accès à toutes les ressources de l'entreprise"
+                  : formData.scope === "team"
+                    ? "Accès limité aux ressources de son équipe"
+                    : "Accès limité aux ressources assignées directement"}
               </Text>
             </VStack>
 
@@ -979,7 +971,7 @@ export default function RolesManagementScreen({
                 <Text
                   style={{
                     fontSize: 16,
-                    fontWeight: '700',
+                    fontWeight: "700",
                     color: colors.text,
                   }}
                 >
@@ -989,7 +981,7 @@ export default function RolesManagementScreen({
                   style={{
                     fontSize: 14,
                     color: colors.primary,
-                    fontWeight: '600',
+                    fontWeight: "600",
                   }}
                 >
                   {formData.permissions.length} / {AVAILABLE_PERMISSIONS.length}
@@ -1005,9 +997,9 @@ export default function RolesManagementScreen({
                     selectedPermissions={formData.permissions}
                     onToggle={togglePermission}
                     colors={colors}
-                    disabled={selectedRole?.name === 'owner'}
+                    disabled={selectedRole?.name === "owner"}
                   />
-                )
+                ),
               )}
             </VStack>
           </ScrollView>
@@ -1043,7 +1035,7 @@ export default function RolesManagementScreen({
             <Text
               style={{
                 fontSize: 17,
-                fontWeight: '600',
+                fontWeight: "600",
                 color: colors.text,
               }}
             >
@@ -1062,13 +1054,13 @@ export default function RolesManagementScreen({
               padding: DESIGN_TOKENS.spacing.lg,
             }}
           >
-            {selectedRole?.permissions?.includes('*') ? (
+            {selectedRole?.permissions?.includes("*") ? (
               <VStack
                 align="center"
                 gap="md"
                 style={{
                   padding: DESIGN_TOKENS.spacing.xl,
-                  backgroundColor: colors.primary + '10',
+                  backgroundColor: colors.primary + "10",
                   borderRadius: DESIGN_TOKENS.radius.lg,
                 }}
               >
@@ -1080,9 +1072,9 @@ export default function RolesManagementScreen({
                 <Text
                   style={{
                     fontSize: 18,
-                    fontWeight: '600',
+                    fontWeight: "600",
                     color: colors.text,
-                    textAlign: 'center',
+                    textAlign: "center",
                   }}
                 >
                   Accès complet
@@ -1090,7 +1082,7 @@ export default function RolesManagementScreen({
                 <Text
                   style={{
                     color: colors.textSecondary,
-                    textAlign: 'center',
+                    textAlign: "center",
                   }}
                 >
                   Ce rôle a toutes les permissions
@@ -1100,7 +1092,7 @@ export default function RolesManagementScreen({
               Object.entries(PERMISSION_CATEGORIES).map(
                 ([category, permissions]) => {
                   const activePerms = permissions.filter((p) =>
-                    selectedRole?.permissions?.includes(p)
+                    selectedRole?.permissions?.includes(p),
                   );
                   if (activePerms.length === 0) return null;
 
@@ -1115,7 +1107,7 @@ export default function RolesManagementScreen({
                       disabled
                     />
                   );
-                }
+                },
               )
             )}
           </ScrollView>

@@ -4,6 +4,7 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AnimatedBackground from "../../components/ui/AnimatedBackground";
 import { HeaderLogo } from "../../components/ui/HeaderLogo";
+import RoundLanguageButton from "../../components/ui/RoundLanguageButton";
 import { useCommonThemedStyles } from "../../hooks/useCommonStyles";
 import { useTranslation } from "../../localization";
 
@@ -89,6 +90,10 @@ const RegisterTypeSelection: React.FC<RegisterTypeSelectionProps> = ({
             ← {t("common.back")}
           </Text>
         </Pressable>
+
+        <View style={{ marginTop: 8, marginRight: 12 }}>
+          <RoundLanguageButton />
+        </View>
       </View>
 
       <ScrollView
@@ -100,7 +105,7 @@ const RegisterTypeSelection: React.FC<RegisterTypeSelectionProps> = ({
         showsVerticalScrollIndicator={false}
       >
         {/* Logo Cobbr */}
-        <HeaderLogo size={120} variant="square" marginVertical={20} />
+        <HeaderLogo preset="md" variant="square" marginVertical={20} />
 
         {/* Title Section */}
         <View style={{ marginTop: 0, marginBottom: 30 }}>

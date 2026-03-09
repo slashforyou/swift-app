@@ -23,6 +23,7 @@ import {
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
 import { useStripePaymentLinks } from "../../hooks/useStripe";
+import { useTranslation } from "../../localization";
 import type { PaymentLink } from "../../services/StripeService";
 
 interface CreatePaymentLinkModalProps {
@@ -47,6 +48,7 @@ export default function CreatePaymentLinkModal({
   accountId,
 }: CreatePaymentLinkModalProps) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const { createPaymentLink, creating, error } = useStripePaymentLinks({
     autoLoad: false,
     accountId,
@@ -78,16 +80,16 @@ export default function CreatePaymentLinkModal({
   const handleCreate = async () => {
     if (!accountId) {
       Alert.alert(
-        "Aucun compte Stripe",
-        "Impossible de créer un lien sans compte Stripe actif.",
+        t("stripe.paymentLinksModal.noAccountTitle"),
+        t("stripe.paymentLinksModal.noAccountMessage"),
       );
       return;
     }
     const amountValue = parseFloat(amount);
     if (isNaN(amountValue) || amountValue <= 0) {
       Alert.alert(
-        "Invalid Amount",
-        "Please enter a valid amount greater than 0",
+        t("stripe.paymentLinksModal.invalidAmountTitle"),
+        t("stripe.paymentLinksModal.invalidAmountMessage"),
       );
       return;
     }
@@ -104,14 +106,20 @@ export default function CreatePaymentLinkModal({
       setCreatedLink(paymentLink);
       onSuccess?.(paymentLink);
     } catch (err) {
-      Alert.alert("Error", error || "Failed to create payment link");
+      Alert.alert(
+        t("common.error"),
+        error || t("stripe.paymentLinksModal.createErrorMessage"),
+      );
     }
   };
 
   const handleCopyLink = async () => {
     if (createdLink?.url) {
       await Clipboard.setStringAsync(createdLink.url);
-      Alert.alert("Copied!", "Payment link copied to clipboard");
+      Alert.alert(
+        t("stripe.paymentLinksModal.copiedTitle"),
+        t("stripe.paymentLinksModal.copiedMessage"),
+      );
     }
   };
 
@@ -119,9 +127,11 @@ export default function CreatePaymentLinkModal({
     if (createdLink?.url) {
       try {
         await Share.share({
-          message: `Payment Link: ${createdLink.url}`,
+          message: t("stripe.paymentLinksModal.shareMessage", {
+            url: createdLink.url,
+          }),
           url: createdLink.url,
-          title: "Share Payment Link",
+          title: t("stripe.paymentLinksModal.shareTitle"),
         });
       } catch (err) {
         console.error("Share error:", err);

@@ -11,18 +11,17 @@ import { Image as ExpoImage } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Animated,
-  Dimensions,
-  FlatList,
-  Image,
-  Modal,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
+    ActivityIndicator,
+    Alert,
+    Animated,
+    Dimensions,
+    FlatList,
+    Modal,
+    Pressable,
+    ScrollView,
+    Text,
+    TextInput,
+    View,
 } from "react-native";
 import { DESIGN_TOKENS } from "../../../constants/Styles";
 import { useCommonThemedStyles } from "../../../hooks/useCommonStyles";
@@ -98,7 +97,8 @@ const formatStage = (stage?: string): string => {
 
 interface PhotoViewModalProps {
   visible: boolean;
-  photo: JobPhotoAPI | null;
+  photos: JobPhotoAPI[];
+  initialIndex: number;
   onClose: () => void;
   onEdit: (photoId: string, description: string) => void;
   onDelete: (photoId: string) => void;
@@ -171,26 +171,63 @@ const SectionHeader: React.FC<{
 
 const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
   visible,
-  photo,
+  photos,
+  initialIndex,
   onClose,
   onEdit,
   onDelete,
 }) => {
   const { colors } = useCommonThemedStyles();
   const { t } = useLocalization();
-  const [editMode, setEditMode] = useState(false);
-  const [description, setDescription] = useState("");
   const screenWidth = Dimensions.get("window").width;
+  const scrollRef = React.useRef<ScrollView>(null);
 
-  // État pour le zoom
-  const [isZoomed, setIsZoomed] = useState(false);
+  const [currentIndex, setCurrentIndex] = React.useState(initialIndex);
+  const [editMode, setEditMode] = React.useState(false);
+  const [description, setDescription] = React.useState("");
+  const [isZoomed, setIsZoomed] = React.useState(false);
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
 
+  const photo = photos[currentIndex];
+
+  // Scroll to initial index and reset state when modal opens
+  React.useEffect(() => {
+    if (visible) {
+      setCurrentIndex(initialIndex);
+      setEditMode(false);
+      setIsZoomed(false);
+      scaleAnim.setValue(1);
+      requestAnimationFrame(() => {
+        scrollRef.current?.scrollTo({
+          x: initialIndex * screenWidth,
+          animated: false,
+        });
+      });
+    }
+  }, [visible, initialIndex, scaleAnim, screenWidth]);
+
+  // Sync description + reset zoom when page changes
   React.useEffect(() => {
     if (photo) {
       setDescription(photo.description || "");
+      setEditMode(false);
+      setIsZoomed(false);
+      scaleAnim.setValue(1);
     }
-  }, [photo]);
+  }, [currentIndex, photo, scaleAnim]);
+
+  const handleMomentumScrollEnd = (e: any) => {
+    const idx = Math.round(e.nativeEvent.contentOffset.x / screenWidth);
+    if (idx !== currentIndex && idx >= 0 && idx < photos.length) {
+      setCurrentIndex(idx);
+    }
+  };
+
+  const goTo = (idx: number) => {
+    if (idx < 0 || idx >= photos.length) return;
+    scrollRef.current?.scrollTo({ x: idx * screenWidth, animated: true });
+    setCurrentIndex(idx);
+  };
 
   const handleSaveDescription = () => {
     if (photo) {
@@ -202,7 +239,6 @@ const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
   const handleDoubleTap = () => {
     const toValue = isZoomed ? 1 : 2.5;
     setIsZoomed(!isZoomed);
-
     Animated.spring(scaleAnim, {
       toValue,
       useNativeDriver: true,
@@ -213,11 +249,7 @@ const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
   let lastTap = 0;
   const handleImagePress = () => {
     const now = Date.now();
-    const DOUBLE_TAP_DELAY = 300;
-
-    if (now - lastTap < DOUBLE_TAP_DELAY) {
-      handleDoubleTap();
-    }
+    if (now - lastTap < 300) handleDoubleTap();
     lastTap = now;
   };
 
@@ -233,7 +265,12 @@ const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
             style: "destructive",
             onPress: () => {
               onDelete(String(photo.id));
-              onClose();
+              // Navigate to adjacent photo or close if last
+              if (photos.length <= 1) {
+                onClose();
+              } else if (currentIndex >= photos.length - 1) {
+                goTo(currentIndex - 1);
+              }
             },
           },
         ],
@@ -241,7 +278,17 @@ const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
     }
   };
 
-  if (!photo) return null;
+  if (!photos.length) return null;
+
+  const buildImageUri = (p: JobPhotoAPI): string => {
+    if (p.url) return p.url.replace(/\/\/uploads\//g, "/uploads/");
+    if (String(p.id).startsWith("local-")) return p.filename || "";
+    const path = (p.filename || p.filePath || p.file_path || "").replace(
+      /^\/+/,
+      "",
+    );
+    return `https://storage.googleapis.com/swift-images/${path}`;
+  };
 
   return (
     <Modal
@@ -250,13 +297,8 @@ const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: "rgba(0,0,0,0.95)",
-        }}
-      >
-        {/* Header avec actions */}
+      <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.95)" }}>
+        {/* ── Header ─────────────────────────────────────────────── */}
         <View
           style={{
             position: "absolute",
@@ -284,6 +326,22 @@ const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
             <Ionicons name="close" size={24} color="white" />
           </Pressable>
 
+          {/* Counter */}
+          {photos.length > 1 && (
+            <View
+              style={{
+                backgroundColor: "rgba(0,0,0,0.5)",
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                borderRadius: 16,
+              }}
+            >
+              <Text style={{ color: "white", fontSize: 14, fontWeight: "600" }}>
+                {currentIndex + 1} / {photos.length}
+              </Text>
+            </View>
+          )}
+
           <HStack gap="sm">
             <Pressable
               onPress={() => setEditMode(!editMode)}
@@ -291,7 +349,7 @@ const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
                 width: 44,
                 height: 44,
                 borderRadius: 22,
-                backgroundColor: "rgba(0,0,0,0.5)",
+                backgroundColor: editMode ? colors.primary : "rgba(0,0,0,0.5)",
                 justifyContent: "center",
                 alignItems: "center",
               }}
@@ -315,45 +373,89 @@ const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
           </HStack>
         </View>
 
-        {/* Image centrée */}
-        <Pressable
-          onPress={handleImagePress}
-          style={{
-            flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-          }}
+        {/* ── Carousel ───────────────────────────────────────────── */}
+        <ScrollView
+          ref={scrollRef}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          scrollEnabled={!isZoomed}
+          onMomentumScrollEnd={handleMomentumScrollEnd}
+          style={{ flex: 1 }}
         >
-          <AnimatedExpoImage
-            source={{
-              uri: photo.url
-                ? photo.url.replace(/\/\/uploads\//g, "/uploads/")
-                : String(photo.id).startsWith("local-")
-                  ? photo.filename
-                  : (() => {
-                      const path = (
-                        photo.filename ||
-                        photo.filePath ||
-                        photo.file_path ||
-                        ""
-                      ).replace(/^\/+/, "");
-                      return `https://storage.googleapis.com/swift-images/${path}`;
-                    })(),
-            }}
-            style={{
-              width: screenWidth,
-              height: "100%",
-              transform: [{ scale: scaleAnim }],
-            }}
-            contentFit="contain"
-            transition={200}
-            onError={(error) =>
-              console.error("❌ [PhotoViewModal] Image load error:", error)
-            }
-          />
-        </Pressable>
+          {photos.map((p, idx) => (
+            <Pressable
+              key={String(p.id)}
+              onPress={handleImagePress}
+              style={{
+                width: screenWidth,
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <AnimatedExpoImage
+                source={{ uri: buildImageUri(p) }}
+                style={{
+                  width: screenWidth,
+                  height: "100%",
+                  transform: idx === currentIndex ? [{ scale: scaleAnim }] : [],
+                }}
+                contentFit="contain"
+                transition={200}
+                onError={(err) =>
+                  console.error("❌ [PhotoViewModal] Image load error:", err)
+                }
+              />
+            </Pressable>
+          ))}
+        </ScrollView>
 
-        {/* Dégradé en bas pour lisibilité du texte */}
+        {/* ── Nav arrows ─────────────────────────────────────────── */}
+        {photos.length > 1 && !isZoomed && (
+          <>
+            {currentIndex > 0 && (
+              <Pressable
+                onPress={() => goTo(currentIndex - 1)}
+                style={{
+                  position: "absolute",
+                  left: 12,
+                  top: "50%",
+                  marginTop: -22,
+                  width: 44,
+                  height: 44,
+                  borderRadius: 22,
+                  backgroundColor: "rgba(0,0,0,0.5)",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Ionicons name="chevron-back" size={24} color="white" />
+              </Pressable>
+            )}
+            {currentIndex < photos.length - 1 && (
+              <Pressable
+                onPress={() => goTo(currentIndex + 1)}
+                style={{
+                  position: "absolute",
+                  right: 12,
+                  top: "50%",
+                  marginTop: -22,
+                  width: 44,
+                  height: 44,
+                  borderRadius: 22,
+                  backgroundColor: "rgba(0,0,0,0.5)",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Ionicons name="chevron-forward" size={24} color="white" />
+              </Pressable>
+            )}
+          </>
+        )}
+
+        {/* ── Bottom gradient ────────────────────────────────────── */}
         <LinearGradient
           colors={["transparent", "rgba(0,0,0,0.85)"]}
           style={{
@@ -366,7 +468,7 @@ const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
           }}
         />
 
-        {/* Indicateur de zoom */}
+        {/* ── Zoom hint ──────────────────────────────────────────── */}
         {isZoomed && (
           <View
             style={{
@@ -385,104 +487,97 @@ const PhotoViewModal: React.FC<PhotoViewModalProps> = ({
           </View>
         )}
 
-        {/* Description - overlay sur le dégradé */}
-        <View
-          style={{
-            position: "absolute",
-            bottom: 40,
-            left: 20,
-            right: 20,
-            padding: DESIGN_TOKENS.spacing.md,
-          }}
-        >
-          {editMode ? (
-            <VStack gap="sm">
-              <TextInput
-                value={description}
-                onChangeText={setDescription}
-                placeholder="Ajouter une description..."
-                placeholderTextColor="rgba(255,255,255,0.6)"
-                multiline
-                style={{
-                  color: "white",
-                  fontSize: 16,
-                  minHeight: 60,
-                  textAlignVertical: "top",
-                  paddingVertical: DESIGN_TOKENS.spacing.sm,
-                }}
-              />
-              <HStack gap="sm" justify="flex-end">
-                <Pressable
-                  onPress={() => setEditMode(false)}
+        {/* ── Description overlay ────────────────────────────────── */}
+        {photo && (
+          <View
+            style={{
+              position: "absolute",
+              bottom: 40,
+              left: 20,
+              right: 20,
+              padding: DESIGN_TOKENS.spacing.md,
+            }}
+          >
+            {editMode ? (
+              <VStack gap="sm">
+                <TextInput
+                  value={description}
+                  onChangeText={setDescription}
+                  placeholder="Ajouter une description..."
+                  placeholderTextColor="rgba(255,255,255,0.6)"
+                  multiline
                   style={{
-                    paddingHorizontal: DESIGN_TOKENS.spacing.md,
+                    color: "white",
+                    fontSize: 16,
+                    minHeight: 60,
+                    textAlignVertical: "top",
                     paddingVertical: DESIGN_TOKENS.spacing.sm,
-                    borderRadius: DESIGN_TOKENS.radius.sm,
-                    backgroundColor: "rgba(255,255,255,0.2)",
                   }}
-                >
-                  <Text style={{ color: "white", fontWeight: "600" }}>
-                    {t("jobDetails.components.photos.cancel")}
-                  </Text>
-                </Pressable>
-                <Pressable
-                  onPress={handleSaveDescription}
-                  style={{
-                    paddingHorizontal: DESIGN_TOKENS.spacing.md,
-                    paddingVertical: DESIGN_TOKENS.spacing.sm,
-                    borderRadius: DESIGN_TOKENS.radius.sm,
-                    backgroundColor: colors.primary,
-                  }}
-                >
-                  <Text style={{ color: "white", fontWeight: "600" }}>
-                    {t("jobDetails.components.photos.save")}
-                  </Text>
-                </Pressable>
-              </HStack>
-            </VStack>
-          ) : (
-            <VStack gap="sm">
-              {/* Date et Stage */}
-              <HStack gap="md" align="center" style={{ marginBottom: 4 }}>
-                {formatPhotoDate(
-                  photo.capturedAt || photo.createdAt || photo.created_at,
-                ) ? (
-                  <Text
-                    style={{ color: "rgba(255,255,255,0.8)", fontSize: 14 }}
-                  >
-                    📅{" "}
-                    {formatPhotoDate(
-                      photo.capturedAt || photo.createdAt || photo.created_at,
-                    )}
-                  </Text>
-                ) : null}
-                {formatStage(photo.stage) ? (
-                  <Text
+                />
+                <HStack gap="sm" justify="flex-end">
+                  <Pressable
+                    onPress={() => setEditMode(false)}
                     style={{
-                      color: "rgba(255,255,255,0.9)",
-                      fontSize: 14,
-                      fontWeight: "500",
+                      paddingHorizontal: DESIGN_TOKENS.spacing.md,
+                      paddingVertical: DESIGN_TOKENS.spacing.sm,
+                      borderRadius: DESIGN_TOKENS.radius.sm,
+                      backgroundColor: "rgba(255,255,255,0.2)",
                     }}
                   >
-                    {formatStage(photo.stage)}
-                  </Text>
-                ) : null}
-              </HStack>
-
-              {/* Description */}
-              <Text
-                style={{
-                  color: "white",
-                  fontSize: 16,
-                  lineHeight: 24,
-                }}
-              >
-                {photo.description ||
-                  t("jobDetails.components.photos.noDescription")}
-              </Text>
-            </VStack>
-          )}
-        </View>
+                    <Text style={{ color: "white", fontWeight: "600" }}>
+                      {t("jobDetails.components.photos.cancel")}
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={handleSaveDescription}
+                    style={{
+                      paddingHorizontal: DESIGN_TOKENS.spacing.md,
+                      paddingVertical: DESIGN_TOKENS.spacing.sm,
+                      borderRadius: DESIGN_TOKENS.radius.sm,
+                      backgroundColor: colors.primary,
+                    }}
+                  >
+                    <Text style={{ color: "white", fontWeight: "600" }}>
+                      {t("jobDetails.components.photos.save")}
+                    </Text>
+                  </Pressable>
+                </HStack>
+              </VStack>
+            ) : (
+              <VStack gap="sm">
+                <HStack gap="md" align="center" style={{ marginBottom: 4 }}>
+                  {formatPhotoDate(
+                    photo.capturedAt || photo.createdAt || photo.created_at,
+                  ) ? (
+                    <Text
+                      style={{ color: "rgba(255,255,255,0.8)", fontSize: 14 }}
+                    >
+                      📅{" "}
+                      {formatPhotoDate(
+                        photo.capturedAt || photo.createdAt || photo.created_at,
+                      )}
+                    </Text>
+                  ) : null}
+                  {formatStage(photo.stage) ? (
+                    <Text
+                      style={{
+                        color: "rgba(255,255,255,0.9)",
+                        fontSize: 14,
+                        fontWeight: "500",
+                      }}
+                    >
+                      {formatStage(photo.stage)}
+                    </Text>
+                  ) : null}
+                </HStack>
+                <Text style={{ color: "white", fontSize: 16, lineHeight: 24 }}>
+                  {photo.description ||
+                    t("jobDetails.components.photos.noDescription")}
+                </Text>
+              </VStack>
+            )}
+          </View>
+        )}
       </View>
     </Modal>
   );
@@ -501,11 +596,6 @@ const PhotoItem: React.FC<PhotoItemProps> = ({
   const [editDescription, setEditDescription] = React.useState(
     photo.description || "",
   );
-  const [imageDimensions, setImageDimensions] = React.useState<{
-    width: number;
-    height: number;
-  } | null>(null);
-
   // Convertir l'ID en string pour vérifier si c'est une photo locale
   const photoId = String(photo.id);
   const isLocalPhoto = photoId.startsWith("local-");
@@ -549,25 +639,6 @@ const PhotoItem: React.FC<PhotoItemProps> = ({
     photo.file_path,
     photo.id,
   ]);
-
-  // Récupérer les dimensions réelles de l'image
-  React.useEffect(() => {
-    if (photoUrl && isValidImageFile && !imageError) {
-      Image.getSize(
-        photoUrl,
-        (width, height) => {
-          setImageDimensions({ width, height });
-          // Debug code disabled
-        },
-        (error) => {
-          console.warn(
-            `⚠️ [PhotoItem ${photo.id}] Impossible de récupérer dimensions:`,
-            error,
-          );
-        },
-      );
-    }
-  }, [photoUrl, isValidImageFile, imageError, photo.id, photo.filename]);
 
   const handleImageError = React.useCallback(
     (error: any) => {
@@ -726,35 +797,6 @@ const PhotoItem: React.FC<PhotoItemProps> = ({
                 </Text>
               ) : null}
             </View>
-
-            {/* Badge debug dimensions (en haut à gauche) */}
-            {imageDimensions && (
-              <View
-                style={{
-                  position: "absolute",
-                  top: 4,
-                  left: 4,
-                  backgroundColor: "rgba(0,0,0,0.7)",
-                  paddingHorizontal: 6,
-                  paddingVertical: 3,
-                  borderRadius: 4,
-                }}
-              >
-                <Text
-                  style={{ color: "white", fontSize: 9, fontWeight: "600" }}
-                >
-                  {imageDimensions.width}×{imageDimensions.height}
-                </Text>
-                <Text style={{ color: "white", fontSize: 8 }}>
-                  {imageDimensions.height > imageDimensions.width
-                    ? "📱"
-                    : imageDimensions.width > imageDimensions.height
-                      ? "🖼️"
-                      : "⬛"}{" "}
-                  {(imageDimensions.width / imageDimensions.height).toFixed(2)}
-                </Text>
-              </View>
-            )}
           </View>
         )}
 
@@ -918,7 +960,7 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({
   const { colors } = useCommonThemedStyles();
   const { t } = useLocalization();
   const [showPhotoModal, setShowPhotoModal] = useState(false);
-  const [selectedPhoto, setSelectedPhoto] = useState<JobPhotoAPI | null>(null);
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
   const [showViewModal, setShowViewModal] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false); // ✅ Collapsible state
   const prevIsVisibleRef = React.useRef(isVisible);
@@ -984,7 +1026,8 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({
   };
 
   const handlePhotoPress = (photo: JobPhotoAPI) => {
-    setSelectedPhoto(photo);
+    const idx = photos.findIndex((p) => p.id === photo.id);
+    setSelectedPhotoIndex(idx >= 0 ? idx : 0);
     setShowViewModal(true);
   };
 
@@ -1211,10 +1254,11 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({
         jobId={jobId}
       />
 
-      {/* Modal de visualisation/édition */}
+      {/* Modal de visualisation/édition — carousel */}
       <PhotoViewModal
         visible={showViewModal}
-        photo={selectedPhoto}
+        photos={photos}
+        initialIndex={selectedPhotoIndex}
         onClose={() => setShowViewModal(false)}
         onEdit={handleEditDescription}
         onDelete={handleDeletePhoto}

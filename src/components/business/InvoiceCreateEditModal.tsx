@@ -14,6 +14,7 @@ import {
 import { useTheme } from '../../context/ThemeProvider_Advanced';
 import { Button, Card, Input } from '../../design-system/components';
 import { DESIGN_TOKENS } from '../../design-system/tokens';
+import { useTranslation } from '../../localization';
 
 export interface Invoice {
   id?: string;
@@ -53,6 +54,7 @@ const InvoiceCreateEditModal: React.FC<InvoiceCreateEditModalProps> = ({
 }) => {
   const { colors } = useTheme();
   const [loading, setSaving] = useState(false);
+  const { t } = useTranslation();
   
   // Form state
   const [formData, setFormData] = useState<Partial<Invoice>>({
@@ -156,20 +158,20 @@ const InvoiceCreateEditModal: React.FC<InvoiceCreateEditModalProps> = ({
   const handleSave = async () => {
     // Validation
     if (!formData.clientName || !formData.clientEmail || !formData.description) {
-      Alert.alert('Erreur', 'Veuillez remplir tous les champs obligatoires');
+      Alert.alert(t('common.error'), t('invoices.alerts.requiredFields'));
       return;
     }
 
     if ((formData.items || []).length === 0) {
-      Alert.alert('Erreur', 'Ajoutez au moins un élément à la facture');
+      Alert.alert(t('common.error'), t('invoices.alerts.addAtLeastOneItem'));
       return;
     }
 
     try {
       setSaving(true);
       await onSave(formData as Invoice);
-    } catch (error) {
-      Alert.alert('Erreur', 'Impossible de sauvegarder la facture');
+    } catch (error) {
+      Alert.alert(t('common.error'), t('invoices.alerts.saveError'));
     } finally {
       setSaving(false);
     }
@@ -179,12 +181,12 @@ const InvoiceCreateEditModal: React.FC<InvoiceCreateEditModalProps> = ({
     if (!invoice?.id || !onDelete) return;
 
     Alert.alert(
-      'Supprimer la facture',
-      'Êtes-vous sûr de vouloir supprimer cette facture ?',
+      t('invoices.alerts.deleteTitle'),
+      t('invoices.alerts.deleteMessage'),
       [
-        { text: 'Annuler', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Supprimer',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             try {

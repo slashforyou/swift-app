@@ -3,12 +3,11 @@
  * Shows animated loading during auth check and redirects to login if not authenticated
  */
 
-import React from 'react';
-import { View, ActivityIndicator } from 'react-native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useAuthGuard } from '../hooks/useSession';
-import { useCommonThemedStyles } from '../hooks/useCommonStyles';
-import LoadingDots from '../components/ui/LoadingDots';
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import React from "react";
+import MascotLoading from "../components/ui/MascotLoading";
+import { useCommonThemedStyles } from "../hooks/useCommonStyles";
+import { useAuthGuard } from "../hooks/useSession";
 
 interface AuthCheckResult {
   isLoading: boolean;
@@ -27,32 +26,20 @@ type NavigationType = NativeStackNavigationProp<any>;
  */
 export const useAuthCheck = (
   navigation: NavigationType,
-  loadingText: string = "Checking authentication"
+  loadingText: string = "Checking authentication",
 ): AuthCheckResult => {
   const session = useAuthGuard(navigation);
   const { colors, styles: commonStyles } = useCommonThemedStyles();
 
   const LoadingComponent = session.isLoading ? (
-    <View style={commonStyles.containerCentered}>
-      <ActivityIndicator size="large" color={colors.primary} />
-      <LoadingDots 
-        text={loadingText}
-        style={{ 
-          fontSize: 16,
-          color: colors.text,
-          marginTop: 16,
-          textAlign: 'center'
-        }} 
-        interval={500} 
-      />
-    </View>
+    <MascotLoading text={loadingText} />
   ) : null;
 
   return {
     isLoading: session.isLoading,
     isAuthenticated: session.isAuthenticated || false,
     error: session.error || null,
-    LoadingComponent
+    LoadingComponent,
   };
 };
 
@@ -64,11 +51,11 @@ export const useAuthCheck = (
  */
 export const withAuthCheck = <P extends object>(
   WrappedComponent: React.ComponentType<P>,
-  loadingText: string = "Loading"
+  loadingText: string = "Loading",
 ) => {
   return (props: P & { navigation: NavigationType }) => {
     const authCheck = useAuthCheck(props.navigation, loadingText);
-    
+
     // Show loading while checking authentication
     if (authCheck.isLoading) {
       return authCheck.LoadingComponent;
@@ -92,7 +79,7 @@ export const withAuthCheck = <P extends object>(
  */
 export const checkAuth = (
   navigation: NavigationType,
-  loadingText: string = "Checking authentication"
+  loadingText: string = "Checking authentication",
 ): AuthCheckResult => {
   return useAuthCheck(navigation, loadingText);
 };

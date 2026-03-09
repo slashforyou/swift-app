@@ -375,7 +375,7 @@ const BusinessOwnerRegistration: React.FC<BusinessOwnerRegistrationProps> = ({
       >
         {/* Minimal Header */}
         <HeaderLogo
-          size={60}
+          preset="md"
           variant="square"
           marginVertical={10}
           marginHorizontal={20}

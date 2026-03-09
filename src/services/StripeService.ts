@@ -6,92 +6,125 @@ import * as SecureStore from "expo-secure-store";
 import { ServerData } from "../constants/ServerData";
 import { safeLogError } from "../utils/logUtils";
 import { fetchWithAuth } from "../utils/session";
+import {
+    clearStripeCache as clearStripeCacheInternal,
+    getCachedCompanyId,
+    getInFlightCompanyIdPromise,
+    setCachedCompanyId,
+    setInFlightCompanyIdPromise,
+} from "./stripeCache";
 import { fetchUserProfile } from "./user";
 
-// Cache pour éviter les appels répétés à l'API utilisateur
-let cachedUserId: string | null = null;
+/**
+ * Efface le cache local Stripe (à appeler lors du logout)
+ * ✅ FIX: Recommandation backend pour éviter les données obsolètes
+ */
+export const clearStripeCache = () => {
+  console.log("🧹 [STRIPE CACHE] Clearing cached user/company ID");
+  clearStripeCacheInternal();
+};
 
 /**
  * Helper pour récupérer le company_id de l'utilisateur connecté
  * ✅ CORRIGÉ: Utilise company_id depuis le profil API OU SecureStore (fallback)
  */
 const getUserCompanyId = async (): Promise<string> => {
-  try {
-    console.log("🔍 [COMPANY ID] Getting company_id from user profile...");
-    const profile = await fetchUserProfile();
-    const userId = profile.id.toString();
-
-    console.log(
-      "👤 [USER INFO] User ID:",
-      userId,
-      "- Company ID from API:",
-      profile.company_id,
-    );
-
-    // ✅ PRIORITÉ 1: Utiliser company_id depuis le profil API (v1.1.0+)
-    if (profile.company_id) {
-      const companyId = profile.company_id.toString();
-      console.log(
-        "✅ [COMPANY ID] Using company_id from API profile:",
-        companyId,
-      );
-      cachedUserId = companyId;
-      return companyId;
-    }
-
-    // ✅ FALLBACK 1: Essayer de récupérer depuis SecureStore (cache local)
-    console.warn(
-      "⚠️ [FALLBACK] No company_id in API profile, trying SecureStore...",
-    );
-    try {
-      // ✅ Essayer d'abord avec "user_data" (avec underscore - format utilisé par useBusinessInfo)
-      let userDataStr = await SecureStore.getItemAsync("user_data");
-
-      // Fallback: essayer "userData" (sans underscore)
-      if (!userDataStr) {
-        userDataStr = await SecureStore.getItemAsync("userData");
-      }
-
-      if (userDataStr) {
-        const userData = JSON.parse(userDataStr);
-        console.log("📦 [SecureStore] User data found:", {
-          userId: userData.id,
-          companyId: userData.company_id,
-          hasCompany: !!userData.company,
-          companyInCompany: userData.company?.id,
-        });
-
-        if (userData.company_id) {
-          const companyId = userData.company_id.toString();
-          console.log(
-            "✅ [COMPANY ID] Using company_id from SecureStore:",
-            companyId,
-          );
-          cachedUserId = companyId;
-          return companyId;
-        }
-      } else {
-        console.warn(
-          "📦 [SecureStore] No user data found (tried user_data and userData keys)",
-        );
-      }
-    } catch (storeError) {
-      console.warn("⚠️ [SecureStore] Failed to read user data:", storeError);
-    }
-
-    // ⚠️ FALLBACK 2: Utiliser user_id (legacy - dernière option)
-    console.warn(
-      "⚠️ [FALLBACK FINAL] No company_id found, using user_id:",
-      userId,
-    );
-    cachedUserId = userId;
-    return userId;
-  } catch (error) {
-    console.error("❌ [COMPANY ID] Failed to get company_id:", error);
-    throw new Error(
-      "Unable to get user company_id. Please ensure you are logged in.",
-    );
+  // ✅ Fast path: avoid hammering /v1/user/profile on every Stripe call
+  const cachedCompanyId = getCachedCompanyId();
+  if (cachedCompanyId) {
+    return cachedCompanyId;
   }
+
+  // ✅ Coalesce concurrent callers (StripeHub triggers multiple requests at once)
+  const inFlight = getInFlightCompanyIdPromise();
+  if (inFlight) {
+    return inFlight;
+  }
+
+  const inFlightCompanyIdPromise = (async () => {
+    try {
+      console.log("🔍 [COMPANY ID] Getting company_id from user profile...");
+      const profile = await fetchUserProfile();
+      const userId = profile.id.toString();
+
+      console.log(
+        "👤 [USER INFO] User ID:",
+        userId,
+        "- Company ID from API:",
+        profile.company_id,
+      );
+
+      // ✅ PRIORITÉ 1: Utiliser company_id depuis le profil API (v1.1.0+)
+      if (profile.company_id) {
+        const companyId = profile.company_id.toString();
+        console.log(
+          "✅ [COMPANY ID] Using company_id from API profile:",
+          companyId,
+        );
+        setCachedCompanyId(companyId);
+        return companyId;
+      }
+
+      // ✅ FALLBACK 1: Essayer de récupérer depuis SecureStore (cache local)
+      console.warn(
+        "⚠️ [FALLBACK] No company_id in API profile, trying SecureStore...",
+      );
+      try {
+        // ✅ Essayer d'abord avec "user_data" (avec underscore - format utilisé par useBusinessInfo)
+        let userDataStr = await SecureStore.getItemAsync("user_data");
+
+        // Fallback: essayer "userData" (sans underscore)
+        if (!userDataStr) {
+          userDataStr = await SecureStore.getItemAsync("userData");
+        }
+
+        if (userDataStr) {
+          const userData = JSON.parse(userDataStr);
+          console.log("📦 [SecureStore] User data found:", {
+            userId: userData.id,
+            companyId: userData.company_id,
+            hasCompany: !!userData.company,
+            companyInCompany: userData.company?.id,
+          });
+
+          if (userData.company_id) {
+            const companyId = userData.company_id.toString();
+            console.log(
+              "✅ [COMPANY ID] Using company_id from SecureStore:",
+              companyId,
+            );
+            setCachedCompanyId(companyId);
+            return companyId;
+          }
+        } else {
+          console.warn(
+            "📦 [SecureStore] No user data found (tried user_data and userData keys)",
+          );
+        }
+      } catch (storeError) {
+        console.warn("⚠️ [SecureStore] Failed to read user data:", storeError);
+      }
+
+      // ❌ Ne pas fallback sur user_id: cela cible potentiellement la mauvaise company
+      console.error(
+        "❌ [COMPANY ID] Missing company_id in API profile and SecureStore. Aborting Stripe request.",
+        { userId },
+      );
+      throw new Error(
+        "Company ID is missing. Please re-login to refresh your company context.",
+      );
+    } catch (error) {
+      console.error("❌ [COMPANY ID] Failed to get company_id:", error);
+      throw new Error(
+        "Unable to get user company_id. Please ensure you are logged in.",
+      );
+    }
+  })().finally(() => {
+    setInFlightCompanyIdPromise(null);
+  });
+
+  setInFlightCompanyIdPromise(inFlightCompanyIdPromise);
+  return inFlightCompanyIdPromise;
 };
 
 /**
@@ -267,6 +300,45 @@ export const getStripeConnectOnboardingLink = async (): Promise<string> => {
   } catch (error) {
     // TEMP_DISABLED: console.error('Error getting Stripe Connect onboarding link:', error);
     // Re-throw the error - no mock URLs
+    throw error;
+  }
+};
+
+/**
+ * Régénère un lien d'onboarding Stripe Connect
+ * Utilise l'endpoint backend confirmé: POST /v1/stripe/connect/refresh-onboarding
+ */
+export const refreshStripeConnectOnboardingLink = async (): Promise<string> => {
+  try {
+    const companyId = await getUserCompanyId();
+
+    const refreshUrl = `${ServerData.serverUrl}v1/stripe/connect/refresh-onboarding`;
+    const response = await fetchWithAuth(refreshUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ company_id: companyId }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => "No error text");
+      throw new Error(`HTTP error! status: ${response.status} ${errorText}`);
+    }
+
+    const data = await response.json();
+    const onboardingUrl =
+      data.data?.onboarding_url ||
+      data.data?.url ||
+      data.url ||
+      data.onboarding_url;
+
+    if (!data.success || !onboardingUrl) {
+      throw new Error("API returned invalid onboarding link data");
+    }
+
+    return onboardingUrl;
+  } catch (error) {
     throw error;
   }
 };
@@ -504,6 +576,21 @@ export const fetchStripeAccount = async () => {
     const companyId = await getUserCompanyId();
     console.log("📊 [FETCH ACCOUNT] Loading account for company:", companyId);
 
+    let statusData: any = null;
+    try {
+      const statusUrl = `${ServerData.serverUrl}v1/stripe/connect/status?company_id=${companyId}`;
+      const statusResponse = await fetchWithAuth(statusUrl, { method: "GET" });
+      if (statusResponse.ok) {
+        const statusJson = await statusResponse.json();
+        statusData = statusJson?.data || statusJson;
+      }
+    } catch (statusError) {
+      console.warn(
+        "⚠️ [FETCH ACCOUNT] Failed to load connect status:",
+        statusError,
+      );
+    }
+
     // ✅ NOUVEAU: Utiliser l'endpoint spécifique company/{id}/account
     const accountUrl = `${ServerData.serverUrl}v1/stripe/company/${companyId}/account`;
     console.log("🌐 [FETCH ACCOUNT] Calling NEW endpoint:", accountUrl);
@@ -535,30 +622,64 @@ export const fetchStripeAccount = async () => {
     }
 
     // ✅ Transformer les données du NOUVEAU format API
+    const requirements = statusData?.requirements ||
+      data.stripe.requirements || {
+        currently_due: [],
+        eventually_due: [],
+        past_due: [],
+        disabled_reason: null,
+      };
+
+    const chargesEnabled =
+      statusData?.charges_enabled ?? data.stripe.charges_enabled;
+    const payoutsEnabled =
+      statusData?.payouts_enabled ?? data.stripe.payouts_enabled;
+    const detailsSubmitted =
+      statusData?.details_submitted ?? data.stripe.details_submitted;
+    const onboardingCompleted =
+      statusData?.onboarding_completed ?? (detailsSubmitted && chargesEnabled);
+
     const accountData = {
-      stripe_account_id: data.stripe.account_id,
-      charges_enabled: data.stripe.charges_enabled,
-      payouts_enabled: data.stripe.payouts_enabled,
-      details_submitted: data.stripe.details_submitted,
-      onboarding_completed:
-        data.stripe.details_submitted && data.stripe.charges_enabled,
+      stripe_account_id:
+        statusData?.stripe_account_id || data.stripe.account_id,
+      charges_enabled: chargesEnabled,
+      payouts_enabled: payoutsEnabled,
+      details_submitted: detailsSubmitted,
+      onboarding_completed: onboardingCompleted,
       business_name: data.company.name,
       support_email: data.stripe.email || data.company.email,
       country: data.stripe.country || "AU",
       default_currency: data.stripe.currency || "AUD",
-      bank_accounts: [], // TODO: À récupérer si nécessaire via autre endpoint
+      bank_accounts: (
+        data.stripe.external_accounts?.data ||
+        data.stripe.bank_accounts ||
+        []
+      )
+        .filter(
+          (acct: any) =>
+            acct.object === "bank_account" ||
+            acct.type === "bank_account" ||
+            acct.bank_name,
+        )
+        .map((acct: any) => ({
+          id: acct.id,
+          bank_name: acct.bank_name || "Bank",
+          last4: acct.last4,
+          currency: acct.currency,
+        })),
       requirements: {
-        currently_due: [],
-        eventually_due: [],
-        past_due: [],
-        disabled_reason: !data.stripe.charges_enabled
-          ? "pending_verification"
-          : null,
+        currently_due: requirements.currently_due || [],
+        eventually_due: requirements.eventually_due || [],
+        past_due: requirements.past_due || [],
+        disabled_reason:
+          requirements.disabled_reason ||
+          (!chargesEnabled ? "pending_verification" : null),
       },
-      capabilities: {
-        card_payments: data.stripe.charges_enabled ? "active" : "pending",
-        transfers: data.stripe.payouts_enabled ? "active" : "pending",
-      },
+      capabilities: statusData?.capabilities ||
+        data.stripe.capabilities || {
+          card_payments: chargesEnabled ? "active" : "pending",
+          transfers: payoutsEnabled ? "active" : "pending",
+        },
     };
 
     console.log("✅ [FETCH ACCOUNT] Processed account data:", {
@@ -567,30 +688,31 @@ export const fetchStripeAccount = async () => {
       status: data.stripe.status,
     });
     return accountData;
-  } catch (error) {
+  } catch (error: any) {
     console.error(
       "❌ [FETCH ACCOUNT] Error fetching real account data:",
       error,
     );
-    // Fallback vers les données mock en cas d'erreur
-    return {
-      stripe_account_id: "acct_1SV8KSIsgSU2xbML",
-      charges_enabled: true,
-      payouts_enabled: true,
-      details_submitted: true,
-      onboarding_completed: true,
-      business_name: "Company test (fallback)",
-      support_email: "support@company-test.com.au",
-      country: "AU",
-      default_currency: "AUD",
-      bank_accounts: [],
-      requirements: {
-        currently_due: [],
-        eventually_due: [],
-        past_due: [],
-        disabled_reason: null,
-      },
-    };
+    // ✅ FIX: Retourner null au lieu de données mock obsolètes
+    // Le frontend doit gérer le cas où account === null (= pas de compte Stripe)
+    // Vérifier si c'est une erreur "pas de compte" vs erreur réseau
+    const errorMessage = error?.message?.toLowerCase() || "";
+    const isNoAccountError =
+      errorMessage.includes("404") ||
+      errorMessage.includes("no active") ||
+      errorMessage.includes("not found") ||
+      errorMessage.includes("has_stripe_account");
+
+    if (isNoAccountError) {
+      console.log(
+        "ℹ️ [FETCH ACCOUNT] No Stripe account exists for this company (expected)",
+      );
+    } else {
+      console.warn(
+        "⚠️ [FETCH ACCOUNT] Network or server error, returning null",
+      );
+    }
+    return null;
   }
 };
 
@@ -1260,19 +1382,48 @@ export const createJobPaymentIntent = async (
     console.log(`📡 [JOB PAYMENT] Response status: ${response.status}`);
 
     if (!response.ok) {
-      const errorText = await response.text().catch(() => "No error text");
-      console.error(`❌ [JOB PAYMENT] Error response: ${errorText}`);
+      let errorData: any = null;
+      let errorText = "";
+
+      try {
+        errorData = await response.json();
+      } catch (jsonError) {
+        errorText = await response.text().catch(() => "No error text");
+      }
+
+      const payload = errorData ? JSON.stringify(errorData) : errorText;
+      console.error(`❌ [JOB PAYMENT] Error response: ${payload}`);
 
       if (response.status === 401) {
         throw new Error("Non autorisé à créer un paiement pour ce job");
-      } else if (response.status === 404) {
+      }
+
+      if (response.status === 404) {
         throw new Error("Job introuvable");
-      } else if (response.status === 400) {
-        throw new Error("Données de paiement invalides");
+      }
+
+      if (response.status === 400) {
+        if (errorData?.action_required === "complete_stripe_onboarding") {
+          throw new Error(
+            "Compte Stripe non prêt. Terminez l'onboarding dans StripeHub.",
+          );
+        }
+
+        if (
+          typeof errorData?.message === "string" &&
+          /no such customer/i.test(errorData.message)
+        ) {
+          throw new Error(
+            "Client Stripe introuvable. Veuillez resynchroniser le client.",
+          );
+        }
+
+        throw new Error(errorData?.error || "Données de paiement invalides");
       }
 
       throw new Error(
-        `Erreur lors de la création du paiement: ${response.status}`,
+        errorData?.error ||
+          `Erreur lors de la création du paiement: ${response.status}`,
       );
     }
 
@@ -1822,17 +1973,44 @@ export const createStripeInvoice = async (invoiceData: {
     // TEMP_DISABLED: console.log(`📡 [STRIPE INVOICE] Response status: ${response.status}`);
 
     if (!response.ok) {
-      const errorText = await response.text().catch(() => "No error text");
-      console.error(`❌ [STRIPE INVOICE] Error response: ${errorText}`);
+      let errorData: any = null;
+      let errorText = "";
+
+      try {
+        errorData = await response.json();
+      } catch (jsonError) {
+        errorText = await response.text().catch(() => "No error text");
+      }
+
+      const payload = errorData ? JSON.stringify(errorData) : errorText;
+      console.error(`❌ [STRIPE INVOICE] Error response: ${payload}`);
 
       if (response.status === 401) {
         throw new Error("Non autorisé à créer une facture");
-      } else if (response.status === 400) {
-        throw new Error("Données de facture invalides");
+      }
+
+      if (response.status === 400) {
+        if (errorData?.action_required === "complete_stripe_onboarding") {
+          throw new Error(
+            "Compte Stripe non prêt. Terminez l'onboarding dans StripeHub.",
+          );
+        }
+
+        if (
+          typeof errorData?.message === "string" &&
+          /no such customer/i.test(errorData.message)
+        ) {
+          throw new Error(
+            "Client Stripe introuvable. Veuillez resynchroniser le client.",
+          );
+        }
+
+        throw new Error(errorData?.error || "Données de facture invalides");
       }
 
       throw new Error(
-        `Erreur lors de la création de la facture: ${response.status}`,
+        errorData?.error ||
+          `Erreur lors de la création de la facture: ${response.status}`,
       );
     }
 
@@ -1850,6 +2028,141 @@ export const createStripeInvoice = async (invoiceData: {
     return data.data;
   } catch (error) {
     console.error("❌ [STRIPE INVOICE] Error creating invoice:", error);
+    throw error;
+  }
+};
+
+/**
+ * Cree un Payment Intent pour une facture existante
+ * Utilise l'endpoint backend: POST /v1/payments/create-payment-intent
+ */
+export const createInvoicePaymentIntent = async (payload: {
+  invoice_id: number;
+  save_card?: boolean;
+  payment_method_id?: string;
+}): Promise<{
+  payment_intent_id: string;
+  client_secret: string;
+  amount: number;
+  currency: string;
+  status: string;
+  metadata?: Record<string, string>;
+}> => {
+  try {
+    const createUrl = `${ServerData.serverUrl}v1/payments/create-payment-intent`;
+
+    const response = await fetchWithAuth(createUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      let errorData: any = null;
+      let errorText = "";
+
+      try {
+        errorData = await response.json();
+      } catch (jsonError) {
+        errorText = await response.text().catch(() => "No error text");
+      }
+
+      const payloadText = errorData ? JSON.stringify(errorData) : errorText;
+      console.error(`❌ [INVOICE PAYMENT] Error response: ${payloadText}`);
+
+      if (response.status === 401) {
+        throw new Error("Non autorise a creer un paiement de facture");
+      }
+
+      if (response.status === 400) {
+        if (errorData?.action_required === "complete_stripe_onboarding") {
+          throw new Error(
+            "Compte Stripe non pret. Terminez l'onboarding dans StripeHub.",
+          );
+        }
+
+        if (
+          typeof errorData?.message === "string" &&
+          /no such customer/i.test(errorData.message)
+        ) {
+          throw new Error(
+            "Client Stripe introuvable. Veuillez resynchroniser le client.",
+          );
+        }
+
+        throw new Error(errorData?.error || "Donnees de facture invalides");
+      }
+
+      throw new Error(
+        errorData?.error ||
+          `Erreur lors de la creation du paiement: ${response.status}`,
+      );
+    }
+
+    const data = await response.json();
+
+    if (!data.success || !data.data?.payment_intent_id) {
+      throw new Error("API returned invalid invoice payment data");
+    }
+
+    return data.data;
+  } catch (error) {
+    console.error(
+      "❌ [INVOICE PAYMENT] Error creating invoice payment:",
+      error,
+    );
+    throw error;
+  }
+};
+
+/**
+ * Confirme le paiement d'une facture
+ * Utilise l'endpoint backend: POST /v1/payment/confirm
+ */
+export const confirmInvoicePayment = async (payload: {
+  payment_intent_id: string;
+  payment_method?: string;
+}): Promise<{
+  status: string;
+  message?: string;
+}> => {
+  try {
+    const confirmUrl = `${ServerData.serverUrl}v1/payment/confirm`;
+
+    const response = await fetchWithAuth(confirmUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => "No error text");
+      console.error(`❌ [INVOICE PAYMENT] Error response: ${errorText}`);
+
+      if (response.status === 401) {
+        throw new Error("Non autorise a confirmer ce paiement");
+      }
+
+      throw new Error(
+        `Erreur lors de la confirmation du paiement: ${response.status}`,
+      );
+    }
+
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.error || "API returned error during confirmation");
+    }
+
+    return data.data;
+  } catch (error) {
+    console.error(
+      "❌ [INVOICE PAYMENT] Error confirming invoice payment:",
+      error,
+    );
     throw error;
   }
 };
@@ -2594,15 +2907,39 @@ export const refreshStripeAccountLink = async (): Promise<{
 // ============================================================================
 
 /**
- * Démarre l'onboarding Stripe natif (crée un compte Express silencieusement)
+ * Démarre l'onboarding Stripe natif (crée un compte Custom)
+ * @param businessType Type d'entreprise: "individual" ou "company" (défaut: "company")
+ * @param businessProfile Profil entreprise optionnel (name, mcc, url)
  * @returns Promise avec stripe_account_id et progress
  */
-export const startStripeOnboarding = async (): Promise<{
+export const startStripeOnboarding = async (
+  businessType: "individual" | "company" = "company",
+  businessProfile?: {
+    name?: string;
+    mcc?: string;
+    url?: string;
+  },
+): Promise<{
   stripeAccountId: string;
   progress: number;
 }> => {
   try {
-    console.log("🚀 [ONBOARDING] Starting Stripe onboarding...");
+    console.log(
+      "🚀 [ONBOARDING] Starting Stripe onboarding with business_type:",
+      businessType,
+    );
+
+    // Build payload according to backend expected format
+    const payload: any = { business_type: businessType };
+
+    // Add business_profile if provided (will be applied at account creation level by backend)
+    if (businessProfile) {
+      payload.business_profile = businessProfile;
+      console.log(
+        "📋 [ONBOARDING] Including business_profile:",
+        businessProfile,
+      );
+    }
 
     const response = await fetchWithAuth(
       `${ServerData.serverUrl}v1/stripe/onboarding/start`,
@@ -2611,6 +2948,7 @@ export const startStripeOnboarding = async (): Promise<{
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify(payload),
       },
     );
 
@@ -2678,33 +3016,126 @@ export const deleteStripeAccount = async (): Promise<{ success: boolean }> => {
 };
 
 /**
- * Soumet les informations personnelles (Étape 1/5)
- * @param info Données personnelles (prénom, nom, date de naissance, email, téléphone)
+ * Démarre l'onboarding Stripe (Étape 0/6) - Crée le compte Custom
+ * @param businessType Type d'entreprise: "individual" ou "company"
+ * @param businessProfile Profil entreprise optionnel (name, mcc, url)
  */
-export const submitPersonalInfo = async (info: {
-  first_name: string;
-  last_name: string;
-  dob_day: number;
-  dob_month: number;
-  dob_year: number;
-  email: string;
-  phone: string;
-}): Promise<{ progress: number }> => {
+export const startOnboarding = async (
+  businessType: "individual" | "company" = "company",
+  businessProfile?: {
+    name?: string;
+    mcc?: string;
+    url?: string;
+  },
+): Promise<{
+  success: boolean;
+  stripe_account_id: string;
+  onboarding_progress: number;
+  next_step: string;
+}> => {
+  try {
+    console.log("🚀 [ONBOARDING] Starting Stripe Custom account creation...");
+
+    // Build payload according to backend expected format
+    const payload: any = { business_type: businessType };
+
+    // Add business_profile if provided
+    if (businessProfile) {
+      payload.business_profile = businessProfile;
+      console.log(
+        "📋 [ONBOARDING] Including business_profile:",
+        businessProfile,
+      );
+    }
+
+    const response = await fetchWithAuth(
+      `${ServerData.serverUrl}v1/stripe/onboarding/start`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      },
+    );
+
+    console.log(`📡 [ONBOARDING] Response status: ${response.status}`);
+
+    if (!response.ok) {
+      const errorData = await response
+        .json()
+        .catch(() => ({ error: "Unknown error" }));
+      console.error(`❌ [ONBOARDING] Error response:`, errorData);
+      throw new Error(
+        errorData.error || errorData.message || "Failed to start onboarding",
+      );
+    }
+
+    const data = await response.json();
+    console.log("✅ [ONBOARDING] Account created:", data.stripe_account_id);
+
+    return data;
+  } catch (error) {
+    console.error("❌ [ONBOARDING] Error starting onboarding:", error);
+    throw error;
+  }
+};
+
+/**
+ * Soumet les informations personnelles (Étape 1/6)
+ * @param info Données personnelles (prénom, nom, date de naissance, email, téléphone)
+ * @param businessType Type d'entreprise pour adapter le payload
+ */
+export const submitPersonalInfo = async (
+  info: {
+    first_name: string;
+    last_name: string;
+    dob_day: number;
+    dob_month: number;
+    dob_year: number;
+    email: string;
+    phone: string;
+    // For company type
+    company_name?: string;
+    tax_id?: string;
+  },
+  businessType: "individual" | "company" = "individual",
+): Promise<{
+  progress: number;
+  onboarding_progress?: number;
+  next_step?: string;
+}> => {
   try {
     console.log("👤 [ONBOARDING] Submitting personal info...");
 
-    // Transform dob_* fields into dob string (YYYY-MM-DD format)
-    const dobString = `${info.dob_year}-${String(info.dob_month).padStart(2, "0")}-${String(info.dob_day).padStart(2, "0")}`;
+    // Build payload based on business type
+    let payload: any;
 
-    const payload = {
-      first_name: info.first_name,
-      last_name: info.last_name,
-      dob: dobString,
-      email: info.email,
-      phone: info.phone,
-    };
+    if (businessType === "company" && info.company_name) {
+      // Company: send company info
+      payload = {
+        company: {
+          name: info.company_name,
+          tax_id: info.tax_id || "",
+        },
+      };
+    } else {
+      // Individual: send personal info with dob as object
+      payload = {
+        first_name: info.first_name,
+        last_name: info.last_name,
+        email: info.email,
+        phone: info.phone,
+        dob: {
+          day: info.dob_day,
+          month: info.dob_month,
+          year: info.dob_year,
+        },
+      };
+    }
 
     console.log("📤 [ONBOARDING] Payload:", payload);
+    console.log("🧾 [ONBOARDING] Payload fields:", Object.keys(payload));
 
     const response = await fetchWithAuth(
       `${ServerData.serverUrl}v1/stripe/onboarding/personal-info`,
@@ -2730,10 +3161,14 @@ export const submitPersonalInfo = async (info: {
     const data = await response.json();
     console.log(
       "✅ [ONBOARDING] Personal info submitted, progress:",
-      data.progress,
+      data.onboarding_progress || data.progress,
     );
 
-    return { progress: data.progress };
+    return {
+      progress: data.onboarding_progress || data.progress,
+      onboarding_progress: data.onboarding_progress,
+      next_step: data.next_step,
+    };
   } catch (error) {
     console.error("❌ [ONBOARDING] Error submitting personal info:", error);
     throw error;
@@ -2741,8 +3176,54 @@ export const submitPersonalInfo = async (info: {
 };
 
 /**
- * Soumet l'adresse (Étape 2/5)
- * @param address Adresse de résidence (ligne1, ligne2, ville, état, code postal)
+ * Soumet le profil business (MCC, site, description)
+ * @param profile Donnees de profil business
+ */
+export const submitBusinessProfile = async (profile: {
+  mcc: string;
+  url: string;
+  product_description: string;
+}): Promise<{ progress: number }> => {
+  try {
+    console.log("🏷️ [ONBOARDING] Submitting business profile...");
+
+    const response = await fetchWithAuth(
+      `${ServerData.serverUrl}v1/stripe/onboarding/business-profile`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(profile),
+      },
+    );
+
+    console.log(`📡 [ONBOARDING] Response status: ${response.status}`);
+
+    if (!response.ok) {
+      const errorData = await response
+        .json()
+        .catch(() => ({ error: "Unknown error" }));
+      console.error(`❌ [ONBOARDING] Error response:`, errorData);
+      throw new Error(errorData.error || "Failed to submit business profile");
+    }
+
+    const data = await response.json();
+    console.log(
+      "✅ [ONBOARDING] Business profile submitted, progress:",
+      data.progress,
+    );
+
+    return { progress: data.progress };
+  } catch (error) {
+    console.error("❌ [ONBOARDING] Error submitting business profile:", error);
+    throw error;
+  }
+};
+
+/**
+ * Soumet l'adresse (Étape 3/6)
+ * @param address Adresse de résidence (ligne1, ligne2, ville, état, code postal, pays)
  */
 export const submitAddress = async (address: {
   line1: string;
@@ -2750,9 +3231,20 @@ export const submitAddress = async (address: {
   city: string;
   state: string;
   postal_code: string;
-}): Promise<{ progress: number }> => {
+  country?: string;
+}): Promise<{
+  progress: number;
+  onboarding_progress?: number;
+  next_step?: string;
+}> => {
   try {
     console.log("🏠 [ONBOARDING] Submitting address...");
+
+    // Ensure country is included (default to AU for Australia)
+    const payload = {
+      ...address,
+      country: address.country || "AU",
+    };
 
     const response = await fetchWithAuth(
       `${ServerData.serverUrl}v1/stripe/onboarding/address`,
@@ -2761,7 +3253,7 @@ export const submitAddress = async (address: {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(address),
+        body: JSON.stringify(payload),
       },
     );
 
@@ -2772,13 +3264,22 @@ export const submitAddress = async (address: {
         .json()
         .catch(() => ({ error: "Unknown error" }));
       console.error(`❌ [ONBOARDING] Error response:`, errorData);
-      throw new Error(errorData.error || "Failed to submit address");
+      throw new Error(
+        errorData.error || errorData.message || "Failed to submit address",
+      );
     }
 
     const data = await response.json();
-    console.log("✅ [ONBOARDING] Address submitted, progress:", data.progress);
+    console.log(
+      "✅ [ONBOARDING] Address submitted, progress:",
+      data.onboarding_progress || data.progress,
+    );
 
-    return { progress: data.progress };
+    return {
+      progress: data.onboarding_progress || data.progress,
+      onboarding_progress: data.onboarding_progress,
+      next_step: data.next_step,
+    };
   } catch (error) {
     console.error("❌ [ONBOARDING] Error submitting address:", error);
     throw error;
@@ -2786,16 +3287,435 @@ export const submitAddress = async (address: {
 };
 
 /**
- * Soumet les coordonnées bancaires (Étape 3/5)
- * @param bank Données bancaires (BSB, numéro de compte, nom du titulaire)
+ * Soumet les informations entreprise (raison sociale, ABN, adresse)
+ * @param company Donnees entreprise
  */
-export const submitBankAccount = async (bank: {
-  bsb: string;
-  account_number: string;
-  account_holder_name: string;
+export const submitCompanyDetails = async (company: {
+  name: string;
+  tax_id: string;
+  company_number?: string;
+  phone: string;
+  address: {
+    line1: string;
+    line2?: string;
+    city: string;
+    state: string;
+    postal_code: string;
+  };
 }): Promise<{ progress: number }> => {
   try {
+    console.log("🏢 [ONBOARDING] Submitting company details (Custom flow)...");
+
+    const personalInfoPayload = {
+      company: {
+        name: company.name,
+        tax_id: company.tax_id,
+        phone: company.phone,
+        // Backend v3: expects registration_number (keep compatibility with existing name)
+        registration_number: company.company_number,
+      },
+    };
+
+    const personalInfoResponse = await fetchWithAuth(
+      `${ServerData.serverUrl}v1/stripe/onboarding/personal-info`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(personalInfoPayload),
+      },
+    );
+
+    console.log(
+      `📡 [ONBOARDING] /personal-info (company) status: ${personalInfoResponse.status}`,
+    );
+
+    if (!personalInfoResponse.ok) {
+      const errorData = await personalInfoResponse
+        .json()
+        .catch(() => ({ error: "Unknown error" }));
+      const requiredFields = Array.isArray(errorData?.required)
+        ? errorData.required
+        : [];
+      const requiresIndividualPayload =
+        personalInfoResponse.status === 400 &&
+        requiredFields.includes("first_name") &&
+        requiredFields.includes("last_name") &&
+        requiredFields.includes("dob") &&
+        requiredFields.includes("email") &&
+        requiredFields.includes("phone");
+
+      if (requiresIndividualPayload) {
+        console.warn(
+          "⚠️ [ONBOARDING] Backend /personal-info currently expects individual payload. Skipping company payload and continuing with /address.",
+        );
+      } else {
+        console.error(
+          `❌ [ONBOARDING] Error response (/personal-info company):`,
+          errorData,
+        );
+        throw new Error(
+          errorData.error ||
+            errorData.message ||
+            "Failed to submit company info",
+        );
+      }
+    }
+
+    const addressPayload = {
+      line1: company.address.line1,
+      line2: company.address.line2,
+      city: company.address.city,
+      state: company.address.state,
+      postal_code: company.address.postal_code,
+      country: "AU",
+    };
+
+    const addressResponse = await fetchWithAuth(
+      `${ServerData.serverUrl}v1/stripe/onboarding/address`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(addressPayload),
+      },
+    );
+
+    console.log(`📡 [ONBOARDING] /address status: ${addressResponse.status}`);
+
+    if (!addressResponse.ok) {
+      const errorData = await addressResponse
+        .json()
+        .catch(() => ({ error: "Unknown error" }));
+      console.error(`❌ [ONBOARDING] Error response (/address):`, errorData);
+      throw new Error(
+        errorData.error ||
+          errorData.message ||
+          "Failed to submit company address",
+      );
+    }
+
+    const addressData = await addressResponse.json();
+    const progress =
+      addressData.onboarding_progress || addressData.progress || 0;
+    console.log(
+      "✅ [ONBOARDING] Company details submitted (Custom flow), progress:",
+      progress,
+    );
+    return { progress };
+  } catch (error) {
+    console.error("❌ [ONBOARDING] Error submitting company details:", error);
+    throw error;
+  }
+};
+
+/**
+ * Soumet les informations du representant legal
+ * @param representative Donnees representant
+ */
+export const submitRepresentativeDetails = async (representative: {
+  first_name: string;
+  last_name: string;
+  dob_day: number;
+  dob_month: number;
+  dob_year: number;
+  email: string;
+  phone: string;
+  address: {
+    line1: string;
+    line2?: string;
+    city: string;
+    state: string;
+    postal_code: string;
+  };
+  relationship: {
+    title: string;
+    owner: boolean;
+    director: boolean;
+    executive: boolean;
+    percent_ownership?: number;
+  };
+}): Promise<{ progress: number }> => {
+  try {
+    console.log(
+      "🧑‍💼 [ONBOARDING] Submitting representative details (Custom flow)...",
+    );
+
+    const payload = {
+      first_name: representative.first_name,
+      last_name: representative.last_name,
+      email: representative.email,
+      phone: representative.phone,
+      dob: {
+        day: representative.dob_day,
+        month: representative.dob_month,
+        year: representative.dob_year,
+      },
+      address: {
+        line1: representative.address.line1,
+        line2: representative.address.line2,
+        city: representative.address.city,
+        state: representative.address.state,
+        postal_code: representative.address.postal_code,
+        country: "AU",
+      },
+      relationship: {
+        title: representative.relationship.title,
+        owner: representative.relationship.owner,
+        director: representative.relationship.director,
+        executive: representative.relationship.executive,
+        percent_ownership: representative.relationship.percent_ownership,
+      },
+    };
+
+    const response = await fetchWithAuth(
+      `${ServerData.serverUrl}v1/stripe/onboarding/personal-info`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      },
+    );
+
+    console.log(`📡 [ONBOARDING] /personal-info status: ${response.status}`);
+
+    if (!response.ok) {
+      const errorData = await response
+        .json()
+        .catch(() => ({ error: "Unknown error" }));
+      const requiredFields = Array.isArray(errorData?.required)
+        ? errorData.required
+        : [];
+      const accountBusinessType = errorData?.details?.accountBusinessType;
+      const requiresCompanyPayload =
+        response.status === 400 &&
+        accountBusinessType === "company" &&
+        requiredFields.includes("company.name");
+
+      if (requiresCompanyPayload) {
+        console.warn(
+          "⚠️ [ONBOARDING] Backend /personal-info expects company payload on representative step. Retrying with compatibility payload.",
+        );
+
+        const currentAccount = await fetchStripeAccount();
+        const fallbackCompanyName =
+          currentAccount?.business_name ||
+          `${representative.first_name} ${representative.last_name}`.trim();
+
+        const companyFallbackResponse = await fetchWithAuth(
+          `${ServerData.serverUrl}v1/stripe/onboarding/personal-info`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              company: {
+                name: fallbackCompanyName,
+              },
+            }),
+          },
+        );
+
+        console.log(
+          `📡 [ONBOARDING] /personal-info fallback(company) status: ${companyFallbackResponse.status}`,
+        );
+
+        if (!companyFallbackResponse.ok) {
+          const fallbackErrorData = await companyFallbackResponse
+            .json()
+            .catch(() => ({ error: "Unknown error" }));
+          console.error(
+            "❌ [ONBOARDING] Error response (/personal-info representative fallback):",
+            fallbackErrorData,
+          );
+          throw new Error(
+            fallbackErrorData.error ||
+              fallbackErrorData.message ||
+              "Failed to submit representative details",
+          );
+        }
+
+        const fallbackData = await companyFallbackResponse.json();
+        const fallbackProgress =
+          fallbackData.onboarding_progress || fallbackData.progress || 0;
+        console.log(
+          "✅ [ONBOARDING] Representative step accepted via compatibility fallback, progress:",
+          fallbackProgress,
+        );
+        return { progress: fallbackProgress };
+      }
+
+      console.error(
+        `❌ [ONBOARDING] Error response (/personal-info representative):`,
+        errorData,
+      );
+      throw new Error(
+        errorData.error ||
+          errorData.message ||
+          "Failed to submit representative details",
+      );
+    }
+
+    const data = await response.json();
+    const progress = data.onboarding_progress || data.progress || 0;
+    console.log(
+      "✅ [ONBOARDING] Representative details submitted (Custom flow), progress:",
+      progress,
+    );
+    return { progress };
+  } catch (error) {
+    console.error(
+      "❌ [ONBOARDING] Error submitting representative details:",
+      error,
+    );
+    throw error;
+  }
+};
+
+type StripePersonPayload = {
+  first_name: string;
+  last_name: string;
+  dob: string; // YYYY-MM-DD
+  email: string;
+  phone?: string;
+  title?: string;
+  percent_ownership?: number;
+  address?: {
+    line1: string;
+    line2?: string;
+    city: string;
+    state: string;
+    postal_code: string;
+  };
+};
+
+/**
+ * Soumet les persons company (Owners/Directors/Executives/Representative)
+ * Endpoint v3: POST /v1/stripe/onboarding/persons
+ */
+export const submitCompanyPersons = async (payload: {
+  representative: StripePersonPayload;
+  owners?: StripePersonPayload[];
+  directors?: StripePersonPayload[];
+  executives?: StripePersonPayload[];
+  no_owners?: boolean;
+}): Promise<{
+  success: boolean;
+  progress?: number;
+  onboarding_progress?: number;
+  next_step?: string;
+  request_id?: string;
+  person_id?: string;
+  roles_applied?: string[];
+  requirements_pending?: string[];
+  requirements?: {
+    currently_due?: string[];
+    eventually_due?: string[];
+    past_due?: string[];
+  };
+}> => {
+  console.log("👥 [ONBOARDING] Submitting company persons...");
+
+  const response = await fetchWithAuth(
+    `${ServerData.serverUrl}v1/stripe/onboarding/persons`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    },
+  );
+
+  console.log(`📡 [ONBOARDING] /persons status: ${response.status}`);
+
+  const data = await response.json().catch(() => ({ success: false }));
+  if (!response.ok || data?.success === false) {
+    console.error("❌ [ONBOARDING] Error response (/persons):", data);
+    throw new Error(
+      data?.error || data?.message || "Failed to submit company persons",
+    );
+  }
+
+  if (data?.request_id) {
+    console.log(`🧾 [ONBOARDING] /persons request_id: ${data.request_id}`);
+  }
+
+  if (data?.person_id) {
+    try {
+      await SecureStore.setItemAsync(
+        "stripe_onboarding_person_id",
+        String(data.person_id),
+      );
+      console.log(`💾 [ONBOARDING] Stored person_id: ${data.person_id}`);
+    } catch (storeError) {
+      console.warn("⚠️ [ONBOARDING] Failed to store person_id:", storeError);
+    }
+  }
+
+  return data;
+};
+
+/**
+ * Soumet les coordonnées bancaires (Étape 5/6)
+ * @param bank Données bancaires - supporte IBAN (EU) ou BSB/account (AU)
+ */
+export const submitBankAccount = async (bank: {
+  // IBAN format (Europe)
+  iban?: string;
+  // AU format (BSB + account number)
+  bsb?: string;
+  account_number?: string;
+  routing_number?: string;
+  // Common
+  account_holder_name: string;
+  country?: string;
+  currency?: string;
+}): Promise<{
+  progress: number;
+  onboarding_progress?: number;
+  next_step?: string;
+}> => {
+  try {
     console.log("💳 [ONBOARDING] Submitting bank account...");
+
+    // Build payload based on what's provided
+    let payload: any = {
+      account_holder_name: bank.account_holder_name,
+    };
+
+    if (bank.iban) {
+      // European IBAN format
+      payload.iban = bank.iban;
+    } else if (bank.bsb && bank.account_number) {
+      // Australian BSB format
+      payload.account_number = bank.account_number;
+      payload.bsb = bank.bsb.replace(/-/g, ""); // Backend contract expects bsb
+      payload.routing_number = payload.bsb; // Compatibility for backends still reading routing_number
+      payload.country = bank.country || "AU";
+      payload.currency = bank.currency || "aud";
+    } else if (bank.account_number && bank.routing_number) {
+      // US/other format
+      payload.account_number = bank.account_number;
+      payload.routing_number = bank.routing_number;
+      payload.country = bank.country || "US";
+      payload.currency = bank.currency || "usd";
+
+      // Compatibility: if country AU and only routing_number is provided, map it to bsb too
+      if ((payload.country || "").toUpperCase() === "AU") {
+        payload.bsb = String(bank.routing_number).replace(/-/g, "");
+      }
+    }
+
+    console.log("📤 [ONBOARDING] Bank payload:", {
+      ...payload,
+      account_number: "***",
+    });
 
     const response = await fetchWithAuth(
       `${ServerData.serverUrl}v1/stripe/onboarding/bank-account`,
@@ -2804,7 +3724,7 @@ export const submitBankAccount = async (bank: {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(bank),
+        body: JSON.stringify(payload),
       },
     );
 
@@ -2814,17 +3734,70 @@ export const submitBankAccount = async (bank: {
       const errorData = await response
         .json()
         .catch(() => ({ error: "Unknown error" }));
+
+      const requiredFields = Array.isArray(errorData?.required)
+        ? errorData.required
+        : [];
+      const requiresBsb =
+        response.status === 400 && requiredFields.includes("bsb");
+
+      if (requiresBsb && payload.routing_number && !payload.bsb) {
+        console.warn(
+          "⚠️ [ONBOARDING] Backend requires bsb. Retrying bank-account with bsb compatibility field.",
+        );
+
+        const retryPayload = {
+          ...payload,
+          bsb: String(payload.routing_number).replace(/-/g, ""),
+        };
+
+        const retryResponse = await fetchWithAuth(
+          `${ServerData.serverUrl}v1/stripe/onboarding/bank-account`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(retryPayload),
+          },
+        );
+
+        console.log(
+          `📡 [ONBOARDING] Retry /bank-account status: ${retryResponse.status}`,
+        );
+
+        if (retryResponse.ok) {
+          const retryData = await retryResponse.json();
+          return {
+            progress: retryData.onboarding_progress || retryData.progress,
+            onboarding_progress: retryData.onboarding_progress,
+            next_step: retryData.next_step,
+          };
+        }
+
+        const retryErrorData = await retryResponse
+          .json()
+          .catch(() => ({ error: "Unknown error" }));
+        console.error("❌ [ONBOARDING] Retry error response:", retryErrorData);
+      }
+
       console.error(`❌ [ONBOARDING] Error response:`, errorData);
-      throw new Error(errorData.error || "Failed to submit bank account");
+      throw new Error(
+        errorData.error || errorData.message || "Failed to submit bank account",
+      );
     }
 
     const data = await response.json();
     console.log(
       "✅ [ONBOARDING] Bank account submitted, progress:",
-      data.progress,
+      data.onboarding_progress || data.progress,
     );
 
-    return { progress: data.progress };
+    return {
+      progress: data.onboarding_progress || data.progress,
+      onboarding_progress: data.onboarding_progress,
+      next_step: data.next_step,
+    };
   } catch (error) {
     console.error("❌ [ONBOARDING] Error submitting bank account:", error);
     throw error;
@@ -2832,62 +3805,185 @@ export const submitBankAccount = async (bank: {
 };
 
 /**
- * Upload un document d'identité (Étape 4/5)
- * @param imageUri URI de l'image capturée
- * @param documentType Type de document ("passport" ou "drivers_license")
- * @param side Face du document ("front" ou "back", requis pour drivers_license)
+ * Upload documents d'identité (Étape 4/6)
+ * @param frontImageUri URI de l'image recto
+ * @param backImageUri URI de l'image verso (optionnel pour passeport)
+ * @param documentType Type de document ("passport" | "id_card" | "driving_license")
  */
 export const uploadDocument = async (
-  imageUri: string,
-  documentType: "passport" | "drivers_license",
-  side?: "front" | "back",
-): Promise<{ progress: number; fileId: string }> => {
+  frontImageUri: string,
+  documentType: "passport" | "id_card" | "driving_license",
+  backImageUri?: string,
+): Promise<{
+  progress: number;
+  onboarding_progress?: number;
+  next_step?: string;
+}> => {
   try {
-    console.log(
-      `📸 [ONBOARDING] Uploading document: ${documentType} (${side || "N/A"})...`,
-    );
+    console.log(`📸 [ONBOARDING] Uploading document: ${documentType}...`);
 
-    // Créer le FormData
-    const formData = new FormData();
+    const createFileObject = (uri: string, name: string) => ({
+      uri,
+      type: "image/jpeg",
+      name,
+    });
 
-    // Fetch l'image et créer un blob
-    const response = await fetch(imageUri);
-    const blob = await response.blob();
+    const personId = await SecureStore.getItemAsync(
+      "stripe_onboarding_person_id",
+    ).catch(() => null);
 
-    // Ajouter le fichier au FormData
-    formData.append("document", blob as any, "identity.jpg");
-    formData.append("document_type", documentType);
-    if (side) {
+    const appendPersonIdAliases = (formData: FormData, id: string) => {
+      // Different backend versions may use different param names.
+      // These are non-file fields, safe with Multer.
+      formData.append("person_id", id);
+      formData.append("personId", id);
+      formData.append("person", id);
+      formData.append("stripe_person_id", id);
+      formData.append("stripePersonId", id);
+      formData.append("stripe_person", id);
+      formData.append("stripePerson", id);
+    };
+
+    const extractRequiredFields = (body: any): string[] => {
+      if (!body || typeof body !== "object") return [];
+      if (Array.isArray((body as any).required)) {
+        return (body as any).required.filter((v: any) => typeof v === "string");
+      }
+      if (Array.isArray((body as any).errors)) {
+        // Some backends return: { errors: [{ field: "..." }, ...] }
+        const fields = (body as any).errors
+          .map((e: any) => e?.field)
+          .filter((v: any) => typeof v === "string");
+        return fields;
+      }
+      return [];
+    };
+
+    const summarizeBackendError = (body: any): string => {
+      if (typeof body === "string") {
+        // If HTML/plain text, keep it short
+        const compact = body.replace(/\s+/g, " ").trim();
+        return compact.length > 300 ? `${compact.slice(0, 300)}…` : compact;
+      }
+
+      if (!body || typeof body !== "object") {
+        return "Failed to upload document";
+      }
+
+      const message =
+        typeof (body as any).message === "string"
+          ? (body as any).message
+          : typeof (body as any).error_description === "string"
+            ? (body as any).error_description
+            : typeof (body as any).error === "string"
+              ? (body as any).error
+              : typeof (body as any).code === "string"
+                ? (body as any).code
+                : "Failed to upload document";
+
+      const required = extractRequiredFields(body);
+      if (required.length > 0) {
+        return `${message} (required: ${required.join(", ")})`;
+      }
+      return message;
+    };
+
+    const postFormData = async (formData: FormData) => {
+      const uploadResponse = await fetchWithAuth(
+        `${ServerData.serverUrl}v1/stripe/onboarding/document`,
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
+
+      const contentType = uploadResponse.headers.get("content-type") || "";
+      const rawText = await uploadResponse.text().catch(() => "");
+      let parsedBody: any = null;
+
+      if (rawText && contentType.includes("application/json")) {
+        try {
+          parsedBody = JSON.parse(rawText);
+        } catch {
+          parsedBody = rawText;
+        }
+      } else {
+        try {
+          parsedBody = rawText ? JSON.parse(rawText) : null;
+        } catch {
+          parsedBody = rawText || null;
+        }
+      }
+
+      return {
+        ok: uploadResponse.ok,
+        status: uploadResponse.status,
+        statusText: uploadResponse.statusText,
+        contentType,
+        body: parsedBody,
+      };
+    };
+
+    // Backend v3.2 contract: field name must be `file` and `side` must be `front|back`.
+    // Send two requests when a back image is required.
+    const uploadOneSide = async (side: "front" | "back", uri: string) => {
+      const formData = new FormData();
+
+      if (personId) {
+        appendPersonIdAliases(formData, String(personId));
+        console.log(
+          `🧾 [ONBOARDING] Attaching person_id to document: ${personId} (side=${side})`,
+        );
+      }
+
+      formData.append(
+        "file",
+        createFileObject(uri, `document_${side}.jpg`) as any,
+      );
       formData.append("side", side);
+      formData.append("document_type", documentType);
+      formData.append("documentType", documentType);
+      formData.append("type", documentType);
+
+      console.log(`📤 [ONBOARDING] /document upload side=${side} field=file`);
+      const result = await postFormData(formData);
+      console.log(`📡 [ONBOARDING] /document status: ${result.status}`);
+
+      if (!result.ok) {
+        console.error("❌ [ONBOARDING] Error response (/document):", {
+          side,
+          status: result.status,
+          statusText: result.statusText,
+          contentType: result.contentType,
+          errorData: result.body,
+        });
+        throw new Error(
+          `Upload failed (${result.status}): ${summarizeBackendError(result.body)}`,
+        );
+      }
+
+      return result.body;
+    };
+
+    const frontBody = await uploadOneSide("front", frontImageUri);
+    let lastBody: any = frontBody;
+
+    if (documentType !== "passport") {
+      if (!backImageUri) {
+        throw new Error("Back image is required for this document type");
+      }
+      lastBody = await uploadOneSide("back", backImageUri);
     }
 
-    const uploadResponse = await fetchWithAuth(
-      `${ServerData.serverUrl}v1/stripe/onboarding/document`,
-      {
-        method: "POST",
-        body: formData,
-      },
-    );
-
-    console.log(`📡 [ONBOARDING] Response status: ${uploadResponse.status}`);
-
-    if (!uploadResponse.ok) {
-      const errorData = await uploadResponse
-        .json()
-        .catch(() => ({ error: "Unknown error" }));
-      console.error(`❌ [ONBOARDING] Error response:`, errorData);
-      throw new Error(errorData.error || "Failed to upload document");
-    }
-
-    const data = await uploadResponse.json();
+    const data = lastBody && typeof lastBody === "object" ? lastBody : {};
     console.log(
-      "✅ [ONBOARDING] Document uploaded, file_id:",
-      data.stripe_file_id,
+      "✅ [ONBOARDING] Document uploaded, progress:",
+      (data as any).onboarding_progress || (data as any).progress,
     );
-
     return {
-      progress: data.progress,
-      fileId: data.stripe_file_id,
+      progress: (data as any).onboarding_progress || (data as any).progress,
+      onboarding_progress: (data as any).onboarding_progress,
+      next_step: (data as any).next_step,
     };
   } catch (error) {
     console.error("❌ [ONBOARDING] Error uploading document:", error);
@@ -2896,6 +3992,192 @@ export const uploadDocument = async (
 };
 
 /**
+ * Vérifie et finalise l'onboarding (Étape 6/6)
+ * @returns Statut du compte après vérification
+ */
+export const verifyOnboarding = async (
+  tosAcceptance?: boolean,
+): Promise<{
+  success: boolean;
+  onboarding_progress: number;
+  onboarding_complete: boolean;
+  charges_enabled: boolean;
+  payouts_enabled: boolean;
+  requirements?: {
+    currently_due: string[];
+    eventually_due: string[];
+    past_due: string[];
+  };
+}> => {
+  try {
+    console.log("🎉 [ONBOARDING] Verifying onboarding...");
+
+    const normalizeVerifyResponse = (raw: any) => {
+      const pendingRequirements = Array.isArray(raw?.requirements_pending)
+        ? raw.requirements_pending
+        : Array.isArray(raw?.requirementsPending)
+          ? raw.requirementsPending
+          : [];
+
+      // Backend v3: /verify is a check-only endpoint (no finalize). Requirements can be
+      // returned in different shapes depending on backend version.
+      const requirements = {
+        currently_due:
+          raw?.requirements?.currently_due ||
+          raw?.currently_due ||
+          pendingRequirements ||
+          [],
+        eventually_due:
+          raw?.requirements?.eventually_due || raw?.eventually_due || [],
+        past_due: raw?.requirements?.past_due || raw?.past_due || [],
+      };
+
+      const onboardingComplete =
+        typeof raw?.onboarding_complete === "boolean"
+          ? raw.onboarding_complete
+          : requirements.currently_due.length === 0;
+
+      const onboardingProgress =
+        raw?.onboarding_progress ??
+        raw?.progress ??
+        (onboardingComplete ? 100 : 0);
+
+      return {
+        success: raw?.success !== false,
+        onboarding_progress: onboardingProgress,
+        onboarding_complete: onboardingComplete,
+        charges_enabled:
+          raw?.charges_enabled ?? raw?.account_status?.charges_enabled ?? false,
+        payouts_enabled:
+          raw?.payouts_enabled ?? raw?.account_status?.payouts_enabled ?? false,
+        requirements,
+      };
+    };
+
+    const response = await fetchWithAuth(
+      `${ServerData.serverUrl}v1/stripe/onboarding/verify`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({}),
+      },
+    );
+
+    console.log(`📡 [ONBOARDING] Response status: ${response.status}`);
+
+    if (!response.ok) {
+      const errorData = await response
+        .json()
+        .catch(() => ({ error: "Unknown error" }));
+
+      const requiredFields = Array.isArray((errorData as any)?.required)
+        ? (errorData as any).required
+        : [];
+      const errorMessage =
+        (errorData as any)?.message || (errorData as any)?.error || "";
+      const requiresTosAcceptance =
+        response.status === 400 &&
+        (requiredFields.includes("tos_acceptance") ||
+          String(errorMessage)
+            .toLowerCase()
+            .includes("terms of service must be accepted"));
+
+      if (requiresTosAcceptance && tosAcceptance) {
+        console.warn(
+          "⚠️ [ONBOARDING] /verify still requires ToS finalization. Falling back to /complete, then retrying /verify.",
+        );
+
+        try {
+          const completion = await completeOnboarding(true);
+
+          const retryResponse = await fetchWithAuth(
+            `${ServerData.serverUrl}v1/stripe/onboarding/verify`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({}),
+            },
+          );
+
+          console.log(
+            `📡 [ONBOARDING] Retry /verify status: ${retryResponse.status}`,
+          );
+
+          if (retryResponse.ok) {
+            const retryData = await retryResponse.json();
+            return normalizeVerifyResponse(retryData);
+          }
+
+          console.warn(
+            "⚠️ [ONBOARDING] /verify retry still failing, returning normalized /complete result.",
+          );
+          return {
+            success: true,
+            onboarding_progress: completion.progress,
+            onboarding_complete: completion.progress >= 100,
+            charges_enabled: completion.accountStatus.charges_enabled,
+            payouts_enabled: completion.accountStatus.payouts_enabled,
+            requirements: {
+              currently_due: [],
+              eventually_due: [],
+              past_due: [],
+            },
+          };
+        } catch (fallbackError) {
+          console.error(
+            "❌ [ONBOARDING] Fallback /complete failed:",
+            fallbackError,
+          );
+        }
+      }
+
+      console.error(`❌ [ONBOARDING] Error response:`, errorData);
+      throw new Error(
+        (errorData as any).error ||
+          (errorData as any).message ||
+          "Failed to verify onboarding",
+      );
+    }
+
+    const data = await response.json();
+    const normalizedData = normalizeVerifyResponse(data);
+    console.log("✅ [ONBOARDING] Verification complete:", {
+      progress: normalizedData.onboarding_progress,
+      complete: normalizedData.onboarding_complete,
+      charges_enabled: normalizedData.charges_enabled,
+      payouts_enabled: normalizedData.payouts_enabled,
+    });
+
+    try {
+      console.log(
+        "🧾 [ONBOARDING] Requirements snapshot:",
+        JSON.stringify(
+          {
+            currently_due: normalizedData.requirements?.currently_due || [],
+            past_due: normalizedData.requirements?.past_due || [],
+            eventually_due: normalizedData.requirements?.eventually_due || [],
+          },
+          null,
+          2,
+        ),
+      );
+    } catch {
+      // ignore
+    }
+
+    return normalizedData;
+  } catch (error) {
+    console.error("❌ [ONBOARDING] Error verifying onboarding:", error);
+    throw error;
+  }
+};
+
+/**
+ * @deprecated Utiliser verifyOnboarding() à la place
  * Finalise l'onboarding (Étape 5/5)
  * @param tosAccepted Acceptation des CGU Stripe (doit être true)
  */
@@ -2930,11 +4212,34 @@ export const completeOnboarding = async (
     console.log(`📡 [ONBOARDING] Response status: ${response.status}`);
 
     if (!response.ok) {
-      const errorData = await response
-        .json()
-        .catch(() => ({ error: "Unknown error" }));
-      console.error(`❌ [ONBOARDING] Error response:`, errorData);
-      throw new Error(errorData.error || "Failed to complete onboarding");
+      const contentType = response.headers.get("content-type") || "unknown";
+      const rawText = await response.text();
+      let errorData: unknown = null;
+
+      if (rawText) {
+        try {
+          errorData = JSON.parse(rawText);
+        } catch {
+          errorData = rawText;
+        }
+      }
+
+      console.error(
+        `❌ [ONBOARDING] Error response (${response.status} ${response.statusText}):`,
+        {
+          contentType,
+          error: errorData ?? "Empty body",
+        },
+      );
+
+      const errorMessage =
+        typeof errorData === "object" && errorData !== null
+          ? (errorData as { error?: string }).error
+          : typeof errorData === "string"
+            ? errorData
+            : "Failed to complete onboarding";
+
+      throw new Error(errorMessage || "Failed to complete onboarding");
     }
 
     const data = await response.json();

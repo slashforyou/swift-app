@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { DESIGN_TOKENS } from '../../../constants/Styles';
 import { useTheme } from '../../../context/ThemeProvider';
+import { useTranslation } from '../../../localization';
 import { Contractor } from '../../../types/staff';
 import { HStack, VStack } from '../../primitives/Stack';
 
@@ -29,6 +30,7 @@ type SearchStep = 'search' | 'results' | 'contract';
 
 export default function AddContractorModal({ visible, onClose, onSearch, onAdd }: AddContractorModalProps) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const [step, setStep] = useState<SearchStep>('search');
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<Contractor[]>([]);
@@ -45,7 +47,7 @@ export default function AddContractorModal({ visible, onClose, onSearch, onAdd }
 
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
-      Alert.alert('Erreur', 'Veuillez saisir un nom ou un ABN');
+      Alert.alert(t('businessModals.addContractor.errorTitle'), t('businessModals.addContractor.missingSearchTerm'));
       return;
     }
 
@@ -56,11 +58,11 @@ export default function AddContractorModal({ visible, onClose, onSearch, onAdd }
       setStep('results');
 
       if (results.length === 0) {
-        Alert.alert('Aucun résultat', 'Aucun prestataire trouvé avec ces critères');
+        Alert.alert(t('businessModals.addContractor.noResultsTitle'), t('businessModals.addContractor.noResultsMessage'));
       }
     } catch (error) {
 
-      Alert.alert('Erreur', 'Erreur lors de la recherche');
+      Alert.alert(t('businessModals.addContractor.errorTitle'), t('businessModals.addContractor.searchError'));
     } finally {
       setIsLoading(false);
     }
@@ -79,13 +81,17 @@ export default function AddContractorModal({ visible, onClose, onSearch, onAdd }
       await onAdd(selectedContractor.id, contractStatus);
       
       Alert.alert(
-        'Prestataire ajouté',
-        `${selectedContractor.firstName} ${selectedContractor.lastName} a été ajouté à votre staff avec le statut ${contractStatuses.find(s => s.key === contractStatus)?.label}.`,
-        [{ text: 'OK', onPress: handleClose }]
+        t('businessModals.addContractor.addedTitle'),
+        t('businessModals.addContractor.addedMessage', {
+          firstName: selectedContractor.firstName,
+          lastName: selectedContractor.lastName,
+          status: contractStatuses.find(s => s.key === contractStatus)?.label,
+        }),
+        [{ text: t('common.ok'), onPress: handleClose }]
       );
     } catch (error) {
 
-      Alert.alert('Erreur', 'Impossible d\'ajouter le prestataire');
+      Alert.alert(t('businessModals.addContractor.errorTitle'), t('businessModals.addContractor.addError'));
     } finally {
       setIsLoading(false);
     }

@@ -5,19 +5,22 @@
 import React, { useState } from "react";
 import { View } from "react-native";
 import { JobStepHistoryCard } from "../../components/jobDetails/JobStepHistoryCard";
+import JobSummarySkeleton from "../../components/jobDetails/JobSummarySkeleton";
 import JobTimerDisplay from "../../components/jobDetails/JobTimerDisplay";
 import ImprovedNoteModal from "../../components/jobDetails/modals/ImprovedNoteModal";
-import JobStepAdvanceModal from "../../components/jobDetails/modals/JobStepAdvanceModal";
 import PhotoSelectionModal from "../../components/jobDetails/modals/PhotoSelectionModal";
 import AddressesSection from "../../components/jobDetails/sections/AddressesSection";
 import ClientDetailsSection from "../../components/jobDetails/sections/ClientDetailsSection";
 import CompanyDetailsSection from "../../components/jobDetails/sections/CompanyDetailsSection";
-import ContactDetailsSection from "../../components/jobDetails/sections/ContactDetailsSection";
+import FinancialSummarySection from "../../components/jobDetails/sections/FinancialSummarySection";
+import JobStatusBanner from "../../components/jobDetails/sections/JobStatusBanner";
 import QuickActionsSection from "../../components/jobDetails/sections/QuickActionsSection";
+import SignaturePreviewSection from "../../components/jobDetails/sections/SignaturePreviewSection";
+import StaffingBannerSection from "../../components/jobDetails/sections/StaffingBannerSection";
 import TimeWindowsSection from "../../components/jobDetails/sections/TimeWindowsSection";
-import TruckDetailsSection from "../../components/jobDetails/sections/TruckDetailsSection";
+import TransferBannerSection from "../../components/jobDetails/sections/TransferBannerSection";
+
 import SigningBloc from "../../components/signingBloc";
-import { useJobTimerContext } from "../../context/JobTimerProvider";
 import { useTheme } from "../../context/ThemeProvider";
 import { useToast } from "../../context/ToastProvider";
 import { useAnalytics } from "../../hooks/useAnalytics";
@@ -25,37 +28,28 @@ import { useJobNotes } from "../../hooks/useJobNotes";
 import { useJobPhotos } from "../../hooks/useJobPhotos";
 import { useLocalization } from "../../localization/useLocalization";
 import { saveJobSignature } from "../../services/jobDetails";
-import { updateJobStep } from "../../services/jobSteps";
+import type { JobSummaryData } from "../../types/jobSummary";
 
 const JobSummary = ({
   job,
   setJob,
   onOpenPaymentPanel,
+  isLoading = false,
+  onRefresh,
 }: {
-  job: any;
-  setJob: React.Dispatch<React.SetStateAction<any>>;
+  job: JobSummaryData;
+  setJob: React.Dispatch<React.SetStateAction<JobSummaryData>>;
   onOpenPaymentPanel?: () => void;
+  isLoading?: boolean;
+  onRefresh?: () => void;
 }) => {
   const [isSigningVisible, setIsSigningVisible] = useState(false);
   const [isPhotoModalVisible, setIsPhotoModalVisible] = useState(false);
   const [isNoteModalVisible, setIsNoteModalVisible] = useState(false);
-  const [isStepAdvanceModalVisible, setIsStepAdvanceModalVisible] =
-    useState(false);
 
   const { t } = useLocalization();
   const { colors } = useTheme();
   const { track } = useAnalytics("job_summary", "job_details");
-
-  // ✅ Utiliser le context du timer pour avoir les steps en temps réel
-  const { currentStep, totalSteps, nextStep } = useJobTimerContext();
-
-  // 🔍 DEBUG: Surveiller les changements de job.step
-  React.useEffect(() => {
-    console.log("🔍 [SUMMARY] job.step changed:", {
-      actualStep: job?.step?.actualStep,
-      contextCurrentStep: currentStep,
-    });
-  }, [job?.step, currentStep]);
 
   // Hooks pour la gestion des notes et photos
   const { addNote } = useJobNotes(job?.id);
@@ -63,14 +57,7 @@ const JobSummary = ({
   const { showSuccess, showError } = useToast();
 
   const handleSignContract = () => {
-    console.log("✍️ [SUMMARY_ACTION] handleSignContract called", {
-      jobId: job?.id,
-      jobCode: job?.code,
-    });
-    track.userAction("contract_signing_opened", {
-      jobId: job?.id,
-      jobCode: job?.code,
-    });
+    track.userAction("contract_signing_opened", { jobId: job?.id });
     setIsSigningVisible(true);
   };
 
@@ -80,18 +67,8 @@ const JobSummary = ({
     note_type: "general" | "important" | "client" | "internal" = "general",
     title?: string,
   ) => {
-    console.log("📝 [SUMMARY_ACTION] handleAddNote called", {
-      jobId: job?.id,
-      note_type,
-      content_length: content.length,
-      hasTitle: !!title,
-    });
     try {
-      track.userAction("note_add_started", {
-        jobId: job?.id,
-        note_type: note_type,
-        content_length: content.length,
-      });
+      track.userAction("note_add_started", { jobId: job?.id, note_type });
 
       const result = await addNote({
         title:
@@ -102,10 +79,9 @@ const JobSummary = ({
       });
 
       if (result) {
-        console.log("✅ [SUMMARY_ACTION] Note added successfully");
         track.businessEvent("note_added", {
           jobId: job?.id,
-          note_type: note_type,
+          note_type,
           success: true,
         });
         showSuccess(
@@ -117,12 +93,10 @@ const JobSummary = ({
         throw new Error(t("jobDetails.messages.noteAddErrorMessage"));
       }
     } catch (error) {
-      console.error("❌ [SUMMARY_ACTION] Error adding note:", error);
       track.error("api_error", `Failed to add note: ${error}`, {
         jobId: job?.id,
-        note_type: note_type,
+        note_type,
       });
-      console.error("Error adding note:", error);
       showError(
         t("jobDetails.messages.noteAddError"),
         t("jobDetails.messages.noteAddErrorMessage"),
@@ -133,22 +107,14 @@ const JobSummary = ({
 
   // Gestion des photos avec API
   const handlePhotoSelected = async (photoUri: string) => {
-    console.log("📸 [SUMMARY_ACTION] handlePhotoSelected called", {
-      jobId: job?.id,
-      photoUri: photoUri.substring(0, 50),
-    });
     try {
-      track.userAction("photo_upload_started", {
-        jobId: job?.id,
-        photo_uri: photoUri.substring(0, 50), // Partial URI for privacy
-      });
+      track.userAction("photo_upload_started", { jobId: job?.id });
 
       const result = await uploadPhoto(
         photoUri,
         `${t("jobDetails.messages.photoDescription")} ${job?.id || "N/A"}`,
       );
       if (result) {
-        console.log("✅ [SUMMARY_ACTION] Photo uploaded successfully");
         track.businessEvent("photo_uploaded", {
           jobId: job?.id,
           success: true,
@@ -161,131 +127,10 @@ const JobSummary = ({
         throw new Error(t("jobDetails.messages.photoAddErrorMessage"));
       }
     } catch (error) {
-      console.error("❌ [SUMMARY_ACTION] Error uploading photo:", error);
-      console.error("Error uploading photo:", error);
       showError(
         t("jobDetails.messages.photoAddError"),
         t("jobDetails.messages.photoAddErrorMessage"),
       );
-    }
-  };
-
-  // ✅ Gestion de l'avancement des étapes avec nouvelle API backend
-  const handleAdvanceStep = async (targetStep: number) => {
-    console.log("⏭️ [SUMMARY_ACTION] handleAdvanceStep called", {
-      jobId: job?.id,
-      currentStep: job?.step?.actualStep,
-      targetStep,
-      contextCurrentStep: currentStep,
-    });
-    try {
-      // Utiliser l'ID numérique du job pour l'API
-      const jobId = job?.id?.toString();
-
-      console.log("📊 [SUMMARY_ACTION] Preparing API call", {
-        jobId: jobId,
-        targetStep,
-        jobKeys: job ? Object.keys(job) : "no job",
-      });
-
-      if (!jobId) {
-        throw new Error("No job ID available");
-      }
-
-      console.log(
-        `📡 [SUMMARY_ACTION] Calling updateJobStep API for job ${jobId}, step ${targetStep}`,
-      );
-
-      const response = await updateJobStep(jobId, targetStep);
-
-      if (response.success) {
-        console.log(
-          `✅ [SUMMARY_ACTION] Step updated successfully:`,
-          response.data,
-        );
-
-        // ✅ Mettre à jour l'objet job local
-        setJob((prevJob: any) => {
-          const updatedJob = {
-            ...prevJob,
-            step: {
-              ...prevJob.step,
-              actualStep: targetStep,
-            },
-          };
-
-          console.log("🔍 [SUMMARY_ACTION] Job updated locally:", {
-            oldStep: prevJob?.step?.actualStep,
-            newStep: targetStep,
-          });
-
-          return updatedJob;
-        });
-
-        showSuccess(
-          t("jobDetails.messages.nextStep"),
-          `${t("jobDetails.messages.advancedToStep")} ${targetStep}`,
-        );
-      } else {
-        console.error(
-          "❌ [SUMMARY_ACTION] API returned error:",
-          response.error,
-        );
-        showError(
-          t("jobDetails.messages.syncError"),
-          response.error || t("jobDetails.messages.syncErrorMessage"),
-        );
-        throw new Error(response.error);
-      }
-
-      return Promise.resolve();
-    } catch (error) {
-      console.error("❌ [SUMMARY_ACTION] Error advancing step:", error);
-      showError(
-        t("jobDetails.messages.stepUpdateError"),
-        t("jobDetails.messages.stepUpdateErrorMessage"),
-      );
-      throw error;
-    }
-  };
-
-  // ✅ FIX BOUCLE INFINIE: Fonction simple pour avancer à l'étape suivante
-  // Ne plus appeler handleAdvanceStep car nextStep() fait déjà tout:
-  // 1. Met à jour le timer local
-  // 2. Appelle syncStepToBackend (API)
-  // 3. Appelle onStepChange (met à jour job local via jobDetails)
-  const handleNextStep = async () => {
-    console.log("⏭️ [SUMMARY_ACTION] handleNextStep called", {
-      jobId: job?.id,
-      currentStep,
-      totalSteps,
-      willAdvanceTo: currentStep + 1,
-    });
-    if (currentStep < totalSteps) {
-      try {
-        console.log("🔄 [SUMMARY_ACTION] Calling nextStep()...");
-        // ✅ nextStep() fait TOUT - pas besoin d'appeler handleAdvanceStep
-        nextStep();
-
-        // Afficher le message de succès
-        const targetStep = currentStep + 1;
-        console.log(
-          "✅ [SUMMARY_ACTION] nextStep() completed, target step:",
-          targetStep,
-        );
-        showSuccess(
-          t("jobDetails.messages.nextStep"),
-          `${t("jobDetails.messages.advancedToStep")} ${targetStep}`,
-        );
-      } catch (error) {
-        console.error("❌ [SUMMARY_ACTION] Failed to advance step:", error);
-        showError(
-          t("jobDetails.messages.stepUpdateError"),
-          t("jobDetails.messages.stepUpdateErrorMessage"),
-        );
-      }
-    } else {
-      console.log("⚠️ [SUMMARY_ACTION] Cannot advance, already at last step");
     }
   };
 
@@ -304,8 +149,6 @@ const JobSummary = ({
                 signature,
                 "client",
               );
-              // TEMP_DISABLED: console.log('📝 [SUMMARY] Signature save result:', result);
-
               if (result.success) {
                 setJob({
                   ...job,
@@ -322,10 +165,6 @@ const JobSummary = ({
                 );
               }
             } catch (error) {
-              console.error(
-                "Erreur lors de la sauvegarde de la signature:",
-                error,
-              );
               showError(
                 t("jobDetails.messages.signatureSaveError"),
                 t("jobDetails.messages.signatureSaveErrorMessage"),
@@ -353,72 +192,74 @@ const JobSummary = ({
         jobId={job?.id}
       />
 
-      {/* Modal d'avancement des étapes */}
-      <JobStepAdvanceModal
-        isVisible={isStepAdvanceModalVisible}
-        onClose={() => setIsStepAdvanceModalVisible(false)}
-        job={job}
-        onAdvanceStep={handleAdvanceStep}
-      />
-
       {/* Sections modulaires */}
       <View>
-        {/* 🆕 Module Timer + Progression fusionnés */}
-        <JobTimerDisplay
-          job={job}
-          onOpenSignatureModal={() => setIsSigningVisible(true)}
-          onOpenPaymentPanel={onOpenPaymentPanel}
-        />
+        {isLoading ? (
+          <JobSummarySkeleton />
+        ) : (
+          <>
+            {/* Bandeau de statut global */}
+            <JobStatusBanner job={job} />
 
-        {/* 📊 NOUVEAU: Afficher step_history si disponible depuis l'API */}
-        {job?.timer_info &&
-          job.timer_info.step_history &&
-          job.timer_info.step_history.length > 0 && (
-            <JobStepHistoryCard timerInfo={job.timer_info} />
-          )}
+            {/* Bandeau de délégation active */}
+            {job.active_transfer && (
+              <TransferBannerSection
+                jobId={job.id}
+                transfer={job.active_transfer}
+                isOwner={job.permissions?.is_owner ?? false}
+                canRespond={job.permissions?.can_respond_transfer ?? false}
+                onTransferUpdated={onRefresh ?? (() => {})}
+              />
+            )}
 
-        {/* 🆕 Badge de validation du step - DÉSACTIVÉ car validation déjà faite dans jobDetails.tsx */}
-        {/* La validation automatique se fait déjà au chargement du job dans jobDetails.tsx ligne 315-374 */}
-        {/* Le badge ici causait une boucle infinie car l'objet 'job' n'a pas le status synchronisé */}
-        {/*
-                <StepValidationBadge 
-                    job={job}
-                    onStepCorrected={(newStep) => {
-                        setJob((prev: any) => ({
-                            ...prev,
-                            step: { ...prev.step, actualStep: newStep }
-                        }));
-                    }}
-                />
-                */}
+            {/* Bandeau d'avancement du staffing (visible par A) */}
+            {job.staffing_status && job.staffing_status !== "unassigned" && (
+              <StaffingBannerSection
+                staffingStatus={job.staffing_status}
+                contractorName={job.contractor?.company_name}
+              />
+            )}
 
-        {/* Actions rapides */}
-        <QuickActionsSection
-          job={job}
-          setJob={setJob}
-          onAddNote={handleAddNote}
-          onShowNoteModal={() => setIsNoteModalVisible(true)}
-          onShowPhotoModal={() => setIsPhotoModalVisible(true)}
-          onShowStepAdvanceModal={() => setIsStepAdvanceModalVisible(true)}
-        />
+            {/* Timer + Progression */}
+            <JobTimerDisplay
+              job={job}
+              onOpenSignatureModal={() => setIsSigningVisible(true)}
+              onOpenPaymentPanel={onOpenPaymentPanel}
+            />
 
-        {/* Informations entreprise (Contractee/Contractor) */}
-        <CompanyDetailsSection job={job} />
+            {/* Historique des étapes (si disponible) */}
+            {job?.timer_info?.step_history?.length > 0 && (
+              <JobStepHistoryCard timerInfo={job.timer_info} />
+            )}
 
-        {/* Informations client */}
-        <ClientDetailsSection job={job} />
+            {/* Actions rapides (contextuelles : masque Appeler/GPS si job terminé) */}
+            <QuickActionsSection
+              job={job}
+              setJob={setJob}
+              onAddNote={handleAddNote}
+              onShowNoteModal={() => setIsNoteModalVisible(true)}
+              onShowPhotoModal={() => setIsPhotoModalVisible(true)}
+            />
 
-        {/* Informations contact */}
-        <ContactDetailsSection job={job} />
+            {/* Résumé financier (si données dispo) */}
+            <FinancialSummarySection job={job} />
 
-        {/* Adresses */}
-        <AddressesSection job={job} />
+            {/* Aperçu signature (si job signé) */}
+            <SignaturePreviewSection job={job} />
 
-        {/* Créneaux horaires */}
-        <TimeWindowsSection job={job} />
+            {/* Informations entreprise (Contractee/Contractor) */}
+            <CompanyDetailsSection job={job} />
 
-        {/* Détails du camion */}
-        <TruckDetailsSection job={job} />
+            {/* Informations client */}
+            <ClientDetailsSection job={job} />
+
+            {/* Adresses */}
+            <AddressesSection job={job} />
+
+            {/* Créneaux horaires */}
+            <TimeWindowsSection job={job} />
+          </>
+        )}
       </View>
     </>
   );

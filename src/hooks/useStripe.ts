@@ -1,25 +1,26 @@
 /**
  * Hooks Stripe - Hooks React pour gérer les données Stripe
  */
+import * as SecureStore from "expo-secure-store";
 import { useCallback, useEffect, useState } from "react";
 import {
-  createInstantPayout,
-  createStripePaymentLink,
-  deactivateStripePaymentLink,
-  fetchStripeAccount,
-  fetchStripeBalance,
-  fetchStripePaymentLinks,
-  fetchStripePayments,
-  fetchStripePayouts,
-  getStripeAccountSettings,
-  getStripePaymentLink,
-  getStripeSettingsHistory,
-  updateStripeAccountSettings,
-  updateStripePaymentLink,
-  type CreatePaymentLinkRequest,
-  type PaymentLink,
-  type SettingsHistoryEntry,
-  type StripeAccountSettings,
+    createInstantPayout,
+    createStripePaymentLink,
+    deactivateStripePaymentLink,
+    fetchStripeAccount,
+    fetchStripeBalance,
+    fetchStripePaymentLinks,
+    fetchStripePayments,
+    fetchStripePayouts,
+    getStripeAccountSettings,
+    getStripePaymentLink,
+    getStripeSettingsHistory,
+    updateStripeAccountSettings,
+    updateStripePaymentLink,
+    type CreatePaymentLinkRequest,
+    type PaymentLink,
+    type SettingsHistoryEntry,
+    type StripeAccountSettings,
 } from "../services/StripeService";
 import { type PaymentStatus, type PayoutStatus } from "../types/stripeTypes";
 
@@ -215,10 +216,63 @@ export const useStripeAccount = () => {
       setError(null);
 
       try {
+        // 🔧 DEV MODE: Check for dev override first
+        if (__DEV__) {
+          const devStatus = await SecureStore.getItemAsync("dev_stripe_status");
+          if (devStatus) {
+            const parsed = JSON.parse(devStatus);
+            // "none" status means no account
+            if (parsed === null) {
+              console.log("🔧 [DEV] Simulating no Stripe account");
+              setAccount(null);
+              setBalance({ available: 0, pending: 0 });
+              setLoading(false);
+              return;
+            }
+            // Otherwise, create a mock account with the dev status
+            console.log("🔧 [DEV] Using simulated Stripe status:", parsed);
+            const mockAccount: AccountInfo = {
+              stripe_account_id: "acct_dev_simulated_123",
+              charges_enabled: parsed.charges_enabled ?? false,
+              payouts_enabled: parsed.payouts_enabled ?? false,
+              details_submitted: parsed.details_submitted ?? false,
+              onboarding_completed:
+                parsed.charges_enabled && parsed.payouts_enabled,
+              business_name: "Dev Test Company",
+              support_email: "dev@test.com",
+              country: "AU",
+              default_currency: "AUD",
+              available_balance: 50000,
+              pending_balance: 10000,
+              bank_accounts: [],
+              requirements: parsed.requirements ?? {
+                currently_due: [],
+                eventually_due: [],
+                past_due: [],
+                disabled_reason: null,
+              },
+            };
+            setAccount(mockAccount);
+            setBalance({ available: 500, pending: 100 });
+            setLoading(false);
+            return;
+          }
+        }
+
         const [accountData, balanceData] = await Promise.all([
           fetchStripeAccount(),
           fetchStripeBalance(),
         ]);
+
+        // ✅ FIX: Si pas de compte Stripe (null), mettre account à null
+        if (!accountData) {
+          console.log(
+            "ℹ️ [useStripeAccount] No Stripe account found, setting account to null",
+          );
+          setAccount(null);
+          setBalance({ available: 0, pending: 0 });
+          return;
+        }
 
         setAccount({
           ...accountData,
@@ -233,6 +287,8 @@ export const useStripeAccount = () => {
             : "Erreur lors du chargement du compte";
         setError(errorMessage);
         console.error("Error loading account:", err);
+        // ✅ FIX: En cas d'erreur, réinitialiser le compte à null
+        setAccount(null);
       } finally {
         setLoading(false);
       }

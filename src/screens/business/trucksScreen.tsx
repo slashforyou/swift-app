@@ -2,40 +2,40 @@
  * TrucksScreen - Gestion complète de la flotte de véhicules
  * Interface moderne avec statistiques, filtres et actions
  */
-import React, { useState } from 'react'
+import React, { useState } from "react";
 import {
-    ActivityIndicator,
     Alert,
     ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
-    View
-} from 'react-native'
+    View,
+} from "react-native";
 
 // Components
-import AddVehicleModal from '../../components/modals/AddVehicleModal'
-import { HStack, VStack } from '../../components/primitives/Stack'
-import { Card } from '../../components/ui/Card'
-import VehicleDetailsScreen from './VehicleDetailsScreen'
+import AddVehicleModal from "../../components/modals/AddVehicleModal";
+import { HStack, VStack } from "../../components/primitives/Stack";
+import { Card } from "../../components/ui/Card";
+import MascotLoading from "../../components/ui/MascotLoading";
+import VehicleDetailsScreen from "./VehicleDetailsScreen";
 
 // Hooks & Utils
-import { DESIGN_TOKENS } from '../../constants/Styles'
-import { useTheme } from '../../context/ThemeProvider'
-import { useVehicles as useVehiclesContext } from '../../context/VehiclesProvider'
-import { useVehicles, type VehicleAPI } from '../../hooks/useVehicles'
-import { useTranslation } from '../../localization/useLocalization'
+import { DESIGN_TOKENS } from "../../constants/Styles";
+import { useTheme } from "../../context/ThemeProvider";
+import { useVehicles as useVehiclesContext } from "../../context/VehiclesProvider";
+import { useVehicles, type VehicleAPI } from "../../hooks/useVehicles";
+import { useTranslation } from "../../localization/useLocalization";
 
 // Types
 interface Vehicle {
   id: string;
   name: string;
-  type: 'moving-truck' | 'van' | 'trailer' | 'ute' | 'dolly' | 'tools';
+  type: "moving-truck" | "van" | "trailer" | "ute" | "dolly" | "tools";
   registration: string;
   make: string;
   model: string;
   year: number;
-  status: 'available' | 'in-use' | 'maintenance' | 'out-of-service';
+  status: "available" | "in-use" | "maintenance" | "out-of-service";
   nextService: string;
   location: string;
   capacity?: string;
@@ -57,32 +57,32 @@ interface SectionHeaderProps {
 /**
  * Convert API vehicle type to UI type
  */
-const apiToUIType = (apiType: VehicleAPI['type']): Vehicle['type'] => {
-  const mapping: Record<VehicleAPI['type'], Vehicle['type']> = {
-    'truck': 'moving-truck',
-    'van': 'van',
-    'trailer': 'trailer',
-    'ute': 'ute',
-    'dolly': 'dolly',
-    'tool': 'tools',
-  }
-  return mapping[apiType] || 'moving-truck'
-}
+const apiToUIType = (apiType: VehicleAPI["type"]): Vehicle["type"] => {
+  const mapping: Record<VehicleAPI["type"], Vehicle["type"]> = {
+    truck: "moving-truck",
+    van: "van",
+    trailer: "trailer",
+    ute: "ute",
+    dolly: "dolly",
+    tool: "tools",
+  };
+  return mapping[apiType] || "moving-truck";
+};
 
 /**
  * Convert UI vehicle type to API type
  */
-const uiToAPIType = (uiType: Vehicle['type']): VehicleAPI['type'] => {
-  const mapping: Record<Vehicle['type'], VehicleAPI['type']> = {
-    'moving-truck': 'truck',
-    'van': 'van',
-    'trailer': 'trailer',
-    'ute': 'ute',
-    'dolly': 'dolly',
-    'tools': 'tool',
-  }
-  return mapping[uiType] || 'truck'
-}
+const uiToAPIType = (uiType: Vehicle["type"]): VehicleAPI["type"] => {
+  const mapping: Record<Vehicle["type"], VehicleAPI["type"]> = {
+    "moving-truck": "truck",
+    van: "van",
+    trailer: "trailer",
+    ute: "ute",
+    dolly: "dolly",
+    tools: "tool",
+  };
+  return mapping[uiType] || "truck";
+};
 
 /**
  * Convert API vehicle to UI vehicle format
@@ -98,41 +98,44 @@ const apiToVehicle = (api: VehicleAPI): Vehicle => ({
   status: api.status,
   nextService: api.nextService,
   location: api.location,
-  capacity: api.capacity || '',
-  assignedTo: api.assignedStaff || '',
-})
+  capacity: api.capacity || "",
+  assignedTo: api.assignedStaff || "",
+});
 
 // Composant pour les headers de section
-const SectionHeader: React.FC<SectionHeaderProps> = ({ 
-  icon, 
-  title, 
-  description, 
-  onActionPress, 
-  actionText 
+const SectionHeader: React.FC<SectionHeaderProps> = ({
+  icon,
+  title,
+  description,
+  onActionPress,
+  actionText,
 }) => {
   const { colors } = useTheme();
   return (
     <VStack gap="xs" style={{ marginBottom: DESIGN_TOKENS.spacing.md }}>
       <HStack gap="sm" align="center" justify="space-between">
         <HStack gap="sm" align="center" style={{ flex: 1 }}>
-          <View style={{
-            width: 32,
-            height: 32,
-            borderRadius: 16,
-            backgroundColor: colors.primary + '20',
-            justifyContent: 'center',
-            alignItems: 'center'
-          }}>
-            <Text style={{ fontSize: 18, color: colors.primary }}>
-              {icon}
-            </Text>
+          <View
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 16,
+              backgroundColor: colors.primary + "20",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Text style={{ fontSize: 18, color: colors.primary }}>{icon}</Text>
           </View>
-          <Text testID="section-title" style={{
-            fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
-            fontWeight: '600',
-            color: colors.text,
-            flex: 1
-          }}>
+          <Text
+            testID="section-title"
+            style={{
+              fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
+              fontWeight: "600",
+              color: colors.text,
+              flex: 1,
+            }}
+          >
             {title}
           </Text>
         </HStack>
@@ -147,23 +150,28 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
               borderRadius: DESIGN_TOKENS.radius.sm,
             }}
           >
-            <Text style={{ 
-              color: 'white', 
-              fontSize: 14, 
-              fontWeight: '600' 
-            }}>
+            <Text
+              style={{
+                color: "white",
+                fontSize: 14,
+                fontWeight: "600",
+              }}
+            >
               {actionText}
             </Text>
           </TouchableOpacity>
         )}
       </HStack>
       {description && (
-        <Text testID="section-description" style={{
-          fontSize: 14,
-          color: colors.textSecondary,
-          lineHeight: 20,
-          marginLeft: 44, // Aligné avec le texte du titre
-        }}>
+        <Text
+          testID="section-description"
+          style={{
+            fontSize: 14,
+            color: colors.textSecondary,
+            lineHeight: 20,
+            marginLeft: 44, // Aligné avec le texte du titre
+          }}
+        >
           {description}
         </Text>
       )}
@@ -172,166 +180,198 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
 };
 
 // Fonction pour obtenir l'emoji selon le type de véhicule de déménagement
-const getVehicleEmoji = (type: Vehicle['type']): string => {
+const getVehicleEmoji = (type: Vehicle["type"]): string => {
   const emojis = {
-    'moving-truck': '🚛',
-    'van': '🚐',
-    'trailer': '🚜',
-    'ute': '🛻',
-    'dolly': '🛒',
-    'tools': '🔧'
+    "moving-truck": "🚛",
+    van: "🚐",
+    trailer: "🚜",
+    ute: "🛻",
+    dolly: "🛒",
+    tools: "🔧",
   };
-  return emojis[type] || '🚛';
+  return emojis[type] || "🚛";
 };
 
 // Fonction pour obtenir le label du type
-const getTypeLabel = (type: Vehicle['type']): string => {
+const getTypeLabel = (type: Vehicle["type"]): string => {
   const labels = {
-    'moving-truck': 'Moving Truck',
-    'van': 'Van',
-    'trailer': 'Trailer',
-    'ute': 'Ute',
-    'dolly': 'Dolly',
-    'tools': 'Tools'
+    "moving-truck": "Moving Truck",
+    van: "Van",
+    trailer: "Trailer",
+    ute: "Ute",
+    dolly: "Dolly",
+    tools: "Tools",
   };
-  return labels[type] || 'Vehicle';
+  return labels[type] || "Vehicle";
 };
 
 // Fonction pour obtenir la couleur selon le statut
-const getStatusColor = (status: Vehicle['status'], themeColors: any): { bg: string; text: string } => {
+const getStatusColor = (
+  status: Vehicle["status"],
+  themeColors: any,
+): { bg: string; text: string } => {
   const statusColors = {
     available: { bg: themeColors.success, text: themeColors.success },
-    'in-use': { bg: themeColors.warning, text: themeColors.warning },
+    "in-use": { bg: themeColors.warning, text: themeColors.warning },
     maintenance: { bg: themeColors.error, text: themeColors.error },
-    'out-of-service': { bg: themeColors.textSecondary, text: themeColors.textSecondary }
+    "out-of-service": {
+      bg: themeColors.textSecondary,
+      text: themeColors.textSecondary,
+    },
   };
-  return statusColors[status] || statusColors['out-of-service'];
+  return statusColors[status] || statusColors["out-of-service"];
 };
 
 // Fonction pour obtenir le label du statut
-const getStatusLabel = (status: Vehicle['status']): string => {
+const getStatusLabel = (status: Vehicle["status"]): string => {
   const labels = {
-    available: 'Available',
-    'in-use': 'In Use',
-    maintenance: 'Maintenance',
-    'out-of-service': 'Out of Service'
+    available: "Available",
+    "in-use": "In Use",
+    maintenance: "Maintenance",
+    "out-of-service": "Out of Service",
   };
-  return labels[status] || 'Unknown';
+  return labels[status] || "Unknown";
 };
 
 // Composant pour une carte véhicule
-const VehicleCard: React.FC<{ 
-  vehicle: Vehicle; 
+const VehicleCard: React.FC<{
+  vehicle: Vehicle;
   onPress: () => void;
   onEdit: (vehicle: Vehicle, event?: any) => void;
   onDelete: (vehicle: Vehicle, event?: any) => void;
-}> = ({ 
-  vehicle, 
-  onPress,
-  onEdit,
-  onDelete
-}) => {
+}> = ({ vehicle, onPress, onEdit, onDelete }) => {
   const { colors } = useTheme();
   const statusColors = getStatusColor(vehicle.status, colors);
-  
+
   return (
     <TouchableOpacity testID={`vehicle-card-${vehicle.id}`} onPress={onPress}>
       <Card style={{ marginBottom: DESIGN_TOKENS.spacing.md }}>
         <VStack gap="sm">
           <HStack gap="md" align="center" justify="space-between">
             <HStack gap="md" align="center" style={{ flex: 1 }}>
-              <View style={{
-                width: 40,
-                height: 40,
-                borderRadius: 20,
-                backgroundColor: colors.primary + '10',
-                justifyContent: 'center',
-                alignItems: 'center'
-              }}>
-                <Text testID={`vehicle-emoji-${vehicle.id}`} style={{ fontSize: 20 }}>
+              <View
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
+                  backgroundColor: colors.primary + "10",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  testID={`vehicle-emoji-${vehicle.id}`}
+                  style={{ fontSize: 20 }}
+                >
                   {getVehicleEmoji(vehicle.type)}
                 </Text>
               </View>
               <VStack gap="xs" style={{ flex: 1 }}>
-                <Text testID={`vehicle-name-${vehicle.id}`} style={{
-                  fontSize: 16,
-                  fontWeight: '600',
-                  color: colors.text,
-                }}>
+                <Text
+                  testID={`vehicle-name-${vehicle.id}`}
+                  style={{
+                    fontSize: 16,
+                    fontWeight: "600",
+                    color: colors.text,
+                  }}
+                >
                   {vehicle.name}
                 </Text>
-                <Text testID={`vehicle-details-${vehicle.id}`} style={{
-                  fontSize: 14,
-                  color: colors.textSecondary,
-                }}>
+                <Text
+                  testID={`vehicle-details-${vehicle.id}`}
+                  style={{
+                    fontSize: 14,
+                    color: colors.textSecondary,
+                  }}
+                >
                   {vehicle.make} {vehicle.model} ({vehicle.year})
                 </Text>
               </VStack>
             </HStack>
-            <View testID={`vehicle-status-${vehicle.id}`} style={{
-              backgroundColor: statusColors.bg + '20',
-              paddingHorizontal: DESIGN_TOKENS.spacing.sm,
-              paddingVertical: DESIGN_TOKENS.spacing.xs,
-              borderRadius: DESIGN_TOKENS.radius.sm,
-            }}>
-              <Text style={{
-                fontSize: 12,
-                fontWeight: '600',
-                color: statusColors.text,
-                textTransform: 'capitalize',
-              }}>
-                {vehicle.status.replace('-', ' ')}
+            <View
+              testID={`vehicle-status-${vehicle.id}`}
+              style={{
+                backgroundColor: statusColors.bg + "20",
+                paddingHorizontal: DESIGN_TOKENS.spacing.sm,
+                paddingVertical: DESIGN_TOKENS.spacing.xs,
+                borderRadius: DESIGN_TOKENS.radius.sm,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: "600",
+                  color: statusColors.text,
+                  textTransform: "capitalize",
+                }}
+              >
+                {vehicle.status.replace("-", " ")}
               </Text>
             </View>
           </HStack>
-          
+
           <HStack gap="lg" style={{ marginTop: DESIGN_TOKENS.spacing.xs }}>
             <VStack gap="xs" style={{ flex: 1 }}>
-              <Text style={{
-                fontSize: 12,
-                color: colors.textSecondary,
-                fontWeight: '500',
-              }}>
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: colors.textSecondary,
+                  fontWeight: "500",
+                }}
+              >
                 Registration
               </Text>
-              <Text testID={`vehicle-registration-${vehicle.id}`} style={{
-                fontSize: 14,
-                color: colors.text,
-              }}>
+              <Text
+                testID={`vehicle-registration-${vehicle.id}`}
+                style={{
+                  fontSize: 14,
+                  color: colors.text,
+                }}
+              >
                 {vehicle.registration}
               </Text>
             </VStack>
             <VStack gap="xs" style={{ flex: 1 }}>
-              <Text style={{
-                fontSize: 12,
-                color: colors.textSecondary,
-                fontWeight: '500',
-              }}>
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: colors.textSecondary,
+                  fontWeight: "500",
+                }}
+              >
                 Next Service
               </Text>
-              <Text testID={`vehicle-service-${vehicle.id}`} style={{
-                fontSize: 14,
-                color: colors.text,
-              }}>
+              <Text
+                testID={`vehicle-service-${vehicle.id}`}
+                style={{
+                  fontSize: 14,
+                  color: colors.text,
+                }}
+              >
                 {vehicle.nextService}
               </Text>
             </VStack>
           </HStack>
-          
+
           {vehicle.assignedTo && (
             <HStack gap="md" style={{ marginTop: DESIGN_TOKENS.spacing.xs }}>
-              <Text style={{
-                fontSize: 12,
-                color: colors.textSecondary,
-                fontWeight: '500',
-              }}>
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: colors.textSecondary,
+                  fontWeight: "500",
+                }}
+              >
                 Assigned to:
               </Text>
-              <Text testID={`vehicle-assigned-${vehicle.id}`} style={{
-                fontSize: 14,
-                color: colors.primary,
-                fontWeight: '600',
-              }}>
+              <Text
+                testID={`vehicle-assigned-${vehicle.id}`}
+                style={{
+                  fontSize: 14,
+                  color: colors.primary,
+                  fontWeight: "600",
+                }}
+              >
                 {vehicle.assignedTo}
               </Text>
             </HStack>
@@ -344,18 +384,20 @@ const VehicleCard: React.FC<{
               onPress={(e) => onEdit(vehicle, e)}
               style={{
                 flex: 1,
-                backgroundColor: colors.primary + '10',
+                backgroundColor: colors.primary + "10",
                 paddingVertical: DESIGN_TOKENS.spacing.sm,
                 paddingHorizontal: DESIGN_TOKENS.spacing.md,
                 borderRadius: DESIGN_TOKENS.radius.sm,
-                alignItems: 'center',
+                alignItems: "center",
               }}
             >
-              <Text style={{
-                color: colors.primary,
-                fontWeight: '600',
-                fontSize: 14,
-              }}>
+              <Text
+                style={{
+                  color: colors.primary,
+                  fontWeight: "600",
+                  fontSize: 14,
+                }}
+              >
                 Edit
               </Text>
             </TouchableOpacity>
@@ -364,18 +406,20 @@ const VehicleCard: React.FC<{
               onPress={(e) => onDelete(vehicle, e)}
               style={{
                 flex: 1,
-                backgroundColor: colors.error + '20',
+                backgroundColor: colors.error + "20",
                 paddingVertical: DESIGN_TOKENS.spacing.sm,
                 paddingHorizontal: DESIGN_TOKENS.spacing.md,
                 borderRadius: DESIGN_TOKENS.radius.sm,
-                alignItems: 'center',
+                alignItems: "center",
               }}
             >
-              <Text style={{
-                color: colors.error,
-                fontWeight: '600',
-                fontSize: 14,
-              }}>
+              <Text
+                style={{
+                  color: colors.error,
+                  fontWeight: "600",
+                  fontSize: 14,
+                }}
+              >
                 Delete
               </Text>
             </TouchableOpacity>
@@ -391,16 +435,16 @@ const VehicleCard: React.FC<{
  * Displays and manages company vehicles, equipment and maintenance
  */
 export default function TrucksScreen() {
-  const { colors } = useTheme()
-  const { t } = useTranslation()
-  
+  const { colors } = useTheme();
+  const { t } = useTranslation();
+
   // Context pour la gestion d'état des véhicules
   const {
     vehicles: contextVehicles,
     addVehicle: addVehicleToContext,
     updateVehicle: updateVehicleInContext,
     deleteVehicle: deleteVehicleFromContext,
-  } = useVehiclesContext()
+  } = useVehiclesContext();
 
   // Hook pour la gestion des véhicules via API
   const {
@@ -415,10 +459,10 @@ export default function TrucksScreen() {
     addVehicle: addVehicleApi,
     editVehicle: editVehicleApi,
     removeVehicle: removeVehicleApi,
-  } = useVehicles()
+  } = useVehicles();
 
   // Utiliser les véhicules du context pour le state local
-  const mockVehicles = contextVehicles.map(v => ({
+  const mockVehicles = contextVehicles.map((v) => ({
     id: v.id,
     name: `${v.make} ${v.model}`,
     type: v.type,
@@ -427,14 +471,14 @@ export default function TrucksScreen() {
     model: v.model,
     year: v.year,
     status: v.status,
-    nextService: v.nextService || '',
-    location: v.location || '',
+    nextService: v.nextService || "",
+    location: v.location || "",
     capacity: v.capacity,
-  }))
+  }));
 
   // État local pour la gestion
-  const [selectedType, setSelectedType] = useState<string>('all');
-  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [selectedType, setSelectedType] = useState<string>("all");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
 
@@ -445,7 +489,7 @@ export default function TrucksScreen() {
       paddingVertical: DESIGN_TOKENS.spacing.md,
     },
     quickStats: {
-      flexDirection: 'row',
+      flexDirection: "row",
       marginBottom: DESIGN_TOKENS.spacing.lg,
     },
     statCard: {
@@ -454,18 +498,18 @@ export default function TrucksScreen() {
     },
     statNumber: {
       fontSize: 24,
-      fontWeight: '700',
+      fontWeight: "700",
       color: colors.primary,
-      textAlign: 'center',
+      textAlign: "center",
     },
     statLabel: {
       fontSize: 12,
       color: colors.textSecondary,
-      textAlign: 'center',
+      textAlign: "center",
       marginTop: DESIGN_TOKENS.spacing.xs,
     },
     typeFilterContainer: {
-      flexDirection: 'row',
+      flexDirection: "row",
       marginBottom: DESIGN_TOKENS.spacing.lg,
     },
     typeFilter: {
@@ -476,8 +520,8 @@ export default function TrucksScreen() {
       borderWidth: 1,
     },
     emptyState: {
-      alignItems: 'center',
-      justifyContent: 'center',
+      alignItems: "center",
+      justifyContent: "center",
       paddingVertical: DESIGN_TOKENS.spacing.xl * 2,
       paddingHorizontal: DESIGN_TOKENS.spacing.lg,
     },
@@ -487,38 +531,59 @@ export default function TrucksScreen() {
     },
     emptyTitle: {
       fontSize: 18,
-      fontWeight: '600',
+      fontWeight: "600",
       marginBottom: DESIGN_TOKENS.spacing.sm,
-      textAlign: 'center',
+      textAlign: "center",
     },
     emptyMessage: {
       fontSize: 14,
-      textAlign: 'center',
+      textAlign: "center",
       lineHeight: 20,
     },
-  })
+  });
 
   // Filtres et données
-  const vehicleTypes = ['all', 'moving-truck', 'van', 'trailer', 'ute', 'dolly', 'tools'];
-  const vehicleStatuses = ['all', 'available', 'in-use', 'maintenance', 'out-of-service'];
-  
+  const vehicleTypes = [
+    "all",
+    "moving-truck",
+    "van",
+    "trailer",
+    "ute",
+    "dolly",
+    "tools",
+  ];
+  const vehicleStatuses = [
+    "all",
+    "available",
+    "in-use",
+    "maintenance",
+    "out-of-service",
+  ];
+
   // Fonction helper pour compter les véhicules par type
   const getVehicleCountByType = (type: string) => {
-    if (type === 'all') return mockVehicles.length;
-    return mockVehicles.filter(v => v.type === type).length;
+    if (type === "all") return mockVehicles.length;
+    return mockVehicles.filter((v) => v.type === type).length;
   };
-  
+
   // Filtrage combiné (type + status)
-  const filteredVehicles = mockVehicles.filter(vehicle => {
-    const typeMatch = selectedType === 'all' || vehicle.type === selectedType;
-    const statusMatch = selectedStatus === 'all' || vehicle.status === selectedStatus;
+  const filteredVehicles = mockVehicles.filter((vehicle) => {
+    const typeMatch = selectedType === "all" || vehicle.type === selectedType;
+    const statusMatch =
+      selectedStatus === "all" || vehicle.status === selectedStatus;
     return typeMatch && statusMatch;
   });
 
   // Calculer les statistiques directement depuis mockVehicles (context)
-  const availableVehicles = mockVehicles.filter(v => v.status === 'available').length;
-  const inUseVehicles = mockVehicles.filter(v => v.status === 'in-use').length;
-  const maintenanceVehicles = mockVehicles.filter(v => v.status === 'maintenance').length;
+  const availableVehicles = mockVehicles.filter(
+    (v) => v.status === "available",
+  ).length;
+  const inUseVehicles = mockVehicles.filter(
+    (v) => v.status === "in-use",
+  ).length;
+  const maintenanceVehicles = mockVehicles.filter(
+    (v) => v.status === "maintenance",
+  ).length;
 
   const handleAddVehicle = () => {
     setIsAddModalVisible(true);
@@ -533,20 +598,25 @@ export default function TrucksScreen() {
         model: vehicleData.model,
         year: parseInt(vehicleData.year) || new Date().getFullYear(),
         registration: vehicleData.registration,
-        status: 'available', // Par défaut les nouveaux véhicules sont disponibles
+        status: "available", // Par défaut les nouveaux véhicules sont disponibles
         capacity: vehicleData.capacity,
         location: vehicleData.location,
         nextService: vehicleData.nextService,
-      })
-      
-      setIsAddModalVisible(false)
-      Alert.alert(t('vehicles.alerts.addSuccess.title'), t('vehicles.alerts.addSuccess.message'))
-    } catch (error) {
+      });
 
-      console.error('Error creating vehicle:', error)
-      Alert.alert(t('vehicles.alerts.addError.title'), t('vehicles.alerts.addError.message'))
+      setIsAddModalVisible(false);
+      Alert.alert(
+        t("vehicles.alerts.addSuccess.title"),
+        t("vehicles.alerts.addSuccess.message"),
+      );
+    } catch (error) {
+      console.error("Error creating vehicle:", error);
+      Alert.alert(
+        t("vehicles.alerts.addError.title"),
+        t("vehicles.alerts.addError.message"),
+      );
     }
-  }
+  };
 
   const handleVehiclePress = (vehicle: Vehicle) => {
     setSelectedVehicle(vehicle);
@@ -554,39 +624,44 @@ export default function TrucksScreen() {
 
   const handleEditVehicle = (vehicle: Vehicle, event?: any) => {
     event?.stopPropagation?.();
-    
+
     Alert.alert(
-      t('vehicles.actions.edit'),
-      t('vehicles.alerts.editConfirm.message', { vehicleName: vehicle.name }),
-      [{ text: t('common.ok') }]
+      t("vehicles.actions.edit"),
+      t("vehicles.alerts.editConfirm.message", { vehicleName: vehicle.name }),
+      [{ text: t("common.ok") }],
     );
   };
 
   const handleDeleteVehicle = (vehicle: Vehicle, event?: any) => {
     // Empêcher la propagation au parent TouchableOpacity
-    event?.stopPropagation?.()
-    
+    event?.stopPropagation?.();
+
     Alert.alert(
-      t('vehicles.actions.delete'),
-      t('vehicles.alerts.deleteConfirm.message', { vehicleName: vehicle.name }),
+      t("vehicles.actions.delete"),
+      t("vehicles.alerts.deleteConfirm.message", { vehicleName: vehicle.name }),
       [
-        { text: t('vehicles.actions.cancel'), style: 'cancel' },
-        { 
-          text: t('vehicles.actions.remove'), 
-          style: 'destructive',
+        { text: t("vehicles.actions.cancel"), style: "cancel" },
+        {
+          text: t("vehicles.actions.remove"),
+          style: "destructive",
           onPress: async () => {
             try {
-              await deleteVehicleFromContext(vehicle.id)
-              Alert.alert(t('vehicles.alerts.deleteSuccess.title'), t('vehicles.alerts.deleteSuccess.message'))
+              await deleteVehicleFromContext(vehicle.id);
+              Alert.alert(
+                t("vehicles.alerts.deleteSuccess.title"),
+                t("vehicles.alerts.deleteSuccess.message"),
+              );
             } catch (error) {
-
-              Alert.alert(t('vehicles.alerts.deleteError.title'), t('vehicles.alerts.deleteError.message'))
+              Alert.alert(
+                t("vehicles.alerts.deleteError.title"),
+                t("vehicles.alerts.deleteError.message"),
+              );
             }
-          }
-        }
-      ]
-    )
-  }
+          },
+        },
+      ],
+    );
+  };
 
   const handleTypeFilter = (type: string) => {
     setSelectedType(type);
@@ -598,21 +673,44 @@ export default function TrucksScreen() {
 
   // Loading state
   if (isLoadingVehicles) {
-    return (
-      <View testID="loading-state" style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text testID="loading-text" style={{ marginTop: 16, color: colors.textSecondary }}>Loading vehicles...</Text>
-      </View>
-    )
+    return <MascotLoading text={t("vehicles.loading")} />;
   }
 
   // Error state
   if (vehiclesError && mockVehicles.length === 0) {
     return (
-      <View testID="error-state" style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background, padding: 20 }}>
+      <View
+        testID="error-state"
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: colors.background,
+          padding: 20,
+        }}
+      >
         <Text style={{ fontSize: 48, marginBottom: 16 }}>⚠️</Text>
-        <Text testID="error-title" style={{ fontSize: 18, fontWeight: '600', color: colors.text, marginBottom: 8 }}>{t('vehicles.errors.loadingTitle')}</Text>
-        <Text testID="error-message" style={{ color: colors.textSecondary, textAlign: 'center', marginBottom: 20 }}>{vehiclesError}</Text>
+        <Text
+          testID="error-title"
+          style={{
+            fontSize: 18,
+            fontWeight: "600",
+            color: colors.text,
+            marginBottom: 8,
+          }}
+        >
+          {t("vehicles.errors.loadingTitle")}
+        </Text>
+        <Text
+          testID="error-message"
+          style={{
+            color: colors.textSecondary,
+            textAlign: "center",
+            marginBottom: 20,
+          }}
+        >
+          {vehiclesError}
+        </Text>
         <TouchableOpacity
           testID="retry-button"
           onPress={refetch}
@@ -623,14 +721,16 @@ export default function TrucksScreen() {
             borderRadius: 8,
           }}
         >
-          <Text style={{ color: colors.buttonPrimaryText, fontWeight: '600' }}>{t('common.retry')}</Text>
+          <Text style={{ color: colors.buttonPrimaryText, fontWeight: "600" }}>
+            {t("common.retry")}
+          </Text>
         </TouchableOpacity>
       </View>
-    )
+    );
   }
 
   return (
-    <ScrollView 
+    <ScrollView
       style={{ flex: 1 }}
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
@@ -638,22 +738,34 @@ export default function TrucksScreen() {
       {/* Statistiques rapides */}
       <View style={styles.quickStats}>
         <Card style={styles.statCard}>
-          <Text testID="stat-available-value" style={styles.statNumber}>{availableVehicles}</Text>
-          <Text testID="stat-available-label" style={styles.statLabel}>Available</Text>
+          <Text testID="stat-available-value" style={styles.statNumber}>
+            {availableVehicles}
+          </Text>
+          <Text testID="stat-available-label" style={styles.statLabel}>
+            Available
+          </Text>
         </Card>
         <Card style={styles.statCard}>
-          <Text testID="stat-inuse-value" style={styles.statNumber}>{inUseVehicles}</Text>
-          <Text testID="stat-inuse-label" style={styles.statLabel}>In Use</Text>
+          <Text testID="stat-inuse-value" style={styles.statNumber}>
+            {inUseVehicles}
+          </Text>
+          <Text testID="stat-inuse-label" style={styles.statLabel}>
+            In Use
+          </Text>
         </Card>
         <Card style={styles.statCard}>
-          <Text testID="stat-maintenance-value" style={styles.statNumber}>{maintenanceVehicles}</Text>
-          <Text testID="stat-maintenance-label" style={styles.statLabel}>Maintenance</Text>
+          <Text testID="stat-maintenance-value" style={styles.statNumber}>
+            {maintenanceVehicles}
+          </Text>
+          <Text testID="stat-maintenance-label" style={styles.statLabel}>
+            Maintenance
+          </Text>
         </Card>
       </View>
 
       {/* Filtres par type */}
-      <ScrollView 
-        horizontal 
+      <ScrollView
+        horizontal
         showsHorizontalScrollIndicator={false}
         style={{ marginBottom: DESIGN_TOKENS.spacing.md }}
       >
@@ -665,20 +777,29 @@ export default function TrucksScreen() {
               style={[
                 styles.typeFilter,
                 {
-                  backgroundColor: selectedType === type ? colors.primary + '20' : 'transparent',
-                  borderColor: selectedType === type ? colors.primary : colors.border,
-                }
+                  backgroundColor:
+                    selectedType === type
+                      ? colors.primary + "20"
+                      : "transparent",
+                  borderColor:
+                    selectedType === type ? colors.primary : colors.border,
+                },
               ]}
               onPress={() => handleTypeFilter(type)}
             >
-              <Text style={{
-                color: selectedType === type ? colors.primary : colors.textSecondary,
-                fontWeight: selectedType === type ? '600' : '400',
-                fontSize: 14,
-              }}>
-                {type === 'all' 
-                  ? `All (${getVehicleCountByType(type)})` 
-                  : `${getVehicleEmoji(type as Vehicle['type'])} ${type.charAt(0).toUpperCase() + type.slice(1)}`}
+              <Text
+                style={{
+                  color:
+                    selectedType === type
+                      ? colors.primary
+                      : colors.textSecondary,
+                  fontWeight: selectedType === type ? "600" : "400",
+                  fontSize: 14,
+                }}
+              >
+                {type === "all"
+                  ? `All (${getVehicleCountByType(type)})`
+                  : `${getVehicleEmoji(type as Vehicle["type"])} ${type.charAt(0).toUpperCase() + type.slice(1)}`}
               </Text>
             </TouchableOpacity>
           ))}
@@ -687,26 +808,29 @@ export default function TrucksScreen() {
 
       {/* Filtres par status */}
       <View style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
-        <Text style={{ 
-          fontSize: 14, 
-          fontWeight: '600', 
-          color: colors.text,
-          marginBottom: DESIGN_TOKENS.spacing.sm,
-          paddingHorizontal: DESIGN_TOKENS.spacing.xs,
-        }}>
+        <Text
+          style={{
+            fontSize: 14,
+            fontWeight: "600",
+            color: colors.text,
+            marginBottom: DESIGN_TOKENS.spacing.sm,
+            paddingHorizontal: DESIGN_TOKENS.spacing.xs,
+          }}
+        >
           Filter by Status
         </Text>
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-        >
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.typeFilterContainer}>
             {vehicleStatuses.map((status) => {
-              const displayName = status === 'all' ? 'All' : 
-                                 status === 'in-use' ? 'In Use' :
-                                 status === 'out-of-service' ? 'Out of Service' :
-                                 status.charAt(0).toUpperCase() + status.slice(1);
-              
+              const displayName =
+                status === "all"
+                  ? "All"
+                  : status === "in-use"
+                    ? "In Use"
+                    : status === "out-of-service"
+                      ? "Out of Service"
+                      : status.charAt(0).toUpperCase() + status.slice(1);
+
               return (
                 <TouchableOpacity
                   key={status}
@@ -714,17 +838,28 @@ export default function TrucksScreen() {
                   style={[
                     styles.typeFilter,
                     {
-                      backgroundColor: selectedStatus === status ? colors.primary + '20' : 'transparent',
-                      borderColor: selectedStatus === status ? colors.primary : colors.border,
-                    }
+                      backgroundColor:
+                        selectedStatus === status
+                          ? colors.primary + "20"
+                          : "transparent",
+                      borderColor:
+                        selectedStatus === status
+                          ? colors.primary
+                          : colors.border,
+                    },
                   ]}
                   onPress={() => handleStatusFilter(status)}
                 >
-                  <Text style={{
-                    color: selectedStatus === status ? colors.primary : colors.textSecondary,
-                    fontWeight: selectedStatus === status ? '600' : '400',
-                    fontSize: 14,
-                  }}>
+                  <Text
+                    style={{
+                      color:
+                        selectedStatus === status
+                          ? colors.primary
+                          : colors.textSecondary,
+                      fontWeight: selectedStatus === status ? "600" : "400",
+                      fontSize: 14,
+                    }}
+                  >
                     {displayName}
                   </Text>
                 </TouchableOpacity>
@@ -737,14 +872,14 @@ export default function TrucksScreen() {
       {/* Liste des véhicules */}
       <Card style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
         <VStack gap="sm">
-          <SectionHeader 
-            icon="🚛" 
+          <SectionHeader
+            icon="🚛"
             title="Vehicles & Equipment"
             description="Manage your fleet, equipment and maintenance schedules"
             actionText="Add Vehicle"
             onActionPress={handleAddVehicle}
           />
-          
+
           {filteredVehicles.length > 0 ? (
             filteredVehicles.map((vehicle) => (
               <VehicleCard
@@ -757,11 +892,19 @@ export default function TrucksScreen() {
             ))
           ) : (
             <View testID="empty-state" style={styles.emptyState}>
-              <Text testID="empty-state-icon" style={styles.emptyIcon}>🚗</Text>
-              <Text testID="empty-state-title" style={[styles.emptyTitle, { color: colors.text }]}>
+              <Text testID="empty-state-icon" style={styles.emptyIcon}>
+                🚗
+              </Text>
+              <Text
+                testID="empty-state-title"
+                style={[styles.emptyTitle, { color: colors.text }]}
+              >
                 No vehicles found
               </Text>
-              <Text testID="empty-state-message" style={[styles.emptyMessage, { color: colors.textSecondary }]}>
+              <Text
+                testID="empty-state-message"
+                style={[styles.emptyMessage, { color: colors.textSecondary }]}
+              >
                 Try adjusting your filters or add a new vehicle to get started
               </Text>
             </View>
@@ -796,5 +939,5 @@ export default function TrucksScreen() {
         </View>
       )}
     </ScrollView>
-  )
+  );
 }

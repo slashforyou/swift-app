@@ -9,9 +9,21 @@
  */
 
 import React from "react";
-import { Image, StyleSheet, View, useColorScheme } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
+import { useTheme } from "../../context/ThemeProvider";
+
+export const HEADER_LOGO_SIZES = {
+  sm: 44,
+  md: 80,
+  lg: 120,
+} as const;
+
+export type HeaderLogoSizePreset = keyof typeof HEADER_LOGO_SIZES;
 
 export interface HeaderLogoProps {
+  /** Preset size to keep logos consistent across the app (sm/md/lg) */
+  preset?: HeaderLogoSizePreset;
+
   /** Taille du logo en pixels (default: 80) */
   size?: number;
 
@@ -29,42 +41,17 @@ export interface HeaderLogoProps {
 }
 
 export const HeaderLogo: React.FC<HeaderLogoProps> = ({
+  preset,
   size = 80,
   variant = "square",
   marginVertical = 16,
   marginHorizontal = 0,
   style,
 }) => {
-  const colorScheme = useColorScheme();
-
-  /**
-   * Sélectionne le bon logo selon la variante et le mode (clair/sombre)
-   */
-  const getLogoSource = () => {
-    const isDark = colorScheme === "dark";
-
-    switch (variant) {
-      case "icon-only":
-        return isDark
-          ? require("../../../assets/images/logo-dark-192.png")
-          : require("../../../assets/images/logo-192.png");
-
-      case "horizontal":
-        // Pour l'instant pas de version dark du logo horizontal
-        return require("../../../assets/images/logo-horizontal.png");
-
-      case "rectangle":
-        return isDark
-          ? require("../../../assets/images/logo-rectangle-dark-192.png")
-          : require("../../../assets/images/logo-rectangle-192.png");
-
-      case "square":
-      default:
-        return isDark
-          ? require("../../../assets/images/logo-nom-dark-512.png")
-          : require("../../../assets/images/logo-nom-512.png");
-    }
-  };
+  const { colors } = useTheme();
+  const resolvedSize = preset ? HEADER_LOGO_SIZES[preset] : size;
+  const fontSize = Math.max(18, Math.round(resolvedSize * 0.6));
+  const letterSpacing = Math.max(0.5, Math.round(fontSize * 0.04));
 
   return (
     <View
@@ -77,19 +64,20 @@ export const HeaderLogo: React.FC<HeaderLogoProps> = ({
         style,
       ]}
     >
-      <Image
-        source={getLogoSource()}
+      <Text
         style={[
-          styles.logo,
+          styles.logoText,
           {
-            width: size,
-            height: size,
+            color: colors.text,
+            fontSize,
+            letterSpacing,
           },
         ]}
         accessible={true}
-        accessibilityLabel="Logo Cobbr"
-        accessibilityRole="image"
-      />
+        accessibilityLabel="Cobbr"
+      >
+        Cobbr
+      </Text>
     </View>
   );
 };
@@ -99,8 +87,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  logo: {
-    resizeMode: "contain",
+  logoText: {
+    fontFamily: "SpaceGrotesk_700Bold",
   },
 });
 

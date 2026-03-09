@@ -2,10 +2,9 @@
  * TeamsManagementScreen - Gestion des équipes
  * Interface pour créer, modifier et supprimer les équipes de l'entreprise
  */
-import { Ionicons } from '@expo/vector-icons';
-import React, { useCallback, useEffect, useState } from 'react';
+import { Ionicons } from "@expo/vector-icons";
+import React, { useCallback, useEffect, useState } from "react";
 import {
-    ActivityIndicator,
     Alert,
     FlatList,
     Modal,
@@ -14,22 +13,23 @@ import {
     TextInput,
     TouchableOpacity,
     View,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // Components
-import { PermissionGate } from '../../components/PermissionGate';
-import { Screen } from '../../components/primitives/Screen';
-import { HStack, VStack } from '../../components/primitives/Stack';
-import { Card } from '../../components/ui/Card';
+import { PermissionGate } from "../../components/PermissionGate";
+import { Screen } from "../../components/primitives/Screen";
+import { HStack, VStack } from "../../components/primitives/Stack";
+import { Card } from "../../components/ui/Card";
+import MascotLoading from "../../components/ui/MascotLoading";
 
 // Hooks & Utils
-import { DESIGN_TOKENS } from '../../constants/Styles';
-import { useTheme } from '../../context/ThemeProvider';
-import { useStaff } from '../../hooks/useStaff';
-import { useTeams } from '../../hooks/useTeams';
-import { useTranslation } from '../../localization';
-import { Team } from '../../services/teamsService';
+import { DESIGN_TOKENS } from "../../constants/Styles";
+import { useTheme } from "../../context/ThemeProvider";
+import { useStaff } from "../../hooks/useStaff";
+import { useTeams } from "../../hooks/useTeams";
+import { useTranslation } from "../../localization";
+import { Team } from "../../services/teamsService";
 
 // ============================================================================
 // Types
@@ -67,14 +67,14 @@ interface StaffMemberOption {
 // ============================================================================
 
 const TEAM_COLORS = [
-  '#3B82F6', // Blue
-  '#10B981', // Green
-  '#F59E0B', // Amber
-  '#EF4444', // Red
-  '#8B5CF6', // Purple
-  '#EC4899', // Pink
-  '#06B6D4', // Cyan
-  '#84CC16', // Lime
+  "#3B82F6", // Blue
+  "#10B981", // Green
+  "#F59E0B", // Amber
+  "#EF4444", // Red
+  "#8B5CF6", // Purple
+  "#EC4899", // Pink
+  "#06B6D4", // Cyan
+  "#84CC16", // Lime
 ];
 
 const getTeamColor = (index: number): string => {
@@ -112,8 +112,8 @@ const TeamCard: React.FC<TeamCardProps> = ({
                 height: 48,
                 borderRadius: 24,
                 backgroundColor: `${teamColor}20`,
-                justifyContent: 'center',
-                alignItems: 'center',
+                justifyContent: "center",
+                alignItems: "center",
               }}
             >
               <Ionicons name="people" size={24} color={teamColor} />
@@ -122,7 +122,7 @@ const TeamCard: React.FC<TeamCardProps> = ({
               <Text
                 style={{
                   fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
-                  fontWeight: '600',
+                  fontWeight: "600",
                   color: colors.text,
                 }}
               >
@@ -184,9 +184,13 @@ const TeamCard: React.FC<TeamCardProps> = ({
         {/* Stats */}
         <HStack gap="lg" style={{ marginTop: DESIGN_TOKENS.spacing.sm }}>
           <HStack gap="xs" align="center">
-            <Ionicons name="people-outline" size={16} color={colors.textSecondary} />
+            <Ionicons
+              name="people-outline"
+              size={16}
+              color={colors.textSecondary}
+            />
             <Text style={{ fontSize: 14, color: colors.textSecondary }}>
-              {team.member_count} membre{team.member_count > 1 ? 's' : ''}
+              {team.member_count} membre{team.member_count > 1 ? "s" : ""}
             </Text>
           </HStack>
           {team.leader && (
@@ -202,7 +206,7 @@ const TeamCard: React.FC<TeamCardProps> = ({
         {/* Members Preview */}
         {team.members.length > 0 && (
           <View style={{ marginTop: DESIGN_TOKENS.spacing.xs }}>
-            <HStack gap="xs" style={{ flexWrap: 'wrap' }}>
+            <HStack gap="xs" style={{ flexWrap: "wrap" }}>
               {team.members.slice(0, 5).map((member, index) => (
                 <View
                   key={member.id}
@@ -211,15 +215,18 @@ const TeamCard: React.FC<TeamCardProps> = ({
                     height: 32,
                     borderRadius: 16,
                     backgroundColor: getTeamColor(index),
-                    justifyContent: 'center',
-                    alignItems: 'center',
+                    justifyContent: "center",
+                    alignItems: "center",
                     marginLeft: index > 0 ? -8 : 0,
                     borderWidth: 2,
                     borderColor: colors.backgroundSecondary,
                   }}
                 >
-                  <Text style={{ fontSize: 12, color: '#fff', fontWeight: '600' }}>
-                    {member.first_name.charAt(0)}{member.last_name.charAt(0)}
+                  <Text
+                    style={{ fontSize: 12, color: "#fff", fontWeight: "600" }}
+                  >
+                    {member.first_name.charAt(0)}
+                    {member.last_name.charAt(0)}
                   </Text>
                 </View>
               ))}
@@ -230,14 +237,20 @@ const TeamCard: React.FC<TeamCardProps> = ({
                     height: 32,
                     borderRadius: 16,
                     backgroundColor: colors.backgroundSecondary,
-                    justifyContent: 'center',
-                    alignItems: 'center',
+                    justifyContent: "center",
+                    alignItems: "center",
                     marginLeft: -8,
                     borderWidth: 2,
                     borderColor: colors.backgroundSecondary,
                   }}
                 >
-                  <Text style={{ fontSize: 10, color: colors.textSecondary, fontWeight: '600' }}>
+                  <Text
+                    style={{
+                      fontSize: 10,
+                      color: colors.textSecondary,
+                      fontWeight: "600",
+                    }}
+                  >
                     +{team.members.length - 5}
                   </Text>
                 </View>
@@ -265,10 +278,12 @@ const MemberSelector: React.FC<MemberSelectorProps> = ({
             key={member.id}
             onPress={() => onToggle(member.id)}
             style={{
-              flexDirection: 'row',
-              alignItems: 'center',
+              flexDirection: "row",
+              alignItems: "center",
               padding: DESIGN_TOKENS.spacing.md,
-              backgroundColor: isSelected ? `${colors.primary}15` : colors.backgroundSecondary,
+              backgroundColor: isSelected
+                ? `${colors.primary}15`
+                : colors.backgroundSecondary,
               borderRadius: DESIGN_TOKENS.radius.md,
               borderWidth: isSelected ? 1 : 0,
               borderColor: colors.primary,
@@ -279,24 +294,29 @@ const MemberSelector: React.FC<MemberSelectorProps> = ({
                 width: 40,
                 height: 40,
                 borderRadius: 20,
-                backgroundColor: isSelected ? colors.primary : colors.backgroundSecondary,
-                justifyContent: 'center',
-                alignItems: 'center',
+                backgroundColor: isSelected
+                  ? colors.primary
+                  : colors.backgroundSecondary,
+                justifyContent: "center",
+                alignItems: "center",
                 marginRight: DESIGN_TOKENS.spacing.md,
               }}
             >
               <Text
                 style={{
                   fontSize: 14,
-                  fontWeight: '600',
-                  color: isSelected ? '#fff' : colors.text,
+                  fontWeight: "600",
+                  color: isSelected ? "#fff" : colors.text,
                 }}
               >
-                {member.firstName.charAt(0)}{member.lastName.charAt(0)}
+                {member.firstName.charAt(0)}
+                {member.lastName.charAt(0)}
               </Text>
             </View>
             <VStack gap="xs" style={{ flex: 1 }}>
-              <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text }}>
+              <Text
+                style={{ fontSize: 14, fontWeight: "500", color: colors.text }}
+              >
                 {member.firstName} {member.lastName}
               </Text>
               <Text style={{ fontSize: 12, color: colors.textSecondary }}>
@@ -304,7 +324,7 @@ const MemberSelector: React.FC<MemberSelectorProps> = ({
               </Text>
             </VStack>
             <Ionicons
-              name={isSelected ? 'checkmark-circle' : 'ellipse-outline'}
+              name={isSelected ? "checkmark-circle" : "ellipse-outline"}
               size={24}
               color={isSelected ? colors.primary : colors.textSecondary}
             />
@@ -312,7 +332,13 @@ const MemberSelector: React.FC<MemberSelectorProps> = ({
         );
       })}
       {availableMembers.length === 0 && (
-        <Text style={{ textAlign: 'center', color: colors.textSecondary, padding: DESIGN_TOKENS.spacing.lg }}>
+        <Text
+          style={{
+            textAlign: "center",
+            color: colors.textSecondary,
+            padding: DESIGN_TOKENS.spacing.lg,
+          }}
+        >
           Aucun membre disponible
         </Text>
       )}
@@ -324,7 +350,9 @@ const MemberSelector: React.FC<MemberSelectorProps> = ({
 // Main Component
 // ============================================================================
 
-const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigation }) => {
+const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({
+  navigation,
+}) => {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -345,15 +373,15 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
   const { staff, refreshStaff } = useStaff();
 
   // State
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
 
   // Form state
-  const [formName, setFormName] = useState('');
-  const [formDescription, setFormDescription] = useState('');
+  const [formName, setFormName] = useState("");
+  const [formDescription, setFormDescription] = useState("");
   const [formLeaderId, setFormLeaderId] = useState<number | null>(null);
   const [formMemberIds, setFormMemberIds] = useState<number[]>([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -374,9 +402,10 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
   }));
 
   // Filter teams by search
-  const filteredTeams = teams.filter((team) =>
-    team.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    team.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredTeams = teams.filter(
+    (team) =>
+      team.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      team.description?.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   // ---------------------------------------------------------------------------
@@ -384,8 +413,8 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
   // ---------------------------------------------------------------------------
 
   const resetForm = useCallback(() => {
-    setFormName('');
-    setFormDescription('');
+    setFormName("");
+    setFormDescription("");
     setFormLeaderId(null);
     setFormMemberIds([]);
   }, []);
@@ -398,7 +427,7 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
   const handleOpenEdit = useCallback((team: Team) => {
     setSelectedTeam(team);
     setFormName(team.name);
-    setFormDescription(team.description || '');
+    setFormDescription(team.description || "");
     setFormLeaderId(team.leader_id ?? null);
     setFormMemberIds(team.members.map((m) => m.id));
     setShowEditModal(true);
@@ -421,13 +450,13 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
     setFormMemberIds((prev) =>
       prev.includes(memberId)
         ? prev.filter((id) => id !== memberId)
-        : [...prev, memberId]
+        : [...prev, memberId],
     );
   }, []);
 
   const handleCreate = useCallback(async () => {
     if (!formName.trim()) {
-      Alert.alert(t('common.error'), t('teams.validation.nameRequired'));
+      Alert.alert(t("common.error"), t("teams.validation.nameRequired"));
       return;
     }
 
@@ -441,22 +470,33 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
       });
 
       if (result) {
-        Alert.alert(t('common.success'), t('teams.alerts.createSuccess'));
+        Alert.alert(t("common.success"), t("teams.alerts.createSuccess"));
         handleCloseModals();
       } else {
-        Alert.alert(t('common.error'), t('teams.alerts.createError'));
+        Alert.alert(t("common.error"), t("teams.alerts.createError"));
       }
     } catch (err) {
-      Alert.alert(t('common.error'), err instanceof Error ? err.message : t('teams.alerts.unknownError'));
+      Alert.alert(
+        t("common.error"),
+        err instanceof Error ? err.message : t("teams.alerts.unknownError"),
+      );
     } finally {
       setIsSaving(false);
     }
-  }, [formName, formDescription, formLeaderId, formMemberIds, createTeam, handleCloseModals, t]);
+  }, [
+    formName,
+    formDescription,
+    formLeaderId,
+    formMemberIds,
+    createTeam,
+    handleCloseModals,
+    t,
+  ]);
 
   const handleUpdate = useCallback(async () => {
     if (!selectedTeam) return;
     if (!formName.trim()) {
-      Alert.alert(t('common.error'), t('teams.validation.nameRequired'));
+      Alert.alert(t("common.error"), t("teams.validation.nameRequired"));
       return;
     }
 
@@ -470,39 +510,57 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
       });
 
       if (result) {
-        Alert.alert(t('common.success'), t('teams.alerts.updateSuccess'));
+        Alert.alert(t("common.success"), t("teams.alerts.updateSuccess"));
         handleCloseModals();
       } else {
-        Alert.alert(t('common.error'), t('teams.alerts.updateError'));
+        Alert.alert(t("common.error"), t("teams.alerts.updateError"));
       }
     } catch (err) {
-      Alert.alert(t('common.error'), err instanceof Error ? err.message : t('teams.alerts.unknownError'));
+      Alert.alert(
+        t("common.error"),
+        err instanceof Error ? err.message : t("teams.alerts.unknownError"),
+      );
     } finally {
       setIsSaving(false);
     }
-  }, [selectedTeam, formName, formDescription, formLeaderId, formMemberIds, updateTeam, handleCloseModals, t]);
+  }, [
+    selectedTeam,
+    formName,
+    formDescription,
+    formLeaderId,
+    formMemberIds,
+    updateTeam,
+    handleCloseModals,
+    t,
+  ]);
 
-  const handleDelete = useCallback((team: Team) => {
-    Alert.alert(
-      t('teams.confirmDelete.title'),
-      t('teams.confirmDelete.message', { name: team.name }),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('common.delete'),
-          style: 'destructive',
-          onPress: async () => {
-            const success = await deleteTeam(team.id);
-            if (success) {
-              Alert.alert(t('common.success'), t('teams.alerts.deleteSuccess'));
-            } else {
-              Alert.alert(t('common.error'), t('teams.alerts.deleteError'));
-            }
+  const handleDelete = useCallback(
+    (team: Team) => {
+      Alert.alert(
+        t("teams.confirmDelete.title"),
+        t("teams.confirmDelete.message", { name: team.name }),
+        [
+          { text: t("common.cancel"), style: "cancel" },
+          {
+            text: t("common.delete"),
+            style: "destructive",
+            onPress: async () => {
+              const success = await deleteTeam(team.id);
+              if (success) {
+                Alert.alert(
+                  t("common.success"),
+                  t("teams.alerts.deleteSuccess"),
+                );
+              } else {
+                Alert.alert(t("common.error"), t("teams.alerts.deleteError"));
+              }
+            },
           },
-        },
-      ]
-    );
-  }, [deleteTeam, t]);
+        ],
+      );
+    },
+    [deleteTeam, t],
+  );
 
   // ---------------------------------------------------------------------------
   // Render Functions
@@ -518,15 +576,15 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
         colors={colors}
       />
     ),
-    [colors, handleOpenEdit, handleDelete, handleOpenView]
+    [colors, handleOpenEdit, handleDelete, handleOpenView],
   );
 
   const renderEmptyState = () => (
     <View
       style={{
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
+        justifyContent: "center",
+        alignItems: "center",
         paddingVertical: DESIGN_TOKENS.spacing.xxl,
       }}
     >
@@ -536,23 +594,23 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
           fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
           color: colors.textSecondary,
           marginTop: DESIGN_TOKENS.spacing.md,
-          textAlign: 'center',
+          textAlign: "center",
         }}
       >
-        {searchQuery ? 'Aucune équipe trouvée' : 'Aucune équipe créée'}
+        {searchQuery ? "Aucune équipe trouvée" : "Aucune équipe créée"}
       </Text>
       <Text
         style={{
           fontSize: DESIGN_TOKENS.typography.body.fontSize,
           color: colors.textSecondary,
           marginTop: DESIGN_TOKENS.spacing.sm,
-          textAlign: 'center',
+          textAlign: "center",
           paddingHorizontal: DESIGN_TOKENS.spacing.xl,
         }}
       >
         {searchQuery
-          ? 'Essayez de modifier votre recherche'
-          : 'Créez votre première équipe pour organiser vos déménageurs'}
+          ? "Essayez de modifier votre recherche"
+          : "Créez votre première équipe pour organiser vos déménageurs"}
       </Text>
     </View>
   );
@@ -568,9 +626,9 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
         {/* Header */}
         <View
           style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
             paddingHorizontal: DESIGN_TOKENS.spacing.lg,
             paddingTop: insets.top + DESIGN_TOKENS.spacing.md,
             paddingBottom: DESIGN_TOKENS.spacing.md,
@@ -581,8 +639,8 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
           <TouchableOpacity onPress={handleCloseModals}>
             <Text style={{ fontSize: 16, color: colors.primary }}>Annuler</Text>
           </TouchableOpacity>
-          <Text style={{ fontSize: 18, fontWeight: '600', color: colors.text }}>
-            {isEdit ? 'Modifier l\'équipe' : 'Nouvelle équipe'}
+          <Text style={{ fontSize: 18, fontWeight: "600", color: colors.text }}>
+            {isEdit ? "Modifier l'équipe" : "Nouvelle équipe"}
           </Text>
           <TouchableOpacity
             onPress={isEdit ? handleUpdate : handleCreate}
@@ -594,11 +652,13 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
               <Text
                 style={{
                   fontSize: 16,
-                  color: formName.trim() ? colors.primary : colors.textSecondary,
-                  fontWeight: '600',
+                  color: formName.trim()
+                    ? colors.primary
+                    : colors.textSecondary,
+                  fontWeight: "600",
                 }}
               >
-                {isEdit ? t('common.save') : t('teams.createTeam')}
+                {isEdit ? t("common.save") : t("teams.createTeam")}
               </Text>
             )}
           </TouchableOpacity>
@@ -611,13 +671,15 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
         >
           {/* Name */}
           <VStack gap="sm" style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
-            <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text }}>
-              {t('teams.form.nameLabel')}
+            <Text
+              style={{ fontSize: 14, fontWeight: "500", color: colors.text }}
+            >
+              {t("teams.form.nameLabel")}
             </Text>
             <TextInput
               value={formName}
               onChangeText={setFormName}
-              placeholder={t('teams.form.namePlaceholder')}
+              placeholder={t("teams.form.namePlaceholder")}
               placeholderTextColor={colors.textSecondary}
               style={{
                 backgroundColor: colors.backgroundSecondary,
@@ -631,13 +693,15 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
 
           {/* Description */}
           <VStack gap="sm" style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
-            <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text }}>
-              {t('teams.form.descriptionLabel')}
+            <Text
+              style={{ fontSize: 14, fontWeight: "500", color: colors.text }}
+            >
+              {t("teams.form.descriptionLabel")}
             </Text>
             <TextInput
               value={formDescription}
               onChangeText={setFormDescription}
-              placeholder={t('teams.form.descriptionPlaceholder')}
+              placeholder={t("teams.form.descriptionPlaceholder")}
               placeholderTextColor={colors.textSecondary}
               multiline
               numberOfLines={3}
@@ -648,21 +712,25 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
                 fontSize: 16,
                 color: colors.text,
                 minHeight: 80,
-                textAlignVertical: 'top',
+                textAlignVertical: "top",
               }}
             />
           </VStack>
 
           {/* Leader Selection */}
           <VStack gap="sm" style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
-            <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text }}>
-              {t('teams.form.leaderLabel')}
+            <Text
+              style={{ fontSize: 14, fontWeight: "500", color: colors.text }}
+            >
+              {t("teams.form.leaderLabel")}
             </Text>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
               style={{ marginHorizontal: -DESIGN_TOKENS.spacing.lg }}
-              contentContainerStyle={{ paddingHorizontal: DESIGN_TOKENS.spacing.lg }}
+              contentContainerStyle={{
+                paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+              }}
             >
               <TouchableOpacity
                 onPress={() => setFormLeaderId(null)}
@@ -670,17 +738,20 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
                   paddingVertical: DESIGN_TOKENS.spacing.sm,
                   paddingHorizontal: DESIGN_TOKENS.spacing.md,
                   borderRadius: DESIGN_TOKENS.radius.xl,
-                  backgroundColor: formLeaderId === null ? colors.primary : colors.backgroundSecondary,
+                  backgroundColor:
+                    formLeaderId === null
+                      ? colors.primary
+                      : colors.backgroundSecondary,
                   marginRight: DESIGN_TOKENS.spacing.sm,
                 }}
               >
                 <Text
                   style={{
                     fontSize: 14,
-                    color: formLeaderId === null ? '#fff' : colors.text,
+                    color: formLeaderId === null ? "#fff" : colors.text,
                   }}
                 >
-                  {t('teams.form.leaderNone')}
+                  {t("teams.form.leaderNone")}
                 </Text>
               </TouchableOpacity>
               {staffMemberOptions.map((member) => (
@@ -691,14 +762,17 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
                     paddingVertical: DESIGN_TOKENS.spacing.sm,
                     paddingHorizontal: DESIGN_TOKENS.spacing.md,
                     borderRadius: DESIGN_TOKENS.radius.xl,
-                    backgroundColor: formLeaderId === member.id ? colors.primary : colors.backgroundSecondary,
+                    backgroundColor:
+                      formLeaderId === member.id
+                        ? colors.primary
+                        : colors.backgroundSecondary,
                     marginRight: DESIGN_TOKENS.spacing.sm,
                   }}
                 >
                   <Text
                     style={{
                       fontSize: 14,
-                      color: formLeaderId === member.id ? '#fff' : colors.text,
+                      color: formLeaderId === member.id ? "#fff" : colors.text,
                     }}
                   >
                     {member.firstName} {member.lastName}
@@ -711,11 +785,14 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
           {/* Members Selection */}
           <VStack gap="sm">
             <HStack justify="space-between" align="center">
-              <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text }}>
-                {t('teams.form.membersLabel')}
+              <Text
+                style={{ fontSize: 14, fontWeight: "500", color: colors.text }}
+              >
+                {t("teams.form.membersLabel")}
               </Text>
               <Text style={{ fontSize: 12, color: colors.textSecondary }}>
-                {formMemberIds.length} sélectionné{formMemberIds.length > 1 ? 's' : ''}
+                {formMemberIds.length} sélectionné
+                {formMemberIds.length > 1 ? "s" : ""}
               </Text>
             </HStack>
             <MemberSelector
@@ -741,9 +818,9 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
         {/* Header */}
         <View
           style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
             paddingHorizontal: DESIGN_TOKENS.spacing.lg,
             paddingTop: insets.top + DESIGN_TOKENS.spacing.md,
             paddingBottom: DESIGN_TOKENS.spacing.md,
@@ -752,8 +829,8 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
           }}
         >
           <View style={{ width: 60 }} />
-          <Text style={{ fontSize: 18, fontWeight: '600', color: colors.text }}>
-            {selectedTeam?.name || 'Équipe'}
+          <Text style={{ fontSize: 18, fontWeight: "600", color: colors.text }}>
+            {selectedTeam?.name || "Équipe"}
           </Text>
           <TouchableOpacity onPress={handleCloseModals}>
             <Text style={{ fontSize: 16, color: colors.primary }}>Fermer</Text>
@@ -777,8 +854,8 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
                         height: 56,
                         borderRadius: 28,
                         backgroundColor: `${getTeamColor(selectedTeam.id)}20`,
-                        justifyContent: 'center',
-                        alignItems: 'center',
+                        justifyContent: "center",
+                        alignItems: "center",
                       }}
                     >
                       <Ionicons
@@ -791,14 +868,16 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
                       <Text
                         style={{
                           fontSize: 20,
-                          fontWeight: '600',
+                          fontWeight: "600",
                           color: colors.text,
                         }}
                       >
                         {selectedTeam.name}
                       </Text>
                       {selectedTeam.description && (
-                        <Text style={{ fontSize: 14, color: colors.textSecondary }}>
+                        <Text
+                          style={{ fontSize: 14, color: colors.textSecondary }}
+                        >
                           {selectedTeam.description}
                         </Text>
                       )}
@@ -808,19 +887,37 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
                   {/* Stats */}
                   <HStack gap="lg">
                     <VStack gap="xs" align="center" style={{ flex: 1 }}>
-                      <Text style={{ fontSize: 24, fontWeight: '700', color: colors.primary }}>
+                      <Text
+                        style={{
+                          fontSize: 24,
+                          fontWeight: "700",
+                          color: colors.primary,
+                        }}
+                      >
                         {selectedTeam.member_count}
                       </Text>
-                      <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+                      <Text
+                        style={{ fontSize: 12, color: colors.textSecondary }}
+                      >
                         Membres
                       </Text>
                     </VStack>
-                    <View style={{ width: 1, backgroundColor: colors.border }} />
+                    <View
+                      style={{ width: 1, backgroundColor: colors.border }}
+                    />
                     <VStack gap="xs" align="center" style={{ flex: 1 }}>
-                      <Text style={{ fontSize: 24, fontWeight: '700', color: colors.warning }}>
-                        {selectedTeam.leader ? '1' : '0'}
+                      <Text
+                        style={{
+                          fontSize: 24,
+                          fontWeight: "700",
+                          color: colors.warning,
+                        }}
+                      >
+                        {selectedTeam.leader ? "1" : "0"}
                       </Text>
-                      <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+                      <Text
+                        style={{ fontSize: 12, color: colors.textSecondary }}
+                      >
                         Chef
                       </Text>
                     </VStack>
@@ -831,7 +928,13 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
               {/* Leader */}
               {selectedTeam.leader && (
                 <VStack gap="sm">
-                  <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text }}>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: "600",
+                      color: colors.text,
+                    }}
+                  >
                     {"Chef d'équipe"}
                   </Text>
                   <Card>
@@ -842,17 +945,25 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
                           height: 48,
                           borderRadius: 24,
                           backgroundColor: colors.warning,
-                          justifyContent: 'center',
-                          alignItems: 'center',
+                          justifyContent: "center",
+                          alignItems: "center",
                         }}
                       >
                         <Ionicons name="star" size={24} color="#fff" />
                       </View>
                       <VStack gap="xs" style={{ flex: 1 }}>
-                        <Text style={{ fontSize: 16, fontWeight: '500', color: colors.text }}>
+                        <Text
+                          style={{
+                            fontSize: 16,
+                            fontWeight: "500",
+                            color: colors.text,
+                          }}
+                        >
                           {getMemberName(selectedTeam.leader)}
                         </Text>
-                        <Text style={{ fontSize: 14, color: colors.textSecondary }}>
+                        <Text
+                          style={{ fontSize: 14, color: colors.textSecondary }}
+                        >
                           {selectedTeam.leader.email}
                         </Text>
                       </VStack>
@@ -863,7 +974,13 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
 
               {/* Members */}
               <VStack gap="sm">
-                <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text }}>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: "600",
+                    color: colors.text,
+                  }}
+                >
                   Membres ({selectedTeam.members.length})
                 </Text>
                 {selectedTeam.members.length > 0 ? (
@@ -876,23 +993,41 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
                             height: 40,
                             borderRadius: 20,
                             backgroundColor: colors.primary,
-                            justifyContent: 'center',
-                            alignItems: 'center',
+                            justifyContent: "center",
+                            alignItems: "center",
                           }}
                         >
-                          <Text style={{ fontSize: 14, fontWeight: '600', color: '#fff' }}>
-                            {member.first_name.charAt(0)}{member.last_name.charAt(0)}
+                          <Text
+                            style={{
+                              fontSize: 14,
+                              fontWeight: "600",
+                              color: "#fff",
+                            }}
+                          >
+                            {member.first_name.charAt(0)}
+                            {member.last_name.charAt(0)}
                           </Text>
                         </View>
                         <VStack gap="xs" style={{ flex: 1 }}>
-                          <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text }}>
+                          <Text
+                            style={{
+                              fontSize: 14,
+                              fontWeight: "500",
+                              color: colors.text,
+                            }}
+                          >
                             {getMemberName(member)}
                           </Text>
-                          <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+                          <Text
+                            style={{
+                              fontSize: 12,
+                              color: colors.textSecondary,
+                            }}
+                          >
                             {member.email}
                           </Text>
                         </VStack>
-                        {member.role === 'leader' && (
+                        {member.role === "leader" && (
                           <View
                             style={{
                               paddingHorizontal: DESIGN_TOKENS.spacing.sm,
@@ -901,7 +1036,13 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
                               borderRadius: DESIGN_TOKENS.radius.sm,
                             }}
                           >
-                            <Text style={{ fontSize: 10, color: colors.warning, fontWeight: '600' }}>
+                            <Text
+                              style={{
+                                fontSize: 10,
+                                color: colors.warning,
+                                fontWeight: "600",
+                              }}
+                            >
                               CHEF
                             </Text>
                           </View>
@@ -911,7 +1052,12 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
                   ))
                 ) : (
                   <Card>
-                    <Text style={{ textAlign: 'center', color: colors.textSecondary }}>
+                    <Text
+                      style={{
+                        textAlign: "center",
+                        color: colors.textSecondary,
+                      }}
+                    >
                       Aucun membre dans cette équipe
                     </Text>
                   </Card>
@@ -923,11 +1069,12 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
                 style={{
                   fontSize: 12,
                   color: colors.textSecondary,
-                  textAlign: 'center',
+                  textAlign: "center",
                   marginTop: DESIGN_TOKENS.spacing.md,
                 }}
               >
-                Créée le {new Date(selectedTeam.created_at).toLocaleDateString('fr-FR')}
+                Créée le{" "}
+                {new Date(selectedTeam.created_at).toLocaleDateString("fr-FR")}
               </Text>
             </VStack>
           )}
@@ -965,14 +1112,14 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
                 <Text
                   style={{
                     fontSize: DESIGN_TOKENS.typography.title.fontSize,
-                    fontWeight: '700',
+                    fontWeight: "700",
                     color: colors.text,
                   }}
                 >
-                  {t('teams.title')}
+                  {t("teams.title")}
                 </Text>
                 <Text style={{ fontSize: 12, color: colors.textSecondary }}>
-                  {t('teams.membersCount', { count: teams.length })}
+                  {t("teams.membersCount", { count: teams.length })}
                 </Text>
               </VStack>
             </HStack>
@@ -981,8 +1128,8 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
               <TouchableOpacity
                 onPress={handleOpenCreate}
                 style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
+                  flexDirection: "row",
+                  alignItems: "center",
                   backgroundColor: colors.primary,
                   paddingHorizontal: DESIGN_TOKENS.spacing.md,
                   paddingVertical: DESIGN_TOKENS.spacing.sm,
@@ -991,7 +1138,9 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
                 }}
               >
                 <Ionicons name="add" size={20} color="#fff" />
-                <Text style={{ color: '#fff', fontWeight: '600' }}>{t('teams.newTeam')}</Text>
+                <Text style={{ color: "#fff", fontWeight: "600" }}>
+                  {t("teams.newTeam")}
+                </Text>
               </TouchableOpacity>
             </PermissionGate>
           </HStack>
@@ -1000,8 +1149,8 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
           <View style={{ marginTop: DESIGN_TOKENS.spacing.md }}>
             <View
               style={{
-                flexDirection: 'row',
-                alignItems: 'center',
+                flexDirection: "row",
+                alignItems: "center",
                 backgroundColor: colors.backgroundSecondary,
                 borderRadius: DESIGN_TOKENS.radius.md,
                 paddingHorizontal: DESIGN_TOKENS.spacing.md,
@@ -1011,7 +1160,7 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
               <TextInput
                 value={searchQuery}
                 onChangeText={setSearchQuery}
-                placeholder={t('teams.search')}
+                placeholder={t("teams.search")}
                 placeholderTextColor={colors.textSecondary}
                 style={{
                   flex: 1,
@@ -1022,8 +1171,12 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
                 }}
               />
               {searchQuery.length > 0 && (
-                <TouchableOpacity onPress={() => setSearchQuery('')}>
-                  <Ionicons name="close-circle" size={20} color={colors.textSecondary} />
+                <TouchableOpacity onPress={() => setSearchQuery("")}>
+                  <Ionicons
+                    name="close-circle"
+                    size={20}
+                    color={colors.textSecondary}
+                  />
                 </TouchableOpacity>
               )}
             </View>
@@ -1032,27 +1185,26 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
 
         {/* Content */}
         {isLoading && teams.length === 0 ? (
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={{ marginTop: DESIGN_TOKENS.spacing.md, color: colors.textSecondary }}>
-              {t('teams.loading')}
-            </Text>
-          </View>
+          <MascotLoading text={t("teams.loading")} />
         ) : error ? (
           <View
             style={{
               flex: 1,
-              justifyContent: 'center',
-              alignItems: 'center',
+              justifyContent: "center",
+              alignItems: "center",
               padding: DESIGN_TOKENS.spacing.xl,
             }}
           >
-            <Ionicons name="alert-circle-outline" size={64} color={colors.error} />
+            <Ionicons
+              name="alert-circle-outline"
+              size={64}
+              color={colors.error}
+            />
             <Text
               style={{
                 fontSize: 16,
                 color: colors.error,
-                textAlign: 'center',
+                textAlign: "center",
                 marginTop: DESIGN_TOKENS.spacing.md,
               }}
             >
@@ -1068,7 +1220,9 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({ navigatio
                 borderRadius: DESIGN_TOKENS.radius.md,
               }}
             >
-              <Text style={{ color: '#fff', fontWeight: '600' }}>{t('common.retry')}</Text>
+              <Text style={{ color: "#fff", fontWeight: "600" }}>
+                {t("common.retry")}
+              </Text>
             </TouchableOpacity>
           </View>
         ) : (

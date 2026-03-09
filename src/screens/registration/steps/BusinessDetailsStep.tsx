@@ -218,7 +218,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
         </Text>
         <TextInput
           style={styles.inputBase}
-          placeholder="XX XXX XXX XXX"
+          placeholder={t("registration.fields.placeholders.abn")}
           placeholderTextColor={colors.textSecondary}
           value={abn}
           onChangeText={handleAbnChange}
@@ -243,7 +243,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
         </Text>
         <TextInput
           style={styles.inputBase}
-          placeholder="XXX XXX XXX"
+          placeholder={t("registration.fields.placeholders.acn")}
           placeholderTextColor={colors.textSecondary}
           value={acn}
           onChangeText={handleAcnChange}
@@ -371,7 +371,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
         </Text>
         <TextInput
           style={styles.inputBase}
-          placeholder="+61 2XX XXX XXX"
+          placeholder={t("registration.fields.placeholders.companyPhone")}
           placeholderTextColor={colors.textSecondary}
           value={companyPhone}
           onChangeText={handleCompanyPhoneChange}

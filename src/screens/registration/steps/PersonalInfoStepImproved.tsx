@@ -1,24 +1,24 @@
 import DateTimePicker, {
-  DateTimePickerEvent,
+    DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import React, { useRef, useState } from "react";
 import {
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
+    Platform,
+    Pressable,
+    StyleSheet,
+    Text,
+    TextInput,
+    View,
 } from "react-native";
 import AlertMessage from "../../../components/ui/AlertMessage";
+import { TEST_DATA } from "../../../config/testData";
 import { useCommonThemedStyles } from "../../../hooks/useCommonStyles";
 import { useTranslation } from "../../../localization";
 import { BusinessOwnerRegistrationData } from "../../../types/registration";
 import {
-  formatAustralianPhone,
-  validateAustralianPhone,
+    formatAustralianPhone,
+    validateAustralianPhone,
 } from "../../../utils/validators/australianValidators";
-import { TEST_DATA } from "../../../config/testData";
 
 interface PersonalInfoStepProps {
   data: BusinessOwnerRegistrationData;
@@ -162,11 +162,23 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
     if (types >= 4) strength += 15; // Bonus pour utiliser les 4 types
 
     if (strength < 40) {
-      return { level: strength, color: "#ef4444", text: "Weak" };
+      return {
+        level: strength,
+        color: "#ef4444",
+        text: t("registration.personalInfo.passwordStrength.weak"),
+      };
     } else if (strength < 70) {
-      return { level: strength, color: "#f97316", text: "Medium" };
+      return {
+        level: strength,
+        color: "#f97316",
+        text: t("registration.personalInfo.passwordStrength.medium"),
+      };
     } else {
-      return { level: strength, color: "#22c55e", text: "Strong" };
+      return {
+        level: strength,
+        color: "#22c55e",
+        text: t("registration.personalInfo.passwordStrength.strong"),
+      };
     }
   };
 
@@ -283,13 +295,13 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
         <Text
           style={[localStyles.sectionTitle, { color: colors.textSecondary }]}
         >
-          👤 Full Name
+          👤 {t("registration.personalInfo.sections.fullName")}
         </Text>
         <View style={{ flexDirection: "row", gap: 12 }}>
           <View style={{ flex: 1 }}>
             <TextInput
               style={[styles.inputBase, { backgroundColor: colors.background }]}
-              placeholder="First name"
+              placeholder={t("registration.fields.placeholders.firstName")}
               placeholderTextColor={colors.textSecondary}
               value={firstName}
               onChangeText={setFirstName}
@@ -303,7 +315,7 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
             <TextInput
               ref={lastNameRef}
               style={[styles.inputBase, { backgroundColor: colors.background }]}
-              placeholder="Last name"
+              placeholder={t("registration.fields.placeholders.lastName")}
               placeholderTextColor={colors.textSecondary}
               value={lastName}
               onChangeText={setLastName}
@@ -326,7 +338,7 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
         <Text
           style={[localStyles.sectionTitle, { color: colors.textSecondary }]}
         >
-          📧 Contact
+          📧 {t("registration.personalInfo.sections.contact")}
         </Text>
         <TextInput
           ref={emailRef}
@@ -334,7 +346,7 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
             styles.inputBase,
             { backgroundColor: colors.background, marginBottom: 12 },
           ]}
-          placeholder="your@email.com"
+          placeholder={t("registration.fields.placeholders.email")}
           placeholderTextColor={colors.textSecondary}
           value={email}
           onChangeText={setEmail}
@@ -347,7 +359,7 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
         <TextInput
           ref={phoneRef}
           style={[styles.inputBase, { backgroundColor: colors.background }]}
-          placeholder="+61 4XX XXX XXX"
+          placeholder={t("registration.fields.placeholders.phone")}
           placeholderTextColor={colors.textSecondary}
           value={phone}
           onChangeText={setPhone}
@@ -369,7 +381,7 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
         <Text
           style={[localStyles.sectionTitle, { color: colors.textSecondary }]}
         >
-          🎂 Date of Birth (18+ required)
+          🎂 {t("registration.personalInfo.sections.dateOfBirth")}
         </Text>
         <Pressable
           onPress={() => setShowDatePicker(true)}
@@ -384,7 +396,7 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
               fontSize: 16,
             }}
           >
-            {dateOfBirth || "Select date of birth"}
+            {dateOfBirth || t("registration.fields.placeholders.dateOfBirth")}
           </Text>
         </Pressable>
 
@@ -410,7 +422,7 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
         <Text
           style={[localStyles.sectionTitle, { color: colors.textSecondary }]}
         >
-          🔒 Secure Password
+          🔒 {t("registration.personalInfo.sections.password")}
         </Text>
         <TextInput
           ref={passwordRef}
@@ -418,7 +430,7 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
             styles.inputBase,
             { backgroundColor: colors.background, marginBottom: 8 },
           ]}
-          placeholder="8+ chars, uppercase, number, special (!@#...)"
+          placeholder={t("registration.fields.placeholders.password")}
           placeholderTextColor={colors.textSecondary}
           value={password}
           onChangeText={setPassword}
@@ -447,12 +459,11 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
               >
                 <Text style={{ fontSize: 16, marginRight: 6 }}>⚠️</Text>
                 <Text style={{ flex: 1, fontSize: 12, color: "#dc2626" }}>
-                  Invalid character(s):{" "}
-                  <Text style={{ fontWeight: "700" }}>
-                    {invalidCharsCheck.invalidChars
-                      .map((c) => `"${c}"`)
-                      .join(", ")}
-                  </Text>
+                  {t("registration.personalInfo.invalidCharacters", {
+                    chars: invalidCharsCheck.invalidChars
+                      .map((c) => `\"${c}\"`)
+                      .join(", "),
+                  })}
                 </Text>
               </View>
             )}
@@ -467,7 +478,7 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
               }}
             >
               <Text style={{ fontSize: 12, color: colors.textSecondary }}>
-                Password Strength
+                {t("registration.personalInfo.passwordStrength.label")}
               </Text>
               <Text
                 style={{
@@ -502,7 +513,7 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
         <TextInput
           ref={confirmPasswordRef}
           style={[styles.inputBase, { backgroundColor: colors.background }]}
-          placeholder="Confirm password"
+          placeholder={t("registration.fields.placeholders.confirmPassword")}
           placeholderTextColor={colors.textSecondary}
           value={confirmPassword}
           onChangeText={setConfirmPassword}

@@ -3,12 +3,17 @@
  * Interface modernisée avec métriques, graphiques et actions rapides
  */
 
-import { Ionicons } from '@expo/vector-icons';
-import React, { useCallback, useState } from 'react';
-import { RefreshControl, ScrollView, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from "@expo/vector-icons";
+import React, { useCallback, useState } from "react";
+import {
+    RefreshControl,
+    ScrollView,
+    TouchableOpacity,
+    View,
+} from "react-native";
 
 // Design System
-import { useTheme } from '../../../context/ThemeProvider';
+import { useTheme } from "../../../context/ThemeProvider";
 import {
     Body,
     BodyLarge,
@@ -16,11 +21,11 @@ import {
     Button,
     Card,
     Heading3,
-    useDesignSystem
-} from '../../../design-system/components';
+    useDesignSystem,
+} from "../../../design-system/components";
 
 // Hooks business
-import { useStripePayments } from '../../../hooks/useStripe';
+import { useStripeAccount, useStripePayments } from "../../../hooks/useStripe";
 
 interface PaymentsDashboardProps {
   onRefresh?: () => void;
@@ -32,49 +37,61 @@ interface PaymentsDashboardProps {
  */
 export const PaymentsDashboard: React.FC<PaymentsDashboardProps> = ({
   onRefresh,
-  refreshing = false
+  refreshing = false,
 }) => {
   const { colors } = useTheme();
   const { tokens } = useDesignSystem();
-  
+
   // États locaux
-  const [selectedPeriod, setSelectedPeriod] = useState('7d');
-  
+  const [selectedPeriod, setSelectedPeriod] = useState("7d");
+
   // Hook paiements
   const {
     payments: recentPayments,
     loading,
     error,
-    refresh: refreshData
+    refresh: refreshData,
   } = useStripePayments();
 
-  // Mock temporaire pour balance et paymentStats
-  const balance = { available: 0, pending: 0, currency: 'EUR' };
-  const paymentStats = { total: 0, successful: 0, pending: 0 };
+  // Solde réel depuis le compte Stripe
+  const {
+    balance,
+    loading: accountLoading,
+    refresh: refreshAccount,
+  } = useStripeAccount();
+
+  // Stats dérivées des paiements réels
+  const paymentStats = {
+    total: recentPayments.length,
+    successful: recentPayments.filter((p) => p.status === "succeeded").length,
+    pending: recentPayments.filter((p) => p.status === "pending").length,
+  };
 
   const handleRefresh = useCallback(async () => {
-    await refreshData();
+    await Promise.all([refreshData(), refreshAccount()]);
     onRefresh?.();
-  }, [refreshData, onRefresh]);
+  }, [refreshData, refreshAccount, onRefresh]);
 
-  if (loading && !balance) {
+  if ((loading || accountLoading) && recentPayments.length === 0) {
     return <PaymentsDashboardSkeleton />;
   }
 
   if (error) {
     return (
       <Card variant="elevated" style={{ margin: tokens.spacing.lg }}>
-        <View style={{ 
-          alignItems: 'center', 
-          padding: tokens.spacing.xl 
-        }}>
-          <Ionicons 
-            name="alert-circle-outline" 
-            size={48} 
-            color={colors.error} 
+        <View
+          style={{
+            alignItems: "center",
+            padding: tokens.spacing.xl,
+          }}
+        >
+          <Ionicons
+            name="alert-circle-outline"
+            size={48}
+            color={colors.error}
             style={{ marginBottom: tokens.spacing.md }}
           />
-          <Body style={{ color: colors.error, textAlign: 'center' }}>
+          <Body style={{ color: colors.error, textAlign: "center" }}>
             Erreur lors du chargement du dashboard
           </Body>
           <Button
@@ -101,26 +118,20 @@ export const PaymentsDashboard: React.FC<PaymentsDashboardProps> = ({
       showsVerticalScrollIndicator={false}
     >
       {/* Balance Card */}
-      <BalanceCard 
-        balance={balance}
-        loading={loading}
-      />
+      <BalanceCard balance={balance} loading={loading} />
 
       {/* Quick Actions */}
       <QuickActionsCard />
 
       {/* Stats Overview */}
-      <StatsOverviewCard 
+      <StatsOverviewCard
         stats={paymentStats}
         selectedPeriod={selectedPeriod}
         onPeriodChange={setSelectedPeriod}
       />
 
       {/* Recent Payments */}
-      <RecentPaymentsCard 
-        payments={recentPayments}
-        loading={loading}
-      />
+      <RecentPaymentsCard payments={recentPayments} loading={loading} />
     </ScrollView>
   );
 };
@@ -128,34 +139,44 @@ export const PaymentsDashboard: React.FC<PaymentsDashboardProps> = ({
 /**
  * Carte du solde disponible
  */
-const BalanceCard: React.FC<{ balance: any; loading: boolean }> = ({ balance, loading }) => {
+const BalanceCard: React.FC<{ balance: any; loading: boolean }> = ({
+  balance,
+  loading,
+}) => {
   const { colors } = useTheme();
   const { tokens } = useDesignSystem();
 
   return (
-    <Card variant="elevated" style={{ 
-      margin: tokens.spacing.lg,
-      backgroundColor: colors.primary 
-    }}>
+    <Card
+      variant="elevated"
+      style={{
+        margin: tokens.spacing.lg,
+        backgroundColor: colors.primary,
+      }}
+    >
       <View style={{ padding: tokens.spacing.lg }}>
         <BodySmall style={{ color: colors.background, opacity: 0.8 }}>
           Solde disponible
         </BodySmall>
-        <BodyLarge style={{ 
-          color: colors.background,
-          fontSize: 32,
-          fontWeight: 'bold',
-          marginVertical: tokens.spacing.sm
-        }}>
-          {loading ? '---' : `${balance?.available || '0'} €`}
+        <BodyLarge
+          style={{
+            color: colors.background,
+            fontSize: 32,
+            fontWeight: "bold",
+            marginVertical: tokens.spacing.sm,
+          }}
+        >
+          {loading ? "---" : `${balance?.available || "0"} €`}
         </BodyLarge>
-        <View style={{ 
-          flexDirection: 'row', 
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
           <BodySmall style={{ color: colors.background, opacity: 0.8 }}>
-            En attente: {loading ? '---' : `${balance?.pending || '0'} €`}
+            En attente: {loading ? "---" : `${balance?.pending || "0"} €`}
           </BodySmall>
           <TouchableOpacity>
             <Ionicons name="eye-outline" size={20} color={colors.background} />
@@ -173,10 +194,14 @@ const QuickActionsCard: React.FC = () => {
   const { tokens } = useDesignSystem();
 
   const actions = [
-    { icon: 'card-outline', label: 'Nouveau paiement', action: 'payment' },
-    { icon: 'document-text-outline', label: 'Créer facture', action: 'invoice' },
-    { icon: 'cash-outline', label: 'Demander virement', action: 'payout' },
-    { icon: 'analytics-outline', label: 'Voir rapports', action: 'reports' }
+    { icon: "card-outline", label: "Nouveau paiement", action: "payment" },
+    {
+      icon: "document-text-outline",
+      label: "Créer facture",
+      action: "invoice",
+    },
+    { icon: "cash-outline", label: "Demander virement", action: "payout" },
+    { icon: "analytics-outline", label: "Voir rapports", action: "reports" },
   ];
 
   return (
@@ -185,12 +210,14 @@ const QuickActionsCard: React.FC = () => {
         <Heading3 style={{ marginBottom: tokens.spacing.md }}>
           Actions rapides
         </Heading3>
-        <View style={{ 
-          flexDirection: 'row', 
-          justifyContent: 'space-between' 
-        }}>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+          }}
+        >
           {actions.map((action, index) => (
-            <QuickActionButton 
+            <QuickActionButton
               key={action.action || `action-${index}`}
               icon={action.icon}
               label={action.label}
@@ -218,32 +245,32 @@ const QuickActionButton: React.FC<{
     <TouchableOpacity
       onPress={onPress}
       style={{
-        alignItems: 'center',
+        alignItems: "center",
         padding: tokens.spacing.sm,
         borderRadius: tokens.radius.md,
-        minWidth: 70
+        minWidth: 70,
       }}
     >
-      <View style={{
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        backgroundColor: colors.backgroundSecondary,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: tokens.spacing.xs
-      }}>
-        <Ionicons 
-          name={icon as any} 
-          size={24} 
-          color={colors.primary} 
-        />
+      <View
+        style={{
+          width: 48,
+          height: 48,
+          borderRadius: 24,
+          backgroundColor: colors.backgroundSecondary,
+          alignItems: "center",
+          justifyContent: "center",
+          marginBottom: tokens.spacing.xs,
+        }}
+      >
+        <Ionicons name={icon as any} size={24} color={colors.primary} />
       </View>
-      <BodySmall style={{ 
-        textAlign: 'center',
-        color: colors.textSecondary,
-        fontSize: 11
-      }}>
+      <BodySmall
+        style={{
+          textAlign: "center",
+          color: colors.textSecondary,
+          fontSize: 11,
+        }}
+      >
         {label}
       </BodySmall>
     </TouchableOpacity>
@@ -311,7 +338,7 @@ export const PaymentsDashboardSkeleton: React.FC = () => {
             height: 120,
             backgroundColor: colors.backgroundSecondary,
             borderRadius: tokens.radius.md,
-            marginBottom: tokens.spacing.md
+            marginBottom: tokens.spacing.md,
           }}
         />
       ))}

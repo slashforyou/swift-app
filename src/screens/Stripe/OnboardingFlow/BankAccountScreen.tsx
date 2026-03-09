@@ -16,11 +16,25 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+    SafeAreaView,
+    useSafeAreaInsets,
+} from "react-native-safe-area-context";
+import { getStripeTestData } from "../../../config/stripeTestData";
 import { DESIGN_TOKENS } from "../../../constants/Styles";
 import { useTheme } from "../../../context/ThemeProvider";
+import { useStripeAccount } from "../../../hooks/useStripe";
 import { useTranslation } from "../../../localization";
-import { submitBankAccount } from "../../../services/StripeService";
+import {
+    fetchStripeAccount,
+    submitBankAccount,
+} from "../../../services/StripeService";
+import {
+    getMissingOnboardingSteps,
+    getNextOnboardingStep,
+    getOnboardingStepMeta,
+    resolveBusinessType,
+} from "./onboardingSteps";
 
 interface BankAccountScreenProps {
   navigation: any;
@@ -44,16 +58,56 @@ export default function BankAccountScreen({
   route,
 }: BankAccountScreenProps) {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+  const stripeAccount = useStripeAccount();
+
+  const businessType = resolveBusinessType(
+    stripeAccount.account?.business_type || stripeAccount.account?.businessType,
+    stripeAccount.account?.requirements,
+  );
+  const stepMeta = getOnboardingStepMeta("BankAccount", businessType);
+  const stepLabel = t("stripe.onboarding.stepLabel", {
+    current: stepMeta.index + 1,
+    total: stepMeta.total,
+  });
+
+  const testData = __DEV__ ? getStripeTestData() : null;
 
   const [formData, setFormData] = React.useState<FormData>({
-    accountHolderName: __DEV__ ? "Romain Giovanni" : "",
-    bsb: __DEV__ ? "000-000" : "",
-    accountNumber: __DEV__ ? "000123456" : "",
+    accountHolderName: testData?.bankAccount.accountHolderName || "",
+    bsb: testData?.bankAccount.bsb || "",
+    accountNumber: testData?.bankAccount.accountNumber || "",
   });
 
   const [errors, setErrors] = React.useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [hasAutoSkipped, setHasAutoSkipped] = React.useState(false);
+
+  React.useEffect(() => {
+    if (hasAutoSkipped || stripeAccount.loading) return;
+
+    const requirements = stripeAccount.account?.requirements;
+    if (!requirements) return;
+
+    const missing = getMissingOnboardingSteps(requirements, businessType).steps;
+    if (missing.length > 0 && !missing.includes("BankAccount")) {
+      const nextStep = getNextOnboardingStep(
+        "BankAccount",
+        requirements,
+        businessType,
+      );
+      setHasAutoSkipped(true);
+      navigation.replace(nextStep, route.params);
+    }
+  }, [
+    businessType,
+    hasAutoSkipped,
+    navigation,
+    route.params,
+    stripeAccount.account?.requirements,
+    stripeAccount.loading,
+  ]);
 
   // Formater BSB avec tiret (XXX-XXX)
   const formatBSB = (value: string): string => {
@@ -129,18 +183,53 @@ export default function BankAccountScreen({
       const response = await submitBankAccount(payload);
       console.log("✅ [BankAccount] Success! Progress:", response.progress);
 
-      navigation.navigate("Documents", {
-        personalInfo: route.params.personalInfo,
-        address: route.params.address,
+      const updatedAccount = await fetchStripeAccount();
+      const nextBusinessType = resolveBusinessType(
+        updatedAccount.business_type,
+        updatedAccount.requirements,
+      );
+      const nextStep = getNextOnboardingStep(
+        "BankAccount",
+        updatedAccount.requirements,
+        nextBusinessType,
+      );
+      const nextParams = {
+        personalInfo: route.params?.personalInfo,
+        address: route.params?.address,
         bankAccount: formData,
-      });
+      };
+
+      switch (nextStep) {
+        case "Documents":
+          navigation.navigate("Documents", nextParams);
+          break;
+        case "Review":
+        default:
+          navigation.navigate("Review", nextParams);
+          break;
+      }
     } catch (error: any) {
       console.error("❌ [BankAccount] Error:", error);
-      Alert.alert(
-        t("stripe.onboarding.bankAccount.errors.submissionTitle"),
-        error.message ||
-          t("stripe.onboarding.bankAccount.errors.submissionMessage"),
-      );
+
+      // Detect Stripe permission error (Express account trying to use Custom-only features)
+      const isPermissionError =
+        error.code === "STRIPE_PERMISSION_DENIED" ||
+        error.message?.includes("required permissions") ||
+        error.status === 403;
+
+      if (isPermissionError) {
+        Alert.alert(
+          t("stripe.onboarding.errors.permissionDeniedTitle"),
+          t("stripe.onboarding.errors.permissionDeniedMessage"),
+          [{ text: t("common.ok") }],
+        );
+      } else {
+        Alert.alert(
+          t("stripe.onboarding.bankAccount.errors.submissionTitle"),
+          error.message ||
+            t("stripe.onboarding.bankAccount.errors.submissionMessage"),
+        );
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -197,6 +286,7 @@ export default function BankAccountScreen({
     },
     scrollContent: {
       padding: DESIGN_TOKENS.spacing.lg,
+      paddingBottom: Math.max(DESIGN_TOKENS.spacing.xl, insets.bottom + 12),
     },
     titleSection: {
       marginBottom: DESIGN_TOKENS.spacing.lg,
@@ -329,17 +419,17 @@ export default function BankAccountScreen({
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.stepText}>
-          {t("stripe.onboarding.bankAccount.step")}
-        </Text>
+        <Text style={styles.stepText}>{stepLabel}</Text>
       </View>
 
       {/* Progress Bar */}
       <View style={styles.progressContainer}>
         <View style={styles.progressBar}>
-          <View style={styles.progressFill} />
+          <View
+            style={[styles.progressFill, { width: `${stepMeta.progress}%` }]}
+          />
         </View>
-        <Text style={styles.progressText}>60%</Text>
+        <Text style={styles.progressText}>{`${stepMeta.progress}%`}</Text>
       </View>
 
       <KeyboardAvoidingView

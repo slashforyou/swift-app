@@ -4,6 +4,7 @@
  */
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React from "react";
+import { useTranslation } from "../../../localization";
 import {
     ScrollView,
     StyleSheet,
@@ -11,7 +12,10 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+    SafeAreaView,
+    useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { DESIGN_TOKENS } from "../../../constants/Styles";
 import { useTheme } from "../../../context/ThemeProvider";
 
@@ -25,6 +29,8 @@ export default function CompletionScreen({
   route,
 }: CompletionScreenProps) {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   const { accountStatus } = route.params || {};
 
@@ -47,7 +53,7 @@ export default function CompletionScreen({
       flexGrow: 1,
       paddingHorizontal: DESIGN_TOKENS.spacing.lg,
       paddingTop: DESIGN_TOKENS.spacing.xl * 2,
-      paddingBottom: DESIGN_TOKENS.spacing.xl,
+      paddingBottom: Math.max(DESIGN_TOKENS.spacing.xl, insets.bottom + 12),
     },
     iconContainer: {
       alignItems: "center",
@@ -191,25 +197,27 @@ export default function CompletionScreen({
         {/* Titre */}
         <Text style={styles.title}>
           {isPending
-            ? "Validation en cours"
+            ? t("stripe.completion.titlePending")
             : isActive
-              ? "Compte activé !"
-              : "Onboarding terminé"}
+              ? t("stripe.completion.titleActive")
+              : t("stripe.completion.titleActive")}
         </Text>
 
         {/* Sous-titre */}
         <Text style={styles.subtitle}>
           {isPending
-            ? "Votre compte Stripe est en cours de vérification. Vous pourrez accepter des paiements dès que la validation sera terminée."
+            ? t("stripe.completion.subtitlePending")
             : isActive
-              ? "Votre compte Stripe est maintenant actif ! Vous pouvez commencer à accepter des paiements."
-              : "Merci d'avoir complété votre profil Stripe."}
+              ? t("stripe.completion.subtitleActive")
+              : t("stripe.completion.subtitleActive")}
         </Text>
 
         {/* Carte de statut */}
         {accountStatus && (
           <View style={styles.statusCard}>
-            <Text style={styles.statusTitle}>Statut du compte</Text>
+            <Text style={styles.statusTitle}>
+              {t("stripe.completion.accountStatus")}
+            </Text>
 
             <View style={styles.statusItem}>
               <Ionicons
@@ -276,10 +284,11 @@ export default function CompletionScreen({
         {/* Information importante */}
         {isPending && (
           <View style={styles.infoCard}>
-            <Text style={styles.infoTitle}>⏱️ Délai de validation</Text>
+            <Text style={styles.infoTitle}>
+              {t("stripe.completion.validationDelay")}
+            </Text>
             <Text style={styles.infoText}>
-              La vérification de votre compte prend généralement **24 à 48
-              heures**. Vous recevrez un email dès que votre compte sera activé.
+              {t("stripe.completion.validationDelayDesc")}
             </Text>
           </View>
         )}
@@ -287,15 +296,16 @@ export default function CompletionScreen({
         {/* Prochaines étapes */}
         {isPending && (
           <View style={styles.nextStepsCard}>
-            <Text style={styles.nextStepsTitle}>Prochaines étapes</Text>
+            <Text style={styles.nextStepsTitle}>
+              {t("stripe.completion.nextStepsTitle")}
+            </Text>
 
             <View style={styles.stepItem}>
               <View style={styles.stepNumber}>
                 <Text style={styles.stepNumberText}>1</Text>
               </View>
               <Text style={styles.stepText}>
-                Consultez votre email pour confirmer la réception de votre
-                demande
+                {t("stripe.completion.nextStepsStep1")}
               </Text>
             </View>
 
@@ -304,7 +314,7 @@ export default function CompletionScreen({
                 <Text style={styles.stepNumberText}>2</Text>
               </View>
               <Text style={styles.stepText}>
-                Stripe vérifie vos informations (24-48h)
+                {t("stripe.completion.nextStepsStep2")}
               </Text>
             </View>
 
@@ -313,8 +323,7 @@ export default function CompletionScreen({
                 <Text style={styles.stepNumberText}>3</Text>
               </View>
               <Text style={styles.stepText}>
-                Vous recevrez un email de confirmation une fois votre compte
-                activé
+                {t("stripe.completion.nextStepsStep3")}
               </Text>
             </View>
 
@@ -323,7 +332,7 @@ export default function CompletionScreen({
                 <Text style={styles.stepNumberText}>4</Text>
               </View>
               <Text style={styles.stepText}>
-                Commencez à accepter des paiements !
+                {t("stripe.completion.nextStepsStep4")}
               </Text>
             </View>
           </View>
@@ -331,7 +340,9 @@ export default function CompletionScreen({
 
         {/* Bouton de retour */}
         <TouchableOpacity style={styles.button} onPress={handleReturn}>
-          <Text style={styles.buttonText}>Retour au tableau de bord</Text>
+          <Text style={styles.buttonText}>
+            {t("stripe.completion.returnToDashboard")}
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

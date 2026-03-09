@@ -26,14 +26,13 @@ import { useTheme } from "../../context/ThemeProvider";
 import { useBusinessStaff } from "../../hooks/business/useBusinessStaff";
 import { useBusinessVehicles } from "../../hooks/business/useBusinessVehicles";
 import { useClients } from "../../hooks/useClients";
-import { useTranslation } from "../../localization";
+import { getLocale, useLocalization } from "../../localization";
 import {
     ClientAPI,
     createClient,
     CreateClientRequest,
 } from "../../services/clients";
 import { CreateJobRequest } from "../../services/jobs";
-import { TravelBillingMode } from "../../services/pricing";
 
 interface CreateJobModalProps {
   visible: boolean;
@@ -116,6 +115,15 @@ const TIME_ROUNDING_OPTIONS = [
   { key: 60, label: "1h", marginMinutes: 7 },
 ];
 
+// Options de durée minimum facturable (en heures)
+const MINIMUM_HOURS_OPTIONS = [
+  { key: 1, label: "1h" },
+  { key: 1.5, label: "1.5h" },
+  { key: 2, label: "2h" },
+  { key: 3, label: "3h" },
+  { key: 4, label: "4h" },
+];
+
 // Options de call-out fee (en minutes)
 const CALL_OUT_FEE_OPTIONS = [
   { key: 0, label: "0 min" },
@@ -132,7 +140,7 @@ export default function CreateJobModal({
   selectedDate,
 }: CreateJobModalProps) {
   const { colors } = useTheme();
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useLocalization();
   const {
     clients,
     isLoading: isLoadingClients,
@@ -187,6 +195,7 @@ export default function CreateJobModal({
 
   // 💰 Pricing state
   const [hourlyRate, setHourlyRate] = useState("180"); // $180 AUD par défaut
+  const [minimumHours, setMinimumHours] = useState(2); // 2h minimum par défaut
   const [callOutFeeMinutes, setCallOutFeeMinutes] = useState(30); // 30 min par défaut
   const [depotToDepot, setDepotToDepot] = useState(false); // Désactivé par défaut
   const [timeRounding, setTimeRounding] = useState(30); // 30 min par défaut
@@ -267,6 +276,7 @@ export default function CreateJobModal({
     setPaymentMethod(null);
     // Reset pricing state
     setHourlyRate("180");
+    setMinimumHours(2);
     setCallOutFeeMinutes(30);
     setDepotToDepot(false);
     setTimeRounding(30);
@@ -395,6 +405,12 @@ export default function CreateJobModal({
           ? parseFloat(depositPercentage)
           : undefined,
         deposit_paid: depositRequired ? depositPaid : undefined,
+        // Pricing configuration
+        hourly_rate: parseFloat(hourlyRate || "180"),
+        minimum_hours: minimumHours,
+        call_out_fee_minutes: depotToDepot ? 0 : callOutFeeMinutes,
+        depot_to_depot: depotToDepot,
+        time_rounding_minutes: timeRounding,
       };
 
       console.log(
@@ -464,45 +480,50 @@ export default function CreateJobModal({
 
   const renderProgressBar = () => (
     <View style={styles.progressContainer}>
-      {["client", "address", "schedule", "details", "pricing", "confirmation"].map(
-        (s, index) => (
-          <React.Fragment key={s}>
+      {[
+        "client",
+        "address",
+        "schedule",
+        "details",
+        "pricing",
+        "confirmation",
+      ].map((s, index) => (
+        <React.Fragment key={s}>
+          <View
+            style={[
+              styles.progressDot,
+              {
+                backgroundColor:
+                  getStepNumber(step) >= index + 1
+                    ? colors.primary
+                    : colors.border,
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.progressNumber,
+                { color: colors.buttonPrimaryText },
+              ]}
+            >
+              {index + 1}
+            </Text>
+          </View>
+          {index < 5 && (
             <View
               style={[
-                styles.progressDot,
+                styles.progressLine,
                 {
                   backgroundColor:
-                    getStepNumber(step) >= index + 1
+                    getStepNumber(step) > index + 1
                       ? colors.primary
                       : colors.border,
                 },
               ]}
-            >
-              <Text
-                style={[
-                  styles.progressNumber,
-                  { color: colors.buttonPrimaryText },
-                ]}
-              >
-                {index + 1}
-              </Text>
-            </View>
-            {index < 5 && (
-              <View
-                style={[
-                  styles.progressLine,
-                  {
-                    backgroundColor:
-                      getStepNumber(step) > index + 1
-                        ? colors.primary
-                        : colors.border,
-                  },
-                ]}
-              />
-            )}
-          </React.Fragment>
-        ),
-      )}
+            />
+          )}
+        </React.Fragment>
+      ))}
     </View>
   );
 
@@ -679,7 +700,9 @@ export default function CreateJobModal({
                 {ADDRESS_TYPES[index]?.emoji || "📍"}
               </Text>
               <Text style={[styles.addressLabel, { color: colors.text }]}>
-                {ADDRESS_TYPES[index]?.label || `Address ${index + 1}`}
+                {t(`jobs.addressTypes.${ADDRESS_TYPES[index]?.key}`) ||
+                  ADDRESS_TYPES[index]?.label ||
+                  `Address ${index + 1}`}
               </Text>
             </View>
 
@@ -849,7 +872,7 @@ export default function CreateJobModal({
           >
             <Ionicons name="calendar" size={24} color={colors.primary} />
             <Text style={[styles.dateText, { color: colors.text, flex: 1 }]}>
-              {jobDate.toLocaleDateString("en-US", {
+              {jobDate.toLocaleDateString(getLocale(currentLanguage), {
                 weekday: "long",
                 year: "numeric",
                 month: "long",
@@ -1068,7 +1091,7 @@ export default function CreateJobModal({
               <Text
                 style={[styles.durationUnit, { color: colors.textSecondary }]}
               >
-                hours
+                {t("jobs.hours") || "hours"}
               </Text>
             </View>
           </View>
@@ -1114,7 +1137,7 @@ export default function CreateJobModal({
   const renderDetailsStep = () => (
     <View style={styles.stepContent}>
       <Text style={[styles.stepTitle, { color: colors.text }]}>
-        {t("jobs.details") || "Job Details"}
+        {t("jobs.jobDetails") || "Job Details"}
       </Text>
       <Text style={[styles.stepDescription, { color: colors.textSecondary }]}>
         {t("jobs.detailsDescription") || "Set priority and add notes"}
@@ -1149,7 +1172,7 @@ export default function CreateJobModal({
             >
               <Text style={styles.priorityEmoji}>{option.emoji}</Text>
               <Text style={[styles.priorityLabel, { color: colors.text }]}>
-                {option.label}
+                {t(`jobs.priorityOptions.${option.key}`) || option.label}
               </Text>
             </Pressable>
           ))}
@@ -1249,7 +1272,7 @@ export default function CreateJobModal({
             >
               <Text style={styles.priorityEmoji}>{vehicle.emoji}</Text>
               <Text style={[styles.priorityLabel, { color: colors.text }]}>
-                {vehicle.label}
+                {t(`jobs.vehicleTypes.${vehicle.key}`) || vehicle.label}
               </Text>
             </Pressable>
           ))}
@@ -1297,7 +1320,7 @@ export default function CreateJobModal({
                   ]}
                   numberOfLines={2}
                 >
-                  {extra.label}
+                  {t(`jobs.extrasOptions.${extra.key}`) || extra.label}
                 </Text>
                 {isSelected && (
                   <Ionicons
@@ -1378,7 +1401,7 @@ export default function CreateJobModal({
             >
               <Text style={styles.priorityEmoji}>{method.emoji}</Text>
               <Text style={[styles.priorityLabel, { color: colors.text }]}>
-                {method.label}
+                {t(`jobs.paymentMethods.${method.key}`) || method.label}
               </Text>
             </Pressable>
           ))}
@@ -1554,7 +1577,9 @@ export default function CreateJobModal({
               { backgroundColor: colors.backgroundSecondary },
             ]}
           >
-            <Text style={{ color: colors.text, fontSize: 18, fontWeight: "600" }}>
+            <Text
+              style={{ color: colors.text, fontSize: 18, fontWeight: "600" }}
+            >
               $
             </Text>
             <TextInput
@@ -1566,6 +1591,41 @@ export default function CreateJobModal({
               keyboardType="decimal-pad"
             />
             <Text style={{ color: colors.textSecondary }}>/h</Text>
+          </View>
+
+          {/* Minimum Billable Hours */}
+          <Text
+            style={[
+              styles.sectionLabel,
+              { color: colors.text, marginTop: DESIGN_TOKENS.spacing.lg },
+            ]}
+          >
+            ⏳ {t("jobs.minimumHours") || "Minimum Billable Hours"}
+          </Text>
+          <View style={styles.priorityGrid}>
+            {MINIMUM_HOURS_OPTIONS.map((option) => (
+              <Pressable
+                key={option.key}
+                style={[
+                  styles.priorityCard,
+                  {
+                    backgroundColor:
+                      minimumHours === option.key
+                        ? colors.primary + "20"
+                        : colors.backgroundSecondary,
+                    borderColor:
+                      minimumHours === option.key
+                        ? colors.primary
+                        : colors.border,
+                  },
+                ]}
+                onPress={() => setMinimumHours(option.key)}
+              >
+                <Text style={[styles.priorityLabel, { color: colors.text }]}>
+                  {option.label}
+                </Text>
+              </Pressable>
+            ))}
           </View>
 
           {/* Depot to Depot Toggle */}
@@ -1646,7 +1706,9 @@ export default function CreateJobModal({
                     ]}
                     onPress={() => setCallOutFeeMinutes(option.key)}
                   >
-                    <Text style={[styles.priorityLabel, { color: colors.text }]}>
+                    <Text
+                      style={[styles.priorityLabel, { color: colors.text }]}
+                    >
                       {option.label}
                     </Text>
                     {callOutFeeMinutes === option.key && (
@@ -1705,7 +1767,9 @@ export default function CreateJobModal({
                       marginTop: 2,
                     }}
                   >
-                    +{option.marginMinutes}min margin
+                    {t("jobs.marginMinutes", {
+                      minutes: option.marginMinutes,
+                    }) || `+${option.marginMinutes}min margin`}
                   </Text>
                 )}
               </Pressable>
@@ -1723,7 +1787,10 @@ export default function CreateJobModal({
             ]}
           >
             <Text
-              style={[styles.confirmationLabel, { color: colors.textSecondary }]}
+              style={[
+                styles.confirmationLabel,
+                { color: colors.textSecondary },
+              ]}
             >
               📋 {t("jobs.pricingSummary") || "Pricing Summary"}
             </Text>
@@ -1753,7 +1820,9 @@ export default function CreateJobModal({
                   {t("jobs.callOutFee") || "Call-Out Fee"}:
                 </Text>
                 <Text style={{ color: colors.text, fontWeight: "600" }}>
-                  {depotToDepot ? "N/A (Depot-Depot)" : `$${callOutFeeAmount.toFixed(0)}`}
+                  {depotToDepot
+                    ? t("jobs.naDepotDepot") || "N/A (Depot-Depot)"
+                    : `$${callOutFeeAmount.toFixed(0)}`}
                 </Text>
               </View>
               <View
@@ -1767,8 +1836,15 @@ export default function CreateJobModal({
                   {t("jobs.minimumCharge") || "Minimum Charge"}:
                 </Text>
                 <Text style={{ color: colors.text, fontWeight: "600" }}>
-                  2h + {depotToDepot ? "travel" : "call-out"} = $
-                  {(2 * parseFloat(hourlyRate || "0") + callOutFeeAmount).toFixed(0)}
+                  2h +{" "}
+                  {depotToDepot
+                    ? t("jobs.travelBilling") || "travel"
+                    : t("jobs.callOutBilling") || "call-out"}{" "}
+                  = $
+                  {(
+                    2 * parseFloat(hourlyRate || "0") +
+                    callOutFeeAmount
+                  ).toFixed(0)}
                 </Text>
               </View>
               <View
@@ -1781,7 +1857,12 @@ export default function CreateJobModal({
                   {t("jobs.rounding") || "Rounding"}:
                 </Text>
                 <Text style={{ color: colors.text, fontWeight: "600" }}>
-                  {timeRounding} min ({roundingMargin > 0 ? `+${roundingMargin}min margin` : "exact"})
+                  {timeRounding} min (
+                  {roundingMargin > 0
+                    ? t("jobs.marginMinutes", { minutes: roundingMargin }) ||
+                      `+${roundingMargin}min margin`
+                    : t("jobs.exact") || "exact"}
+                  )
                 </Text>
               </View>
             </View>
@@ -1880,7 +1961,9 @@ export default function CreateJobModal({
                 { color: colors.textSecondary },
               ]}
             >
-              {ADDRESS_TYPES[index]?.emoji} {ADDRESS_TYPES[index]?.label}
+              {ADDRESS_TYPES[index]?.emoji}{" "}
+              {t(`jobs.addressTypes.${ADDRESS_TYPES[index]?.key}`) ||
+                ADDRESS_TYPES[index]?.label}
             </Text>
             <Text style={[styles.confirmationValue, { color: colors.text }]}>
               {address.street}
@@ -1909,7 +1992,7 @@ export default function CreateJobModal({
             {t("jobs.schedule") || "Schedule"}
           </Text>
           <Text style={[styles.confirmationValue, { color: colors.text }]}>
-            {jobDate.toLocaleDateString("en-US", {
+            {jobDate.toLocaleDateString(getLocale(currentLanguage), {
               weekday: "long",
               year: "numeric",
               month: "long",
@@ -1922,7 +2005,10 @@ export default function CreateJobModal({
               { color: colors.textSecondary },
             ]}
           >
-            {startTime} - {endTime} ({estimatedDuration}h estimated)
+            {startTime} - {endTime} (
+            {t("jobs.estimated", { hours: estimatedDuration }) ||
+              `${estimatedDuration}h estimated`}
+            )
           </Text>
         </View>
 
@@ -1940,7 +2026,8 @@ export default function CreateJobModal({
           </Text>
           <Text style={[styles.confirmationValue, { color: colors.text }]}>
             {PRIORITY_OPTIONS.find((p) => p.key === priority)?.emoji}{" "}
-            {PRIORITY_OPTIONS.find((p) => p.key === priority)?.label}
+            {t(`jobs.priorityOptions.${priority}`) ||
+              PRIORITY_OPTIONS.find((p) => p.key === priority)?.label}
           </Text>
         </View>
 
@@ -2010,7 +2097,8 @@ export default function CreateJobModal({
             </Text>
             <Text style={[styles.confirmationValue, { color: colors.text }]}>
               {VEHICLE_TYPES.find((v) => v.key === selectedVehicleType)?.emoji}{" "}
-              {VEHICLE_TYPES.find((v) => v.key === selectedVehicleType)?.label}
+              {t(`jobs.vehicleTypes.${selectedVehicleType}`) ||
+                VEHICLE_TYPES.find((v) => v.key === selectedVehicleType)?.label}
             </Text>
           </View>
         )}
@@ -2035,7 +2123,9 @@ export default function CreateJobModal({
               {selectedExtras
                 .map((e) => {
                   const extra = EXTRAS_OPTIONS.find((opt) => opt.key === e);
-                  return extra ? `${extra.emoji} ${extra.label}` : e;
+                  return extra
+                    ? `${extra.emoji} ${t(`jobs.extrasOptions.${extra.key}`) || extra.label}`
+                    : e;
                 })
                 .join(", ")}
             </Text>
@@ -2050,10 +2140,7 @@ export default function CreateJobModal({
           ]}
         >
           <Text
-            style={[
-              styles.confirmationLabel,
-              { color: colors.textSecondary },
-            ]}
+            style={[styles.confirmationLabel, { color: colors.textSecondary }]}
           >
             💵 {t("jobs.pricingConfig") || "Pricing Configuration"}
           </Text>
@@ -2067,8 +2154,8 @@ export default function CreateJobModal({
             ]}
           >
             {depotToDepot
-              ? "🚛 Depot-to-Depot (travel time billable)"
-              : `📞 Call-out: ${callOutFeeMinutes}min ($${((callOutFeeMinutes / 60) * parseFloat(hourlyRate || "0")).toFixed(0)})`}
+              ? `🚛 ${t("jobs.depotDepotBillable") || "Depot-to-Depot (travel time billable)"}`
+              : `📞 ${t("jobs.callOutSummary", { minutes: String(callOutFeeMinutes), amount: ((callOutFeeMinutes / 60) * parseFloat(hourlyRate || "0")).toFixed(0) }) || `Call-out: ${callOutFeeMinutes}min ($${((callOutFeeMinutes / 60) * parseFloat(hourlyRate || "0")).toFixed(0)})`}`}
           </Text>
           <Text
             style={[
@@ -2076,11 +2163,13 @@ export default function CreateJobModal({
               { color: colors.textSecondary },
             ]}
           >
-            ⏱️ Rounding: {timeRounding}min
+            ⏱️{" "}
+            {t("jobs.roundingSummary", { minutes: String(timeRounding) }) ||
+              `Rounding: ${timeRounding}min`}
             {TIME_ROUNDING_OPTIONS.find((o) => o.key === timeRounding)
               ?.marginMinutes
-              ? ` (+${TIME_ROUNDING_OPTIONS.find((o) => o.key === timeRounding)?.marginMinutes}min margin)`
-              : " (exact)"}
+              ? ` (${t("jobs.marginMinutes", { minutes: TIME_ROUNDING_OPTIONS.find((o) => o.key === timeRounding)?.marginMinutes }) || `+${TIME_ROUNDING_OPTIONS.find((o) => o.key === timeRounding)?.marginMinutes}min margin`})`
+              : ` (${t("jobs.exact") || "exact"})`}
           </Text>
         </View>
 
@@ -2117,10 +2206,9 @@ export default function CreateJobModal({
                   PAYMENT_METHOD_OPTIONS.find((m) => m.key === paymentMethod)
                     ?.emoji
                 }{" "}
-                {
+                {t(`jobs.paymentMethods.${paymentMethod}`) ||
                   PAYMENT_METHOD_OPTIONS.find((m) => m.key === paymentMethod)
-                    ?.label
-                }
+                    ?.label}
               </Text>
             )}
             {depositRequired && (
@@ -2133,7 +2221,9 @@ export default function CreateJobModal({
                 {t("jobs.depositRequired") || "Deposit"}: {depositPercentage}%
                 {amountTotal &&
                   ` ($${((parseFloat(amountTotal) * parseFloat(depositPercentage)) / 100).toFixed(2)})`}
-                {depositPaid ? " ✅ Paid" : " ⏳ Pending"}
+                {depositPaid
+                  ? ` ✅ ${t("jobs.paid") || "Paid"}`
+                  : ` ⏳ ${t("jobs.pendingDeposit") || "Pending"}`}
               </Text>
             )}
           </View>

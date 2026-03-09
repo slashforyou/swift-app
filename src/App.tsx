@@ -1,9 +1,16 @@
 // src/App.tsx
+import {
+    SpaceGrotesk_400Regular,
+    SpaceGrotesk_600SemiBold,
+    SpaceGrotesk_700Bold,
+    useFonts,
+} from "@expo-google-fonts/space-grotesk";
 import { StripeProvider } from "@stripe/stripe-react-native";
 import React, { useEffect } from "react";
-import { View } from "react-native";
+import { Alert as NativeAlert, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ENV, STRIPE_PUBLISHABLE_KEY } from "./config/environment";
+import { AppAlertProvider } from "./context/AppAlertProvider";
 import { NotificationsProvider } from "./context/NotificationsProvider";
 import { ThemeProvider } from "./context/ThemeProvider";
 import { ToastProvider } from "./context/ToastProvider";
@@ -11,6 +18,7 @@ import { VehiclesProvider } from "./context/VehiclesProvider";
 import { PermissionsProvider } from "./contexts/PermissionsContext";
 import { LocalizationProvider } from "./localization";
 import Navigation from "./navigation/index";
+import { appAlert } from "./services/appAlert";
 import { initializePushNotifications } from "./services/pushNotifications";
 import { logInfo, simpleSessionLogger } from "./services/simpleSessionLogger";
 import "./services/testCommunication"; // Initialize test communication
@@ -20,7 +28,15 @@ import { performanceMonitor } from "./utils/performanceMonitoring";
 // Marquer le début du démarrage de l'app
 performanceMonitor.markAppStart();
 
+NativeAlert.alert = appAlert.alert;
+
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    SpaceGrotesk_400Regular,
+    SpaceGrotesk_600SemiBold,
+    SpaceGrotesk_700Bold,
+  });
+
   useEffect(() => {
     // Marquer le premier rendu
     performanceMonitor.markFirstRender();
@@ -68,6 +84,10 @@ export default function App() {
     };
   }, []);
 
+  if (!fontsLoaded) {
+    return null;
+  }
+
   return (
     <SafeAreaProvider>
       <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
@@ -77,9 +97,11 @@ export default function App() {
               <PermissionsProvider autoLoad={false}>
                 <VehiclesProvider>
                   <ToastProvider>
-                    <View style={{ flex: 1 }}>
-                      <Navigation />
-                    </View>
+                    <AppAlertProvider>
+                      <View style={{ flex: 1 }}>
+                        <Navigation />
+                      </View>
+                    </AppAlertProvider>
                   </ToastProvider>
                 </VehiclesProvider>
               </PermissionsProvider>

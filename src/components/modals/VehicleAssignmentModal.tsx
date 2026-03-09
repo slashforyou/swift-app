@@ -5,21 +5,21 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    Modal,
+    Pressable,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
 import { useLocalization } from "../../localization/useLocalization";
 import {
-  BusinessVehicle,
-  fetchBusinessVehicles,
+    BusinessVehicle,
+    fetchBusinessVehicles,
 } from "../../services/business/vehiclesService";
 import { updateJob } from "../../services/jobs";
 import { fetchUserProfile } from "../../services/user";
@@ -70,9 +70,10 @@ export default function VehicleAssignmentModal({
       const profile = await fetchUserProfile();
       const userId = profile.id.toString();
 
-      // Utiliser le même mapping que StripeService pour le company_id
-      // TODO: À terme, l'API devrait retourner le company_id dans le profil
-      const resolvedCompanyId = userId === "15" ? "1" : userId;
+      // Utiliser company_id depuis l'API (v1.1.0+), fallback sur userId si absent
+      const resolvedCompanyId = profile.company_id
+        ? profile.company_id.toString()
+        : userId;
       setCompanyId(resolvedCompanyId);
 
       // Charger les véhicules
@@ -239,7 +240,7 @@ export default function VehicleAssignmentModal({
                   },
                 ]}
               >
-                {t(`vehicles.status.${item.status}`)}
+                {t(`vehicles.status.${item.status ?? "undefined"}`)}
               </Text>
             </View>
             {isCurrentVehicle && (

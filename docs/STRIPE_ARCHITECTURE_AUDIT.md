@@ -198,7 +198,7 @@ User → Formulaire natif React Native (Écran 1: Identité)
 
    → Backend: Upload à Stripe Files API → Attach to account
 
-5. **`POST /v1/stripe/onboarding/complete`**
+5. **`POST /v1/stripe/onboarding/verify`**
    ```json
    {
      "terms_accepted": true
@@ -288,7 +288,7 @@ User → Formulaire natif React Native (Écran 1: Identité)
 - [ ] Créer `POST /v1/stripe/onboarding/address`
 - [ ] Créer `POST /v1/stripe/onboarding/bank-account`
 - [ ] Créer `POST /v1/stripe/onboarding/document`
-- [ ] Créer `POST /v1/stripe/onboarding/complete`
+- [ ] Créer `POST /v1/stripe/onboarding/verify`
 - [ ] Modifier `POST /v1/stripe/connect/create` pour retourner seulement `account_id`
 - [ ] Tester avec Stripe Test Mode
 

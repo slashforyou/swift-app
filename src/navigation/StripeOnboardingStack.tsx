@@ -15,9 +15,12 @@ import React from "react";
 // Écrans d'onboarding
 import AddressScreen from "../screens/Stripe/OnboardingFlow/AddressScreen";
 import BankAccountScreen from "../screens/Stripe/OnboardingFlow/BankAccountScreen";
+import BusinessProfileScreen from "../screens/Stripe/OnboardingFlow/BusinessProfileScreen";
+import CompanyDetailsScreen from "../screens/Stripe/OnboardingFlow/CompanyDetailsScreen";
 import CompletionScreen from "../screens/Stripe/OnboardingFlow/CompletionScreen";
 import DocumentsScreen from "../screens/Stripe/OnboardingFlow/DocumentsScreen";
 import PersonalInfoScreen from "../screens/Stripe/OnboardingFlow/PersonalInfoScreen";
+import RepresentativeScreen from "../screens/Stripe/OnboardingFlow/RepresentativeScreen";
 import ReviewScreen from "../screens/Stripe/OnboardingFlow/ReviewScreen";
 import WelcomeScreen from "../screens/Stripe/OnboardingFlow/WelcomeScreen";
 
@@ -25,77 +28,88 @@ import WelcomeScreen from "../screens/Stripe/OnboardingFlow/WelcomeScreen";
 export type StripeOnboardingStackParamList = {
   Welcome: undefined;
   PersonalInfo: undefined;
-  Address: {
-    personalInfo: {
-      firstName: string;
-      lastName: string;
-      dob: Date;
-      email: string;
-      phone: string;
-    };
-  };
-  BankAccount: {
-    personalInfo: {
-      firstName: string;
-      lastName: string;
-      dob: Date;
-      email: string;
-      phone: string;
-    };
-    address: {
-      line1: string;
-      line2?: string;
-      city: string;
-      state: string;
-      postalCode: string;
-    };
-  };
-  Documents: {
-    personalInfo: {
-      firstName: string;
-      lastName: string;
-      dob: Date;
-      email: string;
-      phone: string;
-    };
-    address: {
-      line1: string;
-      line2?: string;
-      city: string;
-      state: string;
-      postalCode: string;
-    };
-    bankAccount: {
-      accountHolderName: string;
-      bsb: string;
-      accountNumber: string;
-    };
-  };
-  Review: {
-    personalInfo: {
-      firstName: string;
-      lastName: string;
-      dob: Date;
-      email: string;
-      phone: string;
-    };
-    address: {
-      line1: string;
-      line2?: string;
-      city: string;
-      state: string;
-      postalCode: string;
-    };
-    bankAccount: {
-      accountHolderName: string;
-      bsb: string;
-      accountNumber: string;
-    };
-    documents: {
-      frontImage: string;
-      backImage: string;
-    };
-  };
+  BusinessProfile: undefined;
+  Address:
+    | {
+        personalInfo?: {
+          firstName: string;
+          lastName: string;
+          dob: Date;
+          email: string;
+          phone: string;
+        };
+      }
+    | undefined;
+  CompanyDetails: undefined;
+  Representative: undefined;
+  BankAccount:
+    | {
+        personalInfo?: {
+          firstName: string;
+          lastName: string;
+          dob: Date;
+          email: string;
+          phone: string;
+        };
+        address?: {
+          line1: string;
+          line2?: string;
+          city: string;
+          state: string;
+          postalCode: string;
+        };
+      }
+    | undefined;
+  Documents:
+    | {
+        personalInfo?: {
+          firstName: string;
+          lastName: string;
+          dob: Date;
+          email: string;
+          phone: string;
+        };
+        address?: {
+          line1: string;
+          line2?: string;
+          city: string;
+          state: string;
+          postalCode: string;
+        };
+        bankAccount?: {
+          accountHolderName: string;
+          bsb: string;
+          accountNumber: string;
+        };
+      }
+    | undefined;
+  Review:
+    | {
+        personalInfo?: {
+          firstName: string;
+          lastName: string;
+          dob: Date;
+          email: string;
+          phone: string;
+        };
+        address?: {
+          line1: string;
+          line2?: string;
+          city: string;
+          state: string;
+          postalCode: string;
+        };
+        bankAccount?: {
+          accountHolderName: string;
+          bsb: string;
+          accountNumber: string;
+        };
+        documents?: {
+          frontImage: string;
+          backImage: string;
+        };
+      }
+    | undefined;
   Completion: {
     accountStatus?: {
       charges_enabled: boolean;
@@ -125,7 +139,10 @@ export default function StripeOnboardingStack() {
         }}
       />
       <Stack.Screen name="PersonalInfo" component={PersonalInfoScreen} />
+      <Stack.Screen name="BusinessProfile" component={BusinessProfileScreen} />
       <Stack.Screen name="Address" component={AddressScreen} />
+      <Stack.Screen name="CompanyDetails" component={CompanyDetailsScreen} />
+      <Stack.Screen name="Representative" component={RepresentativeScreen} />
       <Stack.Screen name="BankAccount" component={BankAccountScreen} />
       <Stack.Screen name="Documents" component={DocumentsScreen} />
       <Stack.Screen

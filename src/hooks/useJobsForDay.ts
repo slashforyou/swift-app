@@ -16,7 +16,12 @@ export interface Job {
   priority: "low" | "medium" | "high" | "urgent";
 
   // Ownership info
-  assignment_status?: "none" | "pending" | "accepted" | "declined";
+  assignment_status?:
+    | "none"
+    | "pending"
+    | "accepted"
+    | "declined"
+    | "negotiating";
   contractee?: {
     company_id: number;
     company_name: string;
@@ -35,6 +40,15 @@ export interface Job {
     can_start: boolean;
     can_edit: boolean;
   };
+  transfer?: {
+    requested_drivers?: number | null;
+    requested_offsiders?: number | null;
+    pricing_amount?: number | null;
+    pricing_type?: "flat" | "hourly" | "daily" | null;
+    transfer_message?: string | null;
+    preferred_truck_id?: number | null;
+    resource_note?: string | null;
+  } | null;
 
   client: {
     name?: string; // Nom complet du client (prioritaire sur firstName/lastName)
@@ -65,6 +79,7 @@ export interface Job {
     endWindowEnd: string;
   };
   truck: {
+    id?: number;
     licensePlate: string;
     name: string;
   };
@@ -123,6 +138,23 @@ function convertAPIJobToLocal(apiJob: any): Job {
     contractee: apiJob.contractee,
     contractor: apiJob.contractor,
     permissions: apiJob.permissions,
+    transfer:
+      apiJob.requested_drivers != null ||
+      apiJob.requested_offsiders != null ||
+      apiJob.pricing_amount != null ||
+      apiJob.pricing_type != null ||
+      apiJob.transfer_message != null ||
+      apiJob.contractee // always build transfer for external (contractor) jobs
+        ? {
+            requested_drivers: apiJob.requested_drivers ?? null,
+            requested_offsiders: apiJob.requested_offsiders ?? null,
+            pricing_amount: apiJob.pricing_amount ?? null,
+            pricing_type: apiJob.pricing_type ?? null,
+            transfer_message: apiJob.transfer_message ?? null,
+            preferred_truck_id: apiJob.preferred_truck_id ?? null,
+            resource_note: apiJob.resource_note ?? null,
+          }
+        : null,
 
     client: {
       name: fullName, // Utiliser le nom complet (prioritaire)
@@ -155,6 +187,7 @@ function convertAPIJobToLocal(apiJob: any): Job {
       endWindowEnd: apiJob.end_window_end || apiJob.start_window_end || "",
     },
     truck: {
+      id: apiJob.preferred_truck_id ?? undefined,
       licensePlate: apiJob.truck_license_plate || "",
       name: apiJob.truck_name || "",
     },

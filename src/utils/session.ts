@@ -1,15 +1,18 @@
 // services/session.ts
 import * as SecureStore from "expo-secure-store";
 import { ServerData } from "../constants/ServerData";
+import { clearStripeCache } from "../services/stripeCache";
 import { getAuthHeaders, refreshToken as refreshAuthToken } from "./auth";
 
 const API = ServerData.serverUrl;
 
-// Clean local session (tokens)
+// Clean local session (tokens and caches)
 export async function clearLocalSession() {
   await SecureStore.deleteItemAsync("session_token");
   await SecureStore.deleteItemAsync("refresh_token");
   await SecureStore.deleteItemAsync("device_id");
+  await SecureStore.deleteItemAsync("user_data"); // ✅ FIX: Clear user data too
+  clearStripeCache(); // ✅ FIX: Clear Stripe cache to avoid stale account data
 }
 
 // Ping the /me endpoint to verify the session token
@@ -22,6 +25,9 @@ async function fetchMe() {
       headers[key] = value;
     }
   });
+
+  // Keep parity with auth endpoints that expect this header
+  headers["x-client"] = "mobile";
 
   // ✅ Add timeout to prevent infinite loading
   const controller = new AbortController();
@@ -46,10 +52,9 @@ export async function ensureSession() {
   try {
     // ✅ Wrap entire session check in timeout to prevent infinite loading
     const sessionCheckPromise = async () => {
-      // 1) If possible, get sessionToken, deviceId and refreshToken from storage
-      const [sessionToken, deviceId, refreshToken] = await Promise.all([
+      // 1) If possible, get sessionToken and refreshToken from storage
+      const [sessionToken, refreshToken] = await Promise.all([
         SecureStore.getItemAsync("session_token"),
-        SecureStore.getItemAsync("device_id"),
         SecureStore.getItemAsync("refresh_token"),
       ]);
 
@@ -61,7 +66,14 @@ export async function ensureSession() {
           // We extract res.json() in a try/catch to avoid breaking if the response is not JSON (should not happen)
           try {
             const data = await res.json();
-            if (!data || typeof data !== "object" || !data.success) {
+
+            // Accept multiple API shapes: {success:true,...} OR {user:{...}} (legacy)
+            const isOk =
+              !!data &&
+              typeof data === "object" &&
+              (data.success === true || typeof (data as any).user === "object");
+
+            if (!isOk) {
               throw new Error("Invalid /me response");
             }
 
@@ -81,8 +93,8 @@ export async function ensureSession() {
         // else 401: try refresh below
       }
 
-      // 3) If we have deviceId + refreshToken, try refresh
-      if (deviceId && refreshToken) {
+      // 3) If we have a refreshToken, try refresh
+      if (refreshToken) {
         try {
           await refreshAuthToken(); // updates session_token (+ possibly refresh_token)
           const res2 = await fetchMe();

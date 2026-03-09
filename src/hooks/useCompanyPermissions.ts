@@ -7,7 +7,7 @@
  */
 
 import * as SecureStore from "expo-secure-store";
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { CompanyRole } from "../services/user";
 import {
     canCreateJob,
@@ -45,29 +45,43 @@ export interface CompanyPermissions {
  * Reads from stored user data after login
  */
 export function useCompanyPermissions(): CompanyPermissions {
-  // In a real implementation, this would read from a context or state management
-  // For now, we'll create a helper to read from SecureStore
-  // NOTE: This is synchronous in the hook but async operations should be done elsewhere
+  const [companyRole, setCompanyRole] = useState<CompanyRole | undefined>(
+    undefined,
+  );
+  const [company, setCompany] = useState<
+    { id: number; name: string } | undefined
+  >(undefined);
 
-  // This hook assumes user data is already loaded in a context or state
-  // You should integrate this with your existing auth context
+  const load = useCallback(async () => {
+    try {
+      const raw = await SecureStore.getItemAsync("user_data");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        setCompanyRole(parsed.company_role ?? undefined);
+        setCompany(parsed.company ?? undefined);
+      }
+    } catch (e) {
+      console.warn("[useCompanyPermissions] Erreur lecture SecureStore:", e);
+    }
+  }, []);
 
-  const permissions = useMemo(() => {
-    // This is a placeholder - in real usage, get from auth context
-    // For now, return default values
-    const companyRole: CompanyRole | undefined = undefined;
+  useEffect(() => {
+    load();
+  }, [load]);
 
-    return {
+  const permissions = useMemo(
+    () => ({
       companyRole,
-      company: undefined,
+      company,
       canCreateJob: canCreateJob(companyRole),
       canSeeAllJobs: canSeeAllCompanyJobs(companyRole),
       isManager: isManager(companyRole),
       isOwner: isOwner(companyRole),
       calendarLabel: getCalendarLabel(companyRole),
       getJobCreationError: () => getJobCreationErrorMessage(companyRole),
-    };
-  }, []);
+    }),
+    [companyRole, company],
+  );
 
   return permissions;
 }

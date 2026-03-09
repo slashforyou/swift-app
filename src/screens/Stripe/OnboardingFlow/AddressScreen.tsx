@@ -17,11 +17,25 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+    SafeAreaView,
+    useSafeAreaInsets,
+} from "react-native-safe-area-context";
+import { getStripeTestData } from "../../../config/stripeTestData";
 import { DESIGN_TOKENS } from "../../../constants/Styles";
 import { useTheme } from "../../../context/ThemeProvider";
+import { useStripeAccount } from "../../../hooks/useStripe";
 import { useTranslation } from "../../../localization";
-import { submitAddress } from "../../../services/StripeService";
+import {
+    fetchStripeAccount,
+    submitAddress,
+} from "../../../services/StripeService";
+import {
+    getMissingOnboardingSteps,
+    getNextOnboardingStep,
+    getOnboardingStepMeta,
+    resolveBusinessType,
+} from "./onboardingSteps";
 
 interface AddressScreenProps {
   navigation: any;
@@ -59,18 +73,58 @@ export default function AddressScreen({
   route,
 }: AddressScreenProps) {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+  const stripeAccount = useStripeAccount();
+
+  const businessType = resolveBusinessType(
+    stripeAccount.account?.business_type || stripeAccount.account?.businessType,
+    stripeAccount.account?.requirements,
+  );
+  const stepMeta = getOnboardingStepMeta("Address", businessType);
+  const stepLabel = t("stripe.onboarding.stepLabel", {
+    current: stepMeta.index + 1,
+    total: stepMeta.total,
+  });
+
+  const testData = __DEV__ ? getStripeTestData() : null;
 
   const [formData, setFormData] = React.useState<FormData>({
-    line1: __DEV__ ? "123 George Street" : "",
-    line2: __DEV__ ? "Apartment 4B" : "",
-    city: __DEV__ ? "Sydney" : "",
-    state: __DEV__ ? "NSW" : "",
-    postalCode: __DEV__ ? "2000" : "",
+    line1: testData?.address.line1 || "",
+    line2: testData?.address.line2 || "",
+    city: testData?.address.city || "",
+    state: testData?.address.state || "",
+    postalCode: testData?.address.postalCode || "",
   });
 
   const [errors, setErrors] = React.useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [hasAutoSkipped, setHasAutoSkipped] = React.useState(false);
+
+  React.useEffect(() => {
+    if (hasAutoSkipped || stripeAccount.loading) return;
+
+    const requirements = stripeAccount.account?.requirements;
+    if (!requirements) return;
+
+    const missing = getMissingOnboardingSteps(requirements, businessType).steps;
+    if (missing.length > 0 && !missing.includes("Address")) {
+      const nextStep = getNextOnboardingStep(
+        "Address",
+        requirements,
+        businessType,
+      );
+      setHasAutoSkipped(true);
+      navigation.replace(nextStep, route.params);
+    }
+  }, [
+    businessType,
+    hasAutoSkipped,
+    navigation,
+    route.params,
+    stripeAccount.account?.requirements,
+    stripeAccount.loading,
+  ]);
   // Validation code postal australien (4 chiffres)
   const validatePostalCode = (postalCode: string): boolean => {
     const postalCodeRegex = /^[0-9]{4}$/;
@@ -132,17 +186,61 @@ export default function AddressScreen({
       const response = await submitAddress(payload);
       console.log("✅ [Address] Success! Progress:", response.progress);
 
-      navigation.navigate("BankAccount", {
-        personalInfo: route.params.personalInfo,
+      const updatedAccount = await fetchStripeAccount();
+      const nextBusinessType = resolveBusinessType(
+        updatedAccount.business_type,
+        updatedAccount.requirements,
+      );
+      const nextStep = getNextOnboardingStep(
+        "Address",
+        updatedAccount.requirements,
+        nextBusinessType,
+      );
+      const nextParams = {
+        personalInfo: route.params?.personalInfo,
         address: formData,
-      });
+      };
+
+      switch (nextStep) {
+        case "CompanyDetails":
+          navigation.navigate("CompanyDetails");
+          break;
+        case "Representative":
+          navigation.navigate("Representative");
+          break;
+        case "BankAccount":
+          navigation.navigate("BankAccount", nextParams);
+          break;
+        case "Documents":
+          navigation.navigate("Documents", nextParams);
+          break;
+        case "Review":
+        default:
+          navigation.navigate("Review", nextParams);
+          break;
+      }
     } catch (error: any) {
       console.error("❌ [Address] Error:", error);
-      Alert.alert(
-        t("stripe.onboarding.address.errors.submissionTitle"),
-        error.message ||
-          t("stripe.onboarding.address.errors.submissionMessage"),
-      );
+
+      // Detect Stripe permission error (Express account trying to use Custom-only features)
+      const isPermissionError =
+        error.code === "STRIPE_PERMISSION_DENIED" ||
+        error.message?.includes("required permissions") ||
+        error.status === 403;
+
+      if (isPermissionError) {
+        Alert.alert(
+          t("stripe.onboarding.errors.permissionDeniedTitle"),
+          t("stripe.onboarding.errors.permissionDeniedMessage"),
+          [{ text: t("common.ok") }],
+        );
+      } else {
+        Alert.alert(
+          t("stripe.onboarding.address.errors.submissionTitle"),
+          error.message ||
+            t("stripe.onboarding.address.errors.submissionMessage"),
+        );
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -193,6 +291,7 @@ export default function AddressScreen({
     },
     scrollContent: {
       padding: DESIGN_TOKENS.spacing.lg,
+      paddingBottom: Math.max(DESIGN_TOKENS.spacing.xl, insets.bottom + 12),
     },
     titleSection: {
       marginBottom: DESIGN_TOKENS.spacing.lg,
@@ -321,17 +420,17 @@ export default function AddressScreen({
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.stepText}>
-          {t("stripe.onboarding.address.step")}
-        </Text>
+        <Text style={styles.stepText}>{stepLabel}</Text>
       </View>
 
       {/* Progress Bar */}
       <View style={styles.progressContainer}>
         <View style={styles.progressBar}>
-          <View style={styles.progressFill} />
+          <View
+            style={[styles.progressFill, { width: `${stepMeta.progress}%` }]}
+          />
         </View>
-        <Text style={styles.progressText}>40%</Text>
+        <Text style={styles.progressText}>{`${stepMeta.progress}%`}</Text>
       </View>
 
       <KeyboardAvoidingView

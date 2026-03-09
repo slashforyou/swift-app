@@ -146,14 +146,8 @@ export async function fetchUserProfile(): Promise<UserProfile> {
   // TEMP_DISABLED: console.log('🔍 [API FETCH] - success:', data.success);
   // TEMP_DISABLED: console.log('🔍 [API FETCH] - user exists:', !!data.user);
 
-  // ✅ LOG TEMPORAIRE: Vérifier si company_id est présent
-  console.log("🔍 [API FETCH] Raw user data from API:", {
-    hasUser: !!data.user,
-    company_id: data.user?.company_id,
-    companyId: data.user?.companyId,
-    hasCompany: !!data.user?.company,
-    companyInCompany: data.user?.company?.id,
-  });
+  // TEMP_DISABLED: Log temporaire pour vérifier company_id
+  // console.log("🔍 [API FETCH] Raw user data from API:", { ... });
 
   // Accepter les deux formats de réponse
   if (!data.user) {
@@ -255,7 +249,7 @@ function normalizeUserProfile(apiData: any): UserProfile {
     userType: apiData.userType || apiData.user_type || "employee",
 
     // New company relationship fields (API v1.1.0)
-    company_id: apiData.company_id,
+    company_id: apiData.company_id || apiData.companyId || apiData.company?.id,
     company_role: apiData.company_role,
     company: apiData.company,
 
@@ -294,6 +288,53 @@ function normalizeUserProfile(apiData: any): UserProfile {
     permissions: apiData.permissions || [],
     isActive: apiData.isActive !== false,
   };
+}
+
+/**
+ * Change le mot de passe de l'utilisateur
+ */
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  const res = await authenticatedFetch(`${API}v1/user/change-password`, {
+    method: "POST",
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+
+  if (!res.ok) {
+    const error = await res
+      .json()
+      .catch(() => ({ message: "Failed to change password" }));
+    if (res.status === 401) {
+      throw new Error("Mot de passe actuel incorrect.");
+    }
+    throw new Error(
+      error.message || `HTTP ${res.status}: Failed to change password`,
+    );
+  }
+}
+
+/**
+ * Demande un changement d'email (envoie un lien de confirmation)
+ */
+export async function requestEmailChange(newEmail: string): Promise<void> {
+  const res = await authenticatedFetch(`${API}v1/user/change-email`, {
+    method: "POST",
+    body: JSON.stringify({ newEmail }),
+  });
+
+  if (!res.ok) {
+    const error = await res
+      .json()
+      .catch(() => ({ message: "Failed to request email change" }));
+    if (res.status === 409) {
+      throw new Error("Cet email est déjà utilisé par un autre compte.");
+    }
+    throw new Error(
+      error.message || `HTTP ${res.status}: Failed to request email change`,
+    );
+  }
 }
 
 /**

@@ -4,13 +4,16 @@
  *
  * ⚠️ Utilise JobStepsConfig.ts comme source unique de vérité pour les steps
  */
+import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useCallback, useRef, useState } from "react";
-import { Alert, ScrollView, Text, View } from "react-native";
+import { Alert, Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import JobDetailsHeader from "../components/jobDetails/JobDetailsHeader";
 import { JobAssignmentActions, JobOwnershipBanner } from "../components/jobs";
+import ContracteeNegotiationModal from "../components/jobs/ContracteeNegotiationModal";
 import AssignStaffModal from "../components/modals/AssignStaffModal";
 import EditJobModal from "../components/modals/EditJobModal";
+import TransferJobModal from "../components/modals/TransferJobModal";
 import TabMenu from "../components/ui/TabMenu";
 import Toast from "../components/ui/toastNotification";
 import {
@@ -159,9 +162,12 @@ const JobDetails: React.FC<JobDetailsProps> = ({
 }) => {
   const insets = useSafeAreaInsets();
   const { toastDetails, showToast } = useToast();
-  const { isLoading: authLoading, LoadingComponent } = useAuthCheck(navigation);
   const { colors } = useTheme();
   const { t } = useLocalization();
+  const { isLoading: authLoading, LoadingComponent } = useAuthCheck(
+    navigation,
+    t("common.checkingAuth"),
+  );
 
   // 📊 Performance monitoring
   const perf = usePerformanceMetrics("JobDetails");
@@ -220,117 +226,52 @@ const JobDetails: React.FC<JobDetailsProps> = ({
     // ✅ Steps dynamiques depuis JobStepsConfig (source unique de vérité)
     steps: DEFAULT_STEPS,
     client: {
-      firstName: "Client A",
-      lastName: "Last Name",
-      phone: "+1234567890",
-      email: "mail@mail.com",
-      type: t("jobDetails.client.firstTimeClient"),
+      firstName: "",
+      lastName: "",
+      phone: "",
+      email: "",
+      type: "",
     },
     contact: {
-      firstName: "Contact A",
-      lastName: "Last Name",
-      phone: "+1234567890",
+      firstName: "",
+      lastName: "",
+      phone: "",
     },
-    addresses: [
-      {
-        type: "pickup",
-        street: "123 Main St",
-        city: "City A",
-        state: "State A",
-        zip: "12345",
-      },
-      {
-        type: "dropoff",
-        street: "456 Elm St",
-        city: "City B",
-        state: "State B",
-        zip: "67890",
-      },
-    ],
+    addresses: [],
     time: {
-      startWindowStart: "2023-10-01T08:00:00Z",
-      startWindowEnd: "2023-10-01T10:00:00Z",
-      endWindowStart: "2023-10-01T12:00:00Z",
-      endWindowEnd: "2023-10-01T14:00:00Z",
+      startWindowStart: "",
+      startWindowEnd: "",
+      endWindowStart: "",
+      endWindowEnd: "",
     },
     truck: {
-      licensePlate: "ABC123",
-      name: "Truck A",
+      licensePlate: "",
+      name: "",
     },
     notes: [],
     payment: {
       status: "unsettled",
-      amount: "550.00",
-      amountWithoutTax: "500.00",
+      amount: "0.00",
+      amountWithoutTax: "0.00",
       amountPaid: "0.00",
-      amountToBePaid: "550.00",
+      amountToBePaid: "0.00",
       taxe: {
-        gst: "50.00",
+        gst: "0.00",
         gstRate: 10,
-        amountWithoutTax: "500.00",
+        amountWithoutTax: "0.00",
       },
       currency: "AUD",
-      dueDate: "N/A",
-      paymentMethod: "N/A",
-      transactionId: "N/A",
-      paymentLink: "N/A",
-      paymentTime: "N/A",
-      paymentDetails: "N/A",
-      savedCards: [
-        {
-          id: 1,
-          cardNumber: "4242 4242 4242 4242",
-          cardHolderName: "John Doe",
-          expiryDate: "12/25",
-          cvv: "123",
-        },
-        {
-          id: 2,
-          cardNumber: "5555 5555 5555 4444",
-          cardHolderName: "Jane Doe",
-          expiryDate: "11/24",
-          cvv: "456",
-        },
-      ],
+      dueDate: "",
+      paymentMethod: "",
+      transactionId: "",
+      paymentLink: "",
+      paymentTime: "",
+      paymentDetails: "",
+      savedCards: [],
     },
-    items: [
-      {
-        id: 1,
-        name: "Toy-boy",
-        number: 1,
-        checked: false,
-      },
-      {
-        id: 2,
-        name: "TV Unit",
-        number: 1,
-        checked: false, // true if the item is checked
-      },
-      {
-        id: 3,
-        name: "Sofa",
-        number: 1,
-        checked: false, // true if the item is checked
-      },
-      {
-        id: 4,
-        name: "Bed",
-        number: 1,
-        checked: false, // true if the item is checked
-      },
-    ],
-    contractor: {
-      Name: "Contractor A",
-      ContactName: "Contact A",
-      Phone: "+1234567890",
-      Email: "contractor@example.com",
-    },
-    contractee: {
-      Name: "Contractee A",
-      ContactName: "Contact A",
-      Phone: "+1234567890",
-      Email: "contractee@example.com",
-    },
+    items: [],
+    contractor: null,
+    contractee: null,
   });
 
   // State for Edit Job Modal
@@ -340,8 +281,20 @@ const JobDetails: React.FC<JobDetailsProps> = ({
   const [isAssignStaffModalVisible, setIsAssignStaffModalVisible] =
     useState(false);
 
+  // State for Transfer Job Modal
+  const [isTransferModalVisible, setIsTransferModalVisible] = useState(false);
+
+  // State for Contractee Negotiation Modal (réponse à une contre-proposition)
+  const [isNegotiationModalVisible, setIsNegotiationModalVisible] =
+    useState(false);
+
   // ✅ FIX BOUCLE INFINIE: Ref pour tracker si validation déjà effectuée
   const hasValidatedRef = useRef(false);
+
+  // 🔔 Ref + state pour la modal d'action en attente (assignment pending)
+  const hasShownPendingActionRef = useRef(false);
+  const [isPendingActionModalVisible, setIsPendingActionModalVisible] =
+    useState(false);
 
   // Handle Edit Job
   const handleEditJob = useCallback(() => {
@@ -640,12 +593,33 @@ const JobDetails: React.FC<JobDetailsProps> = ({
           ...prevJob,
           id: jobDetails.job?.id || actualJobId,
           code: jobDetails.job?.code || actualJobId, // Ajouter le code du job
+          status: jobDetails.job?.status, // ✅ FIX: Copier le status pour que JobTimerDisplay sache si le job est "completed"
           // ✅ Steps dynamiques basés sur les adresses (source unique: JobStepsConfig)
           steps: dynamicSteps,
           step: {
             ...prevJob.step,
-            actualStep:
-              jobDetails.job?.current_step || prevJob.step?.actualStep || 0,
+            // ✅ FIX: Si le job est "completed" mais current_step est invalide, utiliser totalSteps
+            actualStep: (() => {
+              const backendStep = jobDetails.job?.current_step;
+              const isCompletedJob = jobDetails.job?.status === "completed";
+              const calculatedTotalSteps = 2 + (jobAddresses.length || 2) * 2;
+
+              if (
+                backendStep !== undefined &&
+                backendStep !== null &&
+                backendStep > 0
+              ) {
+                // Backend a un step valide - utiliser si completed, forcer au dernier step
+                return isCompletedJob
+                  ? Math.max(backendStep, calculatedTotalSteps)
+                  : backendStep;
+              }
+              if (isCompletedJob) {
+                // Job completed mais pas de step valide - forcer au dernier step
+                return calculatedTotalSteps;
+              }
+              return prevJob.step?.actualStep || 0;
+            })(),
           },
           // ✅ MERGE CLIENT: On ne remplace que les champs qui ont de vraies valeurs
           client: mergeClientData(
@@ -712,6 +686,19 @@ const JobDetails: React.FC<JobDetailsProps> = ({
           assignment_status:
             jobDetails.job?.assignment_status || prevJob.assignment_status,
           permissions: jobDetails.job?.permissions || prevJob.permissions,
+          // ✅ FIX: Copier payment & signature depuis l'API
+          payment_status:
+            jobDetails.job?.payment_status ?? prevJob.payment_status,
+          amount_due: jobDetails.job?.amount_due ?? prevJob.amount_due,
+          amount_total: jobDetails.job?.amount_total ?? prevJob.amount_total,
+          amount_paid: jobDetails.job?.amount_paid ?? prevJob.amount_paid,
+          signature_blob:
+            jobDetails.job?.signature_blob ?? prevJob.signature_blob,
+          signature_date:
+            jobDetails.job?.signature_date ?? prevJob.signature_date,
+          // Délégation B2B active
+          active_transfer:
+            jobDetails.job?.active_transfer ?? prevJob.active_transfer,
         };
       });
       // TEMP_DISABLED: console.log('✅ [JobDetails] Local job data updated with API data');
@@ -721,7 +708,41 @@ const JobDetails: React.FC<JobDetailsProps> = ({
   // ✅ FIX BOUCLE INFINIE: Reset du flag de validation quand on change de job
   React.useEffect(() => {
     hasValidatedRef.current = false; // Permettre la validation pour le nouveau job
+    hasShownPendingActionRef.current = false; // Permettre la modal pour le nouveau job
   }, [actualJobId]);
+
+  // 🔔 Auto-affichage si action en attente (une seule fois par chargement de job)
+  React.useEffect(() => {
+    if (hasShownPendingActionRef.current) return;
+
+    // Cas 1 : assignment pending → ouvrir la modal bottom-sheet
+    if (
+      job.assignment_status === "pending" &&
+      (job.permissions?.can_accept || job.permissions?.can_decline)
+    ) {
+      hasShownPendingActionRef.current = true;
+      setIsPendingActionModalVisible(true);
+      return;
+    }
+
+    // Cas 2 : transfert B2B pending/negotiating → naviguer vers l'onglet summary
+    const transfer = job.active_transfer;
+    if (
+      transfer &&
+      (transfer.status === "pending" || transfer.status === "negotiating") &&
+      job.permissions?.can_respond_transfer
+    ) {
+      hasShownPendingActionRef.current = true;
+      setJobPanel("summary");
+    }
+  }, [
+    job.assignment_status,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    job.active_transfer?.status,
+    job.permissions?.can_accept,
+    job.permissions?.can_decline,
+    job.permissions?.can_respond_transfer,
+  ]);
 
   const [jobPanel, setJobPanel] = useState("summary");
   // jobPanel: 'summary', 'job', 'client', 'notes', 'payment'
@@ -889,21 +910,28 @@ const JobDetails: React.FC<JobDetailsProps> = ({
     );
   }
 
-  const currentStep = job.step.actualStep || 0;
+  const rawCurrentStep = job.step?.actualStep ?? job.current_step ?? 0;
   // ✅ NOUVEAU: Calcul dynamique basé sur les adresses
   // Formule: 1 (départ) + 2×N (arrivée + fin par adresse) + 1 (retour) = 2 + 2×N
   const addressCount = job.addresses?.length || 2;
   const totalSteps = 2 + addressCount * 2; // Pour 2 adresses = 6 steps (+ step 0 = 7 total)
 
+  // ✅ FIX: Si le job est "completed" par le backend, forcer le currentStep au dernier step
+  const jobStatus = jobDetails?.job?.status;
+  const isJobCompletedByBackend = jobStatus === "completed";
+  const currentStep = isJobCompletedByBackend ? totalSteps : rawCurrentStep;
+
   // 🔍 DEBUG: Afficher les infos de step pour diagnostiquer le problème
   console.log("🔍 [JobDetails] Step configuration:", {
+    rawStep: rawCurrentStep,
     actualStep: job.step?.actualStep,
     currentStep,
     totalSteps,
     addressCount,
     stepsArray: job.steps?.map((s) => s.name),
-    jobStatus: jobDetails?.job?.status,
-    isCompleted: currentStep >= totalSteps,
+    jobStatus,
+    isJobCompletedByBackend,
+    isCompleted: currentStep >= totalSteps || isJobCompletedByBackend,
   });
 
   return (
@@ -932,8 +960,8 @@ const JobDetails: React.FC<JobDetailsProps> = ({
           title={getPanelTitle()}
           onToast={showToast}
           showLanguageButton={false}
-          onEdit={handleEditJob}
-          onDelete={handleDeleteJob}
+          onEdit={job.permissions?.can_edit ? handleEditJob : undefined}
+          onDelete={job.permissions?.can_delete ? handleDeleteJob : undefined}
           onAssignStaff={handleOpenAssignStaff}
         />
 
@@ -965,6 +993,65 @@ const JobDetails: React.FC<JobDetailsProps> = ({
           />
         )}
 
+        {/* 🔄 Négociation en cours — visible uniquement pour le CRÉATEUR (contractee)
+            quand le prestataire a soumis une contre-proposition */}
+        {job.assignment_status === "negotiating" &&
+          job.permissions?.is_contractee &&
+          !job.permissions?.is_owner && (
+            <Pressable
+              onPress={() => setIsNegotiationModalVisible(true)}
+              style={({ pressed }) => ({
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: pressed
+                  ? (colors.warning || "#F59E0B") + "CC"
+                  : colors.warning || "#F59E0B",
+                paddingVertical: 10,
+                paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+                marginHorizontal: DESIGN_TOKENS.spacing.lg,
+                marginBottom: DESIGN_TOKENS.spacing.sm,
+                borderRadius: DESIGN_TOKENS.radius.md,
+                gap: 6,
+              })}
+            >
+              <Ionicons name="swap-horizontal-outline" size={16} color="#fff" />
+              <Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>
+                Voir la négociation
+              </Text>
+            </Pressable>
+          )}
+
+        {/* Déléguer ce job — visible uniquement si aucune délégation n'est en cours
+            (statut "none") ou si la précédente a été refusée ("declined").
+            Masqué si le timer a tourné, ou si une contre-proposition B2B est en cours. */}
+        {job.permissions?.can_create_transfer &&
+          !job.timer_is_running &&
+          (job.timer_total_hours == null ||
+            Number(job.timer_total_hours) === 0) && (
+            <Pressable
+              onPress={() => setIsTransferModalVisible(true)}
+              style={({ pressed }) => ({
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: pressed
+                  ? colors.primary + "CC"
+                  : colors.primary,
+                paddingVertical: 10,
+                paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+                marginHorizontal: DESIGN_TOKENS.spacing.lg,
+                marginBottom: DESIGN_TOKENS.spacing.sm,
+                borderRadius: DESIGN_TOKENS.radius.md,
+                gap: 6,
+              })}
+            >
+              <Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>
+                Déléguer ce job
+              </Text>
+            </Pressable>
+          )}
+
         {/* ScrollView principal */}
         <ScrollView
           style={{ flex: 1 }}
@@ -980,10 +1067,25 @@ const JobDetails: React.FC<JobDetailsProps> = ({
               job={job}
               setJob={setJob}
               onOpenPaymentPanel={() => setJobPanel("payment")}
+              isLoading={jobLoading}
+              onRefresh={refreshJobDetails}
             />
           )}
           {jobPanel === "job" && (
-            <JobPage job={job} setJob={setJob} isVisible={jobPanel === "job"} />
+            <JobPage
+              job={job}
+              setJob={setJob}
+              isVisible={jobPanel === "job"}
+              onAssignStaff={handleOpenAssignStaff}
+              onVehicleUpdated={(vehicle) => {
+                setJob((prevJob: any) => ({
+                  ...prevJob,
+                  truck: vehicle
+                    ? { name: vehicle.name, licensePlate: vehicle.licensePlate }
+                    : null,
+                }));
+              }}
+            />
           )}
           {jobPanel === "client" && <JobClient job={job} setJob={setJob} />}
           {jobPanel === "notes" && (
@@ -1051,6 +1153,190 @@ const JobDetails: React.FC<JobDetailsProps> = ({
           onAssign={handleAssignStaff}
           onClose={() => setIsAssignStaffModalVisible(false)}
         />
+
+        {/* Modal de délégation B2B */}
+        <TransferJobModal
+          visible={isTransferModalVisible}
+          jobId={job.id}
+          onClose={() => setIsTransferModalVisible(false)}
+          onSuccess={() => {
+            setIsTransferModalVisible(false);
+            refreshJobDetails();
+          }}
+        />
+
+        {/* � Contractee Negotiation Modal — réponse à une contre-proposition */}
+        <ContracteeNegotiationModal
+          visible={isNegotiationModalVisible}
+          info={{
+            jobId: job.id || actualJobId,
+            jobTitle: job.title || job.code,
+            contractorName: job.contractor?.company_name,
+            proposedStart:
+              jobDetails?.job?.counter_proposed_start ||
+              job.counter_proposed_start,
+            proposedEnd:
+              jobDetails?.job?.counter_proposed_end || job.counter_proposed_end,
+            proposedAt:
+              jobDetails?.job?.counter_proposed_at || job.counter_proposed_at,
+            notePayload:
+              jobDetails?.job?.counter_proposal_note ||
+              job.counter_proposal_note,
+          }}
+          onClose={() => setIsNegotiationModalVisible(false)}
+          onJobUpdated={() => {
+            setIsNegotiationModalVisible(false);
+            refreshJobDetails();
+          }}
+        />
+
+        {/* �🔔 Modal bottom-sheet : notification action en attente (assignment pending) */}
+        <Modal
+          visible={isPendingActionModalVisible}
+          transparent={true}
+          animationType="slide"
+          statusBarTranslucent={true}
+          onRequestClose={() => setIsPendingActionModalVisible(false)}
+        >
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "flex-end",
+              backgroundColor: "rgba(0,0,0,0.55)",
+            }}
+          >
+            <Pressable
+              style={{ flex: 1 }}
+              onPress={() => setIsPendingActionModalVisible(false)}
+            />
+            <View
+              style={{
+                backgroundColor: colors.background,
+                borderTopLeftRadius: 24,
+                borderTopRightRadius: 24,
+                paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+                paddingTop: DESIGN_TOKENS.spacing.lg,
+                paddingBottom: insets.bottom + DESIGN_TOKENS.spacing.xl,
+              }}
+            >
+              {/* Handle bar */}
+              <View
+                style={{
+                  width: 40,
+                  height: 4,
+                  backgroundColor: colors.border,
+                  borderRadius: 2,
+                  alignSelf: "center",
+                  marginBottom: DESIGN_TOKENS.spacing.md,
+                }}
+              />
+
+              {/* Header */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: DESIGN_TOKENS.spacing.sm,
+                }}
+              >
+                <View
+                  style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+                >
+                  <View
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 18,
+                      backgroundColor: colors.warning + "20",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Ionicons
+                      name="notifications"
+                      size={18}
+                      color={colors.warning}
+                    />
+                  </View>
+                  <Text
+                    style={{
+                      fontSize: 17,
+                      fontWeight: "700",
+                      color: colors.text,
+                    }}
+                  >
+                    {t("jobs.pendingActionTitle") || "Action requise"}
+                  </Text>
+                </View>
+                <Pressable
+                  onPress={() => setIsPendingActionModalVisible(false)}
+                  hitSlop={12}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 16,
+                    backgroundColor: colors.backgroundSecondary,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Ionicons
+                    name="close"
+                    size={18}
+                    color={colors.textSecondary}
+                  />
+                </Pressable>
+              </View>
+
+              {/* Sous-titre contextuel */}
+              {job.contractee?.company_name && (
+                <Text
+                  style={{
+                    color: colors.textSecondary,
+                    fontSize: 14,
+                    marginBottom: DESIGN_TOKENS.spacing.lg,
+                    lineHeight: 20,
+                  }}
+                >
+                  {t("jobs.pendingActionMessage") ||
+                    `${job.contractee.company_name} vous a assigné ce job et attend votre confirmation.`}
+                </Text>
+              )}
+
+              {/* Boutons Accepter / Refuser */}
+              <JobAssignmentActions
+                jobId={job.id}
+                jobTitle={job.title || job.code || "Job"}
+                canAccept={job.permissions?.can_accept || false}
+                canDecline={job.permissions?.can_decline || false}
+                onAccept={async (notes) => {
+                  setIsPendingActionModalVisible(false);
+                  await handleAcceptJob(notes);
+                }}
+                onDecline={async (reason) => {
+                  setIsPendingActionModalVisible(false);
+                  await handleDeclineJob(reason);
+                }}
+              />
+
+              {/* Voir plus tard */}
+              <Pressable
+                onPress={() => setIsPendingActionModalVisible(false)}
+                style={({ pressed }) => ({
+                  marginTop: DESIGN_TOKENS.spacing.sm,
+                  paddingVertical: DESIGN_TOKENS.spacing.md,
+                  alignItems: "center",
+                  opacity: pressed ? 0.5 : 1,
+                })}
+              >
+                <Text style={{ color: colors.textSecondary, fontSize: 14 }}>
+                  {t("common.later") || "Voir plus tard"}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </Modal>
       </View>
     </JobTimerProvider>
   );

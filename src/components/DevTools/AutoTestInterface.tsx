@@ -17,6 +17,7 @@ import {
 } from 'react-native';
 import { testController, TestResult, TestSession } from '../../services/testController';
 import { LogViewer } from './LogViewer';
+import { useTranslation } from '../../localization';
 
 interface AutoTestInterfaceProps {
   visible: boolean;
@@ -27,6 +28,7 @@ export const AutoTestInterface: React.FC<AutoTestInterfaceProps> = ({
   visible,
   onClose,
 }) => {
+  const { t } = useTranslation();
   const [currentSession, setCurrentSession] = useState<TestSession | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [results, setResults] = useState<TestResult[]>([]);
@@ -73,18 +75,30 @@ export const AutoTestInterface: React.FC<AutoTestInterfaceProps> = ({
   const runQuickNavigationTest = async () => {
     try {
       await (global as any).copilotAPI.quickTest.navigateToBusinessPage();
-      Alert.alert('✅ Test Terminé', 'Navigation vers Business Page réussie');
-    } catch (error: any) {
-      Alert.alert('❌ Test Échoué', error.message);
+      Alert.alert(
+        t('devTools.autoTest.doneTitle'),
+        t('devTools.autoTest.navigationBusinessSuccess'),
+      );
+    } catch (error: any) {
+
+      Alert.alert(t('devTools.autoTest.failedTitle'), String(error.message));
     }
   };
 
   const runSessionLoggerTest = async () => {
     try {
       const results = await (global as any).copilotAPI.quickTest.testSessionLogger();
-      Alert.alert('✅ Test Terminé', `Session Logger test: ${results.filter((r: any) => r.success).length}/${results.length} réussis`);
-    } catch (error: any) {
-      Alert.alert('❌ Test Échoué', error.message);
+      const passed = results.filter((r: any) => r.success).length;
+      Alert.alert(
+        t('devTools.autoTest.doneTitle'),
+        t('devTools.autoTest.sessionLoggerSummary', {
+          passed,
+          total: results.length,
+        }),
+      );
+    } catch (error: any) {
+
+      Alert.alert(t('devTools.autoTest.failedTitle'), String(error.message));
     }
   };
 
@@ -92,15 +106,25 @@ export const AutoTestInterface: React.FC<AutoTestInterfaceProps> = ({
     try {
       const results = await (global as any).copilotAPI.quickTest.fullAppTest();
       const passed = results.filter((r: any) => r.success).length;
-      Alert.alert('✅ Test Complet Terminé', `${passed}/${results.length} commandes réussies`);
-    } catch (error: any) {
-      Alert.alert('❌ Test Échoué', error.message);
+      Alert.alert(
+        t('devTools.autoTest.doneTitle'),
+        t('devTools.autoTest.fullAppSummary', {
+          passed,
+          total: results.length,
+        }),
+      );
+    } catch (error: any) {
+
+      Alert.alert(t('devTools.autoTest.failedTitle'), String(error.message));
     }
   };
 
   const stopCurrentTest = () => {
     testController.stopTestSession();
-    Alert.alert('🛑 Test Arrêté', 'Exécution des tests interrompue');
+    Alert.alert(
+      t('devTools.autoTest.stoppedTitle'),
+      t('devTools.autoTest.stoppedMessage'),
+    );
   };
 
   const clearResults = () => {

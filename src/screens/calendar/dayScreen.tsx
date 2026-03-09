@@ -12,6 +12,7 @@ import {
     View,
 } from "react-native";
 import CalendarHeader from "../../components/calendar/CalendarHeader";
+import ContractorJobWizardModal from "../../components/calendar/ContractorJobWizardModal";
 import {
     EmptyDayState,
     ErrorState,
@@ -49,13 +50,17 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
   const [showFilters, setShowFilters] = useState(false);
   const [isCreateJobModalVisible, setIsCreateJobModalVisible] = useState(false);
 
+  // States for contractor wizard
+  const [wizardJob, setWizardJob] = useState<Job | null>(null);
+  const [showWizard, setShowWizard] = useState(false);
+
   // Get themed colors and styles
   const { colors, styles: commonStyles } = useCommonThemedStyles();
   const { t } = useTranslation();
   const { currentLanguage } = useLocalization();
 
   // Get company permissions
-  const { canCreateJob } = useCompanyPermissions();
+  const { canCreateJob, company: currentCompany } = useCompanyPermissions();
 
   // Custom hook for jobs data
   const {
@@ -82,23 +87,58 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
   // Format date for display - utilise la langue courante
   const formattedDate = useMemo(() => {
     const date = new Date(selectedYear, selectedMonth - 1, selectedDay);
-    return formatDateWithDay(date, currentLanguage);
-  }, [selectedDay, selectedMonth, selectedYear, currentLanguage]);
+    return formatDateWithDay(date, currentLanguage, t);
+  }, [selectedDay, selectedMonth, selectedYear, currentLanguage, t]);
 
-  // Handle job press
+  // Pending assignment jobs (external jobs that need accept/decline)
+  const pendingAssignmentJobs = useMemo(
+    () =>
+      jobs.filter(
+        (j) =>
+          j.assignment_status === "pending" &&
+          j.contractee &&
+          j.contractor &&
+          j.contractee.company_id !== j.contractor.company_id,
+      ),
+    [jobs],
+  );
+
+  // Handle job press — open wizard for pending contractor jobs, else navigate to details
   const handleJobPress = useCallback(
     (job: Job) => {
-      // Utiliser le code du job (ex: JOB-NERD-URGENT-006) au lieu de l'ID numérique
-      const jobCode = job.code || job.id; // Fallback sur ID si pas de code
-      // TEMP_DISABLED: console.log(`Job ${job.id} (code: ${jobCode}) selected`);
+      const isExternal =
+        job.contractee &&
+        job.contractor &&
+        job.contractee.company_id !== job.contractor.company_id;
+
+      // Si c'est un job externe ET que l'utilisateur est du côté contractor
+      // (pas le créateur du job) → ouvrir le wizard pour pending/negotiating
+      const currentCompanyId = currentCompany?.id;
+      const isCurrentUserContractor =
+        isExternal &&
+        currentCompanyId != null &&
+        job.contractor?.company_id === currentCompanyId;
+
+      if (
+        isCurrentUserContractor &&
+        (job.assignment_status === "pending" ||
+          job.assignment_status === "negotiating")
+      ) {
+        setWizardJob(job);
+        setShowWizard(true);
+        return;
+      }
+
+      // Cas normal (propriétaire du job ou job interne) : naviguer vers les détails
+      const jobCode = job.code || job.id;
       navigation.navigate("JobDetails", {
-        jobId: jobCode, // Passer le code du job
+        jobId: jobCode,
         day: selectedDay,
         month: selectedMonth,
         year: selectedYear,
       });
     },
-    [navigation, selectedDay, selectedMonth, selectedYear],
+    [navigation, selectedDay, selectedMonth, selectedYear, currentCompany],
   );
 
   // Handle refresh
@@ -402,6 +442,59 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
         useCompanyLabel={true}
       />
 
+      {/* ⚠️ Pending assignment banner */}
+      {pendingAssignmentJobs.length > 0 && (
+        <Pressable
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            backgroundColor: colors.warning + "1A",
+            borderBottomWidth: 1,
+            borderBottomColor: colors.warning + "40",
+            paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+            paddingVertical: DESIGN_TOKENS.spacing.sm,
+            gap: DESIGN_TOKENS.spacing.sm,
+          }}
+          onPress={() => {
+            // Ouvrir directement le wizard sur le premier job en attente
+            if (pendingAssignmentJobs[0]) {
+              setWizardJob(pendingAssignmentJobs[0]);
+              setShowWizard(true);
+            }
+          }}
+        >
+          <View
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: 14,
+              backgroundColor: colors.warning + "30",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Ionicons name="alert-circle" size={18} color={colors.warning} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text
+              style={{
+                fontSize: 13,
+                fontWeight: "700",
+                color: colors.warning,
+              }}
+            >
+              {pendingAssignmentJobs.length === 1
+                ? "1 job en attente de votre réponse"
+                : `${pendingAssignmentJobs.length} jobs en attente de votre réponse`}
+            </Text>
+            <Text style={{ fontSize: 11, color: colors.textSecondary }}>
+              Appuyez pour répondre
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={16} color={colors.warning} />
+        </Pressable>
+      )}
+
       {/* Stats */}
       <View style={styles.statsContainer}>
         <View style={styles.statItem}>
@@ -530,6 +623,19 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
         onClose={() => setIsCreateJobModalVisible(false)}
         onCreateJob={handleCreateJob}
         selectedDate={new Date(selectedYear, selectedMonth - 1, selectedDay)}
+      />
+
+      {/* Contractor Job Wizard Modal */}
+      <ContractorJobWizardModal
+        visible={showWizard}
+        job={wizardJob}
+        onClose={() => {
+          setShowWizard(false);
+          setWizardJob(null);
+        }}
+        onJobUpdated={async () => {
+          await refetch();
+        }}
       />
     </View>
   );

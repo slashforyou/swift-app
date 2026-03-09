@@ -110,7 +110,9 @@ const ReviewStepImproved: React.FC<ReviewStepProps> = ({
           {emoji} {title}
         </Text>
         <Pressable onPress={() => onEditStep(stepNumber)} disabled={isLoading}>
-          <Text style={{ color: colors.primary, fontSize: 14 }}>Edit</Text>
+          <Text style={{ color: colors.primary, fontSize: 14 }}>
+            {t("registration.buttons.edit")}
+          </Text>
         </Pressable>
       </View>
       {children}

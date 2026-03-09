@@ -24,7 +24,7 @@ import {
 // ✅ Imports depuis la configuration centralisée des steps
 import {
     calculateTotalSteps,
-    generateStepsFromAddresses
+    generateStepsFromAddresses,
 } from "../constants/JobStepsConfig";
 
 // ✅ FIX SESSION 10: Ajouter realJobId comme paramètre optionnel
@@ -67,6 +67,7 @@ export const useJobTimer = (
     addresses?: any[]; // ✅ NOUVEAU: Adresses pour calcul dynamique
     pricingConfig?: Partial<JobPricingConfig>; // ✅ NOUVEAU: Configuration de pricing
     onJobCompleted?: (finalCost: number, billableHours: number) => void; // ✅ Callback de complétion
+    jobStatus?: string; // ✅ FIX: Statut du job ('completed', 'in_progress', etc.)
   },
 ) => {
   const [timerData, setTimerData] = useState<JobTimerData | null>(null);
@@ -396,7 +397,21 @@ export const useJobTimer = (
   // Avancer à l'étape suivante
   const advanceStep = useCallback(
     (newStep: number) => {
-      if (!timerData || !timerData.isRunning) return;
+      // ✅ FIX: Permettre l'avancement même si le timer n'est pas en cours
+      // On vérifie seulement que timerData existe, pas qu'il soit running
+      if (!timerData) {
+        console.warn(
+          "⚠️ [useJobTimer] advanceStep called but timerData is null",
+        );
+        return;
+      }
+
+      console.log("🔄 [useJobTimer] advanceStep called", {
+        newStep,
+        currentStep: timerData.currentStep,
+        isRunning: timerData.isRunning,
+        totalSteps,
+      });
 
       const now = Date.now();
       const updatedStepTimes = [...timerData.stepTimes];
@@ -655,13 +670,17 @@ export const useJobTimer = (
     togglePause, // ✅ V1.0: Simple Play/Pause toggle
     isRunning: timerData?.isRunning || false,
     isOnBreak: timerData?.isOnBreak || false,
-    // ✅ FIX #3: Prioriser currentStep des props (API) sur timerData (localStorage)
-    currentStep: currentStep > 0 ? currentStep : timerData?.currentStep || 0,
+    // ✅ FIX: Prioriser timerData.currentStep (état local) pour refléter les clics utilisateur
+    // La prop currentStep est utilisée seulement si timerData n'existe pas ou n'a pas de step
+    currentStep: timerData?.currentStep ?? currentStep,
     HOURLY_RATE_AUD,
     // ✅ Nouvelles valeurs finales freezées
     finalCost, // Coût final (freezé à la complétion)
     finalBillableHours, // Heures finales (freezées à la complétion)
-    isCompleted: timerData ? timerData.currentStep >= totalSteps : false, // Si le job est complété
+    // ✅ FIX: isCompleted doit aussi tenir compte du status backend "completed"
+    isCompleted:
+      options?.jobStatus === "completed" ||
+      (timerData ? timerData.currentStep >= totalSteps : false),
     totalSteps, // Nombre total d'étapes
   };
 };

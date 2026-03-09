@@ -59,7 +59,8 @@ export const LogViewer: React.FC<LogViewerProps> = ({ visible, onClose }) => {
       const allLogs = (simpleSessionLogger as any).logs || [];
       setLogs(allLogs);
       setCurrentPage(1);
-    } catch (error) {
+    } catch (error) {
+
       console.error('Error refreshing logs:', error);
     }
   };
@@ -111,45 +112,56 @@ export const LogViewer: React.FC<LogViewerProps> = ({ visible, onClose }) => {
       const formattedLogs = simpleSessionLogger.getFormattedLogs();
       
       Alert.alert(
-        'Exporter les logs',
-        'Comment souhaitez-vous exporter les logs ?',
+        t('devTools.logViewer.exportTitle'),
+        t('devTools.logViewer.exportMessage'),
         [
-          { text: 'Annuler', style: 'cancel' },
+          { text: t('common.cancel'), style: 'cancel' },
           { 
-            text: 'Copier', 
+            text: t('devTools.logViewer.copy'), 
             onPress: () => {
               Clipboard.setString(formattedLogs);
-              Alert.alert('✅ Copié', 'Les logs ont été copiés dans le presse-papier');
+              Alert.alert(
+                t('devTools.logViewer.copiedTitle'),
+                t('devTools.logViewer.copiedMessage'),
+              );
             }
           },
           { 
-            text: 'Partager', 
+            text: t('devTools.logViewer.share'), 
             onPress: async () => {
               try {
                 await Share.share({
                   message: formattedLogs,
                   title: 'SwiftApp Session Logs'
                 });
-              } catch (error) {
-                Alert.alert('❌ Erreur', 'Impossible de partager les logs');
+              } catch (error) {
+
+                Alert.alert(
+                  t('devTools.logViewer.shareErrorTitle'),
+                  t('devTools.logViewer.shareErrorMessage'),
+                );
               }
             }
           }
         ]
       );
-    } catch (error) {
-      Alert.alert('❌ Erreur', 'Impossible d\'exporter les logs');
+    } catch (error) {
+
+      Alert.alert(
+        t('devTools.logViewer.exportErrorTitle'),
+        t('devTools.logViewer.exportErrorMessage'),
+      );
     }
   };
 
   const clearAllLogs = () => {
     Alert.alert(
-      'Effacer les logs',
-      'Êtes-vous sûr de vouloir effacer tous les logs ?',
+      t('devTools.logViewer.clearAllTitle'),
+      t('devTools.logViewer.clearAllMessage'),
       [
-        { text: 'Annuler', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         { 
-          text: 'Effacer', 
+          text: t('devTools.logViewer.clearAllButton'), 
           style: 'destructive',
           onPress: () => {
             simpleSessionLogger.clearLogs();

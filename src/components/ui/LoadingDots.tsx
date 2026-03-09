@@ -3,8 +3,9 @@
  * Shows "Loading" followed by animated dots (1, 2, 3, then reset)
  */
 
-import React, { useState, useEffect } from 'react';
-import { Text, TextStyle } from 'react-native';
+import React, { useEffect, useState } from "react";
+import { Text, TextStyle } from "react-native";
+import { useTranslation } from "../../localization";
 
 interface LoadingDotsProps {
   text?: string;
@@ -12,25 +13,27 @@ interface LoadingDotsProps {
   interval?: number;
 }
 
-const LoadingDots: React.FC<LoadingDotsProps> = ({ 
-  text = "Loading", 
+const LoadingDots: React.FC<LoadingDotsProps> = ({
+  text,
   style,
-  interval = 500 
+  interval = 500,
 }) => {
-  const [dots, setDots] = useState('');
+  const { t } = useTranslation();
+  const displayText = text || t("common.loading") || "Loading";
+  const [dots, setDots] = useState("");
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setDots(prev => {
+      setDots((prev) => {
         switch (prev) {
-          case '':
-            return '.';
-          case '.':
-            return '..';
-          case '..':
-            return '...';
+          case "":
+            return ".";
+          case ".":
+            return "..";
+          case "..":
+            return "...";
           default:
-            return '';
+            return "";
         }
       });
     }, interval);
@@ -40,7 +43,8 @@ const LoadingDots: React.FC<LoadingDotsProps> = ({
 
   return (
     <Text style={style}>
-      {text}{dots}
+      {displayText}
+      {dots}
     </Text>
   );
 };

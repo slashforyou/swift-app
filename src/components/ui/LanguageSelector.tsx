@@ -9,7 +9,7 @@ import { ActivityIndicator, Modal, Pressable, ScrollView, Text, View } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
-import { SupportedLanguage, useLocalization } from '../../localization';
+import { SupportedLanguage, useLocalization, useTranslation } from '../../localization';
 
 interface LanguageSelectorProps {
     visible: boolean;
@@ -110,6 +110,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
     showHeader = true,
 }) => {
     const { colors } = useCommonThemedStyles();
+    const { t } = useTranslation();
     const { currentLanguage, setLanguage, getSupportedLanguages } = useLocalization();
     const [isChanging, setIsChanging] = useState<string | null>(null);
 
@@ -192,7 +193,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
                                             fontWeight: '700',
                                             color: colors.text,
                                         }}>
-                                            Select Language
+                                            {t('settings.language.title')}
                                         </Text>
                                         
                                         <Pressable

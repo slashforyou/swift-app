@@ -17,6 +17,7 @@ import {
 } from 'react-native'
 import { DESIGN_TOKENS } from '../../constants/Styles'
 import { useTheme } from '../../context/ThemeProvider'
+import { useTranslation } from '../../localization'
 
 // Types
 export interface VehicleEditData {
@@ -59,6 +60,7 @@ export default function EditVehicleModal({
   onUpdateVehicle,
 }: EditVehicleModalProps) {
   const { colors } = useTheme()
+  const { t } = useTranslation()
 
   // Form state
   const [selectedMake, setSelectedMake] = useState('')
@@ -150,7 +152,7 @@ export default function EditVehicleModal({
       onClose()
     } catch (error) {
 
-      Alert.alert('Error', 'Failed to update vehicle')
+      Alert.alert(t('common.error'), t('vehicles.updateError'))
     } finally {
       setIsLoading(false)
     }

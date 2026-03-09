@@ -6,9 +6,9 @@
     "orientation": "portrait",
     "scheme": "cobbr",
     "userInterfaceStyle": "automatic",
-    "icon": "./assets/images/logo-512.png",
+    "icon": "./assets/icon.png",
     "splash": {
-      "image": "./assets/images/logo-512.png",
+      "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#F6F8FC"
     },
@@ -16,7 +16,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "icon": "./assets/images/logo-512.png",
+      "icon": "./assets/ios-light.png",
       "bundleIdentifier": "com.slash4u.cobbr",
       "buildNumber": "1",
       "runtimeVersion": {
@@ -25,10 +25,11 @@
     },
     "android": {
       "edgeToEdgeEnabled": true,
-      "icon": "./assets/images/logo-512.png",
+      "icon": "./assets/android-icon.png",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/logo-432.png",
-        "backgroundColor": "#F6F8FC"
+        "foregroundImage": "./assets/adaptive-icon-foreground.png",
+        "backgroundImage": "./assets/adaptive-icon-background.png",
+        "monochromeImage": "./assets/adaptive-icon-monochrome.png"
       },
       "package": "com.slash4u.cobbr",
       "versionCode": 1,
@@ -51,7 +52,7 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#F6F8FC",
-          "image": "./assets/images/logo-512.png",
+          "image": "./assets/splash-icon.png",
           "imageWidth": 120
         }
       ],

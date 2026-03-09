@@ -3,12 +3,12 @@
  * RÈGLE 3 : Composant SRP (Single Responsibility) pour le TabMenu business
  * RÈGLE 1 : Adaptation du TabMenu existant de JobDetails
  */
-import Ionicons from '@react-native-vector-icons/ionicons';
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { DESIGN_TOKENS } from '../../constants/Styles';
-import { useTheme } from '../../context/ThemeProvider';
-import { useLocalization } from '../../localization/useLocalization';
+import Ionicons from "@react-native-vector-icons/ionicons";
+import React from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { DESIGN_TOKENS } from "../../constants/Styles";
+import { useTheme } from "../../context/ThemeProvider";
+import { useLocalization } from "../../localization/useLocalization";
 
 export interface BusinessTabItem {
   id: string;
@@ -29,40 +29,47 @@ interface BusinessTabMenuProps {
  * RÈGLE 1 : Réutilise le pattern du TabMenu JobDetails
  */
 const getBusinessTabsConfig = (t: any): BusinessTabItem[] => [
-  { 
-    id: 'BusinessInfo', 
-    label: t('business.navigation.businessInfo'),
-    icon: 'business',
-    routeName: 'BusinessInfo',
-    accessibilityLabel: 'Business Information Tab'
+  {
+    id: "BusinessInfo",
+    label: t("business.navigation.businessInfo"),
+    icon: "business",
+    routeName: "BusinessInfo",
+    accessibilityLabel: "Business Information Tab",
   },
-  { 
-    id: 'StaffCrew', 
-    label: t('business.navigation.staffCrew'),
-    icon: 'people',
-    routeName: 'StaffCrew',
-    accessibilityLabel: 'Staff and Crew Management Tab'
+  {
+    id: "StaffCrew",
+    label: t("business.navigation.staffCrew"),
+    icon: "people",
+    routeName: "StaffCrew",
+    accessibilityLabel: "Staff and Crew Management Tab",
   },
-  { 
-    id: 'Trucks', 
-    label: t('business.navigation.trucks'),
-    icon: 'car-sport',
-    routeName: 'Trucks',
-    accessibilityLabel: 'Trucks Management Tab'
+  {
+    id: "Trucks",
+    label: t("business.navigation.trucks"),
+    icon: "car-sport",
+    routeName: "Trucks",
+    accessibilityLabel: "Trucks Management Tab",
   },
-  { 
-    id: 'JobsBilling', 
-    label: 'Stripe',
-    icon: 'card',
-    routeName: 'JobsBilling',
-    accessibilityLabel: 'Stripe Payments Hub Tab'
+  {
+    id: "JobsBilling",
+    label: "Stripe",
+    icon: "card",
+    routeName: "JobsBilling",
+    accessibilityLabel: "Stripe Payments Hub Tab",
+  },
+  {
+    id: "Relations",
+    label: "Partenaires",
+    icon: "people-outline",
+    routeName: "Relations",
+    accessibilityLabel: "Partners Relations Book Tab",
   },
 ];
 
-const BusinessTabMenu: React.FC<BusinessTabMenuProps> = ({ 
-  activeTab, 
-  onTabPress, 
-  style 
+const BusinessTabMenu: React.FC<BusinessTabMenuProps> = ({
+  activeTab,
+  onTabPress,
+  style,
 }) => {
   const { colors } = useTheme();
   const { t } = useLocalization();
@@ -71,7 +78,7 @@ const BusinessTabMenu: React.FC<BusinessTabMenuProps> = ({
 
   const styles = StyleSheet.create({
     container: {
-      flexDirection: 'row',
+      flexDirection: "row",
       backgroundColor: colors.background,
       paddingVertical: DESIGN_TOKENS.spacing.sm,
       paddingHorizontal: DESIGN_TOKENS.spacing.xs,
@@ -87,27 +94,27 @@ const BusinessTabMenu: React.FC<BusinessTabMenuProps> = ({
     },
     tabButton: {
       flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
+      alignItems: "center",
+      justifyContent: "center",
       paddingVertical: DESIGN_TOKENS.spacing.sm,
       paddingHorizontal: DESIGN_TOKENS.spacing.xs,
       borderRadius: DESIGN_TOKENS.radius.md,
       minHeight: 56, // Touch target minimum 44pt + padding
     },
     tabButtonActive: {
-      backgroundColor: 'transparent',
+      backgroundColor: "transparent",
     },
     tabButtonInactive: {
-      backgroundColor: 'transparent',
+      backgroundColor: "transparent",
     },
     iconContainer: {
-      position: 'relative',
+      position: "relative",
       marginBottom: DESIGN_TOKENS.spacing.xs,
     },
     tabLabel: {
       fontSize: 12,
-      fontWeight: '500',
-      textAlign: 'center',
+      fontWeight: "500",
+      textAlign: "center",
       lineHeight: 14,
     },
     tabLabelActive: {
@@ -122,7 +129,7 @@ const BusinessTabMenu: React.FC<BusinessTabMenuProps> = ({
     <View style={styles.container}>
       {tabsConfig.map((tab) => {
         const isActive = activeTab === tab.routeName;
-        
+
         return (
           <TouchableOpacity
             key={tab.id}

@@ -13,6 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import AlertMessage from "../../components/ui/AlertMessage";
 import AnimatedBackground from "../../components/ui/AnimatedBackground";
 import { HeaderLogo } from "../../components/ui/HeaderLogo";
+import RoundLanguageButton from "../../components/ui/RoundLanguageButton";
 import { useCommonThemedStyles } from "../../hooks/useCommonStyles";
 import { useTranslation } from "../../localization";
 
@@ -243,6 +244,7 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
             style={{
               flexDirection: "row",
               alignItems: "center",
+              justifyContent: "space-between",
               paddingTop: 20,
               marginBottom: 20,
             }}
@@ -273,11 +275,15 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
                 ← {t("auth.login.back")}
               </Text>
             </Pressable>
+
+            <View style={{ marginTop: 8, marginRight: 12 }}>
+              <RoundLanguageButton />
+            </View>
           </View>
 
           {/* Header Section */}
           <View style={{ alignItems: "center", marginBottom: 40 }}>
-            <HeaderLogo size={100} variant="square" marginVertical={0} />
+            <HeaderLogo preset="md" variant="square" marginVertical={0} />
 
             <Text style={[styles.title, { marginBottom: 8, marginTop: 20 }]}>
               {t("auth.register.title")}

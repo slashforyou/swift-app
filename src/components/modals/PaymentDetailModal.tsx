@@ -1,8 +1,8 @@
 /**
  * PaymentDetailModal - Modal affichant les détails d'un paiement Stripe
  */
-import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
+import { Ionicons } from "@expo/vector-icons";
+import React from "react";
 import {
     Alert,
     Linking,
@@ -12,11 +12,16 @@ import {
     StyleSheet,
     Text,
     View,
-} from 'react-native';
-import { DESIGN_TOKENS } from '../../constants/Styles';
-import { useTheme } from '../../context/ThemeProvider';
-import type { Payment } from '../../hooks/useStripe';
-import { formatDateWithDay, formatCurrency as formatLocalizedCurrency, formatTime as formatLocalizedTime, useLocalization } from '../../localization';
+} from "react-native";
+import { DESIGN_TOKENS } from "../../constants/Styles";
+import { useTheme } from "../../context/ThemeProvider";
+import type { Payment } from "../../hooks/useStripe";
+import {
+    formatDateWithDay,
+    formatCurrency as formatLocalizedCurrency,
+    formatTime as formatLocalizedTime,
+    useLocalization,
+} from "../../localization";
 
 interface PaymentDetailModalProps {
   visible: boolean;
@@ -30,80 +35,84 @@ export default function PaymentDetailModal({
   onClose,
 }: PaymentDetailModalProps) {
   const { colors } = useTheme();
-  const { currentLanguage } = useLocalization();
+  const { currentLanguage, t } = useLocalization();
 
   if (!payment) return null;
 
-  const formatCurrency = (amount: number, currency: string = 'EUR') => {
-    return formatLocalizedCurrency(amount * 100, currentLanguage, currency.toUpperCase());
+  const formatCurrency = (amount: number, currency: string = "EUR") => {
+    return formatLocalizedCurrency(
+      amount * 100,
+      currentLanguage,
+      currency.toUpperCase(),
+    );
   };
 
   const formatDate = (dateString: string) => {
-    return formatDateWithDay(dateString, currentLanguage);
+    return formatDateWithDay(dateString, currentLanguage, t);
   };
 
   const formatTime = (dateString: string) => {
     return formatLocalizedTime(dateString, currentLanguage);
   };
 
-  const getStatusColor = (status: Payment['status']) => {
+  const getStatusColor = (status: Payment["status"]) => {
     switch (status) {
-      case 'succeeded':
+      case "succeeded":
         return colors.success;
-      case 'processing':
+      case "processing":
         return colors.warning;
-      case 'failed':
+      case "failed":
         return colors.error;
       default:
         return colors.textSecondary;
     }
   };
 
-  const getStatusLabel = (status: Payment['status']) => {
+  const getStatusLabel = (status: Payment["status"]) => {
     switch (status) {
-      case 'succeeded':
-        return 'Successful';
-      case 'processing':
-        return 'Processing';
-      case 'failed':
-        return 'Failed';
+      case "succeeded":
+        return "Successful";
+      case "processing":
+        return "Processing";
+      case "failed":
+        return "Failed";
       default:
         return status;
     }
   };
 
-  const getStatusIcon = (status: Payment['status']) => {
+  const getStatusIcon = (status: Payment["status"]) => {
     switch (status) {
-      case 'succeeded':
-        return 'checkmark-circle';
-      case 'processing':
-        return 'time';
-      case 'failed':
-        return 'close-circle';
+      case "succeeded":
+        return "checkmark-circle";
+      case "processing":
+        return "time";
+      case "failed":
+        return "close-circle";
       default:
-        return 'help-circle';
+        return "help-circle";
     }
   };
 
   const getMethodIcon = (method: string) => {
     switch (method) {
-      case 'card':
-        return 'card';
-      case 'bank_transfer':
-        return 'business';
+      case "card":
+        return "card";
+      case "bank_transfer":
+        return "business";
       default:
-        return 'cash';
+        return "cash";
     }
   };
 
   const getMethodLabel = (method: string) => {
     switch (method) {
-      case 'card':
-        return 'Credit/Debit Card';
-      case 'bank_transfer':
-        return 'Bank Transfer';
+      case "card":
+        return "Credit/Debit Card";
+      case "bank_transfer":
+        return "Bank Transfer";
       default:
-        return 'Cash';
+        return "Cash";
     }
   };
 
@@ -126,38 +135,72 @@ export default function PaymentDetailModal({
           <View style={{ width: 44 }} />
         </View>
 
-        <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
+        <ScrollView
+          style={styles.content}
+          contentContainerStyle={styles.contentContainer}
+        >
           {/* Amount Card */}
-          <View style={[styles.amountCard, { backgroundColor: getStatusColor(payment.status) }]}>
+          <View
+            style={[
+              styles.amountCard,
+              { backgroundColor: getStatusColor(payment.status) },
+            ]}
+          >
             <Text style={styles.amountLabel}>Amount Paid</Text>
-            <Text style={[styles.amountValue, { color: colors.buttonPrimaryText }]}>
+            <Text
+              style={[styles.amountValue, { color: colors.buttonPrimaryText }]}
+            >
               {formatCurrency(payment.amount, payment.currency)}
             </Text>
-            <View style={[styles.statusBadge, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
+            <View
+              style={[
+                styles.statusBadge,
+                { backgroundColor: "rgba(255,255,255,0.2)" },
+              ]}
+            >
               <Ionicons
                 name={getStatusIcon(payment.status) as any}
                 size={16}
                 color={colors.buttonPrimaryText}
               />
-              <Text style={[styles.statusText, { color: colors.buttonPrimaryText }]}>{getStatusLabel(payment.status)}</Text>
+              <Text
+                style={[styles.statusText, { color: colors.buttonPrimaryText }]}
+              >
+                {getStatusLabel(payment.status)}
+              </Text>
             </View>
           </View>
 
           {/* Customer Section */}
-          <View style={[styles.section, { backgroundColor: colors.backgroundSecondary }]}>
+          <View
+            style={[
+              styles.section,
+              { backgroundColor: colors.backgroundSecondary },
+            ]}
+          >
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
               Customer
             </Text>
 
             <View style={styles.customerInfo}>
-              <View style={[styles.customerAvatar, { backgroundColor: colors.primary + '20' }]}>
+              <View
+                style={[
+                  styles.customerAvatar,
+                  { backgroundColor: colors.primary + "20" },
+                ]}
+              >
                 <Ionicons name="person" size={24} color={colors.primary} />
               </View>
               <View style={styles.customerDetails}>
                 <Text style={[styles.customerName, { color: colors.text }]}>
-                  {payment.customer || 'Anonymous Customer'}
+                  {payment.customer || "Anonymous Customer"}
                 </Text>
-                <Text style={[styles.customerEmail, { color: colors.textSecondary }]}>
+                <Text
+                  style={[
+                    styles.customerEmail,
+                    { color: colors.textSecondary },
+                  ]}
+                >
                   Customer via {getMethodLabel(payment.method)}
                 </Text>
               </View>
@@ -165,17 +208,28 @@ export default function PaymentDetailModal({
           </View>
 
           {/* Payment Details */}
-          <View style={[styles.section, { backgroundColor: colors.backgroundSecondary }]}>
+          <View
+            style={[
+              styles.section,
+              { backgroundColor: colors.backgroundSecondary },
+            ]}
+          >
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
               Transaction Details
             </Text>
 
             <View style={styles.detailRow}>
               <View style={styles.detailIcon}>
-                <Ionicons name="finger-print-outline" size={20} color={colors.textSecondary} />
+                <Ionicons
+                  name="finger-print-outline"
+                  size={20}
+                  color={colors.textSecondary}
+                />
               </View>
               <View style={styles.detailContent}>
-                <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
+                <Text
+                  style={[styles.detailLabel, { color: colors.textSecondary }]}
+                >
                   Payment ID
                 </Text>
                 <Text style={[styles.detailValue, { color: colors.text }]}>
@@ -186,24 +240,36 @@ export default function PaymentDetailModal({
 
             <View style={styles.detailRow}>
               <View style={styles.detailIcon}>
-                <Ionicons name="document-text-outline" size={20} color={colors.textSecondary} />
+                <Ionicons
+                  name="document-text-outline"
+                  size={20}
+                  color={colors.textSecondary}
+                />
               </View>
               <View style={styles.detailContent}>
-                <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
+                <Text
+                  style={[styles.detailLabel, { color: colors.textSecondary }]}
+                >
                   Description
                 </Text>
                 <Text style={[styles.detailValue, { color: colors.text }]}>
-                  {payment.description || 'No description'}
+                  {payment.description || "No description"}
                 </Text>
               </View>
             </View>
 
             <View style={styles.detailRow}>
               <View style={styles.detailIcon}>
-                <Ionicons name="calendar-outline" size={20} color={colors.textSecondary} />
+                <Ionicons
+                  name="calendar-outline"
+                  size={20}
+                  color={colors.textSecondary}
+                />
               </View>
               <View style={styles.detailContent}>
-                <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
+                <Text
+                  style={[styles.detailLabel, { color: colors.textSecondary }]}
+                >
                   Date & Time
                 </Text>
                 <Text style={[styles.detailValue, { color: colors.text }]}>
@@ -214,10 +280,16 @@ export default function PaymentDetailModal({
 
             <View style={styles.detailRow}>
               <View style={styles.detailIcon}>
-                <Ionicons name={getMethodIcon(payment.method) as any} size={20} color={colors.textSecondary} />
+                <Ionicons
+                  name={getMethodIcon(payment.method) as any}
+                  size={20}
+                  color={colors.textSecondary}
+                />
               </View>
               <View style={styles.detailContent}>
-                <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
+                <Text
+                  style={[styles.detailLabel, { color: colors.textSecondary }]}
+                >
                   Payment Method
                 </Text>
                 <Text style={[styles.detailValue, { color: colors.text }]}>
@@ -228,7 +300,12 @@ export default function PaymentDetailModal({
           </View>
 
           {/* Fee Breakdown */}
-          <View style={[styles.section, { backgroundColor: colors.backgroundSecondary }]}>
+          <View
+            style={[
+              styles.section,
+              { backgroundColor: colors.backgroundSecondary },
+            ]}
+          >
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
               Fee Breakdown
             </Text>
@@ -247,7 +324,8 @@ export default function PaymentDetailModal({
                 Processing Fee (2.9% + $0.30)
               </Text>
               <Text style={[styles.feeValue, { color: colors.textSecondary }]}>
-                -{formatCurrency(payment.amount * 0.029 + 0.30, payment.currency)}
+                -
+                {formatCurrency(payment.amount * 0.029 + 0.3, payment.currency)}
               </Text>
             </View>
 
@@ -256,7 +334,10 @@ export default function PaymentDetailModal({
                 Net Amount
               </Text>
               <Text style={[styles.feeTotalValue, { color: colors.primary }]}>
-                {formatCurrency(payment.amount - (payment.amount * 0.029 + 0.30), payment.currency)}
+                {formatCurrency(
+                  payment.amount - (payment.amount * 0.029 + 0.3),
+                  payment.currency,
+                )}
               </Text>
             </View>
           </View>
@@ -264,55 +345,81 @@ export default function PaymentDetailModal({
           {/* Actions */}
           <View style={styles.actions}>
             <Pressable
-              style={[styles.actionButton, { backgroundColor: colors.backgroundSecondary }]}
+              style={[
+                styles.actionButton,
+                { backgroundColor: colors.backgroundSecondary },
+              ]}
               onPress={async () => {
                 if (payment.receipt_url) {
                   try {
-                    const canOpen = await Linking.canOpenURL(payment.receipt_url);
+                    const canOpen = await Linking.canOpenURL(
+                      payment.receipt_url,
+                    );
                     if (canOpen) {
                       await Linking.openURL(payment.receipt_url);
                     } else {
-                      Alert.alert('Error', 'Cannot open receipt URL');
+                      Alert.alert(
+                        t("common.error"),
+                        t("stripe.payments.receipt.cannotOpenUrl"),
+                      );
                     }
                   } catch (error) {
-                    Alert.alert('Error', 'Failed to open receipt');
+                    Alert.alert(
+                      t("common.error"),
+                      t("stripe.payments.receipt.failedToOpen"),
+                    );
                   }
                 } else {
                   Alert.alert(
-                    'Receipt Unavailable',
-                    'No receipt is available for this payment. Receipts are generated for card payments only.',
-                    [{ text: 'OK' }]
+                    t("stripe.payments.receipt.unavailableTitle"),
+                    t("stripe.payments.receipt.unavailableMessage"),
+                    [{ text: t("common.ok") }],
                   );
                 }
               }}
             >
-              <Ionicons name="download-outline" size={20} color={colors.primary} />
-              <Text style={[styles.actionButtonText, { color: colors.primary }]}>
+              <Ionicons
+                name="download-outline"
+                size={20}
+                color={colors.primary}
+              />
+              <Text
+                style={[styles.actionButtonText, { color: colors.primary }]}
+              >
                 Download Receipt
               </Text>
             </Pressable>
 
             <Pressable
-              style={[styles.actionButton, { backgroundColor: colors.backgroundSecondary }]}
+              style={[
+                styles.actionButton,
+                { backgroundColor: colors.backgroundSecondary },
+              ]}
               onPress={() => {
                 Alert.alert(
-                  'Issue Refund',
-                  'Refunds must be processed through the Stripe Dashboard for security reasons.',
+                  "Issue Refund",
+                  "Refunds must be processed through the Stripe Dashboard for security reasons.",
                   [
-                    { text: 'Cancel', style: 'cancel' },
-                    { 
-                      text: 'Open Stripe Dashboard', 
+                    { text: "Cancel", style: "cancel" },
+                    {
+                      text: "Open Stripe Dashboard",
                       onPress: () => {
                         // Note: Linking.openURL would require import
-                        console.log('Navigate to Stripe Dashboard');
-                      }
-                    }
-                  ]
+                        console.log("Navigate to Stripe Dashboard");
+                      },
+                    },
+                  ],
                 );
               }}
             >
-              <Ionicons name="refresh-outline" size={20} color={colors.warning} />
-              <Text style={[styles.actionButtonText, { color: colors.warning }]}>
+              <Ionicons
+                name="refresh-outline"
+                size={20}
+                color={colors.warning}
+              />
+              <Text
+                style={[styles.actionButtonText, { color: colors.warning }]}
+              >
                 Issue Refund
               </Text>
             </Pressable>
@@ -328,21 +435,21 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     padding: DESIGN_TOKENS.spacing.md,
     borderBottomWidth: 1,
   },
   closeButton: {
     width: 44,
     height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   content: {
     flex: 1,
@@ -354,31 +461,31 @@ const styles = StyleSheet.create({
   amountCard: {
     padding: DESIGN_TOKENS.spacing.xl,
     borderRadius: DESIGN_TOKENS.radius.lg,
-    alignItems: 'center',
+    alignItems: "center",
   },
   amountLabel: {
-    color: 'rgba(255,255,255,0.8)',
+    color: "rgba(255,255,255,0.8)",
     fontSize: 14,
     marginBottom: DESIGN_TOKENS.spacing.xs,
   },
   amountValue: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 36,
-    fontWeight: '700',
+    fontWeight: "700",
     marginBottom: DESIGN_TOKENS.spacing.md,
   },
   statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: DESIGN_TOKENS.spacing.md,
     paddingVertical: DESIGN_TOKENS.spacing.sm,
     borderRadius: 999,
     gap: DESIGN_TOKENS.spacing.xs,
   },
   statusText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   section: {
     padding: DESIGN_TOKENS.spacing.lg,
@@ -386,42 +493,42 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: DESIGN_TOKENS.spacing.md,
   },
   customerInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: DESIGN_TOKENS.spacing.md,
   },
   customerAvatar: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   customerDetails: {
     flex: 1,
   },
   customerName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 2,
   },
   customerEmail: {
     fontSize: 14,
   },
   detailRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
     marginBottom: DESIGN_TOKENS.spacing.md,
   },
   detailIcon: {
     width: 40,
     height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   detailContent: {
     flex: 1,
@@ -432,12 +539,12 @@ const styles = StyleSheet.create({
   },
   detailValue: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   feeRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: DESIGN_TOKENS.spacing.sm,
   },
   feeLabel: {
@@ -445,37 +552,37 @@ const styles = StyleSheet.create({
   },
   feeValue: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   feeTotalRow: {
     borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.1)',
+    borderTopColor: "rgba(0,0,0,0.1)",
     marginTop: DESIGN_TOKENS.spacing.sm,
     paddingTop: DESIGN_TOKENS.spacing.md,
   },
   feeTotalLabel: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   feeTotalValue: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   actions: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: DESIGN_TOKENS.spacing.md,
   },
   actionButton: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     padding: DESIGN_TOKENS.spacing.md,
     borderRadius: DESIGN_TOKENS.radius.md,
     gap: DESIGN_TOKENS.spacing.sm,
   },
   actionButtonText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });

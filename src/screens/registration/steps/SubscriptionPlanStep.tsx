@@ -225,7 +225,7 @@ const SubscriptionPlanStep: React.FC<SubscriptionPlanStepProps> = ({
         </Text>
         <TextInput
           style={styles.inputBase}
-          placeholder="e.g., 25"
+          placeholder={t("registration.fields.placeholders.estimatedJobs")}
           placeholderTextColor={colors.textSecondary}
           value={estimatedJobsPerMonth}
           onChangeText={setEstimatedJobsPerMonth}

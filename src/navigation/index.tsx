@@ -4,6 +4,7 @@ import {
 } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React, { useEffect, useRef } from "react";
+import { navigationContainerRef } from "../services/navRef";
 import { testController } from "../services/testController";
 import { lazyScreen } from "../utils/lazyLoading";
 
@@ -65,8 +66,15 @@ export default function Navigation() {
     }
   }, []);
 
+  // Callback pour synchroniser le ref global (push notifications)
+  const onReady = () => {
+    if (navigationRef.current) {
+      (navigationContainerRef as any).current = navigationRef.current;
+    }
+  };
+
   return (
-    <NavigationContainer ref={navigationRef}>
+    <NavigationContainer ref={navigationRef} onReady={onReady}>
       <Stack.Navigator
         initialRouteName="Connection"
         screenOptions={{ headerShown: false }}

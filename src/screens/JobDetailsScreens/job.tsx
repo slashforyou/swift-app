@@ -9,20 +9,19 @@ import {
     Alert,
     Modal,
     Pressable,
-    Switch,
     Text,
     TextInput,
     View,
 } from "react-native";
 import CompanyDetailsSection from "../../components/jobDetails/sections/CompanyDetailsSection";
+import JobActionsSection from "../../components/jobDetails/sections/JobActionsSection";
 import { JobPhotosSection } from "../../components/jobDetails/sections/JobPhotosSection";
 import JobTimeSection from "../../components/jobDetails/sections/JobTimeSection";
+import StaffingSection from "../../components/jobDetails/sections/StaffingSection";
 import { HStack, VStack } from "../../components/primitives/Stack";
-import { Card } from "../../components/ui/Card";
 import { DESIGN_TOKENS } from "../../constants/Styles";
-import { useCommonThemedStyles } from "../../hooks/useCommonStyles";
+import { useTheme } from "../../context/ThemeProvider";
 import { useLocalization } from "../../localization/useLocalization";
-import contactLink from "../../services/contactLink";
 import { addJobItem, updateJobItem } from "../../services/jobs";
 
 // Fonction pour extraire l'ID numérique depuis un ID job de format JOB-NERD-URGENT-006
@@ -48,20 +47,7 @@ const extractNumericJobId = (jobId: string): string => {
 interface JobPageProps {
   job: any;
   setJob: React.Dispatch<React.SetStateAction<any>>;
-  isVisible?: boolean; // ✅ Session 10: Pour refetch photos quand l'onglet devient visible
-}
-
-interface InfoRowProps {
-  label: string;
-  value: string;
-  badge?: boolean;
-}
-
-interface ContactRowProps {
-  label: string;
-  value: string;
-  contactType: "tel" | "mailto";
-  icon: string;
+  isVisible?: boolean;
 }
 
 interface ItemRowProps {
@@ -71,72 +57,77 @@ interface ItemRowProps {
   onQuantityChange: (index: number, completedQuantity: number) => void;
   onQuantityBlur: (index: number, completedQuantity: number) => void;
   isSyncing?: boolean;
+  colors: any;
+  t: (key: string) => string;
 }
 
-interface SectionHeaderProps {
+// Header collapsible réutilisable
+const CollapsibleHeader: React.FC<{
   icon: string;
   title: string;
   badge?: string;
-}
-
-// Composant pour les headers de section avec icÃ´nes
-const SectionHeader: React.FC<SectionHeaderProps> = ({
-  icon,
-  title,
-  badge,
-}) => {
-  const { colors } = useCommonThemedStyles();
-  return (
-    <HStack
-      gap="sm"
-      align="center"
-      style={{ marginBottom: DESIGN_TOKENS.spacing.md }}
+  isExpanded: boolean;
+  onToggle: () => void;
+  colors: any;
+  rightContent?: React.ReactNode;
+}> = ({ icon, title, badge, isExpanded, onToggle, colors, rightContent }) => (
+  <Pressable
+    onPress={onToggle}
+    style={({ pressed }) => ({
+      flexDirection: "row",
+      alignItems: "center",
+      padding: DESIGN_TOKENS.spacing.lg,
+      backgroundColor: pressed ? colors.backgroundTertiary : "transparent",
+    })}
+  >
+    <View
+      style={{
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: colors.primary + "15",
+        justifyContent: "center",
+        alignItems: "center",
+        marginRight: DESIGN_TOKENS.spacing.sm,
+      }}
     >
+      <Ionicons name={icon as any} size={20} color={colors.primary} />
+    </View>
+    <Text
+      style={{
+        fontSize: 16,
+        fontWeight: "600",
+        color: colors.text,
+        flex: 1,
+      }}
+    >
+      {title}
+    </Text>
+    {badge && (
       <View
         style={{
-          width: 32,
-          height: 32,
-          borderRadius: 16,
-          backgroundColor: colors.primary + "20",
-          justifyContent: "center",
-          alignItems: "center",
+          backgroundColor: colors.primary + "18",
+          paddingHorizontal: 10,
+          paddingVertical: 3,
+          borderRadius: DESIGN_TOKENS.radius.full,
+          marginRight: DESIGN_TOKENS.spacing.sm,
         }}
       >
-        <Ionicons name={icon as any} size={18} color={colors.primary} />
-      </View>
-      <Text
-        style={{
-          fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
-          fontWeight: "600",
-          color: colors.text,
-          flex: 1,
-        }}
-      >
-        {title}
-      </Text>
-      {badge && (
-        <View
-          style={{
-            backgroundColor: colors.primary,
-            paddingHorizontal: 8,
-            paddingVertical: 4,
-            borderRadius: 12,
-          }}
+        <Text
+          style={{ fontSize: 12, fontWeight: "700", color: colors.primary }}
         >
-          <Text
-            style={{
-              fontSize: 12,
-              fontWeight: "600",
-              color: colors.background,
-            }}
-          >
-            {badge}
-          </Text>
-        </View>
-      )}
-    </HStack>
-  );
-};
+          {badge}
+        </Text>
+      </View>
+    )}
+    {rightContent}
+    <Ionicons
+      name={isExpanded ? "chevron-up" : "chevron-down"}
+      size={20}
+      color={colors.textSecondary}
+    />
+  </Pressable>
+);
 
 // Modal pour ajouter un item
 const AddItemModal: React.FC<{
@@ -144,7 +135,7 @@ const AddItemModal: React.FC<{
   onClose: () => void;
   onAdd: (name: string, quantity: number) => void;
 }> = ({ visible, onClose, onAdd }) => {
-  const { colors } = useCommonThemedStyles();
+  const { colors } = useTheme();
   const { t } = useLocalization();
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState("1");
@@ -270,7 +261,7 @@ const AddItemModal: React.FC<{
               <TextInput
                 value={quantity}
                 onChangeText={setQuantity}
-                placeholder="1"
+                placeholder={t("jobDetails.job.quantityPlaceholder")}
                 keyboardType="numeric"
                 placeholderTextColor={colors.textSecondary}
                 style={{
@@ -350,129 +341,7 @@ const AddItemModal: React.FC<{
   );
 };
 
-// Composant pour afficher une information simple
-const InfoRow: React.FC<InfoRowProps> = ({ label, value, badge }) => {
-  const { colors } = useCommonThemedStyles();
-  return (
-    <VStack gap="xs" style={{ paddingVertical: DESIGN_TOKENS.spacing.sm }}>
-      <Text
-        style={{
-          fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-          lineHeight: DESIGN_TOKENS.typography.caption.lineHeight,
-          fontWeight: DESIGN_TOKENS.typography.caption.fontWeight,
-          color: colors.textSecondary,
-        }}
-      >
-        {label}
-      </Text>
-      {badge ? (
-        <View
-          style={{
-            backgroundColor: colors.backgroundTertiary,
-            paddingHorizontal: DESIGN_TOKENS.spacing.md,
-            paddingVertical: DESIGN_TOKENS.spacing.xs,
-            borderRadius: DESIGN_TOKENS.radius.lg,
-            alignSelf: "flex-start",
-          }}
-        >
-          <Text
-            style={{
-              fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-              fontWeight: "500",
-              color: colors.tint,
-            }}
-          >
-            {value}
-          </Text>
-        </View>
-      ) : (
-        <Text
-          style={{
-            fontSize: DESIGN_TOKENS.typography.body.fontSize,
-            lineHeight: DESIGN_TOKENS.typography.body.lineHeight,
-            fontWeight: DESIGN_TOKENS.typography.body.fontWeight,
-            color: colors.text,
-          }}
-        >
-          {value}
-        </Text>
-      )}
-    </VStack>
-  );
-};
-
-// Composant pour afficher une ligne de contact avec bouton d'action
-const ContactRow: React.FC<ContactRowProps> = ({
-  label,
-  value,
-  contactType,
-  icon,
-}) => {
-  const { colors } = useCommonThemedStyles();
-  return (
-    <VStack gap="xs" style={{ paddingVertical: DESIGN_TOKENS.spacing.sm }}>
-      <Text
-        style={{
-          fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-          lineHeight: DESIGN_TOKENS.typography.caption.lineHeight,
-          fontWeight: DESIGN_TOKENS.typography.caption.fontWeight,
-          color: colors.textSecondary,
-        }}
-      >
-        {label}
-      </Text>
-
-      <Pressable
-        onPress={() => contactLink(value, contactType)}
-        hitSlop={DESIGN_TOKENS.touch.hitSlop}
-        style={({ pressed }) => [
-          {
-            flexDirection: "row",
-            alignItems: "center",
-            paddingVertical: DESIGN_TOKENS.spacing.md,
-            paddingHorizontal: DESIGN_TOKENS.spacing.lg,
-            backgroundColor: pressed ? colors.backgroundSecondary : colors.tint,
-            borderRadius: DESIGN_TOKENS.radius.lg,
-            minHeight: 56, // Bouton plus grand
-            shadowColor: colors.shadow,
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.1,
-            shadowRadius: 4,
-            elevation: 3,
-          },
-        ]}
-        accessibilityRole="button"
-        accessibilityLabel={`Contact ${value}`}
-      >
-        <View
-          style={{
-            width: 32,
-            height: 32,
-            borderRadius: 16,
-            backgroundColor: colors.background + "20",
-            justifyContent: "center",
-            alignItems: "center",
-            marginRight: DESIGN_TOKENS.spacing.md,
-          }}
-        >
-          <Ionicons name={icon as any} size={18} color={colors.background} />
-        </View>
-        <Text
-          style={{
-            fontSize: DESIGN_TOKENS.typography.body.fontSize,
-            fontWeight: "600",
-            color: colors.background,
-            flex: 1,
-          }}
-        >
-          {value}
-        </Text>
-      </Pressable>
-    </VStack>
-  );
-};
-
-// Composant pour un item avec toggle
+// Composant item moderne avec checkbox ronde + quantités inline
 const ItemRow: React.FC<ItemRowProps> = ({
   item,
   index,
@@ -480,170 +349,160 @@ const ItemRow: React.FC<ItemRowProps> = ({
   onQuantityChange,
   onQuantityBlur,
   isSyncing,
+  colors,
+  t,
 }) => {
-  const { colors } = useCommonThemedStyles();
+  const isChecked = item.item_checked || item.checked || false;
   const [completedQuantity, setCompletedQuantity] = useState(
     item.completedQuantity?.toString() || "0",
   );
 
   const handleQuantityChangeText = (text: string) => {
     setCompletedQuantity(text);
-    // Mise à jour locale immédiate
     const qty = parseInt(text) || 0;
     onQuantityChange(index, qty);
   };
 
   const handleQuantityBlur = () => {
-    // Synchronisation API au blur
     const qty = parseInt(completedQuantity) || 0;
     onQuantityBlur(index, qty);
   };
 
   return (
-    <VStack gap="sm" style={{ paddingVertical: DESIGN_TOKENS.spacing.md }}>
-      <HStack gap="md" align="center">
-        <VStack gap="xs" style={{ flex: 1 }}>
-          <HStack gap="sm" align="center">
-            <Text
-              style={{
-                fontSize: DESIGN_TOKENS.typography.body.fontSize,
-                lineHeight: DESIGN_TOKENS.typography.body.lineHeight,
-                fontWeight: "500",
-                color: colors.text,
-                flex: 1,
-              }}
-            >
-              {item.name}
-            </Text>
-            {item.isTemp && (
-              <View
-                style={{
-                  backgroundColor: colors.textSecondary + "20",
-                  paddingHorizontal: 6,
-                  paddingVertical: 2,
-                  borderRadius: 4,
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 10,
-                    fontWeight: "600",
-                    color: colors.textSecondary,
-                  }}
-                >
-                  LOCAL
-                </Text>
-              </View>
-            )}
-            {isSyncing && (
-              <View
-                style={{
-                  backgroundColor: colors.primary + "20",
-                  paddingHorizontal: 6,
-                  paddingVertical: 2,
-                  borderRadius: 4,
-                  flexDirection: "row",
-                  alignItems: "center",
-                }}
-              >
-                <ActivityIndicator
-                  size="small"
-                  color={colors.primary}
-                  style={{ marginRight: 4 }}
-                />
-                <Text
-                  style={{
-                    fontSize: 10,
-                    fontWeight: "600",
-                    color: colors.primary,
-                  }}
-                >
-                  SYNC
-                </Text>
-              </View>
-            )}
-          </HStack>
-          {item.number && (
-            <Text
-              style={{
-                fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-                color: colors.textSecondary,
-              }}
-            >
-              Expected: {item.number}
-            </Text>
-          )}
-        </VStack>
-        <Pressable
-          onPress={() => onToggle(index, !(item.item_checked || item.checked))}
-          hitSlop={DESIGN_TOKENS.touch.hitSlop}
-          style={{
-            padding: DESIGN_TOKENS.spacing.xs,
-          }}
-          accessibilityRole="checkbox"
-          accessibilityState={{
-            checked: item.item_checked || item.checked || false,
-          }}
-          accessibilityLabel={`${item.item_checked || item.checked ? "Uncheck" : "Check"} ${item.name}`}
-        >
-          <Switch
-            value={item.item_checked || item.checked || false}
-            onValueChange={(v) => onToggle(index, v)}
-            thumbColor={
-              item.item_checked || item.checked
-                ? colors.tint
-                : colors.backgroundTertiary
-            }
-            trackColor={{
-              false: colors.backgroundTertiary,
-              true: colors.tint + "50", // 50% opacity
-            }}
-            ios_backgroundColor={colors.backgroundTertiary}
-          />
-        </Pressable>
-      </HStack>
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        paddingVertical: DESIGN_TOKENS.spacing.md,
+        paddingHorizontal: DESIGN_TOKENS.spacing.sm,
+      }}
+    >
+      {/* Checkbox ronde */}
+      <Pressable
+        onPress={() => onToggle(index, !isChecked)}
+        hitSlop={DESIGN_TOKENS.touch.hitSlop}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: isChecked }}
+        accessibilityLabel={`${isChecked ? "Uncheck" : "Check"} ${item.name}`}
+        style={{
+          width: 28,
+          height: 28,
+          borderRadius: 14,
+          borderWidth: 2,
+          borderColor: isChecked ? colors.success : colors.border,
+          backgroundColor: isChecked ? colors.success : "transparent",
+          justifyContent: "center",
+          alignItems: "center",
+          marginRight: DESIGN_TOKENS.spacing.md,
+        }}
+      >
+        {isChecked && (
+          <Ionicons name="checkmark" size={16} color={colors.background} />
+        )}
+      </Pressable>
 
-      {/* Champ pour la quantité complétée */}
-      <HStack gap="sm" align="center">
-        <Text
+      {/* Nom + quantité */}
+      <View style={{ flex: 1 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <Text
+            style={{
+              fontSize: 15,
+              fontWeight: "500",
+              color: isChecked ? colors.textSecondary : colors.text,
+              textDecorationLine: isChecked ? "line-through" : "none",
+              flex: 1,
+            }}
+          >
+            {item.name}
+          </Text>
+          {item.isTemp && (
+            <View
+              style={{
+                backgroundColor: colors.textSecondary + "15",
+                paddingHorizontal: 6,
+                paddingVertical: 2,
+                borderRadius: 4,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 9,
+                  fontWeight: "700",
+                  color: colors.textSecondary,
+                }}
+              >
+                {t("jobDetails.job.local") || "LOCAL"}
+              </Text>
+            </View>
+          )}
+          {isSyncing && (
+            <ActivityIndicator size="small" color={colors.primary} />
+          )}
+        </View>
+        {item.number > 1 && (
+          <Text
+            style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2 }}
+          >
+            {t("jobDetails.job.expected") || "Expected"}: {item.number}
+          </Text>
+        )}
+      </View>
+
+      {/* Champ quantité complétée (compact) */}
+      {item.number > 1 && (
+        <View
           style={{
-            fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-            color: colors.textSecondary,
-            minWidth: 80,
-          }}
-        >
-          Completed:
-        </Text>
-        <TextInput
-          value={completedQuantity}
-          onChangeText={handleQuantityChangeText}
-          onBlur={handleQuantityBlur}
-          keyboardType="numeric"
-          placeholder="0"
-          placeholderTextColor={colors.textSecondary}
-          style={{
-            flex: 1,
+            flexDirection: "row",
+            alignItems: "center",
+            backgroundColor: colors.background,
+            borderRadius: DESIGN_TOKENS.radius.sm,
             borderWidth: 1,
             borderColor: colors.border,
-            borderRadius: DESIGN_TOKENS.radius.sm,
-            paddingHorizontal: DESIGN_TOKENS.spacing.sm,
-            paddingVertical: DESIGN_TOKENS.spacing.xs,
-            fontSize: 14,
-            color: colors.text,
-            backgroundColor: colors.backgroundSecondary,
-            minHeight: 36,
+            paddingHorizontal: 8,
+            marginLeft: DESIGN_TOKENS.spacing.sm,
           }}
-        />
-      </HStack>
-    </VStack>
+        >
+          <TextInput
+            value={completedQuantity}
+            onChangeText={handleQuantityChangeText}
+            onBlur={handleQuantityBlur}
+            keyboardType="numeric"
+            placeholder={t("jobDetails.job.completedQuantityPlaceholder")}
+            placeholderTextColor={colors.textSecondary}
+            style={{
+              width: 32,
+              textAlign: "center",
+              fontSize: 14,
+              fontWeight: "600",
+              color: colors.text,
+              paddingVertical: 6,
+            }}
+          />
+          <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+            /{item.number}
+          </Text>
+        </View>
+      )}
+    </View>
   );
 };
 
 const JobPage: React.FC<JobPageProps> = ({ job, setJob, isVisible = true }) => {
-  const { colors } = useCommonThemedStyles();
+  const { colors } = useTheme();
   const { t } = useLocalization();
   const [showAddItemModal, setShowAddItemModal] = useState(false);
   const [syncingItems, setSyncingItems] = useState<Set<string>>(new Set());
+
+  // Sections collapsibles — items ouvert par défaut
+  const [expandedSections, setExpandedSections] = useState({
+    items: true,
+    photos: true,
+    company: false,
+  });
+
+  const toggleSection = (key: keyof typeof expandedSections) => {
+    setExpandedSections((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
 
   // Mémoïser l'extraction de l'ID numérique pour éviter les appels répétés
   const numericJobId = React.useMemo(
@@ -771,7 +630,10 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob, isVisible = true }) => {
       });
       setJob(updatedJob);
 
-      Alert.alert("Success", "Item added successfully");
+      Alert.alert(
+        t("jobDetails.job.success") || "Success",
+        t("jobDetails.job.itemAddedSuccess") || "Item added successfully",
+      );
     } catch (error) {
       console.error("Error adding item via API:", error);
 
@@ -796,8 +658,9 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob, isVisible = true }) => {
       setJob(updatedJob);
 
       Alert.alert(
-        "Item Added Locally",
-        "Item added to local list. It will be synced when the API connection is available.",
+        t("jobDetails.job.addedLocally") || "Item Added Locally",
+        t("jobDetails.job.addedLocallyMessage") ||
+          "Item added to local list. It will be synced when the API connection is available.",
         [{ text: "OK", style: "default" }],
       );
     }
@@ -810,243 +673,160 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob, isVisible = true }) => {
 
   return (
     <>
-      <VStack gap="lg">
-        {/* Section Time - Chronométrage et coûts */}
+      <VStack gap="md">
+        {/* Section Time Tracking (collapsible intégré) */}
         <JobTimeSection job={job} />
 
-        {/* Job Items Checklist */}
-        <Card style={{ padding: DESIGN_TOKENS.spacing.lg }}>
-          <VStack gap="sm">
-            <SectionHeader
-              icon="list-outline"
-              title={t("jobDetails.job.jobItems")}
-              badge={
-                itemsCount > 0 ? `${checkedItems}/${itemsCount}` : undefined
-              }
-            />
+        {/* ═══ Job Items ═══ */}
+        <View
+          style={{
+            backgroundColor: colors.backgroundSecondary,
+            borderRadius: DESIGN_TOKENS.radius.lg,
+            overflow: "hidden",
+          }}
+        >
+          <CollapsibleHeader
+            icon="cube-outline"
+            title={t("jobDetails.job.jobItems")}
+            badge={itemsCount > 0 ? `${checkedItems}/${itemsCount}` : undefined}
+            isExpanded={expandedSections.items}
+            onToggle={() => toggleSection("items")}
+            colors={colors}
+          />
 
-            {job.items && job.items.length > 0 ? (
-              job.items.map((item: any, index: number) => {
-                const itemKey = `${index}-${item.id || item.name}`;
-                const isSyncing = syncingItems.has(itemKey);
-
-                return (
-                  <ItemRow
-                    key={itemKey}
-                    item={item}
-                    index={index}
-                    onToggle={handleItemToggle}
-                    onQuantityChange={handleQuantityChange}
-                    onQuantityBlur={handleQuantitySync}
-                    isSyncing={isSyncing}
-                  />
-                );
-              })
-            ) : (
-              <Text
-                style={{
-                  fontSize: 14,
-                  color: colors.textSecondary,
-                  fontStyle: "italic",
-                  textAlign: "center",
-                  paddingVertical: DESIGN_TOKENS.spacing.lg,
-                }}
-              >
-                {t("jobDetails.job.noItems")}
-              </Text>
-            )}
-
-            {/* Bouton Ajouter un item */}
-            <Pressable
-              onPress={() => setShowAddItemModal(true)}
+          {expandedSections.items && (
+            <View
               style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: DESIGN_TOKENS.spacing.md,
-                borderWidth: 2,
-                borderColor: colors.primary,
-                borderStyle: "dashed",
-                borderRadius: DESIGN_TOKENS.radius.md,
-                backgroundColor: colors.primary + "10",
-                marginTop: DESIGN_TOKENS.spacing.sm,
+                paddingHorizontal: DESIGN_TOKENS.spacing.md,
+                paddingBottom: DESIGN_TOKENS.spacing.lg,
               }}
             >
-              <Ionicons
-                name="add-circle-outline"
-                size={20}
-                color={colors.primary}
-              />
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: "600",
-                  color: colors.primary,
-                  marginLeft: DESIGN_TOKENS.spacing.xs,
-                }}
-              >
-                {t("jobDetails.job.addItem")}
-              </Text>
-            </Pressable>
-          </VStack>
-        </Card>
-
-        {/* Photos Section */}
-        <JobPhotosSection jobId={numericJobId} isVisible={isVisible} />
-
-        {/* Crew Section - Staff assigné au job */}
-        {job.crew && job.crew.length > 0 && (
-          <Card style={{ padding: DESIGN_TOKENS.spacing.lg }}>
-            <VStack gap="sm">
-              <SectionHeader
-                icon="people-outline"
-                title={t("jobDetails.job.crewAssigned") || "Crew Assigned"}
-                badge={`${job.crew.length}`}
-              />
-
-              {job.crew.map((member: any, index: number) => (
+              {/* Barre de progression */}
+              {itemsCount > 0 && (
                 <View
-                  key={member.id || index}
                   style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    paddingVertical: DESIGN_TOKENS.spacing.sm,
-                    borderBottomWidth: index < job.crew.length - 1 ? 1 : 0,
-                    borderBottomColor: colors.border,
+                    height: 4,
+                    backgroundColor: colors.border,
+                    borderRadius: 2,
+                    marginBottom: DESIGN_TOKENS.spacing.md,
+                    overflow: "hidden",
                   }}
                 >
-                  {/* Avatar */}
                   <View
                     style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 20,
-                      backgroundColor: colors.primary + "20",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      marginRight: DESIGN_TOKENS.spacing.sm,
+                      height: "100%",
+                      width: `${(checkedItems / itemsCount) * 100}%`,
+                      backgroundColor:
+                        checkedItems === itemsCount
+                          ? colors.success
+                          : colors.primary,
+                      borderRadius: 2,
+                    }}
+                  />
+                </View>
+              )}
+
+              {job.items && job.items.length > 0 ? (
+                job.items.map((item: any, index: number) => {
+                  const itemKey = `${index}-${item.id || item.name}`;
+                  const isSyncing = syncingItems.has(itemKey);
+                  return (
+                    <React.Fragment key={itemKey}>
+                      <ItemRow
+                        item={item}
+                        index={index}
+                        onToggle={handleItemToggle}
+                        onQuantityChange={handleQuantityChange}
+                        onQuantityBlur={handleQuantitySync}
+                        isSyncing={isSyncing}
+                        colors={colors}
+                        t={t}
+                      />
+                      {index < job.items.length - 1 && (
+                        <View
+                          style={{
+                            height: 1,
+                            backgroundColor: colors.border + "30",
+                            marginHorizontal: DESIGN_TOKENS.spacing.sm,
+                          }}
+                        />
+                      )}
+                    </React.Fragment>
+                  );
+                })
+              ) : (
+                <View
+                  style={{
+                    paddingVertical: DESIGN_TOKENS.spacing.xl,
+                    alignItems: "center",
+                  }}
+                >
+                  <Ionicons
+                    name="cube-outline"
+                    size={32}
+                    color={colors.textSecondary + "60"}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      color: colors.textSecondary,
+                      marginTop: DESIGN_TOKENS.spacing.sm,
                     }}
                   >
-                    <Text
-                      style={{
-                        fontSize: 14,
-                        fontWeight: "600",
-                        color: colors.primary,
-                      }}
-                    >
-                      {member.firstName?.[0] || "?"}
-                      {member.lastName?.[0] || ""}
-                    </Text>
-                  </View>
-
-                  {/* Info */}
-                  <View style={{ flex: 1 }}>
-                    <Text
-                      style={{
-                        fontSize: 15,
-                        fontWeight: "600",
-                        color: colors.text,
-                      }}
-                    >
-                      {member.firstName} {member.lastName}
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: 13,
-                        color: colors.textSecondary,
-                      }}
-                    >
-                      {member.role ||
-                        t("jobDetails.job.teamMember") ||
-                        "Team Member"}
-                    </Text>
-                  </View>
-
-                  {/* Status badge */}
-                  {member.status && (
-                    <View
-                      style={{
-                        paddingHorizontal: DESIGN_TOKENS.spacing.sm,
-                        paddingVertical: 4,
-                        borderRadius: DESIGN_TOKENS.radius.sm,
-                        backgroundColor:
-                          member.status === "confirmed"
-                            ? colors.success + "20"
-                            : member.status === "on-site"
-                              ? colors.primary + "20"
-                              : colors.warning + "20",
-                      }}
-                    >
-                      <Text
-                        style={{
-                          fontSize: 11,
-                          fontWeight: "600",
-                          color:
-                            member.status === "confirmed"
-                              ? colors.success
-                              : member.status === "on-site"
-                                ? colors.primary
-                                : colors.warning,
-                          textTransform: "capitalize",
-                        }}
-                      >
-                        {member.status}
-                      </Text>
-                    </View>
-                  )}
-
-                  {/* Call button */}
-                  {member.phone && (
-                    <Pressable
-                      onPress={() => contactLink(member.phone, "tel")}
-                      style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: 18,
-                        backgroundColor: colors.success + "15",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        marginLeft: DESIGN_TOKENS.spacing.xs,
-                      }}
-                    >
-                      <Ionicons name="call" size={18} color={colors.success} />
-                    </Pressable>
-                  )}
+                    {t("jobDetails.job.noItems")}
+                  </Text>
                 </View>
-              ))}
-            </VStack>
-          </Card>
-        )}
+              )}
 
-        {/* Job Information */}
-        <Card style={{ padding: DESIGN_TOKENS.spacing.lg }}>
-          <VStack gap="sm">
-            <SectionHeader
-              icon="information-circle-outline"
-              title={t("jobDetails.job.jobInformation")}
-            />
+              {/* Bouton Ajouter */}
+              <Pressable
+                onPress={() => setShowAddItemModal(true)}
+                style={({ pressed }) => ({
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  paddingVertical: DESIGN_TOKENS.spacing.md,
+                  borderWidth: 1.5,
+                  borderColor: colors.primary + "50",
+                  borderStyle: "dashed",
+                  borderRadius: DESIGN_TOKENS.radius.md,
+                  backgroundColor: pressed
+                    ? colors.primary + "15"
+                    : colors.primary + "08",
+                  marginTop: DESIGN_TOKENS.spacing.md,
+                })}
+              >
+                <Ionicons
+                  name="add-circle-outline"
+                  size={18}
+                  color={colors.primary}
+                />
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: "600",
+                    color: colors.primary,
+                    marginLeft: 6,
+                  }}
+                >
+                  {t("jobDetails.job.addItem")}
+                </Text>
+              </Pressable>
+            </View>
+          )}
+        </View>
 
-            {job.type && (
-              <InfoRow label={t("jobDetails.job.jobType")} value={job.type} />
-            )}
+        {/* ═══ Photos ═══ */}
+        <JobPhotosSection jobId={numericJobId} isVisible={isVisible} />
 
-            <InfoRow
-              label={t("jobDetails.job.numberOfItems")}
-              value={String(job.itemsCount || job.items?.length || 0)}
-            />
+        {/* ═══ Ressources ═══ */}
+        <StaffingSection job={job} />
 
-            {job.status && (
-              <InfoRow
-                label={t("jobDetails.job.status")}
-                value={job.status}
-                badge
-              />
-            )}
-          </VStack>
-        </Card>
-
-        {/* Company Details - Gère intelligemment job interne vs multi-entreprise */}
+        {/* ═══ Company Details ═══ */}
         <CompanyDetailsSection job={job} />
+
+        {/* ═══ Historique des actions ═══ */}
+        <JobActionsSection jobId={numericJobId} />
       </VStack>
 
       {/* Modal d'ajout d'item */}

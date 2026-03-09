@@ -108,7 +108,7 @@ const BusinessAddressStep: React.FC<BusinessAddressStepProps> = ({
         </Text>
         <TextInput
           style={styles.inputBase}
-          placeholder="123 Main Street"
+          placeholder={t("registration.fields.placeholders.streetAddress")}
           placeholderTextColor={colors.textSecondary}
           value={streetAddress}
           onChangeText={setStreetAddress}
@@ -122,7 +122,7 @@ const BusinessAddressStep: React.FC<BusinessAddressStepProps> = ({
         </Text>
         <TextInput
           style={styles.inputBase}
-          placeholder="Sydney"
+          placeholder={t("registration.fields.placeholders.suburb")}
           placeholderTextColor={colors.textSecondary}
           value={suburb}
           onChangeText={setSuburb}
@@ -191,7 +191,7 @@ const BusinessAddressStep: React.FC<BusinessAddressStepProps> = ({
         </Text>
         <TextInput
           style={styles.inputBase}
-          placeholder="2000"
+          placeholder={t("registration.fields.placeholders.postcode")}
           placeholderTextColor={colors.textSecondary}
           value={postcode}
           onChangeText={setPostcode}

@@ -1,11 +1,12 @@
 /**
- * DocumentsScreen - Étape 4/5 de l'onboarding Stripe
+ * DocumentsScreen - Étape 4/6 de l'onboarding Stripe
  * Upload photos ID (recto + verso) via caméra uniquement
  */
 import Ionicons from "@react-native-vector-icons/ionicons";
 import * as ImagePicker from "expo-image-picker";
 import React from "react";
 import {
+    ActivityIndicator,
     Alert,
     Image,
     ScrollView,
@@ -14,10 +15,24 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+    SafeAreaView,
+    useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { DESIGN_TOKENS } from "../../../constants/Styles";
 import { useTheme } from "../../../context/ThemeProvider";
+import { useStripeAccount } from "../../../hooks/useStripe";
 import { useTranslation } from "../../../localization";
+import {
+    fetchStripeAccount,
+    uploadDocument,
+} from "../../../services/StripeService";
+import {
+    getMissingOnboardingSteps,
+    getNextOnboardingStep,
+    getOnboardingStepMeta,
+    resolveBusinessType,
+} from "./onboardingSteps";
 
 interface DocumentsScreenProps {
   navigation: any;
@@ -29,11 +44,52 @@ export default function DocumentsScreen({
   route,
 }: DocumentsScreenProps) {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+  const stripeAccount = useStripeAccount();
+
+  const businessType = resolveBusinessType(
+    stripeAccount.account?.business_type || stripeAccount.account?.businessType,
+    stripeAccount.account?.requirements,
+  );
+  const stepMeta = getOnboardingStepMeta("Documents", businessType);
+  const stepLabel = t("stripe.onboarding.stepLabel", {
+    current: stepMeta.index + 1,
+    total: stepMeta.total,
+  });
 
   const [frontImage, setFrontImage] = React.useState<string | null>(null);
   const [backImage, setBackImage] = React.useState<string | null>(null);
-  // TODO: Afficher loading pendant upload
+  const [documentType, setDocumentType] = React.useState<
+    "id_card" | "passport" | "driving_license"
+  >("id_card");
+  const [hasAutoSkipped, setHasAutoSkipped] = React.useState(false);
+  const [isUploading, setIsUploading] = React.useState(false);
+  const isUploadingRef = React.useRef(false);
+  React.useEffect(() => {
+    if (hasAutoSkipped || stripeAccount.loading) return;
+
+    const requirements = stripeAccount.account?.requirements;
+    if (!requirements) return;
+
+    const missing = getMissingOnboardingSteps(requirements, businessType).steps;
+    if (missing.length > 0 && !missing.includes("Documents")) {
+      const nextStep = getNextOnboardingStep(
+        "Documents",
+        requirements,
+        businessType,
+      );
+      setHasAutoSkipped(true);
+      navigation.replace(nextStep, route.params);
+    }
+  }, [
+    businessType,
+    hasAutoSkipped,
+    navigation,
+    route.params,
+    stripeAccount.account?.requirements,
+    stripeAccount.loading,
+  ]);
   // const [isUploading, setIsUploading] = React.useState(false);
   // const [uploadingSide, setUploadingSide] = React.useState<'front' | 'back' | null>(null);
 
@@ -84,23 +140,115 @@ export default function DocumentsScreen({
     }
   };
 
-  const handleNext = () => {
-    if (!frontImage || !backImage) {
+  const handleNext = async () => {
+    if (isUploadingRef.current || isUploading) return;
+
+    if (!frontImage) {
       Alert.alert(
         t("stripe.onboarding.documents.errors.validationTitle"),
-        t("stripe.onboarding.documents.errors.validationMessage"),
+        t("stripe.onboarding.documents.errors.validationMessage", {
+          defaultValue:
+            "Veuillez prendre une photo recto de votre pièce d'identité.",
+        }),
       );
       return;
     }
 
-    console.log("🚀 [Documents] Valid images:", { frontImage, backImage });
-    // TODO: Appeler uploadDocument() quand backend prêt
-    navigation.navigate("Review", {
-      personalInfo: route.params?.personalInfo,
-      address: route.params?.address,
-      bankAccount: route.params?.bankAccount,
-      documents: { frontImage, backImage },
+    // Passport doesn't require back image
+    if (documentType !== "passport" && !backImage) {
+      Alert.alert(
+        t("stripe.onboarding.documents.errors.validationTitle"),
+        t("stripe.onboarding.documents.errors.backRequired", {
+          defaultValue:
+            "Veuillez prendre une photo verso de votre pièce d'identité.",
+        }),
+      );
+      return;
+    }
+
+    console.log("🚀 [Documents] Uploading documents:", {
+      frontImage,
+      backImage,
+      documentType,
     });
+
+    isUploadingRef.current = true;
+    setIsUploading(true);
+
+    try {
+      // Upload documents to Stripe
+      await uploadDocument(frontImage, documentType, backImage || undefined);
+
+      const updatedAccount = await fetchStripeAccount();
+      const nextBusinessType = resolveBusinessType(
+        (updatedAccount as any)?.business_type ||
+          (updatedAccount as any)?.businessType,
+        updatedAccount?.requirements,
+      );
+      const nextStep = getNextOnboardingStep(
+        "Documents",
+        updatedAccount?.requirements,
+        nextBusinessType,
+      );
+      const nextParams = {
+        personalInfo: route.params?.personalInfo,
+        address: route.params?.address,
+        bankAccount: route.params?.bankAccount,
+        documents: { frontImage, backImage },
+      };
+
+      if (nextStep === "Review") {
+        navigation.navigate("Review", nextParams);
+      } else {
+        navigation.navigate(nextStep, nextParams);
+      }
+    } catch (error: any) {
+      console.error("❌ [Documents] Upload error:", error);
+
+      const rawMessage =
+        typeof error?.message === "string" ? error.message : String(error);
+      const mayAlreadyBeSatisfied =
+        rawMessage.includes("already attached") ||
+        rawMessage.includes("account is verified");
+
+      if (mayAlreadyBeSatisfied) {
+        try {
+          const updatedAccount = await fetchStripeAccount();
+          const nextBusinessType = resolveBusinessType(
+            (updatedAccount as any)?.business_type ||
+              (updatedAccount as any)?.businessType,
+            updatedAccount?.requirements,
+          );
+          const nextStep = getNextOnboardingStep(
+            "Documents",
+            updatedAccount?.requirements,
+            nextBusinessType,
+          );
+
+          if (nextStep && nextStep !== "Documents") {
+            const nextParams = {
+              personalInfo: route.params?.personalInfo,
+              address: route.params?.address,
+              bankAccount: route.params?.bankAccount,
+              documents: { frontImage, backImage },
+            };
+
+            navigation.navigate(nextStep, nextParams);
+            return;
+          }
+        } catch {
+          // Ignore refresh errors; fall through to user-facing alert.
+        }
+      }
+
+      Alert.alert(
+        t("stripe.onboarding.documents.errors.uploadTitle"),
+        error.message || t("stripe.onboarding.documents.errors.uploadMessage"),
+      );
+    } finally {
+      setIsUploading(false);
+      isUploadingRef.current = false;
+    }
   };
 
   const styles = StyleSheet.create({
@@ -148,6 +296,7 @@ export default function DocumentsScreen({
     },
     scrollContent: {
       padding: DESIGN_TOKENS.spacing.lg,
+      paddingBottom: Math.max(DESIGN_TOKENS.spacing.xl, insets.bottom + 12),
     },
     titleSection: {
       marginBottom: DESIGN_TOKENS.spacing.lg,
@@ -292,9 +441,39 @@ export default function DocumentsScreen({
     nextButtonTextDisabled: {
       color: colors.textSecondary,
     },
+    loadingOverlay: {
+      position: "absolute",
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+      backgroundColor: colors.background,
+      justifyContent: "center",
+      alignItems: "center",
+      padding: DESIGN_TOKENS.spacing.lg,
+    },
+    loadingCard: {
+      width: "100%",
+      maxWidth: 420,
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: DESIGN_TOKENS.spacing.lg,
+      alignItems: "center",
+    },
+    loadingText: {
+      marginTop: DESIGN_TOKENS.spacing.md,
+      fontSize: DESIGN_TOKENS.typography.body.fontSize,
+      color: colors.text,
+      textAlign: "center",
+      fontWeight: "600",
+    },
   });
 
-  const canProceed = frontImage && backImage;
+  const canProceed = Boolean(
+    frontImage && (documentType === "passport" ? true : backImage),
+  );
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
@@ -303,20 +482,21 @@ export default function DocumentsScreen({
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
+          disabled={isUploading}
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.stepText}>
-          {t("stripe.onboarding.documents.step")}
-        </Text>
+        <Text style={styles.stepText}>{stepLabel}</Text>
       </View>
 
       {/* Progress Bar */}
       <View style={styles.progressContainer}>
         <View style={styles.progressBar}>
-          <View style={styles.progressFill} />
+          <View
+            style={[styles.progressFill, { width: `${stepMeta.progress}%` }]}
+          />
         </View>
-        <Text style={styles.progressText}>80%</Text>
+        <Text style={styles.progressText}>{`${stepMeta.progress}%`}</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -392,6 +572,7 @@ export default function DocumentsScreen({
               <TouchableOpacity
                 style={styles.retakeButton}
                 onPress={() => takePicture("front")}
+                disabled={isUploading}
               >
                 <Ionicons name="refresh" size={20} color={colors.text} />
                 <Text style={styles.retakeButtonText}>
@@ -402,6 +583,7 @@ export default function DocumentsScreen({
               <TouchableOpacity
                 style={styles.cameraButton}
                 onPress={() => takePicture("front")}
+                disabled={isUploading}
               >
                 <Ionicons name="camera" size={20} color="#FFFFFF" />
                 <Text style={styles.cameraButtonText}>
@@ -441,6 +623,7 @@ export default function DocumentsScreen({
               <TouchableOpacity
                 style={styles.retakeButton}
                 onPress={() => takePicture("back")}
+                disabled={isUploading}
               >
                 <Ionicons name="refresh" size={20} color={colors.text} />
                 <Text style={styles.retakeButtonText}>
@@ -451,6 +634,7 @@ export default function DocumentsScreen({
               <TouchableOpacity
                 style={styles.cameraButton}
                 onPress={() => takePicture("back")}
+                disabled={isUploading}
               >
                 <Ionicons name="camera" size={20} color="#FFFFFF" />
                 <Text style={styles.cameraButtonText}>
@@ -463,25 +647,45 @@ export default function DocumentsScreen({
 
         {/* Bouton Suivant */}
         <TouchableOpacity
-          style={[styles.nextButton, !canProceed && styles.nextButtonDisabled]}
+          style={[
+            styles.nextButton,
+            (!canProceed || isUploading) && styles.nextButtonDisabled,
+          ]}
           onPress={handleNext}
-          disabled={!canProceed}
+          disabled={!canProceed || isUploading}
         >
           <Text
             style={[
               styles.nextButtonText,
-              !canProceed && styles.nextButtonTextDisabled,
+              (!canProceed || isUploading) && styles.nextButtonTextDisabled,
             ]}
           >
             {t("stripe.onboarding.documents.nextButton")}
           </Text>
-          <Ionicons
-            name="arrow-forward"
-            size={20}
-            color={canProceed ? "#FFFFFF" : colors.textSecondary}
-          />
+          {isUploading ? (
+            <ActivityIndicator size="small" color={colors.textSecondary} />
+          ) : (
+            <Ionicons
+              name="arrow-forward"
+              size={20}
+              color={canProceed ? "#FFFFFF" : colors.textSecondary}
+            />
+          )}
         </TouchableOpacity>
       </ScrollView>
+
+      {isUploading && (
+        <View style={styles.loadingOverlay} pointerEvents="auto">
+          <View style={styles.loadingCard}>
+            <ActivityIndicator size="large" color={colors.text} />
+            <Text style={styles.loadingText}>
+              {t("stripe.onboarding.documents.uploading", {
+                defaultValue: "Envoi en cours...",
+              })}
+            </Text>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 }

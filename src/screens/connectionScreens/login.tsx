@@ -1,12 +1,11 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useState } from "react";
 import {
-    Alert,
     KeyboardAvoidingView,
     Platform,
     Pressable,
     SafeAreaView,
     ScrollView,
+    StyleSheet,
     Text,
     TextInput,
     View,
@@ -14,13 +13,11 @@ import {
 import AlertMessage from "../../components/ui/AlertMessage";
 import AnimatedBackground from "../../components/ui/AnimatedBackground";
 import { HeaderLogo } from "../../components/ui/HeaderLogo";
+import MascotLoading from "../../components/ui/MascotLoading";
+import RoundLanguageButton from "../../components/ui/RoundLanguageButton";
 import { usePermissionsContext } from "../../contexts/PermissionsContext";
 import { useCommonThemedStyles } from "../../hooks/useCommonStyles";
 import { useTranslation } from "../../localization";
-import {
-    completeBusinessOwnerProfile,
-    hasPendingProfile,
-} from "../../services/businessOwnerService";
 import { login } from "../../utils/auth";
 
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -125,86 +122,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         );
       }
 
-      showAlert(
-        "success",
-        t("auth.success.loginSuccess"),
-        t("auth.success.welcome"),
-      );
-
-      // Check for pending business owner profile
-      const hasPending = await hasPendingProfile();
-
-      if (hasPending) {
-        // User has pending business owner profile to complete
-        setTimeout(() => {
-          Alert.alert(
-            "🎯 Complete Your Business Profile",
-            "Welcome back! Would you like to complete your business owner profile now?",
-            [
-              {
-                text: "Later",
-                style: "cancel",
-                onPress: () => {
-                  // Navigate to Home immediately
-                  navigation.navigate("Home");
-                },
-              },
-              {
-                text: "Complete Now",
-                onPress: async () => {
-                  try {
-                    // Get session token
-                    const sessionToken =
-                      await AsyncStorage.getItem("sessionToken");
-                    if (!sessionToken) {
-                      throw new Error("No session token found");
-                    }
-
-                    // Complete profile
-                    const result =
-                      await completeBusinessOwnerProfile(sessionToken);
-
-                    // Success - show success alert first
-                    Alert.alert(
-                      "✅ Profile Complete!",
-                      `Your business profile has been set up successfully!\\n\\nBusiness: ${result.data?.companyName || "N/A"}\\nPlan: ${result.data?.subscriptionStatus || "N/A"}`,
-                      [
-                        {
-                          text: "OK",
-                          onPress: () => {
-                            // Navigate after user acknowledges success
-                            navigation.navigate("Home");
-                          },
-                        },
-                      ],
-                    );
-                  } catch (error: any) {
-                    console.error("[LOGIN] Profile completion error:", error);
-                    Alert.alert(
-                      "❌ Error",
-                      `Failed to complete profile: ${error.message}\\n\\nYou can try again later from your profile settings.`,
-                      [
-                        {
-                          text: "OK",
-                          onPress: () => {
-                            // Navigate even on error so user isn't stuck
-                            navigation.navigate("Home");
-                          },
-                        },
-                      ],
-                    );
-                  }
-                },
-              },
-            ],
-          );
-        }, 1500);
-      } else {
-        // No pending profile, navigate normally
-        setTimeout(() => {
-          navigation.navigate("Home");
-        }, 1500);
-      }
+      // Navigate to Home
+      navigation.navigate("Home");
     } catch (error: any) {
       // Log pour débugger
       console.error("❌ [LoginScreen] Login error:", error);
@@ -269,8 +188,22 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Full-screen loading overlay */}
+      {isLoading && <MascotLoading text={t("auth.login.submitting")} overlay />}
+
       {/* Fond animé avec emojis camions et cartons */}
       <AnimatedBackground opacity={0.15} />
+
+      <View
+        style={{
+          position: "absolute",
+          top: 28,
+          right: 32,
+          zIndex: 10,
+        }}
+      >
+        <RoundLanguageButton />
+      </View>
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -286,7 +219,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           <View
             style={{ alignItems: "center", paddingTop: 60, marginBottom: 40 }}
           >
-            <HeaderLogo size={100} variant="square" marginVertical={0} />
+            <HeaderLogo preset="md" variant="square" marginVertical={0} />
 
             <Text style={[styles.title, { marginBottom: 8, marginTop: 20 }]}>
               {t("auth.login.title")}
@@ -418,5 +351,15 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     </SafeAreaView>
   );
 };
+
+const loginStyles = StyleSheet.create({
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 999,
+  },
+});
 
 export default LoginScreen;

@@ -2,29 +2,29 @@
  * StaffCrewScreen - Gestion complète du personnel
  * Affiche les employés et prestataires avec possibilité d'ajout
  */
-import { Ionicons } from '@expo/vector-icons'
-import React, { useEffect, useState } from 'react'
+import { Ionicons } from "@expo/vector-icons";
+import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
     Alert,
     Pressable,
     RefreshControl,
     ScrollView,
     StyleSheet,
     Text,
-    View
-} from 'react-native'
-import AddStaffModal from '../../components/modals/AddStaffModal'
-import EditStaffModal from '../../components/modals/EditStaffModal'
-import { DESIGN_TOKENS } from '../../constants/Styles'
-import { useTheme } from '../../context/ThemeProvider'
-import { useStaff } from '../../hooks/useStaff'
-import { useTranslation } from '../../localization/useLocalization'
-import { Contractor, Employee, StaffMember } from '../../types/staff'
+    View,
+} from "react-native";
+import AddStaffModal from "../../components/modals/AddStaffModal";
+import EditStaffModal from "../../components/modals/EditStaffModal";
+import MascotLoading from "../../components/ui/MascotLoading";
+import { DESIGN_TOKENS } from "../../constants/Styles";
+import { useTheme } from "../../context/ThemeProvider";
+import { useStaff } from "../../hooks/useStaff";
+import { useTranslation } from "../../localization/useLocalization";
+import { Contractor, Employee, StaffMember } from "../../types/staff";
 
 export default function StaffCrewScreen() {
-  const { colors } = useTheme()
-  const { t } = useTranslation()
+  const { colors } = useTheme();
+  const { t } = useTranslation();
   const {
     staff,
     employees,
@@ -43,113 +43,119 @@ export default function StaffCrewScreen() {
     updateStaff,
     removeStaff,
     inviteContractor,
-  } = useStaff()
+  } = useStaff();
 
-  const [isModalVisible, setIsModalVisible] = useState(false)
-  const [isEditModalVisible, setIsEditModalVisible] = useState(false)
-  const [selectedMember, setSelectedMember] = useState<StaffMember | null>(null)
-  const [isRefreshing, setIsRefreshing] = useState(false)
-  const [filterType, setFilterType] = useState<'all' | 'employee' | 'contractor'>('all')
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<StaffMember | null>(
+    null,
+  );
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [filterType, setFilterType] = useState<
+    "all" | "employee" | "contractor"
+  >("all");
 
   useEffect(() => {
-    refreshStaff()
-  }, [])
+    refreshStaff();
+  }, []);
 
   const handleRefresh = async () => {
-    setIsRefreshing(true)
-    await refreshStaff()
-    setIsRefreshing(false)
-  }
+    setIsRefreshing(true);
+    await refreshStaff();
+    setIsRefreshing(false);
+  };
 
   const handleAddStaff = () => {
-    setIsModalVisible(true)
-  }
+    setIsModalVisible(true);
+  };
 
   const handleRemoveStaff = (member: StaffMember) => {
     Alert.alert(
-      t('staff.alerts.removeConfirm.title'),
-      t('staff.alerts.removeConfirm.message', { memberName: `${member.firstName} ${member.lastName}` }),
+      t("staff.alerts.removeConfirm.title"),
+      t("staff.alerts.removeConfirm.message", {
+        memberName: `${member.firstName} ${member.lastName}`,
+      }),
       [
-        { text: t('staff.actions.cancel'), style: 'cancel' },
+        { text: t("staff.actions.cancel"), style: "cancel" },
         {
-          text: t('staff.actions.remove'),
-          style: 'destructive',
+          text: t("staff.actions.remove"),
+          style: "destructive",
           onPress: async () => {
             try {
-              await removeStaff(member.id)
+              await removeStaff(member.id);
               Alert.alert(
-                t('staff.alerts.removeSuccess.title'), 
-                t('staff.alerts.removeSuccess.message', { memberName: `${member.firstName} ${member.lastName}` })
-              )
+                t("staff.alerts.removeSuccess.title"),
+                t("staff.alerts.removeSuccess.message", {
+                  memberName: `${member.firstName} ${member.lastName}`,
+                }),
+              );
             } catch (error) {
               Alert.alert(
-                t('staff.alerts.removeError.title'), 
-                t('staff.alerts.removeError.message')
-              )
+                t("staff.alerts.removeError.title"),
+                t("staff.alerts.removeError.message"),
+              );
             }
           },
         },
-      ]
-    )
-  }
+      ],
+    );
+  };
 
   const handleEditStaff = (member: StaffMember) => {
-    setSelectedMember(member)
-    setIsEditModalVisible(true)
-  }
+    setSelectedMember(member);
+    setIsEditModalVisible(true);
+  };
 
-  const handleSaveStaff = async (staffId: string, updateData: Partial<StaffMember>) => {
-    await updateStaff(staffId, updateData)
-  }
+  const handleSaveStaff = async (
+    staffId: string,
+    updateData: Partial<StaffMember>,
+  ) => {
+    await updateStaff(staffId, updateData);
+  };
 
   const filteredStaff = staff.filter((member) => {
-    if (filterType === 'all') return true
-    return member.type === filterType
-  })
+    if (filterType === "all") return true;
+    return member.type === filterType;
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active':
-        return colors.success
-      case 'inactive':
-        return colors.textMuted
-      case 'pending':
-        return colors.warning
+      case "active":
+        return colors.success;
+      case "inactive":
+        return colors.textMuted;
+      case "pending":
+        return colors.warning;
       default:
-        return colors.textSecondary
+        return colors.textSecondary;
     }
-  }
+  };
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'active':
-        return t('staff.status.active')
-      case 'inactive':
-        return t('staff.status.inactive')
-      case 'pending':
-        return t('staff.status.pending')
+      case "active":
+        return t("staff.status.active");
+      case "inactive":
+        return t("staff.status.inactive");
+      case "pending":
+        return t("staff.status.pending");
       default:
-        return status
+        return status;
     }
-  }
+  };
 
-  const getTypeLabel = (type: 'employee' | 'contractor') => {
-    return type === 'employee' ? t('staff.types.employee') : t('staff.types.contractor')
-  }
+  const getTypeLabel = (type: "employee" | "contractor") => {
+    return type === "employee"
+      ? t("staff.types.employee")
+      : t("staff.types.contractor");
+  };
 
-  const getTypeIcon = (type: 'employee' | 'contractor') => {
-    return type === 'employee' ? 'person' : 'briefcase'
-  }
+  const getTypeIcon = (type: "employee" | "contractor") => {
+    return type === "employee" ? "person" : "briefcase";
+  };
 
   if (isLoading && staff.length === 0) {
-    return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text testID="loading-text" style={[styles.loadingText, { color: colors.textSecondary }]}>
-          {t('staff.titles.loading')}
-        </Text>
-      </View>
-    )
+    return <MascotLoading text={t("staff.titles.loading")} />;
   }
 
   return (
@@ -166,50 +172,85 @@ export default function StaffCrewScreen() {
         }
       >
         {/* Header avec stats */}
-        <View style={[styles.header, { backgroundColor: colors.backgroundSecondary }]}>
-          <Text testID="screen-title" style={[styles.title, { color: colors.text }]}>
-            {t('staff.titles.main')}
+        <View
+          style={[
+            styles.header,
+            { backgroundColor: colors.backgroundSecondary },
+          ]}
+        >
+          <Text
+            testID="screen-title"
+            style={[styles.title, { color: colors.text }]}
+          >
+            {t("staff.titles.main")}
           </Text>
-          <Text testID="screen-subtitle" style={[styles.subtitle, { color: colors.textSecondary }]}>
-            {t('staff.titles.subtitle')}
+          <Text
+            testID="screen-subtitle"
+            style={[styles.subtitle, { color: colors.textSecondary }]}
+          >
+            {t("staff.titles.subtitle")}
           </Text>
 
           {/* Stats rapides */}
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
               <Ionicons name="people" size={24} color={colors.primary} />
-              <Text testID="stat-active-value" style={[styles.statValue, { color: colors.text }]}>
+              <Text
+                testID="stat-active-value"
+                style={[styles.statValue, { color: colors.text }]}
+              >
                 {totalActive}
               </Text>
-              <Text testID="stat-active-label" style={[styles.statLabel, { color: colors.textSecondary }]}>
-                {t('staff.stats.active')}
+              <Text
+                testID="stat-active-label"
+                style={[styles.statLabel, { color: colors.textSecondary }]}
+              >
+                {t("staff.stats.active")}
               </Text>
             </View>
             <View style={styles.statItem}>
               <Ionicons name="person" size={24} color={colors.success} />
-              <Text testID="stat-employees-value" style={[styles.statValue, { color: colors.text }]}>
+              <Text
+                testID="stat-employees-value"
+                style={[styles.statValue, { color: colors.text }]}
+              >
                 {totalEmployees}
               </Text>
-              <Text testID="stat-employees-label" style={[styles.statLabel, { color: colors.textSecondary }]}>
-                {t('staff.stats.employees')}
+              <Text
+                testID="stat-employees-label"
+                style={[styles.statLabel, { color: colors.textSecondary }]}
+              >
+                {t("staff.stats.employees")}
               </Text>
             </View>
             <View style={styles.statItem}>
               <Ionicons name="briefcase" size={24} color={colors.info} />
-              <Text testID="stat-contractors-value" style={[styles.statValue, { color: colors.text }]}>
+              <Text
+                testID="stat-contractors-value"
+                style={[styles.statValue, { color: colors.text }]}
+              >
                 {totalContractors}
               </Text>
-              <Text testID="stat-contractors-label" style={[styles.statLabel, { color: colors.textSecondary }]}>
-                {t('staff.stats.contractors')}
+              <Text
+                testID="stat-contractors-label"
+                style={[styles.statLabel, { color: colors.textSecondary }]}
+              >
+                {t("staff.stats.contractors")}
               </Text>
             </View>
             <View style={styles.statItem}>
               <Ionicons name="cash" size={24} color={colors.warning} />
-              <Text testID="stat-avgrate-value" style={[styles.statValue, { color: colors.text }]}>
+              <Text
+                testID="stat-avgrate-value"
+                style={[styles.statValue, { color: colors.text }]}
+              >
                 ${averageEmployeeRate.toFixed(0)}
               </Text>
-              <Text testID="stat-avgrate-label" style={[styles.statLabel, { color: colors.textSecondary }]}>
-                {t('staff.stats.averageRate')}
+              <Text
+                testID="stat-avgrate-label"
+                style={[styles.statLabel, { color: colors.textSecondary }]}
+              >
+                {t("staff.stats.averageRate")}
               </Text>
             </View>
           </View>
@@ -221,8 +262,16 @@ export default function StaffCrewScreen() {
           style={[styles.addButton, { backgroundColor: colors.primary }]}
           onPress={handleAddStaff}
         >
-          <Ionicons name="add-circle" size={24} color={colors.buttonPrimaryText} />
-          <Text style={[styles.addButtonText, { color: colors.buttonPrimaryText }]}>{t('staff.actions.add')}</Text>
+          <Ionicons
+            name="add-circle"
+            size={24}
+            color={colors.buttonPrimaryText}
+          />
+          <Text
+            style={[styles.addButtonText, { color: colors.buttonPrimaryText }]}
+          >
+            {t("staff.actions.add")}
+          </Text>
         </Pressable>
 
         {/* Filtres */}
@@ -232,18 +281,18 @@ export default function StaffCrewScreen() {
             style={[
               styles.filterButton,
               { backgroundColor: colors.backgroundSecondary },
-              filterType === 'all' && { backgroundColor: colors.primary },
+              filterType === "all" && { backgroundColor: colors.primary },
             ]}
-            onPress={() => setFilterType('all')}
+            onPress={() => setFilterType("all")}
           >
             <Text
               style={[
                 styles.filterButtonText,
                 { color: colors.text },
-                filterType === 'all' && { color: colors.buttonPrimaryText },
+                filterType === "all" && { color: colors.buttonPrimaryText },
               ]}
             >
-              {t('staff.filters.all')} ({staff.length})
+              {t("staff.filters.all")} ({staff.length})
             </Text>
           </Pressable>
           <Pressable
@@ -251,18 +300,20 @@ export default function StaffCrewScreen() {
             style={[
               styles.filterButton,
               { backgroundColor: colors.backgroundSecondary },
-              filterType === 'employee' && { backgroundColor: colors.primary },
+              filterType === "employee" && { backgroundColor: colors.primary },
             ]}
-            onPress={() => setFilterType('employee')}
+            onPress={() => setFilterType("employee")}
           >
             <Text
               style={[
                 styles.filterButtonText,
                 { color: colors.text },
-                filterType === 'employee' && { color: colors.buttonPrimaryText },
+                filterType === "employee" && {
+                  color: colors.buttonPrimaryText,
+                },
               ]}
             >
-              {t('staff.filters.employees')} ({totalEmployees})
+              {t("staff.filters.employees")} ({totalEmployees})
             </Text>
           </Pressable>
           <Pressable
@@ -270,39 +321,67 @@ export default function StaffCrewScreen() {
             style={[
               styles.filterButton,
               { backgroundColor: colors.backgroundSecondary },
-              filterType === 'contractor' && { backgroundColor: colors.primary },
+              filterType === "contractor" && {
+                backgroundColor: colors.primary,
+              },
             ]}
-            onPress={() => setFilterType('contractor')}
+            onPress={() => setFilterType("contractor")}
           >
             <Text
               style={[
                 styles.filterButtonText,
                 { color: colors.text },
-                filterType === 'contractor' && { color: colors.buttonPrimaryText },
+                filterType === "contractor" && {
+                  color: colors.buttonPrimaryText,
+                },
               ]}
             >
-              {t('staff.filters.contractors')} ({totalContractors})
+              {t("staff.filters.contractors")} ({totalContractors})
             </Text>
           </Pressable>
         </View>
 
         {/* Message d'erreur */}
         {error && (
-          <View testID="error-message" style={[styles.errorContainer, { backgroundColor: colors.errorBanner }]}>
+          <View
+            testID="error-message"
+            style={[
+              styles.errorContainer,
+              { backgroundColor: colors.errorBanner },
+            ]}
+          >
             <Ionicons name="alert-circle" size={20} color={colors.error} />
-            <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>
+            <Text style={[styles.errorText, { color: colors.error }]}>
+              {error}
+            </Text>
           </View>
         )}
 
         {/* Liste du personnel */}
         {filteredStaff.length === 0 ? (
-          <View testID="empty-state" style={[styles.emptyContainer, { backgroundColor: colors.backgroundSecondary }]}>
-            <Ionicons name="people-outline" size={64} color={colors.textSecondary} />
-            <Text testID="empty-text" style={[styles.emptyText, { color: colors.text }]}>
-              {t('staff.empty.title')}
+          <View
+            testID="empty-state"
+            style={[
+              styles.emptyContainer,
+              { backgroundColor: colors.backgroundSecondary },
+            ]}
+          >
+            <Ionicons
+              name="people-outline"
+              size={64}
+              color={colors.textSecondary}
+            />
+            <Text
+              testID="empty-text"
+              style={[styles.emptyText, { color: colors.text }]}
+            >
+              {t("staff.empty.title")}
             </Text>
-            <Text testID="empty-subtext" style={[styles.emptySubtext, { color: colors.textSecondary }]}>
-              {t('staff.empty.subtitle')}
+            <Text
+              testID="empty-subtext"
+              style={[styles.emptySubtext, { color: colors.textSecondary }]}
+            >
+              {t("staff.empty.subtitle")}
             </Text>
           </View>
         ) : (
@@ -311,7 +390,10 @@ export default function StaffCrewScreen() {
               <View
                 key={member.id}
                 testID={`staff-card-${member.id}`}
-                style={[styles.staffCard, { backgroundColor: colors.backgroundSecondary }]}
+                style={[
+                  styles.staffCard,
+                  { backgroundColor: colors.backgroundSecondary },
+                ]}
               >
                 {/* En-tête de la carte */}
                 <View style={styles.staffCardHeader}>
@@ -321,21 +403,36 @@ export default function StaffCrewScreen() {
                         styles.staffTypeIcon,
                         {
                           backgroundColor:
-                            member.type === 'employee' ? colors.success + '20' : colors.info + '20',
+                            member.type === "employee"
+                              ? colors.success + "20"
+                              : colors.info + "20",
                         },
                       ]}
                     >
                       <Ionicons
                         name={getTypeIcon(member.type)}
                         size={20}
-                        color={member.type === 'employee' ? colors.success : colors.info}
+                        color={
+                          member.type === "employee"
+                            ? colors.success
+                            : colors.info
+                        }
                       />
                     </View>
                     <View>
-                      <Text testID={`staff-name-${member.id}`} style={[styles.staffName, { color: colors.text }]}>
+                      <Text
+                        testID={`staff-name-${member.id}`}
+                        style={[styles.staffName, { color: colors.text }]}
+                      >
                         {member.firstName} {member.lastName}
                       </Text>
-                      <Text testID={`staff-type-${member.id}`} style={[styles.staffType, { color: colors.textSecondary }]}>
+                      <Text
+                        testID={`staff-type-${member.id}`}
+                        style={[
+                          styles.staffType,
+                          { color: colors.textSecondary },
+                        ]}
+                      >
                         {getTypeLabel(member.type)}
                       </Text>
                     </View>
@@ -347,7 +444,12 @@ export default function StaffCrewScreen() {
                       { backgroundColor: `${getStatusColor(member.status)}20` },
                     ]}
                   >
-                    <Text style={[styles.statusText, { color: getStatusColor(member.status) }]}>
+                    <Text
+                      style={[
+                        styles.statusText,
+                        { color: getStatusColor(member.status) },
+                      ]}
+                    >
                       {getStatusLabel(member.status)}
                     </Text>
                   </View>
@@ -356,43 +458,85 @@ export default function StaffCrewScreen() {
                 {/* Informations */}
                 <View style={styles.staffInfo}>
                   <View style={styles.infoRow}>
-                    <Ionicons name="briefcase-outline" size={16} color={colors.textSecondary} />
-                    <Text style={[styles.infoText, { color: colors.textSecondary }]}>
+                    <Ionicons
+                      name="briefcase-outline"
+                      size={16}
+                      color={colors.textSecondary}
+                    />
+                    <Text
+                      style={[styles.infoText, { color: colors.textSecondary }]}
+                    >
                       {member.role}
                     </Text>
                   </View>
                   <View style={styles.infoRow}>
-                    <Ionicons name="people-outline" size={16} color={colors.textSecondary} />
-                    <Text style={[styles.infoText, { color: colors.textSecondary }]}>
+                    <Ionicons
+                      name="people-outline"
+                      size={16}
+                      color={colors.textSecondary}
+                    />
+                    <Text
+                      style={[styles.infoText, { color: colors.textSecondary }]}
+                    >
                       {member.team}
                     </Text>
                   </View>
                   <View style={styles.infoRow}>
-                    <Ionicons name="mail-outline" size={16} color={colors.textSecondary} />
-                    <Text style={[styles.infoText, { color: colors.textSecondary }]}>
+                    <Ionicons
+                      name="mail-outline"
+                      size={16}
+                      color={colors.textSecondary}
+                    />
+                    <Text
+                      style={[styles.infoText, { color: colors.textSecondary }]}
+                    >
                       {member.email}
                     </Text>
                   </View>
                   <View style={styles.infoRow}>
-                    <Ionicons name="call-outline" size={16} color={colors.textSecondary} />
-                    <Text style={[styles.infoText, { color: colors.textSecondary }]}>
+                    <Ionicons
+                      name="call-outline"
+                      size={16}
+                      color={colors.textSecondary}
+                    />
+                    <Text
+                      style={[styles.infoText, { color: colors.textSecondary }]}
+                    >
                       {member.phone}
                     </Text>
                   </View>
 
                   {/* Informations spécifiques selon le type */}
-                  {member.type === 'employee' ? (
+                  {member.type === "employee" ? (
                     <>
                       <View style={styles.infoRow}>
-                        <Ionicons name="cash-outline" size={16} color={colors.textSecondary} />
-                        <Text style={[styles.infoText, { color: colors.textSecondary }]}>
+                        <Ionicons
+                          name="cash-outline"
+                          size={16}
+                          color={colors.textSecondary}
+                        />
+                        <Text
+                          style={[
+                            styles.infoText,
+                            { color: colors.textSecondary },
+                          ]}
+                        >
                           ${(member as Employee).hourlyRate}/h
                         </Text>
                       </View>
                       {(member as Employee).tfn && (
                         <View style={styles.infoRow}>
-                          <Ionicons name="card-outline" size={16} color={colors.textSecondary} />
-                          <Text style={[styles.infoText, { color: colors.textSecondary }]}>
+                          <Ionicons
+                            name="card-outline"
+                            size={16}
+                            color={colors.textSecondary}
+                          />
+                          <Text
+                            style={[
+                              styles.infoText,
+                              { color: colors.textSecondary },
+                            ]}
+                          >
                             TFN: {(member as Employee).tfn}
                           </Text>
                         </View>
@@ -401,21 +545,48 @@ export default function StaffCrewScreen() {
                   ) : (
                     <>
                       <View style={styles.infoRow}>
-                        <Ionicons name="cash-outline" size={16} color={colors.textSecondary} />
-                        <Text style={[styles.infoText, { color: colors.textSecondary }]}>
+                        <Ionicons
+                          name="cash-outline"
+                          size={16}
+                          color={colors.textSecondary}
+                        />
+                        <Text
+                          style={[
+                            styles.infoText,
+                            { color: colors.textSecondary },
+                          ]}
+                        >
                           ${(member as Contractor).rate}
-                          {(member as Contractor).rateType === 'hourly' && '/h'}
+                          {(member as Contractor).rateType === "hourly" && "/h"}
                         </Text>
                       </View>
                       <View style={styles.infoRow}>
-                        <Ionicons name="document-outline" size={16} color={colors.textSecondary} />
-                        <Text style={[styles.infoText, { color: colors.textSecondary }]}>
+                        <Ionicons
+                          name="document-outline"
+                          size={16}
+                          color={colors.textSecondary}
+                        />
+                        <Text
+                          style={[
+                            styles.infoText,
+                            { color: colors.textSecondary },
+                          ]}
+                        >
                           ABN: {(member as Contractor).abn}
                         </Text>
                       </View>
                       <View style={styles.infoRow}>
-                        <Ionicons name="ribbon-outline" size={16} color={colors.textSecondary} />
-                        <Text style={[styles.infoText, { color: colors.textSecondary }]}>
+                        <Ionicons
+                          name="ribbon-outline"
+                          size={16}
+                          color={colors.textSecondary}
+                        />
+                        <Text
+                          style={[
+                            styles.infoText,
+                            { color: colors.textSecondary },
+                          ]}
+                        >
                           Status: {(member as Contractor).contractStatus}
                         </Text>
                       </View>
@@ -427,22 +598,43 @@ export default function StaffCrewScreen() {
                 <View style={styles.staffActions}>
                   <Pressable
                     testID={`edit-button-${member.id}`}
-                    style={[styles.actionButton, { backgroundColor: colors.primary + '20' }]}
+                    style={[
+                      styles.actionButton,
+                      { backgroundColor: colors.primary + "20" },
+                    ]}
                     onPress={() => handleEditStaff(member)}
                   >
-                    <Ionicons name="create-outline" size={20} color={colors.primary} />
-                    <Text style={[styles.actionButtonText, { color: colors.primary }]}>
-                      {t('staff.actions.edit')}
+                    <Ionicons
+                      name="create-outline"
+                      size={20}
+                      color={colors.primary}
+                    />
+                    <Text
+                      style={[
+                        styles.actionButtonText,
+                        { color: colors.primary },
+                      ]}
+                    >
+                      {t("staff.actions.edit")}
                     </Text>
                   </Pressable>
                   <Pressable
                     testID={`remove-button-${member.id}`}
-                    style={[styles.actionButton, { backgroundColor: colors.error + '20' }]}
+                    style={[
+                      styles.actionButton,
+                      { backgroundColor: colors.error + "20" },
+                    ]}
                     onPress={() => handleRemoveStaff(member)}
                   >
-                    <Ionicons name="trash-outline" size={20} color={colors.error} />
-                    <Text style={[styles.actionButtonText, { color: colors.error }]}>
-                      {t('staff.actions.remove')}
+                    <Ionicons
+                      name="trash-outline"
+                      size={20}
+                      color={colors.error}
+                    />
+                    <Text
+                      style={[styles.actionButtonText, { color: colors.error }]}
+                    >
+                      {t("staff.actions.remove")}
                     </Text>
                   </Pressable>
                 </View>
@@ -467,13 +659,13 @@ export default function StaffCrewScreen() {
         visible={isEditModalVisible}
         member={selectedMember}
         onClose={() => {
-          setIsEditModalVisible(false)
-          setSelectedMember(null)
+          setIsEditModalVisible(false);
+          setSelectedMember(null);
         }}
         onSave={handleSaveStaff}
       />
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -497,7 +689,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: DESIGN_TOKENS.spacing.xs,
   },
   subtitle: {
@@ -505,16 +697,16 @@ const styles = StyleSheet.create({
     marginBottom: DESIGN_TOKENS.spacing.lg,
   },
   statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   statItem: {
-    alignItems: 'center',
+    alignItems: "center",
     flex: 1,
   },
   statValue: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginTop: DESIGN_TOKENS.spacing.xs,
   },
   statLabel: {
@@ -522,21 +714,21 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   addButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     padding: DESIGN_TOKENS.spacing.md,
     borderRadius: DESIGN_TOKENS.radius.md,
     marginBottom: DESIGN_TOKENS.spacing.lg,
   },
   addButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginLeft: DESIGN_TOKENS.spacing.sm,
   },
   filterContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginBottom: DESIGN_TOKENS.spacing.lg,
     gap: DESIGN_TOKENS.spacing.sm,
   },
@@ -544,15 +736,15 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: DESIGN_TOKENS.spacing.sm,
     borderRadius: DESIGN_TOKENS.radius.md,
-    alignItems: 'center',
+    alignItems: "center",
   },
   filterButtonText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   errorContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: DESIGN_TOKENS.spacing.md,
     borderRadius: DESIGN_TOKENS.radius.md,
     marginBottom: DESIGN_TOKENS.spacing.lg,
@@ -560,17 +752,17 @@ const styles = StyleSheet.create({
   },
   errorText: {
     flex: 1,
-    color: '#DC2626',
+    color: "#DC2626",
     fontSize: 14,
   },
   emptyContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     padding: DESIGN_TOKENS.spacing.xl * 2,
     borderRadius: DESIGN_TOKENS.radius.md,
   },
   emptyText: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     marginTop: DESIGN_TOKENS.spacing.md,
   },
   emptySubtext: {
@@ -585,26 +777,26 @@ const styles = StyleSheet.create({
     borderRadius: DESIGN_TOKENS.radius.md,
   },
   staffCardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: DESIGN_TOKENS.spacing.md,
   },
   staffCardHeaderLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: DESIGN_TOKENS.spacing.sm,
   },
   staffTypeIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   staffName: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   staffType: {
     fontSize: 12,
@@ -617,15 +809,15 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   staffInfo: {
     gap: DESIGN_TOKENS.spacing.sm,
     marginBottom: DESIGN_TOKENS.spacing.md,
   },
   infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: DESIGN_TOKENS.spacing.sm,
   },
   infoText: {
@@ -633,21 +825,21 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   staffActions: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: DESIGN_TOKENS.spacing.sm,
     marginTop: DESIGN_TOKENS.spacing.sm,
   },
   actionButton: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     padding: DESIGN_TOKENS.spacing.sm,
     borderRadius: DESIGN_TOKENS.radius.md,
     gap: DESIGN_TOKENS.spacing.xs,
   },
   actionButtonText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
-})
+});

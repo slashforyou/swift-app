@@ -22,6 +22,7 @@ import { HStack, VStack } from '../../primitives/Stack';
 // Hooks & Utils
 import { DESIGN_TOKENS } from '../../../constants/Styles';
 import { useTheme } from '../../../context/ThemeProvider';
+import { useTranslation } from '../../../localization';
 
 // Types
 interface Employee {
@@ -87,6 +88,7 @@ const AddStaffModal: React.FC<AddStaffModalProps> = ({
   onSubmit,
 }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   
   // État du formulaire
   const [formData, setFormData] = useState<Employee>({
@@ -333,9 +335,18 @@ const AddStaffModal: React.FC<AddStaffModalProps> = ({
       
       onClose();
       
-      Alert.alert('Success', 'Staff member added successfully!');
-    } catch (error) {
-      Alert.alert('Error', 'Failed to add staff member. Please try again.');
+      Alert.alert(
+        t('staffModals.addStaff.success.invitationSent'),
+        t('staffModals.addStaff.success.invitationSentMessage', {
+          email: employeeData.email,
+        }),
+      );
+    } catch (error) {
+
+      Alert.alert(
+        t('staffModals.addStaff.validation.error'),
+        t('staffModals.addStaff.validation.inviteError'),
+      );
     } finally {
       setIsSubmitting(false);
     }

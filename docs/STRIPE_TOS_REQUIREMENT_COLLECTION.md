@@ -2,7 +2,9 @@
 
 **Date**: 5 février 2026 21:00  
 **Erreur**: "You cannot accept the Terms of Service on behalf of account where `controller[requirement_collection]=stripe`"  
-**Étape**: POST `/v1/stripe/onboarding/complete`
+**Étape**: POST `/v1/stripe/onboarding/verify`
+
+> Note (12/02/2026): ce document décrit un incident historique. Le contrat frontend actuel est Custom-only et utilise `POST /v1/stripe/onboarding/verify` comme étape finale.
 
 ---
 
@@ -53,8 +55,8 @@ Quand on met `'stripe'`, on dit à Stripe:
 ### ❌ Code Précédent (Incorrect)
 
 ```javascript
-// POST /v1/stripe/onboarding/complete
-app.post("/v1/stripe/onboarding/complete", async (req, res) => {
+// POST /v1/stripe/onboarding/verify
+app.post("/v1/stripe/onboarding/verify", async (req, res) => {
   const { tos_acceptance } = req.body;
 
   // ❌ ERREUR: On essaie d'envoyer tos_acceptance à Stripe
@@ -72,8 +74,8 @@ app.post("/v1/stripe/onboarding/complete", async (req, res) => {
 ### ✅ Code Correct
 
 ```javascript
-// POST /v1/stripe/onboarding/complete
-app.post("/v1/stripe/onboarding/complete", async (req, res) => {
+// POST /v1/stripe/onboarding/verify
+app.post("/v1/stripe/onboarding/verify", async (req, res) => {
   const { tos_acceptance } = req.body;
 
   // Validation côté frontend (pour l'UX)

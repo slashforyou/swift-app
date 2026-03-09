@@ -539,6 +539,7 @@ export interface TranslationKeys {
       crewAssigned: string;
       teamMember: string;
       noCrew: string;
+      assignStaff: string;
     };
     // Notes page labels
     notes: {
@@ -1155,6 +1156,13 @@ export interface TranslationKeys {
     inUse: string;
     maintenance: string;
     outOfService: string;
+    status: {
+      available: string;
+      "in-use": string;
+      maintenance: string;
+      "out-of-service": string;
+      undefined: string;
+    };
     all: string;
     loading: string;
     year: string;
@@ -1462,6 +1470,7 @@ export interface TranslationKeys {
       errorLoadingForm: string;
     };
     onboarding: {
+      stepLabel: string;
       welcome: {
         title: string;
         subtitle: string;
@@ -1508,6 +1517,28 @@ export interface TranslationKeys {
           validationMessage: string;
         };
       };
+      businessProfile: {
+        title: string;
+        subtitle: string;
+        mcc: string;
+        mccPlaceholder: string;
+        url: string;
+        urlPlaceholder: string;
+        description: string;
+        descriptionPlaceholder: string;
+        nextButton: string;
+        errors: {
+          mccRequired: string;
+          mccInvalid: string;
+          urlRequired: string;
+          urlInvalid: string;
+          descriptionRequired: string;
+          validationTitle: string;
+          validationMessage: string;
+          submissionTitle: string;
+          submissionMessage: string;
+        };
+      };
       address: {
         step: string;
         title: string;
@@ -1533,6 +1564,100 @@ export interface TranslationKeys {
           postalCodeInvalid: string;
           validationTitle: string;
           validationMessage: string;
+        };
+      };
+      companyDetails: {
+        title: string;
+        subtitle: string;
+        name: string;
+        namePlaceholder: string;
+        taxId: string;
+        taxIdPlaceholder: string;
+        companyNumber: string;
+        companyNumberPlaceholder: string;
+        phone: string;
+        phonePlaceholder: string;
+        line1: string;
+        line1Placeholder: string;
+        line2: string;
+        line2Placeholder: string;
+        city: string;
+        cityPlaceholder: string;
+        state: string;
+        statePlaceholder: string;
+        postalCode: string;
+        postalCodePlaceholder: string;
+        nextButton: string;
+        errors: {
+          nameRequired: string;
+          taxIdRequired: string;
+          phoneRequired: string;
+          phoneInvalid: string;
+          line1Required: string;
+          cityRequired: string;
+          stateRequired: string;
+          postalCodeRequired: string;
+          postalCodeInvalid: string;
+          validationTitle: string;
+          validationMessage: string;
+          submissionTitle: string;
+          submissionMessage: string;
+        };
+      };
+      representative: {
+        title: string;
+        subtitle: string;
+        firstName: string;
+        firstNamePlaceholder: string;
+        lastName: string;
+        lastNamePlaceholder: string;
+        dob: string;
+        dobPlaceholder: string;
+        email: string;
+        emailPlaceholder: string;
+        phone: string;
+        phonePlaceholder: string;
+        line1: string;
+        line1Placeholder: string;
+        line2: string;
+        line2Placeholder: string;
+        city: string;
+        cityPlaceholder: string;
+        state: string;
+        statePlaceholder: string;
+        postalCode: string;
+        postalCodePlaceholder: string;
+        titleLabel: string;
+        titlePlaceholder: string;
+        relationshipTitle: string;
+        owner: string;
+        director: string;
+        executive: string;
+        percentOwnership: string;
+        percentOwnershipPlaceholder: string;
+        percentOwnershipHint: string;
+        nextButton: string;
+        errors: {
+          firstNameRequired: string;
+          lastNameRequired: string;
+          dobRequired: string;
+          dobMinAge: string;
+          emailRequired: string;
+          emailInvalid: string;
+          phoneRequired: string;
+          phoneInvalid: string;
+          line1Required: string;
+          cityRequired: string;
+          stateRequired: string;
+          postalCodeRequired: string;
+          postalCodeInvalid: string;
+          titleRequired: string;
+          relationshipRequired: string;
+          percentOwnershipRequired: string;
+          validationTitle: string;
+          validationMessage: string;
+          submissionTitle: string;
+          submissionMessage: string;
         };
       };
       bankAccount: {
@@ -1601,6 +1726,7 @@ export interface TranslationKeys {
         accountNumber: string;
         frontUploaded: string;
         backUploaded: string;
+        onFile: string;
         tosText: string;
         tosLink: string;
         tosTextEnd: string;
@@ -1621,10 +1747,19 @@ export interface TranslationKeys {
       payoutSchedule: string;
       bankAccount: string;
       updateAccount: string;
+      displayName: string;
+      supportEmail: string;
+      supportPhone: string;
+      supportUrl: string;
+      statementDescriptor: string;
+      statementDescriptorPlaceholder: string;
+      payoutInterval: string;
+      debitNegativeBalances: string;
       // Sections
       sections: {
         accountSetup: string;
         paymentSettings: string;
+        payoutSettings: string;
         developerSettings: string;
         dangerZone: string;
       };
@@ -1666,6 +1801,7 @@ export interface TranslationKeys {
         disconnectTitle: string;
         disconnectMessage: string;
         errorUpdate: string;
+        successUpdate: string;
         createTestPayment: string;
       };
     };

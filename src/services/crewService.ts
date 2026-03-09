@@ -1,20 +1,20 @@
 /**
  * 👥 CREW SERVICE
- * 
+ *
  * Service pour gérer l'assignation du crew (staff) sur les jobs.
  * Utilise les endpoints:
  * - GET    /v1/job/:id/crew       - Liste du crew assigné
  * - POST   /v1/job/:id/crew       - Assigner un membre du staff
  * - PATCH  /v1/job/:id/crew/:crewId - Modifier assignation
  * - DELETE /v1/job/:id/crew/:crewId - Retirer du crew
- * 
+ *
  * @see BACKEND_REQUIREMENTS_PHASE2.md pour les détails API
  */
 
-import { ServerData } from '../constants/ServerData';
-import { authenticatedFetch } from '../utils/auth';
-import type { CrewMember } from './jobDetails';
-import { logger } from './logger';
+import { ServerData } from "../constants/ServerData";
+import { authenticatedFetch } from "../utils/auth";
+import type { CrewMember } from "./jobDetails";
+import { logger } from "./logger";
 
 const API = ServerData.serverUrl;
 
@@ -23,13 +23,16 @@ const API = ServerData.serverUrl;
 // ========================================
 
 export interface AssignCrewRequest {
-  staff_id: string;
-  role?: 'driver' | 'helper' | 'supervisor' | 'technician';
+  crew: Array<{
+    user_id: string;
+    role: "driver" | "offsider" | "supervisor" | "manager" | "dispatcher";
+    is_primary?: boolean;
+  }>;
 }
 
 export interface UpdateCrewRequest {
-  role?: 'driver' | 'helper' | 'supervisor' | 'technician';
-  status?: 'assigned' | 'confirmed' | 'en-route' | 'on-site' | 'completed';
+  role?: "driver" | "helper" | "supervisor" | "technician";
+  status?: "assigned" | "confirmed" | "en-route" | "on-site" | "completed";
 }
 
 export interface CrewApiResponse {
@@ -50,24 +53,29 @@ export interface CrewApiResponse {
  */
 export async function getJobCrew(jobId: string): Promise<CrewMember[]> {
   try {
-    logger.debug('[crewService] Fetching crew for job', { jobId });
-    
+    logger.debug("[crewService] Fetching crew for job", { jobId });
+
     const response = await authenticatedFetch(`${API}v1/job/${jobId}/crew`, {
-      method: 'GET',
+      method: "GET",
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      logger.error('[crewService] Failed to fetch crew:', { status: response.status, error: errorText });
+      logger.error("[crewService] Failed to fetch crew:", {
+        status: response.status,
+        error: errorText,
+      });
       throw new Error(`Failed to fetch crew: ${response.status}`);
     }
 
     const data = await response.json();
-    logger.debug('[crewService] Crew fetched successfully:', { count: data.crew?.length || 0 });
-    
+    logger.debug("[crewService] Crew fetched successfully:", {
+      count: data.crew?.length || 0,
+    });
+
     return data.crew || [];
   } catch (error) {
-    logger.error('[crewService] Error fetching crew:', error);
+    logger.error("[crewService] Error fetching crew:", error);
     throw error;
   }
 }
@@ -75,7 +83,7 @@ export async function getJobCrew(jobId: string): Promise<CrewMember[]> {
 /**
  * Assigne un membre du staff à un job
  * POST /v1/job/:id/crew
- * 
+ *
  * @param jobId - ID du job
  * @param staffId - ID du staff à assigner
  * @param role - Rôle sur ce job (optionnel)
@@ -83,46 +91,65 @@ export async function getJobCrew(jobId: string): Promise<CrewMember[]> {
 export async function assignStaffToJob(
   jobId: string,
   staffId: string,
-  role?: 'driver' | 'helper' | 'supervisor' | 'technician'
+  role?: "driver" | "offsider" | "supervisor" | "manager" | "dispatcher",
 ): Promise<CrewMember> {
   try {
-    logger.info('[crewService] Assigning staff to job:', { jobId, staffId, role });
-    
+    logger.info("[crewService] Assigning staff to job:", {
+      jobId,
+      staffId,
+      role,
+    });
+
     const body: AssignCrewRequest = {
-      staff_id: staffId,
+      crew: [
+        {
+          user_id: staffId,
+          role: role || "driver",
+          is_primary: false,
+        },
+      ],
     };
-    
-    if (role) {
-      body.role = role;
-    }
 
     const response = await authenticatedFetch(`${API}v1/job/${jobId}/crew`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(body),
     });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      logger.error('[crewService] Failed to assign staff:', { 
-        status: response.status, 
-        error: errorData 
+      logger.error("[crewService] Failed to assign staff:", {
+        status: response.status,
+        error: errorData,
       });
-      throw new Error(errorData.message || errorData.error || `Failed to assign staff: ${response.status}`);
+      throw new Error(
+        errorData.message ||
+          errorData.error ||
+          `Failed to assign staff: ${response.status}`,
+      );
     }
 
     const data = await response.json();
-    logger.info('[crewService] ✅ Staff assigned successfully:', { 
-      jobId, 
-      staffId, 
-      crewMemberId: data.data?.id 
+    logger.info("[crewService] ✅ Staff assigned successfully:", {
+      jobId,
+      staffId,
+      assignedCrew: data.assigned_crew,
     });
-    
-    return data.data;
+
+    // Backend returns assigned_crew array; return first item mapped to CrewMember shape
+    const assigned = data.assigned_crew?.[0];
+    return {
+      id: assigned?.user_id,
+      user_id: assigned?.user_id,
+      name: assigned?.name,
+      email: assigned?.email,
+      role: assigned?.job_role,
+      is_primary: assigned?.is_primary,
+    } as unknown as CrewMember;
   } catch (error) {
-    logger.error('[crewService] Error assigning staff:', error);
+    logger.error("[crewService] Error assigning staff:", error);
     throw error;
   }
 }
@@ -130,7 +157,7 @@ export async function assignStaffToJob(
 /**
  * Met à jour un membre du crew sur un job
  * PATCH /v1/job/:id/crew/:crewId
- * 
+ *
  * @param jobId - ID du job
  * @param crewId - ID de l'entrée crew (pas l'ID du staff!)
  * @param updates - Modifications à appliquer
@@ -138,34 +165,45 @@ export async function assignStaffToJob(
 export async function updateCrewMember(
   jobId: string,
   crewId: string,
-  updates: UpdateCrewRequest
+  updates: UpdateCrewRequest,
 ): Promise<CrewMember> {
   try {
-    logger.info('[crewService] Updating crew member:', { jobId, crewId, updates });
-
-    const response = await authenticatedFetch(`${API}v1/job/${jobId}/crew/${crewId}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(updates),
+    logger.info("[crewService] Updating crew member:", {
+      jobId,
+      crewId,
+      updates,
     });
+
+    const response = await authenticatedFetch(
+      `${API}v1/job/${jobId}/crew/${crewId}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updates),
+      },
+    );
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      logger.error('[crewService] Failed to update crew member:', { 
-        status: response.status, 
-        error: errorData 
+      logger.error("[crewService] Failed to update crew member:", {
+        status: response.status,
+        error: errorData,
       });
-      throw new Error(errorData.message || errorData.error || `Failed to update crew: ${response.status}`);
+      throw new Error(
+        errorData.message ||
+          errorData.error ||
+          `Failed to update crew: ${response.status}`,
+      );
     }
 
     const data = await response.json();
-    logger.info('[crewService] ✅ Crew member updated successfully');
-    
+    logger.info("[crewService] ✅ Crew member updated successfully");
+
     return data.data;
   } catch (error) {
-    logger.error('[crewService] Error updating crew member:', error);
+    logger.error("[crewService] Error updating crew member:", error);
     throw error;
   }
 }
@@ -173,33 +211,40 @@ export async function updateCrewMember(
 /**
  * Retire un membre du crew d'un job
  * DELETE /v1/job/:id/crew/:crewId
- * 
+ *
  * @param jobId - ID du job
  * @param crewId - ID de l'entrée crew à supprimer
  */
 export async function removeCrewMember(
   jobId: string,
-  crewId: string
+  crewId: string,
 ): Promise<void> {
   try {
-    logger.info('[crewService] Removing crew member:', { jobId, crewId });
+    logger.info("[crewService] Removing crew member:", { jobId, crewId });
 
-    const response = await authenticatedFetch(`${API}v1/job/${jobId}/crew/${crewId}`, {
-      method: 'DELETE',
-    });
+    const response = await authenticatedFetch(
+      `${API}v1/job/${jobId}/crew/${crewId}`,
+      {
+        method: "DELETE",
+      },
+    );
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      logger.error('[crewService] Failed to remove crew member:', { 
-        status: response.status, 
-        error: errorData 
+      logger.error("[crewService] Failed to remove crew member:", {
+        status: response.status,
+        error: errorData,
       });
-      throw new Error(errorData.message || errorData.error || `Failed to remove crew: ${response.status}`);
+      throw new Error(
+        errorData.message ||
+          errorData.error ||
+          `Failed to remove crew: ${response.status}`,
+      );
     }
 
-    logger.info('[crewService] ✅ Crew member removed successfully');
+    logger.info("[crewService] ✅ Crew member removed successfully");
   } catch (error) {
-    logger.error('[crewService] Error removing crew member:', error);
+    logger.error("[crewService] Error removing crew member:", error);
     throw error;
   }
 }
@@ -210,23 +255,21 @@ export async function removeCrewMember(
  */
 export async function clearJobCrew(jobId: string): Promise<void> {
   try {
-    logger.info('[crewService] Clearing all crew from job', { jobId });
-    
+    logger.info("[crewService] Clearing all crew from job", { jobId });
+
     const crew = await getJobCrew(jobId);
-    
+
     if (crew.length === 0) {
-      logger.debug('[crewService] No crew to remove');
+      logger.debug("[crewService] No crew to remove");
       return;
     }
 
     // Supprimer chaque membre
-    await Promise.all(
-      crew.map(member => removeCrewMember(jobId, member.id))
-    );
+    await Promise.all(crew.map((member) => removeCrewMember(jobId, member.id)));
 
-    logger.info('[crewService] ✅ All crew removed from job');
+    logger.info("[crewService] ✅ All crew removed from job");
   } catch (error) {
-    logger.error('[crewService] Error clearing crew:', error);
+    logger.error("[crewService] Error clearing crew:", error);
     throw error;
   }
 }

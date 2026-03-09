@@ -5,10 +5,10 @@
  * - Gérer les préférences utilisateur
  * - Écouter les notifications reçues
  */
-import { useNavigation } from '@react-navigation/native';
-import * as Notifications from 'expo-notifications';
-import { useCallback, useEffect, useState } from 'react';
-import { AppState, AppStateStatus } from 'react-native';
+import { useNavigation } from "@react-navigation/native";
+import * as Notifications from "expo-notifications";
+import { useCallback, useEffect, useState } from "react";
+import { AppState, AppStateStatus } from "react-native";
 import {
     addNotificationReceivedListener,
     addNotificationResponseListener,
@@ -20,13 +20,13 @@ import {
     parseNotificationData,
     registerPushToken,
     updateNotificationPreferences,
-} from '../services/pushNotifications';
+} from "../services/pushNotifications";
 
 interface UsePushNotificationsReturn {
   // State
   isInitialized: boolean;
   isLoading: boolean;
-  permissionStatus: 'granted' | 'denied' | 'undetermined';
+  permissionStatus: "granted" | "denied" | "undetermined";
   preferences: NotificationPreferences | null;
   pushToken: string | null;
   error: string | null;
@@ -34,7 +34,9 @@ interface UsePushNotificationsReturn {
   // Actions
   initialize: () => Promise<boolean>;
   requestPermission: () => Promise<boolean>;
-  updatePreferences: (prefs: Partial<NotificationPreferences>) => Promise<boolean>;
+  updatePreferences: (
+    prefs: Partial<NotificationPreferences>,
+  ) => Promise<boolean>;
   refreshPreferences: () => Promise<void>;
 }
 
@@ -47,18 +49,21 @@ const DEFAULT_PREFERENCES: NotificationPreferences = {
   payment_alerts: true,
   marketing: false,
   quiet_hours_enabled: false,
-  quiet_hours_start: '22:00:00',
-  quiet_hours_end: '07:00:00',
+  quiet_hours_start: "22:00:00",
+  quiet_hours_end: "07:00:00",
   timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
 };
 
 export const usePushNotifications = (): UsePushNotificationsReturn => {
-  const navigation = useNavigation();
-  
+  const navigation = useNavigation<any>();
+
   const [isInitialized, setIsInitialized] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [permissionStatus, setPermissionStatus] = useState<'granted' | 'denied' | 'undetermined'>('undetermined');
-  const [preferences, setPreferences] = useState<NotificationPreferences | null>(null);
+  const [permissionStatus, setPermissionStatus] = useState<
+    "granted" | "denied" | "undetermined"
+  >("undetermined");
+  const [preferences, setPreferences] =
+    useState<NotificationPreferences | null>(null);
   const [pushToken, setPushToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -66,10 +71,10 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
   const checkPermissionStatus = useCallback(async () => {
     try {
       const { status } = await Notifications.getPermissionsAsync();
-      setPermissionStatus(status as 'granted' | 'denied' | 'undetermined');
+      setPermissionStatus(status as "granted" | "denied" | "undetermined");
       return status;
     } catch {
-      return 'undetermined';
+      return "undetermined";
     }
   }, []);
 
@@ -80,9 +85,9 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
       setError(null);
 
       const { status } = await Notifications.requestPermissionsAsync();
-      setPermissionStatus(status as 'granted' | 'denied' | 'undetermined');
+      setPermissionStatus(status as "granted" | "denied" | "undetermined");
 
-      if (status === 'granted') {
+      if (status === "granted") {
         // Récupérer et enregistrer le token
         const token = await getExpoPushToken();
         if (token) {
@@ -94,7 +99,7 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
 
       return false;
     } catch {
-      setError('Failed to request notification permission');
+      setError("Failed to request notification permission");
       return false;
     } finally {
       setIsLoading(false);
@@ -112,18 +117,18 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
       // Vérifier les permissions actuelles
       const status = await checkPermissionStatus();
 
-      if (status === 'granted') {
+      if (status === "granted") {
         // Initialiser et enregistrer le token
         const success = await initializePushNotifications();
         if (success) {
           const token = await getExpoPushToken();
           setPushToken(token);
         }
-        
+
         // Charger les préférences
         const prefs = await getNotificationPreferences();
         setPreferences(prefs || DEFAULT_PREFERENCES);
-        
+
         setIsInitialized(true);
         return true;
       }
@@ -131,7 +136,7 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
       setIsInitialized(true);
       return false;
     } catch {
-      setError('Failed to initialize notifications');
+      setError("Failed to initialize notifications");
       return false;
     } finally {
       setIsLoading(false);
@@ -145,57 +150,79 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
       const prefs = await getNotificationPreferences();
       setPreferences(prefs || DEFAULT_PREFERENCES);
     } catch (err) {
-      console.error('[usePushNotifications] Error refreshing preferences:', err);
+      console.error(
+        "[usePushNotifications] Error refreshing preferences:",
+        err,
+      );
     } finally {
       setIsLoading(false);
     }
   }, []);
 
   // Mettre à jour les préférences
-  const updatePreferences = useCallback(async (
-    newPrefs: Partial<NotificationPreferences>
-  ): Promise<boolean> => {
-    try {
-      setIsLoading(true);
-      setError(null);
+  const updatePreferences = useCallback(
+    async (newPrefs: Partial<NotificationPreferences>): Promise<boolean> => {
+      try {
+        setIsLoading(true);
+        setError(null);
 
-      const updated = await updateNotificationPreferences(newPrefs);
-      if (updated) {
-        setPreferences(prev => prev ? { ...prev, ...newPrefs } : { ...DEFAULT_PREFERENCES, ...newPrefs });
-        return true;
+        const updated = await updateNotificationPreferences(newPrefs);
+        if (updated) {
+          setPreferences((prev) =>
+            prev
+              ? { ...prev, ...newPrefs }
+              : { ...DEFAULT_PREFERENCES, ...newPrefs },
+          );
+          return true;
+        }
+        return false;
+      } catch {
+        setError("Failed to update preferences");
+        return false;
+      } finally {
+        setIsLoading(false);
       }
-      return false;
-    } catch {
-      setError('Failed to update preferences');
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+    },
+    [],
+  );
 
   // Gérer la navigation depuis une notification
-  const handleNotificationNavigation = useCallback((data: any) => {
-    if (!data) return;
+  const handleNotificationNavigation = useCallback(
+    (data: any) => {
+      if (!data) return;
 
-    const { type, job_id, screen } = data;
+      const { type, job_id, screen } = data;
 
-    switch (type) {
-      case 'new_job':
-      case 'job_reminder':
-      case 'job_updated':
-        if (job_id && screen === 'JobDetails') {
-          // @ts-ignore - navigation typing
-          navigation.navigate('JobDetails', { jobId: job_id });
+      switch (type) {
+        case "new_job":
+        case "job_reminder":
+        case "job_updated":
+          if (job_id && screen === "JobDetails") {
+            navigation.navigate("JobDetails", { jobId: job_id });
+          }
+          break;
+        case "job_assigned":
+        case "job_assigned_contractor": {
+          // Navigate to the calendar day of the assigned job
+          const {
+            handleNotificationNavigation,
+          } = require("../services/navRef");
+          handleNotificationNavigation({
+            screen: screen || "Calendar",
+            date: data.date,
+            job_id,
+          });
+          break;
         }
-        break;
-      case 'payment_received':
-        // @ts-ignore
-        navigation.navigate('Business', { initialTab: 'Payments' });
-        break;
-      default:
-        break;
-    }
-  }, [navigation]);
+        case "payment_received":
+          navigation.navigate("Business", { initialTab: "Payments" });
+          break;
+        default:
+          break;
+      }
+    },
+    [navigation],
+  );
 
   // Initialisation au montage
   useEffect(() => {
@@ -208,7 +235,7 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
     const subscription = addNotificationReceivedListener((notification) => {
       // Notification reçue pendant que l'app est au premier plan
       const data = parseNotificationData(notification);
-      console.log('[Push] Notification received:', data);
+      console.log("[Push] Notification received:", data);
     });
 
     return () => subscription.remove();
@@ -219,11 +246,11 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
     const subscription = addNotificationResponseListener((response) => {
       const notification = response.notification;
       const data = parseNotificationData(notification);
-      
+
       if (data) {
         handleNotificationNavigation(data);
       }
-      
+
       // Effacer le badge
       clearBadge();
     });
@@ -234,12 +261,15 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
   // Re-enregistrer le token quand l'app revient au premier plan
   useEffect(() => {
     const handleAppStateChange = async (nextAppState: AppStateStatus) => {
-      if (nextAppState === 'active' && pushToken) {
+      if (nextAppState === "active" && pushToken) {
         await registerPushToken(pushToken);
       }
     };
 
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange,
+    );
     return () => subscription.remove();
   }, [pushToken]);
 

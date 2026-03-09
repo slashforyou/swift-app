@@ -72,7 +72,7 @@ const InsuranceStep: React.FC<InsuranceStepProps> = ({
         </Text>
         <TextInput
           style={styles.inputBase}
-          placeholder="CGU, Allianz, QBE..."
+          placeholder={t("registration.fields.placeholders.insuranceProvider")}
           placeholderTextColor={colors.textSecondary}
           value={insuranceProvider}
           onChangeText={setInsuranceProvider}
@@ -86,7 +86,9 @@ const InsuranceStep: React.FC<InsuranceStepProps> = ({
         </Text>
         <TextInput
           style={styles.inputBase}
-          placeholder="POL-123456"
+          placeholder={t(
+            "registration.fields.placeholders.insurancePolicyNumber",
+          )}
           placeholderTextColor={colors.textSecondary}
           value={insurancePolicyNumber}
           onChangeText={setInsurancePolicyNumber}
@@ -100,7 +102,9 @@ const InsuranceStep: React.FC<InsuranceStepProps> = ({
         </Text>
         <TextInput
           style={styles.inputBase}
-          placeholder="YYYY-MM-DD"
+          placeholder={t(
+            "registration.fields.placeholders.insuranceExpiryDate",
+          )}
           placeholderTextColor={colors.textSecondary}
           value={insuranceExpiryDate}
           onChangeText={setInsuranceExpiryDate}

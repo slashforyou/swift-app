@@ -22,6 +22,7 @@ import { HStack, VStack } from '../../primitives/Stack';
 // Hooks & Utils
 import { DESIGN_TOKENS } from '../../../constants/Styles';
 import { useTheme } from '../../../context/ThemeProvider';
+import { useTranslation } from '../../../localization';
 
 // Types
 interface InvoiceItem {
@@ -99,6 +100,7 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
   onSubmit,
 }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   
   // État du formulaire
   const [formData, setFormData] = useState<Invoice>({
@@ -582,10 +584,16 @@ const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
       
       onClose();
       
-      Alert.alert('Success', 'Invoice created successfully!');
+      Alert.alert(
+        t('businessModals.createInvoice.successTitle'),
+        t('businessModals.createInvoice.successMessage'),
+      );
     } catch {
 
-      Alert.alert('Error', 'Failed to create invoice. Please try again.');
+      Alert.alert(
+        t('businessModals.createInvoice.errorTitle'),
+        t('businessModals.createInvoice.errorMessage'),
+      );
     } finally {
       setIsSubmitting(false);
     }

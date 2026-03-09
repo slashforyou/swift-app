@@ -21,15 +21,11 @@
     "test:clean:coverage": "jest --config=jest.skip-encoding.config.js --coverage",
     "test:utf8": "jest --config=jest.utf8-only.config.js",
     "test:utf8:verbose": "jest --config=jest.utf8-only.config.js --verbose",
-    "test:staff": "node ./scripts/test-staff.js",
-    "test:staff:coverage": "node ./scripts/test-staff.js --coverage",
-    "test:staff:watch": "node ./scripts/test-staff.js --watch",
-    "test:staff:verbose": "node ./scripts/test-staff.js --verbose",
-    "test:staff:update": "node ./scripts/test-staff.js --updateSnapshot",
-    "resize-logos": "node ./scripts/resize-logos.js"
+    "gen-icons": "node ./scripts/gen-icons.js"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
+    "@expo-google-fonts/space-grotesk": "^0.2.3",
     "@react-native-community/datetimepicker": "^8.6.0",
     "@react-native-picker/picker": "^2.11.4",
     "@react-native-vector-icons/evil-icons": "^12.2.0",

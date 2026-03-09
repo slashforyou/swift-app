@@ -4,7 +4,6 @@
  */
 import React, { useCallback, useState } from "react";
 import {
-    ActivityIndicator,
     Alert,
     RefreshControl,
     ScrollView,
@@ -16,6 +15,7 @@ import {
 
 // Components
 import { HStack, VStack } from "../../components/primitives/Stack";
+import MascotLoading from "../../components/ui/MascotLoading";
 
 // Constants & Utils
 import { DESIGN_TOKENS } from "../../constants/Styles";
@@ -298,19 +298,7 @@ const VehicleFleetScreen: React.FC = () => {
   };
 
   if (isLoading) {
-    return (
-      <View
-        style={[
-          styles.loadingContainer,
-          { backgroundColor: colors.background },
-        ]}
-      >
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={[styles.loadingText, { color: colors.text }]}>
-          {t("vehicles.loading")}
-        </Text>
-      </View>
-    );
+    return <MascotLoading text={t("vehicles.loading")} />;
   }
 
   return (

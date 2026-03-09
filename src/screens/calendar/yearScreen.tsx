@@ -1,9 +1,8 @@
 // Modern year calendar screen with monthly job indicators, statistics, and enhanced UX
 
-import { Ionicons } from '@expo/vector-icons';
-import React, { useCallback, useMemo, useState } from 'react';
+import { Ionicons } from "@expo/vector-icons";
+import React, { useCallback, useState } from "react";
 import {
-    ActivityIndicator,
     Animated,
     Dimensions,
     Pressable,
@@ -11,401 +10,332 @@ import {
     ScrollView,
     StyleSheet,
     Text,
-    View
-} from 'react-native';
-import CalendarHeader from '../../components/calendar/CalendarHeader';
-import { DESIGN_TOKENS } from '../../constants/Styles';
-import { useCommonThemedStyles } from '../../hooks/useCommonStyles';
-import { useTranslation } from '../../localization';
-
-// Mock function to get jobs statistics for a month
-const getMonthJobsStats = (month: number, year: string) => {
-    // Simulate monthly job data
-    const mockData: { [key: number]: { total: number; urgent: number; completed: number } } = {
-        1: { total: 15, urgent: 3, completed: 8 },
-        2: { total: 12, urgent: 2, completed: 10 },
-        3: { total: 18, urgent: 4, completed: 12 },
-        4: { total: 8, urgent: 1, completed: 7 },
-        5: { total: 22, urgent: 5, completed: 15 },
-        6: { total: 14, urgent: 2, completed: 11 },
-        7: { total: 19, urgent: 3, completed: 16 },
-        8: { total: 11, urgent: 1, completed: 9 },
-        9: { total: 16, urgent: 4, completed: 10 },
-        10: { total: 13, urgent: 2, completed: 8 },
-        11: { total: 9, urgent: 1, completed: 6 },
-        12: { total: 17, urgent: 3, completed: 12 },
-    };
-    
-    return mockData[month] || { total: 0, urgent: 0, completed: 0 };
-};
+    View,
+} from "react-native";
+import CalendarHeader from "../../components/calendar/CalendarHeader";
+import MascotLoading from "../../components/ui/MascotLoading";
+import { DESIGN_TOKENS } from "../../constants/Styles";
+import { useCommonThemedStyles } from "../../hooks/useCommonStyles";
+import { useTranslation } from "../../localization";
 
 const YearCalendarScreen = ({ navigation, route }: any) => {
-    const { colors, styles: commonStyles } = useCommonThemedStyles();
-    const { t } = useTranslation();
+  const { colors, styles: commonStyles } = useCommonThemedStyles();
+  const { t } = useTranslation();
 
-    // States for modern UX
-    const [isLoading, setIsLoading] = useState(false);
-    const [animatedValue] = useState(new Animated.Value(1));
+  // States for modern UX
+  const [isLoading, setIsLoading] = useState(false);
+  const [animatedValue] = useState(new Animated.Value(1));
 
-    const { year } = route.params || {};
-    const selectedYear = year || new Date().getFullYear();
-    const currentYear = new Date().getFullYear();
+  const { year } = route.params || {};
+  const selectedYear = year || new Date().getFullYear();
+  const currentYear = new Date().getFullYear();
 
-    const monthList = [
-        t('calendar.months.january'), t('calendar.months.february'), t('calendar.months.march'), 
-        t('calendar.months.april'), t('calendar.months.may'), t('calendar.months.june'),
-        t('calendar.months.july'), t('calendar.months.august'), t('calendar.months.september'), 
-        t('calendar.months.october'), t('calendar.months.november'), t('calendar.months.december')
-    ];
+  const monthList = [
+    t("calendar.months.january"),
+    t("calendar.months.february"),
+    t("calendar.months.march"),
+    t("calendar.months.april"),
+    t("calendar.months.may"),
+    t("calendar.months.june"),
+    t("calendar.months.july"),
+    t("calendar.months.august"),
+    t("calendar.months.september"),
+    t("calendar.months.october"),
+    t("calendar.months.november"),
+    t("calendar.months.december"),
+  ];
 
-    // Responsive dimensions
-    const screenWidth = Dimensions.get('window').width;
-    const monthCaseSize = (screenWidth - DESIGN_TOKENS.spacing.lg * 2 - DESIGN_TOKENS.spacing.md * 2) / 3;
+  // Responsive dimensions
+  const screenWidth = Dimensions.get("window").width;
+  const monthCaseSize =
+    (screenWidth -
+      DESIGN_TOKENS.spacing.lg * 2 -
+      DESIGN_TOKENS.spacing.md * 2) /
+    3;
 
-    // Navigation functions
-    const navigateToYear = useCallback((direction: 'prev' | 'next') => {
-        Animated.sequence([
-            Animated.timing(animatedValue, {
-                toValue: 0.95,
-                duration: 100,
-                useNativeDriver: true,
-            }),
-            Animated.timing(animatedValue, {
-                toValue: 1,
-                duration: 100,
-                useNativeDriver: true,
-            }),
-        ]).start();
+  // Navigation functions
+  const navigateToYear = useCallback(
+    (direction: "prev" | "next") => {
+      Animated.sequence([
+        Animated.timing(animatedValue, {
+          toValue: 0.95,
+          duration: 100,
+          useNativeDriver: true,
+        }),
+        Animated.timing(animatedValue, {
+          toValue: 1,
+          duration: 100,
+          useNativeDriver: true,
+        }),
+      ]).start();
 
-        const newYear = direction === 'prev' ? selectedYear - 1 : selectedYear + 1;
-        navigation.navigate('Year', { year: newYear });
-    }, [selectedYear, animatedValue, navigation]);
+      const newYear =
+        direction === "prev" ? selectedYear - 1 : selectedYear + 1;
+      navigation.navigate("Year", { year: newYear });
+    },
+    [selectedYear, animatedValue, navigation],
+  );
 
-    // Pull to refresh functionality
-    const handleRefresh = useCallback(async () => {
-        setIsLoading(true);
-        await new Promise(resolve => setTimeout(resolve, 800));
-        setIsLoading(false);
-    }, []);
+  // Pull to refresh functionality
+  const handleRefresh = useCallback(async () => {
+    setIsLoading(true);
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    setIsLoading(false);
+  }, []);
 
-    // Calculate year statistics
-    const yearStats = useMemo(() => {
-        let totalJobs = 0;
-        let urgentJobs = 0;
-        let completedJobs = 0;
-        
-        for (let month = 1; month <= 12; month++) {
-            const monthStats = getMonthJobsStats(month, selectedYear.toString());
-            totalJobs += monthStats.total;
-            urgentJobs += monthStats.urgent;
-            completedJobs += monthStats.completed;
-        }
-        
-        return { totalJobs, urgentJobs, completedJobs };
-    }, [selectedYear]);
+  // Component for monthly job indicator — removed (was using mock data)
 
-    // Component for monthly job indicator
-    const MonthJobIndicator = ({ monthStats }: { monthStats: any }) => {
-        if (monthStats.total === 0) return null;
+  const useCustomStyles = () => {
+    return StyleSheet.create({
+      container: {
+        flex: 1,
+        backgroundColor: colors.background,
+      },
+      scrollContainer: {
+        flexGrow: 1,
+        paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+        paddingBottom: 100, // Marge pour menu Samsung
+      },
+      header: {
+        backgroundColor: colors.background,
+        paddingTop: 50,
+        paddingBottom: DESIGN_TOKENS.spacing.md,
+        paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border,
+      },
+      headerTop: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginBottom: DESIGN_TOKENS.spacing.md,
+      },
+      leftButtons: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: DESIGN_TOKENS.spacing.sm,
+      },
+      homeButton: {
+        backgroundColor: colors.primary,
+        borderRadius: DESIGN_TOKENS.radius.lg,
+        padding: DESIGN_TOKENS.spacing.md,
+        ...DESIGN_TOKENS.shadows.md,
+      },
+      backButton: {
+        backgroundColor: colors.backgroundSecondary,
+        borderRadius: DESIGN_TOKENS.radius.md,
+        padding: DESIGN_TOKENS.spacing.sm,
+        ...DESIGN_TOKENS.shadows.sm,
+      },
+      titleArea: {
+        alignItems: "center",
+        flex: 1,
+      },
+      statsContainer: {
+        flexDirection: "row",
+        justifyContent: "space-around",
+        backgroundColor: colors.backgroundSecondary,
+        borderRadius: DESIGN_TOKENS.radius.lg,
+        padding: DESIGN_TOKENS.spacing.md,
+        marginBottom: DESIGN_TOKENS.spacing.md,
+        ...DESIGN_TOKENS.shadows.sm,
+      },
+      statItem: {
+        alignItems: "center",
+      },
+      statValue: {
+        fontSize: 24,
+        fontWeight: "700",
+        color: colors.text,
+        marginBottom: 4,
+      },
+      statLabel: {
+        fontSize: 12,
+        color: colors.textSecondary,
+        fontWeight: "500",
+      },
+      navigationContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginBottom: DESIGN_TOKENS.spacing.md,
+        gap: DESIGN_TOKENS.spacing.sm,
+      },
+      navButton: {
+        backgroundColor: colors.primary,
+        borderRadius: DESIGN_TOKENS.radius.lg,
+        padding: DESIGN_TOKENS.spacing.md,
+        minWidth: 50,
+        alignItems: "center",
+        ...DESIGN_TOKENS.shadows.sm,
+      },
+      yearButton: {
+        flex: 1,
+        backgroundColor: colors.primary,
+        borderRadius: DESIGN_TOKENS.radius.lg,
+        padding: DESIGN_TOKENS.spacing.lg,
+        alignItems: "center",
+        ...DESIGN_TOKENS.shadows.md,
+      },
+      yearButtonText: {
+        fontSize: 20,
+        fontWeight: "600",
+        color: colors.buttonPrimaryText,
+      },
+      yearButtonSubtext: {
+        fontSize: 12,
+        color: colors.buttonPrimaryText,
+        opacity: 0.8,
+        marginTop: 2,
+      },
+      monthsGrid: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        justifyContent: "space-between",
+        gap: DESIGN_TOKENS.spacing.md,
+      },
+      monthCard: {
+        width: monthCaseSize,
+        height: monthCaseSize,
+        backgroundColor: colors.backgroundSecondary,
+        borderRadius: DESIGN_TOKENS.radius.lg,
+        padding: DESIGN_TOKENS.spacing.md,
+        justifyContent: "center",
+        alignItems: "center",
+        position: "relative",
+        ...DESIGN_TOKENS.shadows.sm,
+      },
+      monthCardCurrent: {
+        width: monthCaseSize,
+        height: monthCaseSize,
+        backgroundColor: colors.backgroundSecondary,
+        borderRadius: DESIGN_TOKENS.radius.lg,
+        padding: DESIGN_TOKENS.spacing.md,
+        justifyContent: "center",
+        alignItems: "center",
+        position: "relative",
+        ...DESIGN_TOKENS.shadows.sm,
+        borderWidth: 2,
+        borderColor: colors.primary,
+      },
+      monthText: {
+        fontSize: 14,
+        fontWeight: "600",
+        color: colors.text,
+        textAlign: "center",
+      },
+      monthTextCurrent: {
+        color: colors.primary,
+        fontWeight: "700",
+      },
+    });
+  };
 
-        return (
-            <View style={{
-                position: 'absolute',
-                top: 4,
-                right: 4,
-                flexDirection: 'row',
-                gap: 2,
-            }}>
-                {monthStats.urgent > 0 && (
-                    <View style={{
-                        width: 6,
-                        height: 6,
-                        borderRadius: 3,
-                        backgroundColor: colors.error,
-                    }} />
-                )}
-                {monthStats.completed > 0 && (
-                    <View style={{
-                        width: 6,
-                        height: 6,
-                        borderRadius: 3,
-                        backgroundColor: colors.success,
-                    }} />
-                )}
-                <Text style={{
-                    fontSize: 10,
-                    fontWeight: '600',
-                    color: colors.primary,
-                    marginLeft: 2,
-                }}>
-                    {monthStats.total}
-                </Text>
-            </View>
-        );
-    };
+  const customStyles = useCustomStyles();
 
-    const useCustomStyles = () => {
-        return StyleSheet.create({
-            container: {
-                flex: 1,
-                backgroundColor: colors.background,
-            },
-            scrollContainer: {
-                flexGrow: 1,
-                paddingHorizontal: DESIGN_TOKENS.spacing.lg,
-                paddingBottom: 100, // Marge pour menu Samsung
-            },
-            header: {
-                backgroundColor: colors.background,
-                paddingTop: 50,
-                paddingBottom: DESIGN_TOKENS.spacing.md,
-                paddingHorizontal: DESIGN_TOKENS.spacing.lg,
-                borderBottomWidth: 1,
-                borderBottomColor: colors.border,
-            },
-            headerTop: {
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: DESIGN_TOKENS.spacing.md,
-            },
-            leftButtons: {
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: DESIGN_TOKENS.spacing.sm,
-            },
-            homeButton: {
-                backgroundColor: colors.primary,
-                borderRadius: DESIGN_TOKENS.radius.lg,
-                padding: DESIGN_TOKENS.spacing.md,
-                ...DESIGN_TOKENS.shadows.md,
-            },
-            backButton: {
-                backgroundColor: colors.backgroundSecondary,
-                borderRadius: DESIGN_TOKENS.radius.md,
-                padding: DESIGN_TOKENS.spacing.sm,
-                ...DESIGN_TOKENS.shadows.sm,
-            },
-            titleArea: {
-                alignItems: 'center',
-                flex: 1,
-            },
-            statsContainer: {
-                flexDirection: 'row',
-                justifyContent: 'space-around',
-                backgroundColor: colors.backgroundSecondary,
-                borderRadius: DESIGN_TOKENS.radius.lg,
-                padding: DESIGN_TOKENS.spacing.md,
-                marginBottom: DESIGN_TOKENS.spacing.md,
-                ...DESIGN_TOKENS.shadows.sm,
-            },
-            statItem: {
-                alignItems: 'center',
-            },
-            statValue: {
-                fontSize: 24,
-                fontWeight: '700',
-                color: colors.text,
-                marginBottom: 4,
-            },
-            statLabel: {
-                fontSize: 12,
-                color: colors.textSecondary,
-                fontWeight: '500',
-            },
-            navigationContainer: {
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: DESIGN_TOKENS.spacing.md,
-                gap: DESIGN_TOKENS.spacing.sm,
-            },
-            navButton: {
-                backgroundColor: colors.primary,
-                borderRadius: DESIGN_TOKENS.radius.lg,
-                padding: DESIGN_TOKENS.spacing.md,
-                minWidth: 50,
-                alignItems: 'center',
-                ...DESIGN_TOKENS.shadows.sm,
-            },
-            yearButton: {
-                flex: 1,
-                backgroundColor: colors.primary,
-                borderRadius: DESIGN_TOKENS.radius.lg,
-                padding: DESIGN_TOKENS.spacing.lg,
-                alignItems: 'center',
-                ...DESIGN_TOKENS.shadows.md,
-            },
-            yearButtonText: {
-                fontSize: 20,
-                fontWeight: '600',
-                color: colors.buttonPrimaryText,
-            },
-            yearButtonSubtext: {
-                fontSize: 12,
-                color: colors.buttonPrimaryText,
-                opacity: 0.8,
-                marginTop: 2,
-            },
-            monthsGrid: {
-                flexDirection: 'row',
-                flexWrap: 'wrap',
-                justifyContent: 'space-between',
-                gap: DESIGN_TOKENS.spacing.md,
-            },
-            monthCard: {
-                width: monthCaseSize,
-                height: monthCaseSize,
-                backgroundColor: colors.backgroundSecondary,
-                borderRadius: DESIGN_TOKENS.radius.lg,
-                padding: DESIGN_TOKENS.spacing.md,
-                justifyContent: 'center',
-                alignItems: 'center',
-                position: 'relative',
-                ...DESIGN_TOKENS.shadows.sm,
-            },
-            monthCardCurrent: {
-                width: monthCaseSize,
-                height: monthCaseSize,
-                backgroundColor: colors.backgroundSecondary,
-                borderRadius: DESIGN_TOKENS.radius.lg,
-                padding: DESIGN_TOKENS.spacing.md,
-                justifyContent: 'center',
-                alignItems: 'center',
-                position: 'relative',
-                ...DESIGN_TOKENS.shadows.sm,
-                borderWidth: 2,
-                borderColor: colors.primary,
-            },
-            monthText: {
-                fontSize: 14,
-                fontWeight: '600',
-                color: colors.text,
-                textAlign: 'center',
-            },
-            monthTextCurrent: {
-                color: colors.primary,
-                fontWeight: '700',
-            },
-        });
-    };
+  return (
+    <View style={customStyles.container}>
+      {/* Header unifié avec style Business - Position fixe en haut */}
+      <CalendarHeader navigation={navigation} title={selectedYear.toString()} />
 
-    const customStyles = useCustomStyles();
-
-    return (
-        <View style={customStyles.container}>
-            {/* Header unifié avec style Business - Position fixe en haut */}
-            <CalendarHeader 
-                navigation={navigation} 
-                title={selectedYear.toString()} 
+      <Animated.View
+        style={[customStyles.header, { transform: [{ scale: animatedValue }] }]}
+      >
+        {/* Navigation entre années */}
+        <View style={customStyles.navigationContainer}>
+          <Pressable
+            style={({ pressed }) => ({
+              ...customStyles.navButton,
+              opacity: pressed ? 0.8 : 1,
+            })}
+            onPress={() => navigateToYear("prev")}
+          >
+            <Ionicons
+              name="chevron-back"
+              size={20}
+              color={colors.buttonPrimaryText}
             />
+          </Pressable>
 
-            <Animated.View style={[
-                customStyles.header,
-                { transform: [{ scale: animatedValue }] }
-            ]}>
-                {/* Statistiques de l'année */}
-                <View style={customStyles.statsContainer}>
-                    <View style={customStyles.statItem}>
-                        <Text style={customStyles.statValue}>{yearStats.totalJobs}</Text>
-                        <Text style={customStyles.statLabel}>{t('calendar.stats.totalJobs')}</Text>
-                    </View>
-                    <View style={customStyles.statItem}>
-                        <Text style={[customStyles.statValue, { color: colors.error }]}>
-                            {yearStats.urgentJobs}
-                        </Text>
-                        <Text style={customStyles.statLabel}>{t('calendar.stats.urgent')}</Text>
-                    </View>
-                    <View style={customStyles.statItem}>
-                        <Text style={[customStyles.statValue, { color: colors.success }]}>
-                            {yearStats.completedJobs}
-                        </Text>
-                        <Text style={customStyles.statLabel}>Completed</Text>
-                    </View>
-                </View>
+          <Pressable
+            style={({ pressed }) => ({
+              ...customStyles.yearButton,
+              opacity: pressed ? 0.95 : 1,
+            })}
+            onPress={() => navigation.navigate("MultipleYears")}
+          >
+            <Text style={customStyles.yearButtonText}>{selectedYear}</Text>
+            <Text style={customStyles.yearButtonSubtext}>Select Year</Text>
+          </Pressable>
 
-                {/* Navigation entre années */}
-                <View style={customStyles.navigationContainer}>
-                    <Pressable
-                        style={({ pressed }) => ({
-                            ...customStyles.navButton,
-                            opacity: pressed ? 0.8 : 1,
-                        })}
-                        onPress={() => navigateToYear('prev')}
-                    >
-                        <Ionicons name="chevron-back" size={20} color={colors.buttonPrimaryText} />
-                    </Pressable>
-
-                    <Pressable
-                        style={({ pressed }) => ({
-                            ...customStyles.yearButton,
-                            opacity: pressed ? 0.95 : 1,
-                        })}
-                        onPress={() => navigation.navigate('MultipleYears')}
-                    >
-                        <Text style={customStyles.yearButtonText}>{selectedYear}</Text>
-                        <Text style={customStyles.yearButtonSubtext}>Select Year</Text>
-                    </Pressable>
-
-                    <Pressable
-                        style={({ pressed }) => ({
-                            ...customStyles.navButton,
-                            opacity: pressed ? 0.8 : 1,
-                        })}
-                        onPress={() => navigateToYear('next')}
-                    >
-                        <Ionicons name="chevron-forward" size={20} color={colors.buttonPrimaryText} />
-                    </Pressable>
-                </View>
-            </Animated.View>
-
-            {/* Grille des mois avec pull-to-refresh */}
-            <ScrollView
-                style={customStyles.scrollContainer}
-                refreshControl={
-                    <RefreshControl
-                        refreshing={isLoading}
-                        onRefresh={handleRefresh}
-                        colors={[colors.primary]}
-                        tintColor={colors.primary}
-                    />
-                }
-                showsVerticalScrollIndicator={false}
-            >
-                {isLoading && (
-                    <View style={[commonStyles.centerContent, { paddingVertical: DESIGN_TOKENS.spacing.xl }]}>
-                        <ActivityIndicator size="large" color={colors.primary} />
-                    </View>
-                )}
-
-                <View style={customStyles.monthsGrid}>
-                    {monthList.map((month, i) => {
-                        const monthStats = getMonthJobsStats(i + 1, selectedYear.toString());
-                        const isCurrentMonth = selectedYear === currentYear && i === new Date().getMonth();
-                        
-                        return (
-                            <Pressable
-                                key={month}
-                                style={({ pressed }) => ({
-                                    ...(isCurrentMonth ? customStyles.monthCardCurrent : customStyles.monthCard),
-                                    opacity: pressed ? 0.8 : 1,
-                                })}
-                                onPress={() => navigation.navigate('Month', { 
-                                    month: i + 1, 
-                                    year: selectedYear 
-                                })}
-                            >
-                                <Text style={isCurrentMonth ? customStyles.monthTextCurrent : customStyles.monthText}>
-                                    {month}
-                                </Text>
-                                <MonthJobIndicator monthStats={monthStats} />
-                            </Pressable>
-                        );
-                    })}
-                </View>
-            </ScrollView>
+          <Pressable
+            style={({ pressed }) => ({
+              ...customStyles.navButton,
+              opacity: pressed ? 0.8 : 1,
+            })}
+            onPress={() => navigateToYear("next")}
+          >
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={colors.buttonPrimaryText}
+            />
+          </Pressable>
         </View>
-    );
+      </Animated.View>
+
+      {/* Grille des mois avec pull-to-refresh */}
+      <ScrollView
+        style={customStyles.scrollContainer}
+        refreshControl={
+          <RefreshControl
+            refreshing={isLoading}
+            onRefresh={handleRefresh}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
+          />
+        }
+        showsVerticalScrollIndicator={false}
+      >
+        {isLoading && <MascotLoading text={t("calendar.loading")} overlay />}
+
+        <View style={customStyles.monthsGrid}>
+          {monthList.map((month, i) => {
+            const isCurrentMonth =
+              selectedYear === currentYear && i === new Date().getMonth();
+
+            return (
+              <Pressable
+                key={month}
+                style={({ pressed }) => ({
+                  ...(isCurrentMonth
+                    ? customStyles.monthCardCurrent
+                    : customStyles.monthCard),
+                  opacity: pressed ? 0.8 : 1,
+                })}
+                onPress={() =>
+                  navigation.navigate("Month", {
+                    month: i + 1,
+                    year: selectedYear,
+                  })
+                }
+              >
+                <Text
+                  style={
+                    isCurrentMonth
+                      ? customStyles.monthTextCurrent
+                      : customStyles.monthText
+                  }
+                >
+                  {month}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </ScrollView>
+    </View>
+  );
 };
 
 export default YearCalendarScreen;

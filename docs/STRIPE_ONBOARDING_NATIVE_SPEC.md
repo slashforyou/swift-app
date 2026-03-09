@@ -10,7 +10,6 @@
 
 ### Réponses aux Questions Techniques
 
-
 1. **Nombre d'étapes**: **5 écrans ludiques** ✅
 2. **Upload documents**: **Caméra uniquement** (pas de PDF) ✅
 3. **Validation**: **Stripe automatique** (24-48h) ✅
@@ -21,7 +20,6 @@
 ---
 
 ## 🎨 Architecture du Flux Onboarding
-
 
 ### Vue d'Ensemble
 
@@ -100,7 +98,6 @@
 ---
 
 ## 📱 Maquettes des 5 Écrans
-
 
 ### Écran 0: WelcomeScreen.tsx
 
@@ -386,7 +383,6 @@
 └─────────────────────────────────────────────────────┘
 ```
 
-
 ---
 
 ## 🔌 Backend API - Nouveaux Endpoints
@@ -396,7 +392,6 @@
 **Description**: Crée un nouveau compte Stripe Connect (silencieusement, sans Account Link)
 
 **Request**:
-
 
 ```bash
 POST /v1/stripe/onboarding/start
@@ -408,7 +403,6 @@ Content-Type: application/json
 
 **Response Success (200)**:
 
-
 ```json
 {
   "success": true,
@@ -417,7 +411,6 @@ Content-Type: application/json
   "message": "Stripe account created. Please complete onboarding."
 }
 ```
-
 
 **Response Error (400)** - Compte déjà existant:
 
@@ -475,7 +468,6 @@ router.post(
         stripe_account_id: account.id,
         status: "incomplete",
       });
-
     } catch (error) {
       console.error("[Stripe Onboarding] Error:", error);
       return res.status(500).json({
@@ -487,7 +479,6 @@ router.post(
 );
 ```
 
-
 ---
 
 ### 2. POST /v1/stripe/onboarding/personal-info
@@ -497,7 +488,6 @@ router.post(
 **Request**:
 
 ```json
-
 {
   "first_name": "John",
   "last_name": "Doe",
@@ -574,7 +564,6 @@ router.post(
       return res.json({ success: true, progress: 20 });
     } catch (error) {
       return res.status(500).json({ success: false, error: error.message });
-
     }
   },
 );
@@ -628,7 +617,6 @@ router.post(
 
       await stripe.accounts.update(company[0].stripe_account_id, {
         individual: {
-
           address: {
             line1,
             line2: line2 || undefined,
@@ -638,7 +626,6 @@ router.post(
             country: "AU",
           },
         },
-
       });
 
       await db.query(
@@ -680,11 +667,9 @@ router.post(
 }
 ```
 
-
 **Backend Implementation**:
 
 ```javascript
-
 router.post(
   "/v1/stripe/onboarding/bank-account",
   authenticateJWT,
@@ -694,7 +679,6 @@ router.post(
       const { account_holder_name, bsb, account_number } = req.body;
 
       const company = await db.query(
-
         "SELECT stripe_account_id FROM companies WHERE id = ?",
         [company_id],
       );
@@ -767,10 +751,8 @@ router.post(
   upload.single("file"),
   async (req, res) => {
     try {
-
       const { company_id } = req.user;
       const { purpose, side } = req.body;
-
 
       if (!req.file) {
         return res
@@ -779,7 +761,6 @@ router.post(
       }
 
       const company = await db.query(
-
         "SELECT stripe_account_id FROM companies WHERE id = ?",
         [company_id],
       );
@@ -824,7 +805,7 @@ router.post(
 
 ---
 
-### 6. POST /v1/stripe/onboarding/complete
+### 6. POST /v1/stripe/onboarding/verify
 
 **Description**: Finalise l'onboarding et active le compte
 
@@ -851,14 +832,12 @@ router.post(
 
 ```javascript
 router.post(
-  "/v1/stripe/onboarding/complete",
+  "/v1/stripe/onboarding/verify",
   authenticateJWT,
   async (req, res) => {
-
     try {
       const { company_id } = req.user;
       const { tos_accepted } = req.body;
-
 
       if (!tos_accepted) {
         return res.status(400).json({
@@ -871,7 +850,6 @@ router.post(
         "SELECT stripe_account_id FROM companies WHERE id = ?",
         [company_id],
       );
-
 
       // Marquer comme onboarding terminé
       await stripe.accounts.update(company[0].stripe_account_id, {
@@ -1137,7 +1115,7 @@ export const completeOnboarding = async (): Promise<{
   status: string;
 }> => {
   const response = await fetchWithAuth(
-    `${ServerData.serverUrl}v1/stripe/onboarding/complete`,
+    `${ServerData.serverUrl}v1/stripe/onboarding/verify`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -1322,14 +1300,13 @@ export default function StripeOnboardingStack() {
 - [ ] Créer `POST /v1/stripe/onboarding/address`
 - [ ] Créer `POST /v1/stripe/onboarding/bank-account`
 - [ ] Créer `POST /v1/stripe/onboarding/document` (avec multer)
-- [ ] Créer `POST /v1/stripe/onboarding/complete`
+- [ ] Créer `POST /v1/stripe/onboarding/verify`
 - [ ] Créer `GET /v1/stripe/onboarding/status`
 - [ ] Ajouter colonne `stripe_onboarding_progress` en DB (INT 0-100)
 - [ ] Ajouter colonne `stripe_onboarding_started_at` (TIMESTAMP)
 - [ ] Ajouter colonne `stripe_onboarding_completed_at` (TIMESTAMP)
 - [ ] Tester chaque endpoint avec Postman
 - [ ] Tester upload de fichier (JPEG 5MB)
-
 
 ### Phase 2: Frontend Services (Dev Frontend)
 
@@ -1354,6 +1331,7 @@ export default function StripeOnboardingStack() {
   - [ ] Dropdown États australiens (NSW, VIC, QLD, etc.)
 
   - [ ] Validation code postal (4 chiffres)
+
 - [ ] Créer `src/screens/Stripe/OnboardingFlow/BankAccountScreen.tsx`
   - [ ] Input BSB avec format XXX-XXX
   - [ ] Validation BSB (6 chiffres)

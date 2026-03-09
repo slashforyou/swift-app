@@ -14,22 +14,17 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import AlertMessage from "../../components/ui/AlertMessage";
 import AnimatedBackground from "../../components/ui/AnimatedBackground";
-import HeaderLogo from "../../components/ui/HeaderLogo";
+import { HeaderLogo } from "../../components/ui/HeaderLogo";
+import RoundLanguageButton from "../../components/ui/RoundLanguageButton";
 import { useCommonThemedStyles } from "../../hooks/useCommonStyles";
 import { useLocalization } from "../../localization/useLocalization";
 import { hasPendingProfile } from "../../services/businessOwnerService";
-
-type RootStackParamList = {
-  Subscribe: undefined;
-  Login: undefined;
-  // add other routes here if needed
-};
 
 const SubscribeMailVerification = ({ route }: any) => {
   const navigation = useNavigation<any>();
   const { colors, styles } = useCommonThemedStyles();
   const { t } = useLocalization();
-  const { id, mail, firstName, lastName } = route.params;
+  const { mail } = route.params;
 
   const [verificationCode, setVerificationCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -128,9 +123,9 @@ const SubscribeMailVerification = ({ route }: any) => {
           const hasPending = await hasPendingProfile();
           if (hasPending) {
             Alert.alert(
-              "📋 Complete Your Profile",
-              "Your email is verified! You can now login and complete your business owner profile.",
-              [{ text: "OK", onPress: () => navigation.navigate("Login") }],
+              t("auth.emailVerification.completeProfileTitle"),
+              t("auth.emailVerification.completeProfileMessage"),
+              [{ text: t("common.ok"), onPress: () => navigation.navigate("Login") }],
             );
           } else {
             navigation.navigate("Login");
@@ -168,9 +163,14 @@ const SubscribeMailVerification = ({ route }: any) => {
             const hasPending = await hasPendingProfile();
             if (hasPending) {
               Alert.alert(
-                "📋 Complete Your Profile",
-                "Your email is verified! You can now login and complete your business owner profile.",
-                [{ text: "OK", onPress: () => navigation.navigate("Login") }],
+                t("auth.emailVerification.completeProfileTitle"),
+                t("auth.emailVerification.completeProfileMessage"),
+                [
+                  {
+                    text: t("common.ok"),
+                    onPress: () => navigation.navigate("Login"),
+                  },
+                ],
               );
             } else {
               navigation.navigate("Login");
@@ -239,6 +239,7 @@ const SubscribeMailVerification = ({ route }: any) => {
             style={{
               flexDirection: "row",
               alignItems: "center",
+              justifyContent: "space-between",
               paddingTop: 20,
               marginBottom: 20,
             }}
@@ -269,13 +270,17 @@ const SubscribeMailVerification = ({ route }: any) => {
                 {t("auth.emailVerification.backToRegister")}
               </Text>
             </Pressable>
+
+            <View style={{ marginTop: 8, marginRight: 12 }}>
+              <RoundLanguageButton />
+            </View>
           </View>
 
           {/* Header Section */}
           <View
             style={{ alignItems: "center", marginBottom: 40, paddingTop: 40 }}
           >
-            <HeaderLogo size={80} variant="square" marginVertical={0} />
+            <HeaderLogo preset="md" variant="square" marginVertical={0} />
 
             <Text style={[styles.title, { marginBottom: 8 }]}>
               {t("auth.emailVerification.checkEmail")}
@@ -355,7 +360,7 @@ const SubscribeMailVerification = ({ route }: any) => {
                     letterSpacing: 4,
                   },
                 ]}
-                placeholder="000000"
+                placeholder={t("auth.emailVerification.codePlaceholder")}
                 placeholderTextColor={colors.textSecondary}
                 value={verificationCode}
                 onChangeText={setVerificationCode}
