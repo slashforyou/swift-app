@@ -136,7 +136,7 @@ export const useInvoice = () => {
    * Affiche un dialogue de confirmation avant d'envoyer la facture
    */
   const sendInvoiceWithConfirmation = useCallback(
-    async (job: any, t: (key: string) => string) => {
+    async (job: any, t: (key: string, params?: Record<string, string | number>) => string) => {
       return new Promise<void>((resolve, reject) => {
         Alert.alert(
           t("payment.window.sendInvoiceConfirmTitle"),

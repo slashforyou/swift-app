@@ -2168,7 +2168,7 @@ export default function CreateJobModal({
               `Rounding: ${timeRounding}min`}
             {TIME_ROUNDING_OPTIONS.find((o) => o.key === timeRounding)
               ?.marginMinutes
-              ? ` (${t("jobs.marginMinutes", { minutes: TIME_ROUNDING_OPTIONS.find((o) => o.key === timeRounding)?.marginMinutes }) || `+${TIME_ROUNDING_OPTIONS.find((o) => o.key === timeRounding)?.marginMinutes}min margin`})`
+              ? ` (${t("jobs.marginMinutes", { minutes: TIME_ROUNDING_OPTIONS.find((o) => o.key === timeRounding)?.marginMinutes ?? 0 }) || `+${TIME_ROUNDING_OPTIONS.find((o) => o.key === timeRounding)?.marginMinutes}min margin`})`
               : ` (${t("jobs.exact") || "exact"})`}
           </Text>
         </View>

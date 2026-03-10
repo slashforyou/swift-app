@@ -276,7 +276,7 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
       );
       if (dayJobs) {
         totalJobs += dayJobs.count;
-        if (dayJobs.status === "urgent") urgentJobs += dayJobs.count;
+        if ((dayJobs.status as string) === "urgent") urgentJobs += dayJobs.count;
         if (dayJobs.status === "completed") completedJobs += dayJobs.count;
       }
     }

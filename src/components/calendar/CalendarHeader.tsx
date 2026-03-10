@@ -43,7 +43,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
       getUserCompanyData()
         .then((data) => {
           if (data) {
-            const role = data.company_role;
+            const role = data.companyRole;
             if (role === "patron" || role === "cadre") {
               setDisplayTitle("Jobs de l'entreprise");
             } else {

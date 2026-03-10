@@ -295,6 +295,10 @@ export const createCommonStyles = (colors: typeof Colors.light) => StyleSheet.cr
   // BUTTONS - Touch targets conformes
   // ===================
   
+  buttonBase: {
+    ...BUTTON_PRIMITIVES.primary,
+  },
+  
   buttonPrimary: {
     ...BUTTON_PRIMITIVES.primary,
     backgroundColor: colors.primary,

@@ -12,7 +12,7 @@ import { TestEvent, TestResult, TestSession } from './testController';
 // Helper pour obtenir la version de l'app de manière sécurisée
 const getAppVersion = (): string => {
   try {
-    return Constants.expoConfig?.version || Constants.manifest?.version || '1.0.0';
+    return Constants.expoConfig?.version || (Constants.manifest as any)?.version || '1.0.0';
   } catch {
     return '1.0.0';
   }

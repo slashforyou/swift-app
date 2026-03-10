@@ -118,7 +118,7 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob, jobId }) => {
     if (!editingNote) return;
 
     try {
-      const result = await updateNote(editingNote.id, {
+      const result = await updateNote(editingNote.id as string, {
         title: title || editingNote.title,
         content,
       });
@@ -164,7 +164,7 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob, jobId }) => {
           style: "destructive",
           onPress: async () => {
             try {
-              const success = await deleteNote(noteId);
+              const success = await deleteNote(noteId as string);
               if (success) {
                 showSuccess(
                   t("common.deleted") || "Note deleted",
@@ -560,7 +560,7 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob, jobId }) => {
                                     setSelectedNoteMenu(
                                       selectedNoteMenu === note.id
                                         ? null
-                                        : note.id,
+                                        : note.id as string,
                                     )
                                   }
                                   style={({ pressed }) => ({

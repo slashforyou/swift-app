@@ -39,7 +39,7 @@ const BusinessDetailsStepImproved: React.FC<BusinessDetailsStepProps> = ({
   const { t } = useTranslation();
 
   // 🧪 Auto-fill with test data in development mode
-  const autoFillData = __DEV__ ? TEST_DATA.businessDetails : {};
+  const autoFillData = (__DEV__ ? TEST_DATA.businessDetails : {}) as Partial<BusinessOwnerRegistrationData>;
 
   const [companyName, setCompanyName] = useState(
     data.companyName || autoFillData.companyName || "",
@@ -138,8 +138,8 @@ const BusinessDetailsStepImproved: React.FC<BusinessDetailsStepProps> = ({
       tradingName,
       abn,
       acn,
-      businessType,
-      industryType,
+      businessType: businessType as BusinessOwnerRegistrationData["businessType"],
+      industryType: industryType as BusinessOwnerRegistrationData["industryType"],
       companyEmail,
       companyPhone,
     });

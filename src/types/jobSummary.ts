@@ -103,6 +103,7 @@ export interface JobPermissions {
   can_start: boolean;
   can_complete: boolean;
   can_edit: boolean;
+  can_respond_transfer?: boolean;
 }
 
 // ────────────────────────────────────────

@@ -553,6 +553,9 @@ export const useJobsForDay = (
             pending: 3,
             completed: 2,
             cancelled: 1,
+            assigned: 3,
+            accepted: 3,
+            declined: 0,
           };
           return statusOrder[b.status] - statusOrder[a.status];
         default:

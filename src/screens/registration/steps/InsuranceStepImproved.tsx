@@ -30,23 +30,23 @@ const InsuranceStepImproved: React.FC<InsuranceStepProps> = ({
   const { t } = useTranslation();
 
   // 🧪 Auto-fill with test data in development mode
-  const autoFillData = __DEV__ ? TEST_DATA.insurance : {};
+  const autoFillData = (__DEV__ ? TEST_DATA.insurance : {}) as Partial<BusinessOwnerRegistrationData>;
 
   const [hasInsurance, setHasInsurance] = useState(
     data.insuranceProvider
       ? !!data.insuranceProvider
       : __DEV__
-        ? autoFillData.hasInsurance
+        ? !!autoFillData.insuranceProvider
         : false,
   );
   const [insuranceProvider, setInsuranceProvider] = useState(
     data.insuranceProvider || autoFillData.insuranceProvider || "",
   );
   const [insurancePolicyNumber, setInsurancePolicyNumber] = useState(
-    data.insurancePolicyNumber || autoFillData.policyNumber || "",
+    data.insurancePolicyNumber || autoFillData.insurancePolicyNumber || "",
   );
   const [insuranceExpiryDate, setInsuranceExpiryDate] = useState(
-    data.insuranceExpiryDate || autoFillData.expiryDate || "",
+    data.insuranceExpiryDate || autoFillData.insuranceExpiryDate || "",
   );
 
   const policyNumberRef = useRef<TextInput>(null);

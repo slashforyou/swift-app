@@ -18,6 +18,7 @@ import {
     View,
 } from 'react-native';
 import { simpleSessionLogger } from '../../services/simpleSessionLogger';
+import { useTranslation } from '../../localization';
 
 interface LogEntry {
   timestamp: string;
@@ -33,6 +34,7 @@ interface LogViewerProps {
 }
 
 export const LogViewer: React.FC<LogViewerProps> = ({ visible, onClose }) => {
+  const { t } = useTranslation();
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [filteredLogs, setFilteredLogs] = useState<LogEntry[]>([]);
   const [currentPage, setCurrentPage] = useState(1);

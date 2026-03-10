@@ -187,13 +187,14 @@ export default function AddressScreen({
       console.log("✅ [Address] Success! Progress:", response.progress);
 
       const updatedAccount = await fetchStripeAccount();
+      const acct = updatedAccount as any;
       const nextBusinessType = resolveBusinessType(
-        updatedAccount.business_type,
-        updatedAccount.requirements,
+        acct?.business_type,
+        acct?.requirements,
       );
       const nextStep = getNextOnboardingStep(
         "Address",
-        updatedAccount.requirements,
+        acct?.requirements,
         nextBusinessType,
       );
       const nextParams = {

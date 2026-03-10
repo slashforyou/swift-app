@@ -6,6 +6,7 @@ import Ionicons from "@react-native-vector-icons/ionicons";
 import { useFocusEffect } from "@react-navigation/native";
 import React, { useState } from "react";
 import {
+    ActivityIndicator,
     Alert,
     Image,
     RefreshControl,
@@ -983,7 +984,7 @@ export default function StripeHub({
                               }}
                             >
                               <Ionicons
-                                name={getRequirementIcon(field)}
+                                name={getRequirementIcon(field) as any}
                                 size={14}
                                 color={
                                   missingPast.length > 0
@@ -1498,7 +1499,7 @@ export default function StripeHub({
                               }}
                             >
                               <Ionicons
-                                name={getRequirementIcon(field)}
+                                name={getRequirementIcon(field) as any}
                                 size={14}
                                 color={colors.error}
                               />
@@ -1532,7 +1533,7 @@ export default function StripeHub({
                               }}
                             >
                               <Ionicons
-                                name={getRequirementIcon(field)}
+                                name={getRequirementIcon(field) as any}
                                 size={14}
                                 color={colors.warning}
                               />

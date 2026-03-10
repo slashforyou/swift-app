@@ -245,10 +245,10 @@ const BusinessOwnerRegistration: React.FC<BusinessOwnerRegistrationProps> = ({
           accountName: formData.accountName,
         },
         insurance: {
-          hasInsurance: formData.hasInsurance,
+          hasInsurance: !!formData.insurancePolicyNumber,
           insuranceProvider: formData.insuranceProvider,
-          policyNumber: formData.policyNumber,
-          expiryDate: formData.expiryDate,
+          policyNumber: formData.insurancePolicyNumber,
+          expiryDate: formData.insuranceExpiryDate,
         },
         subscription: {
           planType: formData.planType,
@@ -257,7 +257,7 @@ const BusinessOwnerRegistration: React.FC<BusinessOwnerRegistrationProps> = ({
         legalAgreements: {
           termsAccepted: formData.termsAccepted,
           privacyAccepted: formData.privacyAccepted,
-          stripeAccepted: formData.stripeAccepted,
+          stripeAccepted: formData.stripeConnectAccepted,
           acceptedAt: new Date().toISOString(),
         },
       };

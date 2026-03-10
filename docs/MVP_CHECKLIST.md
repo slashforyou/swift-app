@@ -45,8 +45,8 @@
   - `__tests__/utils/plans.test.ts` — 16 tests, toutes les combinaisons plan × montant × minimum
 - [x] 🔴 Ne rendre publiquement accessible que le forfait gratuit au lancement (masquer pro/enterprise dans l'onboarding)
   - `plans.ts` : `publiclyAvailable: false` pour pro et enterprise
-> ⚠️ **Actions serveur requises** : `migrate_plans_commission.py` puis `patch_payment_commission.py`
-> _Source : `check_02` + `check_03`_
+    > ⚠️ **Actions serveur requises** : `migrate_plans_commission.py` puis `patch_payment_commission.py`
+    > _Source : `check_02` + `check_03`_
 
 ---
 

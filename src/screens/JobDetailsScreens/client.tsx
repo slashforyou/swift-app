@@ -455,7 +455,7 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
               paddingVertical: DESIGN_TOKENS.spacing.md,
             }}
           >
-            <VStack gap="none">
+            <VStack gap={0}>
               {secondaryDetails.map((detail, index) => (
                 <React.Fragment key={detail.icon}>
                   <DetailRow

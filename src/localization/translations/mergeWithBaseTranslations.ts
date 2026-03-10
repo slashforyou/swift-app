@@ -11,19 +11,21 @@ const isPlainObject = (value: unknown): value is Record<string, unknown> => {
  * - Extra keys in `overrides` are ignored
  * - Empty-string overrides fall back to `base`
  */
-export function mergeWithBaseTranslations<TBase extends TranslationNode>(
+export function mergeWithBaseTranslations<TBase>(
   base: TBase,
   overrides: unknown
 ): TBase {
-  const merge = (baseNode: TranslationNode, overrideNode: unknown): TranslationNode => {
+  const merge = (baseNode: unknown, overrideNode: unknown): unknown => {
     if (typeof baseNode === "string") {
       return typeof overrideNode === "string" && overrideNode.length > 0
         ? overrideNode
         : baseNode;
     }
 
+    if (!isPlainObject(baseNode)) return baseNode;
+
     const overrideObj = isPlainObject(overrideNode) ? overrideNode : undefined;
-    const result: Record<string, TranslationNode> = {};
+    const result: Record<string, unknown> = {};
 
     for (const key of Object.keys(baseNode)) {
       result[key] = merge(baseNode[key], overrideObj?.[key]);

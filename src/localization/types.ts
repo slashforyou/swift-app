@@ -79,6 +79,9 @@ export interface TranslationKeys {
     language: string;
     noSelection: string;
     optional: string;
+    none?: string;
+    checkingAuth?: string;
+    later?: string;
   };
 
   // Home Screen
@@ -87,6 +90,7 @@ export interface TranslationKeys {
     welcome: string;
     today: {
       title: string;
+      dateFormat?: string;
       loading: string;
       noJobs: string;
       allCompleted: string;
@@ -170,6 +174,20 @@ export interface TranslationKeys {
     notesPlaceholder: string;
     startTime: string;
     endTime: string;
+    deleteConfirmTitle?: string;
+    deleteConfirmMessage?: string;
+    deleteSuccess?: string;
+    deleteError?: string;
+    acceptSuccess?: string;
+    acceptError?: string;
+    declineSuccess?: string;
+    declineError?: string;
+    acceptConfirmTitle?: string;
+    acceptConfirmMessage?: string;
+    acceptButton?: string;
+    declineReasonRequired?: string;
+    pendingActionTitle?: string;
+    pendingActionMessage?: string;
     // Payment translations
     payment: string;
     quoteAmount: string;
@@ -194,6 +212,24 @@ export interface TranslationKeys {
     depotToDepotInactiveDesc: string;
     timeRounding: string;
     estimatedDuration: string;
+    jobDetails?: string;
+    priorityOptions?: { low?: string; medium?: string; high?: string; urgent?: string };
+    addressTypes?: { pickup?: string; delivery?: string };
+    vehicleTypes?: { van?: string; truck?: string; "2-ton"?: string; pantech?: string };
+    extrasOptions?: { [key: string]: string };
+    paymentMethods?: { cash?: string; card?: string; bank_transfer?: string; invoice?: string };
+    hours?: string;
+    estimated?: string;
+    marginMinutes?: string;
+    exact?: string;
+    naDepotDepot?: string;
+    travelBilling?: string;
+    callOutBilling?: string;
+    depotDepotBillable?: string;
+    callOutSummary?: string;
+    roundingSummary?: string;
+    paid?: string;
+    pendingDeposit?: string;
     status: {
       pending: string;
       inProgress: string;
@@ -247,6 +283,15 @@ export interface TranslationKeys {
       fri: string;
       sat: string;
       sun: string;
+    };
+    daysLong?: {
+      mon?: string;
+      tue?: string;
+      wed?: string;
+      thu?: string;
+      fri?: string;
+      sat?: string;
+      sun?: string;
     };
     // Months
     months: {
@@ -342,6 +387,7 @@ export interface TranslationKeys {
       noPickupAddress: string;
       noDeliveryAddress: string;
       notAvailable: string;
+      timeSlot?: string;
     };
     selectMonth: string;
   };
@@ -387,6 +433,7 @@ export interface TranslationKeys {
     level: string;
     experience: string;
     toNextLevel: string;
+    xpToNextLevelShort?: string;
     defaultTitle: string;
     loading: string;
     updateSuccess: string;
@@ -413,6 +460,8 @@ export interface TranslationKeys {
       city: string;
       postalCode: string;
       country: string;
+      companyName?: string;
+      role?: string;
     };
     actions: {
       edit: string;
@@ -459,6 +508,13 @@ export interface TranslationKeys {
       companyName: string;
       siret: string;
       vat: string;
+    };
+    companyInfo?: string;
+    companyNote?: string;
+    roles?: {
+      patron?: string;
+      cadre?: string;
+      employee?: string;
     };
   };
 
@@ -540,6 +596,8 @@ export interface TranslationKeys {
       teamMember: string;
       noCrew: string;
       assignStaff: string;
+      quantityPlaceholder?: string;
+      completedQuantityPlaceholder?: string;
     };
     // Notes page labels
     notes: {
@@ -551,6 +609,8 @@ export interface TranslationKeys {
       noNotesDescription: string;
       count: string;
       countPlural: string;
+      unread?: string;
+      placeholder?: string;
       localSyncInfo: string;
       types: {
         general: string;
@@ -636,6 +696,7 @@ export interface TranslationKeys {
         verifying: string;
         signJob: string;
         payNow: string;
+        paid?: string;
         jobSignedByClient: string;
       };
       // Live tracking section
@@ -682,6 +743,7 @@ export interface TranslationKeys {
         description: string;
         descriptionPlaceholder: string;
         amount: string;
+        amountPlaceholder?: string;
         subtotal: string;
         descriptionRequired: string;
         validAmountRequired: string;
@@ -737,6 +799,7 @@ export interface TranslationKeys {
         title: string;
         subtitle: string;
         missionStart: string;
+        missionEnd?: string;
       };
       jobProgress: {
         percentComplete: string;
@@ -774,12 +837,21 @@ export interface TranslationKeys {
         information: string;
         quickNote: string;
         addNoteToJob: string;
+        onTheWay?: string;
+        onTheWayNext?: string;
+        noAddressAvailable?: string;
+        callLabel?: string;
+        gpsLabel?: string;
+        noteLabel?: string;
+        photoLabel?: string;
       };
       signature: {
         verifying: string;
         contractSigned: string;
         clientValidated: string;
         contractMustBeSigned: string;
+        contractContent?: string;
+        contractAcknowledge?: string;
         // Signing modal
         title: string;
         subtitle: string;
@@ -913,6 +985,46 @@ export interface TranslationKeys {
         close: string;
         updating: string;
       };
+      staffing?: {
+        title?: string;
+        providedBy?: string;
+        vehicle?: string;
+        team?: string;
+        noResourceAssigned?: string;
+        noResourceDescription?: string;
+        assignResources?: string;
+        addResource?: string;
+        loading?: string;
+        statusPending?: string;
+        statusConfirmed?: string;
+        statusDeclined?: string;
+        statusCancelled?: string;
+        statusReplaced?: string;
+        statusUnassigned?: string;
+        statusPartial?: string;
+        statusFullyStaffed?: string;
+        statusConflict?: string;
+        roleDriver?: string;
+        roleOffsider?: string;
+        roleSupervisor?: string;
+        roleVehicle?: string;
+        workerNotSelected?: string;
+        vehicleNotSelected?: string;
+        workerNotSelectedDesc?: string;
+        vehicleNotSelectedDesc?: string;
+        cancelConfirmTitle?: string;
+        cancelConfirmMessage?: string;
+        cancelConfirmYes?: string;
+        cancelConfirmNo?: string;
+        modal?: { [key: string]: string };
+      };
+      contact?: { title?: string; subtitle?: string; name?: string; phone?: string; call?: string };
+      company?: { [key: string]: string };
+      stepHistory?: { [key: string]: string };
+      addresses?: { [key: string]: string };
+      statusBanner?: { [key: string]: string };
+      financial?: { [key: string]: string };
+      signaturePreview?: { [key: string]: string };
     };
   };
 
@@ -1128,6 +1240,16 @@ export interface TranslationKeys {
       paymentSheetUnavailable: string;
       paymentSheetFallbackMessage: string;
       cardNamePlaceholder: string;
+      paymentConfirmed?: string;
+      alreadyPaid?: string;
+      sendInvoice?: string;
+      sendInvoiceConfirmTitle?: string;
+      sendInvoiceConfirmMessage?: string;
+      cancel?: string;
+      send?: string;
+      invoiceSent?: string;
+      invoiceSendErrorTitle?: string;
+      invoiceSendErrorMessage?: string;
     };
     stripeConnect: {
       title: string;
@@ -1314,6 +1436,9 @@ export interface TranslationKeys {
       subtitle: string;
     };
     noStaffAvailable: string;
+    assignSuccess?: string;
+    unassignSuccess?: string;
+    assignError?: string;
   };
 
   // Errors and Messages
@@ -1425,6 +1550,8 @@ export interface TranslationKeys {
       didNotReceive: string;
       checkSpam: string;
       restartRegistration: string;
+      completeProfileTitle?: string;
+      completeProfileMessage?: string;
     };
     connection: {
       title: string;
@@ -1438,6 +1565,7 @@ export interface TranslationKeys {
         management: string;
       };
     };
+    registration?: { [key: string]: unknown };
   };
 
   // Stripe & Payments
@@ -1468,6 +1596,52 @@ export interface TranslationKeys {
       additionalParams: string;
       // Errors
       errorLoadingForm: string;
+      paymentsEnabled?: string;
+      paymentsDisabled?: string;
+      paymentsHintEnabled?: string;
+      paymentsHintDisabled?: string;
+      openOnboardingLink?: string;
+      noAccount?: string;
+      accountInactive?: string;
+      accountInactiveDesc?: string;
+      savedInfo?: string;
+      status?: string;
+      payments?: string;
+      payoutsLabel?: string;
+      payoutsEnabled?: string;
+      payoutsDisabled?: string;
+      reason?: string;
+      missingFields?: string;
+      missingFieldsDesc?: string;
+      otherFields?: string;
+      deleteAccount?: string;
+      deleteAccountTitle?: string;
+      deleteAccountConfirm?: string;
+      deleteSuccess?: string;
+      deleteError?: string;
+      navUnavailable?: string;
+      accountInfo?: string;
+      accountId?: string;
+      notConnected?: string;
+      revenueOverview?: string;
+      totalRevenue?: string;
+      thisMonth?: string;
+      pendingPayouts?: string;
+      successfulPayments?: string;
+      quickActions?: string;
+      createPaymentLink?: string;
+      viewAllPayments?: string;
+      managePayouts?: string;
+      accountSettings?: string;
+      testConnection?: string;
+      poweredByStripe?: string;
+      settingsAction?: string;
+      paymentLinkAction?: string;
+      connected?: string;
+      loading?: string;
+      details?: string;
+      errorLabel?: string;
+      retest?: string;
     };
     onboarding: {
       stepLabel: string;
@@ -1515,6 +1689,9 @@ export interface TranslationKeys {
           phoneInvalid: string;
           validationTitle: string;
           validationMessage: string;
+          submissionTitle?: string;
+          submissionMessage?: string;
+          permissionMessage?: string;
         };
       };
       businessProfile: {
@@ -1683,6 +1860,8 @@ export interface TranslationKeys {
           accountNumberInvalid: string;
           validationTitle: string;
           validationMessage: string;
+          submissionTitle?: string;
+          submissionMessage?: string;
         };
       };
       documents: {
@@ -1706,6 +1885,9 @@ export interface TranslationKeys {
           captureMessage: string;
           validationTitle: string;
           validationMessage: string;
+          backRequired?: string;
+          uploadTitle?: string;
+          uploadMessage?: string;
         };
       };
       review: {
@@ -1737,14 +1919,82 @@ export interface TranslationKeys {
         errors: {
           tosTitle: string;
           tosMessage: string;
+          incompleteTitle?: string;
+          incompleteMessage?: string;
+          missingInfoList?: string;
+          verificationInProgress?: string;
         };
       };
+      errors?: {
+        permissionDeniedTitle?: string;
+        permissionDeniedMessage?: string;
+        startTitle?: string;
+        startMessage?: string;
+        genericTitle?: string;
+        genericMessage?: string;
+      };
+    };
+    paymentLinksModal?: {
+      noAccountTitle?: string;
+      noAccountMessage?: string;
+      invalidAmountTitle?: string;
+      invalidAmountMessage?: string;
+      createErrorMessage?: string;
+      copiedTitle?: string;
+      copiedMessage?: string;
+      shareTitle?: string;
+      shareMessage?: string;
+    };
+    completion?: {
+      titlePending?: string;
+      titleActive?: string;
+      titleDefault?: string;
+      subtitlePending?: string;
+      subtitleActive?: string;
+      subtitleDefault?: string;
+      accountStatus?: string;
+      detailsComplete?: string;
+      detailsCompleteYes?: string;
+      detailsCompleteNo?: string;
+      paymentsLabel?: string;
+      paymentsEnabled?: string;
+      paymentsPending?: string;
+      payoutsLabel?: string;
+      payoutsEnabled?: string;
+      payoutsPending?: string;
+      validationDelayTitle?: string;
+      validationDelayMessage?: string;
+      nextStepsTitle?: string;
+      nextStepsStep1?: string;
+      nextStepsStep2?: string;
+      nextStepsStep3?: string;
+      nextStepsStep4?: string;
+      returnToDashboard?: string;
+    };
+    accountStatus?: {
+      title?: string;
+      verified?: string;
+      pending?: string;
+      restricted?: string;
+      rejected?: string;
+      unknown?: string;
+      businessType?: string;
+      refresh?: string;
+      actionsRequired?: string;
+      moreActions?: string;
+      completeInfo?: string;
+      finalizeVerification?: string;
     };
     settings: {
       title: string;
       subtitle: string;
       accountInfo: string;
       payoutSchedule: string;
+      placeholders?: {
+        supportEmail?: string;
+        supportPhone?: string;
+        supportUrl?: string;
+      };
       bankAccount: string;
       updateAccount: string;
       displayName: string;
@@ -1828,6 +2078,12 @@ export interface TranslationKeys {
       subtotal: string;
       tax: string;
       discount: string;
+      receipt?: {
+        unavailableTitle?: string;
+        unavailableMessage?: string;
+        cannotOpenUrl?: string;
+        failedToOpen?: string;
+      };
     };
     payouts: {
       title: string;
@@ -2235,6 +2491,20 @@ export interface TranslationKeys {
     loadMore: string;
     noMoreEntries: string;
   };
+  registration?: { [key: string]: unknown };
+  connectionScreen?: {
+    logoText?: string;
+    title?: string;
+    subtitle?: string;
+    loginButton?: string;
+    createAccountButton?: string;
+    features?: { [key: string]: string };
+  };
+  parametersModernized?: { [key: string]: unknown };
+  invoices?: { [key: string]: unknown };
+  businessModals?: { [key: string]: unknown };
+  devMenu?: { [key: string]: unknown };
+  devTools?: { [key: string]: unknown };
 }
 
 export type TranslationFunction = (

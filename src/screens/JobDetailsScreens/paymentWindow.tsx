@@ -8,6 +8,7 @@ import { useNavigation } from "@react-navigation/native";
 import { initStripe, useStripe } from "@stripe/stripe-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import {
+    ActivityIndicator,
     Alert,
     Animated,
     Dimensions,
@@ -279,13 +280,13 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
     // 📊 Track payment method selection
     const jobId = job?.id || job?.job?.id;
     if (jobId) {
-      trackPaymentMethodSelected(method, jobId);
+      trackPaymentMethodSelected(method as any, jobId);
       trackPaymentFunnelStep("select_method", jobId, method);
     }
 
     updateState({
       selectedMethod: method,
-      step: method,
+      step: method as any,
       offlineMethod: method === "other" ? state.offlineMethod : "cash",
     });
   };

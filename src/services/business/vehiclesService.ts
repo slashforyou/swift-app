@@ -23,6 +23,8 @@ export interface BusinessVehicle {
   capacity?: string;
   fuel_type?: string;
   insurance_expiry?: string;
+  license_plate?: string;
+  volume?: number;
   created_at: string;
   updated_at: string;
 }

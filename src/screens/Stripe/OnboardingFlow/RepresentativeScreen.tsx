@@ -252,7 +252,7 @@ export default function RepresentativeScreen({
       !formData.dob
     ) {
       newErrors.dob = t("stripe.onboarding.representative.errors.dobRequired");
-    } else if (!validateAge(formData.dob)) {
+    } else if (!validateAge(formData.dob!)) {
       newErrors.dob = t("stripe.onboarding.representative.errors.dobMinAge");
       !parseDate(formData.dob);
 
@@ -585,6 +585,9 @@ export default function RepresentativeScreen({
     },
     inputError: {
       borderColor: "#EF4444",
+    },
+    inputDisabled: {
+      opacity: 0.6,
     },
     errorText: {
       marginTop: DESIGN_TOKENS.spacing.xs,

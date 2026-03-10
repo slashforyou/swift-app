@@ -396,6 +396,9 @@ export default function CompanyDetailsScreen({
     inputError: {
       borderColor: "#EF4444",
     },
+    inputDisabled: {
+      opacity: 0.6,
+    },
     errorText: {
       marginTop: DESIGN_TOKENS.spacing.xs,
       fontSize: DESIGN_TOKENS.typography.caption.fontSize,

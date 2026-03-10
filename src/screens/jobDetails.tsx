@@ -198,7 +198,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({
   const { unreadCount, markAllAsRead } = useJobNotes(numericJobId);
 
   // États locaux pour l'UI et données adaptées des vraies données API
-  const [job, setJob] = useState({
+  const [job, setJob] = useState<any>({
     id: actualJobId || "#LM0000000001",
     code: actualJobId || "#LM0000000001", // Ajouter le code dans la structure par défaut
     signatureDataUrl: "",
@@ -272,6 +272,9 @@ const JobDetails: React.FC<JobDetailsProps> = ({
     items: [],
     contractor: null,
     contractee: null,
+    assignment_status: null as string | null,
+    permissions: null as null | { can_accept?: boolean; can_decline?: boolean; can_respond_transfer?: boolean },
+    active_transfer: null as null | { status: string; [key: string]: unknown },
   });
 
   // State for Edit Job Modal
@@ -928,7 +931,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({
     currentStep,
     totalSteps,
     addressCount,
-    stepsArray: job.steps?.map((s) => s.name),
+    stepsArray: job.steps?.map((s: any) => s.name),
     jobStatus,
     isJobCompletedByBackend,
     isCompleted: currentStep >= totalSteps || isJobCompletedByBackend,

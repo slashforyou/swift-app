@@ -184,13 +184,14 @@ export default function BankAccountScreen({
       console.log("✅ [BankAccount] Success! Progress:", response.progress);
 
       const updatedAccount = await fetchStripeAccount();
+      const acct = updatedAccount as any;
       const nextBusinessType = resolveBusinessType(
-        updatedAccount.business_type,
-        updatedAccount.requirements,
+        acct?.business_type,
+        acct?.requirements,
       );
       const nextStep = getNextOnboardingStep(
         "BankAccount",
-        updatedAccount.requirements,
+        acct?.requirements,
         nextBusinessType,
       );
       const nextParams = {

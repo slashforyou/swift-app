@@ -48,6 +48,8 @@ interface JobPageProps {
   job: any;
   setJob: React.Dispatch<React.SetStateAction<any>>;
   isVisible?: boolean;
+  onAssignStaff?: () => void;
+  onVehicleUpdated?: (vehicle: any) => void;
 }
 
 interface ItemRowProps {

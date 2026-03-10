@@ -61,6 +61,14 @@ export interface AccountInfo {
   default_currency: string;
   available_balance: number;
   pending_balance: number;
+  // camelCase aliases (may be returned by some API versions)
+  accountId?: string;
+  business_type?: string;
+  businessType?: string;
+  businessName?: string;
+  chargesEnabled?: boolean;
+  payoutsEnabled?: boolean;
+  currency?: string;
   bank_accounts: {
     id: string;
     bank_name: string;

@@ -85,7 +85,7 @@ export default function AddContractorModal({ visible, onClose, onSearch, onAdd }
         t('businessModals.addContractor.addedMessage', {
           firstName: selectedContractor.firstName,
           lastName: selectedContractor.lastName,
-          status: contractStatuses.find(s => s.key === contractStatus)?.label,
+          status: contractStatuses.find(s => s.key === contractStatus)?.label ?? '',
         }),
         [{ text: t('common.ok'), onPress: handleClose }]
       );

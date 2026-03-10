@@ -240,13 +240,14 @@ export default function PersonalInfoScreen({
         navigation.navigate("Review", { personalInfo: formData });
         return;
       }
+      const acct = updatedAccount as any;
       const nextBusinessType = resolveBusinessType(
-        updatedAccount.business_type,
-        updatedAccount.requirements,
+        acct.business_type,
+        acct.requirements,
       );
       const nextStep = getNextOnboardingStep(
         "PersonalInfo",
-        updatedAccount.requirements,
+        acct.requirements,
         nextBusinessType,
       );
       const nextParams = { personalInfo: formData };

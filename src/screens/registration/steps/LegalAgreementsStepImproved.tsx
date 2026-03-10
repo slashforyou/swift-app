@@ -31,27 +31,27 @@ const LegalAgreementsStepImproved: React.FC<LegalAgreementsStepProps> = ({
   const { t } = useTranslation();
 
   // 🧪 Auto-fill with test data in development mode
-  const autoFillData = __DEV__ ? TEST_DATA.legalAgreements : {};
+  const autoFillData = (__DEV__ ? TEST_DATA.legalAgreements : {}) as Partial<BusinessOwnerRegistrationData>;
 
   const [termsAccepted, setTermsAccepted] = useState(
     data.termsAccepted !== undefined
       ? data.termsAccepted
       : __DEV__
-        ? autoFillData.termsAccepted
+        ? (autoFillData.termsAccepted ?? false)
         : false,
   );
   const [privacyAccepted, setPrivacyAccepted] = useState(
     data.privacyAccepted !== undefined
       ? data.privacyAccepted
       : __DEV__
-        ? autoFillData.privacyAccepted
+        ? (autoFillData.privacyAccepted ?? false)
         : false,
   );
   const [stripeConnectAccepted, setStripeConnectAccepted] = useState(
     data.stripeConnectAccepted !== undefined
       ? data.stripeConnectAccepted
       : __DEV__
-        ? autoFillData.stripeAccepted
+        ? (autoFillData.stripeConnectAccepted ?? false)
         : false,
   );
   const [alert, setAlert] = useState<{

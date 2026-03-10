@@ -25,7 +25,7 @@ const CompanyDetailsSection: React.FC<CompanyDetailsSectionProps> = React.memo(
     const isDifferentCompany =
       hasContractee &&
       hasContractor &&
-      job.contractee.company_id !== job.contractor.company_id;
+      job.contractee!.company_id !== job.contractor!.company_id;
 
     if (!hasContractee && !hasContractor) {
       return null;
@@ -121,10 +121,10 @@ const CompanyDetailsSection: React.FC<CompanyDetailsSectionProps> = React.memo(
                   marginBottom: DESIGN_TOKENS.spacing.xs,
                 }}
               >
-                {job.contractee.company_name}
+                {job.contractee!.company_name}
               </Text>
 
-              {job.contractee.created_by_name && (
+              {job.contractee!.created_by_name && (
                 <View
                   style={{
                     flexDirection: "row",
@@ -140,13 +140,13 @@ const CompanyDetailsSection: React.FC<CompanyDetailsSectionProps> = React.memo(
                   >
                     {t("jobDetails.components.company.createdBy")}{" "}
                     <Text style={{ fontWeight: "500", color: colors.text }}>
-                      {job.contractee.created_by_name}
+                      {job.contractee!.created_by_name}
                     </Text>
                   </Text>
                 </View>
               )}
 
-              {job.contractee.stripe_account_id && (
+              {job.contractee!.stripe_account_id && (
                 <View
                   style={{
                     marginTop: DESIGN_TOKENS.spacing.sm,
@@ -163,7 +163,7 @@ const CompanyDetailsSection: React.FC<CompanyDetailsSectionProps> = React.memo(
                   >
                     Stripe:{" "}
                     <Text style={{ fontFamily: "monospace", fontSize: 10 }}>
-                      {job.contractee.stripe_account_id.substring(0, 16)}...
+                      {job.contractee!.stripe_account_id.substring(0, 16)}...
                     </Text>
                   </Text>
                 </View>
@@ -212,10 +212,10 @@ const CompanyDetailsSection: React.FC<CompanyDetailsSectionProps> = React.memo(
                   marginBottom: DESIGN_TOKENS.spacing.xs,
                 }}
               >
-                {job.contractor.company_name}
+                {job.contractor!.company_name}
               </Text>
 
-              {job.contractor.assigned_staff_name && (
+              {job.contractor!.assigned_staff_name && (
                 <View
                   style={{
                     flexDirection: "row",
@@ -231,13 +231,13 @@ const CompanyDetailsSection: React.FC<CompanyDetailsSectionProps> = React.memo(
                   >
                     {t("jobDetails.components.company.assignedStaff")}{" "}
                     <Text style={{ fontWeight: "500", color: colors.text }}>
-                      {job.contractor.assigned_staff_name}
+                      {job.contractor!.assigned_staff_name}
                     </Text>
                   </Text>
                 </View>
               )}
 
-              {job.contractor.assigned_at && (
+              {job.contractor!.assigned_at && (
                 <View
                   style={{
                     marginTop: DESIGN_TOKENS.spacing.sm,
@@ -253,7 +253,7 @@ const CompanyDetailsSection: React.FC<CompanyDetailsSectionProps> = React.memo(
                     }}
                   >
                     {t("jobDetails.components.company.assignedOn")}{" "}
-                    {formatAssignedDate(job.contractor.assigned_at)}
+                    {formatAssignedDate(job.contractor!.assigned_at)}
                   </Text>
                 </View>
               )}
@@ -296,7 +296,7 @@ const CompanyDetailsSection: React.FC<CompanyDetailsSectionProps> = React.memo(
                   >
                     {t("jobDetails.components.company.createdBy")}{" "}
                     <Text style={{ fontWeight: "500", color: colors.text }}>
-                      {job.contractee.created_by_name}
+                      {job.contractee!.created_by_name}
                     </Text>
                   </Text>
                 )}
@@ -310,7 +310,7 @@ const CompanyDetailsSection: React.FC<CompanyDetailsSectionProps> = React.memo(
                   >
                     {t("jobDetails.components.company.assignedStaff")}{" "}
                     <Text style={{ fontWeight: "500", color: colors.text }}>
-                      {job.contractor.assigned_staff_name}
+                      {job.contractor!.assigned_staff_name}
                     </Text>
                   </Text>
                 )}

@@ -31,7 +31,7 @@ const SubscriptionPlanStepImproved: React.FC<SubscriptionPlanStepProps> = ({
   const { t } = useTranslation();
 
   // 🧪 Auto-fill with test data in development mode
-  const autoFillData = __DEV__ ? TEST_DATA.subscription : {};
+  const autoFillData = (__DEV__ ? TEST_DATA.subscription : {}) as Partial<BusinessOwnerRegistrationData>;
 
   const [planType, setPlanType] = useState(
     data.planType || autoFillData.planType || "starter",

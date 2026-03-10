@@ -116,7 +116,7 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({
   // Paiement
   const isPaid = job?.payment_status === "paid";
   const needsPayment =
-    !isPaid && parseFloat(job?.amount_due || job?.amount_total || "0") > 0;
+    !isPaid && parseFloat(String(job?.amount_due || job?.amount_total || 0)) > 0;
 
   // Loading: on attend d'avoir signature_check terminé si le job est completed
   const isLoading = isJobCompleted && isLoadingSignature;
@@ -742,7 +742,7 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({
                   flex: 1,
                   paddingVertical: 14,
                   borderRadius: 10,
-                  backgroundColor: colors.surface,
+                  backgroundColor: colors.backgroundSecondary,
                   borderWidth: 1,
                   borderColor: colors.border,
                 }}

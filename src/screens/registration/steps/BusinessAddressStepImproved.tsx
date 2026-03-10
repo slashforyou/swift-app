@@ -32,7 +32,7 @@ const BusinessAddressStepImproved: React.FC<BusinessAddressStepProps> = ({
   const { t } = useTranslation();
 
   // 🧪 Auto-fill with test data in development mode
-  const autoFillData = __DEV__ ? TEST_DATA.businessAddress : {};
+  const autoFillData = (__DEV__ ? TEST_DATA.businessAddress : {}) as Partial<BusinessOwnerRegistrationData>;
 
   const [streetAddress, setStreetAddress] = useState(
     data.streetAddress || autoFillData.streetAddress || "",

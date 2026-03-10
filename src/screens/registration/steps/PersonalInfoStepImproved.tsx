@@ -36,7 +36,7 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
   const { t } = useTranslation();
 
   // 🧪 Auto-fill with test data in development mode
-  const autoFillData = __DEV__ ? TEST_DATA.personalInfo : {};
+  const autoFillData: Partial<BusinessOwnerRegistrationData> = __DEV__ ? TEST_DATA.personalInfo : {};
 
   const [firstName, setFirstName] = useState(
     data.firstName || autoFillData.firstName || "",

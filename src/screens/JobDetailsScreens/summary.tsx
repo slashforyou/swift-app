@@ -52,8 +52,8 @@ const JobSummary = ({
   const { track } = useAnalytics("job_summary", "job_details");
 
   // Hooks pour la gestion des notes et photos
-  const { addNote } = useJobNotes(job?.id);
-  const { uploadPhoto } = useJobPhotos(job?.id);
+  const { addNote } = useJobNotes(String(job.id));
+  const { uploadPhoto } = useJobPhotos(String(job.id));
   const { showSuccess, showError } = useToast();
 
   const handleSignContract = () => {
@@ -171,8 +171,8 @@ const JobSummary = ({
               );
             }
           }}
-          job={job}
-          setJob={setJob}
+          job={job as any}
+          setJob={setJob as any}
         />
       )}
 
@@ -181,7 +181,7 @@ const JobSummary = ({
         isVisible={isPhotoModalVisible}
         onClose={() => setIsPhotoModalVisible(false)}
         onPhotoSelected={handlePhotoSelected}
-        jobId={job?.id}
+        jobId={String(job.id)}
       />
 
       {/* Modal amélioré de note */}
@@ -189,7 +189,7 @@ const JobSummary = ({
         isVisible={isNoteModalVisible}
         onClose={() => setIsNoteModalVisible(false)}
         onAddNote={handleAddNote}
-        jobId={job?.id}
+        jobId={String(job.id)}
       />
 
       {/* Sections modulaires */}
@@ -204,7 +204,7 @@ const JobSummary = ({
             {/* Bandeau de délégation active */}
             {job.active_transfer && (
               <TransferBannerSection
-                jobId={job.id}
+                jobId={String(job.id)}
                 transfer={job.active_transfer}
                 isOwner={job.permissions?.is_owner ?? false}
                 canRespond={job.permissions?.can_respond_transfer ?? false}
@@ -216,7 +216,7 @@ const JobSummary = ({
             {job.staffing_status && job.staffing_status !== "unassigned" && (
               <StaffingBannerSection
                 staffingStatus={job.staffing_status}
-                contractorName={job.contractor?.company_name}
+                contractorName={job.contractor?.company_name?.toString()}
               />
             )}
 
@@ -228,8 +228,8 @@ const JobSummary = ({
             />
 
             {/* Historique des étapes (si disponible) */}
-            {job?.timer_info?.step_history?.length > 0 && (
-              <JobStepHistoryCard timerInfo={job.timer_info} />
+            {!!(job?.timer_info?.step_history?.length) && (
+              <JobStepHistoryCard timerInfo={job.timer_info!} />
             )}
 
             {/* Actions rapides (contextuelles : masque Appeler/GPS si job terminé) */}

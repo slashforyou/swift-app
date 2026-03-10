@@ -2972,7 +2972,6 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
         deleteError: "Impossible de supprimer le rôle",
         genericError: "Une erreur est survenue",
       },
-      loading: "Chargement des rôles...",
       confirmDelete: {
         title: "Supprimer le rôle",
         message:

@@ -12,7 +12,7 @@ export const navigationContainerRef = createNavigationContainerRef<any>();
  */
 export function navigateGlobal(name: string, params?: Record<string, any>) {
   if (navigationContainerRef.isReady()) {
-    navigationContainerRef.navigate(name as never, params as never);
+    navigationContainerRef.navigate(name as any, params as any);
   }
 }
 

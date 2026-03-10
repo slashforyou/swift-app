@@ -34,7 +34,7 @@ const BankingInfoStepImproved: React.FC<BankingInfoStepProps> = ({
   const { t } = useTranslation();
 
   // 🧪 Auto-fill with test data in development mode
-  const autoFillData = __DEV__ ? TEST_DATA.bankingInfo : {};
+  const autoFillData = (__DEV__ ? TEST_DATA.bankingInfo : {}) as Partial<BusinessOwnerRegistrationData>;
 
   const [bsb, setBsb] = useState(data.bsb || autoFillData.bsb || "");
   const [accountNumber, setAccountNumber] = useState(

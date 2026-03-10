@@ -64,7 +64,7 @@ export const PaymentsDashboard: React.FC<PaymentsDashboardProps> = ({
   const paymentStats = {
     total: recentPayments.length,
     successful: recentPayments.filter((p) => p.status === "succeeded").length,
-    pending: recentPayments.filter((p) => p.status === "pending").length,
+    pending: recentPayments.filter((p) => (p.status as string) === "pending").length,
   };
 
   const handleRefresh = useCallback(async () => {

@@ -49,6 +49,7 @@ interface AssignResourceModalProps {
   /** Appelé après une affectation réussie pour recharger la liste */
   onAssigned: () => void;
   jobId: string | number;
+  companyId?: number;
   startAt?: string;
   endAt?: string;
 }

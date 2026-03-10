@@ -3049,7 +3049,6 @@ export const enTranslations: TranslationKeys = {
       deleteError: "Unable to delete role",
       genericError: "An error occurred",
     },
-    loading: "Loading roles...",
     confirmDelete: {
       title: "Delete role",
       message:
