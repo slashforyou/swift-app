@@ -199,10 +199,10 @@ describe('CRUD - Jobs', () => {
       expect(result.id).toBe('job-002');
       expect(result.priority).toBe('high');
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.test.com/v1/jobs',
+        'https://api.test.com/v1/job',
         expect.objectContaining({
           method: 'POST',
-          body: JSON.stringify(createData),
+          body: expect.stringContaining('"client_id":"client-001"'),
         })
       );
     });

@@ -141,8 +141,8 @@ describe('AddContractorModal', () => {
       
       await waitFor(() => {
         expect(Alert.alert).toHaveBeenCalledWith(
-          'Erreur',
-          'Veuillez saisir un nom ou un ABN'
+          'businessModals.addContractor.errorTitle',
+          'businessModals.addContractor.missingSearchTerm'
         );
       });
     });
@@ -181,8 +181,8 @@ describe('AddContractorModal', () => {
       
       await waitFor(() => {
         expect(Alert.alert).toHaveBeenCalledWith(
-          'Erreur',
-          'Erreur lors de la recherche'
+          'businessModals.addContractor.errorTitle',
+          'businessModals.addContractor.searchError'
         );
       });
     });
@@ -421,8 +421,8 @@ describe('AddContractorModal', () => {
       
       await waitFor(() => {
         expect(Alert.alert).toHaveBeenCalledWith(
-          'Prestataire ajouté',
-          expect.stringContaining('John Contractor a été ajouté'),
+          'businessModals.addContractor.addedTitle',
+          'businessModals.addContractor.addedMessage',
           expect.any(Array)
         );
       });
@@ -479,7 +479,7 @@ describe('AddContractorModal', () => {
       });
       
       await waitFor(() => {
-        expect(Alert.alert).toHaveBeenCalledWith('Erreur', 'Impossible d\'ajouter le prestataire');
+        expect(Alert.alert).toHaveBeenCalledWith('businessModals.addContractor.errorTitle', 'businessModals.addContractor.addError');
       });
     });
   });
@@ -580,8 +580,8 @@ describe('AddContractorModal', () => {
       
       await waitFor(() => {
         expect(Alert.alert).toHaveBeenCalledWith(
-          'Aucun résultat',
-          'Aucun prestataire trouvé avec ces critères'
+          'businessModals.addContractor.noResultsTitle',
+          'businessModals.addContractor.noResultsMessage'
         );
       });
     });

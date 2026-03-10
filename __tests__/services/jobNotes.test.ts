@@ -68,7 +68,7 @@ describe("JobNotes Service", () => {
           }),
         }),
       );
-      expect(result).toEqual(mockNotes);
+      expect(result).toEqual({ notes: mockNotes, total: 0, unread_count: 0 });
     });
 
     it("devrait inclure les paramètres de pagination", async () => {

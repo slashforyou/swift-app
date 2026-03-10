@@ -80,6 +80,26 @@ jest.mock('./src/localization/useLocalization', () => ({
     locale: 'en',
     setLocale: jest.fn(),
   }),
+  useTranslation: () => ({
+    t: (key) => key,
+    locale: 'en',
+    setLocale: jest.fn(),
+  }),
+}), { virtual: true });
+
+// Mock localization index (covers imports from 'src/localization')
+jest.mock('./src/localization', () => ({
+  useLocalization: () => ({
+    t: (key) => key,
+    locale: 'en',
+    setLocale: jest.fn(),
+  }),
+  useTranslation: () => ({
+    t: (key) => key,
+    locale: 'en',
+    setLocale: jest.fn(),
+  }),
+  LocalizationProvider: ({ children }) => children,
 }), { virtual: true });
 
 // Mock Styles constants
