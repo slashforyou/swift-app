@@ -1,13 +1,13 @@
 import { ServerData } from "@/src/constants/ServerData";
 import React, { useState } from "react";
 import {
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    ScrollView,
-    Text,
-    TextInput,
-    View,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AlertMessage from "../../components/ui/AlertMessage";
@@ -221,7 +221,7 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView testID="subscribe-screen" style={styles.container}>
       {/* Fond animé avec emojis camions et cartons */}
       <AnimatedBackground opacity={0.15} />
 
@@ -230,6 +230,7 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <ScrollView
+          testID="subscribe-scroll"
           style={{ flex: 1 }}
           contentContainerStyle={{
             flexGrow: 1,
@@ -250,6 +251,7 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
             }}
           >
             <Pressable
+              testID="subscribe-back-btn"
               onPress={() => navigation.navigate("Connection")}
               disabled={isLoading}
               style={{
@@ -277,19 +279,26 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
             </Pressable>
 
             <View style={{ marginTop: 8, marginRight: 12 }}>
-              <RoundLanguageButton />
+              <RoundLanguageButton testID="subscribe-language-btn" />
             </View>
           </View>
 
           {/* Header Section */}
-          <View style={{ alignItems: "center", marginBottom: 40 }}>
+          <View
+            testID="subscribe-header"
+            style={{ alignItems: "center", marginBottom: 40 }}
+          >
             <HeaderLogo preset="md" variant="square" marginVertical={0} />
 
-            <Text style={[styles.title, { marginBottom: 8, marginTop: 20 }]}>
+            <Text
+              testID="subscribe-title-text"
+              style={[styles.title, { marginBottom: 8, marginTop: 20 }]}
+            >
               {t("auth.register.title")}
             </Text>
 
             <Text
+              testID="subscribe-subtitle-text"
               style={[
                 styles.body,
                 {
@@ -313,12 +322,22 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
           />
 
           {/* Form Section */}
-          <View style={{ flex: 1, paddingVertical: 20 }}>
-            <View style={{ marginBottom: 20 }}>
-              <Text style={[styles.subtitle, { marginBottom: 8 }]}>
+          <View
+            testID="subscribe-form"
+            style={{ flex: 1, paddingVertical: 20 }}
+          >
+            <View
+              testID="subscribe-firstname-field"
+              style={{ marginBottom: 20 }}
+            >
+              <Text
+                testID="subscribe-firstname-label"
+                style={[styles.subtitle, { marginBottom: 8 }]}
+              >
                 {t("auth.register.firstName")}
               </Text>
               <TextInput
+                testID="subscribe-firstname-input"
                 style={styles.inputBase}
                 placeholder={t("auth.register.firstNamePlaceholder")}
                 placeholderTextColor={colors.textSecondary}
@@ -329,11 +348,18 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
               />
             </View>
 
-            <View style={{ marginBottom: 20 }}>
-              <Text style={[styles.subtitle, { marginBottom: 8 }]}>
+            <View
+              testID="subscribe-lastname-field"
+              style={{ marginBottom: 20 }}
+            >
+              <Text
+                testID="subscribe-lastname-label"
+                style={[styles.subtitle, { marginBottom: 8 }]}
+              >
                 {t("auth.register.lastName")}
               </Text>
               <TextInput
+                testID="subscribe-lastname-input"
                 style={styles.inputBase}
                 placeholder={t("auth.register.lastNamePlaceholder")}
                 placeholderTextColor={colors.textSecondary}
@@ -344,11 +370,15 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
               />
             </View>
 
-            <View style={{ marginBottom: 20 }}>
-              <Text style={[styles.subtitle, { marginBottom: 8 }]}>
+            <View testID="subscribe-email-field" style={{ marginBottom: 20 }}>
+              <Text
+                testID="subscribe-email-label"
+                style={[styles.subtitle, { marginBottom: 8 }]}
+              >
                 {t("auth.register.email")}
               </Text>
               <TextInput
+                testID="subscribe-email-input"
                 style={styles.inputBase}
                 placeholder={t("auth.register.emailPlaceholder")}
                 placeholderTextColor={colors.textSecondary}
@@ -361,11 +391,18 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
               />
             </View>
 
-            <View style={{ marginBottom: 20 }}>
-              <Text style={[styles.subtitle, { marginBottom: 8 }]}>
+            <View
+              testID="subscribe-password-field"
+              style={{ marginBottom: 20 }}
+            >
+              <Text
+                testID="subscribe-password-label"
+                style={[styles.subtitle, { marginBottom: 8 }]}
+              >
                 {t("auth.register.password")}
               </Text>
               <TextInput
+                testID="subscribe-password-input"
                 style={styles.inputBase}
                 placeholder={t("auth.register.passwordPlaceholder")}
                 placeholderTextColor={colors.textSecondary}
@@ -376,11 +413,18 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
               />
             </View>
 
-            <View style={{ marginBottom: 30 }}>
-              <Text style={[styles.subtitle, { marginBottom: 8 }]}>
+            <View
+              testID="subscribe-confirm-password-field"
+              style={{ marginBottom: 30 }}
+            >
+              <Text
+                testID="subscribe-confirm-password-label"
+                style={[styles.subtitle, { marginBottom: 8 }]}
+              >
                 {t("auth.register.confirmPassword")}
               </Text>
               <TextInput
+                testID="subscribe-confirm-password-input"
                 style={styles.inputBase}
                 placeholder={t("auth.register.confirmPasswordPlaceholder")}
                 placeholderTextColor={colors.textSecondary}
@@ -392,6 +436,7 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
             </View>
 
             <Pressable
+              testID="subscribe-submit-btn"
               style={[
                 styles.buttonPrimary,
                 {
@@ -404,7 +449,10 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
               onPress={subscribe}
               disabled={isLoading}
             >
-              <Text style={styles.buttonPrimaryText}>
+              <Text
+                testID="subscribe-submit-text"
+                style={styles.buttonPrimaryText}
+              >
                 {isLoading
                   ? t("auth.register.submitting")
                   : t("auth.register.submit")}
@@ -413,13 +461,20 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
           </View>
 
           {/* Footer Section */}
-          <View style={{ alignItems: "center", paddingBottom: 40 }}>
+          <View
+            testID="subscribe-footer"
+            style={{ alignItems: "center", paddingBottom: 40 }}
+          >
             <Pressable
+              testID="subscribe-already-account-btn"
               style={[styles.buttonSecondary, { width: "100%" }]}
               onPress={() => navigation.navigate("Login")}
               disabled={isLoading}
             >
-              <Text style={styles.buttonSecondaryText}>
+              <Text
+                testID="subscribe-already-account-text"
+                style={styles.buttonSecondaryText}
+              >
                 {t("auth.register.alreadyHaveAccount")}
               </Text>
             </Pressable>

@@ -1,0 +1,71 @@
+appId: host.exp.exponent
+---
+# Flow 011 — Vérification post-inscription + nettoyage
+# Pré-requis  : TEST 010 réussi (compte TEST_REGISTER_EMAIL existe)
+# Résultat    : vérifie que le compte créé est bien fonctionnel
+#
+# NOTE : La suppression complète du compte app nécessite une action
+# backend (l'app ne dispose pas encore d'un bouton "Supprimer mon compte"
+# accessible aux comptes sans Stripe). Après le test, supprimer le compte
+# manuellement via le backend ou en relançant le seed de reset.
+
+# 1. Partir depuis une session admin, puis se déconnecter
+- runFlow:
+    file: sub-flows/_go-to-home.yaml
+    env:
+      EMAIL: "${ADMIN_EMAIL}"
+      PASSWORD: "${ADMIN_PASSWORD}"
+- runFlow:
+    file: sub-flows/_logout.yaml
+
+# 2. Se connecter avec le compte créé dans TEST 010
+- extendedWaitUntil:
+    visible:
+      id: "connection-screen"
+    timeout: 8000
+- tapOn:
+    id: "connection-login-btn"
+- extendedWaitUntil:
+    visible:
+      id: "login-screen"
+    timeout: 8000
+- tapOn:
+    id: "login-email-input"
+- eraseText: 50
+- inputText: "${TEST_REGISTER_EMAIL}"
+- tapOn:
+    id: "login-password-input"
+- eraseText: 50
+- inputText: "${TEST_REGISTER_PASSWORD}"
+- hideKeyboard
+- tapOn:
+    id: "login-submit-btn"
+
+# 3. Vérifier que la home est accessible (compte valide)
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 15000
+
+# 4. Naviguer vers Business pour confirmer l'état du compte
+- tapOn:
+    id: "home-business-btn"
+- extendedWaitUntil:
+    visible:
+      id: "business-screen"
+    timeout: 8000
+
+# 5. Se déconnecter proprement
+- pressKey: Back
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 5000
+- runFlow:
+    file: sub-flows/_logout.yaml
+
+# 6. Assert final : on est bien revenu à la connection-screen
+- extendedWaitUntil:
+    visible:
+      id: "connection-screen"
+    timeout: 8000

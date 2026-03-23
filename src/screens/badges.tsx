@@ -12,6 +12,8 @@ import {
     Text,
     View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import HeaderLogo from "../components/ui/HeaderLogo";
 import MascotLoading from "../components/ui/MascotLoading";
 import { DESIGN_TOKENS } from "../constants/Styles";
 import { useTheme } from "../context/ThemeProvider";
@@ -53,6 +55,7 @@ const BadgesScreen: React.FC = () => {
   console.log("🎖️ ═══════════════════════════════════════\n");
 
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(true);
@@ -134,8 +137,8 @@ const BadgesScreen: React.FC = () => {
 
     return (
       <View
+        testID={`badge-item-${item.code}`}
         style={{
-          width: "48%",
           backgroundColor: earned
             ? colors.background
             : colors.backgroundSecondary,
@@ -175,11 +178,11 @@ const BadgesScreen: React.FC = () => {
         {/* Badge Name */}
         <Text
           style={{
-            fontSize: 14,
+            fontSize: DESIGN_TOKENS.typography.body.fontSize,
             fontWeight: "700",
             color: earned ? colors.text : colors.textSecondary,
             textAlign: "center",
-            marginBottom: 4,
+            marginBottom: DESIGN_TOKENS.spacing.xs,
           }}
           numberOfLines={2}
         >
@@ -189,10 +192,10 @@ const BadgesScreen: React.FC = () => {
         {/* Badge Description */}
         <Text
           style={{
-            fontSize: 12,
+            fontSize: DESIGN_TOKENS.typography.caption.fontSize,
             color: colors.textMuted,
             textAlign: "center",
-            lineHeight: 16,
+            lineHeight: DESIGN_TOKENS.typography.caption.lineHeight,
           }}
           numberOfLines={3}
         >
@@ -203,7 +206,7 @@ const BadgesScreen: React.FC = () => {
         {earned && item.earnedAt && (
           <Text
             style={{
-              fontSize: 10,
+              fontSize: DESIGN_TOKENS.typography.caption.fontSize,
               color: categoryInfo.color,
               textAlign: "center",
               marginTop: DESIGN_TOKENS.spacing.xs,
@@ -218,7 +221,7 @@ const BadgesScreen: React.FC = () => {
         {!earned && item.requirementValue && (
           <Text
             style={{
-              fontSize: 10,
+              fontSize: DESIGN_TOKENS.typography.caption.fontSize,
               color: colors.textMuted,
               textAlign: "center",
               marginTop: DESIGN_TOKENS.spacing.xs,
@@ -252,16 +255,7 @@ const BadgesScreen: React.FC = () => {
         >
           {error}
         </Text>
-        <Pressable
-          onPress={loadBadges}
-          style={{
-            marginTop: 16,
-            paddingHorizontal: 24,
-            paddingVertical: 12,
-            backgroundColor: colors.primary,
-            borderRadius: DESIGN_TOKENS.radius.md,
-          }}
-        >
+        <Pressable testID="badges-retry-btn" onPress={loadBadges}>
           <Text style={{ color: "white", fontWeight: "600" }}>
             {t("common.retry")}
           </Text>
@@ -271,35 +265,52 @@ const BadgesScreen: React.FC = () => {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <View
+      testID="badges-screen"
+      style={{ flex: 1, backgroundColor: colors.background }}
+    >
+      {/* Logo */}
+      <View style={{ alignItems: "center", paddingTop: insets.top }}>
+        <HeaderLogo preset="sm" variant="rectangle" marginVertical={4} />
+      </View>
+
       {/* Header */}
       <View
+        testID="badges-header"
         style={{
           flexDirection: "row",
           alignItems: "center",
-          paddingHorizontal: DESIGN_TOKENS.spacing.lg,
-          paddingTop: DESIGN_TOKENS.spacing.xl,
+          paddingTop: DESIGN_TOKENS.spacing.sm,
           paddingBottom: DESIGN_TOKENS.spacing.md,
+          paddingHorizontal: DESIGN_TOKENS.spacing.lg,
           backgroundColor: colors.background,
           borderBottomWidth: 1,
           borderBottomColor: colors.border,
         }}
       >
         <Pressable
+          testID="badges-back-btn"
           onPress={() => navigation.goBack()}
-          style={({ pressed }) => ({
-            padding: 8,
-            marginRight: 12,
-            opacity: pressed ? 0.7 : 1,
-          })}
+          style={{ marginRight: DESIGN_TOKENS.spacing.md }}
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </Pressable>
         <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 20, fontWeight: "700", color: colors.text }}>
+          <Text
+            style={{
+              fontSize: DESIGN_TOKENS.typography.title.fontSize,
+              fontWeight: "700",
+              color: colors.text,
+            }}
+          >
             {t("badges.title")}
           </Text>
-          <Text style={{ fontSize: 14, color: colors.textSecondary }}>
+          <Text
+            style={{
+              fontSize: DESIGN_TOKENS.typography.caption.fontSize,
+              color: colors.textSecondary,
+            }}
+          >
             {earnedBadges.length} /{" "}
             {earnedBadges.length + availableBadges.length} {t("badges.earned")}
           </Text>
@@ -307,12 +318,18 @@ const BadgesScreen: React.FC = () => {
         <View
           style={{
             backgroundColor: colors.primary,
-            paddingHorizontal: 12,
-            paddingVertical: 6,
+            paddingHorizontal: DESIGN_TOKENS.spacing.md,
+            paddingVertical: DESIGN_TOKENS.spacing.sm,
             borderRadius: DESIGN_TOKENS.radius.full,
           }}
         >
-          <Text style={{ color: "white", fontWeight: "700", fontSize: 14 }}>
+          <Text
+            style={{
+              color: "white",
+              fontWeight: "700",
+              fontSize: DESIGN_TOKENS.typography.body.fontSize,
+            }}
+          >
             🏆 {earnedBadges.length}
           </Text>
         </View>
@@ -320,6 +337,7 @@ const BadgesScreen: React.FC = () => {
 
       {/* Category Filter */}
       <ScrollView
+        testID="badges-category-filter"
         horizontal
         showsHorizontalScrollIndicator={false}
         style={{
@@ -335,6 +353,7 @@ const BadgesScreen: React.FC = () => {
       >
         {/* All filter */}
         <Pressable
+          testID="badges-filter-all"
           onPress={() => setSelectedCategory("all")}
           style={{
             paddingHorizontal: 16,
@@ -362,6 +381,7 @@ const BadgesScreen: React.FC = () => {
         {CATEGORIES.map((cat) => (
           <Pressable
             key={cat.key}
+            testID={`badges-filter-${cat.key}`}
             onPress={() => setSelectedCategory(cat.key)}
             style={{
               flexDirection: "row",
@@ -397,6 +417,7 @@ const BadgesScreen: React.FC = () => {
 
       {/* Content */}
       <ScrollView
+        testID="badges-scroll"
         style={{ flex: 1 }}
         contentContainerStyle={{ padding: DESIGN_TOKENS.spacing.lg }}
         refreshControl={
@@ -408,7 +429,7 @@ const BadgesScreen: React.FC = () => {
           <View style={{ marginBottom: DESIGN_TOKENS.spacing.xl }}>
             <Text
               style={{
-                fontSize: 16,
+                fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
                 fontWeight: "700",
                 color: colors.text,
                 marginBottom: DESIGN_TOKENS.spacing.md,
@@ -416,17 +437,19 @@ const BadgesScreen: React.FC = () => {
             >
               ✅ {t("badges.earnedBadges")} ({filteredEarned.length})
             </Text>
+            {/* 2-per-row centered grid */}
             <View
               style={{
                 flexDirection: "row",
                 flexWrap: "wrap",
-                justifyContent: "space-between",
+                justifyContent: "center",
+                gap: DESIGN_TOKENS.spacing.md,
               }}
             >
               {filteredEarned.map((badge) => (
-                <React.Fragment key={badge.code}>
+                <View key={badge.code} style={{ width: "47%" }}>
                   {renderBadgeItem({ item: badge, earned: true })}
-                </React.Fragment>
+                </View>
               ))}
             </View>
           </View>
@@ -437,7 +460,7 @@ const BadgesScreen: React.FC = () => {
           <View>
             <Text
               style={{
-                fontSize: 16,
+                fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
                 fontWeight: "700",
                 color: colors.text,
                 marginBottom: DESIGN_TOKENS.spacing.md,
@@ -449,13 +472,14 @@ const BadgesScreen: React.FC = () => {
               style={{
                 flexDirection: "row",
                 flexWrap: "wrap",
-                justifyContent: "space-between",
+                justifyContent: "center",
+                gap: DESIGN_TOKENS.spacing.md,
               }}
             >
               {filteredAvailable.map((badge) => (
-                <React.Fragment key={badge.code}>
+                <View key={badge.code} style={{ width: "47%" }}>
                   {renderBadgeItem({ item: badge, earned: false })}
-                </React.Fragment>
+                </View>
               ))}
             </View>
           </View>

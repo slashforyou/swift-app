@@ -230,7 +230,7 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
   });
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+    <SafeAreaView style={styles.container} edges={["top", "bottom"]} testID="stripe-welcome-screen">
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Header avec Logo */}
         <View style={styles.header}>
@@ -357,6 +357,7 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
             onPress={handleStart}
             activeOpacity={0.8}
             disabled={isStarting}
+            testID="stripe-welcome-start-btn"
           >
             {isStarting ? (
               <ActivityIndicator size="small" color="white" />
@@ -377,6 +378,7 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
             onPress={handleGoBack}
             activeOpacity={0.7}
             disabled={isStarting}
+            testID="stripe-welcome-cancel-btn"
           >
             <Text style={styles.secondaryButtonText}>
               {t("stripe.onboarding.welcome.cancelButton")}

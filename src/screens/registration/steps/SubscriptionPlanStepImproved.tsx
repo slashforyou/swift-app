@@ -1,12 +1,12 @@
 import { Picker } from "@react-native-picker/picker";
 import React, { useState } from "react";
 import {
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import AlertMessage from "../../../components/ui/AlertMessage";
 import { TEST_DATA } from "../../../config/testData";
@@ -31,7 +31,9 @@ const SubscriptionPlanStepImproved: React.FC<SubscriptionPlanStepProps> = ({
   const { t } = useTranslation();
 
   // 🧪 Auto-fill with test data in development mode
-  const autoFillData = (__DEV__ ? TEST_DATA.subscription : {}) as Partial<BusinessOwnerRegistrationData>;
+  const autoFillData = (
+    __DEV__ ? TEST_DATA.subscription : {}
+  ) as Partial<BusinessOwnerRegistrationData>;
 
   const [planType, setPlanType] = useState(
     data.planType || autoFillData.planType || "starter",
@@ -150,6 +152,7 @@ const SubscriptionPlanStepImproved: React.FC<SubscriptionPlanStepProps> = ({
         {plans.map((plan) => (
           <TouchableOpacity
             key={plan.value}
+            testID={`plan-card-${plan.value}`}
             style={[
               localStyles.planCard,
               {
@@ -271,6 +274,7 @@ const SubscriptionPlanStepImproved: React.FC<SubscriptionPlanStepProps> = ({
         </Pressable>
 
         <Pressable
+          testID="register-plan-next-btn"
           onPress={handleNext}
           disabled={isLoading}
           style={[styles.buttonBase, styles.buttonPrimary, { flex: 1 }]}

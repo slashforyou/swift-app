@@ -14,6 +14,7 @@ import ContracteeNegotiationModal from "../components/jobs/ContracteeNegotiation
 import AssignStaffModal from "../components/modals/AssignStaffModal";
 import EditJobModal from "../components/modals/EditJobModal";
 import TransferJobModal from "../components/modals/TransferJobModal";
+import HeaderLogo from "../components/ui/HeaderLogo";
 import TabMenu from "../components/ui/TabMenu";
 import Toast from "../components/ui/toastNotification";
 import {
@@ -174,6 +175,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({
 
   // Récupération de l'ID du job depuis les paramètres de route ou props
   const actualJobId = route?.params?.jobId || jobId || route?.params?.id;
+  const initialTab = route?.params?.initialTab;
 
   // Hook principal pour les données du job
   const {
@@ -273,7 +275,11 @@ const JobDetails: React.FC<JobDetailsProps> = ({
     contractor: null,
     contractee: null,
     assignment_status: null as string | null,
-    permissions: null as null | { can_accept?: boolean; can_decline?: boolean; can_respond_transfer?: boolean },
+    permissions: null as null | {
+      can_accept?: boolean;
+      can_decline?: boolean;
+      can_respond_transfer?: boolean;
+    },
     active_transfer: null as null | { status: string; [key: string]: unknown },
   });
 
@@ -747,7 +753,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({
     job.permissions?.can_respond_transfer,
   ]);
 
-  const [jobPanel, setJobPanel] = useState("summary");
+  const [jobPanel, setJobPanel] = useState(initialTab || "summary");
   // jobPanel: 'summary', 'job', 'client', 'notes', 'payment'
 
   // 🔔 Calcul des compteurs de notifications pour les onglets
@@ -949,6 +955,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({
       onJobCompleted={handleJobCompleted}
     >
       <View
+        testID="job-details-screen"
         style={{
           backgroundColor: colors.background,
           width: "100%",
@@ -956,6 +963,11 @@ const JobDetails: React.FC<JobDetailsProps> = ({
           flex: 1,
         }}
       >
+        {/* Logo */}
+        <View style={{ alignItems: "center", paddingTop: insets.top }}>
+          <HeaderLogo preset="sm" variant="rectangle" marginVertical={4} />
+        </View>
+
         {/* Header moderne avec navigation et RefBookMark */}
         <JobDetailsHeader
           navigation={navigation}
@@ -1002,21 +1014,8 @@ const JobDetails: React.FC<JobDetailsProps> = ({
           job.permissions?.is_contractee &&
           !job.permissions?.is_owner && (
             <Pressable
+              testID="job-details-negotiation-btn"
               onPress={() => setIsNegotiationModalVisible(true)}
-              style={({ pressed }) => ({
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: pressed
-                  ? (colors.warning || "#F59E0B") + "CC"
-                  : colors.warning || "#F59E0B",
-                paddingVertical: 10,
-                paddingHorizontal: DESIGN_TOKENS.spacing.lg,
-                marginHorizontal: DESIGN_TOKENS.spacing.lg,
-                marginBottom: DESIGN_TOKENS.spacing.sm,
-                borderRadius: DESIGN_TOKENS.radius.md,
-                gap: 6,
-              })}
             >
               <Ionicons name="swap-horizontal-outline" size={16} color="#fff" />
               <Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>
@@ -1033,21 +1032,8 @@ const JobDetails: React.FC<JobDetailsProps> = ({
           (job.timer_total_hours == null ||
             Number(job.timer_total_hours) === 0) && (
             <Pressable
+              testID="job-details-transfer-btn"
               onPress={() => setIsTransferModalVisible(true)}
-              style={({ pressed }) => ({
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: pressed
-                  ? colors.primary + "CC"
-                  : colors.primary,
-                paddingVertical: 10,
-                paddingHorizontal: DESIGN_TOKENS.spacing.lg,
-                marginHorizontal: DESIGN_TOKENS.spacing.lg,
-                marginBottom: DESIGN_TOKENS.spacing.sm,
-                borderRadius: DESIGN_TOKENS.radius.md,
-                gap: 6,
-              })}
             >
               <Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>
                 Déléguer ce job
@@ -1057,6 +1043,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({
 
         {/* ScrollView principal */}
         <ScrollView
+          testID="job-details-scroll"
           style={{ flex: 1 }}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
@@ -1101,6 +1088,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({
 
         {/* Job Menu fixé en bas */}
         <View
+          testID="job-details-tab-menu"
           style={{
             position: "absolute",
             bottom: 0,
@@ -1122,6 +1110,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({
 
         {/* Toast au-dessus de tout */}
         <View
+          testID="job-details-toast"
           style={{
             position: "absolute",
             top: 100, // Position fixe sous le header

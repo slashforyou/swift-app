@@ -199,6 +199,7 @@ export default function AssignResourceModal({
     return (
       <Pressable
         key={item.id}
+        testID={`vehicle-assign-item-${item.id}`}
         onPress={() => setSelectedVehicleId(selected ? null : item.id)}
         style={[
           styles.resourceItem,
@@ -270,6 +271,7 @@ export default function AssignResourceModal({
     return (
       <View key={item.id}>
         <Pressable
+          testID={`staff-assign-item-${item.id}`}
           onPress={() => setSelectedStaffId(selected ? null : item.id)}
           style={[
             styles.resourceItem,
@@ -352,6 +354,7 @@ export default function AssignResourceModal({
                 return (
                   <Pressable
                     key={role}
+                    testID={`role-select-${role}`}
                     onPress={() => setSelectedRole(role)}
                     style={[
                       styles.roleChip,
@@ -427,6 +430,7 @@ export default function AssignResourceModal({
               return (
                 <Pressable
                   key={tab}
+                  testID={`assign-resource-${tab}-tab`}
                   onPress={() => setActiveTab(tab)}
                   style={[
                     styles.tab,
@@ -510,6 +514,7 @@ export default function AssignResourceModal({
             </Pressable>
 
             <Pressable
+              testID="staff-assign-confirm-btn"
               onPress={handleAssign}
               disabled={!hasSelection || submitting}
               style={[

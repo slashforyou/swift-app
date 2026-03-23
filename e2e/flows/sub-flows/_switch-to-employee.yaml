@@ -1,0 +1,38 @@
+appId: host.exp.exponent
+---
+# Sub-flow : _switch-to-employee
+#
+# Depuis n'importe où : logout puis login en tant qu'Employee Nerd-Test.
+# Résultat : home-screen visible avec le compte employee actif.
+
+# 1. Revenir sur home (avec les credentials de l'employee — cohérence avec _switch-to-romain)
+- runFlow:
+    file: _go-to-home.yaml
+    env:
+      EMAIL: ${EMPLOYEE_EMAIL}
+      PASSWORD: ${EMPLOYEE_PASSWORD}
+
+# 2. Logout
+- runFlow:
+    file: _logout.yaml
+
+# 3. Login en tant qu'employee
+- tapOn:
+    id: "connection-login-btn"
+- extendedWaitUntil:
+    visible:
+      id: "login-screen"
+    timeout: 5000
+- tapOn:
+    id: "login-email-input"
+- inputText: ${EMPLOYEE_EMAIL}
+- tapOn:
+    id: "login-password-input"
+- inputText: ${EMPLOYEE_PASSWORD}
+- hideKeyboard
+- tapOn:
+    id: "login-submit-btn"
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 20000

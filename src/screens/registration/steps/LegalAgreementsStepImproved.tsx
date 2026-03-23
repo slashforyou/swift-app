@@ -31,7 +31,9 @@ const LegalAgreementsStepImproved: React.FC<LegalAgreementsStepProps> = ({
   const { t } = useTranslation();
 
   // 🧪 Auto-fill with test data in development mode
-  const autoFillData = (__DEV__ ? TEST_DATA.legalAgreements : {}) as Partial<BusinessOwnerRegistrationData>;
+  const autoFillData = (
+    __DEV__ ? TEST_DATA.legalAgreements : {}
+  ) as Partial<BusinessOwnerRegistrationData>;
 
   const [termsAccepted, setTermsAccepted] = useState(
     data.termsAccepted !== undefined
@@ -95,13 +97,16 @@ const LegalAgreementsStepImproved: React.FC<LegalAgreementsStepProps> = ({
     onPress,
     label,
     linkUrl,
+    testID,
   }: {
     checked: boolean;
     onPress: () => void;
     label: string;
     linkUrl?: string;
+    testID?: string;
   }) => (
     <TouchableOpacity
+      testID={testID}
       style={{
         flexDirection: "row",
         alignItems: "flex-start",
@@ -207,20 +212,23 @@ const LegalAgreementsStepImproved: React.FC<LegalAgreementsStepProps> = ({
         </Text>
 
         <Checkbox
+          testID="register-terms-checkbox"
           checked={termsAccepted}
           onPress={() => setTermsAccepted(!termsAccepted)}
           label={t("registration.legal.termsAndConditions")}
-          linkUrl="https://cobbr.com.au/terms"
+          linkUrl="https://cobbr-app.com/terms"
         />
 
         <Checkbox
+          testID="register-privacy-checkbox"
           checked={privacyAccepted}
           onPress={() => setPrivacyAccepted(!privacyAccepted)}
           label={t("registration.legal.privacyPolicy")}
-          linkUrl="https://cobbr.com.au/privacy"
+          linkUrl="https://cobbr-app.com/privacy"
         />
 
         <Checkbox
+          testID="register-stripe-checkbox"
           checked={stripeConnectAccepted}
           onPress={() => setStripeConnectAccepted(!stripeConnectAccepted)}
           label={t("registration.legal.stripeConnectAgreement")}
@@ -252,6 +260,7 @@ const LegalAgreementsStepImproved: React.FC<LegalAgreementsStepProps> = ({
         </Pressable>
 
         <Pressable
+          testID="register-legal-finish-btn"
           onPress={handleNext}
           disabled={isLoading || !allAccepted}
           style={[

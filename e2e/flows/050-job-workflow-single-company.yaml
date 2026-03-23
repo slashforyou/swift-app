@@ -1,0 +1,326 @@
+appId: host.exp.exponent
+---
+# Flow 050 — Workflow job complet (compagnie unique)
+# Phases : A (Création) → B (Assignation) → C (Réalisation) → D (Paiement)
+# Comptes : ADMIN_EMAIL, EMPLOYEE_EMAIL de Nerd-Test
+
+# ─────────────────────────────────────────────────────────────
+# Phase A — Création du job (Admin)
+# ─────────────────────────────────────────────────────────────
+- runFlow:
+    file: sub-flows/_go-to-home.yaml
+    env:
+      EMAIL: "${ADMIN_EMAIL}"
+      PASSWORD: "${ADMIN_PASSWORD}"
+
+# Naviguer vers Calendrier
+- tapOn:
+    id: "home-calendar-btn"
+- extendedWaitUntil:
+    visible:
+      id: "calendar-month-screen"
+    timeout: 8000
+
+# Taper sur le jour 11 du mois courant
+- tapOn:
+    id: "calendar-month-day-25"
+- extendedWaitUntil:
+    visible:
+      id: "calendar-day-screen"
+    timeout: 8000
+
+# Taper le FAB "Créer un job"
+- tapOn:
+    id: "calendar-day-create-job-fab"
+- extendedWaitUntil:
+    visible:
+      id: "create-job-modal"
+    timeout: 8000
+
+# Étape 1 : Sélectionner le client E2E Client (existant en base, id=30)
+- tapOn:
+    id: "create-job-client-search"
+- inputText: "E2E"
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      id: "create-job-client-item-30"
+    timeout: 5000
+- tapOn:
+    id: "create-job-client-item-30"
+- waitForAnimationToEnd
+
+# Étape 2 : Adresse — remplir pickup et delivery
+- extendedWaitUntil:
+    visible:
+      id: "address-0-street"
+    timeout: 10000
+- waitForAnimationToEnd
+
+# Pickup address
+- tapOn:
+    id: "address-0-street"
+- inputText: "123 Test St"
+- hideKeyboard
+
+- tapOn:
+    id: "address-0-city"
+- inputText: "Sydney"
+- hideKeyboard
+
+- tapOn:
+    id: "address-0-state-picker"
+- extendedWaitUntil:
+    visible:
+      id: "state-picker-title"
+    timeout: 3000
+- tapOn:
+    id: "state-option-NSW"
+
+- tapOn:
+    id: "address-0-zip"
+- inputText: "2000"
+- hideKeyboard
+
+# Delivery address — scroll jusqu'à la section livraison
+- scrollUntilVisible:
+    element:
+      id: "address-1-state-picker"
+    direction: DOWN
+    timeout: 5000
+- tapOn:
+    id: "address-1-street"
+- inputText: "456 Test Ave"
+- hideKeyboard
+
+- tapOn:
+    id: "address-1-city"
+- inputText: "Melbourne"
+- hideKeyboard
+
+- tapOn:
+    id: "address-1-state-picker"
+- extendedWaitUntil:
+    visible:
+      id: "state-picker-title"
+    timeout: 3000
+- tapOn:
+    id: "state-option-VIC"
+
+- tapOn:
+    id: "address-1-zip"
+- inputText: "3000"
+- hideKeyboard
+
+# Addresses filled → scroll to button then tap
+- scrollUntilVisible:
+    element:
+      id: "create-job-address-next-btn"
+    direction: DOWN
+- tapOn:
+    id: "create-job-address-next-btn"
+
+# Étape 3 : Schedule (horaires par défaut)
+- extendedWaitUntil:
+    visible:
+      id: "create-job-schedule-next-btn"
+    timeout: 5000
+- tapOn:
+    id: "create-job-schedule-next-btn"
+
+# Étape 4 : Details (paramètres par défaut)
+- extendedWaitUntil:
+    visible:
+      id: "create-job-details-next-btn"
+    timeout: 8000
+- tapOn:
+    id: "create-job-details-next-btn"
+
+# Étape 5 : Pricing (paramètres par défaut)
+- extendedWaitUntil:
+    visible:
+      id: "create-job-pricing-next-btn"
+    timeout: 8000
+- tapOn:
+    id: "create-job-pricing-next-btn"
+
+# Étape 6 : Confirmation — sauvegarder le job
+- extendedWaitUntil:
+    visible:
+      id: "create-job-save-btn"
+    timeout: 5000
+- tapOn:
+    id: "create-job-save-btn"
+
+# Assert : job visible sur l'écran du jour
+- extendedWaitUntil:
+    visible:
+      id: "calendar-day-screen"
+    timeout: 30000
+
+# ─────────────────────────────────────────────────────────────
+# Phase B — Assignation d'un employé (Admin)
+# ─────────────────────────────────────────────────────────────
+# Ouvrir le premier job du jour
+- tapOn:
+    text: "E2E Client"
+- extendedWaitUntil:
+    visible:
+      id: "job-details-screen"
+    timeout: 8000
+
+# Naviguer vers l'onglet "Job" (qui contient la section Staffing)
+- tapOn:
+    id: "tab-job"
+
+# Ouvrir la modal d'assignation (état vide: assign-btn, sinon manage-btn)
+- waitForAnimationToEnd
+- runFlow:
+    when:
+      visible:
+        id: "job-staffing-assign-btn"
+    commands:
+      - tapOn:
+          id: "job-staffing-assign-btn"
+
+- runFlow:
+    when:
+      visible:
+        id: "job-staffing-manage-btn"
+    commands:
+      - tapOn:
+          id: "job-staffing-manage-btn"
+
+- extendedWaitUntil:
+    visible:
+      text: "Assign a resource"
+    timeout: 5000
+
+# Basculer sur l'onglet Team
+- tapOn:
+    text: "Team"
+
+# Sélectionner Employee Test
+- extendedWaitUntil:
+    visible:
+      text: "Employee Test"
+    timeout: 5000
+- tapOn:
+    text: "Employee Test"
+
+# Choisir le rôle Offsider
+- tapOn:
+    text: "Offsider"
+
+# Confirmer l'assignation
+- tapOn:
+    text: "Assign"
+
+# Assert : modal fermée, l'état vide n'est plus affiché → l'assignation existe
+- extendedWaitUntil:
+    notVisible:
+      text: "Assign a resource"
+    timeout: 10000
+
+# Retourner à l'écran du jour
+- pressKey: Back
+- extendedWaitUntil:
+    visible:
+      id: "job-details-screen"
+    timeout: 5000
+- pressKey: Back
+
+# ─────────────────────────────────────────────────────────────
+# Phase C — Réalisation du job (Employee)
+# ─────────────────────────────────────────────────────────────
+- runFlow:
+    file: sub-flows/_switch-to-employee.yaml
+
+# Naviguer vers Calendrier
+- tapOn:
+    id: "home-calendar-btn"
+- extendedWaitUntil:
+    visible:
+      id: "calendar-month-screen"
+    timeout: 8000
+
+# Aller sur le jour 11
+- tapOn:
+    id: "calendar-month-day-25"
+- extendedWaitUntil:
+    visible:
+      id: "calendar-day-screen"
+    timeout: 8000
+
+# Ouvrir le job
+- tapOn:
+    text: "E2E Client"
+- extendedWaitUntil:
+    visible:
+      id: "job-details-screen"
+    timeout: 8000
+
+# Démarrer le chrono
+- tapOn:
+    id: "job-timer-start-btn"
+- extendedWaitUntil:
+    visible:
+      id: "job-timer-pause-btn"
+    timeout: 8000
+
+# Simuler un peu de travail
+- swipe:
+    direction: DOWN
+    duration: 1000
+
+# Mettre en pause (le job reste in_progress pour que l'admin puisse le retrouver en Phase D)
+- tapOn:
+    id: "job-timer-pause-btn"
+- extendedWaitUntil:
+    visible:
+      id: "job-timer-play-btn"
+    timeout: 5000
+
+# ─────────────────────────────────────────────────────────────
+# Phase D — Vérification du paiement (Admin)
+# ─────────────────────────────────────────────────────────────
+- runFlow:
+    file: sub-flows/_switch-to-admin.yaml
+
+# Naviguer vers Calendrier
+- tapOn:
+    id: "home-calendar-btn"
+- extendedWaitUntil:
+    visible:
+      id: "calendar-month-screen"
+    timeout: 8000
+- tapOn:
+    id: "calendar-month-day-25"
+- extendedWaitUntil:
+    visible:
+      id: "calendar-day-screen"
+    timeout: 8000
+
+# Ouvrir le job
+- extendedWaitUntil:
+    visible:
+      text: "E2E Client"
+    timeout: 10000
+- tapOn:
+    text: "E2E Client"
+- extendedWaitUntil:
+    visible:
+      id: "job-details-screen"
+    timeout: 8000
+
+# Naviguer vers l'onglet Paiement
+- tapOn:
+    id: "tab-payment"
+- extendedWaitUntil:
+    visible:
+      id: "job-payment-scroll"
+    timeout: 8000
+
+# Assert : section paiement visible
+- assertVisible:
+    id: "job-payment-scroll"

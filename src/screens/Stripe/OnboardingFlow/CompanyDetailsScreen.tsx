@@ -438,7 +438,11 @@ export default function CompanyDetailsScreen({
   });
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <SafeAreaView
+      style={styles.container}
+      edges={["top"]}
+      testID="stripe-company-screen"
+    >
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
@@ -699,6 +703,7 @@ export default function CompanyDetailsScreen({
             style={styles.nextButton}
             onPress={handleNext}
             disabled={isSubmitting}
+            testID="stripe-company-next-btn"
           >
             {isSubmitting ? (
               <ActivityIndicator size="small" color="white" />

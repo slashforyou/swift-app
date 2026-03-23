@@ -2,40 +2,43 @@
  * RoundLanguageButton - Bouton langue rond moderne
  * Version simplifiée et réutilisable du bouton de langue
  */
-import React, { useState } from 'react';
-import { Pressable, Text } from 'react-native';
-import { DESIGN_TOKENS } from '../../constants/Styles';
-import { useTheme } from '../../context/ThemeProvider';
-import { useLocalization } from '../../localization/useLocalization';
-import LanguageSelector from '../ui/LanguageSelector';
+import React, { useState } from "react";
+import { Pressable, Text } from "react-native";
+import { DESIGN_TOKENS } from "../../constants/Styles";
+import { useTheme } from "../../context/ThemeProvider";
+import { useLocalization } from "../../localization/useLocalization";
+import LanguageSelector from "../ui/LanguageSelector";
 
 interface RoundLanguageButtonProps {
   size?: number;
   showLabel?: boolean;
+  testID?: string;
 }
 
-const RoundLanguageButton: React.FC<RoundLanguageButtonProps> = ({ 
+const RoundLanguageButton: React.FC<RoundLanguageButtonProps> = ({
   size = 44,
-  showLabel = false 
+  showLabel = false,
+  testID,
 }) => {
   const { colors } = useTheme();
   const { currentLanguage, getSupportedLanguages } = useLocalization();
   const [showLanguageSelector, setShowLanguageSelector] = useState(false);
-  
+
   const supportedLanguages = getSupportedLanguages();
   const currentLangInfo = supportedLanguages[currentLanguage];
 
   return (
     <>
       <Pressable
+        testID={testID ?? "language-btn"}
         onPress={() => setShowLanguageSelector(true)}
         style={({ pressed }) => ({
           width: size,
           height: size,
           borderRadius: size / 2,
           backgroundColor: colors.backgroundSecondary,
-          justifyContent: 'center',
-          alignItems: 'center',
+          justifyContent: "center",
+          alignItems: "center",
           borderWidth: 1,
           borderColor: colors.border,
           transform: [{ scale: pressed ? 0.95 : 1 }],

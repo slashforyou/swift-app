@@ -1,0 +1,12 @@
+# Maestro E2E configuration
+# https://maestro.mobile.dev/
+
+# Expo Go app ID for local testing
+appId: host.exp.exponent
+
+# For standalone production build:
+# appId: com.slashforyou.swiftapp
+
+# Environment variables for test credentials are loaded from:
+#   e2e/config/credentials.yaml (gitignored, must be created locally)
+#   or passed via CI secrets as environment variables

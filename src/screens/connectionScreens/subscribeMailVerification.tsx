@@ -102,7 +102,7 @@ const SubscribeMailVerification = ({ route }: any) => {
       // MODE TEST : Accepter automatiquement le code 123456 pour les emails de test
       const cleanCode = verificationCode.trim();
       const isTestEmail =
-        mail && (mail.endsWith(".test") || mail.includes("@swiftapp.test"));
+        mail && (mail.endsWith(".test") || mail.includes("@swiftapp.test") || mail.includes("@mailinator.com"));
       console.log("[TEST MODE] Email:", mail);
       console.log("[TEST MODE] Code:", `"${cleanCode}"`);
       console.log("[TEST MODE] Is test email?", isTestEmail);
@@ -220,8 +220,7 @@ const SubscribeMailVerification = ({ route }: any) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Fond animé avec emojis camions et cartons */}
+    <SafeAreaView testID="mail-verification-screen" style={styles.container}>}
       <AnimatedBackground opacity={0.15} />
 
       <KeyboardAvoidingView
@@ -245,6 +244,7 @@ const SubscribeMailVerification = ({ route }: any) => {
             }}
           >
             <Pressable
+              testID="mail-verification-back-btn"
               onPress={() => navigation.navigate("Subscribe")}
               disabled={isLoading}
               style={{
@@ -351,6 +351,7 @@ const SubscribeMailVerification = ({ route }: any) => {
                 {t("auth.emailVerification.enterCode")}
               </Text>
               <TextInput
+                testID="mail-verification-code-input"
                 style={[
                   styles.inputBase,
                   {
@@ -372,6 +373,7 @@ const SubscribeMailVerification = ({ route }: any) => {
             </View>
 
             <Pressable
+              testID="mail-verification-submit-btn"
               style={[
                 styles.buttonPrimary,
                 {

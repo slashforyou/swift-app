@@ -412,7 +412,11 @@ export default function AddressScreen({
   });
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <SafeAreaView
+      style={styles.container}
+      edges={["top"]}
+      testID="stripe-address-screen"
+    >
       {/* Header avec retour et étape */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -468,6 +472,7 @@ export default function AddressScreen({
                 placeholder={t("stripe.onboarding.address.line1Placeholder")}
                 placeholderTextColor={colors.textSecondary}
                 autoCapitalize="words"
+                testID="stripe-address-line1"
               />
               {errors.line1 && (
                 <Text style={styles.errorText}>{errors.line1}</Text>
@@ -489,6 +494,7 @@ export default function AddressScreen({
                 placeholder={t("stripe.onboarding.address.line2Placeholder")}
                 placeholderTextColor={colors.textSecondary}
                 autoCapitalize="words"
+                testID="stripe-address-line2"
               />
               <Text style={styles.helperText}>
                 {t("stripe.onboarding.address.line2Helper")}
@@ -511,6 +517,7 @@ export default function AddressScreen({
                 placeholder={t("stripe.onboarding.address.cityPlaceholder")}
                 placeholderTextColor={colors.textSecondary}
                 autoCapitalize="words"
+                testID="stripe-address-city"
               />
               {errors.city && (
                 <Text style={styles.errorText}>{errors.city}</Text>
@@ -577,6 +584,7 @@ export default function AddressScreen({
                   placeholderTextColor={colors.textSecondary}
                   keyboardType="number-pad"
                   maxLength={4}
+                  testID="stripe-address-postalcode"
                 />
                 {errors.postalCode && (
                   <Text style={styles.errorText}>{errors.postalCode}</Text>
@@ -600,6 +608,7 @@ export default function AddressScreen({
             ]}
             onPress={handleNext}
             disabled={isSubmitting}
+            testID="stripe-address-next-btn"
           >
             {isSubmitting ? (
               <ActivityIndicator color="#FFFFFF" size="small" />

@@ -5,13 +5,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import {
-    Alert,
-    Pressable,
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  Alert,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 import AddStaffModal from "../../components/modals/AddStaffModal";
 import EditStaffModal from "../../components/modals/EditStaffModal";
@@ -159,8 +159,12 @@ export default function StaffCrewScreen() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View
+      testID="business-staff-screen"
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <ScrollView
+        testID="business-staff-scroll"
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
         refreshControl={

@@ -8,22 +8,22 @@ import { useNavigation } from "@react-navigation/native";
 import { initStripe, useStripe } from "@stripe/stripe-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Animated,
-    Dimensions,
-    Modal,
-    Pressable,
-    Text,
-    TextInput,
-    View,
+  ActivityIndicator,
+  Alert,
+  Animated,
+  Dimensions,
+  Modal,
+  Pressable,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MascotLoading from "../../components/ui/MascotLoading";
 import { STRIPE_PUBLISHABLE_KEY } from "../../config/environment";
 import {
-    calculatePlatformFee,
-    formatCommissionRate,
+  calculatePlatformFee,
+  formatCommissionRate,
 } from "../../constants/plans";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useJobTimerContext } from "../../context/JobTimerProvider";
@@ -33,8 +33,8 @@ import { useJobPayment } from "../../hooks/useJobPayment";
 import { useTranslation } from "../../localization/useLocalization";
 import { acceptJob, updateJob } from "../../services/jobs";
 import {
-    trackPaymentFunnelStep,
-    trackPaymentMethodSelected,
+  trackPaymentFunnelStep,
+  trackPaymentMethodSelected,
 } from "../../services/stripeAnalytics";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");

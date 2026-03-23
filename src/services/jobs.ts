@@ -308,6 +308,18 @@ export async function fetchJobById(jobId: string): Promise<JobAPI> {
   }
 }
 
+/** Default coordinates per Australian state/territory — used when no GPS data is available */
+const AU_STATE_COORDS: Record<string, { lat: number; lng: number }> = {
+  NSW: { lat: -33.8688, lng: 151.2093 },
+  VIC: { lat: -37.8136, lng: 144.9631 },
+  QLD: { lat: -27.4698, lng: 153.0251 },
+  WA: { lat: -31.9505, lng: 115.8605 },
+  SA: { lat: -34.9285, lng: 138.6007 },
+  TAS: { lat: -42.8821, lng: 147.3272 },
+  NT: { lat: -12.4634, lng: 130.8456 },
+  ACT: { lat: -35.2809, lng: 149.13 },
+};
+
 /**
  * Crée un nouveau job
  */
@@ -319,7 +331,7 @@ export async function createJob(jobData: CreateJobRequest): Promise<JobAPI> {
     );
 
     // Convertir les données au format attendu par l'API (snake_case)
-    const apiPayload = {
+    const apiPayload: Record<string, unknown> = {
       client_id: jobData.client_id,
       status: jobData.status || "pending",
       priority: jobData.priority || "medium",
@@ -334,33 +346,36 @@ export async function createJob(jobData: CreateJobRequest): Promise<JobAPI> {
       notes: jobData.notes || null,
       // Staff assigné
       assigned_staff_id: jobData.assigned_staff_id || null,
-      // Extras
-      extras: jobData.extras || [],
       // Truck info
       truck_name: jobData.truck?.name || null,
       truck_license_plate: jobData.truck?.licensePlate || null,
-      // Adresses - format API (peut nécessiter un ajustement)
+      // Extras - format API (confirmed working in docs)
+      extras: jobData.extras || [],
+      // Adresses - format API (lat/lng required by backend timezoneService)
       addresses:
-        jobData.addresses?.map((addr) => ({
-          type: addr.type,
-          street: addr.street,
-          city: addr.city,
-          state: addr.state,
-          zip: addr.zip,
-        })) || [],
-      // Payment details
-      amount_total: jobData.amount_total || null,
-      payment_method: jobData.payment_method || null,
-      deposit_required: jobData.deposit_required ? 1 : 0,
-      deposit_percentage: jobData.deposit_percentage || null,
-      deposit_paid: jobData.deposit_paid ? 1 : 0,
-      // Pricing configuration
-      hourly_rate: jobData.hourly_rate || null,
-      minimum_hours: jobData.minimum_hours || null,
-      call_out_fee_minutes: jobData.call_out_fee_minutes ?? null,
-      depot_to_depot: jobData.depot_to_depot ? 1 : 0,
-      time_rounding_minutes: jobData.time_rounding_minutes || null,
+        jobData.addresses?.map((addr) => {
+          const fallback = AU_STATE_COORDS[addr.state?.toUpperCase()] ?? {
+            lat: -33.8688,
+            lng: 151.2093,
+          };
+          return {
+            type: addr.type,
+            street: addr.street,
+            city: addr.city,
+            state: addr.state,
+            zip: addr.zip,
+            lat: addr.latitude ?? fallback.lat,
+            lng: addr.longitude ?? fallback.lng,
+          };
+        }) || [],
     };
+
+    // Pricing fields — commented out until backend migration adds these columns
+    // if (jobData.hourly_rate != null) apiPayload.hourly_rate = jobData.hourly_rate;
+    // if (jobData.minimum_hours != null) apiPayload.minimum_hours = jobData.minimum_hours;
+    // if (jobData.call_out_fee_minutes != null) apiPayload.call_out_fee_minutes = jobData.call_out_fee_minutes;
+    // if (jobData.depot_to_depot != null) apiPayload.depot_to_depot = jobData.depot_to_depot ? 1 : 0;
+    // if (jobData.time_rounding_minutes != null) apiPayload.time_rounding_minutes = jobData.time_rounding_minutes;
 
     console.log(
       "📡 [createJob] API payload (snake_case):",

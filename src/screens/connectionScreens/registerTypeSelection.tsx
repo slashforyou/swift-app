@@ -54,11 +54,12 @@ const RegisterTypeSelection: React.FC<RegisterTypeSelectionProps> = ({
   ];
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView testID="register-type-screen" style={styles.container}>
       <AnimatedBackground opacity={0.05} />
 
       {/* Header */}
       <View
+        testID="register-type-header"
         style={{
           paddingHorizontal: 20,
           paddingTop: 20,
@@ -69,6 +70,7 @@ const RegisterTypeSelection: React.FC<RegisterTypeSelectionProps> = ({
         }}
       >
         <Pressable
+          testID="register-type-back-btn"
           onPress={() => navigation.navigate("Connection")}
           style={{
             flexDirection: "row",
@@ -97,6 +99,7 @@ const RegisterTypeSelection: React.FC<RegisterTypeSelectionProps> = ({
       </View>
 
       <ScrollView
+        testID="register-type-scroll"
         contentContainerStyle={{
           flexGrow: 1,
           paddingHorizontal: 20,
@@ -121,6 +124,7 @@ const RegisterTypeSelection: React.FC<RegisterTypeSelectionProps> = ({
         {accountTypes.map((type) => (
           <Pressable
             key={type.id}
+            testID={`register-type-card-${type.id}`}
             style={{
               backgroundColor: colors.backgroundSecondary,
               borderRadius: 16,

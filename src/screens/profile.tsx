@@ -130,6 +130,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
         {/* Edit/Save/Cancel buttons in header */}
         {onEdit && !isEditing && (
           <Pressable
+            testID="profile-edit-btn"
             onPress={onEdit}
             style={({ pressed }) => ({
               width: 36,
@@ -149,6 +150,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
         {isEditing && onCancel && onSave && (
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
             <Pressable
+              testID="profile-cancel-btn"
               onPress={onCancel}
               style={({ pressed }) => ({
                 paddingHorizontal: 12,
@@ -166,6 +168,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
               </Text>
             </Pressable>
             <Pressable
+              testID="profile-save-btn"
               onPress={onSave}
               style={({ pressed }) => ({
                 paddingHorizontal: 12,
@@ -209,6 +212,7 @@ interface ProfileFormFieldProps {
   multiline?: boolean;
   placeholder?: string;
   editable?: boolean;
+  testID?: string;
 }
 
 const ProfileFormField: React.FC<ProfileFormFieldProps> = ({
@@ -219,6 +223,7 @@ const ProfileFormField: React.FC<ProfileFormFieldProps> = ({
   multiline = false,
   placeholder,
   editable = true,
+  testID,
 }) => {
   const { colors } = useTheme();
 
@@ -253,6 +258,7 @@ const ProfileFormField: React.FC<ProfileFormFieldProps> = ({
         placeholder={placeholder}
         placeholderTextColor={colors.inputPlaceholder}
         editable={editable}
+        testID={testID}
         textAlignVertical={multiline ? "top" : "center"}
       />
     </View>
@@ -443,6 +449,7 @@ const ProfileScreen: React.FC = () => {
 
   return (
     <SafeAreaView
+      testID="profile-screen"
       style={{
         flex: 1,
         backgroundColor: colors.background,
@@ -451,6 +458,7 @@ const ProfileScreen: React.FC = () => {
     >
       {/* Header avec bouton retour circulaire et LanguageButton */}
       <View
+        testID="profile-header"
         style={{
           flexDirection: "row",
           alignItems: "center",
@@ -468,6 +476,7 @@ const ProfileScreen: React.FC = () => {
         }}
       >
         <Pressable
+          testID="profile-back-btn"
           style={({ pressed }) => ({
             width: 40,
             height: 40,
@@ -483,6 +492,7 @@ const ProfileScreen: React.FC = () => {
         </Pressable>
 
         <Text
+          testID="profile-title-text"
           style={{
             fontSize: 20,
             fontWeight: "700",
@@ -499,6 +509,7 @@ const ProfileScreen: React.FC = () => {
       </View>
 
       <ScrollView
+        testID="profile-scroll"
         style={{
           flex: 1,
           backgroundColor: colors.background,
@@ -509,6 +520,7 @@ const ProfileScreen: React.FC = () => {
       >
         {/* Avatar Section */}
         <View
+          testID="profile-avatar-section"
           style={{
             alignItems: "center",
             marginBottom: DESIGN_TOKENS.spacing.xl,
@@ -547,7 +559,10 @@ const ProfileScreen: React.FC = () => {
           isExpanded={expandedSections.personalInfo}
           onToggle={() => toggleSection("personalInfo")}
           colors={colors}
-          onEdit={() => setIsEditing(true)}
+          onEdit={() => {
+            if (!expandedSections.personalInfo) toggleSection("personalInfo");
+            setIsEditing(true);
+          }}
           isEditing={isEditing}
           onCancel={handleCancel}
           onSave={handleSave}
@@ -588,6 +603,7 @@ const ProfileScreen: React.FC = () => {
             }
             keyboardType="phone-pad"
             editable={isEditing}
+            testID="profile-phone-input"
           />
 
           <ProfileFormField

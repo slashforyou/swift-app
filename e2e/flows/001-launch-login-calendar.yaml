@@ -1,0 +1,53 @@
+appId: host.exp.exponent
+---
+# Flow 001 — Détection d'état → Login si besoin → Navigation Calendrier
+#
+# Cas couverts :
+#   A. App sur l'écran de connexion  → login → home → calendrier
+#   B. App déjà sur home             → calendrier directement
+#   C. App sur un autre écran        → retour arrière vers home → calendrier
+
+# Étape 1 — Login si on est sur l'écran de connexion
+- runFlow:
+    when:
+      visible:
+        id: "connection-screen"
+    file: 002-login-flow.yaml
+
+# Étape 2 — Si on n'est pas sur home, on presse Back pour y revenir (jusqu'à 3 fois)
+- runFlow:
+    when:
+      notVisible:
+        id: "home-screen"
+    commands:
+      - pressKey: Back
+
+- runFlow:
+    when:
+      notVisible:
+        id: "home-screen"
+    commands:
+      - pressKey: Back
+
+- runFlow:
+    when:
+      notVisible:
+        id: "home-screen"
+    commands:
+      - pressKey: Back
+
+# Étape 3 — Vérifier qu'on est sur home
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 10000
+
+# Étape 4 — Naviguer vers le Calendrier
+- tapOn:
+    id: "home-calendar-btn"
+
+# Étape 5 — Vérifier l'écran calendrier
+- extendedWaitUntil:
+    visible:
+      id: "calendar-month-screen"
+    timeout: 10000

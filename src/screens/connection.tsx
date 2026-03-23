@@ -52,7 +52,7 @@ const ConnectionScreen: React.FC<ConnectionScreenProps> = ({ navigation }) => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView testID="connection-screen" style={styles.container}>
       <View
         style={{
           position: "absolute",
@@ -61,9 +61,9 @@ const ConnectionScreen: React.FC<ConnectionScreenProps> = ({ navigation }) => {
           zIndex: 10,
         }}
       >
-        <RoundLanguageButton />
+        <RoundLanguageButton testID="connection-language-btn" />
       </View>
-      <View style={styles.containerCentered}>
+      <View testID="connection-content" style={styles.containerCentered}>
         {/* Logo Section */}
         <View
           style={{
@@ -78,11 +78,15 @@ const ConnectionScreen: React.FC<ConnectionScreenProps> = ({ navigation }) => {
         </View>
 
         {/* Welcome Text */}
-        <Text style={[styles.title, { marginBottom: 8, textAlign: "center" }]}>
+        <Text
+          testID="connection-title-text"
+          style={[styles.title, { marginBottom: 8, textAlign: "center" }]}
+        >
           {t("auth.connection.title")}
         </Text>
 
         <Text
+          testID="connection-subtitle-text"
           style={[
             styles.body,
             {
@@ -97,21 +101,32 @@ const ConnectionScreen: React.FC<ConnectionScreenProps> = ({ navigation }) => {
         </Text>
 
         {/* Action Buttons */}
-        <View style={{ width: "100%", paddingHorizontal: 20, gap: 16 }}>
+        <View
+          testID="connection-actions"
+          style={{ width: "100%", paddingHorizontal: 20, gap: 16 }}
+        >
           <Pressable
+            testID="connection-login-btn"
             style={[styles.buttonPrimary, { width: "100%" }]}
             onPress={() => navigation.navigate("Login")}
           >
-            <Text style={styles.buttonPrimaryText}>
+            <Text
+              testID="connection-login-text"
+              style={styles.buttonPrimaryText}
+            >
               {t("auth.connection.loginButton")}
             </Text>
           </Pressable>
 
           <Pressable
+            testID="connection-register-btn"
             style={[styles.buttonSecondary, { width: "100%" }]}
             onPress={() => navigation.navigate("RegisterTypeSelection")}
           >
-            <Text style={styles.buttonSecondaryText}>
+            <Text
+              testID="connection-register-text"
+              style={styles.buttonSecondaryText}
+            >
               {t("auth.connection.registerButton")}
             </Text>
           </Pressable>

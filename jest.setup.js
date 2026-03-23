@@ -4,7 +4,10 @@
 // Silence react-test-renderer deprecation warning from React 19
 const originalConsoleError = console.error;
 console.error = (...args) => {
-  if (typeof args[0] === 'string' && args[0].includes('react-test-renderer is deprecated')) {
+  if (
+    typeof args[0] === "string" &&
+    args[0].includes("react-test-renderer is deprecated")
+  ) {
     return;
   }
   originalConsoleError.apply(console, args);
@@ -12,259 +15,301 @@ console.error = (...args) => {
 
 // Force UTF-8 encoding for Jest test environment
 // This ensures French characters (é, à, ê, etc.) render correctly
-if (typeof TextEncoder === 'undefined') {
-  const { TextEncoder, TextDecoder } = require('util');
+if (typeof TextEncoder === "undefined") {
+  const { TextEncoder, TextDecoder } = require("util");
   global.TextEncoder = TextEncoder;
   global.TextDecoder = TextDecoder;
 }
 
 // Set process encoding to UTF-8
 if (process.stdout && process.stdout.setEncoding) {
-  process.stdout.setEncoding('utf8');
+  process.stdout.setEncoding("utf8");
 }
 if (process.stderr && process.stderr.setEncoding) {
-  process.stderr.setEncoding('utf8');
+  process.stderr.setEncoding("utf8");
 }
 
 // Define React Native globals
 global.__DEV__ = true;
 
 // Mock Expo Winter Runtime (fix for import errors after npm install)
-jest.mock('expo/src/winter/runtime.native', () => ({}), { virtual: true });
-jest.mock('expo/src/winter/installGlobal', () => ({}), { virtual: true });
+jest.mock("expo/src/winter/runtime.native", () => ({}), { virtual: true });
+jest.mock("expo/src/winter/installGlobal", () => ({}), { virtual: true });
 
 // Global fetch mock
 global.fetch = jest.fn();
 
 // Mock React Native DevMenu
-jest.mock('react-native/Libraries/Utilities/DevSettings', () => ({
-  addMenuItem: jest.fn(),
-  reload: jest.fn(),
-}), { virtual: true });
+jest.mock(
+  "react-native/Libraries/Utilities/DevSettings",
+  () => ({
+    addMenuItem: jest.fn(),
+    reload: jest.fn(),
+  }),
+  { virtual: true },
+);
 
 // Mock src/services/api if it doesn't exist
-jest.mock('./src/services/api', () => ({
-  authenticatedFetch: jest.fn(() => Promise.resolve({ json: () => Promise.resolve({}) })),
-  api: {
-    get: jest.fn(() => Promise.resolve({ data: {} })),
-    post: jest.fn(() => Promise.resolve({ data: {} })),
-    put: jest.fn(() => Promise.resolve({ data: {} })),
-    delete: jest.fn(() => Promise.resolve({ data: {} })),
-  },
-}), { virtual: true });
+jest.mock(
+  "./src/services/api",
+  () => ({
+    authenticatedFetch: jest.fn(() =>
+      Promise.resolve({ json: () => Promise.resolve({}) }),
+    ),
+    api: {
+      get: jest.fn(() => Promise.resolve({ data: {} })),
+      post: jest.fn(() => Promise.resolve({ data: {} })),
+      put: jest.fn(() => Promise.resolve({ data: {} })),
+      delete: jest.fn(() => Promise.resolve({ data: {} })),
+    },
+  }),
+  { virtual: true },
+);
 
 // Mock ThemeProvider globally
-jest.mock('./src/context/ThemeProvider', () => ({
-  ThemeProvider: ({ children }) => children,
-  useTheme: () => ({
-    colors: {
-      background: '#FFFFFF',
-      text: '#000000',
-      textSecondary: '#666666',
-      primary: '#007AFF',
-      backgroundSecondary: '#F2F2F7',
-      border: '#E5E5EA',
-      error: '#FF3B30',
-      success: '#34C759',
-      warning: '#FF9500',
-      info: '#007AFF',
-    },
-    isDark: false,
+jest.mock(
+  "./src/context/ThemeProvider",
+  () => ({
+    ThemeProvider: ({ children }) => children,
+    useTheme: () => ({
+      colors: {
+        background: "#FFFFFF",
+        text: "#000000",
+        textSecondary: "#666666",
+        primary: "#007AFF",
+        backgroundSecondary: "#F2F2F7",
+        border: "#E5E5EA",
+        error: "#FF3B30",
+        success: "#34C759",
+        warning: "#FF9500",
+        info: "#007AFF",
+      },
+      isDark: false,
+    }),
   }),
-}), { virtual: true });
+  { virtual: true },
+);
 
 // Mock useLocalization globally
-jest.mock('./src/localization/useLocalization', () => ({
-  useLocalization: () => ({
-    t: (key) => key,
-    locale: 'en',
-    setLocale: jest.fn(),
+jest.mock(
+  "./src/localization/useLocalization",
+  () => ({
+    useLocalization: () => ({
+      t: (key) => key,
+      locale: "en",
+      setLocale: jest.fn(),
+    }),
+    useTranslation: () => ({
+      t: (key) => key,
+      locale: "en",
+      setLocale: jest.fn(),
+    }),
   }),
-  useTranslation: () => ({
-    t: (key) => key,
-    locale: 'en',
-    setLocale: jest.fn(),
-  }),
-}), { virtual: true });
+  { virtual: true },
+);
 
 // Mock localization index (covers imports from 'src/localization')
-jest.mock('./src/localization', () => ({
-  useLocalization: () => ({
-    t: (key) => key,
-    locale: 'en',
-    setLocale: jest.fn(),
+jest.mock(
+  "./src/localization",
+  () => ({
+    useLocalization: () => ({
+      t: (key) => key,
+      locale: "en",
+      setLocale: jest.fn(),
+    }),
+    useTranslation: () => ({
+      t: (key) => key,
+      locale: "en",
+      setLocale: jest.fn(),
+    }),
+    LocalizationProvider: ({ children }) => children,
   }),
-  useTranslation: () => ({
-    t: (key) => key,
-    locale: 'en',
-    setLocale: jest.fn(),
-  }),
-  LocalizationProvider: ({ children }) => children,
-}), { virtual: true });
+  { virtual: true },
+);
 
 // Mock Styles constants
-jest.mock('./src/constants/Styles', () => {
-  const useCommonThemedStylesMock = () => ({
-    container: { flex: 1 },
-    centered: { alignItems: 'center', justifyContent: 'center' },
-    card: { 
-      backgroundColor: '#FFFFFF',
-      borderRadius: 12,
-      padding: 16,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 2,
-    },
-    panel: {
-      backgroundColor: '#FFFFFF',
-      borderRadius: 12,
-      padding: 16,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.15,
-      shadowRadius: 8,
-      elevation: 4,
-    },
-  });
-  
-  return {
-    commonStyles: {
+jest.mock(
+  "./src/constants/Styles",
+  () => {
+    const useCommonThemedStylesMock = () => ({
       container: { flex: 1 },
-      centered: { alignItems: 'center', justifyContent: 'center' },
-    },
-    DESIGN_TOKENS: {
-      spacing: { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32, xxxl: 40 },
-      typography: {
-        title: { fontSize: 20, lineHeight: 26, fontWeight: '600' },
-        subtitle: { fontSize: 17, lineHeight: 22, fontWeight: '500' },
-        body: { fontSize: 15, lineHeight: 20, fontWeight: '400' },
-        caption: { fontSize: 13, lineHeight: 18, fontWeight: '400' },
-      },
-      radius: { sm: 8, md: 12, lg: 16 },
-    },
-    useCommonThemedStyles: useCommonThemedStylesMock,
-    useCommonStyles: useCommonThemedStylesMock,
-  };
-}, { virtual: true });
-
-// Mock Card component (uses useCommonThemedStyles)
-jest.mock('./src/components/ui/Card', () => {
-  const React = require('react');
-  const { View } = require('react-native');
-  
-  return {
-    Card: ({ children, style }) => {
-      const mockCardStyle = {
-        backgroundColor: '#FFFFFF',
+      centered: { alignItems: "center", justifyContent: "center" },
+      card: {
+        backgroundColor: "#FFFFFF",
         borderRadius: 12,
         padding: 16,
-      };
-      return React.createElement(View, { style: [mockCardStyle, style] }, children);
-    },
-  };
-}, { virtual: true });
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 2,
+      },
+      panel: {
+        backgroundColor: "#FFFFFF",
+        borderRadius: 12,
+        padding: 16,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+        elevation: 4,
+      },
+    });
+
+    return {
+      commonStyles: {
+        container: { flex: 1 },
+        centered: { alignItems: "center", justifyContent: "center" },
+      },
+      DESIGN_TOKENS: {
+        spacing: { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32, xxxl: 40 },
+        typography: {
+          title: { fontSize: 20, lineHeight: 26, fontWeight: "600" },
+          subtitle: { fontSize: 17, lineHeight: 22, fontWeight: "500" },
+          body: { fontSize: 15, lineHeight: 20, fontWeight: "400" },
+          caption: { fontSize: 13, lineHeight: 18, fontWeight: "400" },
+        },
+        radius: { sm: 8, md: 12, lg: 16 },
+      },
+      useCommonThemedStyles: useCommonThemedStylesMock,
+      useCommonStyles: useCommonThemedStylesMock,
+    };
+  },
+  { virtual: true },
+);
+
+// Mock Card component (uses useCommonThemedStyles)
+jest.mock(
+  "./src/components/ui/Card",
+  () => {
+    const React = require("react");
+    const { View } = require("react-native");
+
+    return {
+      Card: ({ children, style }) => {
+        const mockCardStyle = {
+          backgroundColor: "#FFFFFF",
+          borderRadius: 12,
+          padding: 16,
+        };
+        return React.createElement(
+          View,
+          { style: [mockCardStyle, style] },
+          children,
+        );
+      },
+    };
+  },
+  { virtual: true },
+);
 
 // Mock useStaff hook
-jest.mock('./src/hooks/useStaff', () => ({
-  useStaff: () => ({
-    staff: [],
-    employees: [],
-    contractors: [],
-    inviteEmployee: jest.fn(),
-    searchContractor: jest.fn(),
-    addContractor: jest.fn(),
-    updateEmployee: jest.fn(),
-    updateContractor: jest.fn(),
-    deleteEmployee: jest.fn(),
-    deleteContractor: jest.fn(),
-    refreshStaff: jest.fn(),
-    isLoading: false,
-    error: null,
-    totalActive: 0,
-    totalEmployees: 0,
-    totalContractors: 0,
-    totalTeams: 0,
-    averageEmployeeRate: 0,
+jest.mock(
+  "./src/hooks/useStaff",
+  () => ({
+    useStaff: () => ({
+      staff: [],
+      employees: [],
+      contractors: [],
+      inviteEmployee: jest.fn(),
+      searchContractor: jest.fn(),
+      addContractor: jest.fn(),
+      updateEmployee: jest.fn(),
+      updateContractor: jest.fn(),
+      deleteEmployee: jest.fn(),
+      deleteContractor: jest.fn(),
+      refreshStaff: jest.fn(),
+      isLoading: false,
+      error: null,
+      totalActive: 0,
+      totalEmployees: 0,
+      totalContractors: 0,
+      totalTeams: 0,
+      averageEmployeeRate: 0,
+    }),
   }),
-}), { virtual: true });
+  { virtual: true },
+);
 
 // Mock useVehicles hook with test data
-jest.mock('./src/hooks/useVehicles', () => ({
-  useVehicles: () => ({
-    vehicles: [
-      {
-        id: 'v1',
-        type: 'moving-truck',
-        make: 'Isuzu',
-        model: 'NPR 200',
-        year: 2020,
-        registration: 'ABC-123',
-        status: 'available',
-        location: 'Sydney Depot',
-        capacity: '4.5 tonnes',
-        fuelType: 'Diesel',
-      },
-      {
-        id: 'v2',
-        type: 'van',
-        make: 'Ford',
-        model: 'Transit',
-        year: 2021,
-        registration: 'XYZ-456',
-        status: 'in-use',
-        location: 'Melbourne Depot',
-        capacity: '1.5 tonnes',
-        fuelType: 'Diesel',
-      },
-      {
-        id: 'v3',
-        type: 'trailer',
-        make: 'Custom',
-        model: 'Box Trailer',
-        year: 2019,
-        registration: 'TRL-789',
-        status: 'available',
-        location: 'Brisbane Depot',
-        capacity: '2 tonnes',
-        fuelType: 'N/A',
-      },
-      {
-        id: 'v4',
-        type: 'ute',
-        make: 'Toyota',
-        model: 'HiLux',
-        year: 2022,
-        registration: 'UTE-101',
-        status: 'maintenance',
-        location: 'Adelaide Depot',
-        capacity: '1 tonne',
-        fuelType: 'Diesel',
-      },
-    ],
-    totalVehicles: 4,
-    availableCount: 2,
-    inUseCount: 1,
-    maintenanceCount: 1,
-    isLoading: false,
-    error: null,
-    refetch: jest.fn(),
-    addVehicle: jest.fn(),
-    updateVehicle: jest.fn(),
-    deleteVehicle: jest.fn(),
-    editVehicle: jest.fn(),
-    removeVehicle: jest.fn(),
+jest.mock(
+  "./src/hooks/useVehicles",
+  () => ({
+    useVehicles: () => ({
+      vehicles: [
+        {
+          id: "v1",
+          type: "moving-truck",
+          make: "Isuzu",
+          model: "NPR 200",
+          year: 2020,
+          registration: "ABC-123",
+          status: "available",
+          location: "Sydney Depot",
+          capacity: "4.5 tonnes",
+          fuelType: "Diesel",
+        },
+        {
+          id: "v2",
+          type: "van",
+          make: "Ford",
+          model: "Transit",
+          year: 2021,
+          registration: "XYZ-456",
+          status: "in-use",
+          location: "Melbourne Depot",
+          capacity: "1.5 tonnes",
+          fuelType: "Diesel",
+        },
+        {
+          id: "v3",
+          type: "trailer",
+          make: "Custom",
+          model: "Box Trailer",
+          year: 2019,
+          registration: "TRL-789",
+          status: "available",
+          location: "Brisbane Depot",
+          capacity: "2 tonnes",
+          fuelType: "N/A",
+        },
+        {
+          id: "v4",
+          type: "ute",
+          make: "Toyota",
+          model: "HiLux",
+          year: 2022,
+          registration: "UTE-101",
+          status: "maintenance",
+          location: "Adelaide Depot",
+          capacity: "1 tonne",
+          fuelType: "Diesel",
+        },
+      ],
+      totalVehicles: 4,
+      availableCount: 2,
+      inUseCount: 1,
+      maintenanceCount: 1,
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+      addVehicle: jest.fn(),
+      updateVehicle: jest.fn(),
+      deleteVehicle: jest.fn(),
+      editVehicle: jest.fn(),
+      removeVehicle: jest.fn(),
+    }),
+    useVehicleDetails: (id) => ({
+      vehicle: null,
+      maintenanceHistory: [],
+      isLoading: false,
+      error: null,
+      refreshVehicle: jest.fn(),
+      addMaintenanceRecord: jest.fn(),
+    }),
   }),
-  useVehicleDetails: (id) => ({
-    vehicle: null,
-    maintenanceHistory: [],
-    isLoading: false,
-    error: null,
-    refreshVehicle: jest.fn(),
-    addMaintenanceRecord: jest.fn(),
-  }),
-}), { virtual: true });
+  { virtual: true },
+);
 
 // Mock modal components - Commented out to allow testing the real components
 // jest.mock('./src/components/business/modals/InviteEmployeeModal', () => ({
@@ -284,13 +329,17 @@ jest.mock('./src/hooks/useVehicles', () => ({
 //   },
 // }), { virtual: true });
 
-jest.mock('./src/components/modals/AddStaffModal', () => ({
-  __esModule: true,
-  default: ({ visible, onClose, onSubmit }) => {
-    if (!visible) return null;
-    return null;
-  },
-}), { virtual: true });
+jest.mock(
+  "./src/components/modals/AddStaffModal",
+  () => ({
+    __esModule: true,
+    default: ({ visible, onClose, onSubmit }) => {
+      if (!visible) return null;
+      return null;
+    },
+  }),
+  { virtual: true },
+);
 
 // Mock console methods for cleaner test output
 const originalConsole = { ...console };

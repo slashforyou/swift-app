@@ -132,6 +132,25 @@ export interface TranslationKeys {
       title: string;
       description: string;
     };
+    contact: {
+      title: string;
+      yourMessage: string;
+      helpLabel: string;
+      feedbackLabel: string;
+      featureLabel: string;
+      bugLabel: string;
+      placeholder: string;
+      send: string;
+      sending: string;
+      cancel: string;
+      thankYou: string;
+      thankYouMessage: string;
+      errorSending: string;
+    };
+    stripeAlert: {
+      title: string;
+      description: string;
+    };
   };
 
   // Navigation
@@ -213,11 +232,26 @@ export interface TranslationKeys {
     timeRounding: string;
     estimatedDuration: string;
     jobDetails?: string;
-    priorityOptions?: { low?: string; medium?: string; high?: string; urgent?: string };
+    priorityOptions?: {
+      low?: string;
+      medium?: string;
+      high?: string;
+      urgent?: string;
+    };
     addressTypes?: { pickup?: string; delivery?: string };
-    vehicleTypes?: { van?: string; truck?: string; "2-ton"?: string; pantech?: string };
+    vehicleTypes?: {
+      van?: string;
+      truck?: string;
+      "2-ton"?: string;
+      pantech?: string;
+    };
     extrasOptions?: { [key: string]: string };
-    paymentMethods?: { cash?: string; card?: string; bank_transfer?: string; invoice?: string };
+    paymentMethods?: {
+      cash?: string;
+      card?: string;
+      bank_transfer?: string;
+      invoice?: string;
+    };
     hours?: string;
     estimated?: string;
     marginMinutes?: string;
@@ -1018,7 +1052,13 @@ export interface TranslationKeys {
         cancelConfirmNo?: string;
         modal?: { [key: string]: string };
       };
-      contact?: { title?: string; subtitle?: string; name?: string; phone?: string; call?: string };
+      contact?: {
+        title?: string;
+        subtitle?: string;
+        name?: string;
+        phone?: string;
+        call?: string;
+      };
       company?: { [key: string]: string };
       stepHistory?: { [key: string]: string };
       addresses?: { [key: string]: string };
@@ -1642,6 +1682,9 @@ export interface TranslationKeys {
       details?: string;
       errorLabel?: string;
       retest?: string;
+      stripeExplanation?: string;
+      feePassToClient?: string;
+      feePassToClientDesc?: string;
     };
     onboarding: {
       stepLabel: string;

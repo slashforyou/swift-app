@@ -42,6 +42,7 @@ const TodaySection: React.FC<TodaySectionProps> = ({ onPress, style }) => {
 
   return (
     <Pressable
+      testID="home-today-section"
       onPress={onPress}
       style={({ pressed }) => [
         {

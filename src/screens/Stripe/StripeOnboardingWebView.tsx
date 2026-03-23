@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { ActivityIndicator, Text, View } from 'react-native';
-import { WebView } from 'react-native-webview';
-import { useTheme } from '../../context/ThemeProvider_Advanced';
-import { Button } from '../../design-system/components';
-import { DESIGN_TOKENS } from '../../design-system/tokens';
-import { useLocalization } from '../../localization/useLocalization';
+import React, { useState } from "react";
+import { ActivityIndicator, Text, View } from "react-native";
+import { WebView } from "react-native-webview";
+import { useTheme } from "../../context/ThemeProvider_Advanced";
+import { Button } from "../../design-system/components";
+import { DESIGN_TOKENS } from "../../design-system/tokens";
+import { useLocalization } from "../../localization/useLocalization";
 
 interface StripeOnboardingWebViewProps {
   url: string;
@@ -25,10 +25,13 @@ const StripeOnboardingWebView: React.FC<StripeOnboardingWebViewProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   const handleNavigationStateChange = (navState: any) => {
-    if (navState.url.includes('success') || navState.url.includes('complete')) {
+    if (navState.url.includes("success") || navState.url.includes("complete")) {
       onComplete();
-    } else if (navState.url.includes('error') || navState.url.includes('cancel')) {
-      onError(t('payment.stripeOnboarding.onboardingInterrupted'));
+    } else if (
+      navState.url.includes("error") ||
+      navState.url.includes("cancel")
+    ) {
+      onError(t("payment.stripeOnboarding.onboardingInterrupted"));
     }
   };
 
@@ -38,28 +41,32 @@ const StripeOnboardingWebView: React.FC<StripeOnboardingWebViewProps> = ({
 
   const handleError = () => {
     setLoading(false);
-    setError(t('payment.stripeOnboarding.loadError'));
+    setError(t("payment.stripeOnboarding.loadError"));
   };
 
   if (error) {
     return (
-      <View style={{
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: DESIGN_TOKENS.spacing.xl,
-        backgroundColor: colors.background,
-      }}>
-        <Text style={{
-          fontSize: DESIGN_TOKENS.typography.fontSize.lg,
-          color: colors.error,
-          textAlign: 'center',
-          marginBottom: DESIGN_TOKENS.spacing.lg,
-        }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          padding: DESIGN_TOKENS.spacing.xl,
+          backgroundColor: colors.background,
+        }}
+      >
+        <Text
+          style={{
+            fontSize: DESIGN_TOKENS.typography.fontSize.lg,
+            color: colors.error,
+            textAlign: "center",
+            marginBottom: DESIGN_TOKENS.spacing.lg,
+          }}
+        >
           {error}
         </Text>
         <Button
-          title={t('payment.stripeOnboarding.retry')}
+          title={t("payment.stripeOnboarding.retry")}
           variant="primary"
           onPress={() => {
             setError(null);
@@ -67,7 +74,7 @@ const StripeOnboardingWebView: React.FC<StripeOnboardingWebViewProps> = ({
           }}
         />
         <Button
-          title={t('payment.stripeOnboarding.close')}
+          title={t("payment.stripeOnboarding.close")}
           variant="secondary"
           onPress={onClose}
           style={{ marginTop: DESIGN_TOKENS.spacing.md }}
@@ -77,30 +84,37 @@ const StripeOnboardingWebView: React.FC<StripeOnboardingWebViewProps> = ({
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <View
+      testID="stripe-onboarding-webview"
+      style={{ flex: 1, backgroundColor: colors.background }}
+    >
       {loading && (
-        <View style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          justifyContent: 'center',
-          alignItems: 'center',
-          backgroundColor: colors.background,
-          zIndex: 1000,
-        }}>
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: colors.background,
+            zIndex: 1000,
+          }}
+        >
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={{
-            marginTop: DESIGN_TOKENS.spacing.md,
-            color: colors.textSecondary,
-            textAlign: 'center',
-          }}>
-            {t('payment.stripeOnboarding.loading')}
+          <Text
+            style={{
+              marginTop: DESIGN_TOKENS.spacing.md,
+              color: colors.textSecondary,
+              textAlign: "center",
+            }}
+          >
+            {t("payment.stripeOnboarding.loading")}
           </Text>
         </View>
       )}
-      
+
       <WebView
         source={{ uri: url }}
         onNavigationStateChange={handleNavigationStateChange}

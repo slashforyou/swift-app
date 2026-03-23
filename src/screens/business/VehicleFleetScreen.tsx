@@ -302,13 +302,16 @@ const VehicleFleetScreen: React.FC = () => {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Header avec bouton d'ajout */}
+    <View
+      testID="business-fleet-screen"
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <View style={styles.header}>
         <Text style={[styles.title, { color: colors.text }]}>
           {t("vehicles.fleet")}
         </Text>
         <TouchableOpacity
+          testID="add-vehicle-button"
           style={[styles.addButton, { backgroundColor: colors.primary }]}
           onPress={handleAddVehicle}
           disabled={isCreating}

@@ -11,8 +11,8 @@ import {
 } from "../types/staff";
 
 // Configuration pour basculer entre mock et API
-// ✅ STAFF-04: Désactivé les mocks, utilisation des données réelles
-const USE_MOCK_DATA = false;
+// ✅ STAFF-04: Mock uniquement en développement
+const USE_MOCK_DATA = __DEV__;
 
 export const useStaff = (): UseStaffResult => {
   const [staff, setStaff] = useState<StaffMember[]>([]);

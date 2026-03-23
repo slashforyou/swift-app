@@ -39,28 +39,6 @@ const InfoRow: React.FC<InfoRowProps> = ({ label, value, icon }) => {
   );
 };
 
-// Composant StatCard pour afficher une statistique
-const StatCard: React.FC<{
-  label: string;
-  value: string | number;
-  color?: string;
-}> = ({ label, value, color }) => {
-  const { colors } = useTheme();
-
-  return (
-    <View
-      style={[styles.statCard, { backgroundColor: colors.backgroundSecondary }]}
-    >
-      <Text style={[styles.statValue, { color: color || colors.primary }]}>
-        {value}
-      </Text>
-      <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-        {label}
-      </Text>
-    </View>
-  );
-};
-
 /**
  * Composant principal BusinessInfoPage
  */
@@ -72,7 +50,6 @@ const BusinessInfoPage: React.FC = () => {
   // Hook business info avec gestion d'état
   const {
     currentBusiness: businessData,
-    businessStats,
     isLoading,
     error,
     refreshData,
@@ -105,34 +82,9 @@ const BusinessInfoPage: React.FC = () => {
 
   return (
     <ScrollView
+      testID="business-info-scroll"
       style={[styles.container, { backgroundColor: colors.background }]}
-      showsVerticalScrollIndicator={false}
     >
-      {/* Section des statistiques */}
-      <VStack style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>
-          {t("business.info.statisticsOverview")}
-        </Text>
-
-        <HStack style={styles.statsRow}>
-          <StatCard
-            label={t("business.info.totalVehicles")}
-            value={businessStats?.totalVehicles || 0}
-            color={colors.info}
-          />
-          <StatCard
-            label={t("business.info.activeJobs")}
-            value={businessStats?.activeJobs || 0}
-            color={colors.success}
-          />
-          <StatCard
-            label={t("business.info.completedJobs")}
-            value={businessStats?.completedJobs || 0}
-            color={colors.warning}
-          />
-        </HStack>
-      </VStack>
-
       {/* Section des informations générales */}
       <VStack style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>
@@ -285,24 +237,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "600",
     marginBottom: DESIGN_TOKENS.spacing.md,
-  },
-  statsRow: {
-    gap: DESIGN_TOKENS.spacing.sm,
-  },
-  statCard: {
-    flex: 1,
-    padding: DESIGN_TOKENS.spacing.md,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  statValue: {
-    fontSize: 24,
-    fontWeight: "700",
-  },
-  statLabel: {
-    fontSize: 12,
-    textAlign: "center",
-    marginTop: DESIGN_TOKENS.spacing.xs,
   },
   infoCard: {
     padding: DESIGN_TOKENS.spacing.md,

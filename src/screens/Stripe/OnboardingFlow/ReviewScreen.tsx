@@ -416,7 +416,11 @@ export default function ReviewScreen({ navigation, route }: ReviewScreenProps) {
   });
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <SafeAreaView
+      style={styles.container}
+      edges={["top"]}
+      testID="stripe-review-screen"
+    >
       {/* Header avec retour et étape */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -675,6 +679,7 @@ export default function ReviewScreen({ navigation, route }: ReviewScreenProps) {
           style={styles.tosSection}
           onPress={() => setTosAccepted(!tosAccepted)}
           activeOpacity={0.7}
+          testID="stripe-review-tos-btn"
         >
           <View style={styles.tosCheckboxRow}>
             <View
@@ -709,6 +714,7 @@ export default function ReviewScreen({ navigation, route }: ReviewScreenProps) {
           ]}
           onPress={handleActivate}
           disabled={!tosAccepted || isSubmitting}
+          testID="stripe-review-activate-btn"
         >
           {isSubmitting ? (
             <ActivityIndicator color="#FFFFFF" size="small" />

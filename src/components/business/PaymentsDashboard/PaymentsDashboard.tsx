@@ -6,22 +6,22 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback, useState } from "react";
 import {
-    RefreshControl,
-    ScrollView,
-    TouchableOpacity,
-    View,
+  RefreshControl,
+  ScrollView,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 // Design System
 import { useTheme } from "../../../context/ThemeProvider";
 import {
-    Body,
-    BodyLarge,
-    BodySmall,
-    Button,
-    Card,
-    Heading3,
-    useDesignSystem,
+  Body,
+  BodyLarge,
+  BodySmall,
+  Button,
+  Card,
+  Heading3,
+  useDesignSystem,
 } from "../../../design-system/components";
 
 // Hooks business
@@ -64,7 +64,8 @@ export const PaymentsDashboard: React.FC<PaymentsDashboardProps> = ({
   const paymentStats = {
     total: recentPayments.length,
     successful: recentPayments.filter((p) => p.status === "succeeded").length,
-    pending: recentPayments.filter((p) => (p.status as string) === "pending").length,
+    pending: recentPayments.filter((p) => (p.status as string) === "pending")
+      .length,
   };
 
   const handleRefresh = useCallback(async () => {

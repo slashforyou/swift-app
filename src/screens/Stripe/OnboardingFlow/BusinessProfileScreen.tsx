@@ -326,7 +326,7 @@ export default function BusinessProfileScreen({
   });
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <SafeAreaView style={styles.container} edges={["top"]} testID="stripe-businessprofile-screen">
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
@@ -379,6 +379,7 @@ export default function BusinessProfileScreen({
                 )}
                 keyboardType="number-pad"
                 maxLength={4}
+                testID="stripe-businessprofile-mcc"
               />
               {errors.mcc && <Text style={styles.errorText}>{errors.mcc}</Text>}
             </View>
@@ -400,6 +401,7 @@ export default function BusinessProfileScreen({
                 )}
                 autoCapitalize="none"
                 keyboardType="url"
+                testID="stripe-businessprofile-url"
               />
               {errors.url && <Text style={styles.errorText}>{errors.url}</Text>}
             </View>
@@ -424,6 +426,7 @@ export default function BusinessProfileScreen({
                   "stripe.onboarding.businessProfile.descriptionPlaceholder",
                 )}
                 multiline
+                testID="stripe-businessprofile-description"
               />
               {errors.productDescription && (
                 <Text style={styles.errorText}>
@@ -439,6 +442,7 @@ export default function BusinessProfileScreen({
             style={styles.nextButton}
             onPress={handleNext}
             disabled={isSubmitting}
+            testID="stripe-businessprofile-next-btn"
           >
             {isSubmitting ? (
               <ActivityIndicator size="small" color="white" />

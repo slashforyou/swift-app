@@ -16,7 +16,6 @@ import {
 import AddVehicleModal from "../../components/modals/AddVehicleModal";
 import { HStack, VStack } from "../../components/primitives/Stack";
 import { Card } from "../../components/ui/Card";
-import MascotLoading from "../../components/ui/MascotLoading";
 import VehicleDetailsScreen from "./VehicleDetailsScreen";
 
 // Hooks & Utils
@@ -591,24 +590,19 @@ export default function TrucksScreen() {
 
   const handleSubmitVehicle = async (vehicleData: any) => {
     try {
-      // Ajouter au context (state local)
       await addVehicleToContext({
         type: vehicleData.type,
         make: vehicleData.make,
         model: vehicleData.model,
         year: parseInt(vehicleData.year) || new Date().getFullYear(),
         registration: vehicleData.registration,
-        status: "available", // Par défaut les nouveaux véhicules sont disponibles
+        status: "available",
         capacity: vehicleData.capacity,
         location: vehicleData.location,
         nextService: vehicleData.nextService,
       });
 
       setIsAddModalVisible(false);
-      Alert.alert(
-        t("vehicles.alerts.addSuccess.title"),
-        t("vehicles.alerts.addSuccess.message"),
-      );
     } catch (error) {
       console.error("Error creating vehicle:", error);
       Alert.alert(
@@ -671,66 +665,9 @@ export default function TrucksScreen() {
     setSelectedStatus(status);
   };
 
-  // Loading state
-  if (isLoadingVehicles) {
-    return <MascotLoading text={t("vehicles.loading")} />;
-  }
-
-  // Error state
-  if (vehiclesError && mockVehicles.length === 0) {
-    return (
-      <View
-        testID="error-state"
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: colors.background,
-          padding: 20,
-        }}
-      >
-        <Text style={{ fontSize: 48, marginBottom: 16 }}>⚠️</Text>
-        <Text
-          testID="error-title"
-          style={{
-            fontSize: 18,
-            fontWeight: "600",
-            color: colors.text,
-            marginBottom: 8,
-          }}
-        >
-          {t("vehicles.errors.loadingTitle")}
-        </Text>
-        <Text
-          testID="error-message"
-          style={{
-            color: colors.textSecondary,
-            textAlign: "center",
-            marginBottom: 20,
-          }}
-        >
-          {vehiclesError}
-        </Text>
-        <TouchableOpacity
-          testID="retry-button"
-          onPress={refetch}
-          style={{
-            backgroundColor: colors.primary,
-            paddingHorizontal: 24,
-            paddingVertical: 12,
-            borderRadius: 8,
-          }}
-        >
-          <Text style={{ color: colors.buttonPrimaryText, fontWeight: "600" }}>
-            {t("common.retry")}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
   return (
     <ScrollView
+      testID="business-fleet-screen"
       style={{ flex: 1 }}
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
@@ -932,6 +869,7 @@ export default function TrucksScreen() {
               setSelectedVehicle(null);
             }}
             onDelete={() => {
+              deleteVehicleFromContext(selectedVehicle!.id);
               refetch();
               setSelectedVehicle(null);
             }}

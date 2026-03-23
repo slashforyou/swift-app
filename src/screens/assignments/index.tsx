@@ -11,25 +11,25 @@ import Ionicons from "@react-native-vector-icons/ionicons";
 import { useFocusEffect } from "@react-navigation/native";
 import React, { useCallback, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    FlatList,
-    Pressable,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    View,
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
 import {
-    fetchMyAssignments,
-    respondToAssignment,
+  fetchMyAssignments,
+  respondToAssignment,
 } from "../../services/jobAssignments";
 import type {
-    AssignmentStatus,
-    JobAssignment,
+  AssignmentStatus,
+  JobAssignment,
 } from "../../types/jobAssignment";
 
 // ─────────────────────────────────────────────────────────────
@@ -87,8 +87,8 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
 
   return (
     <View
+      testID={`assignment-card-${assignment.id}`}
       style={[
-        styles.card,
         {
           backgroundColor: colors.backgroundSecondary,
           borderColor: isPending ? "#F59E0B40" : colors.border + "30",
@@ -174,6 +174,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
       {isPending && (
         <View style={styles.actions}>
           <Pressable
+            testID={`assignment-decline-${assignment.id}`}
             onPress={() => onAction(assignment, "decline")}
             disabled={loading}
             style={({ pressed }) => [
@@ -191,6 +192,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
           </Pressable>
 
           <Pressable
+            testID={`assignment-confirm-${assignment.id}`}
             onPress={() => onAction(assignment, "confirm")}
             disabled={loading}
             style={({ pressed }) => [
@@ -319,7 +321,11 @@ const AssignmentsScreen: React.FC<AssignmentsScreenProps> = ({
         ]}
       >
         {navigation && (
-          <Pressable onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <Pressable
+            testID="assignments-back-btn"
+            onPress={() => navigation.goBack()}
+            style={styles.backBtn}
+          >
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </Pressable>
         )}
@@ -347,6 +353,7 @@ const AssignmentsScreen: React.FC<AssignmentsScreenProps> = ({
         </View>
       ) : (
         <FlatList
+          testID="assignments-list"
           data={assignments}
           keyExtractor={(item) => String(item.id)}
           contentContainerStyle={[

@@ -4,14 +4,14 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Modal,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Modal,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
@@ -246,6 +246,7 @@ export const JobAssignmentActions: React.FC<JobAssignmentActionsProps> = ({
         <View style={styles.buttonsRow}>
           {canAccept && (
             <TouchableOpacity
+              testID="job-assignment-accept-btn"
               style={[styles.button, styles.acceptButton]}
               onPress={handleAccept}
               disabled={isLoading}
@@ -269,6 +270,7 @@ export const JobAssignmentActions: React.FC<JobAssignmentActionsProps> = ({
 
           {canDecline && (
             <TouchableOpacity
+              testID="job-assignment-decline-btn"
               style={[styles.button, styles.declineButton]}
               onPress={() => setShowDeclineModal(true)}
               disabled={isLoading}
@@ -302,8 +304,8 @@ export const JobAssignmentActions: React.FC<JobAssignmentActionsProps> = ({
             </Text>
 
             <TextInput
+              testID="job-decline-reason-input"
               style={styles.input}
-              placeholder="Raison du refus..."
               placeholderTextColor={colors.textSecondary + "80"}
               value={declineReason}
               onChangeText={setDeclineReason}
@@ -314,6 +316,7 @@ export const JobAssignmentActions: React.FC<JobAssignmentActionsProps> = ({
 
             <View style={styles.modalButtonsRow}>
               <TouchableOpacity
+                testID="job-decline-cancel-btn"
                 style={[styles.modalButton, styles.modalCancelButton]}
                 onPress={() => {
                   setShowDeclineModal(false);
@@ -327,6 +330,7 @@ export const JobAssignmentActions: React.FC<JobAssignmentActionsProps> = ({
               </TouchableOpacity>
 
               <TouchableOpacity
+                testID="job-decline-confirm-btn"
                 style={[styles.modalButton, styles.modalConfirmButton]}
                 onPress={handleDecline}
                 disabled={isLoading || !declineReason.trim()}

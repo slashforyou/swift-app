@@ -1,18 +1,19 @@
 /**
  * Centralized Logging Service - Système de logs centralisé avec niveaux et agrégation
- * 
+ *
  * ✅ Session 8: Intégration API Discovery
  * - Vérifie disponibilité endpoint /logs avant flush
  * - Logs 404 uniquement si endpoint DEVRAIT exister
  * - Fallback silent si endpoint non disponible
  */
 
-import { getAuthHeaders } from '../utils/auth';
-import { apiDiscovery } from './apiDiscovery';
+import { API_URL } from "../config/environment";
+import { getAuthHeaders } from "../utils/auth";
+import { apiDiscovery } from "./apiDiscovery";
 
-const API_BASE_URL = 'https://altivo.fr/swift-app/v1';
+const API_BASE_URL = `${API_URL}v1`;
 
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'fatal';
+export type LogLevel = "debug" | "info" | "warn" | "error" | "fatal";
 
 export interface LogEntry {
   level: LogLevel;
@@ -34,7 +35,7 @@ export interface LogEntry {
 class LoggingService {
   private logQueue: LogEntry[] = [];
   private isEnabled: boolean = true;
-  private minLogLevel: LogLevel = 'info';
+  private minLogLevel: LogLevel = "info";
   private maxQueueSize: number = 100;
   private flushInterval: number = 30000; // 30 seconds
   private sessionId: string;
@@ -46,7 +47,7 @@ class LoggingService {
     info: 1,
     warn: 2,
     error: 3,
-    fatal: 4
+    fatal: 4,
   };
 
   constructor() {
@@ -58,42 +59,52 @@ class LoggingService {
   // ========== PUBLIC LOGGING METHODS ==========
 
   debug(message: string, context?: Record<string, any>, module?: string) {
-    this.log('debug', message, context, module);
+    this.log("debug", message, context, module);
   }
 
   info(message: string, context?: Record<string, any>, module?: string) {
-    this.log('info', message, context, module);
+    this.log("info", message, context, module);
   }
 
   warn(message: string, context?: Record<string, any>, module?: string) {
-    this.log('warn', message, context, module);
+    this.log("warn", message, context, module);
   }
 
-  error(message: string, error?: Error | any, context?: Record<string, any>, module?: string) {
+  error(
+    message: string,
+    error?: Error | any,
+    context?: Record<string, any>,
+    module?: string,
+  ) {
     const errorContext = {
       ...context,
       ...(error && {
         error_name: error.name,
         error_message: error.message,
-        error_stack: error.stack
-      })
+        error_stack: error.stack,
+      }),
     };
 
-    this.log('error', message, errorContext, module, error?.stack);
+    this.log("error", message, errorContext, module, error?.stack);
   }
 
-  fatal(message: string, error?: Error | any, context?: Record<string, any>, module?: string) {
+  fatal(
+    message: string,
+    error?: Error | any,
+    context?: Record<string, any>,
+    module?: string,
+  ) {
     const errorContext = {
       ...context,
       ...(error && {
         error_name: error.name,
         error_message: error.message,
-        error_stack: error.stack
-      })
+        error_stack: error.stack,
+      }),
     };
 
-    this.log('fatal', message, errorContext, module, error?.stack);
-    
+    this.log("fatal", message, errorContext, module, error?.stack);
+
     // Force immediate flush for fatal errors
     this.flushLogs();
   }
@@ -103,50 +114,82 @@ class LoggingService {
   /**
    * Log API requests/responses
    */
-  logAPI(method: string, endpoint: string, status: number, duration: number, error?: any) {
-    const level: LogLevel = status >= 500 ? 'error' : status >= 400 ? 'warn' : 'info';
-    
-    this.log(level, `API ${method} ${endpoint}`, {
-      api_method: method,
-      api_endpoint: endpoint,
-      api_status: status,
-      api_duration_ms: duration,
-      api_success: status < 400,
-      ...(error && { api_error: error.message })
-    }, 'api');
+  logAPI(
+    method: string,
+    endpoint: string,
+    status: number,
+    duration: number,
+    error?: any,
+  ) {
+    const level: LogLevel =
+      status >= 500 ? "error" : status >= 400 ? "warn" : "info";
+
+    this.log(
+      level,
+      `API ${method} ${endpoint}`,
+      {
+        api_method: method,
+        api_endpoint: endpoint,
+        api_status: status,
+        api_duration_ms: duration,
+        api_success: status < 400,
+        ...(error && { api_error: error.message }),
+      },
+      "api",
+    );
   }
 
   /**
    * Log user actions
    */
   logUserAction(action: string, screen: string, context?: Record<string, any>) {
-    this.log('info', `User action: ${action}`, {
-      user_action: action,
-      screen_name: screen,
-      ...context
-    }, 'user_action');
+    this.log(
+      "info",
+      `User action: ${action}`,
+      {
+        user_action: action,
+        screen_name: screen,
+        ...context,
+      },
+      "user_action",
+    );
   }
 
   /**
    * Log business events
    */
   logBusinessEvent(event: string, context?: Record<string, any>) {
-    this.log('info', `Business event: ${event}`, {
-      business_event: event,
-      ...context
-    }, 'business');
+    this.log(
+      "info",
+      `Business event: ${event}`,
+      {
+        business_event: event,
+        ...context,
+      },
+      "business",
+    );
   }
 
   /**
    * Log performance metrics
    */
-  logPerformance(metric: string, value: number, unit: string, context?: Record<string, any>) {
-    this.log('info', `Performance: ${metric}`, {
-      performance_metric: metric,
-      performance_value: value,
-      performance_unit: unit,
-      ...context
-    }, 'performance');
+  logPerformance(
+    metric: string,
+    value: number,
+    unit: string,
+    context?: Record<string, any>,
+  ) {
+    this.log(
+      "info",
+      `Performance: ${metric}`,
+      {
+        performance_metric: metric,
+        performance_value: value,
+        performance_unit: unit,
+        ...context,
+      },
+      "performance",
+    );
   }
 
   // ========== CORRELATION ID MANAGEMENT ==========
@@ -168,11 +211,11 @@ class LoggingService {
   // ========== CORE LOGGING LOGIC ==========
 
   private log(
-    level: LogLevel, 
-    message: string, 
-    context?: Record<string, any>, 
+    level: LogLevel,
+    message: string,
+    context?: Record<string, any>,
     module?: string,
-    stackTrace?: string
+    stackTrace?: string,
   ) {
     if (!this.isEnabled) return;
     if (this.logLevels[level] < this.logLevels[this.minLogLevel]) return;
@@ -186,43 +229,43 @@ class LoggingService {
       sessionId: this.sessionId,
       correlationId: this.correlationId,
       deviceInfo: this.getDeviceInfo(),
-      ...(stackTrace && { stackTrace })
+      ...(stackTrace && { stackTrace }),
     };
 
     // Add to queue
     this.logQueue.push(logEntry);
-    
+
     // Console log for development
     this.consoleLog(logEntry);
-    
+
     // Flush if queue is full
     if (this.logQueue.length >= this.maxQueueSize) {
       this.flushLogs();
     }
 
     // Immediate flush for errors and fatal logs
-    if (level === 'error' || level === 'fatal') {
+    if (level === "error" || level === "fatal") {
       setTimeout(() => this.flushLogs(), 1000);
     }
   }
 
   private consoleLog(entry: LogEntry) {
     const timestamp = new Date(entry.timestamp).toLocaleTimeString();
-    const prefix = `[${timestamp}] [${entry.level.toUpperCase()}] ${entry.module ? `[${entry.module}]` : ''}`;
+    const prefix = `[${timestamp}] [${entry.level.toUpperCase()}] ${entry.module ? `[${entry.module}]` : ""}`;
     const message = `${prefix} ${entry.message}`;
 
     switch (entry.level) {
-      case 'debug':
+      case "debug":
         console.debug(message, entry.context);
         break;
-      case 'info':
+      case "info":
         // TEMP_DISABLED: console.log(message, entry.context);
         break;
-      case 'warn':
+      case "warn":
         console.warn(message, entry.context);
         break;
-      case 'error':
-      case 'fatal':
+      case "error":
+      case "fatal":
         console.error(message, entry.context, entry.stackTrace);
         break;
     }
@@ -232,9 +275,9 @@ class LoggingService {
 
   private getDeviceInfo() {
     return {
-      platform: 'react-native', // Platform.OS,
-      version: '1.0.0', // DeviceInfo.getVersion(),
-      model: 'unknown' // DeviceInfo.getModel()
+      platform: "react-native", // Platform.OS,
+      version: "1.0.0", // DeviceInfo.getVersion(),
+      model: "unknown", // DeviceInfo.getModel()
     };
   }
 
@@ -252,8 +295,11 @@ class LoggingService {
 
     try {
       // ✅ Vérifier si endpoint /logs existe avant d'appeler (silencieux)
-      const logsEndpointAvailable = await apiDiscovery.isEndpointAvailable('/swift-app/v1/logs', 'POST');
-      
+      const logsEndpointAvailable = await apiDiscovery.isEndpointAvailable(
+        "/swift-app/v1/logs",
+        "POST",
+      );
+
       if (!logsEndpointAvailable) {
         // Endpoint non disponible → fallback silent (logs gardés localement)
         return;
@@ -266,17 +312,16 @@ class LoggingService {
       }
 
       const response = await fetch(`${API_BASE_URL}/logs`, {
-        method: 'POST',
+        method: "POST",
         headers: {
           ...authHeaders,
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ logs: logsToFlush })
+        body: JSON.stringify({ logs: logsToFlush }),
       });
 
       // Silencieux dans tous les cas
       // Ne PAS remettre en queue pour éviter accumulation infinie
-
     } catch (error) {
       // Silencieux - erreur réseau ou autre
       // Ne PAS remettre en queue pour éviter accumulation infinie
@@ -294,14 +339,14 @@ class LoggingService {
   private setupGlobalErrorHandling() {
     // Global error handler
     const originalConsoleError = console.error;
-    
+
     // Protection contre récursion infinie
     let isLoggingConsoleError = false;
 
     console.error = (...args) => {
       // Call original console.error
       originalConsoleError.apply(console, args);
-      
+
       // PROTECTION: Éviter la récursion infinie si this.error() appelle console.error
       if (isLoggingConsoleError) {
         return; // Sortir immédiatement pour éviter la boucle
@@ -309,33 +354,41 @@ class LoggingService {
 
       try {
         isLoggingConsoleError = true;
-        
+
         // Log to our system (uniquement si pas déjà en train de logger)
-        const message = args.map(arg => 
-          typeof arg === 'string' ? arg : JSON.stringify(arg)
-        ).join(' ');
-        
+        const message = args
+          .map((arg) => (typeof arg === "string" ? arg : JSON.stringify(arg)))
+          .join(" ");
+
         // Ne pas logger si c'est déjà un message "[ERROR] [global]" (éviter duplication)
-        if (message.includes('[ERROR] [global] Global console.error caught')) {
-          return;
-        }
-        
-        // Ne pas logger si c'est déjà un message "Console Error Captured" (éviter duplication sessionLogger)
-        if (message.includes('Console Error Captured')) {
-          return;
-        }
-        
-        // Ne pas logger les erreurs React de clés dupliquées (warnings de développement)
-        // Ces erreurs peuvent être nombreuses et créer des boucles si elles se répètent
-        if (message.includes('Encountered two children with the same key')) {
-          originalConsoleError('[REACT-WARNING] Duplicate key detected (not logged to prevent loop):', message.substring(0, 100));
+        if (message.includes("[ERROR] [global] Global console.error caught")) {
           return;
         }
 
-        this.error('Global console.error caught', undefined, {
-          console_error_args: args.length,
-          console_error_message: message
-        }, 'global');
+        // Ne pas logger si c'est déjà un message "Console Error Captured" (éviter duplication sessionLogger)
+        if (message.includes("Console Error Captured")) {
+          return;
+        }
+
+        // Ne pas logger les erreurs React de clés dupliquées (warnings de développement)
+        // Ces erreurs peuvent être nombreuses et créer des boucles si elles se répètent
+        if (message.includes("Encountered two children with the same key")) {
+          originalConsoleError(
+            "[REACT-WARNING] Duplicate key detected (not logged to prevent loop):",
+            message.substring(0, 100),
+          );
+          return;
+        }
+
+        this.error(
+          "Global console.error caught",
+          undefined,
+          {
+            console_error_args: args.length,
+            console_error_message: message,
+          },
+          "global",
+        );
 
         // ❌ DÉSACTIVÉ: Causait une boucle infinie avec sessionLogger
         // Aussi logger vers le session logger si disponible
@@ -352,22 +405,32 @@ class LoggingService {
       }
     };
 
-
     // Unhandled promise rejections (web only)
-    if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
-      window.addEventListener('unhandledrejection', (event) => {
-        this.error('Unhandled Promise Rejection', event.reason, {
-          promise_rejection: true,
-          reason: event.reason
-        }, 'global');
+    if (
+      typeof window !== "undefined" &&
+      typeof window.addEventListener === "function"
+    ) {
+      window.addEventListener("unhandledrejection", (event) => {
+        this.error(
+          "Unhandled Promise Rejection",
+          event.reason,
+          {
+            promise_rejection: true,
+            reason: event.reason,
+          },
+          "global",
+        );
 
         // Aussi logger vers le session logger si disponible
-        if (typeof require !== 'undefined') {
+        if (typeof require !== "undefined") {
           try {
-            const { logError } = require('./sessionLogger');
-            logError('Unhandled Promise Rejection', event.reason, 'global-promise-rejection');
+            const { logError } = require("./sessionLogger");
+            logError(
+              "Unhandled Promise Rejection",
+              event.reason,
+              "global-promise-rejection",
+            );
           } catch (e) {
-
             // Session logger pas encore disponible, ignore
           }
         }
@@ -428,7 +491,7 @@ export const {
   generateCorrelationId,
   flush: flushLogs,
   setLogLevel,
-  setEnabled: setLoggingEnabled
+  setEnabled: setLoggingEnabled,
 } = logger;
 
 export default logger;

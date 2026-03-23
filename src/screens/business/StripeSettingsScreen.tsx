@@ -5,14 +5,14 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MascotLoading from "../../components/ui/MascotLoading";
@@ -490,7 +490,7 @@ export default function StripeSettingsScreen({
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView testID="stripe-settings-screen" style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity

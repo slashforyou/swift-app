@@ -6,6 +6,28 @@ import { getAuthHeaders, refreshToken as refreshAuthToken } from "./auth";
 
 const API = ServerData.serverUrl;
 
+// Session cache — évite de refaire ensureSession à chaque remontage du Home screen
+// Valide 5 minutes ; invalidé par clearLocalSession() (logout)
+let sessionCache: {
+  authenticated: boolean;
+  user: any | null;
+  reason: string;
+  cachedAt: number;
+} | null = null;
+const SESSION_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+/**
+ * Synchronous check — returns true if the session cache is valid right now.
+ * Safe to call during React render (no async, no side-effects).
+ */
+export function isSessionCached(): boolean {
+  return (
+    sessionCache !== null &&
+    sessionCache.authenticated === true &&
+    Date.now() - sessionCache.cachedAt < SESSION_CACHE_TTL
+  );
+}
+
 // Clean local session (tokens and caches)
 export async function clearLocalSession() {
   await SecureStore.deleteItemAsync("session_token");
@@ -13,6 +35,7 @@ export async function clearLocalSession() {
   await SecureStore.deleteItemAsync("device_id");
   await SecureStore.deleteItemAsync("user_data"); // ✅ FIX: Clear user data too
   clearStripeCache(); // ✅ FIX: Clear Stripe cache to avoid stale account data
+  sessionCache = null; // ✅ Invalidate session cache on logout
 }
 
 // Ping the /me endpoint to verify the session token
@@ -49,7 +72,24 @@ async function fetchMe() {
 // Ensure session: tries /me with a session token, if fails tries refresh, else clears session
 
 export async function ensureSession() {
+  // Return from cache immediately if session was recently verified (< 5 min)
+  if (
+    sessionCache &&
+    sessionCache.authenticated &&
+    Date.now() - sessionCache.cachedAt < SESSION_CACHE_TTL
+  ) {
+    return {
+      authenticated: sessionCache.authenticated,
+      user: sessionCache.user,
+      reason: sessionCache.reason,
+    };
+  }
+
   try {
+    // Shared flag: set by sessionCheckPromise as soon as a token is found.
+    // Used by the timeout to fail-open (stay authenticated) when a token exists.
+    let detectedToken: string | null = null;
+
     // ✅ Wrap entire session check in timeout to prevent infinite loading
     const sessionCheckPromise = async () => {
       // 1) If possible, get sessionToken and refreshToken from storage
@@ -58,9 +98,26 @@ export async function ensureSession() {
         SecureStore.getItemAsync("refresh_token"),
       ]);
 
+      detectedToken = sessionToken; // expose for timeout fallback
+
       // 2) If there is an session token, try /me
       if (sessionToken) {
-        const res = await fetchMe();
+        let res: Response;
+        try {
+          res = await fetchMe();
+        } catch (fetchError) {
+          // Network timeout (AbortError) or connectivity issue — fail-open when token exists
+          // Avoids logging out the user on temporary network issues (e.g. during screen transitions)
+          console.warn(
+            "⚠️ [Session] fetchMe network error, keeping session:",
+            fetchError,
+          );
+          return {
+            authenticated: true,
+            user: { authenticated: true },
+            reason: "session_ok" as const,
+          };
+        }
 
         if (res.status === 200) {
           // We extract res.json() in a try/catch to avoid breaking if the response is not JSON (should not happen)
@@ -122,21 +179,43 @@ export async function ensureSession() {
     };
 
     const timeoutPromise = new Promise<{
-      authenticated: false;
-      user: null;
+      authenticated: boolean;
+      user: any | null;
       reason: "timeout";
     }>((resolve) =>
       setTimeout(() => {
-        console.warn("⚠️ [Session] ensureSession timed out after 15 seconds");
-        resolve({
-          authenticated: false,
-          user: null,
-          reason: "timeout" as const,
-        });
-      }, 15000),
+        if (detectedToken) {
+          // Fail-open: token exists but check timed out — stay authenticated
+          // Prevents false sign-out on slow networks or screen transitions
+          console.warn(
+            "⚠️ [Session] Timeout with token present — staying authenticated",
+          );
+          resolve({
+            authenticated: true,
+            user: { authenticated: true },
+            reason: "timeout" as const,
+          });
+        } else {
+          console.warn("⚠️ [Session] ensureSession timed out after 8 seconds");
+          resolve({
+            authenticated: false,
+            user: null,
+            reason: "timeout" as const,
+          });
+        }
+      }, 8000),
     );
 
-    return await Promise.race([sessionCheckPromise(), timeoutPromise]);
+    const result = await Promise.race([sessionCheckPromise(), timeoutPromise]);
+
+    // Update the module-level cache so subsequent calls (on remount) return instantly
+    if (result.authenticated) {
+      sessionCache = { ...result, cachedAt: Date.now() };
+    } else {
+      sessionCache = null;
+    }
+
+    return result;
   } catch (error) {
     console.error("❌ [Session] ensureSession error:", error);
     await clearLocalSession();

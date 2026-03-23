@@ -1,0 +1,133 @@
+appId: host.exp.exponent
+---
+# Sub-flow : _go-to-home
+#
+# Garantit qu'on est sur home-screen, quel que soit l'état courant :
+#   - Sur connection-screen → login avec ${EMAIL} / ${PASSWORD}
+#   - Sur login/register/verification → retour explicite vers connection-screen
+#   - create-job-modal ouverte → fermeture explicite (dismiss clavier + tap close-btn)
+#   - Sur calendar-day-screen → retour au mois via calendar-header-back-btn
+#   - Sur calendar-month-screen → navigation vers Home via calendar-header-back-btn
+#   - Pas de stratégie "Back en boucle" (fragile quand non connecté)
+#
+# Variables requises (from env-file ou env parent) :
+#   EMAIL, PASSWORD
+# Note : home-screen testID est TOUJOURS rendu dans HomeScreen (même pendant isLoading).
+#        home-calendar-btn n'est visible qu'après chargement complet.
+
+# 0. Remettre l'app au premier plan — ouvre directement le projet dans Expo Go
+#    (launchApp ouvre l'écran d'accueil d'Expo, openLink ouvre directement le projet)
+- openLink: "${EXPO_URL}"
+- waitForAnimationToEnd
+
+# 1. Ramener explicitement les écrans d'auth intermédiaires vers connection-screen
+# Ordre important : des écrans "profonds" vers les écrans "hauts".
+- runFlow:
+    when:
+      visible:
+        id: "business-registration-screen"
+    commands:
+      - pressKey: Back
+      - waitForAnimationToEnd
+
+- runFlow:
+    when:
+      visible:
+        id: "mail-verification-screen"
+    commands:
+      - pressKey: Back
+      - waitForAnimationToEnd
+
+- runFlow:
+    when:
+      visible:
+        id: "login-screen"
+    commands:
+      - pressKey: Back
+      - waitForAnimationToEnd
+
+- runFlow:
+    when:
+      visible:
+        id: "register-type-screen"
+    commands:
+      - pressKey: Back
+      - waitForAnimationToEnd
+
+# 2. Login si on est sur l'écran de connexion
+- runFlow:
+    when:
+      visible:
+        id: "connection-screen"
+    file: ../002-login-flow.yaml
+
+# 3. Fermer create-job-modal si ouvert (état résiduel d'un test précédent)
+- runFlow:
+    when:
+      visible:
+        id: "create-job-modal"
+    commands:
+      - hideKeyboard
+      - waitForAnimationToEnd
+      - pressKey: Back
+      - waitForAnimationToEnd
+
+# 3b. Si on est sur un écran Stripe onboarding → revenir via Back répété
+- runFlow:
+    when:
+      visible:
+        id: "stripe-welcome-screen"
+    commands:
+      - pressKey: Back
+      - waitForAnimationToEnd
+
+- runFlow:
+    when:
+      visible:
+        id: "stripe-personalinfo-screen"
+    commands:
+      - pressKey: Back
+      - waitForAnimationToEnd
+
+- runFlow:
+    when:
+      visible:
+        id: "stripe-hub-screen"
+    commands:
+      - pressKey: Back
+      - waitForAnimationToEnd
+
+- runFlow:
+    when:
+      visible:
+        id: "business-screen"
+    commands:
+      - pressKey: Back
+      - waitForAnimationToEnd
+
+# 4. Si sur calendar-day-screen → revenir au mois via le bouton header
+- runFlow:
+    when:
+      visible:
+        id: "calendar-day-screen"
+    commands:
+      - tapOn:
+          id: "calendar-header-back-btn"
+      - waitForAnimationToEnd
+
+# 5. Si sur calendar-month-screen → naviguer vers Home via le bouton header
+- runFlow:
+    when:
+      visible:
+        id: "calendar-month-screen"
+    commands:
+      - tapOn:
+          id: "calendar-header-back-btn"
+      - waitForAnimationToEnd
+
+# 6. S'assurer qu'on est bien sur Home (nécessaire avant _logout)
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 20000
+- waitForAnimationToEnd

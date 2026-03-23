@@ -338,7 +338,7 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
 
   return (
     <>
-      <VStack gap="lg">
+      <VStack testID="job-client-root" gap="lg">
         {/* ===== PROFILE CARD ===== */}
         <Card
           style={{ padding: DESIGN_TOKENS.spacing.xl, alignItems: "center" }}

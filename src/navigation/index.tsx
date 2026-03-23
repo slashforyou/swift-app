@@ -12,6 +12,21 @@ import { lazyScreen } from "../utils/lazyLoading";
 import ConnectionScreen from "../screens/connection";
 import HomeScreen from "../screens/home";
 
+// Deep linking configuration
+const linking = {
+  prefixes: ["cobbr://", "https://cobbr.com.au"],
+  config: {
+    screens: {
+      Home: "home",
+      JobDetails: "job/:id",
+      Business: "business",
+      Calendar: "calendar",
+      Profile: "profile",
+      StripeOnboarding: "stripe-onboarding",
+    },
+  },
+};
+
 // Secondary screens - lazy loaded for faster initial load
 const LoginScreen = lazyScreen(
   () => import("../screens/connectionScreens/login"),
@@ -74,7 +89,7 @@ export default function Navigation() {
   };
 
   return (
-    <NavigationContainer ref={navigationRef} onReady={onReady}>
+    <NavigationContainer ref={navigationRef} onReady={onReady} linking={linking}>
       <Stack.Navigator
         initialRouteName="Connection"
         screenOptions={{ headerShown: false }}

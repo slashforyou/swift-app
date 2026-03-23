@@ -4,13 +4,22 @@
  */
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { Alert, Pressable, ScrollView, Switch, Text, View } from "react-native";
+import {
+    Alert,
+    Linking,
+    Pressable,
+    ScrollView,
+    Switch,
+    Text,
+    View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Screen } from "../components/primitives/Screen";
 import { HStack, VStack } from "../components/primitives/Stack";
 import { DESIGN_TOKENS } from "../constants/Styles";
 import { useTheme } from "../context/ThemeProvider";
 import { useTranslation } from "../localization/useLocalization";
+import { deleteUserAccount } from "../services/user";
 import { clearSession } from "../utils/auth";
 import { useAuthCheck } from "../utils/checkAuth";
 
@@ -270,6 +279,48 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
     );
   };
 
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      "Supprimer mon compte",
+      "Cette action est irréversible. Toutes vos données seront supprimées.",
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: "Supprimer",
+          style: "destructive",
+          onPress: () => {
+            Alert.alert(
+              "Confirmer la suppression",
+              "Êtes-vous sûr(e) ? Cette action ne peut pas être annulée.",
+              [
+                { text: t("common.cancel"), style: "cancel" },
+                {
+                  text: "Supprimer définitivement",
+                  style: "destructive",
+                  onPress: async () => {
+                    try {
+                      await deleteUserAccount();
+                      await clearSession();
+                      navigation?.reset({
+                        index: 0,
+                        routes: [{ name: "Connection" }],
+                      });
+                    } catch (error) {
+                      Alert.alert(
+                        t("common.error"),
+                        "Impossible de supprimer le compte. Veuillez réessayer.",
+                      );
+                    }
+                  },
+                },
+              ],
+            );
+          },
+        },
+      ],
+    );
+  };
+
   const handleLogout = () => {
     Alert.alert(
       t("settings.alerts.logout.title"),
@@ -298,9 +349,10 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
   };
 
   return (
-    <Screen>
+    <Screen testID="parameters-screen">
       {/* Simple Back Button Header */}
       <View
+        testID="parameters-header"
         style={{
           paddingTop: insets.top + DESIGN_TOKENS.spacing.sm,
           paddingHorizontal: DESIGN_TOKENS.spacing.lg,
@@ -310,6 +362,7 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
       >
         <HStack gap="md" align="center" justify="space-between">
           <Pressable
+            testID="parameters-back-btn"
             onPress={() => navigation?.goBack()}
             style={({ pressed }) => ({
               backgroundColor: pressed
@@ -328,6 +381,7 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
           </Pressable>
 
           <Text
+            testID="parameters-title-text"
             style={{
               color: colors.text,
               fontSize: DESIGN_TOKENS.typography.title.fontSize,
@@ -338,6 +392,7 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
           </Text>
 
           <Pressable
+            testID="parameters-reset-btn"
             onPress={resetSettings}
             style={({ pressed }) => ({
               backgroundColor: pressed ? colors.errorLight : "transparent",
@@ -352,6 +407,7 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
 
       {/* Settings Content */}
       <ScrollView
+        testID="parameters-scroll"
         style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
@@ -391,17 +447,6 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
             />
             <SettingItem
               colors={colors}
-              label={t("settings.items.smsNotifications")}
-              description={t("settings.items.smsDescription")}
-              icon="chatbox-outline"
-              value={settings.notifications.smsNotifications}
-              onToggle={(value) =>
-                updateSetting("notifications", "smsNotifications", value)
-              }
-              color={colors.warning}
-            />
-            <SettingItem
-              colors={colors}
               label={t("settings.items.taskReminders")}
               description={t("settings.items.taskRemindersDescription")}
               icon="alarm-outline"
@@ -430,39 +475,6 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
               }
               color={colors.textSecondary}
             />
-            <SettingItem
-              colors={colors}
-              label={t("settings.items.autoSync")}
-              description={t("settings.items.autoSyncDescription")}
-              icon="sync-outline"
-              value={settings.preferences.autoSync}
-              onToggle={(value) =>
-                updateSetting("preferences", "autoSync", value)
-              }
-              color={colors.primary}
-            />
-            <SettingItem
-              colors={colors}
-              label={t("settings.items.offlineMode")}
-              description={t("settings.items.offlineModeDescription")}
-              icon="cloud-offline-outline"
-              value={settings.preferences.offlineMode}
-              onToggle={(value) =>
-                updateSetting("preferences", "offlineMode", value)
-              }
-              color={colors.warning}
-            />
-            <SettingItem
-              colors={colors}
-              label={t("settings.items.soundEnabled")}
-              description={t("settings.items.soundDescription")}
-              icon="volume-high-outline"
-              value={settings.preferences.soundEnabled}
-              onToggle={(value) =>
-                updateSetting("preferences", "soundEnabled", value)
-              }
-              color={colors.info}
-            />
           </SettingSection>
 
           {/* Privacy Section */}
@@ -471,39 +483,125 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
             title={t("settings.sections.privacy")}
             icon="shield-outline"
           >
-            <SettingItem
-              colors={colors}
-              label={t("settings.items.shareLocation")}
-              description={t("settings.items.shareLocationDescription")}
-              icon="location-outline"
-              value={settings.privacy.shareLocation}
-              onToggle={(value) =>
-                updateSetting("privacy", "shareLocation", value)
-              }
-              color={colors.error}
-            />
-            <SettingItem
-              colors={colors}
-              label={t("settings.items.analytics")}
-              description={t("settings.items.analyticsDescription")}
-              icon="analytics-outline"
-              value={settings.privacy.shareAnalytics}
-              onToggle={(value) =>
-                updateSetting("privacy", "shareAnalytics", value)
-              }
-              color={colors.info}
-            />
-            <SettingItem
-              colors={colors}
-              label={t("settings.items.biometricEnabled")}
-              description={t("settings.items.biometricDescription")}
-              icon="finger-print-outline"
-              value={settings.privacy.biometricAuth}
-              onToggle={(value) =>
-                updateSetting("privacy", "biometricAuth", value)
-              }
-              color={colors.success}
-            />
+            {/* Share Location — opens system settings */}
+            <Pressable
+              onPress={() => Linking.openSettings()}
+              style={({ pressed }) => ({
+                backgroundColor: pressed
+                  ? colors.backgroundTertiary
+                  : colors.background,
+                borderRadius: DESIGN_TOKENS.radius.md,
+                padding: DESIGN_TOKENS.spacing.md,
+                borderWidth: 1,
+                borderColor: colors.border,
+                minHeight: DESIGN_TOKENS.touch.minSize + 10,
+              })}
+            >
+              <HStack gap={DESIGN_TOKENS.spacing.md} align="center">
+                <View
+                  style={{
+                    width: 36,
+                    height: 36,
+                    backgroundColor: `${colors.error}15`,
+                    borderRadius: DESIGN_TOKENS.radius.sm,
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <Ionicons
+                    name="location-outline"
+                    size={20}
+                    color={colors.error}
+                  />
+                </View>
+                <VStack gap="xs" style={{ flex: 1 }}>
+                  <Text
+                    style={{
+                      color: colors.text,
+                      fontSize: DESIGN_TOKENS.typography.body.fontSize,
+                      fontWeight: "500",
+                    }}
+                  >
+                    {t("settings.items.shareLocation")}
+                  </Text>
+                  <Text
+                    style={{
+                      color: colors.textSecondary,
+                      fontSize: DESIGN_TOKENS.typography.caption.fontSize,
+                      lineHeight: DESIGN_TOKENS.typography.caption.lineHeight,
+                    }}
+                    numberOfLines={2}
+                  >
+                    {t("settings.items.shareLocationDescription") ||
+                      "Tap to manage location permissions in system settings"}
+                  </Text>
+                </VStack>
+                <Ionicons
+                  name="open-outline"
+                  size={20}
+                  color={colors.textSecondary}
+                />
+              </HStack>
+            </Pressable>
+
+            {/* Privacy Policy & Terms links */}
+            <Pressable
+              onPress={() => Linking.openURL("https://cobbr-app.com/privacy")}
+              style={({ pressed }) => ({
+                backgroundColor: pressed
+                  ? colors.backgroundTertiary
+                  : "transparent",
+                borderRadius: DESIGN_TOKENS.radius.md,
+                paddingVertical: DESIGN_TOKENS.spacing.sm,
+                paddingHorizontal: DESIGN_TOKENS.spacing.sm,
+              })}
+            >
+              <HStack gap={DESIGN_TOKENS.spacing.md} align="center">
+                <Ionicons
+                  name="document-text-outline"
+                  size={20}
+                  color={colors.primary}
+                />
+                <Text
+                  style={{
+                    fontSize: DESIGN_TOKENS.typography.body.fontSize,
+                    color: colors.primary,
+                  }}
+                >
+                  {t("settings.sections.privacy")} →
+                </Text>
+              </HStack>
+            </Pressable>
+
+            <Pressable
+              onPress={() => Linking.openURL("https://cobbr-app.com/terms")}
+              style={({ pressed }) => ({
+                backgroundColor: pressed
+                  ? colors.backgroundTertiary
+                  : "transparent",
+                borderRadius: DESIGN_TOKENS.radius.md,
+                paddingVertical: DESIGN_TOKENS.spacing.sm,
+                paddingHorizontal: DESIGN_TOKENS.spacing.sm,
+              })}
+            >
+              <HStack gap={DESIGN_TOKENS.spacing.md} align="center">
+                <Ionicons
+                  name="reader-outline"
+                  size={20}
+                  color={colors.primary}
+                />
+                <Text
+                  style={{
+                    fontSize: DESIGN_TOKENS.typography.body.fontSize,
+                    color: colors.primary,
+                  }}
+                >
+                  {t("registration.legal.termsAndConditions") ||
+                    "Terms of Service"}{" "}
+                  →
+                </Text>
+              </HStack>
+            </Pressable>
           </SettingSection>
 
           {/* Account Section with Logout */}
@@ -512,15 +610,11 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
             title={t("settings.sections.account")}
             icon="person-outline"
           >
-            {/* SETTINGS-05: Business Info Link */}
             <Pressable
-              onPress={() =>
-                navigation?.navigate("Business", { initialTab: "BusinessInfo" })
-              }
+              testID="profile-delete-account-btn"
+              onPress={handleDeleteAccount}
               style={({ pressed }) => ({
-                backgroundColor: pressed
-                  ? colors.backgroundTertiary
-                  : "transparent",
+                backgroundColor: pressed ? colors.errorLight : "transparent",
                 borderRadius: DESIGN_TOKENS.radius.md,
                 paddingVertical: DESIGN_TOKENS.spacing.md,
                 paddingHorizontal: DESIGN_TOKENS.spacing.sm,
@@ -532,15 +626,15 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
                     width: 40,
                     height: 40,
                     borderRadius: 20,
-                    backgroundColor: `${colors.primary}15`,
+                    backgroundColor: `${colors.error}15`,
                     justifyContent: "center",
                     alignItems: "center",
                   }}
                 >
                   <Ionicons
-                    name="business-outline"
+                    name="trash-outline"
                     size={22}
-                    color={colors.primary}
+                    color={colors.error}
                   />
                 </View>
                 <VStack gap={2} style={{ flex: 1 }}>
@@ -548,10 +642,10 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
                     style={{
                       fontSize: DESIGN_TOKENS.typography.body.fontSize,
                       fontWeight: "600",
-                      color: colors.text,
+                      color: colors.error,
                     }}
                   >
-                    {t("settings.items.businessInfo") || "Business Information"}
+                    Supprimer mon compte
                   </Text>
                   <Text
                     style={{
@@ -559,182 +653,7 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
                       color: colors.textSecondary,
                     }}
                   >
-                    {t("settings.items.businessInfoDescription") ||
-                      "Manage your company details"}
-                  </Text>
-                </VStack>
-                <Ionicons
-                  name="chevron-forward"
-                  size={20}
-                  color={colors.textSecondary}
-                />
-              </HStack>
-            </Pressable>
-
-            {/* Stripe Settings Link */}
-            <Pressable
-              onPress={() =>
-                navigation?.navigate("Business", {
-                  initialTab: "JobsBilling",
-                  initialStripeScreen: "StripeSettings",
-                })
-              }
-              style={({ pressed }) => ({
-                backgroundColor: pressed
-                  ? colors.backgroundTertiary
-                  : "transparent",
-                borderRadius: DESIGN_TOKENS.radius.md,
-                paddingVertical: DESIGN_TOKENS.spacing.md,
-                paddingHorizontal: DESIGN_TOKENS.spacing.sm,
-              })}
-            >
-              <HStack gap={DESIGN_TOKENS.spacing.md} align="center">
-                <View
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 20,
-                    backgroundColor: `${colors.info}15`,
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  <Ionicons name="card-outline" size={22} color={colors.info} />
-                </View>
-                <VStack gap={2} style={{ flex: 1 }}>
-                  <Text
-                    style={{
-                      fontSize: DESIGN_TOKENS.typography.body.fontSize,
-                      fontWeight: "600",
-                      color: colors.text,
-                    }}
-                  >
-                    {t("settings.items.paymentSettings") || "Payment Settings"}
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-                      color: colors.textSecondary,
-                    }}
-                  >
-                    {t("settings.items.paymentSettingsDescription") ||
-                      "Stripe connection and payment options"}
-                  </Text>
-                </VStack>
-                <Ionicons
-                  name="chevron-forward"
-                  size={20}
-                  color={colors.textSecondary}
-                />
-              </HStack>
-            </Pressable>
-
-            {/* Roles & Permissions Link */}
-            <Pressable
-              onPress={() => navigation?.navigate("RolesManagement")}
-              style={({ pressed }) => ({
-                backgroundColor: pressed
-                  ? colors.backgroundTertiary
-                  : "transparent",
-                borderRadius: DESIGN_TOKENS.radius.md,
-                paddingVertical: DESIGN_TOKENS.spacing.md,
-                paddingHorizontal: DESIGN_TOKENS.spacing.sm,
-              })}
-            >
-              <HStack gap={DESIGN_TOKENS.spacing.md} align="center">
-                <View
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 20,
-                    backgroundColor: `${colors.warning}15`,
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  <Ionicons
-                    name="shield-checkmark-outline"
-                    size={22}
-                    color={colors.warning}
-                  />
-                </View>
-                <VStack gap={2} style={{ flex: 1 }}>
-                  <Text
-                    style={{
-                      fontSize: DESIGN_TOKENS.typography.body.fontSize,
-                      fontWeight: "600",
-                      color: colors.text,
-                    }}
-                  >
-                    {t("settings.items.rolesPermissions") ||
-                      "Rôles & Permissions"}
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-                      color: colors.textSecondary,
-                    }}
-                  >
-                    {t("settings.items.rolesPermissionsDescription") ||
-                      "Gérer les accès de votre équipe"}
-                  </Text>
-                </VStack>
-                <Ionicons
-                  name="chevron-forward"
-                  size={20}
-                  color={colors.textSecondary}
-                />
-              </HStack>
-            </Pressable>
-
-            {/* Teams Management Link */}
-            <Pressable
-              onPress={() => navigation?.navigate("TeamsManagement")}
-              style={({ pressed }) => ({
-                backgroundColor: pressed
-                  ? colors.backgroundTertiary
-                  : "transparent",
-                borderRadius: DESIGN_TOKENS.radius.md,
-                paddingVertical: DESIGN_TOKENS.spacing.md,
-                paddingHorizontal: DESIGN_TOKENS.spacing.sm,
-              })}
-            >
-              <HStack gap={DESIGN_TOKENS.spacing.md} align="center">
-                <View
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 20,
-                    backgroundColor: `${colors.success}15`,
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  <Ionicons
-                    name="people-outline"
-                    size={22}
-                    color={colors.success}
-                  />
-                </View>
-                <VStack gap={2} style={{ flex: 1 }}>
-                  <Text
-                    style={{
-                      fontSize: DESIGN_TOKENS.typography.body.fontSize,
-                      fontWeight: "600",
-                      color: colors.text,
-                    }}
-                  >
-                    {t("settings.items.teamsManagement") ||
-                      "Gestion des équipes"}
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-                      color: colors.textSecondary,
-                    }}
-                  >
-                    {t("settings.items.teamsManagementDescription") ||
-                      "Créer et organiser vos équipes"}
+                    Supprimer définitivement mon compte et mes données
                   </Text>
                 </VStack>
                 <Ionicons

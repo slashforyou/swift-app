@@ -82,7 +82,7 @@ const BusinessTabMenu: React.FC<BusinessTabMenuProps> = ({
       backgroundColor: colors.background,
       paddingVertical: DESIGN_TOKENS.spacing.sm,
       paddingHorizontal: DESIGN_TOKENS.spacing.xs,
-      paddingBottom: DESIGN_TOKENS.spacing.lg + 16, // Safe area padding
+      paddingBottom: DESIGN_TOKENS.spacing.lg + 16 + 10, // Safe area padding + 10px extra
       borderTopWidth: 1,
       borderTopColor: colors.border,
       shadowColor: colors.shadow,
@@ -126,7 +126,7 @@ const BusinessTabMenu: React.FC<BusinessTabMenuProps> = ({
   });
 
   return (
-    <View style={styles.container}>
+    <View testID="business-tab-menu" style={styles.container}>
       {tabsConfig.map((tab) => {
         const isActive = activeTab === tab.routeName;
 

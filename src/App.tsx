@@ -9,6 +9,7 @@ import { StripeProvider } from "@stripe/stripe-react-native";
 import React, { useEffect } from "react";
 import { Alert as NativeAlert, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { ENV, STRIPE_PUBLISHABLE_KEY } from "./config/environment";
 import { AppAlertProvider } from "./context/AppAlertProvider";
 import { NotificationsProvider } from "./context/NotificationsProvider";
@@ -98,9 +99,11 @@ export default function App() {
                 <VehiclesProvider>
                   <ToastProvider>
                     <AppAlertProvider>
-                      <View style={{ flex: 1 }}>
-                        <Navigation />
-                      </View>
+                      <ErrorBoundary>
+                        <View style={{ flex: 1 }}>
+                          <Navigation />
+                        </View>
+                      </ErrorBoundary>
                     </AppAlertProvider>
                   </ToastProvider>
                 </VehiclesProvider>

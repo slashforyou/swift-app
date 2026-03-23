@@ -76,7 +76,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   return (
     <>
       {/* Container */}
-      <View>
+      <View testID="home-profile-header">
         {/* Barre du haut - Notifications + Langue */}
         <HStack
           gap="sm"
@@ -88,6 +88,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           }}
         >
           <Pressable
+            testID="home-notifications-btn"
             onPress={() => setShowNotifications(true)}
             style={({ pressed }) => ({
               width: 40,
@@ -135,6 +136,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
 
         {/* Card compacte - Avatar + Level + Progression */}
         <Pressable
+          testID="home-profile-card"
           onPress={() => {
             const now = Date.now();
             if (now - lastTapTime < 500) {
@@ -161,6 +163,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           <HStack gap="md" align="center">
             {/* Avatar avec badge Level */}
             <Pressable
+              testID="home-avatar-btn"
               onPress={() => navigation.navigate("Profile")}
               style={({ pressed }) => ({
                 opacity: pressed ? 0.8 : 1,
@@ -266,29 +269,8 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
               </View>
             </View>
 
-            {/* Boutons d'action - Leaderboard et Badges */}
+            {/* Bouton d'action - Badges */}
             <HStack gap="sm">
-              <Pressable
-                onPress={() => {
-                  console.log("🏆 [NAV] Button pressed → Leaderboard");
-                  navigation.navigate("Leaderboard");
-                }}
-                style={({ pressed }) => ({
-                  width: 44,
-                  height: 44,
-                  borderRadius: 22,
-                  backgroundColor: pressed
-                    ? colors.backgroundTertiary
-                    : colors.background,
-                  justifyContent: "center",
-                  alignItems: "center",
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                })}
-              >
-                <Ionicons name="trophy" size={22} color="#FFD700" />
-              </Pressable>
-
               <Pressable
                 onPress={() => {
                   console.log("🎖️ [NAV] Button pressed → Badges");

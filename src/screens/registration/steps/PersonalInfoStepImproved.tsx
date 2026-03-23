@@ -1,14 +1,14 @@
 import DateTimePicker, {
-    DateTimePickerEvent,
+  DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import React, { useRef, useState } from "react";
 import {
-    Platform,
-    Pressable,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import AlertMessage from "../../../components/ui/AlertMessage";
 import { TEST_DATA } from "../../../config/testData";
@@ -16,8 +16,8 @@ import { useCommonThemedStyles } from "../../../hooks/useCommonStyles";
 import { useTranslation } from "../../../localization";
 import { BusinessOwnerRegistrationData } from "../../../types/registration";
 import {
-    formatAustralianPhone,
-    validateAustralianPhone,
+  formatAustralianPhone,
+  validateAustralianPhone,
 } from "../../../utils/validators/australianValidators";
 
 interface PersonalInfoStepProps {
@@ -36,7 +36,9 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
   const { t } = useTranslation();
 
   // 🧪 Auto-fill with test data in development mode
-  const autoFillData: Partial<BusinessOwnerRegistrationData> = __DEV__ ? TEST_DATA.personalInfo : {};
+  const autoFillData: Partial<BusinessOwnerRegistrationData> = __DEV__
+    ? TEST_DATA.personalInfo
+    : {};
 
   const [firstName, setFirstName] = useState(
     data.firstName || autoFillData.firstName || "",
@@ -309,6 +311,7 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
               editable={!isLoading}
               returnKeyType="next"
               onSubmitEditing={() => lastNameRef.current?.focus()}
+              testID="register-firstname-input"
             />
           </View>
           <View style={{ flex: 1 }}>
@@ -323,6 +326,7 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
               editable={!isLoading}
               returnKeyType="next"
               onSubmitEditing={() => emailRef.current?.focus()}
+              testID="register-lastname-input"
             />
           </View>
         </View>
@@ -355,6 +359,7 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
           editable={!isLoading}
           returnKeyType="next"
           onSubmitEditing={() => phoneRef.current?.focus()}
+          testID="register-email-input"
         />
         <TextInput
           ref={phoneRef}
@@ -368,6 +373,7 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
           editable={!isLoading}
           returnKeyType="next"
           onSubmitEditing={() => dobRef.current?.focus()}
+          testID="register-phone-input"
         />
       </View>
 
@@ -438,6 +444,7 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
           editable={!isLoading}
           returnKeyType="next"
           onSubmitEditing={() => confirmPasswordRef.current?.focus()}
+          testID="register-password-input"
         />
 
         {/* Password Strength Indicator */}
@@ -521,11 +528,13 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
           editable={!isLoading}
           returnKeyType="done"
           onSubmitEditing={handleNext}
+          testID="register-confirm-password-input"
         />
       </View>
 
       {/* Next Button */}
       <Pressable
+        testID="register-personal-info-next-btn"
         style={[
           styles.buttonPrimary,
           {

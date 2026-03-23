@@ -107,6 +107,25 @@ export const zhTranslations = mergeWithBaseTranslations(enTranslations, {
       title: "排行榜",
       description: "查看您在其他司机中的排名",
     },
+    contact: {
+      title: "联系我们",
+      yourMessage: "您的消息",
+      helpLabel: "寻求帮助",
+      feedbackLabel: "提供反馈",
+      featureLabel: "建议改进",
+      bugLabel: "报告问题",
+      placeholder: "描述您的请求...",
+      send: "发送",
+      sending: "发送中...",
+      cancel: "取消",
+      thankYou: "谢谢！",
+      thankYouMessage: "您的消息已成功发送。",
+      errorSending: "无法发送消息。请重试。",
+    },
+    stripeAlert: {
+      title: "Stripe 未激活",
+      description: "没有 Stripe 您无法接收付款或开具发票。立即激活。",
+    },
   },
 
   leaderboard: {

@@ -11,17 +11,17 @@ import { Image as ExpoImage } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Animated,
-    Dimensions,
-    FlatList,
-    Modal,
-    Pressable,
-    ScrollView,
-    Text,
-    TextInput,
-    View,
+  ActivityIndicator,
+  Alert,
+  Animated,
+  Dimensions,
+  FlatList,
+  Modal,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import { DESIGN_TOKENS } from "../../../constants/Styles";
 import { useCommonThemedStyles } from "../../../hooks/useCommonStyles";
@@ -1217,6 +1217,7 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({
 
           {/* Bouton Ajouter une photo */}
           <Pressable
+            testID="job-photos-add-btn"
             onPress={() => setShowPhotoModal(true)}
             style={{
               flexDirection: "row",

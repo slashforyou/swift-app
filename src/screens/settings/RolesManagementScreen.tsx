@@ -5,15 +5,15 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    FlatList,
-    Modal,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Modal,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -30,10 +30,10 @@ import { useTheme } from "../../context/ThemeProvider";
 import { useRoles } from "../../hooks/useRoles";
 import { useTranslation } from "../../localization";
 import {
-    AVAILABLE_PERMISSIONS,
-    PERMISSION_CATEGORIES,
-    Role,
-    getPermissionDisplayName,
+  AVAILABLE_PERMISSIONS,
+  PERMISSION_CATEGORIES,
+  Role,
+  getPermissionDisplayName,
 } from "../../services/rolesService";
 
 // ============================================================================
@@ -614,7 +614,7 @@ export default function RolesManagementScreen({
   }
 
   return (
-    <Screen>
+    <Screen testID="roles-management-screen">
       {/* Header */}
       <VStack
         style={{

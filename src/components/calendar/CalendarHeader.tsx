@@ -119,7 +119,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
   });
 
   return (
-    <View style={styles.container}>
+    <View testID="calendar-header" style={styles.container}>
       <View
         style={{
           flexDirection: "row",
@@ -127,9 +127,10 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
           justifyContent: "space-between",
         }}
       >
-        <View style={styles.leftSection}>
+        <View testID="calendar-header-left" style={styles.leftSection}>
           {showBackButton && (
             <Pressable
+              testID="calendar-header-back-btn"
               onPress={handleBackPress}
               style={({ pressed }) => [
                 styles.backButton,
@@ -139,10 +140,12 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
               <Ionicons name="arrow-back" size={24} color={colors.text} />
             </Pressable>
           )}
-          <Text style={styles.title}>{displayTitle}</Text>
+          <Text testID="calendar-header-title-text" style={styles.title}>
+            {displayTitle}
+          </Text>
         </View>
 
-        <View style={styles.rightSection}>
+        <View testID="calendar-header-right" style={styles.rightSection}>
           {rightComponent || <LanguageButton />}
         </View>
       </View>

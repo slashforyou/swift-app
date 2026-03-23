@@ -2,52 +2,81 @@
  * Modal pour rechercher et ajouter un prestataire (ABN)
  * Permet de rechercher par nom ou ABN et l'ajouter au staff
  */
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Modal,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
-} from 'react-native';
-import { DESIGN_TOKENS } from '../../../constants/Styles';
-import { useTheme } from '../../../context/ThemeProvider';
-import { useTranslation } from '../../../localization';
-import { Contractor } from '../../../types/staff';
-import { HStack, VStack } from '../../primitives/Stack';
+  ActivityIndicator,
+  Alert,
+  Modal,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { DESIGN_TOKENS } from "../../../constants/Styles";
+import { useTheme } from "../../../context/ThemeProvider";
+import { useTranslation } from "../../../localization";
+import { Contractor } from "../../../types/staff";
+import { HStack, VStack } from "../../primitives/Stack";
 
 interface AddContractorModalProps {
   visible: boolean;
   onClose: () => void;
   onSearch: (searchTerm: string) => Promise<Contractor[]>;
-  onAdd: (contractorId: string, contractStatus: Contractor['contractStatus']) => Promise<void>;
+  onAdd: (
+    contractorId: string,
+    contractStatus: Contractor["contractStatus"],
+  ) => Promise<void>;
 }
 
-type SearchStep = 'search' | 'results' | 'contract';
+type SearchStep = "search" | "results" | "contract";
 
-export default function AddContractorModal({ visible, onClose, onSearch, onAdd }: AddContractorModalProps) {
+export default function AddContractorModal({
+  visible,
+  onClose,
+  onSearch,
+  onAdd,
+}: AddContractorModalProps) {
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const [step, setStep] = useState<SearchStep>('search');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [step, setStep] = useState<SearchStep>("search");
+  const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<Contractor[]>([]);
-  const [selectedContractor, setSelectedContractor] = useState<Contractor | null>(null);
-  const [contractStatus, setContractStatus] = useState<Contractor['contractStatus']>('standard');
+  const [selectedContractor, setSelectedContractor] =
+    useState<Contractor | null>(null);
+  const [contractStatus, setContractStatus] =
+    useState<Contractor["contractStatus"]>("standard");
   const [isLoading, setIsLoading] = useState(false);
 
   const contractStatuses = [
-    { key: 'exclusive', label: 'Exclusif', description: 'Travaille uniquement pour votre entreprise' },
-    { key: 'non-exclusive', label: 'Non-exclusif', description: 'Peut travailler pour d\'autres entreprises' },
-    { key: 'preferred', label: 'Préférentiel', description: 'Prestataire privilégié avec conditions avantageuses' },
-    { key: 'standard', label: 'Standard', description: 'Relation contractuelle standard' },
+    {
+      key: "exclusive",
+      label: "Exclusif",
+      description: "Travaille uniquement pour votre entreprise",
+    },
+    {
+      key: "non-exclusive",
+      label: "Non-exclusif",
+      description: "Peut travailler pour d'autres entreprises",
+    },
+    {
+      key: "preferred",
+      label: "Préférentiel",
+      description: "Prestataire privilégié avec conditions avantageuses",
+    },
+    {
+      key: "standard",
+      label: "Standard",
+      description: "Relation contractuelle standard",
+    },
   ] as const;
 
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
-      Alert.alert(t('businessModals.addContractor.errorTitle'), t('businessModals.addContractor.missingSearchTerm'));
+      Alert.alert(
+        t("businessModals.addContractor.errorTitle"),
+        t("businessModals.addContractor.missingSearchTerm"),
+      );
       return;
     }
 
@@ -55,14 +84,19 @@ export default function AddContractorModal({ visible, onClose, onSearch, onAdd }
       setIsLoading(true);
       const results = await onSearch(searchTerm);
       setSearchResults(results);
-      setStep('results');
+      setStep("results");
 
       if (results.length === 0) {
-        Alert.alert(t('businessModals.addContractor.noResultsTitle'), t('businessModals.addContractor.noResultsMessage'));
+        Alert.alert(
+          t("businessModals.addContractor.noResultsTitle"),
+          t("businessModals.addContractor.noResultsMessage"),
+        );
       }
     } catch (error) {
-
-      Alert.alert(t('businessModals.addContractor.errorTitle'), t('businessModals.addContractor.searchError'));
+      Alert.alert(
+        t("businessModals.addContractor.errorTitle"),
+        t("businessModals.addContractor.searchError"),
+      );
     } finally {
       setIsLoading(false);
     }
@@ -70,7 +104,7 @@ export default function AddContractorModal({ visible, onClose, onSearch, onAdd }
 
   const handleSelectContractor = (contractor: Contractor) => {
     setSelectedContractor(contractor);
-    setStep('contract');
+    setStep("contract");
   };
 
   const handleAddContractor = async () => {
@@ -79,41 +113,44 @@ export default function AddContractorModal({ visible, onClose, onSearch, onAdd }
     try {
       setIsLoading(true);
       await onAdd(selectedContractor.id, contractStatus);
-      
+
       Alert.alert(
-        t('businessModals.addContractor.addedTitle'),
-        t('businessModals.addContractor.addedMessage', {
+        t("businessModals.addContractor.addedTitle"),
+        t("businessModals.addContractor.addedMessage", {
           firstName: selectedContractor.firstName,
           lastName: selectedContractor.lastName,
-          status: contractStatuses.find(s => s.key === contractStatus)?.label ?? '',
+          status:
+            contractStatuses.find((s) => s.key === contractStatus)?.label ?? "",
         }),
-        [{ text: t('common.ok'), onPress: handleClose }]
+        [{ text: t("common.ok"), onPress: handleClose }],
       );
     } catch (error) {
-
-      Alert.alert(t('businessModals.addContractor.errorTitle'), t('businessModals.addContractor.addError'));
+      Alert.alert(
+        t("businessModals.addContractor.errorTitle"),
+        t("businessModals.addContractor.addError"),
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleClose = () => {
-    setStep('search');
-    setSearchTerm('');
+    setStep("search");
+    setSearchTerm("");
     setSearchResults([]);
     setSelectedContractor(null);
-    setContractStatus('standard');
+    setContractStatus("standard");
     onClose();
   };
 
   const renderSearchStep = () => (
     <VStack gap="lg">
       <HStack justify="space-between" align="center">
-        <Text 
+        <Text
           testID="modal-title"
           style={{
             fontSize: 20,
-            fontWeight: '600',
+            fontWeight: "600",
             color: colors.text,
           }}
         >
@@ -125,7 +162,7 @@ export default function AddContractorModal({ visible, onClose, onSearch, onAdd }
       </HStack>
 
       <VStack gap="md">
-        <Text 
+        <Text
           testID="search-instructions"
           style={{
             fontSize: 14,
@@ -133,13 +170,15 @@ export default function AddContractorModal({ visible, onClose, onSearch, onAdd }
             lineHeight: 20,
           }}
         >
-          Recherchez un prestataire par son nom complet ou son ABN. ⚠️ Les ABN ne sont pas affichés, la recherche ne fonctionne qu'avec un ABN complet.
+          Recherchez un prestataire par son nom complet ou son ABN. ⚠️ Les ABN
+          ne sont pas affichés, la recherche ne fonctionne qu'avec un ABN
+          complet.
         </Text>
 
         <VStack gap="xs">
-          <Text 
+          <Text
             testID="name-label"
-            style={{ fontSize: 14, fontWeight: '600', color: colors.text }}
+            style={{ fontSize: 14, fontWeight: "600", color: colors.text }}
           >
             Nom et prénom ou ABN
           </Text>
@@ -160,29 +199,37 @@ export default function AddContractorModal({ visible, onClose, onSearch, onAdd }
           />
         </VStack>
 
-        <View 
+        <View
           testID="search-tips"
           style={{
-            backgroundColor: colors.backgroundSecondary + '60',
+            backgroundColor: colors.backgroundSecondary + "60",
             padding: DESIGN_TOKENS.spacing.md,
             borderRadius: DESIGN_TOKENS.radius.md,
             borderLeftWidth: 4,
             borderLeftColor: colors.primary,
           }}
         >
-          <Text 
+          <Text
             testID="search-tips-title"
-            style={{ fontSize: 12, color: colors.textSecondary, fontWeight: '600', marginBottom: 4 }}
+            style={{
+              fontSize: 12,
+              color: colors.textSecondary,
+              fontWeight: "600",
+              marginBottom: 4,
+            }}
           >
             💡 Conseils de recherche :
           </Text>
-          <Text 
+          <Text
             testID="search-tips-content"
-            style={{ fontSize: 12, color: colors.textSecondary, lineHeight: 16 }}
+            style={{
+              fontSize: 12,
+              color: colors.textSecondary,
+              lineHeight: 16,
+            }}
           >
-            • Pour le nom : "John Smith" ou "Smith"{'\n'}
-            • Pour l'ABN : saisir les 11 chiffres complets{'\n'}
-            • La recherche est sensible à la casse
+            • Pour le nom : "John Smith" ou "Smith"{"\n"}• Pour l'ABN : saisir
+            les 11 chiffres complets{"\n"}• La recherche est sensible à la casse
           </Text>
         </View>
       </VStack>
@@ -196,10 +243,10 @@ export default function AddContractorModal({ visible, onClose, onSearch, onAdd }
             backgroundColor: colors.backgroundSecondary,
             paddingVertical: DESIGN_TOKENS.spacing.md,
             borderRadius: DESIGN_TOKENS.radius.md,
-            alignItems: 'center',
+            alignItems: "center",
           }}
         >
-          <Text style={{ color: colors.text, fontSize: 16, fontWeight: '600' }}>
+          <Text style={{ color: colors.text, fontSize: 16, fontWeight: "600" }}>
             Annuler
           </Text>
         </TouchableOpacity>
@@ -213,14 +260,20 @@ export default function AddContractorModal({ visible, onClose, onSearch, onAdd }
             backgroundColor: colors.primary,
             paddingVertical: DESIGN_TOKENS.spacing.md,
             borderRadius: DESIGN_TOKENS.radius.md,
-            alignItems: 'center',
+            alignItems: "center",
             opacity: isLoading ? 0.6 : 1,
           }}
         >
           {isLoading ? (
             <ActivityIndicator size="small" color={colors.background} />
           ) : (
-            <Text style={{ color: colors.background, fontSize: 16, fontWeight: '600' }}>
+            <Text
+              style={{
+                color: colors.background,
+                fontSize: 16,
+                fontWeight: "600",
+              }}
+            >
               Rechercher
             </Text>
           )}
@@ -232,14 +285,17 @@ export default function AddContractorModal({ visible, onClose, onSearch, onAdd }
   const renderResultsStep = () => (
     <VStack gap="lg">
       <HStack justify="space-between" align="center">
-        <TouchableOpacity testID="back-button" onPress={() => setStep('search')}>
+        <TouchableOpacity
+          testID="back-button"
+          onPress={() => setStep("search")}
+        >
           <Text style={{ fontSize: 18, color: colors.primary }}>← Retour</Text>
         </TouchableOpacity>
-        <Text 
+        <Text
           testID="results-title"
           style={{
             fontSize: 20,
-            fontWeight: '600',
+            fontWeight: "600",
             color: colors.text,
           }}
         >
@@ -250,7 +306,10 @@ export default function AddContractorModal({ visible, onClose, onSearch, onAdd }
         </TouchableOpacity>
       </HStack>
 
-      <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={{ maxHeight: 400 }}
+        showsVerticalScrollIndicator={false}
+      >
         <VStack gap="md">
           {searchResults.map((contractor) => (
             <TouchableOpacity
@@ -267,18 +326,18 @@ export default function AddContractorModal({ visible, onClose, onSearch, onAdd }
             >
               <VStack gap="sm">
                 <HStack justify="space-between" align="center">
-                  <Text 
+                  <Text
                     testID={`contractor-name-${contractor.id}`}
                     style={{
                       fontSize: 16,
-                      fontWeight: '600',
+                      fontWeight: "600",
                       color: colors.text,
                     }}
                   >
                     {contractor.firstName} {contractor.lastName}
                   </Text>
                   {contractor.isVerified && (
-                    <View 
+                    <View
                       testID={`contractor-verified-${contractor.id}`}
                       style={{
                         backgroundColor: colors.success,
@@ -287,14 +346,20 @@ export default function AddContractorModal({ visible, onClose, onSearch, onAdd }
                         borderRadius: 4,
                       }}
                     >
-                      <Text style={{ fontSize: 10, color: colors.background, fontWeight: '600' }}>
+                      <Text
+                        style={{
+                          fontSize: 10,
+                          color: colors.background,
+                          fontWeight: "600",
+                        }}
+                      >
                         VÉRIFIÉ
                       </Text>
                     </View>
                   )}
                 </HStack>
-                
-                <Text 
+
+                <Text
                   testID={`contractor-role-${contractor.id}`}
                   style={{
                     fontSize: 14,
@@ -303,22 +368,25 @@ export default function AddContractorModal({ visible, onClose, onSearch, onAdd }
                 >
                   {contractor.role}
                 </Text>
-                
+
                 <HStack justify="space-between">
-                  <Text 
+                  <Text
                     testID={`contractor-rate-${contractor.id}`}
                     style={{
                       fontSize: 12,
                       color: colors.textSecondary,
                     }}
                   >
-                    Taux: ${contractor.rate}/{contractor.rateType === 'hourly' ? 'h' : 'projet'}
+                    Taux: ${contractor.rate}/
+                    {contractor.rateType === "hourly" ? "h" : "projet"}
                   </Text>
-                  <Text style={{
-                    fontSize: 12,
-                    color: colors.primary,
-                    fontWeight: '600',
-                  }}>
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      color: colors.primary,
+                      fontWeight: "600",
+                    }}
+                  >
                     Sélectionner →
                   </Text>
                 </HStack>
@@ -333,14 +401,17 @@ export default function AddContractorModal({ visible, onClose, onSearch, onAdd }
   const renderContractStep = () => (
     <VStack gap="lg">
       <HStack justify="space-between" align="center">
-        <TouchableOpacity testID="back-button" onPress={() => setStep('results')}>
+        <TouchableOpacity
+          testID="back-button"
+          onPress={() => setStep("results")}
+        >
           <Text style={{ fontSize: 18, color: colors.primary }}>← Retour</Text>
         </TouchableOpacity>
-        <Text 
+        <Text
           testID="contract-title"
           style={{
             fontSize: 20,
-            fontWeight: '600',
+            fontWeight: "600",
             color: colors.text,
           }}
         >
@@ -352,7 +423,7 @@ export default function AddContractorModal({ visible, onClose, onSearch, onAdd }
       </HStack>
 
       {selectedContractor && (
-        <View 
+        <View
           testID="summary-section"
           style={{
             backgroundColor: colors.backgroundSecondary,
@@ -360,31 +431,32 @@ export default function AddContractorModal({ visible, onClose, onSearch, onAdd }
             borderRadius: DESIGN_TOKENS.radius.md,
           }}
         >
-          <Text 
+          <Text
             testID="summary-name"
             style={{
               fontSize: 16,
-              fontWeight: '600',
+              fontWeight: "600",
               color: colors.text,
               marginBottom: 4,
             }}
           >
             {selectedContractor.firstName} {selectedContractor.lastName}
           </Text>
-          <Text 
+          <Text
             testID="summary-details"
             style={{
               fontSize: 14,
               color: colors.textSecondary,
             }}
           >
-            {selectedContractor.role} • ${selectedContractor.rate}/{selectedContractor.rateType === 'hourly' ? 'h' : 'projet'}
+            {selectedContractor.role} • ${selectedContractor.rate}/
+            {selectedContractor.rateType === "hourly" ? "h" : "projet"}
           </Text>
         </View>
       )}
 
       <VStack gap="md">
-        <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text }}>
+        <Text style={{ fontSize: 16, fontWeight: "600", color: colors.text }}>
           Choisissez le type de relation contractuelle :
         </Text>
 
@@ -394,42 +466,57 @@ export default function AddContractorModal({ visible, onClose, onSearch, onAdd }
             testID={`contract-option-${status.key}`}
             onPress={() => setContractStatus(status.key)}
             style={{
-              backgroundColor: contractStatus === status.key ? colors.primary + '20' : colors.backgroundSecondary,
+              backgroundColor:
+                contractStatus === status.key
+                  ? colors.primary + "20"
+                  : colors.backgroundSecondary,
               padding: DESIGN_TOKENS.spacing.md,
               borderRadius: DESIGN_TOKENS.radius.md,
               borderWidth: contractStatus === status.key ? 2 : 1,
-              borderColor: contractStatus === status.key ? colors.primary : colors.border,
+              borderColor:
+                contractStatus === status.key ? colors.primary : colors.border,
             }}
           >
             <VStack gap="xs">
               <HStack justify="space-between" align="center">
-                <Text 
+                <Text
                   testID={`contract-label-${status.key}`}
                   style={{
                     fontSize: 16,
-                    fontWeight: '600',
-                    color: contractStatus === status.key ? colors.primary : colors.text,
+                    fontWeight: "600",
+                    color:
+                      contractStatus === status.key
+                        ? colors.primary
+                        : colors.text,
                   }}
                 >
                   {status.label}
                 </Text>
                 {contractStatus === status.key && (
-                  <View 
+                  <View
                     testID="selected-checkmark"
                     style={{
                       width: 20,
                       height: 20,
                       borderRadius: 10,
                       backgroundColor: colors.primary,
-                      alignItems: 'center',
-                      justifyContent: 'center',
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
                   >
-                    <Text style={{ color: 'white', fontSize: 12, fontWeight: '600' }}>✓</Text>
+                    <Text
+                      style={{
+                        color: "white",
+                        fontSize: 12,
+                        fontWeight: "600",
+                      }}
+                    >
+                      ✓
+                    </Text>
                   </View>
                 )}
               </HStack>
-              <Text 
+              <Text
                 testID={`contract-description-${status.key}`}
                 style={{
                   fontSize: 14,
@@ -447,16 +534,16 @@ export default function AddContractorModal({ visible, onClose, onSearch, onAdd }
       <HStack gap="md">
         <TouchableOpacity
           testID="back-to-results-button"
-          onPress={() => setStep('results')}
+          onPress={() => setStep("results")}
           style={{
             flex: 1,
             backgroundColor: colors.backgroundSecondary,
             paddingVertical: DESIGN_TOKENS.spacing.md,
             borderRadius: DESIGN_TOKENS.radius.md,
-            alignItems: 'center',
+            alignItems: "center",
           }}
         >
-          <Text style={{ color: colors.text, fontSize: 16, fontWeight: '600' }}>
+          <Text style={{ color: colors.text, fontSize: 16, fontWeight: "600" }}>
             Retour
           </Text>
         </TouchableOpacity>
@@ -470,14 +557,20 @@ export default function AddContractorModal({ visible, onClose, onSearch, onAdd }
             backgroundColor: colors.primary,
             paddingVertical: DESIGN_TOKENS.spacing.md,
             borderRadius: DESIGN_TOKENS.radius.md,
-            alignItems: 'center',
+            alignItems: "center",
             opacity: isLoading ? 0.6 : 1,
           }}
         >
           {isLoading ? (
             <ActivityIndicator size="small" color={colors.background} />
           ) : (
-            <Text style={{ color: colors.background, fontSize: 16, fontWeight: '600' }}>
+            <Text
+              style={{
+                color: colors.background,
+                fontSize: 16,
+                fontWeight: "600",
+              }}
+            >
               Ajouter au Staff
             </Text>
           )}
@@ -488,23 +581,27 @@ export default function AddContractorModal({ visible, onClose, onSearch, onAdd }
 
   return (
     <Modal visible={visible} transparent animationType="slide">
-      <View style={{
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: DESIGN_TOKENS.spacing.lg,
-      }}>
-        <View style={{
-          backgroundColor: colors.background,
-          borderRadius: DESIGN_TOKENS.radius.lg,
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "rgba(0,0,0,0.5)",
+          justifyContent: "center",
+          alignItems: "center",
           padding: DESIGN_TOKENS.spacing.lg,
-          width: '100%',
-          maxHeight: '90%',
-        }}>
-          {step === 'search' && renderSearchStep()}
-          {step === 'results' && renderResultsStep()}
-          {step === 'contract' && renderContractStep()}
+        }}
+      >
+        <View
+          style={{
+            backgroundColor: colors.background,
+            borderRadius: DESIGN_TOKENS.radius.lg,
+            padding: DESIGN_TOKENS.spacing.lg,
+            width: "100%",
+            maxHeight: "90%",
+          }}
+        >
+          {step === "search" && renderSearchStep()}
+          {step === "results" && renderResultsStep()}
+          {step === "contract" && renderContractStep()}
         </View>
       </View>
     </Modal>

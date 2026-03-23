@@ -193,7 +193,7 @@ const JobSummary = ({
       />
 
       {/* Sections modulaires */}
-      <View>
+      <View testID="job-summary-root">
         {isLoading ? (
           <JobSummarySkeleton />
         ) : (
@@ -228,7 +228,7 @@ const JobSummary = ({
             />
 
             {/* Historique des étapes (si disponible) */}
-            {!!(job?.timer_info?.step_history?.length) && (
+            {!!job?.timer_info?.step_history?.length && (
               <JobStepHistoryCard timerInfo={job.timer_info!} />
             )}
 

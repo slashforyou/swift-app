@@ -1,0 +1,139 @@
+appId: host.exp.exponent
+---
+# Flow 030 — Création d'un véhicule
+#
+# Compte : ADMIN_EMAIL / ADMIN_PASSWORD
+# But : créer un véhicule de test dans la flotte, vérifier qu'il apparaît, puis le supprimer
+# Pré-condition : aucune (auto-gérée)
+
+# === DÉPART : HOME ===
+- runFlow:
+    file: sub-flows/_go-to-home.yaml
+    env:
+      EMAIL: ${ADMIN_EMAIL}
+      PASSWORD: ${ADMIN_PASSWORD}
+
+# === NAVIGUER VERS BUSINESS ===
+- tapOn:
+    id: "home-business-btn"
+- extendedWaitUntil:
+    visible:
+      id: "business-screen"
+    timeout: 10000
+
+# === ONGLET TRUCKS (flotte) ===
+- tapOn:
+    id: "tab-Trucks"
+- extendedWaitUntil:
+    visible:
+      id: "add-vehicle-button"
+    timeout: 20000
+
+# === OUVRIR LA MODAL D'AJOUT ===
+- tapOn:
+    id: "add-vehicle-button"
+- extendedWaitUntil:
+    visible:
+      id: "add-vehicle-modal"
+    timeout: 10000
+
+# === ÉTAPE 1 : SÉLECTIONNER LE TYPE ===
+- tapOn:
+    id: "vehicle-type-van"
+
+# === ÉTAPE 2 : REMPLIR LES DÉTAILS ===
+- extendedWaitUntil:
+    visible:
+      id: "vehicle-model-input"
+    timeout: 5000
+
+# Sélectionner la marque (liste horizontale)
+- tapOn:
+    text: "Isuzu"
+
+- tapOn:
+    id: "vehicle-model-input"
+- inputText: "E2E-TEST-001"
+
+- tapOn:
+    id: "vehicle-registration-input"
+- inputText: "ABC-001"
+- hideKeyboard
+
+# Faire défiler vers l'emplacement et la date de service
+- scrollUntilVisible:
+    element:
+      text: "Sydney Depot"
+
+# Sélectionner l'emplacement (liste horizontale)
+- tapOn:
+    text: "Sydney Depot"
+
+# Date de prochain service
+- scrollUntilVisible:
+    element:
+      id: "vehicle-nextservice-input"
+- tapOn:
+    id: "vehicle-nextservice-input"
+- inputText: "2030-12-31"
+- hideKeyboard
+
+# === SOUMETTRE ===
+- tapOn:
+    id: "vehicle-submit-btn"
+
+# === VÉRIFICATION : modal fermée, véhicule créé ===
+- extendedWaitUntil:
+    notVisible:
+      id: "add-vehicle-modal"
+    timeout: 10000
+- waitForAnimationToEnd
+
+# === VÉRIFICATION : le véhicule apparaît dans la liste ===
+- scrollUntilVisible:
+    element:
+      id: "vehicle-card-v1"
+- assertVisible:
+    id: "vehicle-card-v1"
+
+# === NETTOYAGE : supprimer le véhicule créé ===
+- tapOn:
+    id: "vehicle-card-v1"
+- extendedWaitUntil:
+    visible:
+      id: "business-vehicle-details-screen"
+    timeout: 5000
+
+# Taper le bouton "Delete" dans les actions rapides
+# Swipe up pour rendre le bouton visible (Quick Actions section)
+- swipe:
+    direction: UP
+    duration: 600
+- extendedWaitUntil:
+    visible:
+      id: "vehicle-delete-btn"
+    timeout: 5000
+- tapOn:
+    id: "vehicle-delete-btn"
+
+# Confirmer la suppression dans l'alerte native
+- tapOn:
+    text: "Delete"
+
+# === VÉRIFICATION : véhicule supprimé, retour sur la liste ===
+- extendedWaitUntil:
+    visible:
+      id: "add-vehicle-button"
+    timeout: 15000
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    notVisible:
+      id: "vehicle-card-v1"
+    timeout: 5000
+
+# === RETOUR HOME ===
+- pressKey: Back
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 5000

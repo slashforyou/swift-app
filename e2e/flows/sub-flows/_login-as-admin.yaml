@@ -1,0 +1,23 @@
+appId: host.exp.exponent
+---
+# Sub-flow : _login-as-admin
+#
+# Se connecte en tant qu'Admin Nerd-Test (ADMIN_EMAIL / ADMIN_PASSWORD).
+# Si déjà sur home → logout d'abord.
+# Résultat : home-screen visible avec le compte admin actif.
+#
+# Variables requises dans credentials.yaml :
+#   ADMIN_EMAIL, ADMIN_PASSWORD
+
+# 1. Aller sur home (gère : logged out, mauvais écran)
+- runFlow:
+    file: _go-to-home.yaml
+    env:
+      EMAIL: ${ADMIN_EMAIL}
+      PASSWORD: ${ADMIN_PASSWORD}
+
+# 2. Si on était déjà logged in (potentiellement mauvais compte) → logout
+#    Note : _go-to-home nous a loggé avec ADMIN si on était sur connection-screen.
+#    Si on était déjà sur home avec un autre compte, on relogin.
+#    Dans les flows de test, appeler _logout + _login-as-admin explicitement
+#    si un changement de compte est requis en milieu de flow.

@@ -411,7 +411,11 @@ export default function BankAccountScreen({
   });
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <SafeAreaView
+      style={styles.container}
+      edges={["top"]}
+      testID="stripe-bank-screen"
+    >
       {/* Header avec retour et étape */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -472,6 +476,7 @@ export default function BankAccountScreen({
                 )}
                 placeholderTextColor={colors.textSecondary}
                 autoCapitalize="words"
+                testID="stripe-bank-holdername"
               />
               {errors.accountHolderName && (
                 <Text style={styles.errorText}>{errors.accountHolderName}</Text>
@@ -492,6 +497,7 @@ export default function BankAccountScreen({
                 placeholderTextColor={colors.textSecondary}
                 keyboardType="number-pad"
                 maxLength={7} // XXX-XXX
+                testID="stripe-bank-bsb"
               />
               {errors.bsb && <Text style={styles.errorText}>{errors.bsb}</Text>}
               <Text style={styles.helperText}>
@@ -522,6 +528,7 @@ export default function BankAccountScreen({
                 placeholderTextColor={colors.textSecondary}
                 keyboardType="number-pad"
                 maxLength={9}
+                testID="stripe-bank-accountnumber"
               />
               {errors.accountNumber && (
                 <Text style={styles.errorText}>{errors.accountNumber}</Text>
@@ -566,6 +573,7 @@ export default function BankAccountScreen({
             ]}
             onPress={handleNext}
             disabled={isSubmitting}
+            testID="stripe-bank-next-btn"
           >
             {isSubmitting ? (
               <ActivityIndicator color="#FFFFFF" size="small" />

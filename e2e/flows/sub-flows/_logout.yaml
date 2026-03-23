@@ -1,0 +1,27 @@
+appId: host.exp.exponent
+---
+# Sub-flow : _logout
+#
+# Déconnecte l'utilisateur courant.
+# Pré-condition : home-screen visible (appeler _go-to-home avant si nécessaire)
+# Résultat : connection-screen visible
+
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+- tapOn:
+    id: "home-logout-btn"
+
+# Attendre la modale de confirmation (React Native Modal avec testID)
+- extendedWaitUntil:
+    visible:
+      id: "logout-confirm-modal"
+    timeout: 10000
+
+# Confirmer la déconnexion
+- tapOn:
+    id: "logout-confirm-btn"
+
+- extendedWaitUntil:
+    visible:
+      id: "connection-screen"
+    timeout: 15000

@@ -1,12 +1,12 @@
 import { Picker } from "@react-native-picker/picker";
 import React, { useRef, useState } from "react";
 import {
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import AlertMessage from "../../../components/ui/AlertMessage";
 import { TEST_DATA } from "../../../config/testData";
@@ -32,7 +32,9 @@ const BusinessAddressStepImproved: React.FC<BusinessAddressStepProps> = ({
   const { t } = useTranslation();
 
   // 🧪 Auto-fill with test data in development mode
-  const autoFillData = (__DEV__ ? TEST_DATA.businessAddress : {}) as Partial<BusinessOwnerRegistrationData>;
+  const autoFillData = (
+    __DEV__ ? TEST_DATA.businessAddress : {}
+  ) as Partial<BusinessOwnerRegistrationData>;
 
   const [streetAddress, setStreetAddress] = useState(
     data.streetAddress || autoFillData.streetAddress || "",
@@ -231,6 +233,7 @@ const BusinessAddressStepImproved: React.FC<BusinessAddressStepProps> = ({
         </Pressable>
 
         <Pressable
+          testID="register-address-next-btn"
           onPress={handleNext}
           disabled={isLoading}
           style={[styles.buttonBase, styles.buttonPrimary, { flex: 1 }]}

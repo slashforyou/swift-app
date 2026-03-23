@@ -14,16 +14,16 @@ import { DESIGN_TOKENS } from "../../../constants/Styles";
 import { useTheme } from "../../../context/ThemeProvider";
 import { useLocalization } from "../../../localization/useLocalization";
 import {
-    deleteAssignment,
-    listAssignments,
+  deleteAssignment,
+  listAssignments,
 } from "../../../services/jobAssignments";
 import type {
-    AssignmentStatus,
-    JobAssignment,
-    ListAssignmentsResponse,
-    StaffingStatus,
-    StaffResource,
-    VehicleResource,
+  AssignmentStatus,
+  JobAssignment,
+  ListAssignmentsResponse,
+  StaffingStatus,
+  StaffResource,
+  VehicleResource,
 } from "../../../types/jobAssignment";
 import AssignResourceModal from "../../modals/AssignResourceModal";
 
@@ -634,6 +634,7 @@ const StaffingSection: React.FC<StaffingSectionProps> = ({
                 </Text>
                 {canAssign && (
                   <Pressable
+                    testID="job-staffing-assign-btn"
                     onPress={() => setShowModal(true)}
                     style={({ pressed }) => ({
                       flexDirection: "row",
@@ -766,6 +767,7 @@ const StaffingSection: React.FC<StaffingSectionProps> = ({
               {/* ── Bouton Affecter ── */}
               {canAssign && (
                 <Pressable
+                  testID="job-staffing-manage-btn"
                   onPress={() => setShowModal(true)}
                   style={({ pressed }) => ({
                     flexDirection: "row",

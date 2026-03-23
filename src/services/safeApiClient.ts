@@ -1,19 +1,19 @@
 /**
  * 🛡️ API CLIENT WITH DISCOVERY
- * 
+ *
  * Client API intelligent qui vérifie la disponibilité des endpoints
  * avant de les appeler, et gère les fallbacks gracieux.
- * 
+ *
  * Avantages:
  * - ✅ Évite les erreurs 404 parasites
  * - ✅ Fallbacks automatiques pour endpoints manquants
  * - ✅ Logs propres (seulement vraies erreurs)
  * - ✅ Cache intelligent des vérifications
- * 
+ *
  * @example
  * // Au lieu de:
  * const response = await fetch('/swift-app/v1/logs', {...});
- * 
+ *
  * // Utiliser:
  * const result = await safeApiCall({
  *   endpoint: '/swift-app/v1/logs',
@@ -23,14 +23,18 @@
  * });
  */
 
-import { apiDiscovery } from './apiDiscovery';
-import { logger } from './logger';
+import { API_URL } from "../config/environment";
+import { apiDiscovery } from "./apiDiscovery";
+import { logger } from "./logger";
+
+// Extraire l'origin (ex: "https://altivo.fr") depuis API_URL pour construire les URLs complètes
+const API_BASE_ORIGIN = API_URL.replace(/\/swift-app\/.*$/, "");
 
 // ========================================
 // TYPES
 // ========================================
 
-export type ApiFallbackStrategy = 'local' | 'silent' | 'error' | 'retry';
+export type ApiFallbackStrategy = "local" | "silent" | "error" | "retry";
 
 export interface SafeApiCallOptions {
   endpoint: string;
@@ -57,7 +61,10 @@ export interface SafeApiCallResult<T = any> {
 // ========================================
 
 // Cache des endpoints vérifiés (pour éviter de re-vérifier à chaque appel)
-const endpointValidationCache = new Map<string, { available: boolean; timestamp: number }>();
+const endpointValidationCache = new Map<
+  string,
+  { available: boolean; timestamp: number }
+>();
 const VALIDATION_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 /**
@@ -82,7 +89,7 @@ function getCachedValidation(endpoint: string): boolean | null {
 function setCachedValidation(endpoint: string, available: boolean): void {
   endpointValidationCache.set(endpoint, {
     available,
-    timestamp: Date.now()
+    timestamp: Date.now(),
   });
 }
 
@@ -92,10 +99,10 @@ function setCachedValidation(endpoint: string, available: boolean): void {
 
 /**
  * Appelle un endpoint API de manière sécurisée avec vérification de disponibilité
- * 
+ *
  * @param options - Options de l'appel API
  * @returns Résultat avec indication si fallback utilisé
- * 
+ *
  * @example
  * // Appel avec fallback local
  * const result = await safeApiCall({
@@ -108,27 +115,27 @@ function setCachedValidation(endpoint: string, available: boolean): void {
  *     return { success: true };
  *   }
  * });
- * 
+ *
  * if (result.usedFallback) {
  *   console.log('Endpoint non disponible, utilisé fallback local');
  * }
  */
 export async function safeApiCall<T = any>(
-  options: SafeApiCallOptions
+  options: SafeApiCallOptions,
 ): Promise<SafeApiCallResult<T>> {
   const {
     endpoint,
-    method = 'GET',
+    method = "GET",
     headers = {},
     body,
-    fallbackStrategy = 'error',
+    fallbackStrategy = "error",
     skipValidation = false,
     localFallbackFn,
-    retryAttempts = 0
+    retryAttempts = 0,
   } = options;
 
   // Normaliser l'endpoint (retirer l'URL de base si présente)
-  const normalizedEndpoint = endpoint.replace(/^https?:\/\/[^\/]+/, '');
+  const normalizedEndpoint = endpoint.replace(/^https?:\/\/[^\/]+/, "");
 
   // 1. VÉRIFICATION DE DISPONIBILITÉ
   let isAvailable = true;
@@ -136,164 +143,180 @@ export async function safeApiCall<T = any>(
   if (!skipValidation) {
     // Vérifier cache d'abord
     const cachedResult = getCachedValidation(normalizedEndpoint);
-    
+
     if (cachedResult !== null) {
       isAvailable = cachedResult;
-      logger.debug('[SafeApiCall] Using cached validation', { endpoint: normalizedEndpoint, isAvailable });
+      logger.debug("[SafeApiCall] Using cached validation", {
+        endpoint: normalizedEndpoint,
+        isAvailable,
+      });
     } else {
       // Vérifier avec API Discovery
-      isAvailable = await apiDiscovery.isEndpointAvailable(normalizedEndpoint, method);
+      isAvailable = await apiDiscovery.isEndpointAvailable(
+        normalizedEndpoint,
+        method,
+      );
       setCachedValidation(normalizedEndpoint, isAvailable);
-      logger.debug('[SafeApiCall] Validated endpoint', { endpoint: normalizedEndpoint, isAvailable });
+      logger.debug("[SafeApiCall] Validated endpoint", {
+        endpoint: normalizedEndpoint,
+        isAvailable,
+      });
     }
   }
 
   // 2. ENDPOINT NON DISPONIBLE → APPLIQUER FALLBACK
   if (!isAvailable) {
-    logger.warn('[SafeApiCall] Endpoint not available', { 
-      endpoint: normalizedEndpoint, 
+    logger.warn("[SafeApiCall] Endpoint not available", {
+      endpoint: normalizedEndpoint,
       method,
-      fallbackStrategy 
+      fallbackStrategy,
     });
 
     switch (fallbackStrategy) {
-      case 'local':
+      case "local":
         if (localFallbackFn) {
           try {
             const fallbackData = await localFallbackFn();
-            logger.info('[SafeApiCall] Used local fallback successfully', { endpoint: normalizedEndpoint });
+            logger.info("[SafeApiCall] Used local fallback successfully", {
+              endpoint: normalizedEndpoint,
+            });
             return {
               success: true,
               data: fallbackData,
               usedFallback: true,
               endpointAvailable: false,
-              strategy: 'local'
+              strategy: "local",
             };
           } catch (error) {
-            logger.error('[SafeApiCall] Local fallback failed', { endpoint: normalizedEndpoint, error });
+            logger.error("[SafeApiCall] Local fallback failed", {
+              endpoint: normalizedEndpoint,
+              error,
+            });
             return {
               success: false,
-              error: 'Endpoint unavailable and local fallback failed',
+              error: "Endpoint unavailable and local fallback failed",
               usedFallback: true,
               endpointAvailable: false,
-              strategy: 'local'
+              strategy: "local",
             };
           }
         }
         // Si pas de fonction fallback, retourner erreur
         return {
           success: false,
-          error: 'Endpoint unavailable and no local fallback provided',
+          error: "Endpoint unavailable and no local fallback provided",
           usedFallback: false,
           endpointAvailable: false,
-          strategy: 'local'
+          strategy: "local",
         };
 
-      case 'silent':
-        logger.debug('[SafeApiCall] Silent fallback - returning null', { endpoint: normalizedEndpoint });
+      case "silent":
+        logger.debug("[SafeApiCall] Silent fallback - returning null", {
+          endpoint: normalizedEndpoint,
+        });
         return {
           success: true,
           data: null as T,
           usedFallback: true,
           endpointAvailable: false,
-          strategy: 'silent'
+          strategy: "silent",
         };
 
-      case 'retry':
+      case "retry":
         if (retryAttempts > 0) {
-          logger.info('[SafeApiCall] Retrying despite unavailability', { 
+          logger.info("[SafeApiCall] Retrying despite unavailability", {
             endpoint: normalizedEndpoint,
-            attemptsLeft: retryAttempts 
+            attemptsLeft: retryAttempts,
           });
           // Forcer l'appel en skipant la validation
           return safeApiCall({
             ...options,
             skipValidation: true,
-            retryAttempts: retryAttempts - 1
+            retryAttempts: retryAttempts - 1,
           });
         }
         // Plus de retry → error
         return {
           success: false,
-          error: 'Endpoint unavailable after retries',
+          error: "Endpoint unavailable after retries",
           usedFallback: false,
           endpointAvailable: false,
-          strategy: 'retry'
+          strategy: "retry",
         };
 
-      case 'error':
+      case "error":
       default:
         return {
           success: false,
           error: `Endpoint ${normalizedEndpoint} is not available`,
           usedFallback: false,
           endpointAvailable: false,
-          strategy: 'error'
+          strategy: "error",
         };
     }
   }
 
   // 3. ENDPOINT DISPONIBLE → APPEL NORMAL
   try {
-    const fullUrl = endpoint.startsWith('http') 
-      ? endpoint 
-      : `https://altivo.fr${normalizedEndpoint}`;
+    const fullUrl = endpoint.startsWith("http")
+      ? endpoint
+      : `${API_BASE_ORIGIN}${normalizedEndpoint}`;
 
-    logger.debug('[SafeApiCall] Calling endpoint', { 
-      endpoint: normalizedEndpoint, 
+    logger.debug("[SafeApiCall] Calling endpoint", {
+      endpoint: normalizedEndpoint,
       method,
-      hasBody: !!body 
+      hasBody: !!body,
     });
 
     const fetchOptions: RequestInit = {
       method,
       headers: {
-        'Content-Type': 'application/json',
-        ...headers
+        "Content-Type": "application/json",
+        ...headers,
       },
-      ...(body && { body: JSON.stringify(body) })
+      ...(body && { body: JSON.stringify(body) }),
     };
 
     const response = await fetch(fullUrl, fetchOptions);
 
     // Cas spécial: 404 alors que Discovery dit que c'est disponible
     if (response.status === 404) {
-      logger.warn('[SafeApiCall] Got 404 but endpoint should be available', {
+      logger.warn("[SafeApiCall] Got 404 but endpoint should be available", {
         endpoint: normalizedEndpoint,
-        method
+        method,
       });
-      
+
       // Invalider le cache
       setCachedValidation(normalizedEndpoint, false);
 
       // Appliquer fallback
-      if (fallbackStrategy === 'local' && localFallbackFn) {
+      if (fallbackStrategy === "local" && localFallbackFn) {
         const fallbackData = await localFallbackFn();
         return {
           success: true,
           data: fallbackData,
           usedFallback: true,
           endpointAvailable: false,
-          strategy: 'local-after-404'
+          strategy: "local-after-404",
         };
       }
 
       return {
         success: false,
-        error: 'Endpoint returned 404',
+        error: "Endpoint returned 404",
         usedFallback: false,
         endpointAvailable: true, // Discovery disait oui mais API dit 404
-        strategy: 'error'
+        strategy: "error",
       };
     }
 
     // Autres erreurs HTTP
     if (!response.ok) {
       const errorText = await response.text();
-      logger.error('[SafeApiCall] HTTP error', {
+      logger.error("[SafeApiCall] HTTP error", {
         endpoint: normalizedEndpoint,
         status: response.status,
-        error: errorText
+        error: errorText,
       });
 
       return {
@@ -301,27 +324,29 @@ export async function safeApiCall<T = any>(
         error: `HTTP ${response.status}: ${errorText}`,
         usedFallback: false,
         endpointAvailable: true,
-        strategy: 'error'
+        strategy: "error",
       };
     }
 
     // Succès
     const data = await response.json();
-    logger.debug('[SafeApiCall] Success', { endpoint: normalizedEndpoint });
+    logger.debug("[SafeApiCall] Success", { endpoint: normalizedEndpoint });
 
     return {
       success: true,
       data,
       usedFallback: false,
       endpointAvailable: true,
-      strategy: 'normal'
+      strategy: "normal",
     };
-
   } catch (error) {
-    logger.error('[SafeApiCall] Fetch error', { endpoint: normalizedEndpoint, error });
+    logger.error("[SafeApiCall] Fetch error", {
+      endpoint: normalizedEndpoint,
+      error,
+    });
 
     // En cas d'erreur réseau, essayer fallback local
-    if (fallbackStrategy === 'local' && localFallbackFn) {
+    if (fallbackStrategy === "local" && localFallbackFn) {
       try {
         const fallbackData = await localFallbackFn();
         return {
@@ -329,25 +354,25 @@ export async function safeApiCall<T = any>(
           data: fallbackData,
           usedFallback: true,
           endpointAvailable: true, // On ne sait pas, erreur réseau
-          strategy: 'local-after-error'
+          strategy: "local-after-error",
         };
       } catch (fallbackError) {
         return {
           success: false,
-          error: 'Network error and local fallback failed',
+          error: "Network error and local fallback failed",
           usedFallback: true,
           endpointAvailable: true,
-          strategy: 'error'
+          strategy: "error",
         };
       }
     }
 
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : "Unknown error",
       usedFallback: false,
       endpointAvailable: true,
-      strategy: 'error'
+      strategy: "error",
     };
   }
 }
@@ -361,22 +386,24 @@ export async function safeApiCall<T = any>(
  */
 export async function safeLogToApi(logData: any): Promise<SafeApiCallResult> {
   return safeApiCall({
-    endpoint: '/swift-app/v1/logs',
-    method: 'POST',
+    endpoint: "/swift-app/v1/logs",
+    method: "POST",
     body: logData,
-    fallbackStrategy: 'silent' // Ne pas bloquer si logs API indisponibles
+    fallbackStrategy: "silent", // Ne pas bloquer si logs API indisponibles
   });
 }
 
 /**
  * Wrapper pour analytics (avec fallback silent)
  */
-export async function safeAnalyticsEvent(eventData: any): Promise<SafeApiCallResult> {
+export async function safeAnalyticsEvent(
+  eventData: any,
+): Promise<SafeApiCallResult> {
   return safeApiCall({
-    endpoint: '/swift-app/v1/analytics/events',
-    method: 'POST',
+    endpoint: "/swift-app/v1/analytics/events",
+    method: "POST",
     body: eventData,
-    fallbackStrategy: 'silent' // Ne pas bloquer si analytics indisponibles
+    fallbackStrategy: "silent", // Ne pas bloquer si analytics indisponibles
   });
 }
 
@@ -386,14 +413,14 @@ export async function safeAnalyticsEvent(eventData: any): Promise<SafeApiCallRes
 export async function safeUpdateJobStep(
   jobId: string,
   stepData: any,
-  localUpdateFn?: () => Promise<any>
+  localUpdateFn?: () => Promise<any>,
 ): Promise<SafeApiCallResult> {
   return safeApiCall({
     endpoint: `/swift-app/v1/job/${jobId}/step`,
-    method: 'PATCH',
+    method: "PATCH",
     body: stepData,
-    fallbackStrategy: 'local',
-    localFallbackFn: localUpdateFn
+    fallbackStrategy: "local",
+    localFallbackFn: localUpdateFn,
   });
 }
 
@@ -403,14 +430,14 @@ export async function safeUpdateJobStep(
 export async function safeCreateJobNote(
   jobId: string,
   noteData: any,
-  localCreateFn?: () => Promise<any>
+  localCreateFn?: () => Promise<any>,
 ): Promise<SafeApiCallResult> {
   return safeApiCall({
     endpoint: `/swift-app/v1/job/${jobId}/notes`,
-    method: 'POST',
+    method: "POST",
     body: noteData,
-    fallbackStrategy: 'local',
-    localFallbackFn: localCreateFn
+    fallbackStrategy: "local",
+    localFallbackFn: localCreateFn,
   });
 }
 
@@ -419,12 +446,12 @@ export async function safeCreateJobNote(
  */
 export function clearValidationCache(): void {
   endpointValidationCache.clear();
-  logger.info('[SafeApiCall] Validation cache cleared');
+  logger.info("[SafeApiCall] Validation cache cleared");
 }
 
 /**
  * EXEMPLES D'UTILISATION :
- * 
+ *
  * // 1. Logs API (silent fallback)
  * const result = await safeLogToApi({
  *   level: 'error',
@@ -432,7 +459,7 @@ export function clearValidationCache(): void {
  *   timestamp: Date.now()
  * });
  * // Si l'endpoint n'existe pas → silent, pas d'erreur
- * 
+ *
  * // 2. Job step update (local fallback)
  * const result = await safeUpdateJobStep(
  *   'job-123',
@@ -442,11 +469,11 @@ export function clearValidationCache(): void {
  *     return { success: true };
  *   }
  * );
- * 
+ *
  * if (result.usedFallback) {
  *   Alert.alert('Sauvegardé localement', 'Synchronisation en attente');
  * }
- * 
+ *
  * // 3. Custom endpoint avec retry
  * const result = await safeApiCall({
  *   endpoint: '/swift-app/v1/custom-endpoint',

@@ -1,0 +1,36 @@
+appId: host.exp.exponent
+---
+# Flow 002 — Login
+# Called from 001-launch-login-calendar.yaml when the connection screen is visible
+# Requires env variables: EMAIL, PASSWORD
+
+- assertVisible:
+    id: "connection-screen"
+
+- tapOn:
+    id: "connection-login-btn"
+
+- extendedWaitUntil:
+    visible:
+      id: "login-screen"
+    timeout: 5000
+
+- tapOn:
+    id: "login-email-input"
+
+- inputText: ${EMAIL}
+
+- tapOn:
+    id: "login-password-input"
+
+- inputText: ${PASSWORD}
+
+- hideKeyboard
+
+- tapOn:
+    id: "login-submit-btn"
+
+- extendedWaitUntil:
+    visible:
+      id: "home-calendar-btn"
+    timeout: 30000

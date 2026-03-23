@@ -155,6 +155,7 @@ const TabMenu: React.FC<TabMenuProps> = ({
         return (
           <TouchableOpacity
             key={item.id}
+            testID={`tab-${item.id}`}
             style={[
               styles.tabButton,
               isActive ? styles.tabButtonActive : styles.tabButtonInactive,

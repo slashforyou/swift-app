@@ -4,7 +4,6 @@
  */
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React from "react";
-import { useTranslation } from "../../../localization";
 import {
     ScrollView,
     StyleSheet,
@@ -18,6 +17,7 @@ import {
 } from "react-native-safe-area-context";
 import { DESIGN_TOKENS } from "../../../constants/Styles";
 import { useTheme } from "../../../context/ThemeProvider";
+import { useTranslation } from "../../../localization";
 
 interface CompletionScreenProps {
   navigation: any;
@@ -40,8 +40,15 @@ export default function CompletionScreen({
   const isPending = accountStatus?.details_submitted && !isActive;
 
   const handleReturn = () => {
-    // Retourner à StripeHub (navigation parent)
-    navigation.getParent()?.navigate("StripeHub");
+    // Retourner au Business screen (StripeHub est un composant inline dans BusinessNavigation)
+    // Le parent du StripeOnboardingStack est le root navigator qui a "Business"
+    const rootNav = navigation.getParent();
+    if (rootNav) {
+      rootNav.navigate("Business");
+    } else {
+      // Fallback: revenir en arrière dans le stack
+      navigation.popToTop();
+    }
   };
 
   const styles = StyleSheet.create({
@@ -178,7 +185,11 @@ export default function CompletionScreen({
   });
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <SafeAreaView
+      style={styles.container}
+      edges={["top"]}
+      testID="stripe-completion-screen"
+    >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -339,7 +350,11 @@ export default function CompletionScreen({
         )}
 
         {/* Bouton de retour */}
-        <TouchableOpacity style={styles.button} onPress={handleReturn}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={handleReturn}
+          testID="stripe-completion-return-btn"
+        >
           <Text style={styles.buttonText}>
             {t("stripe.completion.returnToDashboard")}
           </Text>

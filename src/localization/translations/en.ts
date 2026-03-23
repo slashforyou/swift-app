@@ -113,6 +113,26 @@ export const enTranslations: TranslationKeys = {
       title: "Leaderboard",
       description: "See how you rank against other drivers",
     },
+    contact: {
+      title: "Contact Us",
+      yourMessage: "Your message",
+      helpLabel: "Ask for help",
+      feedbackLabel: "Give feedback",
+      featureLabel: "Suggest an improvement",
+      bugLabel: "Report a problem",
+      placeholder: "Describe your request...",
+      send: "Send",
+      sending: "Sending...",
+      cancel: "Cancel",
+      thankYou: "Thank you!",
+      thankYouMessage: "Your message has been sent successfully.",
+      errorSending: "Unable to send the message. Please try again.",
+    },
+    stripeAlert: {
+      title: "Stripe not activated",
+      description:
+        "You cannot receive payments or invoice without Stripe. Activate it now.",
+    },
   },
 
   leaderboard: {
@@ -2230,6 +2250,11 @@ export const enTranslations: TranslationKeys = {
       accountSettings: "Account Settings",
       testConnection: "Test Connection",
       poweredByStripe: "Powered by Stripe • Secure payments worldwide",
+      stripeExplanation:
+        "A Stripe account lets you receive payments from your clients and generate invoices directly from the app. Setup takes just a few minutes.",
+      feePassToClient: "Pass Stripe fees to client",
+      feePassToClientDesc:
+        "When enabled, Stripe processing fees will be added to your client's invoice.",
       settingsAction: "Settings",
       paymentLinkAction: "Payment Link",
       connected: "Connected",

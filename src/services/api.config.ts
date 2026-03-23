@@ -7,6 +7,7 @@
  */
 
 import { Platform as RNPlatform } from 'react-native';
+import { STRIPE_PUBLISHABLE_KEY } from '../config/environment';
 import { clearSession, getAuthHeaders as getSecureAuthHeaders } from '../utils/auth';
 
 // Variables d'environnement
@@ -62,11 +63,9 @@ export const apiConfig = {
     'Accept': 'application/json',
   },
   
-  // Configuration Stripe
+  // Configuration Stripe (centralisée dans environment.ts)
   stripe: {
-    publishableKey: IS_DEV 
-      ? 'pk_test_51OsLQ8DYjI2sE1B1Gxw8SJ9xqJBAFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF'
-      : 'pk_live_VOTRE_CLE_STRIPE_PRODUCTION',
+    publishableKey: STRIPE_PUBLISHABLE_KEY,
   },
   
   /**

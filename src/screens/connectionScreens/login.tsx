@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 import {
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import AlertMessage from "../../components/ui/AlertMessage";
 import AnimatedBackground from "../../components/ui/AnimatedBackground";
@@ -187,7 +187,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView testID="login-screen" style={styles.container}>
       {/* Full-screen loading overlay */}
       {isLoading && <MascotLoading text={t("auth.login.submitting")} overlay />}
 
@@ -195,6 +195,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
       <AnimatedBackground opacity={0.15} />
 
       <View
+        testID="login-language-container"
         style={{
           position: "absolute",
           top: 28,
@@ -202,7 +203,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           zIndex: 10,
         }}
       >
-        <RoundLanguageButton />
+        <RoundLanguageButton testID="login-language-btn" />
       </View>
 
       <KeyboardAvoidingView
@@ -217,15 +218,20 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         >
           {/* Header Section */}
           <View
+            testID="login-header"
             style={{ alignItems: "center", paddingTop: 60, marginBottom: 40 }}
           >
             <HeaderLogo preset="md" variant="square" marginVertical={0} />
 
-            <Text style={[styles.title, { marginBottom: 8, marginTop: 20 }]}>
+            <Text
+              testID="login-title-text"
+              style={[styles.title, { marginBottom: 8, marginTop: 20 }]}
+            >
               {t("auth.login.title")}
             </Text>
 
             <Text
+              testID="login-subtitle-text"
               style={[
                 styles.body,
                 {
@@ -252,13 +258,18 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
           {/* Form Section */}
           <View
+            testID="login-form"
             style={{ flex: 1, justifyContent: "center", paddingVertical: 20 }}
           >
-            <View style={{ marginBottom: 20 }}>
-              <Text style={[styles.subtitle, { marginBottom: 8 }]}>
+            <View testID="login-email-field" style={{ marginBottom: 20 }}>
+              <Text
+                testID="login-email-label"
+                style={[styles.subtitle, { marginBottom: 8 }]}
+              >
                 {t("auth.login.email")}
               </Text>
               <TextInput
+                testID="login-email-input"
                 style={styles.inputBase}
                 placeholder={t("auth.login.emailPlaceholder")}
                 placeholderTextColor={colors.textSecondary}
@@ -271,11 +282,15 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
               />
             </View>
 
-            <View style={{ marginBottom: 30 }}>
-              <Text style={[styles.subtitle, { marginBottom: 8 }]}>
+            <View testID="login-password-field" style={{ marginBottom: 30 }}>
+              <Text
+                testID="login-password-label"
+                style={[styles.subtitle, { marginBottom: 8 }]}
+              >
                 {t("auth.login.password")}
               </Text>
               <TextInput
+                testID="login-password-input"
                 style={styles.inputBase}
                 placeholder={t("auth.login.passwordPlaceholder")}
                 placeholderTextColor={colors.textSecondary}
@@ -287,6 +302,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             </View>
 
             <Pressable
+              testID="login-submit-btn"
               style={[
                 styles.buttonPrimary,
                 {
@@ -299,7 +315,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
               onPress={handleLogin}
               disabled={isLoading}
             >
-              <Text style={styles.buttonPrimaryText}>
+              <Text testID="login-submit-text" style={styles.buttonPrimaryText}>
                 {isLoading
                   ? t("auth.login.submitting")
                   : t("auth.login.submit")}
@@ -308,18 +324,26 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           </View>
 
           {/* Footer Section */}
-          <View style={{ alignItems: "center", paddingBottom: 40, gap: 16 }}>
+          <View
+            testID="login-footer"
+            style={{ alignItems: "center", paddingBottom: 40, gap: 16 }}
+          >
             <Pressable
+              testID="login-create-account-btn"
               style={[styles.buttonSecondary, { width: "100%" }]}
               onPress={() => navigation.navigate("Subscribe")}
               disabled={isLoading}
             >
-              <Text style={styles.buttonSecondaryText}>
+              <Text
+                testID="login-create-account-text"
+                style={styles.buttonSecondaryText}
+              >
                 {t("auth.login.createAccount")}
               </Text>
             </Pressable>
 
             <Pressable
+              testID="login-back-btn"
               onPress={() => navigation.navigate("Connection")}
               disabled={isLoading}
               style={{

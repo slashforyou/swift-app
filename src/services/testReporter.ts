@@ -4,17 +4,21 @@
  * Capture screenshots, logs et métriques des tests automatisés
  */
 
-import Constants from 'expo-constants';
-import { Platform } from 'react-native';
-import { simpleSessionLogger } from './simpleSessionLogger';
-import { TestEvent, TestResult, TestSession } from './testController';
+import Constants from "expo-constants";
+import { Platform } from "react-native";
+import { simpleSessionLogger } from "./simpleSessionLogger";
+import { TestEvent, TestResult, TestSession } from "./testController";
 
 // Helper pour obtenir la version de l'app de manière sécurisée
 const getAppVersion = (): string => {
   try {
-    return Constants.expoConfig?.version || (Constants.manifest as any)?.version || '1.0.0';
+    return (
+      Constants.expoConfig?.version ||
+      (Constants.manifest as any)?.version ||
+      "1.0.0"
+    );
   } catch {
-    return '1.0.0';
+    return "1.0.0";
   }
 };
 
@@ -59,14 +63,14 @@ class TestReporter {
   private startTime: number = 0;
 
   constructor() {
-    simpleSessionLogger.logInfo('TestReporter initialized', 'test-reporter');
+    simpleSessionLogger.logInfo("TestReporter initialized", "test-reporter");
   }
 
   // ========== REPORT GENERATION ==========
 
   startReport(session: TestSession): void {
     this.startTime = Date.now();
-    
+
     this.currentReport = {
       sessionId: session.sessionId,
       startTime: session.startTime,
@@ -79,15 +83,18 @@ class TestReporter {
       errors: [],
       screenshots: [],
       logs: [],
-      performance: {}
+      performance: {},
     };
 
-    simpleSessionLogger.logInfo(`Test report started for session: ${session.sessionId}`, 'test-reporter');
+    simpleSessionLogger.logInfo(
+      `Test report started for session: ${session.sessionId}`,
+      "test-reporter",
+    );
   }
 
   finishReport(session: TestSession): TestReport {
     if (!this.currentReport) {
-      throw new Error('No active report to finish');
+      throw new Error("No active report to finish");
     }
 
     const results = session.results;
@@ -98,17 +105,20 @@ class TestReporter {
       ...this.currentReport,
       endTime,
       totalCommands: results.length,
-      successfulCommands: results.filter(r => r.success).length,
-      failedCommands: results.filter(r => !r.success).length,
+      successfulCommands: results.filter((r) => r.success).length,
+      failedCommands: results.filter((r) => !r.success).length,
       totalDuration,
       averageDuration: results.length > 0 ? totalDuration / results.length : 0,
       errors: this.errors,
       screenshots: this.screenshots,
       logs: this.collectLogs(),
-      performance: this.performanceData
+      performance: this.performanceData,
     } as TestReport;
 
-    simpleSessionLogger.logInfo(`Test report completed: ${report.successfulCommands}/${report.totalCommands} passed`, 'test-reporter');
+    simpleSessionLogger.logInfo(
+      `Test report completed: ${report.successfulCommands}/${report.totalCommands} passed`,
+      "test-reporter",
+    );
 
     // Reset for next report
     this.currentReport = null;
@@ -125,32 +135,40 @@ class TestReporter {
     if (!this.currentReport) return;
 
     switch (event.type) {
-      case 'commandCompleted':
+      case "commandCompleted":
         this.trackCommandSuccess(event.data.command, event.data.result);
         break;
-        
-      case 'commandFailed':
+
+      case "commandFailed":
         this.trackCommandFailure(event.data.command, event.data.result);
         break;
-        
-      case 'screenshot':
+
+      case "screenshot":
         this.trackScreenshot(event.data.path);
         break;
-        
+
       default:
-        simpleSessionLogger.logDebug(`Tracked test event: ${event.type}`, event.data, 'test-reporter');
+        simpleSessionLogger.logDebug(
+          `Tracked test event: ${event.type}`,
+          event.data,
+          "test-reporter",
+        );
     }
   }
 
   private trackCommandSuccess(command: any, result: TestResult): void {
-    simpleSessionLogger.logDebug(`Command succeeded: ${command.action} (${result.duration}ms)`, {
-      command: command.action,
-      duration: result.duration
-    }, 'test-success');
+    simpleSessionLogger.logDebug(
+      `Command succeeded: ${command.action} (${result.duration}ms)`,
+      {
+        command: command.action,
+        duration: result.duration,
+      },
+      "test-success",
+    );
 
     // Track performance if available
     if (result.duration) {
-      this.updatePerformanceMetrics('navigationTime', result.duration);
+      this.updatePerformanceMetrics("navigationTime", result.duration);
     }
   }
 
@@ -158,61 +176,81 @@ class TestReporter {
     const error: TestError = {
       commandId: result.commandId,
       action: command.action,
-      error: result.error || 'Unknown error',
+      error: result.error || "Unknown error",
       timestamp: result.timestamp,
       context: {
         target: command.target,
-        params: command.params
-      }
+        params: command.params,
+      },
     };
 
     this.errors.push(error);
 
-    simpleSessionLogger.logError(`Command failed: ${command.action}`, {
-      error: result.error,
-      command: command.action,
-      target: command.target
-    }, 'test-failure');
+    simpleSessionLogger.logError(
+      `Command failed: ${command.action}`,
+      {
+        error: result.error,
+        command: command.action,
+        target: command.target,
+      },
+      "test-failure",
+    );
   }
 
   private trackScreenshot(path: string): void {
     this.screenshots.push(path);
-    simpleSessionLogger.logDebug(`Screenshot captured: ${path}`, { path }, 'test-screenshot');
+    simpleSessionLogger.logDebug(
+      `Screenshot captured: ${path}`,
+      { path },
+      "test-screenshot",
+    );
   }
 
   // ========== PERFORMANCE TRACKING ==========
 
-  updatePerformanceMetrics(metric: keyof PerformanceMetrics, value: number): void {
+  updatePerformanceMetrics(
+    metric: keyof PerformanceMetrics,
+    value: number,
+  ): void {
     if (!this.performanceData[metric]) {
       this.performanceData[metric] = value;
     } else {
       // Average for multiple values
-      this.performanceData[metric] = (this.performanceData[metric]! + value) / 2;
+      this.performanceData[metric] =
+        (this.performanceData[metric]! + value) / 2;
     }
   }
 
   trackMemoryUsage(): void {
     // Simulate memory tracking (would use actual tools in production)
     const simulatedMemory = Math.random() * 100 + 50; // 50-150 MB
-    this.updatePerformanceMetrics('memoryUsage', simulatedMemory);
-    
-    simpleSessionLogger.logDebug(`Memory usage: ${simulatedMemory.toFixed(2)} MB`, { memory: simulatedMemory }, 'performance');
+    this.updatePerformanceMetrics("memoryUsage", simulatedMemory);
+
+    simpleSessionLogger.logDebug(
+      `Memory usage: ${simulatedMemory.toFixed(2)} MB`,
+      { memory: simulatedMemory },
+      "performance",
+    );
   }
 
   trackNetworkRequest(): void {
     const current = this.performanceData.networkRequests || 0;
     this.performanceData.networkRequests = current + 1;
-    
-    simpleSessionLogger.logDebug(`Network request tracked: ${this.performanceData.networkRequests}`, {
-      count: this.performanceData.networkRequests
-    }, 'network');
+
+    simpleSessionLogger.logDebug(
+      `Network request tracked: ${this.performanceData.networkRequests}`,
+      {
+        count: this.performanceData.networkRequests,
+      },
+      "network",
+    );
   }
 
   // ========== LOG COLLECTION ==========
 
   private collectLogs(): string[] {
     const logs = simpleSessionLogger.getAllLogs();
-    return logs.map(log => `${log.timestamp} [${log.level}] ${log.message}`);
+    return logs.map((log) => `${log.timestamp} [${log.level}] ${log.message}`);
   }
 
   // ========== SCREENSHOT CAPTURE ==========
@@ -222,20 +260,26 @@ class TestReporter {
       // Simulate screenshot capture
       const timestamp = Date.now();
       const screenshotPath = `screenshot-${timestamp}.png`;
-      
+
       // In real implementation, would use:
       // - react-native-view-shot
       // - expo-media-library
       // - Or native screenshot APIs
-      
+
       this.screenshots.push(screenshotPath);
-      
-      simpleSessionLogger.logInfo(`Screenshot captured: ${description || screenshotPath}`, 'screenshot');
-      
+
+      simpleSessionLogger.logInfo(
+        `Screenshot captured: ${description || screenshotPath}`,
+        "screenshot",
+      );
+
       return screenshotPath;
     } catch (error: any) {
-
-      simpleSessionLogger.logError('Failed to capture screenshot', error, 'screenshot');
+      simpleSessionLogger.logError(
+        "Failed to capture screenshot",
+        error,
+        "screenshot",
+      );
       throw error;
     }
   }
@@ -244,7 +288,10 @@ class TestReporter {
 
   // Format report for Copilot consumption
   formatReportForCopilot(report: TestReport): string {
-    const successRate = (report.successfulCommands / report.totalCommands * 100).toFixed(1);
+    const successRate = (
+      (report.successfulCommands / report.totalCommands) *
+      100
+    ).toFixed(1);
     const avgDuration = report.averageDuration.toFixed(0);
 
     let formattedReport = `
@@ -260,10 +307,10 @@ class TestReporter {
 
     if (report.errors.length > 0) {
       formattedReport += `❌ ERRORS (${report.errors.length}):\n`;
-      report.errors.forEach(error => {
+      report.errors.forEach((error) => {
         formattedReport += `   • ${error.action}: ${error.error}\n`;
       });
-      formattedReport += '\n';
+      formattedReport += "\n";
     }
 
     if (report.performance.memoryUsage) {
@@ -272,15 +319,15 @@ class TestReporter {
       if (report.performance.networkRequests) {
         formattedReport += `   • Network: ${report.performance.networkRequests} requests\n`;
       }
-      formattedReport += '\n';
+      formattedReport += "\n";
     }
 
     if (report.screenshots.length > 0) {
       formattedReport += `📸 SCREENSHOTS (${report.screenshots.length}):\n`;
-      report.screenshots.forEach(screenshot => {
+      report.screenshots.forEach((screenshot) => {
         formattedReport += `   • ${screenshot}\n`;
       });
-      formattedReport += '\n';
+      formattedReport += "\n";
     }
 
     formattedReport += `✅ READY FOR NEXT TEST BATCH\n`;
@@ -291,9 +338,9 @@ class TestReporter {
   // Send report to Copilot (via console for now)
   sendReportToCopilot(report: TestReport): void {
     const formattedReport = this.formatReportForCopilot(report);
-    
+
     // TEMP_DISABLED: console.log(formattedReport);
-    simpleSessionLogger.logInfo('Report sent to Copilot', 'copilot-report');
+    simpleSessionLogger.logInfo("Report sent to Copilot", "copilot-report");
 
     // In real implementation, could send via:
     // - HTTP POST to Copilot endpoint
@@ -311,7 +358,7 @@ class TestReporter {
       screenshotsCount: this.screenshots.length,
       performance: this.performanceData,
       sessionId: this.currentReport?.sessionId,
-      duration: this.currentReport ? Date.now() - this.startTime : 0
+      duration: this.currentReport ? Date.now() - this.startTime : 0,
     };
   }
 
@@ -322,7 +369,7 @@ class TestReporter {
       errors: this.errors,
       screenshots: this.screenshots,
       performance: this.performanceData,
-      logs: this.collectLogs()
+      logs: this.collectLogs(),
     };
   }
 }

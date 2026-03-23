@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
     Alert,
     KeyboardAvoidingView,
@@ -15,7 +15,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ServerData } from "../../constants/ServerData";
 
 import ProgressStepper from "../../components/registration/ProgressStepperModern";
-import AnimatedBackground from "../../components/ui/AnimatedBackground";
 import HeaderLogo from "../../components/ui/HeaderLogo";
 import { useCommonThemedStyles } from "../../hooks/useCommonStyles";
 import { useTranslation } from "../../localization";
@@ -60,6 +59,7 @@ const BusinessOwnerRegistration: React.FC<BusinessOwnerRegistrationProps> = ({
   const [formData, setFormData] = useState<BusinessOwnerRegistrationData>(
     initialBusinessOwnerData,
   );
+  const scrollRef = useRef<ScrollView>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<{
     type: "error" | "success" | null;
@@ -282,12 +282,16 @@ const BusinessOwnerRegistration: React.FC<BusinessOwnerRegistrationProps> = ({
 
       // Step 5: Navigate to email verification after a short delay
       setTimeout(() => {
-        navigation.navigate("SubscribeMailVerification", {
-          id: data.user.id.toString(),
-          mail: formData.email,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-        });
+        try {
+          navigation.navigate("SubscribeMailVerification", {
+            id: data.user?.id?.toString() ?? "0",
+            mail: formData.email,
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+          });
+        } catch (navError) {
+          console.error("[REGISTRATION] Navigation error:", navError);
+        }
       }, 1500);
     } catch (error) {
       console.error("[REGISTRATION] Error:", error);
@@ -328,6 +332,11 @@ const BusinessOwnerRegistration: React.FC<BusinessOwnerRegistrationProps> = ({
     setCurrentStep(step);
   };
 
+  // Keep each step start at top to avoid landing mid-form after navigation.
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ y: 0, animated: false });
+  }, [currentStep]);
+
   const renderStep = () => {
     const stepProps = {
       data: formData,
@@ -366,9 +375,10 @@ const BusinessOwnerRegistration: React.FC<BusinessOwnerRegistrationProps> = ({
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <AnimatedBackground opacity={0.05} />
-
+    <SafeAreaView
+      testID="business-registration-screen"
+      style={styles.container}
+    >
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -415,6 +425,7 @@ const BusinessOwnerRegistration: React.FC<BusinessOwnerRegistrationProps> = ({
 
         {/* Step Content */}
         <ScrollView
+          ref={scrollRef}
           style={{ flex: 1 }}
           contentContainerStyle={{
             flexGrow: 1,

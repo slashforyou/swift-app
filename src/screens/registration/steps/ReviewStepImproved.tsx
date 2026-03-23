@@ -381,6 +381,7 @@ const ReviewStepImproved: React.FC<ReviewStepProps> = ({
         </Pressable>
 
         <Pressable
+          testID="register-review-submit-btn"
           onPress={onSubmit}
           disabled={isLoading}
           style={[

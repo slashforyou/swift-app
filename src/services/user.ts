@@ -377,3 +377,18 @@ export async function fetchUserStats(): Promise<UserStats> {
 
   return data.stats;
 }
+
+export async function deleteUserAccount(): Promise<void> {
+  const res = await authenticatedFetch(`${API}v1/user/account`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok) {
+    const error = await res
+      .json()
+      .catch(() => ({ message: "Failed to delete account" }));
+    throw new Error(
+      error.message || `HTTP ${res.status}: Failed to delete account`,
+    );
+  }
+}

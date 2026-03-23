@@ -6,12 +6,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-    FlatList,
-    Pressable,
-    RefreshControl,
-    ScrollView,
-    Text,
-    View,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Text,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Screen } from "../components/primitives/Screen";
@@ -22,10 +22,10 @@ import { useTheme } from "../context/ThemeProvider";
 import { useGamification } from "../hooks/useGamification";
 import { useTranslation } from "../localization";
 import {
-    fetchLeaderboard,
-    getRankFromLevel,
-    LeaderboardEntry,
-    LeaderboardPeriod,
+  fetchLeaderboard,
+  getRankFromLevel,
+  LeaderboardEntry,
+  LeaderboardPeriod,
 } from "../services/gamification";
 
 interface LeaderboardScreenProps {
@@ -145,6 +145,7 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({
 
     return (
       <Pressable
+        testID={`leaderboard-row-${item.rank}`}
         style={({ pressed }) => ({
           backgroundColor: isCurrentUser
             ? colors.primary + "20"
@@ -283,10 +284,11 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({
           paddingVertical: 4,
         }}
       >
-        {(["week", "month", "year", "all"] as LeaderboardPeriod[]).map(
+        {("week", "month", "year", "all" as LeaderboardPeriod[]).map(
           (period) => (
             <Pressable
               key={period}
+              testID={`leaderboard-period-${period}`}
               onPress={() => handlePeriodChange(period)}
               style={({ pressed }) => ({
                 flexDirection: "row",
@@ -457,12 +459,13 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({
   }
 
   return (
-    <Screen>
+    <Screen testID="leaderboard-screen">
       {/* Header */}
       <View
+        testID="leaderboard-header"
         style={{
-          paddingTop: insets.top + DESIGN_TOKENS.spacing.md,
           paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+          paddingTop: DESIGN_TOKENS.spacing.xl,
           paddingBottom: DESIGN_TOKENS.spacing.md,
           backgroundColor: colors.background,
           borderBottomWidth: 1,
@@ -471,17 +474,8 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({
       >
         <HStack gap="md" align="center">
           <Pressable
+            testID="leaderboard-back-btn"
             onPress={() => navigation.goBack()}
-            style={({ pressed }) => ({
-              width: 40,
-              height: 40,
-              borderRadius: 20,
-              backgroundColor: pressed
-                ? colors.backgroundTertiary
-                : colors.backgroundSecondary,
-              justifyContent: "center",
-              alignItems: "center",
-            })}
           >
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </Pressable>
@@ -496,19 +490,10 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({
             {t("leaderboard.title")}
           </Text>
           <Pressable
+            testID="leaderboard-refresh-btn"
             onPress={() => loadLeaderboard(true)}
-            style={({ pressed }) => ({
-              width: 40,
-              height: 40,
-              borderRadius: 20,
-              backgroundColor: pressed
-                ? colors.backgroundTertiary
-                : colors.backgroundSecondary,
-              justifyContent: "center",
-              alignItems: "center",
-            })}
           >
-            <Ionicons name="refresh" size={20} color={colors.text} />
+            <Ionicons name="refresh-outline" size={24} color={colors.text} />
           </Pressable>
         </HStack>
       </View>

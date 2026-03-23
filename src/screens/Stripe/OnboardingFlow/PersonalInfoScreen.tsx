@@ -6,20 +6,20 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import {
-    SafeAreaView,
-    useSafeAreaInsets,
+  SafeAreaView,
+  useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import { getStripeTestData } from "../../../config/stripeTestData";
 import { DESIGN_TOKENS } from "../../../constants/Styles";
@@ -27,14 +27,14 @@ import { useTheme } from "../../../context/ThemeProvider";
 import { useStripeAccount } from "../../../hooks/useStripe";
 import { useTranslation } from "../../../localization";
 import {
-    fetchStripeAccount,
-    submitPersonalInfo,
+  fetchStripeAccount,
+  submitPersonalInfo,
 } from "../../../services/StripeService";
 import {
-    getMissingOnboardingSteps,
-    getNextOnboardingStep,
-    getOnboardingStepMeta,
-    resolveBusinessType,
+  getMissingOnboardingSteps,
+  getNextOnboardingStep,
+  getOnboardingStepMeta,
+  resolveBusinessType,
 } from "./onboardingSteps";
 
 interface PersonalInfoScreenProps {
@@ -506,7 +506,7 @@ export default function PersonalInfoScreen({
   });
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <SafeAreaView style={styles.container} edges={["top"]} testID="stripe-personalinfo-screen">
       {/* Header avec retour et étape */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -564,6 +564,7 @@ export default function PersonalInfoScreen({
                 )}
                 placeholderTextColor={colors.textSecondary}
                 autoCapitalize="words"
+                testID="stripe-personalinfo-firstname"
               />
               {errors.firstName && (
                 <Text style={styles.errorText}>{errors.firstName}</Text>
@@ -588,6 +589,7 @@ export default function PersonalInfoScreen({
                 )}
                 placeholderTextColor={colors.textSecondary}
                 autoCapitalize="words"
+                testID="stripe-personalinfo-lastname"
               />
               {errors.lastName && (
                 <Text style={styles.errorText}>{errors.lastName}</Text>
@@ -606,6 +608,7 @@ export default function PersonalInfoScreen({
                   errors.dob && styles.dateButtonError,
                 ]}
                 onPress={() => setShowDatePicker(true)}
+                testID="stripe-personalinfo-dob-btn"
               >
                 <Text
                   style={[
@@ -658,6 +661,7 @@ export default function PersonalInfoScreen({
                 placeholderTextColor={colors.textSecondary}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                testID="stripe-personalinfo-email"
               />
               {errors.email && (
                 <Text style={styles.errorText}>{errors.email}</Text>
@@ -688,6 +692,7 @@ export default function PersonalInfoScreen({
                   placeholderTextColor={colors.textSecondary}
                   keyboardType="phone-pad"
                   maxLength={10}
+                  testID="stripe-personalinfo-phone"
                 />
               </View>
               {errors.phone && (
@@ -711,6 +716,7 @@ export default function PersonalInfoScreen({
             ]}
             onPress={handleNext}
             disabled={isSubmitting}
+            testID="stripe-personalinfo-next-btn"
           >
             {isSubmitting ? (
               <ActivityIndicator color="#FFFFFF" size="small" />

@@ -2,178 +2,238 @@
  * PayoutsScreen - Gestion des virements Stripe
  * Affiche l'historique des payouts et les prochains virements
  */
-import Ionicons from '@react-native-vector-icons/ionicons'
-import React, { useCallback, useMemo, useState } from 'react'
+import Ionicons from "@react-native-vector-icons/ionicons";
+import React, { useCallback, useMemo, useState } from "react";
 import {
     FlatList,
     RefreshControl,
     StyleSheet,
     Text,
     TouchableOpacity,
-    View
-} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+    View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // Components
-import PayoutDetailModal from '../../components/modals/PayoutDetailModal'
+import PayoutDetailModal from "../../components/modals/PayoutDetailModal";
 
 // Context
-import { DESIGN_TOKENS } from '../../constants/Styles'
-import { useTheme } from '../../context/ThemeProvider'
-import { useStripePayouts, type Payout } from '../../hooks/useStripe'
-import { formatDateShort, formatCurrency as formatLocalizedCurrency, useLocalization } from '../../localization'
+import { DESIGN_TOKENS } from "../../constants/Styles";
+import { useTheme } from "../../context/ThemeProvider";
+import { useStripePayouts, type Payout } from "../../hooks/useStripe";
+import {
+    formatDateShort,
+    formatCurrency as formatLocalizedCurrency,
+    useLocalization,
+} from "../../localization";
 
 // Types
 interface PayoutsScreenProps {
-  navigation?: any
+  navigation?: any;
 }
 
 export default function PayoutsScreen({ navigation }: PayoutsScreenProps) {
-  const { colors } = useTheme()
-  const { t, currentLanguage } = useLocalization()
-  const [selectedTab, setSelectedTab] = useState<'all' | 'pending' | 'completed'>('all')
-  const [selectedPayout, setSelectedPayout] = useState<Payout | null>(null)
+  const { colors } = useTheme();
+  const { t, currentLanguage } = useLocalization();
+  const [selectedTab, setSelectedTab] = useState<
+    "all" | "pending" | "completed"
+  >("all");
+  const [selectedPayout, setSelectedPayout] = useState<Payout | null>(null);
 
   // Utilisation du hook Stripe pour récupérer les vraies données
-  const { payouts, loading: isLoading, refresh } = useStripePayouts()
+  const { payouts, loading: isLoading, refresh } = useStripePayouts();
 
-  const formatCurrency = (amount: number, currency: string = 'EUR') => {
-    return formatLocalizedCurrency(amount * 100, currentLanguage, currency)
-  }
+  const formatCurrency = (amount: number, currency: string = "EUR") => {
+    return formatLocalizedCurrency(amount * 100, currentLanguage, currency);
+  };
 
   const formatDate = (dateString: string) => {
-    return formatDateShort(dateString, currentLanguage)
-  }
+    return formatDateShort(dateString, currentLanguage);
+  };
 
-  const getStatusColor = (status: Payout['status']) => {
+  const getStatusColor = (status: Payout["status"]) => {
     switch (status) {
-      case 'paid':
-        return colors.success
-      case 'in_transit':
-        return colors.warning
-      case 'pending':
-        return colors.primary
-      case 'failed':
-        return colors.error
+      case "paid":
+        return colors.success;
+      case "in_transit":
+        return colors.warning;
+      case "pending":
+        return colors.primary;
+      case "failed":
+        return colors.error;
       default:
-        return colors.textSecondary
+        return colors.textSecondary;
     }
-  }
+  };
 
-  const getStatusIcon = (status: Payout['status']) => {
+  const getStatusIcon = (status: Payout["status"]) => {
     switch (status) {
-      case 'paid':
-        return 'checkmark-circle'
-      case 'in_transit':
-        return 'airplane'
-      case 'pending':
-        return 'time'
-      case 'failed':
-        return 'close-circle'
+      case "paid":
+        return "checkmark-circle";
+      case "in_transit":
+        return "airplane";
+      case "pending":
+        return "time";
+      case "failed":
+        return "close-circle";
       default:
-        return 'help-circle'
+        return "help-circle";
     }
-  }
+  };
 
-  const getStatusLabel = (status: Payout['status']) => {
+  const getStatusLabel = (status: Payout["status"]) => {
     switch (status) {
-      case 'paid':
-        return t('stripe.payouts.completed')
-      case 'in_transit':
-        return t('stripe.payouts.inTransit')
-      case 'pending':
-        return t('stripe.payouts.pending')
-      case 'failed':
-        return t('stripe.payouts.failed')
+      case "paid":
+        return t("stripe.payouts.completed");
+      case "in_transit":
+        return t("stripe.payouts.inTransit");
+      case "pending":
+        return t("stripe.payouts.pending");
+      case "failed":
+        return t("stripe.payouts.failed");
       default:
-        return status
+        return status;
     }
-  }
+  };
 
   const handleRefresh = useCallback(async () => {
     // Utilisation du refresh du hook Stripe
-    refresh()
-  }, [refresh])
+    refresh();
+  }, [refresh]);
 
   const handlePayoutPress = useCallback((payout: Payout) => {
-    setSelectedPayout(payout)
-  }, [])
+    setSelectedPayout(payout);
+  }, []);
 
-  const filteredPayouts = useMemo(() => payouts.filter(payout => {
-    switch (selectedTab) {
-      case 'pending':
-        return payout.status === 'pending' || payout.status === 'in_transit'
-      case 'completed':
-        return payout.status === 'paid'
-      default:
-        return true
-    }
-  }), [payouts, selectedTab])
+  const filteredPayouts = useMemo(
+    () =>
+      payouts.filter((payout) => {
+        switch (selectedTab) {
+          case "pending":
+            return (
+              payout.status === "pending" || payout.status === "in_transit"
+            );
+          case "completed":
+            return payout.status === "paid";
+          default:
+            return true;
+        }
+      }),
+    [payouts, selectedTab],
+  );
 
-  const totalPending = useMemo(() => payouts
-    .filter(p => p.status === 'pending' || p.status === 'in_transit')
-    .reduce((sum, p) => sum + p.amount, 0), [payouts])
+  const totalPending = useMemo(
+    () =>
+      payouts
+        .filter((p) => p.status === "pending" || p.status === "in_transit")
+        .reduce((sum, p) => sum + p.amount, 0),
+    [payouts],
+  );
 
-  const totalCompleted = useMemo(() => payouts
-    .filter(p => p.status === 'paid')
-    .reduce((sum, p) => sum + p.amount, 0), [payouts])
+  const totalCompleted = useMemo(
+    () =>
+      payouts
+        .filter((p) => p.status === "paid")
+        .reduce((sum, p) => sum + p.amount, 0),
+    [payouts],
+  );
 
-  const renderPayout = useCallback(({ item }: { item: Payout }) => (
-    <TouchableOpacity
-      style={[styles.payoutCard, { backgroundColor: colors.backgroundSecondary }]}
-      onPress={() => handlePayoutPress(item)}
-    >
-      <View style={styles.payoutHeader}>
-        <View style={styles.payoutInfo}>
-          <Text style={[styles.payoutAmount, { color: colors.text }]}>
-            {formatCurrency(item.amount, item.currency)}
-          </Text>
-          <Text style={[styles.payoutBank, { color: colors.textSecondary }]}>
-            {t('stripe.payouts.bankAccount')}
-          </Text>
+  const renderPayout = useCallback(
+    ({ item }: { item: Payout }) => (
+      <TouchableOpacity
+        style={[
+          styles.payoutCard,
+          { backgroundColor: colors.backgroundSecondary },
+        ]}
+        onPress={() => handlePayoutPress(item)}
+      >
+        <View style={styles.payoutHeader}>
+          <View style={styles.payoutInfo}>
+            <Text style={[styles.payoutAmount, { color: colors.text }]}>
+              {formatCurrency(item.amount, item.currency)}
+            </Text>
+            <Text style={[styles.payoutBank, { color: colors.textSecondary }]}>
+              {t("stripe.payouts.bankAccount")}
+            </Text>
+          </View>
+          <View
+            style={[
+              styles.statusBadge,
+              { backgroundColor: getStatusColor(item.status) + "20" },
+            ]}
+          >
+            <Ionicons
+              name={getStatusIcon(item.status)}
+              size={14}
+              color={getStatusColor(item.status)}
+            />
+            <Text
+              style={[
+                styles.statusText,
+                { color: getStatusColor(item.status) },
+              ]}
+            >
+              {getStatusLabel(item.status)}
+            </Text>
+          </View>
         </View>
-        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) + '20' }]}>
-          <Ionicons
-            name={getStatusIcon(item.status)}
-            size={14}
-            color={getStatusColor(item.status)}
-          />
-          <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>
-            {getStatusLabel(item.status)}
-          </Text>
+
+        <View style={styles.payoutDetails}>
+          <View style={styles.detailRow}>
+            <Ionicons
+              name="calendar-outline"
+              size={16}
+              color={colors.textSecondary}
+            />
+            <Text style={[styles.detailText, { color: colors.textSecondary }]}>
+              {t("stripe.payouts.created")}: {formatDate(item.date)}
+            </Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Ionicons
+              name="time-outline"
+              size={16}
+              color={colors.textSecondary}
+            />
+            <Text style={[styles.detailText, { color: colors.textSecondary }]}>
+              {t("stripe.payouts.arrival")}: {formatDate(item.arrivalDate)}
+            </Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Ionicons
+              name="receipt-outline"
+              size={16}
+              color={colors.textSecondary}
+            />
+            <Text style={[styles.detailText, { color: colors.textSecondary }]}>
+              {t("stripe.payouts.feesIncluded")}
+            </Text>
+          </View>
         </View>
-      </View>
-      
-      <View style={styles.payoutDetails}>
-        <View style={styles.detailRow}>
-          <Ionicons name="calendar-outline" size={16} color={colors.textSecondary} />
-          <Text style={[styles.detailText, { color: colors.textSecondary }]}>
-            {t('stripe.payouts.created')}: {formatDate(item.date)}
-          </Text>
-        </View>
-        <View style={styles.detailRow}>
-          <Ionicons name="time-outline" size={16} color={colors.textSecondary} />
-          <Text style={[styles.detailText, { color: colors.textSecondary }]}>
-            {t('stripe.payouts.arrival')}: {formatDate(item.arrivalDate)}
-          </Text>
-        </View>
-        <View style={styles.detailRow}>
-          <Ionicons name="receipt-outline" size={16} color={colors.textSecondary} />
-          <Text style={[styles.detailText, { color: colors.textSecondary }]}>
-            {t('stripe.payouts.feesIncluded')}
-          </Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  ), [colors, handlePayoutPress, t, formatDate, formatCurrency, getStatusColor, getStatusIcon, getStatusLabel])
+      </TouchableOpacity>
+    ),
+    [
+      colors,
+      handlePayoutPress,
+      t,
+      formatDate,
+      formatCurrency,
+      getStatusColor,
+      getStatusIcon,
+      getStatusLabel,
+    ],
+  );
 
   // Optimisation FlatList
-  const keyExtractor = useCallback((item: Payout) => item.id, [])
-  const getItemLayout = useCallback((_: any, index: number) => ({
-    length: 140, // Hauteur approximative d'un item
-    offset: 140 * index,
-    index,
-  }), [])
+  const keyExtractor = useCallback((item: Payout) => item.id, []);
+  const getItemLayout = useCallback(
+    (_: any, index: number) => ({
+      length: 140, // Hauteur approximative d'un item
+      offset: 140 * index,
+      index,
+    }),
+    [],
+  );
 
   const styles = StyleSheet.create({
     container: {
@@ -181,12 +241,10 @@ export default function PayoutsScreen({ navigation }: PayoutsScreenProps) {
       backgroundColor: colors.background,
     },
     header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      padding: DESIGN_TOKENS.spacing.lg,
-      backgroundColor: colors.backgroundSecondary,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border,
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+      paddingVertical: DESIGN_TOKENS.spacing.md,
     },
     backButton: {
       marginRight: DESIGN_TOKENS.spacing.md,
@@ -198,11 +256,11 @@ export default function PayoutsScreen({ navigation }: PayoutsScreenProps) {
       flex: 1,
     },
     summaryContainer: {
-      padding: DESIGN_TOKENS.spacing.lg,
-      backgroundColor: colors.backgroundSecondary,
+      paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+      paddingBottom: DESIGN_TOKENS.spacing.md,
     },
     summaryGrid: {
-      flexDirection: 'row',
+      flexDirection: "row",
       gap: DESIGN_TOKENS.spacing.md,
       marginBottom: DESIGN_TOKENS.spacing.lg,
     },
@@ -213,21 +271,21 @@ export default function PayoutsScreen({ navigation }: PayoutsScreenProps) {
       borderRadius: DESIGN_TOKENS.radius.md,
       borderWidth: 1,
       borderColor: colors.border,
-      alignItems: 'center',
+      alignItems: "center",
     },
     summaryAmount: {
       fontSize: 18,
-      fontWeight: 'bold',
+      fontWeight: "bold",
       color: colors.text,
       marginBottom: DESIGN_TOKENS.spacing.xs,
     },
     summaryLabel: {
       fontSize: DESIGN_TOKENS.typography.caption.fontSize,
       color: colors.textSecondary,
-      textAlign: 'center',
+      textAlign: "center",
     },
     tabsContainer: {
-      flexDirection: 'row',
+      flexDirection: "row",
       gap: DESIGN_TOKENS.spacing.sm,
     },
     tabButton: {
@@ -238,7 +296,7 @@ export default function PayoutsScreen({ navigation }: PayoutsScreenProps) {
       borderWidth: 1,
       borderColor: colors.border,
       flex: 1,
-      alignItems: 'center',
+      alignItems: "center",
     },
     tabButtonActive: {
       backgroundColor: colors.primary,
@@ -247,7 +305,7 @@ export default function PayoutsScreen({ navigation }: PayoutsScreenProps) {
     tabText: {
       fontSize: DESIGN_TOKENS.typography.caption.fontSize,
       color: colors.textSecondary,
-      fontWeight: '500',
+      fontWeight: "500",
     },
     tabTextActive: {
       color: colors.backgroundSecondary,
@@ -256,10 +314,10 @@ export default function PayoutsScreen({ navigation }: PayoutsScreenProps) {
       flex: 1,
     },
     payoutCard: {
-      margin: DESIGN_TOKENS.spacing.md,
-      marginBottom: 0,
+      marginHorizontal: DESIGN_TOKENS.spacing.lg,
+      marginTop: DESIGN_TOKENS.spacing.sm,
       padding: DESIGN_TOKENS.spacing.md,
-      borderRadius: DESIGN_TOKENS.radius.md,
+      borderRadius: DESIGN_TOKENS.radius.lg,
       borderWidth: 1,
       borderColor: colors.border,
       shadowColor: colors.shadow,
@@ -269,9 +327,9 @@ export default function PayoutsScreen({ navigation }: PayoutsScreenProps) {
       elevation: 2,
     },
     payoutHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'flex-start',
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
       marginBottom: DESIGN_TOKENS.spacing.md,
     },
     payoutInfo: {
@@ -279,15 +337,15 @@ export default function PayoutsScreen({ navigation }: PayoutsScreenProps) {
     },
     payoutAmount: {
       fontSize: 20,
-      fontWeight: 'bold',
+      fontWeight: "bold",
       marginBottom: DESIGN_TOKENS.spacing.xs,
     },
     payoutBank: {
       fontSize: DESIGN_TOKENS.typography.body.fontSize,
     },
     statusBadge: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       paddingHorizontal: DESIGN_TOKENS.spacing.sm,
       paddingVertical: DESIGN_TOKENS.spacing.xs,
       borderRadius: DESIGN_TOKENS.radius.sm,
@@ -295,14 +353,14 @@ export default function PayoutsScreen({ navigation }: PayoutsScreenProps) {
     },
     statusText: {
       fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-      fontWeight: '600',
+      fontWeight: "600",
     },
     payoutDetails: {
       gap: DESIGN_TOKENS.spacing.xs,
     },
     detailRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       gap: DESIGN_TOKENS.spacing.sm,
     },
     detailText: {
@@ -310,29 +368,30 @@ export default function PayoutsScreen({ navigation }: PayoutsScreenProps) {
     },
     emptyContainer: {
       flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
+      justifyContent: "center",
+      alignItems: "center",
       padding: DESIGN_TOKENS.spacing.xl,
     },
     emptyText: {
       fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
       color: colors.textSecondary,
-      textAlign: 'center',
+      textAlign: "center",
       marginTop: DESIGN_TOKENS.spacing.md,
     },
-  })
+  });
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView testID="business-payouts-screen" style={styles.container}>
       {/* Header avec bouton retour */}
       <View style={styles.header}>
         <TouchableOpacity
+          testID="business-payouts-back-btn"
           style={styles.backButton}
           onPress={() => navigation?.goBack()}
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.title}>{t('stripe.payouts.title')}</Text>
+        <Text style={styles.title}>{t("stripe.payouts.title")}</Text>
       </View>
 
       {/* Résumé et onglets */}
@@ -342,34 +401,38 @@ export default function PayoutsScreen({ navigation }: PayoutsScreenProps) {
             <Text style={styles.summaryAmount}>
               {formatCurrency(totalPending)}
             </Text>
-            <Text style={styles.summaryLabel}>{t('stripe.payouts.pending')}</Text>
+            <Text style={styles.summaryLabel}>
+              {t("stripe.payouts.pending")}
+            </Text>
           </View>
           <View style={styles.summaryCard}>
             <Text style={styles.summaryAmount}>
               {formatCurrency(totalCompleted)}
             </Text>
-            <Text style={styles.summaryLabel}>{t('stripe.payouts.completed')}</Text>
+            <Text style={styles.summaryLabel}>
+              {t("stripe.payouts.completed")}
+            </Text>
           </View>
         </View>
 
         <View style={styles.tabsContainer}>
           {[
-            { key: 'all', label: t('stripe.payouts.filterAll') },
-            { key: 'pending', label: t('stripe.payouts.filterPending') },
-            { key: 'completed', label: t('stripe.payouts.filterCompleted') }
+            { key: "all", label: t("stripe.payouts.filterAll") },
+            { key: "pending", label: t("stripe.payouts.filterPending") },
+            { key: "completed", label: t("stripe.payouts.filterCompleted") },
           ].map((tab) => (
             <TouchableOpacity
               key={tab.key}
               style={[
                 styles.tabButton,
-                selectedTab === tab.key && styles.tabButtonActive
+                selectedTab === tab.key && styles.tabButtonActive,
               ]}
               onPress={() => setSelectedTab(tab.key as typeof selectedTab)}
             >
               <Text
                 style={[
                   styles.tabText,
-                  selectedTab === tab.key && styles.tabTextActive
+                  selectedTab === tab.key && styles.tabTextActive,
                 ]}
               >
                 {tab.label}
@@ -383,9 +446,13 @@ export default function PayoutsScreen({ navigation }: PayoutsScreenProps) {
       <View style={styles.content}>
         {filteredPayouts.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Ionicons name="wallet-outline" size={64} color={colors.textSecondary} />
+            <Ionicons
+              name="wallet-outline"
+              size={64}
+              color={colors.textSecondary}
+            />
             <Text style={styles.emptyText}>
-              {t('stripe.payouts.noPayoutsFound')}
+              {t("stripe.payouts.noPayoutsFound")}
             </Text>
           </View>
         ) : (
@@ -419,5 +486,5 @@ export default function PayoutsScreen({ navigation }: PayoutsScreenProps) {
         onClose={() => setSelectedPayout(null)}
       />
     </SafeAreaView>
-  )
+  );
 }

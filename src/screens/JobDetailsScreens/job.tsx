@@ -5,13 +5,13 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Modal,
-    Pressable,
-    Text,
-    TextInput,
-    View,
+  ActivityIndicator,
+  Alert,
+  Modal,
+  Pressable,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import CompanyDetailsSection from "../../components/jobDetails/sections/CompanyDetailsSection";
 import JobActionsSection from "../../components/jobDetails/sections/JobActionsSection";
@@ -675,8 +675,7 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob, isVisible = true }) => {
 
   return (
     <>
-      <VStack gap="md">
-        {/* Section Time Tracking (collapsible intégré) */}
+      <VStack testID="job-job-root" gap="md">
         <JobTimeSection job={job} />
 
         {/* ═══ Job Items ═══ */}

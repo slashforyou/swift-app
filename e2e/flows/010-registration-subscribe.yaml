@@ -1,0 +1,362 @@
+appId: host.exp.exponent
+---
+# Flow 010 — Inscription d'un nouveau compte Business Owner + Stripe
+# Pré-requis : le compte TEST_REGISTER_EMAIL NE doit PAS exister côté backend
+# Résultat   : home-screen visible (compte créé, vérifié et connecté)
+#
+# Ordre réel des étapes du wizard :
+#   1. Personal Info  →  2. Business Details  →  3. Business Address
+#   4. Banking Info   →  5. Insurance         →  6. Subscription Plan
+#   7. Legal Agree.   →  8. Review & Submit
+#
+# Après submit : vérification email → "Complete Your Profile" → Login → Home.
+
+# ═══════════════════════════════════════════════════════════════════════
+# PHASE 1 — État propre : se déconnecter pour atteindre connection-screen
+# ═══════════════════════════════════════════════════════════════════════
+- runFlow:
+    file: sub-flows/_go-to-connection.yaml
+    env:
+      EMAIL: "${ADMIN_EMAIL}"
+      PASSWORD: "${ADMIN_PASSWORD}"
+
+# ═══════════════════════════════════════════════════════════════════════
+# PHASE 2 — Navigation vers le wizard Business Owner
+# ═══════════════════════════════════════════════════════════════════════
+
+# Si le sub-flow nous a laissé sur business-registration-screen
+# (cas fréquent : la draft Alert.alert a consommé le pressKey Back du sub-flow,
+# au lieu de pop la navigation). On presse Back 2× :
+#   Back₁ = ferme l'alerte si elle est affichée (clearDraft)
+#   Back₂ = pop la navigation vers register-type-screen
+- runFlow:
+    when:
+      visible:
+        id: "business-registration-screen"
+    commands:
+      - pressKey: Back
+      - waitForAnimationToEnd
+      - pressKey: Back
+      - waitForAnimationToEnd
+
+# Si on est sur register-type-screen (Back depuis business-registration
+# → les checks instantanés du sub-flow l'ont raté), retour vers connection.
+- runFlow:
+    when:
+      visible:
+        id: "register-type-screen"
+    commands:
+      - pressKey: Back
+      - waitForAnimationToEnd
+
+# Attendre que l'app charge et affiche connection-screen
+- extendedWaitUntil:
+    visible:
+      id: "connection-register-text"
+    timeout: 30000
+
+# Laisser l'app se stabiliser après le chargement du bundle
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+# Naviguer vers le wizard : connection → register-type → business-registration
+# On tape sur le Text enfant plutôt que le Pressable parent (contournement
+# d'un bug où Maestro tape le Pressable mais onPress ne se déclenche pas).
+- tapOn:
+    id: "connection-register-text"
+- extendedWaitUntil:
+    visible:
+      id: "register-type-screen"
+    timeout: 20000
+- tapOn:
+    id: "register-type-card-business"
+- waitForAnimationToEnd
+
+# ── Popup brouillon (EN) : "Continue Registration" ───────────────────
+# Stratégie : toujours annuler le brouillon pour partir d'un état propre.
+- runFlow:
+    when:
+      visible:
+        text: "Continue Registration"
+    commands:
+      - tapOn:
+          text: "Cancel"
+      - waitForAnimationToEnd
+
+# ── Popup brouillon (FR) : "Reprendre l'inscription" ─────────────────
+- runFlow:
+    when:
+      visible:
+        text: "Reprendre l'inscription"
+    commands:
+      - tapOn:
+          text: "Annuler"
+      - waitForAnimationToEnd
+
+- extendedWaitUntil:
+    visible:
+      id: "business-registration-screen"
+    timeout: 20000
+
+# ═══════════════════════════════════════════════════════════════════════
+# PHASE 3 — Remplissage du wizard (8 étapes)
+# ═══════════════════════════════════════════════════════════════════════
+
+# ── Étape 1 : Personal Info ──────────────────────────────────────────
+# Pattern double-erase : tap → erase → tap → erase → input.
+# En __DEV__, les champs sont pré-remplis (TEST_DATA). Le 1er tap place le
+# curseur au milieu du texte pré-rempli ; eraseText n'efface que vers la gauche,
+# laissant un résidu à droite. Le 2e tap repositionne le curseur en fin du
+# texte restant, le 2e erase le supprime.
+
+- tapOn:
+    id: "register-firstname-input"
+- eraseText: 50
+- tapOn:
+    id: "register-firstname-input"
+- eraseText: 50
+- inputText: "${TEST_REGISTER_FIRST_NAME}"
+
+- tapOn:
+    id: "register-lastname-input"
+- eraseText: 50
+- tapOn:
+    id: "register-lastname-input"
+- eraseText: 50
+- inputText: "${TEST_REGISTER_LAST_NAME}"
+- hideKeyboard
+
+- tapOn:
+    id: "register-email-input"
+- eraseText: 50
+- tapOn:
+    id: "register-email-input"
+- eraseText: 50
+- inputText: "${TEST_REGISTER_EMAIL}"
+# Vérification : copier le texte du champ et s'assurer qu'il finit correctement
+# (détecte le résidu type "comom" causé par un erase incomplet)
+- copyTextFrom:
+    id: "register-email-input"
+- assertTrue: ${maestro.copiedText.endsWith('@mailinator.com')}
+- hideKeyboard
+
+- tapOn:
+    id: "register-phone-input"
+- eraseText: 30
+- tapOn:
+    id: "register-phone-input"
+- eraseText: 30
+- inputText: "0400000001"
+- hideKeyboard
+
+- tapOn:
+    id: "register-password-input"
+- eraseText: 30
+- tapOn:
+    id: "register-password-input"
+- eraseText: 30
+- inputText: "${TEST_REGISTER_PASSWORD}"
+- hideKeyboard
+
+- tapOn:
+    id: "register-confirm-password-input"
+- eraseText: 30
+- tapOn:
+    id: "register-confirm-password-input"
+- eraseText: 30
+- inputText: "${TEST_REGISTER_PASSWORD}"
+
+- hideKeyboard
+- scroll
+- tapOn:
+    id: "register-personal-info-next-btn"
+
+# ── Étape 2 : Business Details ───────────────────────────────────────
+- extendedWaitUntil:
+    visible:
+      id: "register-company-name-input"
+    timeout: 8000
+- tapOn:
+    id: "register-company-name-input"
+- eraseText: 50
+- tapOn:
+    id: "register-company-name-input"
+- eraseText: 50
+- inputText: "${TEST_REGISTER_COMPANY}"
+- hideKeyboard
+- scroll
+- tapOn:
+    id: "register-business-details-next-btn"
+
+# ── Étape 3 : Business Address (optionnel, on skip) ──────────────────
+- extendedWaitUntil:
+    visible:
+      id: "register-address-next-btn"
+    timeout: 8000
+- scroll
+- tapOn:
+    id: "register-address-next-btn"
+
+# ── Étape 4 : Banking Info (optionnel, on skip) ──────────────────────
+#    ⚠ Ordre réel : Banking est l'étape 4 (pas Insurance)
+- extendedWaitUntil:
+    visible:
+      id: "register-banking-next-btn"
+    timeout: 8000
+- scroll
+- tapOn:
+    id: "register-banking-next-btn"
+
+# ── Étape 5 : Insurance (optionnel, on skip) ─────────────────────────
+#    ⚠ Ordre réel : Insurance est l'étape 5 (pas 4)
+#    Le toggle hasInsurance=true (auto-fill TEST_DATA) affiche les champs,
+#    poussant le bouton Next hors du viewport → scroll d'abord.
+- waitForAnimationToEnd
+- scroll
+- extendedWaitUntil:
+    visible:
+      id: "register-insurance-next-btn"
+    timeout: 8000
+- tapOn:
+    id: "register-insurance-next-btn"
+
+# ── Étape 6 : Subscription Plan (choix Starter) ──────────────────────
+- extendedWaitUntil:
+    visible:
+      id: "plan-card-starter"
+    timeout: 8000
+- tapOn:
+    id: "plan-card-starter"
+- scroll
+- tapOn:
+    id: "register-plan-next-btn"
+
+# ── Étape 7 : Legal Agreements ───────────────────────────────────────
+- extendedWaitUntil:
+    visible:
+      id: "register-terms-checkbox"
+    timeout: 8000
+- tapOn:
+    id: "register-terms-checkbox"
+- tapOn:
+    id: "register-privacy-checkbox"
+- tapOn:
+    id: "register-stripe-checkbox"
+- scroll
+- tapOn:
+    id: "register-legal-finish-btn"
+
+# ── Étape 8 : Review & Submit ────────────────────────────────────────
+#    Le Review affiche un résumé de toutes les étapes → contenu très long,
+#    le bouton Submit est en bas. Scroll multiple pour l'atteindre.
+- waitForAnimationToEnd
+- scroll
+- scroll
+- scroll
+- extendedWaitUntil:
+    visible:
+      id: "register-review-submit-btn"
+    timeout: 8000
+- tapOn:
+    id: "register-review-submit-btn"
+
+# ═══════════════════════════════════════════════════════════════════════
+# PHASE 4 — Vérification email (code de test = 123456 pour @mailinator.com)
+# ═══════════════════════════════════════════════════════════════════════
+# Le backend envoie un code de vérification. Pour les emails @mailinator.com
+# en mode test, le code "123456" est accepté côté client sans appel serveur.
+#
+# Après le submit : API call (~2-5s) + setTimeout(1500ms) + navigation.
+# Si l'app crash (ex: erreur non catchée dans setTimeout), on la rouvre.
+
+# Attendre que l'API call + setTimeout(1500ms) + navigation se terminent
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+# Si l'app est passée en arrière-plan ou a crashé, la rouvrir
+- runFlow:
+    when:
+      notVisible:
+        id: "mail-verification-screen"
+    commands:
+      - openLink: "${EXPO_URL}"
+      - waitForAnimationToEnd
+      - waitForAnimationToEnd
+
+# Attendre que mail-verification-screen apparaisse
+- extendedWaitUntil:
+    visible:
+      id: "mail-verification-screen"
+    timeout: 30000
+- tapOn:
+    id: "mail-verification-code-input"
+- inputText: "123456"
+- hideKeyboard
+- tapOn:
+    id: "mail-verification-submit-btn"
+
+# ═══════════════════════════════════════════════════════════════════════
+# PHASE 5 — Dialog "Complete Your Profile" (apparaît après ~1500ms)
+# ═══════════════════════════════════════════════════════════════════════
+# Le dialog natif Alert.alert affiche le titre avec emoji 📋.
+# Gérer EN et FR car le texte dépend de la langue du device.
+
+- runFlow:
+    when:
+      visible:
+        text: "Complete Your Profile"
+    commands:
+      - tapOn:
+          text: "OK"
+
+- runFlow:
+    when:
+      visible:
+        text: "Complétez votre profil"
+    commands:
+      - tapOn:
+          text: "OK"
+
+# Fallback : attendre que login-screen soit visible (si l'alert a déjà été fermée
+# ou si elle n'apparaît pas pour une raison quelconque).
+- extendedWaitUntil:
+    visible:
+      id: "login-screen"
+    timeout: 15000
+
+# ═══════════════════════════════════════════════════════════════════════
+# PHASE 6 — Login avec le nouveau compte
+# ═══════════════════════════════════════════════════════════════════════
+- tapOn:
+    id: "login-email-input"
+- eraseText: 50
+- tapOn:
+    id: "login-email-input"
+- eraseText: 50
+- inputText: "${TEST_REGISTER_EMAIL}"
+- tapOn:
+    id: "login-password-input"
+- eraseText: 50
+- tapOn:
+    id: "login-password-input"
+- eraseText: 50
+- inputText: "${TEST_REGISTER_PASSWORD}"
+- hideKeyboard
+- tapOn:
+    id: "login-submit-btn"
+
+# ═══════════════════════════════════════════════════════════════════════
+# PHASE 7 — Vérification finale : Home accessible
+# ═══════════════════════════════════════════════════════════════════════
+# Re-synchroniser l'app après login (ramène au foreground + Home si nécessaire).
+- runFlow:
+    file: sub-flows/_go-to-home.yaml
+    env:
+      EMAIL: "${TEST_REGISTER_EMAIL}"
+      PASSWORD: "${TEST_REGISTER_PASSWORD}"
+
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 30000

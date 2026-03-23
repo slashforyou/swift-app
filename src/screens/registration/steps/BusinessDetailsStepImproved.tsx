@@ -1,12 +1,12 @@
 import { Picker } from "@react-native-picker/picker";
 import React, { useRef, useState } from "react";
 import {
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import AlertMessage from "../../../components/ui/AlertMessage";
 import { TEST_DATA } from "../../../config/testData";
@@ -14,12 +14,12 @@ import { useCommonThemedStyles } from "../../../hooks/useCommonStyles";
 import { useTranslation } from "../../../localization";
 import { BusinessOwnerRegistrationData } from "../../../types/registration";
 import {
-    formatABN,
-    formatACN,
-    formatAustralianPhone,
-    validateABN,
-    validateACN,
-    validateAustralianPhone,
+  formatABN,
+  formatACN,
+  formatAustralianPhone,
+  validateABN,
+  validateACN,
+  validateAustralianPhone,
 } from "../../../utils/validators/australianValidators";
 
 interface BusinessDetailsStepProps {
@@ -39,7 +39,9 @@ const BusinessDetailsStepImproved: React.FC<BusinessDetailsStepProps> = ({
   const { t } = useTranslation();
 
   // 🧪 Auto-fill with test data in development mode
-  const autoFillData = (__DEV__ ? TEST_DATA.businessDetails : {}) as Partial<BusinessOwnerRegistrationData>;
+  const autoFillData = (
+    __DEV__ ? TEST_DATA.businessDetails : {}
+  ) as Partial<BusinessOwnerRegistrationData>;
 
   const [companyName, setCompanyName] = useState(
     data.companyName || autoFillData.companyName || "",
@@ -138,8 +140,10 @@ const BusinessDetailsStepImproved: React.FC<BusinessDetailsStepProps> = ({
       tradingName,
       abn,
       acn,
-      businessType: businessType as BusinessOwnerRegistrationData["businessType"],
-      industryType: industryType as BusinessOwnerRegistrationData["industryType"],
+      businessType:
+        businessType as BusinessOwnerRegistrationData["businessType"],
+      industryType:
+        industryType as BusinessOwnerRegistrationData["industryType"],
       companyEmail,
       companyPhone,
     });
@@ -207,6 +211,7 @@ const BusinessDetailsStepImproved: React.FC<BusinessDetailsStepProps> = ({
             onSubmitEditing={() => tradingNameRef.current?.focus()}
             editable={!isLoading}
             autoCapitalize="words"
+            testID="register-company-name-input"
           />
         </View>
 
@@ -390,6 +395,7 @@ const BusinessDetailsStepImproved: React.FC<BusinessDetailsStepProps> = ({
         </Pressable>
 
         <Pressable
+          testID="register-business-details-next-btn"
           onPress={handleNext}
           disabled={isLoading}
           style={[styles.buttonBase, styles.buttonPrimary, { flex: 1 }]}

@@ -13,7 +13,7 @@ const isPlainObject = (value: unknown): value is Record<string, unknown> => {
  */
 export function mergeWithBaseTranslations<TBase>(
   base: TBase,
-  overrides: unknown
+  overrides: unknown,
 ): TBase {
   const merge = (baseNode: unknown, overrideNode: unknown): unknown => {
     if (typeof baseNode === "string") {

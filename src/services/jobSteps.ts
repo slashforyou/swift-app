@@ -1,8 +1,9 @@
-﻿import { getAuthHeaders } from "../utils/auth";
+﻿import { API_URL } from "../config/environment";
+import { getAuthHeaders } from "../utils/auth";
 import { analytics, trackAPICall, trackJobStep } from "./analytics";
 import { apiDiscovery } from "./apiDiscovery";
 
-const API_BASE_URL = "https://altivo.fr/swift-app/v1";
+const API_BASE_URL = `${API_URL}v1`;
 
 export interface JobStepUpdate {
   current_step: number;

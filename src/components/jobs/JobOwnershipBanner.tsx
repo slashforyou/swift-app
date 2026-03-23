@@ -214,7 +214,7 @@ export const JobOwnershipBanner: React.FC<JobOwnershipBannerProps> = ({
 
   // Full variant
   return (
-    <View style={styles.container}>
+    <View testID="job-ownership-banner" style={styles.container}>
       <View style={styles.header}>
         <Ionicons
           name="people-outline"

@@ -358,6 +358,7 @@ const AssignResourceModal: React.FC<AssignResourceModalProps> = ({
     return (
       <Pressable
         key={item.id}
+        testID={`assign-vehicle-card-${item.id}`}
         onPress={() => {
           setSelectedVehicle(item);
           setOffsiderCount(0);
@@ -1188,6 +1189,7 @@ const AssignResourceModal: React.FC<AssignResourceModalProps> = ({
         {/* Footer — Confirmer */}
         <View style={[styles.footer, { borderTopColor: colors.border }]}>
           <Pressable
+            testID="assign-resource-confirm-btn"
             onPress={handleAssign}
             disabled={assigning}
             style={({ pressed }) => [

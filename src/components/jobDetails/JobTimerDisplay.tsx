@@ -14,12 +14,12 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React from "react";
 import {
-    ActivityIndicator,
-    Modal,
-    Pressable,
-    ScrollView,
-    Text,
-    View,
+  ActivityIndicator,
+  Modal,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
 } from "react-native";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useJobTimerContext } from "../../context/JobTimerProvider";
@@ -116,7 +116,8 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({
   // Paiement
   const isPaid = job?.payment_status === "paid";
   const needsPayment =
-    !isPaid && parseFloat(String(job?.amount_due || job?.amount_total || 0)) > 0;
+    !isPaid &&
+    parseFloat(String(job?.amount_due || job?.amount_total || 0)) > 0;
 
   // Loading: on attend d'avoir signature_check terminé si le job est completed
   const isLoading = isJobCompleted && isLoadingSignature;
@@ -264,6 +265,7 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({
 
         {/* Bouton Start */}
         <Pressable
+          testID="job-timer-start-btn"
           onPress={togglePause}
           style={({ pressed }) => ({
             paddingHorizontal: 32,
@@ -492,6 +494,7 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({
         {displayState === "RUNNING" && (
           <>
             <Pressable
+              testID="job-timer-pause-btn"
               onPress={togglePause}
               style={({ pressed }) => ({
                 paddingHorizontal: DESIGN_TOKENS.spacing.lg,
@@ -518,6 +521,7 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({
             </Pressable>
 
             <Pressable
+              testID="job-timer-next-step-btn"
               onPress={handleNextStep}
               disabled={showNextStepModal}
               style={({ pressed }) => ({
@@ -556,6 +560,7 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({
         {/* === PAUSED: Play button only === */}
         {displayState === "PAUSED" && (
           <Pressable
+            testID="job-timer-play-btn"
             onPress={togglePause}
             style={({ pressed }) => ({
               paddingHorizontal: DESIGN_TOKENS.spacing.lg,
@@ -583,6 +588,7 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({
         {/* === COMPLETED_NEEDS_SIGNATURE: Signature button === */}
         {displayState === "COMPLETED_NEEDS_SIGNATURE" && (
           <Pressable
+            testID="job-timer-signature-btn"
             onPress={() => onOpenSignatureModal?.()}
             style={({ pressed }) => ({
               flex: 1,
@@ -605,6 +611,7 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({
         {/* === COMPLETED_NEEDS_PAYMENT: Payment button === */}
         {displayState === "COMPLETED_NEEDS_PAYMENT" && (
           <Pressable
+            testID="job-timer-payment-btn"
             onPress={() => onOpenPaymentPanel?.()}
             style={({ pressed }) => ({
               flex: 1,
@@ -737,6 +744,7 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({
             </Text>
             <View style={{ flexDirection: "row", gap: 12 }}>
               <Pressable
+                testID="job-timer-cancel-next-step-btn"
                 onPress={handleCancelNextStep}
                 style={{
                   flex: 1,
@@ -759,6 +767,7 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({
                 </Text>
               </Pressable>
               <Pressable
+                testID="job-timer-confirm-next-step-btn"
                 onPress={handleConfirmNextStep}
                 style={{
                   flex: 1,

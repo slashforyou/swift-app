@@ -2,9 +2,10 @@
  * StripeHub - Hub de gestion des paiements Stripe
  * Remplace JobsBillingScreen avec une interface moderne pour Stripe
  */
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import Ionicons from "@react-native-vector-icons/ionicons";
 import { useFocusEffect } from "@react-navigation/native";
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
@@ -12,6 +13,7 @@ import {
     RefreshControl,
     ScrollView,
     StyleSheet,
+    Switch,
     Text,
     TouchableOpacity,
     View,
@@ -19,9 +21,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import MascotLoading from "../../components/ui/MascotLoading";
-
-// Mascot Stripe image
-const mascotStripeImage = require("../../../assets/images/mascot/mascotte_stripe.png");
 
 // Context
 import {
@@ -47,6 +46,9 @@ import {
 } from "../Stripe/OnboardingFlow/onboardingSteps";
 // Components
 import CreatePaymentLinkModal from "../../components/modals/CreatePaymentLinkModal";
+
+// Mascot Stripe image
+const mascotStripeImage = require("../../../assets/images/mascot/mascotte_stripe.png");
 
 // Types
 interface StripeHubProps {
@@ -79,6 +81,7 @@ export default function StripeHub({
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const [showPaymentLinkModal, setShowPaymentLinkModal] = useState(false);
+  const [passFeesToClient, setPassFeesToClient] = useState(false);
   const hasFocusedOnceRef = React.useRef(false);
 
   // Hook pour détecter la connexion Stripe réelle
@@ -88,6 +91,18 @@ export default function StripeHub({
   const stripeAccount = useStripeAccount();
   const stripePayments = useStripePayments({ autoLoad: false });
   const stripePayouts = useStripePayouts({ autoLoad: false });
+
+  // Charger le réglage "refacturer les frais au client"
+  useEffect(() => {
+    AsyncStorage.getItem("stripe_pass_fees_to_client").then((val) => {
+      if (val !== null) setPassFeesToClient(val === "true");
+    });
+  }, []);
+
+  const handleToggleFees = useCallback((value: boolean) => {
+    setPassFeesToClient(value);
+    AsyncStorage.setItem("stripe_pass_fees_to_client", String(value));
+  }, []);
 
   // ✅ Log au chargement pour vérifier le compte Stripe
   React.useEffect(() => {
@@ -345,24 +360,6 @@ export default function StripeHub({
     }
   };
 
-  const handleTestConnection = () => {
-    Alert.alert(
-      `🔍 ${t("stripe.hub.testConnection")}`,
-      `${t("stripe.hub.status")}: ${stripeConnection.status}\n` +
-        `${t("stripe.hub.connected")}: ${stripeConnection.isConnected ? t("common.yes") : t("common.no")}\n` +
-        `${t("stripe.hub.loading")}: ${stripeConnection.loading ? t("common.yes") : t("common.no")}\n` +
-        `${t("stripe.hub.details")}: ${stripeConnection.details || t("common.none")}\n` +
-        `${t("stripe.hub.errorLabel")}: ${stripeConnection.error || t("common.none")}`,
-      [
-        { text: "OK", style: "default" },
-        {
-          text: t("stripe.hub.retest"),
-          onPress: () => stripeConnection.refresh(),
-        },
-      ],
-    );
-  };
-
   const handleViewPayments = () => {
     // TEMP_DISABLED: console.log('Navigate to payments list')
     // Navigation vers la liste des paiements
@@ -582,7 +579,7 @@ export default function StripeHub({
     }
 
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView testID="stripe-hub-screen" style={styles.container}>
         <View
           style={[
             styles.content,
@@ -601,8 +598,8 @@ export default function StripeHub({
                 <Image
                   source={mascotStripeImage}
                   style={{
-                    width: 100,
-                    height: 100,
+                    width: "100%",
+                    height: 200,
                     marginBottom: 20,
                   }}
                   resizeMode="contain"
@@ -670,8 +667,8 @@ export default function StripeHub({
                   <Image
                     source={mascotStripeImage}
                     style={{
-                      width: 100,
-                      height: 100,
+                      width: "100%",
+                      height: 200,
                       marginBottom: 20,
                     }}
                     resizeMode="contain"
@@ -1027,6 +1024,7 @@ export default function StripeHub({
 
                 {/* Bouton principal: Rafraichir le statut */}
                 <TouchableOpacity
+                  testID="stripe-hub-refresh-btn"
                   style={[
                     styles.actionButton,
                     {
@@ -1066,6 +1064,7 @@ export default function StripeHub({
                 </TouchableOpacity>
 
                 <TouchableOpacity
+                  testID="stripe-hub-complete-profile-btn"
                   style={[
                     styles.actionButton,
                     {
@@ -1101,6 +1100,7 @@ export default function StripeHub({
 
                 {/* Bouton secondaire: Supprimer le compte */}
                 <TouchableOpacity
+                  testID="stripe-hub-disconnect-btn"
                   style={[
                     styles.actionButton,
                     {
@@ -1144,8 +1144,8 @@ export default function StripeHub({
                   <Image
                     source={mascotStripeImage}
                     style={{
-                      width: 100,
-                      height: 100,
+                      width: "100%",
+                      height: 200,
                       marginBottom: 20,
                     }}
                     resizeMode="contain"
@@ -1170,11 +1170,25 @@ export default function StripeHub({
                   >
                     {t("stripe.hub.subtitle")}
                   </Text>
+
+                  <Text
+                    style={{
+                      textAlign: "center",
+                      color: colors.text,
+                      lineHeight: 22,
+                      fontSize: 14,
+                      marginTop: 16,
+                      paddingHorizontal: 8,
+                    }}
+                  >
+                    {t("stripe.hub.stripeExplanation")}
+                  </Text>
                 </View>
 
                 {/* Boutons d'action */}
                 <View style={{ gap: 15 }}>
                   <TouchableOpacity
+                    testID="stripe-hub-connect-btn"
                     style={[
                       styles.actionButton,
                       styles.actionButtonPrimary,
@@ -1218,7 +1232,7 @@ export default function StripeHub({
                         borderColor: colors.border,
                       },
                     ]}
-                    onPress={handleTestConnection}
+                    onPress={() => stripeConnection.refresh()}
                     disabled={hubBusy}
                   >
                     <Ionicons
@@ -1335,7 +1349,7 @@ export default function StripeHub({
     const statusBadge = getAccountStatusBadge();
 
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView testID="stripe-hub-screen" style={styles.container}>
         <ScrollView
           contentContainerStyle={styles.content}
           refreshControl={
@@ -1352,39 +1366,85 @@ export default function StripeHub({
               styles.header,
               {
                 flexDirection: "column",
-                alignItems: "center",
+                alignItems: "stretch",
                 marginBottom: 8,
+                marginTop: 0,
+                paddingTop: 0,
+                paddingHorizontal: 0,
               },
             ]}
           >
             <Image
               source={mascotStripeImage}
               style={{
-                width: 120,
-                height: 120,
+                width: "100%",
+                height: 200,
                 resizeMode: "contain",
               }}
             />
-            <View
-              style={{
-                marginTop: 8,
-                paddingVertical: 6,
-                paddingHorizontal: 12,
-                borderRadius: 8,
-                borderWidth: 1.5,
-                borderColor: statusBadge.color,
-              }}
-            >
-              <Text
+            <View style={{ alignItems: "flex-end", marginTop: 8 }}>
+              <TouchableOpacity
+                onPress={() => {
+                  const { account } = stripeAccount;
+                  if (!account) return;
+                  const issues: string[] = [];
+                  if (account.requirements.past_due.length > 0) {
+                    issues.push(
+                      `⚠️ ${t("stripe.hub.urgentAction")}:\n` +
+                        account.requirements.past_due
+                          .map(
+                            (f: string) =>
+                              `  • ${getRequirementLabel(f, "fr")}`,
+                          )
+                          .join("\n"),
+                    );
+                  }
+                  if (account.requirements.currently_due.length > 0) {
+                    issues.push(
+                      `📋 ${t("stripe.hub.missingInfo")}:\n` +
+                        account.requirements.currently_due
+                          .map(
+                            (f: string) =>
+                              `  • ${getRequirementLabel(f, "fr")}`,
+                          )
+                          .join("\n"),
+                    );
+                  }
+                  if (issues.length === 0) {
+                    Alert.alert(
+                      statusBadge.text,
+                      t("stripe.hub.accountVerified"),
+                    );
+                  } else {
+                    Alert.alert(statusBadge.text, issues.join("\n\n"));
+                  }
+                }}
                 style={{
-                  color: statusBadge.color,
-                  fontSize: 13,
-                  fontWeight: "600",
-                  textAlign: "center",
+                  paddingVertical: 8,
+                  paddingHorizontal: 14,
+                  borderRadius: 8,
+                  backgroundColor: statusBadge.color,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 6,
                 }}
               >
-                {statusBadge.text}
-              </Text>
+                <Ionicons
+                  name={statusBadge.icon as any}
+                  size={16}
+                  color="#FFFFFF"
+                />
+                <Text
+                  testID="stripe-hub-status-text"
+                  style={{
+                    color: "#FFFFFF",
+                    fontSize: 13,
+                    fontWeight: "600",
+                  }}
+                >
+                  {statusBadge.text}
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -1395,7 +1455,7 @@ export default function StripeHub({
                 {t("stripe.hub.accountInfo")}
               </Text>
               <TouchableOpacity
-                onPress={handleStripeConnect}
+                onPress={() => navigation?.navigate?.("StripeSettings")}
                 disabled={hubBusy}
               >
                 <Ionicons
@@ -1614,7 +1674,7 @@ export default function StripeHub({
             <View style={styles.quickActions}>
               <TouchableOpacity
                 style={styles.quickActionButton}
-                onPress={handleStripeConnect}
+                onPress={() => navigation?.navigate?.("StripeSettings")}
               >
                 <Ionicons
                   name="settings-outline"
@@ -1656,6 +1716,44 @@ export default function StripeHub({
                   {t("stripe.hub.paymentLinkAction")}
                 </Text>
               </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Toggle : refacturer les frais Stripe au client */}
+          <View style={styles.card}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <View style={{ flex: 1, marginRight: 12 }}>
+                <Text style={styles.cardTitle}>
+                  {t("stripe.hub.feePassToClient")}
+                </Text>
+                <Text
+                  style={{
+                    color: colors.textSecondary,
+                    fontSize: 13,
+                    lineHeight: 18,
+                    marginTop: 4,
+                  }}
+                >
+                  {t("stripe.hub.feePassToClientDesc")}
+                </Text>
+              </View>
+              <Switch
+                value={passFeesToClient}
+                onValueChange={handleToggleFees}
+                trackColor={{
+                  false: colors.border,
+                  true: colors.primary + "80",
+                }}
+                thumbColor={
+                  passFeesToClient ? colors.primary : colors.textMuted
+                }
+              />
             </View>
           </View>
 
@@ -1707,86 +1805,24 @@ export default function StripeHub({
             </View>
           </View>
 
-          {/* Actions rapides */}
-          <View style={styles.card}>
-            <Text
-              style={[
-                styles.cardTitle,
-                { marginBottom: DESIGN_TOKENS.spacing.md },
-              ]}
-            >
-              {t("stripe.hub.quickActions")}
+          {/* Delete account button */}
+          <TouchableOpacity
+            testID="stripe-hub-dashboard-delete-btn"
+            style={[
+              styles.actionButton,
+              {
+                borderColor: colors.error,
+                borderWidth: 1,
+                marginHorizontal: 0,
+              },
+            ]}
+            onPress={handleDeleteAccount}
+          >
+            <Ionicons name="trash-outline" size={20} color={colors.error} />
+            <Text style={[styles.actionText, { color: colors.error }]}>
+              {t("stripe.hub.deleteAccount")}
             </Text>
-
-            <TouchableOpacity
-              style={[styles.actionButton, styles.actionButtonPrimary]}
-              onPress={handleCreatePaymentLink}
-            >
-              <Ionicons
-                name="add-circle"
-                size={20}
-                color={colors.backgroundTertiary}
-              />
-              <Text style={[styles.actionText, styles.actionTextPrimary]}>
-                {t("stripe.hub.createPaymentLink")}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={handleViewPayments}
-            >
-              <Ionicons
-                name="list-outline"
-                size={20}
-                color={colors.textSecondary}
-              />
-              <Text style={styles.actionText}>
-                {t("stripe.hub.viewAllPayments")}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={handleViewPayouts}
-            >
-              <Ionicons
-                name="wallet-outline"
-                size={20}
-                color={colors.textSecondary}
-              />
-              <Text style={styles.actionText}>
-                {t("stripe.hub.managePayouts")}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => navigation?.navigate?.("StripeSettings")}
-            >
-              <Ionicons
-                name="settings-outline"
-                size={20}
-                color={colors.textSecondary}
-              />
-              <Text style={styles.actionText}>
-                {t("stripe.hub.accountSettings")}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.actionButton,
-                { backgroundColor: colors.primary + "20" },
-              ]}
-              onPress={handleTestConnection}
-            >
-              <Ionicons name="bug-outline" size={20} color={colors.primary} />
-              <Text style={[styles.actionText, { color: colors.primary }]}>
-                🔍 {t("stripe.hub.testConnection")}
-              </Text>
-            </TouchableOpacity>
-          </View>
+          </TouchableOpacity>
 
           {/* Footer info */}
           <View

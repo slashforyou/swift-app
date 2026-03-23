@@ -1,0 +1,94 @@
+appId: host.exp.exponent
+---
+# Sub-flow : _go-to-connection
+#
+# Garantit qu'on arrive sur connection-screen sans supposer un état connecté.
+
+- openLink: "${EXPO_URL}"
+- waitForAnimationToEnd
+
+# Revenir vers les écrans hauts de la stack d'auth
+- runFlow:
+    when:
+      visible:
+        id: "business-registration-screen"
+    commands:
+      - pressKey: Back
+      - waitForAnimationToEnd
+
+- runFlow:
+    when:
+      visible:
+        id: "mail-verification-screen"
+    commands:
+      - pressKey: Back
+      - waitForAnimationToEnd
+
+- runFlow:
+    when:
+      visible:
+        id: "login-screen"
+    commands:
+      - pressKey: Back
+      - waitForAnimationToEnd
+
+- runFlow:
+    when:
+      visible:
+        id: "register-type-screen"
+    commands:
+      - pressKey: Back
+      - waitForAnimationToEnd
+
+# Revenir à Home depuis le calendrier si nécessaire
+- runFlow:
+    when:
+      visible:
+        id: "calendar-day-screen"
+    commands:
+      - tapOn:
+          id: "calendar-header-back-btn"
+      - waitForAnimationToEnd
+
+- runFlow:
+    when:
+      visible:
+        id: "calendar-month-screen"
+    commands:
+      - tapOn:
+          id: "calendar-header-back-btn"
+      - waitForAnimationToEnd
+
+# Si on est connecté sur Home, se déconnecter
+- runFlow:
+    when:
+      visible:
+        id: "home-screen"
+    commands:
+      - waitForAnimationToEnd
+      - tapOn:
+          id: "home-logout-btn"
+      - extendedWaitUntil:
+          visible:
+            id: "logout-confirm-modal"
+          timeout: 10000
+      - tapOn:
+          id: "logout-confirm-btn"
+
+- runFlow:
+    when:
+      visible:
+        id: "home-screen"
+    commands:
+      - waitForAnimationToEnd
+      - tapOn:
+          id: "home-logout-btn"
+      - extendedWaitUntil:
+          visible:
+            id: "logout-confirm-modal"
+          timeout: 10000
+      - tapOn:
+          id: "logout-confirm-btn"
+
+# Best effort only: le flow appelant gère ensuite connection/register-type.
+- waitForAnimationToEnd

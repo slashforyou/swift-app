@@ -5,12 +5,12 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useMemo } from "react";
 import {
-    Alert,
-    Linking,
-    Pressable,
-    StyleSheet,
-    Text,
-    View,
+  Alert,
+  Linking,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 import { DESIGN_TOKENS } from "../../../constants/Styles";
 import { useTheme } from "../../../context/ThemeProvider";
@@ -199,6 +199,7 @@ const QuickActionsSection: React.FC<QuickActionsSectionProps> = ({
         {quickActions.map((action) => (
           <Pressable
             key={action.id}
+            testID={`job-quick-action-${action.id}`}
             onPress={action.onPress}
             style={({ pressed }) => [
               s.btn,

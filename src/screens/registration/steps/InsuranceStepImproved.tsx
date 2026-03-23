@@ -1,12 +1,12 @@
 import React, { useRef, useState } from "react";
 import {
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Switch,
-    Text,
-    TextInput,
-    View,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import { TEST_DATA } from "../../../config/testData";
 import { useCommonThemedStyles } from "../../../hooks/useCommonStyles";
@@ -30,7 +30,9 @@ const InsuranceStepImproved: React.FC<InsuranceStepProps> = ({
   const { t } = useTranslation();
 
   // 🧪 Auto-fill with test data in development mode
-  const autoFillData = (__DEV__ ? TEST_DATA.insurance : {}) as Partial<BusinessOwnerRegistrationData>;
+  const autoFillData = (
+    __DEV__ ? TEST_DATA.insurance : {}
+  ) as Partial<BusinessOwnerRegistrationData>;
 
   const [hasInsurance, setHasInsurance] = useState(
     data.insuranceProvider
@@ -194,6 +196,7 @@ const InsuranceStepImproved: React.FC<InsuranceStepProps> = ({
         </Pressable>
 
         <Pressable
+          testID="register-insurance-next-btn"
           onPress={handleNext}
           disabled={isLoading}
           style={[styles.buttonBase, styles.buttonPrimary, { flex: 1 }]}

@@ -1,0 +1,208 @@
+﻿appId: host.exp.exponent
+---
+# Resume flow pour 010 — reprise depuis connection-screen
+# Utilisé pour relancer le wizard après un échec.
+
+- openLink: "${EXPO_URL}"
+- waitForAnimationToEnd
+
+- runFlow:
+    when:
+      visible:
+        id: "connection-screen"
+    commands:
+      - tapOn:
+          id: "connection-register-btn"
+
+- extendedWaitUntil:
+    visible:
+      id: "register-type-screen"
+    timeout: 8000
+
+# Choisir "Business Owner"
+- tapOn:
+    id: "register-type-card-business"
+- waitForAnimationToEnd
+
+# Popup brouillon (EN)
+- runFlow:
+    when:
+      visible:
+        text: "Continue Registration"
+    commands:
+      - tapOn:
+          text: "Cancel"
+      - waitForAnimationToEnd
+
+# Popup brouillon (FR)
+- runFlow:
+    when:
+      visible:
+        text: "Reprendre l'inscription"
+    commands:
+      - tapOn:
+          text: "Annuler"
+      - waitForAnimationToEnd
+
+- extendedWaitUntil:
+    visible:
+      id: "business-registration-screen"
+    timeout: 20000
+
+# â”€â”€ Ã‰tape 1 : Personal Info â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+- tapOn:
+    id: "register-firstname-input"
+- eraseText: 200
+- inputText: "${TEST_REGISTER_FIRST_NAME}"
+
+- tapOn:
+    id: "register-lastname-input"
+- eraseText: 200
+- inputText: "${TEST_REGISTER_LAST_NAME}"
+- hideKeyboard
+
+- tapOn:
+    id: "register-email-input"
+- eraseText: 300
+- inputText: "${TEST_REGISTER_EMAIL}"
+- hideKeyboard
+
+- tapOn:
+    id: "register-phone-input"
+- eraseText: 200
+- inputText: "0400000001"
+- hideKeyboard
+
+- tapOn:
+    id: "register-password-input"
+- eraseText: 50
+- inputText: "${TEST_REGISTER_PASSWORD}"
+- hideKeyboard
+
+- tapOn:
+    id: "register-confirm-password-input"
+- eraseText: 50
+- inputText: "${TEST_REGISTER_PASSWORD}"
+
+- hideKeyboard
+- tapOn:
+    id: "register-personal-info-next-btn"
+
+# â”€â”€ Ã‰tape 2 : Business Details â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+- extendedWaitUntil:
+    visible:
+      id: "register-company-name-input"
+    timeout: 5000
+- tapOn:
+    id: "register-company-name-input"
+- eraseText: 200
+- inputText: "${TEST_REGISTER_COMPANY}"
+- hideKeyboard
+- tapOn:
+    id: "register-business-details-next-btn"
+
+# â”€â”€ Ã‰tape 3 : Business Address (champs vides = skip avec Continue) â”€â”€â”€
+- extendedWaitUntil:
+    visible:
+      id: "register-address-next-btn"
+    timeout: 5000
+- tapOn:
+    id: "register-address-next-btn"
+
+# â”€â”€ Ã‰tape 4 : Insurance (optionnel, on skip) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+- extendedWaitUntil:
+    visible:
+      id: "register-insurance-next-btn"
+    timeout: 5000
+- tapOn:
+    id: "register-insurance-next-btn"
+
+# â”€â”€ Ã‰tape 5 : Subscription Plan (choix Starter) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+- extendedWaitUntil:
+    visible:
+      id: "plan-card-starter"
+    timeout: 5000
+- tapOn:
+    id: "plan-card-starter"
+- tapOn:
+    id: "register-plan-next-btn"
+
+# â”€â”€ Ã‰tape 6 : Banking Info (optionnel, on skip) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+- extendedWaitUntil:
+    visible:
+      id: "register-banking-next-btn"
+    timeout: 5000
+- tapOn:
+    id: "register-banking-next-btn"
+
+# â”€â”€ Ã‰tape 7 : Legal Agreements â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+- extendedWaitUntil:
+    visible:
+      id: "register-terms-checkbox"
+    timeout: 5000
+- tapOn:
+    id: "register-terms-checkbox"
+- tapOn:
+    id: "register-privacy-checkbox"
+- tapOn:
+    id: "register-stripe-checkbox"
+- tapOn:
+    id: "register-legal-finish-btn"
+
+# â”€â”€ Ã‰tape 8 : Review & Submit â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+- extendedWaitUntil:
+    visible:
+      id: "register-review-submit-btn"
+    timeout: 5000
+- tapOn:
+    id: "register-review-submit-btn"
+
+# â”€â”€ Ã‰tape 9 : VÃ©rification email (code de test = 123456 pour @mailinator.com) â”€
+- extendedWaitUntil:
+    visible:
+      id: "mail-verification-screen"
+    timeout: 10000
+- tapOn:
+    id: "mail-verification-code-input"
+- inputText: "123456"
+- hideKeyboard
+- tapOn:
+    id: "mail-verification-submit-btn"
+
+# Dialog "Complete Your Profile" (appear after 1500ms)
+- extendedWaitUntil:
+    visible:
+      text: "Complete Your Profile"
+    timeout: 8000
+- tapOn:
+    text: "OK"
+
+# â”€â”€ Ã‰tape 10 : Login avec le nouveau compte â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+- extendedWaitUntil:
+    visible:
+      id: "login-screen"
+    timeout: 10000
+- tapOn:
+    id: "login-email-input"
+- eraseText: 300
+- inputText: "${TEST_REGISTER_EMAIL}"
+- tapOn:
+    id: "login-password-input"
+- eraseText: 200
+- inputText: "${TEST_REGISTER_PASSWORD}"
+- hideKeyboard
+- tapOn:
+    id: "login-submit-btn"
+
+# Re-synchroniser l'app aprÃ¨s login (ramÃ¨ne au foreground + Home si nÃ©cessaire).
+- runFlow:
+    file: sub-flows/_go-to-home.yaml
+    env:
+      EMAIL: "${TEST_REGISTER_EMAIL}"
+      PASSWORD: "${TEST_REGISTER_PASSWORD}"
+
+# â”€â”€ VÃ©rification finale â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 30000

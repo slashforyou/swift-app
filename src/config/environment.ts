@@ -49,8 +49,8 @@ const developmentConfig: EnvironmentConfig = {
 const stagingConfig: EnvironmentConfig = {
   name: "staging",
   apiUrl: "https://api-staging.swiftapp.com.au/",
-  // ⚠️ Clé Stripe TEST pour staging
-  stripePublishableKey: "pk_test_VOTRE_CLE_STRIPE_TEST",
+  // Staging utilise la clé test
+  stripePublishableKey: "pk_test_51SMZIJInA65k4AVU4pfHe2XYbwfiqZqYNmCSCfgrIP7iyI2rQ4sw5Po5KbZC5nt1NVMOXiWzZXaxnD1wiDnPNd2m00BwhyWbwP",
   enableDebugLogs: true,
   enableAnalytics: true,
 };
@@ -59,8 +59,7 @@ const stagingConfig: EnvironmentConfig = {
 const productionConfig: EnvironmentConfig = {
   name: "production",
   apiUrl: "https://altivo.fr/swift-app/",
-  // ⚠️ Clé Stripe LIVE - À configurer avant le déploiement production
-  stripePublishableKey: "pk_live_VOTRE_CLE_STRIPE_PRODUCTION",
+  stripePublishableKey: "pk_live_51SMZIJInA65k4AVUCFcgBFYZYeRefTIecjdp30GeqaLMyQ8PZv2HLlO5Ofxm3a5oZCrVlxlSeCIdFnI0NyChqa6800peiyPmyf",
   enableDebugLogs: false,
   enableAnalytics: true,
 };

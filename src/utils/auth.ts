@@ -14,12 +14,12 @@ export async function login(mail: string, password: string) {
 
   console.log("🔐 [AUTH] Device info collected, making API call...");
 
-  // ✅ Add timeout to prevent infinite loading (TEMP: increased to 60s for slow backend)
+  // Timeout pour éviter un chargement infini
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
-    console.warn("⚠️ [AUTH] Login request timed out after 60 seconds");
+    console.warn("⚠️ [AUTH] Login request timed out after 20 seconds");
     controller.abort();
-  }, 60000); // 60 seconds timeout (temporary)
+  }, 20000); // 20 seconds timeout
 
   let res: Response;
   try {

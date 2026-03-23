@@ -1,0 +1,278 @@
+appId: host.exp.exponent
+---
+# Flow 051 — Workflow job inter-compagnies (B2B)
+# Phases : A (Création) → B (Transfert) → C (Acceptation) → D (Réalisation) → E (Vérification)
+# Comptes : ADMIN_EMAIL (Nerd-Test) + ROMAIN_EMAIL (Test Frontend)
+
+# ─────────────────────────────────────────────────────────────
+# Phase A — Création du job (Admin Nerd-Test)
+# ─────────────────────────────────────────────────────────────
+- runFlow:
+    file: sub-flows/_go-to-home.yaml
+    env:
+      EMAIL: "${ADMIN_EMAIL}"
+      PASSWORD: "${ADMIN_PASSWORD}"
+
+# Naviguer vers Calendrier → Jour 15
+- tapOn:
+    id: "home-calendar-btn"
+- extendedWaitUntil:
+    visible:
+      id: "calendar-month-screen"
+    timeout: 8000
+- tapOn:
+    id: "calendar-month-day-15"
+- extendedWaitUntil:
+    visible:
+      id: "calendar-day-screen"
+    timeout: 8000
+
+# Créer un job via le FAB
+- tapOn:
+    id: "calendar-day-create-job-fab"
+- extendedWaitUntil:
+    visible:
+      id: "create-job-modal"
+    timeout: 8000
+
+# Sélectionner le client E2E Client (existant en base)
+- tapOn:
+    id: "create-job-client-search"
+- inputText: "E2E"
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      id: "create-job-client-item-30"
+    timeout: 5000
+- tapOn:
+    id: "create-job-client-item-30"
+- waitForAnimationToEnd
+
+# Étape adresse — remplir pickup et delivery
+- extendedWaitUntil:
+    visible:
+      text: "Enter Addresses"
+    timeout: 10000
+- waitForAnimationToEnd
+- tapOn:
+    text: "Street address"
+- inputText: "123 Test St"
+- hideKeyboard
+- tapOn:
+    text: "City"
+- inputText: "Sydney"
+- hideKeyboard
+- tapOn:
+    text: "State"
+- extendedWaitUntil:
+    visible:
+      text: "Select State"
+    timeout: 3000
+- tapOn:
+    text: "NSW"
+- tapOn:
+    text: "Postal code"
+- inputText: "2000"
+- hideKeyboard
+- tapOn:
+    text: "Street address"
+- inputText: "456 Test Ave"
+- hideKeyboard
+- tapOn:
+    text: "City"
+- inputText: "Melbourne"
+- hideKeyboard
+- tapOn:
+    text: "State"
+- extendedWaitUntil:
+    visible:
+      text: "Select State"
+    timeout: 3000
+- tapOn:
+    text: "VIC"
+- tapOn:
+    text: "Postal code"
+- inputText: "3000"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "create-job-address-next-btn"
+    direction: DOWN
+- tapOn:
+    id: "create-job-address-next-btn"
+- extendedWaitUntil:
+    visible:
+      id: "create-job-schedule-next-btn"
+    timeout: 5000
+- tapOn:
+    id: "create-job-schedule-next-btn"
+- extendedWaitUntil:
+    visible:
+      id: "create-job-details-next-btn"
+    timeout: 5000
+- tapOn:
+    id: "create-job-details-next-btn"
+- extendedWaitUntil:
+    visible:
+      id: "create-job-pricing-next-btn"
+    timeout: 5000
+- tapOn:
+    id: "create-job-pricing-next-btn"
+- extendedWaitUntil:
+    visible:
+      id: "create-job-save-btn"
+    timeout: 5000
+- tapOn:
+    id: "create-job-save-btn"
+
+# Attendre retour écran du jour
+- extendedWaitUntil:
+    visible:
+      id: "calendar-day-screen"
+    timeout: 15000
+
+# ─────────────────────────────────────────────────────────────
+# Phase B — Transfert du job vers Test Frontend (Admin)
+# ─────────────────────────────────────────────────────────────
+# Ouvrir le job fraîchement créé
+- tapOn:
+    text: "E2E Client"
+- extendedWaitUntil:
+    visible:
+      id: "job-details-screen"
+    timeout: 10000
+
+# Appuyer sur le bouton "Déléguer ce job"
+# N.B. : visible seulement si can_create_transfer=true et timer non démarré
+- tapOn:
+    id: "job-details-transfer-btn"
+
+# Attendre l'ouverture du modal de transfert
+- extendedWaitUntil:
+    visible:
+      text: "Déléguer ce job"
+    timeout: 8000
+
+# Sélectionner "Test Frontend" dans le carnet de relations
+- tapOn:
+    text: "${ROMAIN_COMPANY_NAME}"
+
+# Envoyer la délégation
+- extendedWaitUntil:
+    visible:
+      id: "transfer-job-send-btn"
+    timeout: 5000
+- tapOn:
+    id: "transfer-job-send-btn"
+
+# Attendre confirmation (modal ferme + job rafraîchi)
+- extendedWaitUntil:
+    visible:
+      id: "job-details-screen"
+    timeout: 15000
+
+# ─────────────────────────────────────────────────────────────
+# Phase C — Acceptation de l'assignation (Romain / Test Frontend)
+# ─────────────────────────────────────────────────────────────
+- runFlow:
+    file: sub-flows/_switch-to-romain.yaml
+
+# Naviguer vers Calendrier → Jour 15
+- tapOn:
+    id: "home-calendar-btn"
+- extendedWaitUntil:
+    visible:
+      id: "calendar-month-screen"
+    timeout: 8000
+- tapOn:
+    id: "calendar-month-day-15"
+- extendedWaitUntil:
+    visible:
+      id: "calendar-day-screen"
+    timeout: 8000
+
+# Ouvrir le job transféré
+- tapOn:
+    text: "B2B ClientTest"
+- extendedWaitUntil:
+    visible:
+      id: "job-details-screen"
+    timeout: 10000
+
+# Accepter l'assignation
+- extendedWaitUntil:
+    visible:
+      id: "job-assignment-accept-btn"
+    timeout: 8000
+- tapOn:
+    id: "job-assignment-accept-btn"
+
+# Assert : boutons accept/decline disparaissent (job accepté)
+- extendedWaitUntil:
+    notVisible:
+      id: "job-assignment-accept-btn"
+    timeout: 8000
+
+# ─────────────────────────────────────────────────────────────
+# Phase D — Réalisation du job (Romain)
+# ─────────────────────────────────────────────────────────────
+# Démarrer le chrono
+- tapOn:
+    id: "job-timer-start-btn"
+- extendedWaitUntil:
+    visible:
+      id: "job-timer-pause-btn"
+    timeout: 8000
+
+# Simuler du travail
+- swipe:
+    direction: DOWN
+    duration: 1000
+
+# Mettre en pause (le job reste in_progress pour que l'admin puisse le retrouver en Phase E)
+- tapOn:
+    id: "job-timer-pause-btn"
+- extendedWaitUntil:
+    visible:
+      id: "job-timer-play-btn"
+    timeout: 5000
+
+# ─────────────────────────────────────────────────────────────
+# Phase E — Vérification de l'Admin
+# ─────────────────────────────────────────────────────────────
+- runFlow:
+    file: sub-flows/_switch-to-admin.yaml
+
+# Naviguer vers le job
+- tapOn:
+    id: "home-calendar-btn"
+- extendedWaitUntil:
+    visible:
+      id: "calendar-month-screen"
+    timeout: 8000
+- tapOn:
+    id: "calendar-month-day-15"
+- extendedWaitUntil:
+    visible:
+      id: "calendar-day-screen"
+    timeout: 8000
+- extendedWaitUntil:
+    visible:
+      text: "E2E Client"
+    timeout: 10000
+- tapOn:
+    text: "E2E Client"
+- extendedWaitUntil:
+    visible:
+      id: "job-details-screen"
+    timeout: 10000
+
+# Vérifier l'onglet paiement
+- tapOn:
+    id: "tab-payment"
+- extendedWaitUntil:
+    visible:
+      id: "job-payment-scroll"
+    timeout: 8000
+- assertVisible:
+    id: "job-payment-scroll"

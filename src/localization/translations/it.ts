@@ -107,6 +107,26 @@ export const itTranslations = mergeWithBaseTranslations(enTranslations, {
       title: "Classifica",
       description: "Guarda dove ti posizioni tra gli altri autisti",
     },
+    contact: {
+      title: "Contattaci",
+      yourMessage: "Il tuo messaggio",
+      helpLabel: "Chiedi aiuto",
+      feedbackLabel: "Dai il tuo parere",
+      featureLabel: "Suggerisci un miglioramento",
+      bugLabel: "Segnala un problema",
+      placeholder: "Descrivi la tua richiesta...",
+      send: "Invia",
+      sending: "Invio...",
+      cancel: "Annulla",
+      thankYou: "Grazie!",
+      thankYouMessage: "Il tuo messaggio è stato inviato con successo.",
+      errorSending: "Impossibile inviare il messaggio. Riprova.",
+    },
+    stripeAlert: {
+      title: "Stripe non attivato",
+      description:
+        "Non puoi ricevere pagamenti né fatturare senza Stripe. Attivalo ora.",
+    },
   },
 
   leaderboard: {

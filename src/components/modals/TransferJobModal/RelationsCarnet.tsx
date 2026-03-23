@@ -113,6 +113,7 @@ const RelationRow: React.FC<{
 
   return (
     <Pressable
+      testID={`transfer-relation-${relation.id}`}
       style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
       onPress={onPress}
     >

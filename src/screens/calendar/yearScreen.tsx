@@ -3,14 +3,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback, useState } from "react";
 import {
-    Animated,
-    Dimensions,
-    Pressable,
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  Animated,
+  Dimensions,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 import CalendarHeader from "../../components/calendar/CalendarHeader";
 import MascotLoading from "../../components/ui/MascotLoading";
@@ -234,7 +234,7 @@ const YearCalendarScreen = ({ navigation, route }: any) => {
   const customStyles = useCustomStyles();
 
   return (
-    <View style={customStyles.container}>
+    <View testID="calendar-year-screen" style={customStyles.container}>
       {/* Header unifié avec style Business - Position fixe en haut */}
       <CalendarHeader navigation={navigation} title={selectedYear.toString()} />
 
@@ -242,8 +242,12 @@ const YearCalendarScreen = ({ navigation, route }: any) => {
         style={[customStyles.header, { transform: [{ scale: animatedValue }] }]}
       >
         {/* Navigation entre années */}
-        <View style={customStyles.navigationContainer}>
+        <View
+          testID="calendar-year-navigation"
+          style={customStyles.navigationContainer}
+        >
           <Pressable
+            testID="calendar-year-prev-btn"
             style={({ pressed }) => ({
               ...customStyles.navButton,
               opacity: pressed ? 0.8 : 1,
@@ -258,17 +262,29 @@ const YearCalendarScreen = ({ navigation, route }: any) => {
           </Pressable>
 
           <Pressable
+            testID="calendar-year-picker-btn"
             style={({ pressed }) => ({
               ...customStyles.yearButton,
               opacity: pressed ? 0.95 : 1,
             })}
             onPress={() => navigation.navigate("MultipleYears")}
           >
-            <Text style={customStyles.yearButtonText}>{selectedYear}</Text>
-            <Text style={customStyles.yearButtonSubtext}>Select Year</Text>
+            <Text
+              testID="calendar-year-value-text"
+              style={customStyles.yearButtonText}
+            >
+              {selectedYear}
+            </Text>
+            <Text
+              testID="calendar-year-hint-text"
+              style={customStyles.yearButtonSubtext}
+            >
+              Select Year
+            </Text>
           </Pressable>
 
           <Pressable
+            testID="calendar-year-next-btn"
             style={({ pressed }) => ({
               ...customStyles.navButton,
               opacity: pressed ? 0.8 : 1,
@@ -286,6 +302,7 @@ const YearCalendarScreen = ({ navigation, route }: any) => {
 
       {/* Grille des mois avec pull-to-refresh */}
       <ScrollView
+        testID="calendar-year-scroll"
         style={customStyles.scrollContainer}
         refreshControl={
           <RefreshControl
@@ -299,7 +316,10 @@ const YearCalendarScreen = ({ navigation, route }: any) => {
       >
         {isLoading && <MascotLoading text={t("calendar.loading")} overlay />}
 
-        <View style={customStyles.monthsGrid}>
+        <View
+          testID="calendar-year-months-grid"
+          style={customStyles.monthsGrid}
+        >
           {monthList.map((month, i) => {
             const isCurrentMonth =
               selectedYear === currentYear && i === new Date().getMonth();
@@ -307,6 +327,7 @@ const YearCalendarScreen = ({ navigation, route }: any) => {
             return (
               <Pressable
                 key={month}
+                testID={`calendar-year-month-${i + 1}`}
                 style={({ pressed }) => ({
                   ...(isCurrentMonth
                     ? customStyles.monthCardCurrent
@@ -321,6 +342,7 @@ const YearCalendarScreen = ({ navigation, route }: any) => {
                 }
               >
                 <Text
+                  testID={`calendar-year-month-${i + 1}-text`}
                   style={
                     isCurrentMonth
                       ? customStyles.monthTextCurrent

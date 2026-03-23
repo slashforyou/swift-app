@@ -2,7 +2,9 @@
  * Payment Page - Gestion moderne des paiements conforme au design Summary
  * Utilise le timer en temps réel pour calculer les coûts
  */
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import Ionicons from "@react-native-vector-icons/ionicons";
+import { useNavigation } from "@react-navigation/native";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
     ActivityIndicator,
@@ -40,6 +42,7 @@ interface AdditionalItem {
 const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
   const { colors } = useTheme();
   const { t } = useLocalization();
+  const navigation = useNavigation<any>();
   const { sendInvoiceWithConfirmation } = useInvoice();
   const [paymentWindowVisible, setPaymentWindowVisible] = useState<
     string | null
@@ -69,6 +72,13 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
   }, []);
   const [newItemDescription, setNewItemDescription] = useState("");
   const [newItemAmount, setNewItemAmount] = useState("");
+  const [passFeesToClient, setPassFeesToClient] = useState(false);
+
+  useEffect(() => {
+    AsyncStorage.getItem("stripe_pass_fees_to_client").then((val) => {
+      if (val !== null) setPassFeesToClient(val === "true");
+    });
+  }, []);
 
   // ✅ État pour la signature vérifiée depuis le serveur
   const [signatureFromServer, setSignatureFromServer] = useState<{
@@ -360,8 +370,15 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
     if (stripeAccountStatus === "inactive") {
       Alert.alert(
         "Compte Stripe incomplet",
-        "Vous devez compléter la configuration de votre compte Stripe avant de pouvoir recevoir des paiements. Rendez-vous dans Paramètres > Stripe pour finaliser votre inscription.",
-        [{ text: "OK" }],
+        "Vous devez compléter la configuration de votre compte Stripe avant de pouvoir recevoir des paiements.",
+        [
+          { text: "Plus tard", style: "cancel" },
+          {
+            text: "Activer Stripe",
+            onPress: () =>
+              navigation.navigate("Business", { initialTab: "JobsBilling" }),
+          },
+        ],
       );
       return;
     }
@@ -424,10 +441,9 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
       )}
 
       <ScrollView
+        testID="job-payment-scroll"
         style={{ flex: 1, backgroundColor: colors.background }}
-        contentContainerStyle={{ padding: DESIGN_TOKENS.spacing.md }}
       >
-        {/* ===== STRIPE ACCOUNT GUARD BANNER ===== */}
         {stripeAccountStatus === "inactive" && (
           <View
             style={{
@@ -463,10 +479,34 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                 style={{ fontSize: 13, color: colors.text, lineHeight: 18 }}
               >
                 Votre compte Stripe n'est pas encore actif. Finalisez la
-                configuration dans{" "}
-                <Text style={{ fontWeight: "700" }}>Paramètres › Stripe</Text>{" "}
-                pour pouvoir recevoir des paiements.
+                configuration pour pouvoir recevoir des paiements.
               </Text>
+              <Pressable
+                testID="payment-stripe-activate-btn"
+                onPress={() =>
+                  navigation.navigate("Business", { initialTab: "JobsBilling" })
+                }
+                style={({ pressed }) => ({
+                  backgroundColor: pressed
+                    ? colors.warning
+                    : colors.warning + "E0",
+                  borderRadius: DESIGN_TOKENS.radius.md,
+                  paddingVertical: DESIGN_TOKENS.spacing.sm,
+                  paddingHorizontal: DESIGN_TOKENS.spacing.md,
+                  marginTop: DESIGN_TOKENS.spacing.sm,
+                  alignSelf: "flex-start",
+                })}
+              >
+                <Text
+                  style={{
+                    color: "white",
+                    fontWeight: "700",
+                    fontSize: DESIGN_TOKENS.typography.caption.fontSize,
+                  }}
+                >
+                  Activer Stripe
+                </Text>
+              </Pressable>
             </View>
           </View>
         )}
@@ -1236,6 +1276,58 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                 }
               />
             </View>
+
+            {/* Frais Stripe / Cobbr si refacturés au client */}
+            {passFeesToClient && paymentInfo.current > 0 && (
+              <>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    paddingBottom: DESIGN_TOKENS.spacing.sm,
+                  }}
+                >
+                  <Text style={{ fontSize: 14, color: colors.textSecondary }}>
+                    Stripe fees (2.9% + $0.30)
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      fontWeight: "500",
+                      color: colors.text,
+                    }}
+                  >
+                    {formatCurrency(
+                      Math.round(paymentInfo.current * 0.029 + 30),
+                    )}
+                  </Text>
+                </View>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    paddingBottom: DESIGN_TOKENS.spacing.md,
+                    borderBottomWidth: 1,
+                    borderBottomColor: colors.border,
+                  }}
+                >
+                  <Text style={{ fontSize: 14, color: colors.textSecondary }}>
+                    Cobbr fees (2.5%)
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      fontWeight: "500",
+                      color: colors.text,
+                    }}
+                  >
+                    {formatCurrency(Math.round(paymentInfo.current * 0.025))}
+                  </Text>
+                </View>
+              </>
+            )}
 
             {/* Différence si applicable */}
             {paymentInfo.current !== paymentInfo.estimated && (

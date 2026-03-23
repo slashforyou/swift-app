@@ -476,7 +476,11 @@ export default function DocumentsScreen({
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <SafeAreaView
+      style={styles.container}
+      edges={["top"]}
+      testID="stripe-documents-screen"
+    >
       {/* Header avec retour et étape */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -573,6 +577,7 @@ export default function DocumentsScreen({
                 style={styles.retakeButton}
                 onPress={() => takePicture("front")}
                 disabled={isUploading}
+                testID="stripe-documents-front-retake-btn"
               >
                 <Ionicons name="refresh" size={20} color={colors.text} />
                 <Text style={styles.retakeButtonText}>
@@ -584,6 +589,7 @@ export default function DocumentsScreen({
                 style={styles.cameraButton}
                 onPress={() => takePicture("front")}
                 disabled={isUploading}
+                testID="stripe-documents-front-btn"
               >
                 <Ionicons name="camera" size={20} color="#FFFFFF" />
                 <Text style={styles.cameraButtonText}>
@@ -624,6 +630,7 @@ export default function DocumentsScreen({
                 style={styles.retakeButton}
                 onPress={() => takePicture("back")}
                 disabled={isUploading}
+                testID="stripe-documents-back-retake-btn"
               >
                 <Ionicons name="refresh" size={20} color={colors.text} />
                 <Text style={styles.retakeButtonText}>
@@ -635,6 +642,7 @@ export default function DocumentsScreen({
                 style={styles.cameraButton}
                 onPress={() => takePicture("back")}
                 disabled={isUploading}
+                testID="stripe-documents-back-btn"
               >
                 <Ionicons name="camera" size={20} color="#FFFFFF" />
                 <Text style={styles.cameraButtonText}>
@@ -653,6 +661,7 @@ export default function DocumentsScreen({
           ]}
           onPress={handleNext}
           disabled={!canProceed || isUploading}
+          testID="stripe-documents-next-btn"
         >
           <Text
             style={[

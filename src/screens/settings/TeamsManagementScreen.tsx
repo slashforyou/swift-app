@@ -5,15 +5,15 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    FlatList,
-    Modal,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Modal,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -1089,7 +1089,7 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({
   // ---------------------------------------------------------------------------
 
   return (
-    <Screen>
+    <Screen testID="teams-management-screen">
       <View style={{ flex: 1, backgroundColor: colors.background }}>
         {/* Header */}
         <View

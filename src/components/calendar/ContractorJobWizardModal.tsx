@@ -1150,6 +1150,7 @@ export const ContractorJobWizardModal: React.FC<
 
           {/* Contre-proposition */}
           <Pressable
+            testID="counter-proposal-btn"
             style={[
               styles.secondaryActionBtn,
               {
@@ -1661,6 +1662,7 @@ export const ContractorJobWizardModal: React.FC<
             ))}
           </View>
           <TextInput
+            testID="counter-proposal-price-input"
             style={[
               styles.searchInput,
               { marginBottom: DESIGN_TOKENS.spacing.md },
@@ -1820,6 +1822,7 @@ export const ContractorJobWizardModal: React.FC<
             <Text style={styles.secondaryActionBtnText}>← Retour</Text>
           </Pressable>
           <Pressable
+            testID="counter-proposal-submit-btn"
             style={[
               styles.primaryActionBtn,
               {

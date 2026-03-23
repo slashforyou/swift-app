@@ -5,12 +5,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    FlatList,
-    Pressable,
-    RefreshControl,
-    Text,
-    View,
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  Text,
+  View,
 } from "react-native";
 import MascotLoading from "../components/ui/MascotLoading";
 import { Colors } from "../constants/Colors";
@@ -156,13 +156,8 @@ const XpHistoryScreen: React.FC = () => {
 
   const renderItem = ({ item }: { item: XpEntry }) => (
     <View
+      testID={`xp-entry-${item.id}`}
       style={{
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: Colors.light.background,
-        paddingVertical: DESIGN_TOKENS.spacing.md,
-        paddingHorizontal: DESIGN_TOKENS.spacing.lg,
-        borderBottomWidth: 1,
         borderBottomColor: Colors.light.border,
       }}
     >
@@ -265,10 +260,8 @@ const XpHistoryScreen: React.FC = () => {
           {error}
         </Text>
         <Pressable
-          onPress={() => {
-            setIsLoading(true);
-            loadHistory(true);
-          }}
+          testID="xp-history-retry-btn"
+          onPress={() => loadHistory(false)}
           style={{
             marginTop: 16,
             paddingHorizontal: 24,
@@ -289,9 +282,13 @@ const XpHistoryScreen: React.FC = () => {
   const totalXp = history.reduce((sum, entry) => sum + entry.xpEarned, 0);
 
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.light.background }}>
+    <View
+      testID="xp-history-screen"
+      style={{ flex: 1, backgroundColor: Colors.light.background }}
+    >
       {/* Header */}
       <View
+        testID="xp-history-header"
         style={{
           flexDirection: "row",
           alignItems: "center",
@@ -304,6 +301,7 @@ const XpHistoryScreen: React.FC = () => {
         }}
       >
         <Pressable
+          testID="xp-history-back-btn"
           onPress={() => navigation.goBack()}
           style={({ pressed }) => ({
             padding: 8,
@@ -343,6 +341,7 @@ const XpHistoryScreen: React.FC = () => {
 
       {/* History List */}
       <FlatList
+        testID="xp-history-list"
         data={history}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderItem}

@@ -407,8 +407,10 @@ export default function VehicleDetailsScreen({
   const statusColors = getStatusColor(vehicle.status);
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Header */}
+    <View
+      testID="business-vehicle-details-screen"
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <View
         style={[styles.header, { backgroundColor: colors.backgroundSecondary }]}
       >
@@ -422,6 +424,7 @@ export default function VehicleDetailsScreen({
       </View>
 
       <ScrollView
+        testID="vehicle-details-scroll"
         style={styles.scrollView}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
@@ -750,6 +753,7 @@ export default function VehicleDetailsScreen({
             </Pressable>
 
             <Pressable
+              testID="vehicle-delete-btn"
               style={[
                 styles.actionCard,
                 { backgroundColor: colors.backgroundSecondary },

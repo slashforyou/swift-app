@@ -2,33 +2,34 @@
  * Alert System Service - Système d'alertes critiques pour monitoring proactif
  */
 
-import { getAuthHeaders } from '../utils/auth';
-import { analytics } from './analytics';
+import { API_URL } from "../config/environment";
+import { getAuthHeaders } from "../utils/auth";
+import { analytics } from "./analytics";
 
-const API_BASE_URL = 'https://altivo.fr/swift-app/v1';
+const API_BASE_URL = `${API_URL}v1`;
 
 export interface AlertRule {
   id: string;
   name: string;
   metric: string;
-  operator: 'gt' | 'lt' | 'eq' | 'gte' | 'lte';
+  operator: "gt" | "lt" | "eq" | "gte" | "lte";
   threshold: number;
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: "low" | "medium" | "high" | "critical";
   enabled: boolean;
-  notification_channels: ('email' | 'sms' | 'push' | 'webhook')[];
+  notification_channels: ("email" | "sms" | "push" | "webhook")[];
 }
 
 export interface Alert {
   id: string;
   rule_id: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: "low" | "medium" | "high" | "critical";
   title: string;
   description: string;
   current_value: number;
   threshold_value: number;
   triggered_at: string;
   resolved_at?: string;
-  status: 'active' | 'resolved' | 'suppressed';
+  status: "active" | "resolved" | "suppressed";
 }
 
 class AlertService {
@@ -48,71 +49,71 @@ class AlertService {
     this.alertRules = [
       // Payment Alerts
       {
-        id: 'payment_failure_rate',
-        name: 'Taux d\'échec paiement élevé',
-        metric: 'payment_failure_rate',
-        operator: 'gt',
+        id: "payment_failure_rate",
+        name: "Taux d'échec paiement élevé",
+        metric: "payment_failure_rate",
+        operator: "gt",
         threshold: 0.1, // 10%
-        severity: 'high',
+        severity: "high",
         enabled: true,
-        notification_channels: ['email', 'push']
+        notification_channels: ["email", "push"],
       },
       {
-        id: 'payment_amount_unusual',
-        name: 'Montant de paiement inhabituel',
-        metric: 'payment_amount',
-        operator: 'gt',
+        id: "payment_amount_unusual",
+        name: "Montant de paiement inhabituel",
+        metric: "payment_amount",
+        operator: "gt",
         threshold: 10000, // $100.00
-        severity: 'medium',
+        severity: "medium",
         enabled: true,
-        notification_channels: ['email']
+        notification_channels: ["email"],
       },
 
       // API Performance Alerts
       {
-        id: 'api_response_slow',
-        name: 'API lente',
-        metric: 'avg_api_response_time',
-        operator: 'gt',
+        id: "api_response_slow",
+        name: "API lente",
+        metric: "avg_api_response_time",
+        operator: "gt",
         threshold: 2000, // 2 seconds
-        severity: 'medium',
+        severity: "medium",
         enabled: true,
-        notification_channels: ['push']
+        notification_channels: ["push"],
       },
       {
-        id: 'api_error_rate_high',
-        name: 'Taux d\'erreur API élevé',
-        metric: 'api_error_rate',
-        operator: 'gt',
+        id: "api_error_rate_high",
+        name: "Taux d'erreur API élevé",
+        metric: "api_error_rate",
+        operator: "gt",
         threshold: 0.05, // 5%
-        severity: 'high',
+        severity: "high",
         enabled: true,
-        notification_channels: ['email', 'push']
+        notification_channels: ["email", "push"],
       },
 
       // Business Alerts
       {
-        id: 'job_completion_rate_low',
-        name: 'Taux de completion job faible',
-        metric: 'job_completion_rate',
-        operator: 'lt',
+        id: "job_completion_rate_low",
+        name: "Taux de completion job faible",
+        metric: "job_completion_rate",
+        operator: "lt",
         threshold: 0.8, // 80%
-        severity: 'medium',
+        severity: "medium",
         enabled: true,
-        notification_channels: ['email']
+        notification_channels: ["email"],
       },
 
       // Critical System Alerts
       {
-        id: 'system_uptime_low',
-        name: 'Disponibilité système faible',
-        metric: 'system_uptime',
-        operator: 'lt',
+        id: "system_uptime_low",
+        name: "Disponibilité système faible",
+        metric: "system_uptime",
+        operator: "lt",
         threshold: 0.95, // 95%
-        severity: 'critical',
+        severity: "critical",
         enabled: true,
-        notification_channels: ['email', 'sms', 'push']
-      }
+        notification_channels: ["email", "sms", "push"],
+      },
     ];
   }
 
@@ -132,11 +133,11 @@ class AlertService {
         const shouldTrigger = this.evaluateCondition(
           currentValue,
           rule.operator,
-          rule.threshold
+          rule.threshold,
         );
 
         const existingAlert = this.activeAlerts.find(
-          alert => alert.rule_id === rule.id && alert.status === 'active'
+          (alert) => alert.rule_id === rule.id && alert.status === "active",
         );
 
         if (shouldTrigger && !existingAlert) {
@@ -145,13 +146,12 @@ class AlertService {
           await this.resolveAlert(existingAlert.id);
         }
       }
-
-    } catch (error) {
-      console.error('❌ [ALERTS] Error checking alert rules:', error);
+    } catch (error) {
+      console.error("❌ [ALERTS] Error checking alert rules:", error);
       analytics.trackError({
-        error_type: 'api_error',
+        error_type: "api_error",
         error_message: `Alert monitoring failed: ${error}`,
-        context: { service: 'alert_system' }
+        context: { service: "alert_system" },
       });
     }
   }
@@ -162,13 +162,16 @@ class AlertService {
     try {
       const authHeaders = await getAuthHeaders();
       if (!authHeaders) {
-        throw new Error('No authentication token available');
+        throw new Error("No authentication token available");
       }
 
-      const response = await fetch(`${API_BASE_URL}/analytics/current-metrics`, {
-        method: 'GET',
-        headers: authHeaders
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/analytics/current-metrics`,
+        {
+          method: "GET",
+          headers: authHeaders,
+        },
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -176,9 +179,8 @@ class AlertService {
 
       const data = await response.json();
       return data.metrics || {};
-      
-    } catch (error) {
-      console.error('❌ [ALERTS] Failed to fetch current metrics:', error);
+    } catch (error) {
+      console.error("❌ [ALERTS] Failed to fetch current metrics:", error);
       // Return safe defaults to prevent false alerts
       return {
         payment_failure_rate: 0,
@@ -186,19 +188,29 @@ class AlertService {
         avg_api_response_time: 0,
         api_error_rate: 0,
         job_completion_rate: 1,
-        system_uptime: 1
+        system_uptime: 1,
       };
     }
   }
 
-  private evaluateCondition(value: number, operator: string, threshold: number): boolean {
+  private evaluateCondition(
+    value: number,
+    operator: string,
+    threshold: number,
+  ): boolean {
     switch (operator) {
-      case 'gt': return value > threshold;
-      case 'lt': return value < threshold;
-      case 'gte': return value >= threshold;
-      case 'lte': return value <= threshold;
-      case 'eq': return value === threshold;
-      default: return false;
+      case "gt":
+        return value > threshold;
+      case "lt":
+        return value < threshold;
+      case "gte":
+        return value >= threshold;
+      case "lte":
+        return value <= threshold;
+      case "eq":
+        return value === threshold;
+      default:
+        return false;
     }
   }
 
@@ -214,7 +226,7 @@ class AlertService {
       current_value: currentValue,
       threshold_value: rule.threshold,
       triggered_at: new Date().toISOString(),
-      status: 'active'
+      status: "active",
     };
 
     this.activeAlerts.push(alert);
@@ -222,12 +234,12 @@ class AlertService {
     console.warn(`🚨 [ALERT TRIGGERED] ${alert.title} - ${alert.description}`);
 
     // Track the alert
-    analytics.trackCustomEvent('alert_triggered', 'error', {
+    analytics.trackCustomEvent("alert_triggered", "error", {
       alert_id: alert.id,
       rule_id: rule.id,
       severity: rule.severity,
       current_value: currentValue,
-      threshold: rule.threshold
+      threshold: rule.threshold,
     });
 
     // Send notifications
@@ -238,20 +250,22 @@ class AlertService {
   }
 
   private async resolveAlert(alertId: string) {
-    const alertIndex = this.activeAlerts.findIndex(alert => alert.id === alertId);
+    const alertIndex = this.activeAlerts.findIndex(
+      (alert) => alert.id === alertId,
+    );
     if (alertIndex === -1) return;
 
     const alert = this.activeAlerts[alertIndex];
-    alert.status = 'resolved';
+    alert.status = "resolved";
     alert.resolved_at = new Date().toISOString();
 
     // TEMP_DISABLED: console.log(`✅ [ALERT RESOLVED] ${alert.title}`);
 
     // Track resolution
-    analytics.trackCustomEvent('alert_resolved', 'business', {
+    analytics.trackCustomEvent("alert_resolved", "business", {
       alert_id: alert.id,
       duration: Date.now() - new Date(alert.triggered_at).getTime(),
-      severity: alert.severity
+      severity: alert.severity,
     });
 
     // Update backend
@@ -261,43 +275,54 @@ class AlertService {
     this.activeAlerts.splice(alertIndex, 1);
   }
 
-  private generateAlertDescription(rule: AlertRule, currentValue: number): string {
-    const formattedValue = rule.metric.includes('rate') || rule.metric.includes('uptime')
-      ? `${(currentValue * 100).toFixed(1)}%`
-      : rule.metric.includes('time')
-      ? `${currentValue}ms`
-      : currentValue.toString();
+  private generateAlertDescription(
+    rule: AlertRule,
+    currentValue: number,
+  ): string {
+    const formattedValue =
+      rule.metric.includes("rate") || rule.metric.includes("uptime")
+        ? `${(currentValue * 100).toFixed(1)}%`
+        : rule.metric.includes("time")
+          ? `${currentValue}ms`
+          : currentValue.toString();
 
-    const formattedThreshold = rule.metric.includes('rate') || rule.metric.includes('uptime')
-      ? `${(rule.threshold * 100).toFixed(1)}%`
-      : rule.metric.includes('time')
-      ? `${rule.threshold}ms`
-      : rule.threshold.toString();
+    const formattedThreshold =
+      rule.metric.includes("rate") || rule.metric.includes("uptime")
+        ? `${(rule.threshold * 100).toFixed(1)}%`
+        : rule.metric.includes("time")
+          ? `${rule.threshold}ms`
+          : rule.threshold.toString();
 
     return `Valeur actuelle: ${formattedValue}, Seuil: ${formattedThreshold}`;
   }
 
   // ========== NOTIFICATIONS ==========
 
-  private async sendNotifications(alert: Alert, channels: ('email' | 'sms' | 'push' | 'webhook')[]) {
+  private async sendNotifications(
+    alert: Alert,
+    channels: ("email" | "sms" | "push" | "webhook")[],
+  ) {
     for (const channel of channels) {
       try {
         switch (channel) {
-          case 'push':
+          case "push":
             await this.sendPushNotification(alert);
             break;
-          case 'email':
+          case "email":
             await this.sendEmailNotification(alert);
             break;
-          case 'sms':
+          case "sms":
             await this.sendSMSNotification(alert);
             break;
-          case 'webhook':
+          case "webhook":
             await this.sendWebhookNotification(alert);
             break;
         }
-      } catch (error) {
-        console.error(`❌ [ALERTS] Failed to send ${channel} notification:`, error);
+      } catch (error) {
+        console.error(
+          `❌ [ALERTS] Failed to send ${channel} notification:`,
+          error,
+        );
       }
     }
   }
@@ -313,29 +338,29 @@ class AlertService {
       if (!authHeaders) return;
 
       await fetch(`${API_BASE_URL}/notifications/email`, {
-        method: 'POST',
+        method: "POST",
         headers: {
           ...authHeaders,
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          type: 'alert',
+          type: "alert",
           severity: alert.severity,
           title: alert.title,
           description: alert.description,
-          alert_id: alert.id
-        })
+          alert_id: alert.id,
+        }),
       });
 
       // TEMP_DISABLED: console.log(`📧 [EMAIL] Alert notification sent for: ${alert.title}`);
-    } catch (error) {
-      console.error('❌ [ALERTS] Failed to send email notification:', error);
+    } catch (error) {
+      console.error("❌ [ALERTS] Failed to send email notification:", error);
     }
   }
 
   private async sendSMSNotification(alert: Alert) {
     // Implementation for SMS notifications (only critical alerts)
-    if (alert.severity === 'critical') {
+    if (alert.severity === "critical") {
       // TEMP_DISABLED: console.log(`📱 [SMS] CRITICAL ALERT: ${alert.title}`);
     }
   }
@@ -353,16 +378,15 @@ class AlertService {
       if (!authHeaders) return;
 
       await fetch(`${API_BASE_URL}/alerts`, {
-        method: 'POST',
+        method: "POST",
         headers: {
           ...authHeaders,
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(alert)
+        body: JSON.stringify(alert),
       });
-
-    } catch (error) {
-      console.error('❌ [ALERTS] Failed to send alert to backend:', error);
+    } catch (error) {
+      console.error("❌ [ALERTS] Failed to send alert to backend:", error);
     }
   }
 
@@ -372,16 +396,15 @@ class AlertService {
       if (!authHeaders) return;
 
       await fetch(`${API_BASE_URL}/alerts/${alert.id}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
           ...authHeaders,
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(alert)
+        body: JSON.stringify(alert),
       });
-
-    } catch (error) {
-      console.error('❌ [ALERTS] Failed to update alert in backend:', error);
+    } catch (error) {
+      console.error("❌ [ALERTS] Failed to update alert in backend:", error);
     }
   }
 
@@ -414,30 +437,33 @@ class AlertService {
   }
 
   public updateAlertRule(ruleId: string, updates: Partial<AlertRule>) {
-    const ruleIndex = this.alertRules.findIndex(rule => rule.id === ruleId);
+    const ruleIndex = this.alertRules.findIndex((rule) => rule.id === ruleId);
     if (ruleIndex !== -1) {
-      this.alertRules[ruleIndex] = { ...this.alertRules[ruleIndex], ...updates };
+      this.alertRules[ruleIndex] = {
+        ...this.alertRules[ruleIndex],
+        ...updates,
+      };
     }
   }
 
   public suppressAlert(alertId: string) {
-    const alert = this.activeAlerts.find(alert => alert.id === alertId);
+    const alert = this.activeAlerts.find((alert) => alert.id === alertId);
     if (alert) {
-      alert.status = 'suppressed';
+      alert.status = "suppressed";
     }
   }
 
   // Manual alert triggering for testing
   public async triggerTestAlert() {
     const testRule: AlertRule = {
-      id: 'test_alert',
-      name: 'Test Alert',
-      metric: 'test_metric',
-      operator: 'gt',
+      id: "test_alert",
+      name: "Test Alert",
+      metric: "test_metric",
+      operator: "gt",
       threshold: 0,
-      severity: 'low',
+      severity: "low",
       enabled: true,
-      notification_channels: ['push']
+      notification_channels: ["push"],
     };
 
     await this.triggerAlert(testRule, 1);

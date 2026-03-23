@@ -20,7 +20,7 @@ import {
     StaffCrewScreen,
     StripeHub,
     StripeSettingsScreen,
-    VehicleFleetScreen,
+    TrucksScreen,
 } from "../screens/business";
 import BusinessInfoPage from "../screens/business/BusinessInfoPage";
 import { useAuthCheck } from "../utils/checkAuth";
@@ -115,6 +115,7 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
 
   return (
     <View
+      testID="business-screen"
       style={{
         backgroundColor: colors.background,
         width: "100%",
@@ -123,12 +124,9 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
       }}
     >
       {/* Logo */}
-      <HeaderLogo
-        preset="sm"
-        variant="rectangle"
-        marginVertical={4}
-        marginHorizontal={20}
-      />
+      <View style={{ alignItems: "center", paddingTop: insets.top }}>
+        <HeaderLogo preset="sm" variant="rectangle" marginVertical={4} />
+      </View>
       {/* Header Business avec navigation et langue */}
       <BusinessHeader
         title={getPanelTitle()}
@@ -138,6 +136,7 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
 
       {/* ScrollView principal */}
       <ScrollView
+        testID="business-content-scroll"
         style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
@@ -163,7 +162,7 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
           <>
             {businessPanel === "BusinessInfo" && <BusinessInfoPage />}
             {businessPanel === "StaffCrew" && <StaffCrewScreen />}
-            {businessPanel === "Trucks" && <VehicleFleetScreen />}
+            {businessPanel === "Trucks" && <TrucksScreen />}
             {businessPanel === "JobsBilling" && (
               <StripeHub
                 navigation={stripeNavigation}

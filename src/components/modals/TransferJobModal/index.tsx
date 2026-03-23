@@ -574,6 +574,7 @@ const TransferJobModal: React.FC<TransferJobModalProps> = ({
 
               {/* Bouton envoi */}
               <Pressable
+                testID="transfer-job-send-btn"
                 style={({ pressed }) => [
                   styles.sendButton,
                   pressed && { opacity: 0.8 },

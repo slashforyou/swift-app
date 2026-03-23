@@ -13,11 +13,11 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Pressable,
-    ScrollView,
-    Text,
-    View,
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
 } from "react-native";
 import { DESIGN_TOKENS } from "../../../constants/Styles";
 import { useTheme } from "../../../context/ThemeProvider";
@@ -276,6 +276,7 @@ const JobActionsSection: React.FC<JobActionsSectionProps> = ({ jobId }) => {
     >
       {/* Header / Toggle */}
       <Pressable
+        testID="job-actions-toggle-btn"
         onPress={handleToggle}
         style={{
           flexDirection: "row",
@@ -350,6 +351,7 @@ const JobActionsSection: React.FC<JobActionsSectionProps> = ({ jobId }) => {
               />
               <Text style={{ fontSize: 13, color: colors.error }}>{error}</Text>
               <Pressable
+                testID="job-actions-retry-btn"
                 onPress={() => {
                   setFetched(false);
                   setError(null);

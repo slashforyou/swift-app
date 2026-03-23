@@ -12,7 +12,9 @@ import {
     Text,
     View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CalendarHeader from "../../components/calendar/CalendarHeader";
+import HeaderLogo from "../../components/ui/HeaderLogo";
 import MascotLoading from "../../components/ui/MascotLoading";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useCommonThemedStyles } from "../../hooks/useCommonStyles";
@@ -132,6 +134,7 @@ const getJobsForDay = (
 };
 
 const MonthCalendarScreen = ({ navigation, route }: any) => {
+  const insets = useSafeAreaInsets();
   const { colors, styles: commonStyles } = useCommonThemedStyles();
 
   // States for modern UX
@@ -276,7 +279,8 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
       );
       if (dayJobs) {
         totalJobs += dayJobs.count;
-        if ((dayJobs.status as string) === "urgent") urgentJobs += dayJobs.count;
+        if ((dayJobs.status as string) === "urgent")
+          urgentJobs += dayJobs.count;
         if (dayJobs.status === "completed") completedJobs += dayJobs.count;
       }
     }
@@ -569,15 +573,32 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
   const customStyles = useCustomStyles();
 
   return (
-    <View style={customStyles.container}>
+    <View testID="calendar-month-screen" style={customStyles.container}>
+      {/* Logo */}
+      <View style={{ alignItems: "center", paddingTop: insets.top }}>
+        <HeaderLogo preset="sm" variant="rectangle" marginVertical={4} />
+      </View>
       {/* Header unifié avec style Business - Position fixe en haut */}
-      <CalendarHeader navigation={navigation} title={selectedYear.toString()} />
+      <CalendarHeader
+        navigation={navigation}
+        title={selectedYear.toString()}
+        onBackPress={() => navigation.navigate("Home")}
+      />
 
       {/* Affichage d'erreur si problème API */}
       {error && (
-        <View style={customStyles.errorContainer}>
-          <Text style={customStyles.errorText}>⚠️ {error}</Text>
-          <Pressable style={customStyles.retryButton} onPress={refreshJobs}>
+        <View testID="calendar-month-error" style={customStyles.errorContainer}>
+          <Text
+            testID="calendar-month-error-text"
+            style={customStyles.errorText}
+          >
+            ⚠️ {error}
+          </Text>
+          <Pressable
+            testID="calendar-month-retry-btn"
+            style={customStyles.retryButton}
+            onPress={refreshJobs}
+          >
             <Text style={customStyles.retryText}>Réessayer</Text>
           </Pressable>
         </View>
@@ -587,34 +608,67 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
         style={[customStyles.header, { transform: [{ scale: animatedValue }] }]}
       >
         {/* Statistiques du mois */}
-        <View style={customStyles.statsContainer}>
-          <View style={customStyles.statItem}>
-            <Text style={customStyles.statValue}>{monthStats.totalJobs}</Text>
-            <Text style={customStyles.statLabel}>
+        <View testID="calendar-month-stats" style={customStyles.statsContainer}>
+          <View
+            testID="calendar-month-stats-total"
+            style={customStyles.statItem}
+          >
+            <Text
+              testID="calendar-month-stats-total-value"
+              style={customStyles.statValue}
+            >
+              {monthStats.totalJobs}
+            </Text>
+            <Text
+              testID="calendar-month-stats-total-label"
+              style={customStyles.statLabel}
+            >
               {t("calendar.stats.totalJobs")}
             </Text>
           </View>
-          <View style={customStyles.statItem}>
-            <Text style={[customStyles.statValue, { color: colors.error }]}>
+          <View
+            testID="calendar-month-stats-urgent"
+            style={customStyles.statItem}
+          >
+            <Text
+              testID="calendar-month-stats-urgent-value"
+              style={[customStyles.statValue, { color: colors.error }]}
+            >
               {monthStats.urgentJobs}
             </Text>
-            <Text style={customStyles.statLabel}>
+            <Text
+              testID="calendar-month-stats-urgent-label"
+              style={customStyles.statLabel}
+            >
               {t("calendar.stats.urgent")}
             </Text>
           </View>
-          <View style={customStyles.statItem}>
-            <Text style={[customStyles.statValue, { color: colors.success }]}>
+          <View
+            testID="calendar-month-stats-completed"
+            style={customStyles.statItem}
+          >
+            <Text
+              testID="calendar-month-stats-completed-value"
+              style={[customStyles.statValue, { color: colors.success }]}
+            >
               {monthStats.completedJobs}
             </Text>
-            <Text style={customStyles.statLabel}>
+            <Text
+              testID="calendar-month-stats-completed-label"
+              style={customStyles.statLabel}
+            >
               {t("calendar.stats.completed")}
             </Text>
           </View>
         </View>
 
         {/* Navigation entre mois */}
-        <View style={customStyles.navigationContainer}>
+        <View
+          testID="calendar-month-navigation"
+          style={customStyles.navigationContainer}
+        >
           <Pressable
+            testID="calendar-month-prev-btn"
             style={({ pressed }) => ({
               ...customStyles.navButton,
               opacity: pressed ? 0.8 : 1,
@@ -629,6 +683,7 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
           </Pressable>
 
           <Pressable
+            testID="calendar-month-year-btn"
             style={({ pressed }) => ({
               ...customStyles.monthButton,
               opacity: pressed ? 0.95 : 1,
@@ -640,13 +695,22 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
               })
             }
           >
-            <Text style={customStyles.monthButtonText}>{selectedMonth}</Text>
-            <Text style={customStyles.monthButtonSubtext}>
+            <Text
+              testID="calendar-month-name-text"
+              style={customStyles.monthButtonText}
+            >
+              {selectedMonth}
+            </Text>
+            <Text
+              testID="calendar-month-year-hint-text"
+              style={customStyles.monthButtonSubtext}
+            >
               {t("calendar.selectMonth")}
             </Text>
           </Pressable>
 
           <Pressable
+            testID="calendar-month-next-btn"
             style={({ pressed }) => ({
               ...customStyles.navButton,
               opacity: pressed ? 0.8 : 1,
@@ -664,6 +728,7 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
 
       {/* Calendrier avec pull-to-refresh */}
       <ScrollView
+        testID="calendar-month-scroll"
         style={customStyles.scrollContainer}
         refreshControl={
           <RefreshControl
@@ -677,18 +742,33 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
       >
         {isLoading && <MascotLoading text={t("calendar.loading")} overlay />}
 
-        <View style={customStyles.calendarContainer}>
+        <View
+          testID="calendar-month-grid-container"
+          style={customStyles.calendarContainer}
+        >
           {/* En-têtes des jours */}
-          <View style={customStyles.daysHeader}>
+          <View
+            testID="calendar-month-days-header"
+            style={customStyles.daysHeader}
+          >
             {daysList.map((day) => (
-              <View key={day} style={customStyles.dayHeaderItem}>
-                <Text style={customStyles.dayHeaderText}>{day}</Text>
+              <View
+                key={day}
+                testID={`calendar-month-header-${day}`}
+                style={customStyles.dayHeaderItem}
+              >
+                <Text
+                  testID={`calendar-month-header-${day}-text`}
+                  style={customStyles.dayHeaderText}
+                >
+                  {day}
+                </Text>
               </View>
             ))}
           </View>
 
           {/* Grille des jours */}
-          <View style={customStyles.daysGrid}>
+          <View testID="calendar-month-days-grid" style={customStyles.daysGrid}>
             {/* Jours vides avant le début du mois */}
             {Array.from({ length: daysBefore }, (_, i) => (
               <View key={`before-${i}`} style={customStyles.emptyDayButton} />
@@ -705,6 +785,7 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
               return (
                 <Pressable
                   key={day}
+                  testID={`calendar-month-day-${day}`}
                   style={({ pressed }) => ({
                     ...(isToday(day)
                       ? customStyles.dayButtonToday
@@ -720,6 +801,7 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
                   }
                 >
                   <Text
+                    testID={`calendar-month-day-${day}-text`}
                     style={
                       isToday(day)
                         ? customStyles.dayTextToday

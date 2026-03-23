@@ -7,11 +7,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import {
-    ActivityIndicator,
-    Pressable,
-    ScrollView,
-    Text,
-    View,
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
 } from "react-native";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
@@ -77,6 +77,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
 
   return (
     <Pressable
+      testID={`pending-assignment-card-${assignment.id}`}
       onPress={onPress}
       style={({ pressed }) => ({
         backgroundColor: pressed
@@ -231,7 +232,10 @@ const PendingAssignmentsSection: React.FC<PendingAssignmentsSectionProps> = ({
   };
 
   return (
-    <View style={{ marginBottom: DESIGN_TOKENS.spacing.sm }}>
+    <View
+      testID="pending-assignments-section"
+      style={{ marginBottom: DESIGN_TOKENS.spacing.sm }}
+    >
       {/* Header */}
       <View
         style={{

@@ -1,11 +1,11 @@
 import React, { useRef, useState } from "react";
 import {
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import AlertMessage from "../../../components/ui/AlertMessage";
 import { TEST_DATA } from "../../../config/testData";
@@ -13,8 +13,8 @@ import { useCommonThemedStyles } from "../../../hooks/useCommonStyles";
 import { useTranslation } from "../../../localization";
 import { BusinessOwnerRegistrationData } from "../../../types/registration";
 import {
-    formatBSB,
-    validateBSB,
+  formatBSB,
+  validateBSB,
 } from "../../../utils/validators/australianValidators";
 
 interface BankingInfoStepProps {
@@ -34,7 +34,9 @@ const BankingInfoStepImproved: React.FC<BankingInfoStepProps> = ({
   const { t } = useTranslation();
 
   // 🧪 Auto-fill with test data in development mode
-  const autoFillData = (__DEV__ ? TEST_DATA.bankingInfo : {}) as Partial<BusinessOwnerRegistrationData>;
+  const autoFillData = (
+    __DEV__ ? TEST_DATA.bankingInfo : {}
+  ) as Partial<BusinessOwnerRegistrationData>;
 
   const [bsb, setBsb] = useState(data.bsb || autoFillData.bsb || "");
   const [accountNumber, setAccountNumber] = useState(
@@ -202,6 +204,7 @@ const BankingInfoStepImproved: React.FC<BankingInfoStepProps> = ({
         </Pressable>
 
         <Pressable
+          testID="register-banking-next-btn"
           onPress={handleNext}
           disabled={isLoading}
           style={[styles.buttonBase, styles.buttonPrimary, { flex: 1 }]}

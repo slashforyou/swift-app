@@ -1,0 +1,82 @@
+appId: host.exp.exponent
+---
+# Flow 080 — Édition du profil (numéro de téléphone)
+#
+# Compte : ADMIN_EMAIL / ADMIN_PASSWORD
+# But : vérifier que l'édition du profil fonctionne (save + annulation)
+# Pré-condition : aucune (auto-gérée)
+
+# === DÉPART : HOME ===
+- runFlow:
+    file: sub-flows/_go-to-home.yaml
+    env:
+      EMAIL: ${ADMIN_EMAIL}
+      PASSWORD: ${ADMIN_PASSWORD}
+
+# === NAVIGATION VERS PROFIL ===
+- tapOn:
+    id: "home-avatar-btn"
+- extendedWaitUntil:
+    visible:
+      id: "profile-screen"
+    timeout: 8000
+
+# === OUVRIR L'ÉDITION ===
+- tapOn:
+    id: "profile-edit-btn"
+
+# === MODIFIER LE TÉLÉPHONE ===
+- tapOn:
+    id: "profile-phone-input"
+- eraseText: 20
+- inputText: "0412000001"
+- hideKeyboard
+
+# === SAUVEGARDER ===
+- tapOn:
+    id: "profile-save-btn"
+
+# Dismiss success/error Alert
+- runFlow:
+    when:
+      visible:
+        text: "OK"
+    commands:
+      - tapOn:
+          text: "OK"
+      - waitForAnimationToEnd
+
+# === VÉRIFICATION : toujours sur profile-screen ===
+- extendedWaitUntil:
+    visible:
+      id: "profile-screen"
+    timeout: 8000
+
+# === RESTAURER LA VALEUR D'ORIGINE ===
+- tapOn:
+    id: "profile-edit-btn"
+- tapOn:
+    id: "profile-phone-input"
+- eraseText: 20
+- inputText: "0400000000"
+- hideKeyboard
+- tapOn:
+    id: "profile-save-btn"
+
+# Dismiss success/error Alert
+- runFlow:
+    when:
+      visible:
+        text: "OK"
+    commands:
+      - tapOn:
+          text: "OK"
+      - waitForAnimationToEnd
+
+# === RETOUR HOME ===
+- tapOn:
+    id: "profile-back-btn"
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 5000

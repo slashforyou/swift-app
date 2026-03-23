@@ -1,0 +1,38 @@
+appId: host.exp.exponent
+---
+# Sub-flow : _switch-to-driver
+#
+# Depuis n'importe où : logout puis login en tant que Driver Nerd-Test.
+# Résultat : home-screen visible avec le compte driver actif.
+
+# 1. Revenir sur home (avec les credentials du driver — cohérence avec _switch-to-romain)
+- runFlow:
+    file: _go-to-home.yaml
+    env:
+      EMAIL: ${DRIVER_EMAIL}
+      PASSWORD: ${DRIVER_PASSWORD}
+
+# 2. Logout
+- runFlow:
+    file: _logout.yaml
+
+# 3. Login en tant que driver
+- tapOn:
+    id: "connection-login-btn"
+- extendedWaitUntil:
+    visible:
+      id: "login-screen"
+    timeout: 5000
+- tapOn:
+    id: "login-email-input"
+- inputText: ${DRIVER_EMAIL}
+- tapOn:
+    id: "login-password-input"
+- inputText: ${DRIVER_PASSWORD}
+- hideKeyboard
+- tapOn:
+    id: "login-submit-btn"
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 20000

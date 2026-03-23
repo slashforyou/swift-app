@@ -31,6 +31,7 @@ import {
     ClientAPI,
     createClient,
     CreateClientRequest,
+    fetchClients,
 } from "../../services/clients";
 import { CreateJobRequest } from "../../services/jobs";
 
@@ -63,7 +64,7 @@ export const DEFAULT_JOB_TIME_MARGIN_HOURS = 4;
 
 const ADDRESS_TYPES = [
   { key: "pickup", label: "Pickup Address", emoji: "📦" },
-  { key: "delivery", label: "Delivery Address", emoji: "🏠" },
+  { key: "dropoff", label: "Dropoff Address", emoji: "🏠" },
 ];
 
 // États australiens pour le picker
@@ -168,7 +169,7 @@ export default function CreateJobModal({
   const [selectedClient, setSelectedClient] = useState<ClientAPI | null>(null);
   const [addresses, setAddresses] = useState<CreateJobRequest["addresses"]>([
     { type: "pickup", street: "", city: "", state: "", zip: "" },
-    { type: "delivery", street: "", city: "", state: "", zip: "" },
+    { type: "dropoff", street: "", city: "", state: "", zip: "" },
   ]);
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("17:00");
@@ -243,10 +244,10 @@ export default function CreateJobModal({
     const query = searchQuery.toLowerCase();
     return clientList.filter(
       (client) =>
-        client.firstName.toLowerCase().includes(query) ||
-        client.lastName.toLowerCase().includes(query) ||
-        client.email.toLowerCase().includes(query) ||
-        client.phone.includes(query),
+        (client.firstName?.toLowerCase() ?? "").includes(query) ||
+        (client.lastName?.toLowerCase() ?? "").includes(query) ||
+        (client.email?.toLowerCase() ?? "").includes(query) ||
+        (client.phone ?? "").includes(query),
     );
   }, [clients, searchQuery]);
 
@@ -256,7 +257,7 @@ export default function CreateJobModal({
     setSearchQuery("");
     setAddresses([
       { type: "pickup", street: "", city: "", state: "", zip: "" },
-      { type: "delivery", street: "", city: "", state: "", zip: "" },
+      { type: "dropoff", street: "", city: "", state: "", zip: "" },
     ]);
     setStartTime("09:00");
     setEndTime("17:00");
@@ -307,7 +308,7 @@ export default function CreateJobModal({
     if (client.address) {
       setAddresses([
         { type: "pickup", ...client.address },
-        { type: "delivery", street: "", city: "", state: "", zip: "" },
+        { type: "dropoff", street: "", city: "", state: "", zip: "" },
       ]);
     }
     setStep("address");
@@ -446,10 +447,6 @@ export default function CreateJobModal({
     const success = await handleSubmit();
     if (success) {
       handleClose();
-      Alert.alert(
-        t("common.success"),
-        t("jobs.createSuccess") || "Job created successfully!",
-      );
     }
   };
 
@@ -538,6 +535,7 @@ export default function CreateJobModal({
 
       {/* Create new client button */}
       <Pressable
+        testID="create-job-new-client-btn"
         style={[styles.createClientButton, { backgroundColor: colors.primary }]}
         onPress={() => setStep("new-client")}
       >
@@ -565,6 +563,7 @@ export default function CreateJobModal({
       >
         <Ionicons name="search" size={20} color={colors.textSecondary} />
         <TextInput
+          testID="create-job-client-search"
           style={[styles.searchInput, { color: colors.text }]}
           placeholder={t("common.search") || "Search clients..."}
           placeholderTextColor={colors.textSecondary}
@@ -621,6 +620,7 @@ export default function CreateJobModal({
           filteredClients.map((client) => (
             <Pressable
               key={client.id}
+              testID={`create-job-client-item-${client.id}`}
               style={[
                 styles.clientCard,
                 {
@@ -686,11 +686,10 @@ export default function CreateJobModal({
         {t("jobs.enterAddressesDescription") || "Pickup and delivery locations"}
       </Text>
 
-      <KeyboardAwareScrollView
+      <ScrollView
+        testID="address-step-scroll"
         style={styles.addressList}
         showsVerticalScrollIndicator={false}
-        enableOnAndroid={true}
-        extraScrollHeight={120}
         keyboardShouldPersistTaps="handled"
       >
         {addresses.map((address, index) => (
@@ -713,6 +712,7 @@ export default function CreateJobModal({
               ]}
             >
               <TextInput
+                testID={`address-${index}-street`}
                 style={[styles.input, { color: colors.text }]}
                 placeholder={t("address.street") || "Street address"}
                 placeholderTextColor={colors.textSecondary}
@@ -730,6 +730,7 @@ export default function CreateJobModal({
                 ]}
               >
                 <TextInput
+                  testID={`address-${index}-city`}
                   style={[styles.input, { color: colors.text }]}
                   placeholder={t("address.city") || "City"}
                   placeholderTextColor={colors.textSecondary}
@@ -739,6 +740,7 @@ export default function CreateJobModal({
               </View>
               {/* State Picker - Remplace le TextInput par un bouton ouvrant un picker */}
               <Pressable
+                testID={`address-${index}-state-picker`}
                 style={[
                   styles.inputGroup,
                   styles.inputHalf,
@@ -775,6 +777,7 @@ export default function CreateJobModal({
               ]}
             >
               <TextInput
+                testID={`address-${index}-zip`}
                 style={[styles.input, { color: colors.text }]}
                 placeholder={t("address.zip") || "Postal code"}
                 placeholderTextColor={colors.textSecondary}
@@ -812,6 +815,7 @@ export default function CreateJobModal({
             ]}
             onPress={() => setStep("schedule")}
             disabled={!canProceedFromAddress()}
+            testID="create-job-address-next-btn"
           >
             <Text
               style={[styles.buttonText, { color: colors.buttonPrimaryText }]}
@@ -820,7 +824,7 @@ export default function CreateJobModal({
             </Text>
           </Pressable>
         </View>
-      </KeyboardAwareScrollView>
+      </ScrollView>
     </View>
   );
 
@@ -1121,6 +1125,7 @@ export default function CreateJobModal({
               ]}
               onPress={() => setStep("details")}
               disabled={!canProceedFromSchedule()}
+              testID="create-job-schedule-next-btn"
             >
               <Text
                 style={[styles.buttonText, { color: colors.buttonPrimaryText }]}
@@ -1143,10 +1148,10 @@ export default function CreateJobModal({
         {t("jobs.detailsDescription") || "Set priority and add notes"}
       </Text>
 
-      <KeyboardAwareScrollView
+      <ScrollView
+        testID="details-step-scroll"
+        style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
-        enableOnAndroid={true}
-        extraScrollHeight={120}
         keyboardShouldPersistTaps="handled"
       >
         {/* Priority */}
@@ -1501,41 +1506,42 @@ export default function CreateJobModal({
             </Pressable>
           </>
         )}
+      </ScrollView>
 
-        <View
+      <View
+        style={[
+          styles.buttonRow,
+          { marginBottom: 20, marginTop: DESIGN_TOKENS.spacing.lg },
+        ]}
+      >
+        <Pressable
           style={[
-            styles.buttonRow,
-            { marginBottom: 20, marginTop: DESIGN_TOKENS.spacing.lg },
+            styles.button,
+            styles.buttonSecondary,
+            { borderColor: colors.border },
           ]}
+          onPress={() => setStep("schedule")}
         >
-          <Pressable
-            style={[
-              styles.button,
-              styles.buttonSecondary,
-              { borderColor: colors.border },
-            ]}
-            onPress={() => setStep("schedule")}
+          <Text style={[styles.buttonText, { color: colors.text }]}>
+            {t("common.back") || "Back"}
+          </Text>
+        </Pressable>
+        <Pressable
+          style={[
+            styles.button,
+            styles.buttonPrimary,
+            { backgroundColor: colors.primary },
+          ]}
+          onPress={() => setStep("pricing")}
+          testID="create-job-details-next-btn"
+        >
+          <Text
+            style={[styles.buttonText, { color: colors.buttonPrimaryText }]}
           >
-            <Text style={[styles.buttonText, { color: colors.text }]}>
-              {t("common.back") || "Back"}
-            </Text>
-          </Pressable>
-          <Pressable
-            style={[
-              styles.button,
-              styles.buttonPrimary,
-              { backgroundColor: colors.primary },
-            ]}
-            onPress={() => setStep("pricing")}
-          >
-            <Text
-              style={[styles.buttonText, { color: colors.buttonPrimaryText }]}
-            >
-              {t("common.next") || "Next"}
-            </Text>
-          </Pressable>
-        </View>
-      </KeyboardAwareScrollView>
+            {t("common.next") || "Next"}
+          </Text>
+        </Pressable>
+      </View>
     </View>
   );
 
@@ -1561,10 +1567,10 @@ export default function CreateJobModal({
             "Configure billing rates and options"}
         </Text>
 
-        <KeyboardAwareScrollView
+        <ScrollView
+          testID="pricing-step-scroll"
+          style={{ flex: 1 }}
           showsVerticalScrollIndicator={false}
-          enableOnAndroid={true}
-          extraScrollHeight={120}
           keyboardShouldPersistTaps="handled"
         >
           {/* Hourly Rate */}
@@ -1867,42 +1873,43 @@ export default function CreateJobModal({
               </View>
             </View>
           </View>
+        </ScrollView>
 
-          {/* Navigation Buttons */}
-          <View
+        {/* Navigation Buttons */}
+        <View
+          style={[
+            styles.buttonRow,
+            { marginBottom: 20, marginTop: DESIGN_TOKENS.spacing.lg },
+          ]}
+        >
+          <Pressable
             style={[
-              styles.buttonRow,
-              { marginBottom: 20, marginTop: DESIGN_TOKENS.spacing.lg },
+              styles.button,
+              styles.buttonSecondary,
+              { borderColor: colors.border },
             ]}
+            onPress={() => setStep("details")}
           >
-            <Pressable
-              style={[
-                styles.button,
-                styles.buttonSecondary,
-                { borderColor: colors.border },
-              ]}
-              onPress={() => setStep("details")}
+            <Text style={[styles.buttonText, { color: colors.text }]}>
+              {t("common.back") || "Back"}
+            </Text>
+          </Pressable>
+          <Pressable
+            style={[
+              styles.button,
+              styles.buttonPrimary,
+              { backgroundColor: colors.primary },
+            ]}
+            onPress={() => setStep("confirmation")}
+            testID="create-job-pricing-next-btn"
+          >
+            <Text
+              style={[styles.buttonText, { color: colors.buttonPrimaryText }]}
             >
-              <Text style={[styles.buttonText, { color: colors.text }]}>
-                {t("common.back") || "Back"}
-              </Text>
-            </Pressable>
-            <Pressable
-              style={[
-                styles.button,
-                styles.buttonPrimary,
-                { backgroundColor: colors.primary },
-              ]}
-              onPress={() => setStep("confirmation")}
-            >
-              <Text
-                style={[styles.buttonText, { color: colors.buttonPrimaryText }]}
-              >
-                {t("common.next") || "Next"}
-              </Text>
-            </Pressable>
-          </View>
-        </KeyboardAwareScrollView>
+              {t("common.next") || "Next"}
+            </Text>
+          </Pressable>
+        </View>
       </View>
     );
   };
@@ -2251,6 +2258,7 @@ export default function CreateJobModal({
               styles.buttonPrimary,
               { backgroundColor: colors.success },
             ]}
+            testID="create-job-save-btn"
             onPress={handleSubmitAndClose}
             disabled={isLoading}
           >
@@ -2335,12 +2343,44 @@ export default function CreateJobModal({
 
     setIsCreatingClient(true);
     try {
-      const newClient = await createClient(newClientData);
-      // Refresh la liste des clients
+      let newClient: ClientAPI;
+      try {
+        console.log("🔵 [CreateNewClient] Calling createClient API...");
+        newClient = await createClient(newClientData);
+        console.log("✅ [CreateNewClient] Client created:", newClient.id);
+      } catch (createErr: any) {
+        console.warn(
+          "⚠️ [CreateNewClient] createClient failed:",
+          createErr?.message,
+        );
+        // If creation failed (e.g. duplicate email), fetch fresh client list and reuse
+        console.log("🔄 [CreateNewClient] Fetching all clients as fallback...");
+        const allClients = await fetchClients();
+        console.log("📋 [CreateNewClient] Got", allClients.length, "clients");
+        const existing = allClients.find(
+          (c) => c.email === newClientData.email,
+        );
+        if (existing) {
+          console.log(
+            "✅ [CreateNewClient] Found existing client:",
+            existing.id,
+          );
+          newClient = existing;
+        } else {
+          console.error(
+            "❌ [CreateNewClient] No client found with email:",
+            newClientData.email,
+          );
+          throw new Error(
+            t("clients.error.createFailed") || "Failed to create client",
+          );
+        }
+      }
       await refetchClients();
       // Sélectionner automatiquement le nouveau client
       setSelectedClient(newClient);
       // Passer à l'étape suivante (address)
+      console.log("✅ [CreateNewClient] Navigating to address step");
       setStep("address");
       // Réinitialiser le formulaire
       setNewClientData({
@@ -2350,14 +2390,12 @@ export default function CreateJobModal({
         phone: "",
         company: "",
       });
-      Alert.alert(
-        t("clients.success.created") || "Success",
-        t("clients.success.clientCreated") || "Client created successfully",
-      );
-    } catch (error) {
+    } catch (error: any) {
       Alert.alert(
         t("common.error") || "Error",
-        t("clients.error.createFailed") || "Failed to create client",
+        error?.message ||
+          t("clients.error.createFailed") ||
+          "Failed to create client",
       );
     } finally {
       setIsCreatingClient(false);
@@ -2373,11 +2411,9 @@ export default function CreateJobModal({
         {t("clients.addClientDescription") || "Fill in the client information"}
       </Text>
 
-      <KeyboardAwareScrollView
+      <ScrollView
         style={styles.clientList}
         showsVerticalScrollIndicator={false}
-        enableOnAndroid={true}
-        extraScrollHeight={120}
         keyboardShouldPersistTaps="handled"
       >
         {/* First Name */}
@@ -2386,6 +2422,7 @@ export default function CreateJobModal({
             {t("clients.firstName") || "First Name"} *
           </Text>
           <TextInput
+            testID="create-job-new-client-firstname"
             style={[
               styles.newClientInput,
               {
@@ -2410,6 +2447,7 @@ export default function CreateJobModal({
             {t("clients.lastName") || "Last Name"} *
           </Text>
           <TextInput
+            testID="create-job-new-client-lastname"
             style={[
               styles.newClientInput,
               {
@@ -2432,6 +2470,7 @@ export default function CreateJobModal({
             {t("clients.email") || "Email"} *
           </Text>
           <TextInput
+            testID="create-job-new-client-email"
             style={[
               styles.newClientInput,
               {
@@ -2456,6 +2495,7 @@ export default function CreateJobModal({
             {t("clients.phone") || "Phone"} *
           </Text>
           <TextInput
+            testID="create-job-new-client-phone"
             style={[
               styles.newClientInput,
               {
@@ -2498,7 +2538,7 @@ export default function CreateJobModal({
           />
         </View>
 
-        {/* Navigation buttons - à l'intérieur du KeyboardAwareScrollView */}
+        {/* Navigation buttons inside ScrollView */}
         <View style={[styles.buttonRow, { marginBottom: 20 }]}>
           <Pressable
             style={[
@@ -2514,6 +2554,7 @@ export default function CreateJobModal({
             </Text>
           </Pressable>
           <Pressable
+            testID="create-job-new-client-submit"
             style={[
               styles.button,
               styles.buttonPrimary,
@@ -2546,7 +2587,7 @@ export default function CreateJobModal({
             )}
           </Pressable>
         </View>
-      </KeyboardAwareScrollView>
+      </ScrollView>
     </View>
   );
 
@@ -2582,7 +2623,7 @@ export default function CreateJobModal({
       borderTopLeftRadius: DESIGN_TOKENS.radius.xl,
       borderTopRightRadius: DESIGN_TOKENS.radius.xl,
       maxHeight: "90%",
-      minHeight: "70%",
+      flex: 1,
     },
     header: {
       flexDirection: "row",
@@ -2908,17 +2949,21 @@ export default function CreateJobModal({
       onRequestClose={handleClose}
     >
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior="padding"
         style={styles.modalOverlay}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
-        <View style={styles.modalContent}>
+        <View testID="create-job-modal" style={styles.modalContent}>
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.headerTitle}>
               {t("jobs.createNewJob") || "Create New Job"}
             </Text>
-            <Pressable style={styles.closeButton} onPress={handleClose}>
+            <Pressable
+              testID="create-job-close-btn"
+              style={styles.closeButton}
+              onPress={handleClose}
+            >
               <Ionicons name="close" size={24} color={colors.text} />
             </Pressable>
           </View>
@@ -2964,6 +3009,7 @@ export default function CreateJobModal({
               }}
             >
               <Text
+                testID="state-picker-title"
                 style={{
                   fontSize: DESIGN_TOKENS.typography.title.fontSize,
                   fontWeight: "700",
@@ -2980,6 +3026,7 @@ export default function CreateJobModal({
               {AUSTRALIAN_STATES.map((state) => (
                 <Pressable
                   key={state.key}
+                  testID={`state-option-${state.key}`}
                   onPress={() => {
                     updateAddress(currentAddressIndex, "state", state.key);
                     setShowStatePicker(false);

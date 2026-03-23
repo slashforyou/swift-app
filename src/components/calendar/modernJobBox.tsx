@@ -431,6 +431,7 @@ const JobBox: React.FC<JobBoxProps> = ({
 
   return (
     <Pressable
+      testID={`job-card-${job.id}`}
       style={({ pressed }) => ({
         ...styles.jobCard,
         transform: pressed ? [{ scale: 0.98 }] : [{ scale: 1 }],
@@ -708,6 +709,7 @@ const JobBox: React.FC<JobBoxProps> = ({
               day,
               month,
               year,
+              initialTab: "job",
             })
           }
         >

@@ -107,6 +107,26 @@ export const hiTranslations = mergeWithBaseTranslations(enTranslations, {
       title: "लीडरबोर्ड",
       description: "देखें कि आप अन्य ड्राइवरों में कहाँ हैं",
     },
+    contact: {
+      title: "हमसे संपर्क करें",
+      yourMessage: "आपका संदेश",
+      helpLabel: "मदद माँगें",
+      feedbackLabel: "अपनी राय दें",
+      featureLabel: "सुधार सुझाएं",
+      bugLabel: "समस्या की रिपोर्ट करें",
+      placeholder: "अपना अनुरोध बताएं...",
+      send: "भेजें",
+      sending: "भेज रहे हैं...",
+      cancel: "रद्द करें",
+      thankYou: "धन्यवाद!",
+      thankYouMessage: "आपका संदेश सफलतापूर्वक भेज दिया गया है।",
+      errorSending: "संदेश भेजने में असमर्थ। कृपया पुनः प्रयास करें।",
+    },
+    stripeAlert: {
+      title: "Stripe सक्रिय नहीं",
+      description:
+        "Stripe के बिना आप भुगतान प्राप्त नहीं कर सकते या बिल नहीं बना सकते। अभी सक्रिय करें।",
+    },
   },
 
   leaderboard: {

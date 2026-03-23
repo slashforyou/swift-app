@@ -5,6 +5,7 @@
  * - Gérer les préférences utilisateur
  * - Écouter les notifications reçues
  */
+import Constants from "expo-constants";
 import { useNavigation } from "@react-navigation/native";
 import * as Notifications from "expo-notifications";
 import { useCallback, useEffect, useState } from "react";
@@ -231,7 +232,9 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
   }, []);
 
   // Écouter les notifications reçues au premier plan
+  // Skip in Expo Go SDK 53+ — addPushTokenListener was removed and causes a dev overlay
   useEffect(() => {
+    if (Constants.appOwnership === "expo") return;
     const subscription = addNotificationReceivedListener((notification) => {
       // Notification reçue pendant que l'app est au premier plan
       const data = parseNotificationData(notification);
@@ -242,7 +245,9 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
   }, []);
 
   // Écouter les interactions avec les notifications (tap)
+  // Skip in Expo Go SDK 53+ — addPushTokenListener was removed and causes a dev overlay
   useEffect(() => {
+    if (Constants.appOwnership === "expo") return;
     const subscription = addNotificationResponseListener((response) => {
       const notification = response.notification;
       const data = parseNotificationData(notification);

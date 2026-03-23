@@ -11,6 +11,7 @@ import {
     Text,
     View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CalendarHeader from "../../components/calendar/CalendarHeader";
 import ContractorJobWizardModal from "../../components/calendar/ContractorJobWizardModal";
 import {
@@ -19,6 +20,7 @@ import {
     JobsLoadingSkeleton,
 } from "../../components/calendar/DayScreenComponents";
 import CreateJobModal from "../../components/modals/CreateJobModal";
+import HeaderLogo from "../../components/ui/HeaderLogo";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useCommonThemedStyles } from "../../hooks/useCommonStyles";
 import { useCompanyPermissions } from "../../hooks/useCompanyPermissions";
@@ -55,6 +57,7 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
   const [showWizard, setShowWizard] = useState(false);
 
   // Get themed colors and styles
+  const insets = useSafeAreaInsets();
   const { colors, styles: commonStyles } = useCommonThemedStyles();
   const { t } = useTranslation();
   const { currentLanguage } = useLocalization();
@@ -434,17 +437,28 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
   );
 
   return (
-    <View style={styles.container}>
+    <View testID="calendar-day-screen" style={styles.container}>
+      {/* Logo */}
+      <View style={{ alignItems: "center", paddingTop: insets.top }}>
+        <HeaderLogo preset="sm" variant="rectangle" marginVertical={4} />
+      </View>
       {/* Header unifié avec style Business et label dynamique */}
       <CalendarHeader
         navigation={navigation}
         title={formattedDate}
         useCompanyLabel={true}
+        onBackPress={() =>
+          navigation.navigate("Month", {
+            year: selectedYear,
+            month: selectedMonth,
+          })
+        }
       />
 
       {/* ⚠️ Pending assignment banner */}
       {pendingAssignmentJobs.length > 0 && (
         <Pressable
+          testID="calendar-day-pending-banner"
           style={{
             flexDirection: "row",
             alignItems: "center",
@@ -496,34 +510,64 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
       )}
 
       {/* Stats */}
-      <View style={styles.statsContainer}>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{totalJobs}</Text>
-          <Text style={styles.statLabel}>
+      <View testID="calendar-day-stats" style={styles.statsContainer}>
+        <View testID="calendar-day-stats-total" style={styles.statItem}>
+          <Text
+            testID="calendar-day-stats-total-value"
+            style={styles.statNumber}
+          >
+            {totalJobs}
+          </Text>
+          <Text
+            testID="calendar-day-stats-total-label"
+            style={styles.statLabel}
+          >
             {t("calendar.dayScreen.stats.total")}
           </Text>
         </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{pendingJobs}</Text>
-          <Text style={styles.statLabel}>
+        <View testID="calendar-day-stats-pending" style={styles.statItem}>
+          <Text
+            testID="calendar-day-stats-pending-value"
+            style={styles.statNumber}
+          >
+            {pendingJobs}
+          </Text>
+          <Text
+            testID="calendar-day-stats-pending-label"
+            style={styles.statLabel}
+          >
             {t("calendar.dayScreen.stats.pending")}
           </Text>
         </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{completedJobs}</Text>
-          <Text style={styles.statLabel}>
+        <View testID="calendar-day-stats-completed" style={styles.statItem}>
+          <Text
+            testID="calendar-day-stats-completed-value"
+            style={styles.statNumber}
+          >
+            {completedJobs}
+          </Text>
+          <Text
+            testID="calendar-day-stats-completed-label"
+            style={styles.statLabel}
+          >
             {t("calendar.dayScreen.stats.completed")}
           </Text>
         </View>
       </View>
 
       {/* Filters */}
-      <View style={styles.filtersContainer}>
-        <View style={styles.filtersRow}>
-          <Text style={[commonStyles.subtitle, { color: colors.text }]}>
+      <View testID="calendar-day-filters" style={styles.filtersContainer}>
+        <View testID="calendar-day-filters-row" style={styles.filtersRow}>
+          <Text
+            testID="calendar-day-filters-title"
+            style={[commonStyles.subtitle, { color: colors.text }]}
+          >
             {t("calendar.dayScreen.filtersTitle")}
           </Text>
-          <Pressable onPress={() => setShowFilters(!showFilters)}>
+          <Pressable
+            testID="calendar-day-filters-toggle-btn"
+            onPress={() => setShowFilters(!showFilters)}
+          >
             <Ionicons
               name={showFilters ? "chevron-up" : "chevron-down"}
               size={20}
@@ -548,11 +592,12 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
       </View>
 
       {/* Content */}
-      <View style={styles.content}>
+      <View testID="calendar-day-content" style={styles.content}>
         {error ? (
           <ErrorState error={error} onRetry={handleRefresh} />
         ) : (
           <ScrollView
+            testID="calendar-day-jobs-scroll"
             style={styles.jobsList}
             refreshControl={
               <RefreshControl
@@ -609,6 +654,7 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
 
         return (
           <Pressable
+            testID="calendar-day-create-job-fab"
             style={[styles.fab, { backgroundColor: colors.primary }]}
             onPress={() => setIsCreateJobModalVisible(true)}
           >

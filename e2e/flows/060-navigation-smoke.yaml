@@ -1,0 +1,103 @@
+appId: host.exp.exponent
+---
+# Flow 060 — Smoke test navigation (sanity check)
+#
+# But : vérifier que tous les écrans principaux sont accessibles sans crash.
+# Compte : ADMIN_EMAIL / ADMIN_PASSWORD
+# Durée estimée : ~60 secondes
+# Pré-condition : aucune (auto-gérée par _go-to-home)
+
+# === DÉPART : HOME ===
+- runFlow:
+    file: sub-flows/_go-to-home.yaml
+    env:
+      EMAIL: ${ADMIN_EMAIL}
+      PASSWORD: ${ADMIN_PASSWORD}
+
+- extendedWaitUntil:
+    visible:
+      id: "home-calendar-btn"
+    timeout: 25000
+
+# === CALENDRIER ===
+- tapOn:
+    id: "home-calendar-btn"
+- extendedWaitUntil:
+    visible:
+      id: "calendar-month-screen"
+    timeout: 10000
+
+- pressKey: Back
+- extendedWaitUntil:
+    visible:
+      id: "home-calendar-btn"
+    timeout: 25000
+
+# === BUSINESS — vue principale ===
+- tapOn:
+    id: "home-business-btn"
+- extendedWaitUntil:
+    visible:
+      id: "business-screen"
+    timeout: 10000
+
+# === BUSINESS — onglet StaffCrew ===
+- tapOn:
+    id: "tab-StaffCrew"
+- extendedWaitUntil:
+    visible:
+      id: "add-staff-button"
+    timeout: 20000
+
+# === BUSINESS — onglet Trucks/Flotte ===
+- tapOn:
+    id: "tab-Trucks"
+- extendedWaitUntil:
+    visible:
+      id: "add-vehicle-button"
+    timeout: 15000
+
+# === BUSINESS — onglet BusinessInfo ===
+- tapOn:
+    id: "tab-BusinessInfo"
+- extendedWaitUntil:
+    visible:
+      id: "business-info-scroll"
+    timeout: 15000
+
+# === RETOUR SUR HOME ===
+- pressKey: Back
+- extendedWaitUntil:
+    visible:
+      id: "home-calendar-btn"
+    timeout: 25000
+
+# === PARAMÈTRES ===
+- tapOn:
+    id: "home-parameters-btn"
+- extendedWaitUntil:
+    visible:
+      id: "parameters-screen"
+    timeout: 15000
+
+- pressKey: Back
+- extendedWaitUntil:
+    visible:
+      id: "home-calendar-btn"
+    timeout: 25000
+
+# === PROFIL (via avatar header) ===
+- tapOn:
+    id: "home-avatar-btn"
+- extendedWaitUntil:
+    visible:
+      id: "profile-screen"
+    timeout: 15000
+
+- tapOn:
+    id: "profile-back-btn"
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    visible:
+      id: "home-calendar-btn"
+    timeout: 25000

@@ -41,7 +41,7 @@ export const appAlert = {
       return;
     }
 
-    nativeFallback(title ?? '', message, buttons as any, options as any);
+    nativeFallback(title ?? "", message, buttons as any, options as any);
   },
   show(payload: AppAlertPayload) {
     if (handler) {
@@ -50,7 +50,7 @@ export const appAlert = {
     }
 
     nativeFallback(
-      payload.title ?? '',
+      payload.title ?? "",
       payload.message,
       payload.buttons as any,
       payload.options as any,

@@ -1022,6 +1022,7 @@ export const ContracteeNegotiationModal: React.FC<
       {/* Action bar fixe */}
       <View style={styles.actionBar}>
         <Pressable
+          testID="counter-proposal-decline-btn"
           style={({ pressed }) => [
             styles.btnReject,
             { opacity: pressed ? 0.8 : 1 },
@@ -1036,6 +1037,7 @@ export const ContracteeNegotiationModal: React.FC<
           <Text style={styles.btnRejectText}>Rejeter</Text>
         </Pressable>
         <Pressable
+          testID="counter-proposal-accept-btn"
           style={({ pressed }) => [
             styles.btnAccept,
             { opacity: isSubmitting || pressed ? 0.8 : 1 },

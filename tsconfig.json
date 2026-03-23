@@ -27,10 +27,6 @@
     "src/localization/translations/it.ts",
     "src/localization/translations/pt.ts",
     "src/localization/translations/zh.ts",
-    "src/hooks/useJobTimer.ts",
-    "src/navigation/calendar.tsx",
-    "src/services/jobs.ts",
-    "src/services/navigationService.ts",
-    "src/services/sessionLogger.ts"
+
   ]
 }

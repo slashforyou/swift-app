@@ -1,0 +1,69 @@
+appId: host.exp.exponent
+---
+# Flow 040 — Invitation d'un employé
+#
+# Compte : ADMIN_EMAIL / ADMIN_PASSWORD
+# But : ouvrir l'Add Staff Modal, remplir le formulaire employé et envoyer l'invitation
+# Pré-condition : aucune (auto-gérée)
+
+# === DÉPART : HOME ===
+- runFlow:
+    file: sub-flows/_go-to-home.yaml
+    env:
+      EMAIL: ${ADMIN_EMAIL}
+      PASSWORD: ${ADMIN_PASSWORD}
+
+# === NAVIGUER VERS BUSINESS ===
+- tapOn:
+    id: "home-business-btn"
+- extendedWaitUntil:
+    visible:
+      id: "business-screen"
+    timeout: 10000
+
+# === ONGLET STAFF ===
+- tapOn:
+    id: "tab-StaffCrew"
+- extendedWaitUntil:
+    visible:
+      id: "add-staff-button"
+    timeout: 20000
+
+# === OUVRIR LA MODAL D'AJOUT ===
+- tapOn:
+    id: "add-staff-button"
+- extendedWaitUntil:
+    visible:
+      id: "add-staff-modal"
+    timeout: 5000
+
+# === SÉLECTIONNER LE TYPE "EMPLOYEE" ===
+- tapOn:
+    id: "add-staff-type-employee-btn"
+
+# === REMPLIR LE FORMULAIRE ===
+- tapOn:
+    id: "add-staff-firstname-input"
+- inputText: "E2E"
+
+- tapOn:
+    id: "add-staff-email-input"
+- inputText: "e2e.invited.employee@mailinator.com"
+- hideKeyboard
+
+# === ENVOYER L'INVITATION ===
+- tapOn:
+    id: "add-staff-submit-btn"
+
+# === VÉRIFICATION : modal fermée après invitation ===
+- extendedWaitUntil:
+    notVisible:
+      id: "add-staff-modal"
+    timeout: 10000
+
+# === RETOUR HOME ===
+- pressKey: Back
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 8000

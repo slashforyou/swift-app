@@ -1,0 +1,38 @@
+appId: host.exp.exponent
+---
+# Sub-flow : _switch-to-romain
+#
+# Depuis n'importe où : logout puis login en tant que Romain (Test Frontend, company_id=2).
+# Résultat : home-screen visible avec le compte romain actif.
+
+# 1. Revenir sur home
+- runFlow:
+    file: _go-to-home.yaml
+    env:
+      EMAIL: ${ROMAIN_EMAIL}
+      PASSWORD: ${ROMAIN_PASSWORD}
+
+# 2. Logout
+- runFlow:
+    file: _logout.yaml
+
+# 3. Login en tant que romain
+- tapOn:
+    id: "connection-login-btn"
+- extendedWaitUntil:
+    visible:
+      id: "login-screen"
+    timeout: 5000
+- tapOn:
+    id: "login-email-input"
+- inputText: ${ROMAIN_EMAIL}
+- tapOn:
+    id: "login-password-input"
+- inputText: ${ROMAIN_PASSWORD}
+- hideKeyboard
+- tapOn:
+    id: "login-submit-btn"
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 20000

@@ -72,6 +72,7 @@ export default function RelationsScreen() {
 
   // ── Modal "Ajouter" ──
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const [addNickname, setAddNickname] = useState("");
   const [addLookupResult, setAddLookupResult] =
     useState<CompanyLookupResult | null>(null);
@@ -342,7 +343,7 @@ export default function RelationsScreen() {
   // Rendu
   // ─────────────────────────────────────────────────────────
   return (
-    <View style={s.container}>
+    <View testID="business-relations-screen" style={s.container}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -376,6 +377,116 @@ export default function RelationsScreen() {
             }
           </Text>
         </View>
+
+        {/* ── Section aide ── */}
+        <Pressable
+          onPress={() => setShowHelp((prev) => !prev)}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            backgroundColor: colors.backgroundSecondary,
+            borderRadius: DESIGN_TOKENS.radius.md,
+            padding: DESIGN_TOKENS.spacing.md,
+            marginBottom: DESIGN_TOKENS.spacing.md,
+            borderWidth: 1,
+            borderColor: colors.border,
+          }}
+        >
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <Ionicons
+              name="help-circle-outline"
+              size={20}
+              color={colors.info}
+            />
+            <Text
+              style={{ color: colors.text, fontWeight: "600", fontSize: 14 }}
+            >
+              Comment ajouter un partenaire ?
+            </Text>
+          </View>
+          <Ionicons
+            name={showHelp ? "chevron-up" : "chevron-down"}
+            size={18}
+            color={colors.textSecondary}
+          />
+        </Pressable>
+        {showHelp && (
+          <View
+            style={{
+              backgroundColor: colors.backgroundSecondary,
+              borderRadius: DESIGN_TOKENS.radius.md,
+              padding: DESIGN_TOKENS.spacing.md,
+              marginBottom: DESIGN_TOKENS.spacing.xl,
+              borderWidth: 1,
+              borderColor: colors.border,
+              gap: DESIGN_TOKENS.spacing.sm,
+            }}
+          >
+            <View
+              style={{ flexDirection: "row", alignItems: "flex-start", gap: 8 }}
+            >
+              <Text style={{ fontSize: 16 }}>1️⃣</Text>
+              <Text
+                style={{
+                  color: colors.text,
+                  fontSize: 13,
+                  lineHeight: 20,
+                  flex: 1,
+                }}
+              >
+                Envoyez votre code entreprise à votre partenaire (ci-dessus).
+              </Text>
+            </View>
+            <View
+              style={{ flexDirection: "row", alignItems: "flex-start", gap: 8 }}
+            >
+              <Text style={{ fontSize: 16 }}>2️⃣</Text>
+              <Text
+                style={{
+                  color: colors.text,
+                  fontSize: 13,
+                  lineHeight: 20,
+                  flex: 1,
+                }}
+              >
+                Votre partenaire saisit votre code dans sa propre application
+                pour vous ajouter.
+              </Text>
+            </View>
+            <View
+              style={{ flexDirection: "row", alignItems: "flex-start", gap: 8 }}
+            >
+              <Text style={{ fontSize: 16 }}>3️⃣</Text>
+              <Text
+                style={{
+                  color: colors.text,
+                  fontSize: 13,
+                  lineHeight: 20,
+                  flex: 1,
+                }}
+              >
+                Acceptez la demande de relation quand elle apparaît dans votre
+                carnet.
+              </Text>
+            </View>
+            <View
+              style={{ flexDirection: "row", alignItems: "flex-start", gap: 8 }}
+            >
+              <Text style={{ fontSize: 16 }}>✅</Text>
+              <Text
+                style={{
+                  color: colors.text,
+                  fontSize: 13,
+                  lineHeight: 20,
+                  flex: 1,
+                }}
+              >
+                Vous pouvez maintenant vous déléguer des jobs mutuellement !
+              </Text>
+            </View>
+          </View>
+        )}
 
         {/* ── Section carnet ── */}
         <View style={s.section}>

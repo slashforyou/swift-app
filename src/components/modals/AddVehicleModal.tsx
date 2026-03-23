@@ -2,8 +2,8 @@
  * AddVehicleModal - Modal pour ajouter un véhicule
  * Spécialisé pour les entreprises de déménagement australiennes
  */
-import { Ionicons } from '@expo/vector-icons'
-import React, { useEffect, useState } from 'react'
+import { Ionicons } from "@expo/vector-icons";
+import React, { useEffect, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
@@ -16,267 +16,314 @@ import {
     Text,
     TextInput,
     View,
-} from 'react-native'
-import { DESIGN_TOKENS } from '../../constants/Styles'
-import { useTheme } from '../../context/ThemeProvider'
-import { useLocalization } from '../../localization/useLocalization'
+} from "react-native";
+import { DESIGN_TOKENS } from "../../constants/Styles";
+import { useTheme } from "../../context/ThemeProvider";
+import { useLocalization } from "../../localization/useLocalization";
 
 export interface VehicleCreateData {
-  type: 'moving-truck' | 'van' | 'trailer' | 'ute' | 'dolly' | 'tools'
-  make: string
-  model: string
-  year: number
-  registration: string
-  capacity: string
-  location: string
-  nextService: string
+  type: "moving-truck" | "van" | "trailer" | "ute" | "dolly" | "tools";
+  make: string;
+  model: string;
+  year: number;
+  registration: string;
+  capacity: string;
+  location: string;
+  nextService: string;
 }
 
 interface AddVehicleModalProps {
-  visible: boolean
-  onClose: () => void
-  onAddVehicle: (data: VehicleCreateData) => Promise<void>
+  visible: boolean;
+  onClose: () => void;
+  onAddVehicle: (data: VehicleCreateData) => Promise<void>;
 }
 
-type Step = 'type' | 'details' | 'confirmation'
+type Step = "type" | "details" | "confirmation";
 
 const VEHICLE_TYPES = [
-  { 
-    type: 'moving-truck' as const, 
-    emoji: '🚛', 
-    label: 'Moving Truck',
-    description: 'Large capacity truck for residential moves'
+  {
+    type: "moving-truck" as const,
+    emoji: "🚛",
+    label: "Moving Truck",
+    description: "Large capacity truck for residential moves",
   },
-  { 
-    type: 'van' as const, 
-    emoji: '🚐', 
-    label: 'Van',
-    description: 'Medium size for smaller jobs and deliveries'
+  {
+    type: "van" as const,
+    emoji: "🚐",
+    label: "Van",
+    description: "Medium size for smaller jobs and deliveries",
   },
-  { 
-    type: 'trailer' as const, 
-    emoji: '🚜', 
-    label: 'Trailer',
-    description: 'Additional capacity for large moves'
+  {
+    type: "trailer" as const,
+    emoji: "🚜",
+    label: "Trailer",
+    description: "Additional capacity for large moves",
   },
-  { 
-    type: 'ute' as const, 
-    emoji: '🛻', 
-    label: 'Ute',
-    description: 'Light pickups for quick jobs'
+  {
+    type: "ute" as const,
+    emoji: "🛻",
+    label: "Ute",
+    description: "Light pickups for quick jobs",
   },
-  { 
-    type: 'dolly' as const, 
-    emoji: '🛒', 
-    label: 'Dolly',
-    description: 'Equipment for moving heavy items'
+  {
+    type: "dolly" as const,
+    emoji: "🛒",
+    label: "Dolly",
+    description: "Equipment for moving heavy items",
   },
-  { 
-    type: 'tools' as const, 
-    emoji: '🔧', 
-    label: 'Tools',
-    description: 'Professional moving tools and equipment'
+  {
+    type: "tools" as const,
+    emoji: "🔧",
+    label: "Tools",
+    description: "Professional moving tools and equipment",
   },
-]
+];
 
 const VEHICLE_MAKES = [
-  'Isuzu', 'Ford', 'Toyota', 'Mitsubishi', 'Mercedes-Benz', 
-  'Hino', 'Fuso', 'Volkswagen', 'Hyundai', 'Nissan', 'Other'
-]
+  "Isuzu",
+  "Ford",
+  "Toyota",
+  "Mitsubishi",
+  "Mercedes-Benz",
+  "Hino",
+  "Fuso",
+  "Volkswagen",
+  "Hyundai",
+  "Nissan",
+  "Other",
+];
 
 const LOCATIONS = [
-  'Sydney Depot', 'Melbourne Branch', 'Brisbane Office',
-  'Perth Warehouse', 'Adelaide Hub', 'Gold Coast Base'
-]
+  "Sydney Depot",
+  "Melbourne Branch",
+  "Brisbane Office",
+  "Perth Warehouse",
+  "Adelaide Hub",
+  "Gold Coast Base",
+];
 
 export default function AddVehicleModal({
   visible,
   onClose,
   onAddVehicle,
 }: AddVehicleModalProps) {
-  const { colors } = useTheme()
-  const { t } = useLocalization()
-  const [step, setStep] = useState<Step>('type')
-  const [isLoading, setIsLoading] = useState(false)
+  const { colors } = useTheme();
+  const { t } = useLocalization();
+  const [step, setStep] = useState<Step>("type");
+  const [isLoading, setIsLoading] = useState(false);
 
   const [vehicleData, setVehicleData] = useState<VehicleCreateData>({
-    type: 'moving-truck',
-    make: '',
-    model: '',
+    type: "moving-truck",
+    make: "",
+    model: "",
     year: new Date().getFullYear(),
-    registration: '',
-    capacity: '',
-    location: '',
-    nextService: '',
-  })
+    registration: "",
+    capacity: "",
+    location: "",
+    nextService: "",
+  });
 
   const resetModal = () => {
-    setStep('type')
+    setStep("type");
     setVehicleData({
-      type: 'moving-truck',
-      make: '',
-      model: '',
+      type: "moving-truck",
+      make: "",
+      model: "",
       year: new Date().getFullYear(),
-      registration: '',
-      capacity: '',
-      location: '',
-      nextService: '',
-    })
-  }
+      registration: "",
+      capacity: "",
+      location: "",
+      nextService: "",
+    });
+  };
 
   // Réinitialiser le modal quand il est fermé
   useEffect(() => {
     if (!visible) {
-      resetModal()
+      resetModal();
     }
-  }, [visible])
+  }, [visible]);
 
   const handleClose = () => {
-    resetModal()
-    onClose()
-  }
+    resetModal();
+    onClose();
+  };
 
-  const handleSelectType = (type: VehicleCreateData['type']) => {
-    setVehicleData({ ...vehicleData, type })
-    setStep('details')
-  }
+  const handleSelectType = (type: VehicleCreateData["type"]) => {
+    setVehicleData({ ...vehicleData, type });
+    setStep("details");
+  };
 
   const validateRegistration = (reg: string): boolean => {
     // Format australien : ABC-123 ou AB-12-CD
-    const pattern1 = /^[A-Z]{3}-\d{3}$/
-    const pattern2 = /^[A-Z]{2}-\d{2}-[A-Z]{2}$/
-    return pattern1.test(reg) || pattern2.test(reg)
-  }
+    const pattern1 = /^[A-Z]{3}-\d{3}$/;
+    const pattern2 = /^[A-Z]{2}-\d{2}-[A-Z]{2}$/;
+    return pattern1.test(reg) || pattern2.test(reg);
+  };
 
   const validateForm = (): boolean => {
     if (!vehicleData.make.trim()) {
-      Alert.alert(t('vehicles.validation.error'), t('vehicles.validation.selectMake'))
-      return false
+      Alert.alert(
+        t("vehicles.validation.error"),
+        t("vehicles.validation.selectMake"),
+      );
+      return false;
     }
     if (!vehicleData.model.trim()) {
-      Alert.alert(t('vehicles.validation.error'), t('vehicles.validation.enterModel'))
-      return false
+      Alert.alert(
+        t("vehicles.validation.error"),
+        t("vehicles.validation.enterModel"),
+      );
+      return false;
     }
-    if (vehicleData.year < 1990 || vehicleData.year > new Date().getFullYear()) {
-      Alert.alert(t('vehicles.validation.error'), t('vehicles.validation.yearRange', { maxYear: new Date().getFullYear() }))
-      return false
+    if (
+      vehicleData.year < 1990 ||
+      vehicleData.year > new Date().getFullYear()
+    ) {
+      Alert.alert(
+        t("vehicles.validation.error"),
+        t("vehicles.validation.yearRange", {
+          maxYear: new Date().getFullYear(),
+        }),
+      );
+      return false;
     }
     if (!vehicleData.registration.trim()) {
-      Alert.alert(t('vehicles.validation.error'), t('vehicles.validation.enterRegistration'))
-      return false
+      Alert.alert(
+        t("vehicles.validation.error"),
+        t("vehicles.validation.enterRegistration"),
+      );
+      return false;
     }
     if (!validateRegistration(vehicleData.registration.toUpperCase())) {
-      Alert.alert(t('vehicles.validation.error'), t('vehicles.validation.invalidRegistration'))
-      return false
+      Alert.alert(
+        t("vehicles.validation.error"),
+        t("vehicles.validation.invalidRegistration"),
+      );
+      return false;
     }
     // Capacity est optionnel, donc pas de validation
     if (!vehicleData.location.trim()) {
-      Alert.alert(t('vehicles.validation.error'), t('vehicles.validation.selectLocation'))
-      return false
+      Alert.alert(
+        t("vehicles.validation.error"),
+        t("vehicles.validation.selectLocation"),
+      );
+      return false;
     }
     if (!vehicleData.nextService.trim()) {
-      Alert.alert(t('vehicles.validation.error'), t('vehicles.validation.enterNextService'))
-      return false
+      Alert.alert(
+        t("vehicles.validation.error"),
+        t("vehicles.validation.enterNextService"),
+      );
+      return false;
     }
     // Valider que la date de service est dans le futur
-    const serviceDate = new Date(vehicleData.nextService)
-    const today = new Date()
-    today.setHours(0, 0, 0, 0) // Ignorer l'heure pour comparer seulement les dates
+    const serviceDate = new Date(vehicleData.nextService);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Ignorer l'heure pour comparer seulement les dates
     if (serviceDate < today) {
-      Alert.alert(t('vehicles.validation.error'), t('vehicles.validation.serviceDatePast'))
-      return false
+      Alert.alert(
+        t("vehicles.validation.error"),
+        t("vehicles.validation.serviceDatePast"),
+      );
+      return false;
     }
-    return true
-  }
+    return true;
+  };
 
   const handleAddVehicle = async () => {
-    if (!validateForm()) return
+    if (!validateForm()) return;
 
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      await onAddVehicle(vehicleData)
-      Alert.alert(
-        t('vehicles.addModal.vehicleAdded'),
-        t('vehicles.addModal.vehicleAddedMessage', { make: vehicleData.make, model: vehicleData.model })
-      )
-      handleClose()
+      await onAddVehicle(vehicleData);
+      handleClose();
     } catch (error) {
-
-      Alert.alert(t('vehicles.validation.error'), t('vehicles.alerts.addError.message'))
+      Alert.alert(
+        t("vehicles.validation.error"),
+        t("vehicles.alerts.addError.message"),
+      );
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const renderStepType = () => (
     <View style={styles.stepContainer}>
       <Text style={[styles.stepTitle, { color: colors.text }]}>
-        {t('vehicles.addModal.vehicleType')}
+        {t("vehicles.addModal.vehicleType")}
       </Text>
       <Text style={[styles.stepSubtitle, { color: colors.textSecondary }]}>
-        {t('vehicles.addModal.selectTypeSubtitle')}
+        {t("vehicles.addModal.selectTypeSubtitle")}
       </Text>
 
-      <ScrollView 
-        horizontal 
+      <ScrollView
+        horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.typesContainer}
       >
         {VEHICLE_TYPES.map((vehicleType) => (
           <Pressable
             key={vehicleType.type}
+            testID={`vehicle-type-${vehicleType.type}`}
             style={[
               styles.typeCard,
               { backgroundColor: colors.backgroundSecondary },
-              vehicleData.type === vehicleType.type && { 
-                backgroundColor: colors.primary + '20',
+              vehicleData.type === vehicleType.type && {
+                backgroundColor: colors.primary + "20",
                 borderColor: colors.primary,
                 borderWidth: 2,
-              }
+              },
             ]}
             onPress={() => handleSelectType(vehicleType.type)}
           >
-            <View style={[
-              styles.typeIconContainer,
-              { backgroundColor: colors.primary + '10' }
-            ]}>
+            <View
+              style={[
+                styles.typeIconContainer,
+                { backgroundColor: colors.primary + "10" },
+              ]}
+            >
               <Text style={styles.typeEmoji}>{vehicleType.emoji}</Text>
             </View>
             <Text style={[styles.typeLabel, { color: colors.text }]}>
               {vehicleType.label}
             </Text>
-            <Text style={[styles.typeDescription, { color: colors.textSecondary }]}>
+            <Text
+              style={[styles.typeDescription, { color: colors.textSecondary }]}
+            >
               {vehicleType.description}
             </Text>
           </Pressable>
         ))}
       </ScrollView>
     </View>
-  )
+  );
 
   const renderStepDetails = () => (
     <View style={styles.stepContainer}>
       <Pressable
         testID="back-button"
         style={styles.backButton}
-        onPress={() => setStep('type')}
+        onPress={() => setStep("type")}
       >
         <Ionicons name="arrow-back" size={24} color={colors.text} />
       </Pressable>
 
       <Text style={[styles.stepTitle, { color: colors.text }]}>
-        {t('vehicles.addModal.vehicleDetails')}
+        {t("vehicles.addModal.vehicleDetails")}
       </Text>
       <Text style={[styles.stepSubtitle, { color: colors.textSecondary }]}>
-        {t('vehicles.addModal.detailsSubtitle')}
+        {t("vehicles.addModal.detailsSubtitle")}
       </Text>
 
       <View style={styles.form}>
         {/* Marque */}
         <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>{t('vehicles.addModal.make')}</Text>
-          <ScrollView 
-            horizontal 
+          <Text style={[styles.label, { color: colors.text }]}>
+            {t("vehicles.addModal.make")}
+          </Text>
+          <ScrollView
+            horizontal
             showsHorizontalScrollIndicator={false}
             style={styles.makeScrollView}
           >
@@ -288,15 +335,17 @@ export default function AddVehicleModal({
                   { backgroundColor: colors.backgroundSecondary },
                   vehicleData.make === make && {
                     backgroundColor: colors.primary,
-                  }
+                  },
                 ]}
                 onPress={() => setVehicleData({ ...vehicleData, make })}
               >
-                <Text style={[
-                  styles.makeOptionText,
-                  { color: colors.text },
-                  vehicleData.make === make && { color: colors.background }
-                ]}>
+                <Text
+                  style={[
+                    styles.makeOptionText,
+                    { color: colors.text },
+                    vehicleData.make === make && { color: colors.background },
+                  ]}
+                >
                   {make}
                 </Text>
               </Pressable>
@@ -306,11 +355,22 @@ export default function AddVehicleModal({
 
         {/* Modèle */}
         <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>{t('vehicles.addModal.model')}</Text>
+          <Text style={[styles.label, { color: colors.text }]}>
+            {t("vehicles.addModal.model")}
+          </Text>
           <TextInput
-            style={[styles.input, { backgroundColor: colors.backgroundSecondary, color: colors.text }]}
+            testID="vehicle-model-input"
+            style={[
+              styles.input,
+              {
+                backgroundColor: colors.backgroundSecondary,
+                color: colors.text,
+              },
+            ]}
             value={vehicleData.model}
-            onChangeText={(text) => setVehicleData({ ...vehicleData, model: text })}
+            onChangeText={(text) =>
+              setVehicleData({ ...vehicleData, model: text })
+            }
             placeholder="Ex: NPR 200"
             placeholderTextColor={colors.textSecondary}
           />
@@ -319,22 +379,50 @@ export default function AddVehicleModal({
         {/* Année et Immatriculation */}
         <View style={styles.formRow}>
           <View style={[styles.formGroup, { flex: 1 }]}>
-            <Text style={[styles.label, { color: colors.text }]}>{t('vehicles.addModal.year')}</Text>
+            <Text style={[styles.label, { color: colors.text }]}>
+              {t("vehicles.addModal.year")}
+            </Text>
             <TextInput
-              style={[styles.input, { backgroundColor: colors.backgroundSecondary, color: colors.text }]}
+              testID="vehicle-year-input"
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.backgroundSecondary,
+                  color: colors.text,
+                },
+              ]}
               value={String(vehicleData.year)}
-              onChangeText={(text) => setVehicleData({ ...vehicleData, year: parseInt(text) || new Date().getFullYear() })}
+              onChangeText={(text) =>
+                setVehicleData({
+                  ...vehicleData,
+                  year: parseInt(text) || new Date().getFullYear(),
+                })
+              }
               placeholder="2024"
               placeholderTextColor={colors.textSecondary}
               keyboardType="numeric"
             />
           </View>
           <View style={[styles.formGroup, { flex: 1 }]}>
-            <Text style={[styles.label, { color: colors.text }]}>{t('vehicles.addModal.registration')}</Text>
+            <Text style={[styles.label, { color: colors.text }]}>
+              {t("vehicles.addModal.registration")}
+            </Text>
             <TextInput
-              style={[styles.input, { backgroundColor: colors.backgroundSecondary, color: colors.text }]}
+              testID="vehicle-registration-input"
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.backgroundSecondary,
+                  color: colors.text,
+                },
+              ]}
               value={vehicleData.registration}
-              onChangeText={(text) => setVehicleData({ ...vehicleData, registration: text.toUpperCase() })}
+              onChangeText={(text) =>
+                setVehicleData({
+                  ...vehicleData,
+                  registration: text.toUpperCase(),
+                })
+              }
               placeholder="ABC-123"
               placeholderTextColor={colors.textSecondary}
               autoCapitalize="characters"
@@ -344,11 +432,22 @@ export default function AddVehicleModal({
 
         {/* Capacité */}
         <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>{t('vehicles.addModal.capacity')}</Text>
+          <Text style={[styles.label, { color: colors.text }]}>
+            {t("vehicles.addModal.capacity")}
+          </Text>
           <TextInput
-            style={[styles.input, { backgroundColor: colors.backgroundSecondary, color: colors.text }]}
+            testID="vehicle-capacity-input"
+            style={[
+              styles.input,
+              {
+                backgroundColor: colors.backgroundSecondary,
+                color: colors.text,
+              },
+            ]}
             value={vehicleData.capacity}
-            onChangeText={(text) => setVehicleData({ ...vehicleData, capacity: text })}
+            onChangeText={(text) =>
+              setVehicleData({ ...vehicleData, capacity: text })
+            }
             placeholder="Ex: 3.5 tonnes ou 8 cubic meters"
             placeholderTextColor={colors.textSecondary}
           />
@@ -356,9 +455,11 @@ export default function AddVehicleModal({
 
         {/* Emplacement */}
         <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>{t('vehicles.addModal.location')}</Text>
-          <ScrollView 
-            horizontal 
+          <Text style={[styles.label, { color: colors.text }]}>
+            {t("vehicles.addModal.location")}
+          </Text>
+          <ScrollView
+            horizontal
             showsHorizontalScrollIndicator={false}
             style={styles.makeScrollView}
           >
@@ -370,15 +471,19 @@ export default function AddVehicleModal({
                   { backgroundColor: colors.backgroundSecondary },
                   vehicleData.location === location && {
                     backgroundColor: colors.primary,
-                  }
+                  },
                 ]}
                 onPress={() => setVehicleData({ ...vehicleData, location })}
               >
-                <Text style={[
-                  styles.makeOptionText,
-                  { color: colors.text },
-                  vehicleData.location === location && { color: colors.background }
-                ]}>
+                <Text
+                  style={[
+                    styles.makeOptionText,
+                    { color: colors.text },
+                    vehicleData.location === location && {
+                      color: colors.background,
+                    },
+                  ]}
+                >
                   {location}
                 </Text>
               </Pressable>
@@ -388,21 +493,33 @@ export default function AddVehicleModal({
 
         {/* Prochain service */}
         <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>{t('vehicles.addModal.nextService')}</Text>
+          <Text style={[styles.label, { color: colors.text }]}>
+            {t("vehicles.addModal.nextService")}
+          </Text>
           <TextInput
-            style={[styles.input, { backgroundColor: colors.backgroundSecondary, color: colors.text }]}
+            testID="vehicle-nextservice-input"
+            style={[
+              styles.input,
+              {
+                backgroundColor: colors.backgroundSecondary,
+                color: colors.text,
+              },
+            ]}
             value={vehicleData.nextService}
-            onChangeText={(text) => setVehicleData({ ...vehicleData, nextService: text })}
+            onChangeText={(text) =>
+              setVehicleData({ ...vehicleData, nextService: text })
+            }
             placeholder="YYYY-MM-DD"
             placeholderTextColor={colors.textSecondary}
           />
           <Text style={[styles.helperText, { color: colors.textSecondary }]}>
-            {t('vehicles.addModal.dateHelperText')}
+            {t("vehicles.addModal.dateHelperText")}
           </Text>
         </View>
       </View>
 
       <Pressable
+        testID="vehicle-submit-btn"
         style={[
           styles.submitButton,
           { backgroundColor: colors.primary },
@@ -416,12 +533,16 @@ export default function AddVehicleModal({
         ) : (
           <>
             <Ionicons name="add-circle" size={20} color={colors.background} />
-            <Text style={[styles.submitButtonText, { color: colors.background }]}>{t('vehicles.addModal.addButton')}</Text>
+            <Text
+              style={[styles.submitButtonText, { color: colors.background }]}
+            >
+              {t("vehicles.addModal.addButton")}
+            </Text>
           </>
         )}
       </Pressable>
     </View>
-  )
+  );
 
   return (
     <Modal
@@ -431,12 +552,15 @@ export default function AddVehicleModal({
       onRequestClose={handleClose}
     >
       <KeyboardAvoidingView
+        testID="add-vehicle-modal"
         style={[styles.modalContainer, { backgroundColor: colors.background }]}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
+        <View
+          style={[styles.modalHeader, { borderBottomColor: colors.border }]}
+        >
           <Text style={[styles.modalTitle, { color: colors.text }]}>
-            {t('vehicles.addModal.title')}
+            {t("vehicles.addModal.title")}
           </Text>
           <Pressable testID="close-button" onPress={handleClose}>
             <Ionicons name="close" size={28} color={colors.text} />
@@ -444,12 +568,12 @@ export default function AddVehicleModal({
         </View>
 
         <ScrollView style={styles.modalContent}>
-          {step === 'type' && renderStepType()}
-          {step === 'details' && renderStepDetails()}
+          {step === "type" && renderStepType()}
+          {step === "details" && renderStepDetails()}
         </ScrollView>
       </KeyboardAvoidingView>
     </Modal>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -457,15 +581,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: DESIGN_TOKENS.spacing.lg,
     borderBottomWidth: 1,
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   modalContent: {
     flex: 1,
@@ -478,7 +602,7 @@ const styles = StyleSheet.create({
   },
   stepTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: DESIGN_TOKENS.spacing.xs,
   },
   stepSubtitle: {
@@ -494,14 +618,14 @@ const styles = StyleSheet.create({
     padding: DESIGN_TOKENS.spacing.lg,
     borderRadius: DESIGN_TOKENS.radius.md,
     marginRight: DESIGN_TOKENS.spacing.md,
-    alignItems: 'center',
+    alignItems: "center",
   },
   typeIconContainer: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: DESIGN_TOKENS.spacing.md,
   },
   typeEmoji: {
@@ -509,13 +633,13 @@ const styles = StyleSheet.create({
   },
   typeLabel: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: DESIGN_TOKENS.spacing.xs,
-    textAlign: 'center',
+    textAlign: "center",
   },
   typeDescription: {
     fontSize: 12,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 16,
   },
   form: {
@@ -523,7 +647,7 @@ const styles = StyleSheet.create({
     marginBottom: DESIGN_TOKENS.spacing.lg,
   },
   formRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: DESIGN_TOKENS.spacing.md,
   },
   formGroup: {
@@ -531,7 +655,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   input: {
     padding: DESIGN_TOKENS.spacing.md,
@@ -540,7 +664,7 @@ const styles = StyleSheet.create({
   },
   helperText: {
     fontSize: 12,
-    fontStyle: 'italic',
+    fontStyle: "italic",
   },
   makeScrollView: {
     marginTop: DESIGN_TOKENS.spacing.xs,
@@ -553,12 +677,12 @@ const styles = StyleSheet.create({
   },
   makeOptionText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   submitButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     padding: DESIGN_TOKENS.spacing.md,
     borderRadius: DESIGN_TOKENS.radius.md,
     gap: DESIGN_TOKENS.spacing.sm,
@@ -567,8 +691,8 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   submitButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
-})
+});

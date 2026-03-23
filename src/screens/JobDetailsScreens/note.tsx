@@ -4,12 +4,12 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useEffect, useState } from "react";
 import {
-    Alert,
-    Pressable,
-    ScrollView,
-    Text,
-    TouchableWithoutFeedback,
-    View,
+  Alert,
+  Pressable,
+  ScrollView,
+  Text,
+  TouchableWithoutFeedback,
+  View,
 } from "react-native";
 import ImprovedNoteModal from "../../components/jobDetails/modals/ImprovedNoteModal";
 import { DESIGN_TOKENS } from "../../constants/Styles";
@@ -306,8 +306,9 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob, jobId }) => {
       <TouchableWithoutFeedback
         onPress={() => selectedNoteMenu && setSelectedNoteMenu(null)}
       >
-        <View style={{ flex: 1 }}>
+        <View testID="job-notes-root" style={{ flex: 1 }}>
           <ScrollView
+            testID="job-notes-scroll"
             style={{ flex: 1, backgroundColor: colors.background }}
             contentContainerStyle={{ padding: DESIGN_TOKENS.spacing.md }}
           >
@@ -383,6 +384,7 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob, jobId }) => {
                 </View>
 
                 <Pressable
+                  testID="job-notes-add-btn"
                   onPress={() => setIsNoteModalVisible(true)}
                   style={({ pressed }) => ({
                     backgroundColor: pressed ? colors.tint + "DD" : colors.tint,
@@ -418,9 +420,8 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob, jobId }) => {
                   return (
                     <View
                       key={note.id}
+                      testID={`job-note-card-${note.id}`}
                       style={{
-                        backgroundColor: colors.backgroundSecondary,
-                        borderRadius: DESIGN_TOKENS.radius.lg,
                         padding: DESIGN_TOKENS.spacing.lg,
                         borderLeftWidth: 4,
                         borderLeftColor: typeInfo.color,
@@ -556,11 +557,12 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob, jobId }) => {
                               {/* Menu d'actions */}
                               <View style={{ position: "relative" }}>
                                 <Pressable
+                                  testID={`job-note-menu-${note.id}`}
                                   onPress={() =>
                                     setSelectedNoteMenu(
                                       selectedNoteMenu === note.id
                                         ? null
-                                        : note.id as string,
+                                        : (note.id as string),
                                     )
                                   }
                                   style={({ pressed }) => ({
@@ -594,6 +596,7 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob, jobId }) => {
                                     }}
                                   >
                                     <Pressable
+                                      testID={`job-note-edit-${note.id}`}
                                       onPress={() => openEditModal(note)}
                                       style={({ pressed }) => ({
                                         flexDirection: "row",
@@ -632,6 +635,7 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob, jobId }) => {
                                     />
 
                                     <Pressable
+                                      testID={`job-note-delete-${note.id}`}
                                       onPress={() => handleDeleteNote(note.id)}
                                       style={({ pressed }) => ({
                                         flexDirection: "row",
@@ -784,6 +788,7 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob, jobId }) => {
                 </Text>
 
                 <Pressable
+                  testID="job-notes-empty-add-btn"
                   onPress={() => setIsNoteModalVisible(true)}
                   style={({ pressed }) => ({
                     backgroundColor: pressed ? colors.tint + "DD" : colors.tint,

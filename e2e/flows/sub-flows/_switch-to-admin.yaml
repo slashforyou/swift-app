@@ -1,0 +1,39 @@
+appId: host.exp.exponent
+---
+# Sub-flow : _switch-to-admin
+#
+# Depuis n'importe où : logout puis login en tant qu'Admin Nerd-Test.
+# Utiliser ce flow pour les changements de compte en cours de test.
+# Résultat : home-screen visible avec le compte admin actif.
+
+# 1. Revenir sur home (si nécessaire)
+- runFlow:
+    file: _go-to-home.yaml
+    env:
+      EMAIL: ${ADMIN_EMAIL}
+      PASSWORD: ${ADMIN_PASSWORD}
+
+# 2. Logout du compte courant
+- runFlow:
+    file: _logout.yaml
+
+# 3. Login en tant qu'admin
+- tapOn:
+    id: "connection-login-btn"
+- extendedWaitUntil:
+    visible:
+      id: "login-screen"
+    timeout: 5000
+- tapOn:
+    id: "login-email-input"
+- inputText: ${ADMIN_EMAIL}
+- tapOn:
+    id: "login-password-input"
+- inputText: ${ADMIN_PASSWORD}
+- hideKeyboard
+- tapOn:
+    id: "login-submit-btn"
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 20000

@@ -640,7 +640,11 @@ export default function RepresentativeScreen({
   });
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <SafeAreaView
+      style={styles.container}
+      edges={["top"]}
+      testID="stripe-representative-screen"
+    >
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
@@ -1078,6 +1082,7 @@ export default function RepresentativeScreen({
             style={styles.nextButton}
             onPress={handleNext}
             disabled={isSubmitting}
+            testID="stripe-representative-next-btn"
           >
             {isSubmitting ? (
               <ActivityIndicator size="small" color="white" />

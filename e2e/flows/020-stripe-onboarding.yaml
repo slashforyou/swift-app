@@ -1,0 +1,260 @@
+appId: host.exp.exponent
+---
+# 020-stripe-onboarding.yaml
+# =============================
+# Test E2E : Onboarding Stripe complet
+#
+# Se connecte avec le compte admin test, navigue vers le Stripe Hub,
+# et complète le flow d'onboarding (tous les champs sont auto-remplis en DEV).
+#
+# Gère 3 scénarios de départ :
+#   A) Compte déjà connecté (dashboard) → supprime, puis reconnecte
+#   B) Compte incomplet → bouton "Complete Profile"
+#   C) Pas de compte → bouton "Connect"
+
+# ── STEP 0 : Login ──────────────────────────────────────────
+- runFlow:
+    file: sub-flows/_login-as-admin.yaml
+
+# ── STEP 1 : Naviguer Home → Business ──────────────────────
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 15000
+
+- scrollUntilVisible:
+    element:
+      id: "home-business-btn"
+    direction: DOWN
+    timeout: 5000
+
+- tapOn:
+    id: "home-business-btn"
+
+- extendedWaitUntil:
+    visible:
+      id: "business-screen"
+    timeout: 10000
+
+# ── STEP 2 : Onglet Jobs/Billing → Stripe Hub ──────────────
+- tapOn:
+    id: "tab-JobsBilling"
+
+- extendedWaitUntil:
+    visible:
+      id: "stripe-hub-screen"
+    timeout: 15000
+
+- takeScreenshot: "stripe-hub-initial-state"
+
+# Laisser le StripeHub finir de charger (API calls)
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+# ── STEP 3 : Si déjà connecté → supprimer le compte ────────
+# Scénario A : Dashboard affiché (compte actif) → supprimer pour repartir de zéro
+- runFlow:
+    when:
+      visible:
+        id: "stripe-hub-dashboard-delete-btn"
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: "stripe-hub-dashboard-delete-btn"
+          direction: DOWN
+          timeout: 5000
+      - tapOn:
+          id: "stripe-hub-dashboard-delete-btn"
+      - waitForAnimationToEnd
+      # Confirmer la suppression dans l'Alert native
+      - tapOn: "Delete Account"
+      # Attendre que l'appel API finisse et que l'Alert success apparaisse
+      - extendedWaitUntil:
+          visible: "OK"
+          timeout: 30000
+      - tapOn: "OK"
+      - extendedWaitUntil:
+          visible:
+            id: "stripe-hub-connect-btn"
+          timeout: 30000
+      - takeScreenshot: "stripe-hub-after-delete"
+
+# Scénario B : Compte existant incomplet → supprimer aussi pour test propre
+- runFlow:
+    when:
+      visible:
+        id: "stripe-hub-disconnect-btn"
+    commands:
+      - tapOn:
+          id: "stripe-hub-disconnect-btn"
+      - waitForAnimationToEnd
+      - tapOn: "Delete Account"
+      # Attendre que l'appel API finisse et que l'Alert success apparaisse
+      - extendedWaitUntil:
+          visible: "OK"
+          timeout: 30000
+      - tapOn: "OK"
+      - extendedWaitUntil:
+          visible:
+            id: "stripe-hub-connect-btn"
+          timeout: 30000
+      - takeScreenshot: "stripe-hub-after-disconnect"
+
+# ── STEP 4 : Créer un nouveau compte Stripe ────────────────
+- extendedWaitUntil:
+    visible:
+      id: "stripe-hub-connect-btn"
+    timeout: 30000
+
+- tapOn:
+    id: "stripe-hub-connect-btn"
+
+# ── STEP 5 : Welcome Screen ────────────────────────────────
+- extendedWaitUntil:
+    visible:
+      id: "stripe-welcome-screen"
+    timeout: 30000
+
+- scrollUntilVisible:
+    element:
+      id: "stripe-welcome-start-btn"
+    direction: DOWN
+    timeout: 5000
+
+- tapOn:
+    id: "stripe-welcome-start-btn"
+
+# ── STEP 6 : Personal Info (auto-filled en DEV) ────────────
+- extendedWaitUntil:
+    visible:
+      id: "stripe-personalinfo-screen"
+    timeout: 30000
+
+- scrollUntilVisible:
+    element:
+      id: "stripe-personalinfo-next-btn"
+    direction: DOWN
+    timeout: 5000
+
+- tapOn:
+    id: "stripe-personalinfo-next-btn"
+
+# ── STEP 7 : Business Profile (auto-filled en DEV) ─────────
+- extendedWaitUntil:
+    visible:
+      id: "stripe-businessprofile-screen"
+    timeout: 30000
+
+- tapOn:
+    id: "stripe-businessprofile-next-btn"
+
+# ── STEP 8 : Address (auto-filled en DEV) ──────────────────
+- extendedWaitUntil:
+    visible:
+      id: "stripe-address-screen"
+    timeout: 30000
+
+- scrollUntilVisible:
+    element:
+      id: "stripe-address-next-btn"
+    direction: DOWN
+    timeout: 5000
+
+- tapOn:
+    id: "stripe-address-next-btn"
+
+# ── STEP 9 : Company Details (company only, auto-filled) ───
+- runFlow:
+    when:
+      visible:
+        id: "stripe-company-screen"
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: "stripe-company-next-btn"
+          direction: DOWN
+          timeout: 5000
+      - tapOn:
+          id: "stripe-company-next-btn"
+      - waitForAnimationToEnd
+
+# ── STEP 10 : Representative (company only, auto-filled) ───
+- runFlow:
+    when:
+      visible:
+        id: "stripe-representative-screen"
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: "stripe-representative-next-btn"
+          direction: DOWN
+          timeout: 5000
+      - tapOn:
+          id: "stripe-representative-next-btn"
+      - waitForAnimationToEnd
+
+# ── STEP 11 : Bank Account (auto-filled en DEV) ────────────
+- extendedWaitUntil:
+    visible:
+      id: "stripe-bank-screen"
+    timeout: 30000
+
+- scrollUntilVisible:
+    element:
+      id: "stripe-bank-next-btn"
+    direction: DOWN
+    timeout: 5000
+
+- tapOn:
+    id: "stripe-bank-next-btn"
+
+# ── STEP 12 : Documents (camera — skip si non requis) ──────
+- runFlow:
+    when:
+      visible:
+        id: "stripe-documents-screen"
+    commands:
+      - takeScreenshot: "stripe-documents-screen-visible"
+
+# ── STEP 13 : Review — accepter CGU et activer ─────────────
+- extendedWaitUntil:
+    visible:
+      id: "stripe-review-screen"
+    timeout: 30000
+
+- scrollUntilVisible:
+    element:
+      id: "stripe-review-tos-btn"
+    direction: DOWN
+    timeout: 5000
+
+- tapOn:
+    id: "stripe-review-tos-btn"
+
+- scrollUntilVisible:
+    element:
+      id: "stripe-review-activate-btn"
+    direction: DOWN
+    timeout: 3000
+
+- tapOn:
+    id: "stripe-review-activate-btn"
+
+# ── STEP 14 : Completion — vérifier le succès ──────────────
+- extendedWaitUntil:
+    visible:
+      id: "stripe-completion-screen"
+    timeout: 30000
+
+- takeScreenshot: "stripe-completion-success"
+
+- tapOn:
+    id: "stripe-completion-return-btn"
+
+# ── VERIFICATION FINALE ─────────────────────────────────────
+- extendedWaitUntil:
+    visible:
+      id: "stripe-hub-screen"
+    timeout: 15000
+
+- takeScreenshot: "stripe-hub-after-onboarding"

@@ -118,6 +118,26 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
         title: "Classement",
         description: "Voyez où vous vous situez parmi les autres chauffeurs",
       },
+      contact: {
+        title: "Nous contacter",
+        yourMessage: "Votre message",
+        helpLabel: "Demander de l'aide",
+        feedbackLabel: "Donner mon avis",
+        featureLabel: "Proposer une amélioration",
+        bugLabel: "Signaler un problème",
+        placeholder: "Décrivez votre demande...",
+        send: "Envoyer",
+        sending: "Envoi...",
+        cancel: "Annuler",
+        thankYou: "Merci !",
+        thankYouMessage: "Votre message a bien été envoyé.",
+        errorSending: "Impossible d'envoyer le message. Réessayez.",
+      },
+      stripeAlert: {
+        title: "Stripe non activé",
+        description:
+          "Vous ne pouvez pas encaisser de paiements ni facturer sans Stripe. Activez-le maintenant.",
+      },
     },
 
     leaderboard: {
@@ -2177,6 +2197,11 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
         details: "Détails",
         errorLabel: "Erreur",
         retest: "Retester",
+        stripeExplanation:
+          "Un compte Stripe vous permet de recevoir des paiements et de facturer directement depuis l'application. La configuration ne prend que quelques minutes.",
+        feePassToClient: "Refacturer les frais Stripe au client",
+        feePassToClientDesc:
+          "Lorsque cette option est activée, les frais de traitement Stripe seront ajoutés à la facture du client.",
       },
       onboarding: {
         stepLabel: "Etape {{current}}/{{total}}",

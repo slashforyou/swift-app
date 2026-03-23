@@ -1,13 +1,13 @@
 const sharp = require("sharp");
 
-const src = "assets/images/casquette_512.png";
+const src = "assets/icon.png";
 const pad = 5;
 
 const jobs = [
   { name: "icon.png", size: 1024 },
   { name: "android-icon.png", size: 1024 },
-  { name: "adaptive-icon-foreground.png", size: 432 },
-  { name: "adaptive-icon-monochrome.png", size: 432 },
+  { name: "adaptive-icon-foreground.png", size: 1024 },
+  { name: "adaptive-icon-monochrome.png", size: 1024 },
   { name: "favicon.png", size: 48 },
   { name: "splash-icon.png", size: 1024 },
   { name: "ios-light.png", size: 1024 },
