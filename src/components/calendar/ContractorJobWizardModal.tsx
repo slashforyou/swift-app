@@ -11,15 +11,15 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Modal,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  ActivityIndicator,
+  Alert,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { DESIGN_TOKENS } from "../../constants/Styles";
@@ -27,6 +27,7 @@ import { useTheme } from "../../context/ThemeProvider";
 import { Job } from "../../hooks/useJobsForDay";
 import { useStaff } from "../../hooks/useStaff";
 import { useVehicles } from "../../hooks/useVehicles";
+import { useTranslation } from "../../localization";
 import { assignStaffToJob } from "../../services/crewService";
 import { acceptJob, counterProposalJob, declineJob } from "../../services/jobs";
 
@@ -89,6 +90,7 @@ export const ContractorJobWizardModal: React.FC<
   ContractorJobWizardModalProps
 > = ({ visible, job, onClose, onJobUpdated }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const { staff, isLoading: isStaffLoading, refreshStaff } = useStaff();
   const { vehicles } = useVehicles();
 
@@ -159,11 +161,9 @@ export const ContractorJobWizardModal: React.FC<
       await acceptJob(job.id);
       setStep("assign_staff");
     } catch {
-      Alert.alert(
-        "Erreur",
-        "Impossible d'accepter ce job. Veuillez réessayer.",
-        [{ text: "OK" }],
-      );
+      Alert.alert(t("common.error"), t("contractorWizard.errorAcceptJob"), [
+        { text: t("common.ok") },
+      ]);
     } finally {
       setIsSubmitting(false);
     }
@@ -172,7 +172,10 @@ export const ContractorJobWizardModal: React.FC<
   const handleDeclineConfirm = useCallback(async () => {
     if (!job) return;
     if (!declineReason.trim()) {
-      Alert.alert("Raison requise", "Veuillez indiquer la raison du refus.");
+      Alert.alert(
+        t("contractorWizard.reasonRequired"),
+        t("contractorWizard.reasonRequiredMsg"),
+      );
       return;
     }
     setIsSubmitting(true);
@@ -181,11 +184,9 @@ export const ContractorJobWizardModal: React.FC<
       setStep("declined");
       onJobUpdated();
     } catch {
-      Alert.alert(
-        "Erreur",
-        "Impossible de refuser ce job. Veuillez réessayer.",
-        [{ text: "OK" }],
-      );
+      Alert.alert(t("common.error"), t("contractorWizard.errorDeclineJob"), [
+        { text: t("common.ok") },
+      ]);
     } finally {
       setIsSubmitting(false);
     }
@@ -216,10 +217,7 @@ export const ContractorJobWizardModal: React.FC<
       setStep("success");
       onJobUpdated();
     } catch {
-      Alert.alert(
-        "Erreur",
-        "Problème lors de l'assignation. Job accepté mais certains employés n'ont pas pu être assignés.",
-      );
+      Alert.alert(t("common.error"), t("contractorWizard.errorAssign"));
       setStep("success");
       onJobUpdated();
     } finally {
@@ -235,7 +233,10 @@ export const ContractorJobWizardModal: React.FC<
   const handleCounterProposal = useCallback(async () => {
     if (!job) return;
     if (!proposedStart || !proposedEnd) {
-      Alert.alert("Créneaux requis", "Veuillez indiquer un début et une fin.");
+      Alert.alert(
+        t("contractorWizard.slotsRequired"),
+        t("contractorWizard.slotsRequiredMsg"),
+      );
       return;
     }
     // Construire les datetimes ISO à partir de la date du job + créneaux saisis
@@ -264,8 +265,8 @@ export const ContractorJobWizardModal: React.FC<
       onJobUpdated();
     } catch {
       Alert.alert(
-        "Erreur",
-        "Impossible d'envoyer la contre-proposition. Réessayez.",
+        t("common.error"),
+        t("contractorWizard.errorCounterProposal"),
       );
     } finally {
       setIsSubmitting(false);
@@ -663,7 +664,8 @@ export const ContractorJobWizardModal: React.FC<
     job.contractor &&
     job.contractee.company_id !== job.contractor.company_id;
 
-  const contracteeName = job.contractee?.company_name || "Entreprise inconnue";
+  const contracteeName =
+    job.contractee?.company_name || t("contractorWizard.unknownCompany");
 
   const getPriorityColor = () => {
     switch (job.priority) {
@@ -681,13 +683,13 @@ export const ContractorJobWizardModal: React.FC<
   const getPriorityLabel = () => {
     switch (job.priority) {
       case "urgent":
-        return "Urgent";
+        return t("contractorWizard.priorityUrgent");
       case "high":
-        return "Haute";
+        return t("contractorWizard.priorityHigh");
       case "medium":
-        return "Moyenne";
+        return t("contractorWizard.priorityMedium");
       default:
-        return "Basse";
+        return t("contractorWizard.priorityLow");
     }
   };
 
@@ -706,7 +708,9 @@ export const ContractorJobWizardModal: React.FC<
           <View style={styles.companyBadge}>
             <Ionicons name="business" size={22} color={colors.info} />
             <View style={styles.companyBadgeText}>
-              <Text style={styles.companyLabel}>Job assigné par</Text>
+              <Text style={styles.companyLabel}>
+                {t("contractorWizard.assignedBy")}
+              </Text>
               <Text style={styles.companyName}>{contracteeName}</Text>
               {job.contractee?.created_by_name && (
                 <Text
@@ -716,7 +720,8 @@ export const ContractorJobWizardModal: React.FC<
                     marginTop: 1,
                   }}
                 >
-                  Contact : {job.contractee.created_by_name}
+                  {t("contractorWizard.contact")} :{" "}
+                  {job.contractee.created_by_name}
                 </Text>
               )}
             </View>
@@ -756,14 +761,14 @@ export const ContractorJobWizardModal: React.FC<
               ]}
             >
               {job.assignment_status === "pending"
-                ? "⏳ En attente de votre réponse"
+                ? t("contractorWizard.pendingResponse")
                 : job.assignment_status === "negotiating"
-                  ? "🔄 Contre-proposition envoyée"
+                  ? t("contractorWizard.counterProposalSent")
                   : job.assignment_status === "accepted"
-                    ? "✅ Accepté"
+                    ? t("contractorWizard.accepted")
                     : job.assignment_status === "declined"
-                      ? "❌ Refusé"
-                      : "Job interne"}
+                      ? t("contractorWizard.declined")
+                      : t("contractorWizard.internalJob")}
             </Text>
           </View>
           <View
@@ -773,7 +778,7 @@ export const ContractorJobWizardModal: React.FC<
             ]}
           >
             <Text style={[styles.statusText, { color: getPriorityColor() }]}>
-              Priorité : {getPriorityLabel()}
+              {t("contractorWizard.priority")} : {getPriorityLabel()}
             </Text>
           </View>
         </View>
@@ -781,7 +786,9 @@ export const ContractorJobWizardModal: React.FC<
         {/* Transfer details – Ce qui est demandé */}
         {isExternalJob && job.assignment_status === "pending" && (
           <>
-            <Text style={styles.sectionTitle}>Ce qui est demandé</Text>
+            <Text style={styles.sectionTitle}>
+              {t("contractorWizard.whatIsRequested")}
+            </Text>
             <View style={styles.infoCard}>
               {/* Chauffeurs */}
               <View style={styles.infoRow}>
@@ -792,11 +799,13 @@ export const ContractorJobWizardModal: React.FC<
                   style={styles.infoIcon}
                 />
                 <View>
-                  <Text style={styles.infoLabel}>Chauffeurs</Text>
+                  <Text style={styles.infoLabel}>
+                    {t("contractorWizard.driversLabel")}
+                  </Text>
                   <Text style={styles.infoValue}>
                     {job.transfer?.requested_drivers != null
                       ? String(job.transfer.requested_drivers)
-                      : "Non spécifié"}
+                      : t("negotiation.notSpecified")}
                   </Text>
                 </View>
               </View>
@@ -810,11 +819,13 @@ export const ContractorJobWizardModal: React.FC<
                   style={styles.infoIcon}
                 />
                 <View>
-                  <Text style={styles.infoLabel}>Offsiders</Text>
+                  <Text style={styles.infoLabel}>
+                    {t("contractorWizard.offsidersLabel")}
+                  </Text>
                   <Text style={styles.infoValue}>
                     {job.transfer?.requested_offsiders != null
                       ? String(job.transfer.requested_offsiders)
-                      : "Non spécifié"}
+                      : t("negotiation.notSpecified")}
                   </Text>
                 </View>
               </View>
@@ -829,7 +840,9 @@ export const ContractorJobWizardModal: React.FC<
                     style={styles.infoIcon}
                   />
                   <View>
-                    <Text style={styles.infoLabel}>Camion demandé</Text>
+                    <Text style={styles.infoLabel}>
+                      {t("contractorWizard.requestedTruck")}
+                    </Text>
                     <Text style={styles.infoValue}>
                       #{job.transfer.preferred_truck_id}
                     </Text>
@@ -848,10 +861,10 @@ export const ContractorJobWizardModal: React.FC<
                 <View>
                   <Text style={styles.infoLabel}>
                     {job.transfer?.pricing_type === "hourly"
-                      ? "Prix horaire 💰"
+                      ? t("contractorWizard.hourlyPrice")
                       : job.transfer?.pricing_type === "daily"
-                        ? "Prix à la journée 💰"
-                        : "Montant forfaitaire 💰"}
+                        ? t("contractorWizard.dailyPrice")
+                        : t("contractorWizard.flatPrice")}
                   </Text>
                   <Text
                     style={[
@@ -876,7 +889,7 @@ export const ContractorJobWizardModal: React.FC<
                             maximumFractionDigits: 2,
                           },
                         )}${job.transfer.pricing_type === "hourly" ? " / heure" : job.transfer.pricing_type === "daily" ? " / jour" : ""}`
-                      : "Non spécifié"}
+                      : t("negotiation.notSpecified")}
                   </Text>
                 </View>
               </View>
@@ -891,7 +904,9 @@ export const ContractorJobWizardModal: React.FC<
                     style={styles.infoIcon}
                   />
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.infoLabel}>Note ressources</Text>
+                    <Text style={styles.infoLabel}>
+                      {t("contractorWizard.resourceNote")}
+                    </Text>
                     <Text style={[styles.infoValue, { flexWrap: "wrap" }]}>
                       {job.transfer.resource_note}
                     </Text>
@@ -909,7 +924,9 @@ export const ContractorJobWizardModal: React.FC<
                     style={styles.infoIcon}
                   />
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.infoLabel}>Message</Text>
+                    <Text style={styles.infoLabel}>
+                      {t("contractorWizard.messageLabel")}
+                    </Text>
                     <Text style={[styles.infoValue, { flexWrap: "wrap" }]}>
                       {job.transfer.transfer_message}
                     </Text>
@@ -921,7 +938,9 @@ export const ContractorJobWizardModal: React.FC<
         )}
 
         {/* Client info */}
-        <Text style={styles.sectionTitle}>Client</Text>
+        <Text style={styles.sectionTitle}>
+          {t("contractorWizard.clientSection")}
+        </Text>
         <View style={styles.infoCard}>
           <View style={styles.infoRow}>
             <Ionicons
@@ -931,7 +950,9 @@ export const ContractorJobWizardModal: React.FC<
               style={styles.infoIcon}
             />
             <View>
-              <Text style={styles.infoLabel}>Nom</Text>
+              <Text style={styles.infoLabel}>
+                {t("contractorWizard.nameLabel")}
+              </Text>
               <Text style={styles.infoValue}>
                 {job.client?.name ||
                   `${job.client?.firstName || ""} ${job.client?.lastName || ""}`.trim() ||
@@ -948,7 +969,9 @@ export const ContractorJobWizardModal: React.FC<
                 style={styles.infoIcon}
               />
               <View>
-                <Text style={styles.infoLabel}>Téléphone</Text>
+                <Text style={styles.infoLabel}>
+                  {t("contractorWizard.phoneLabel")}
+                </Text>
                 <Text style={styles.infoValue}>{job.client.phone}</Text>
               </View>
             </View>
@@ -956,7 +979,9 @@ export const ContractorJobWizardModal: React.FC<
         </View>
 
         {/* Date & Time */}
-        <Text style={styles.sectionTitle}>Date & Horaire</Text>
+        <Text style={styles.sectionTitle}>
+          {t("contractorWizard.dateTimeSection")}
+        </Text>
         <View style={styles.infoCard}>
           <View style={styles.infoRow}>
             <Ionicons
@@ -966,7 +991,9 @@ export const ContractorJobWizardModal: React.FC<
               style={styles.infoIcon}
             />
             <View>
-              <Text style={styles.infoLabel}>Date</Text>
+              <Text style={styles.infoLabel}>
+                {t("contractorWizard.dateLabel")}
+              </Text>
               <Text style={styles.infoValue}>
                 {formatDate(job.time?.startWindowStart)}
               </Text>
@@ -980,7 +1007,9 @@ export const ContractorJobWizardModal: React.FC<
               style={styles.infoIcon}
             />
             <View>
-              <Text style={styles.infoLabel}>Créneau</Text>
+              <Text style={styles.infoLabel}>
+                {t("contractorWizard.slotLabel")}
+              </Text>
               <Text style={styles.infoValue}>
                 {formatTime(job.time?.startWindowStart)} –{" "}
                 {formatTime(job.time?.startWindowEnd)}
@@ -996,7 +1025,9 @@ export const ContractorJobWizardModal: React.FC<
                 style={styles.infoIcon}
               />
               <View>
-                <Text style={styles.infoLabel}>Durée estimée</Text>
+                <Text style={styles.infoLabel}>
+                  {t("contractorWizard.estimatedDuration")}
+                </Text>
                 <Text style={styles.infoValue}>
                   {Math.floor(job.estimatedDuration / 60)}h
                   {job.estimatedDuration % 60 > 0
@@ -1011,7 +1042,9 @@ export const ContractorJobWizardModal: React.FC<
         {/* Addresses */}
         {job.addresses?.length > 0 && (
           <>
-            <Text style={styles.sectionTitle}>Adresses</Text>
+            <Text style={styles.sectionTitle}>
+              {t("contractorWizard.addressesSection")}
+            </Text>
             <View style={styles.infoCard}>
               {job.addresses.map((addr, i) => (
                 <View key={i} style={styles.infoRow}>
@@ -1024,9 +1057,9 @@ export const ContractorJobWizardModal: React.FC<
                   <View style={{ flex: 1 }}>
                     <Text style={styles.infoLabel}>
                       {addr.type === "pickup"
-                        ? "Chargement"
+                        ? t("contractorWizard.pickupLabel")
                         : addr.type === "delivery"
-                          ? "Livraison"
+                          ? t("contractorWizard.deliveryLabel")
                           : addr.type}
                     </Text>
                     <Text style={styles.infoValue}>
@@ -1043,7 +1076,9 @@ export const ContractorJobWizardModal: React.FC<
         {/* Notes */}
         {job.notes ? (
           <>
-            <Text style={styles.sectionTitle}>Notes</Text>
+            <Text style={styles.sectionTitle}>
+              {t("contractorWizard.notesSection")}
+            </Text>
             <View style={styles.infoCard}>
               <Text
                 style={{ fontSize: 14, color: colors.text, lineHeight: 20 }}
@@ -1067,7 +1102,9 @@ export const ContractorJobWizardModal: React.FC<
               size={18}
               color={colors.buttonPrimaryText}
             />
-            <Text style={styles.primaryActionBtnText}>Répondre</Text>
+            <Text style={styles.primaryActionBtnText}>
+              {t("contractorWizard.respond")}
+            </Text>
           </Pressable>
         </View>
       )}
@@ -1084,14 +1121,18 @@ export const ContractorJobWizardModal: React.FC<
         <View style={styles.companyBadge}>
           <Ionicons name="business" size={20} color={colors.info} />
           <View style={styles.companyBadgeText}>
-            <Text style={styles.companyLabel}>Job de</Text>
+            <Text style={styles.companyLabel}>
+              {t("contractorWizard.jobFrom")}
+            </Text>
             <Text style={styles.companyName}>{contracteeName}</Text>
           </View>
         </View>
 
         {/* Job reference */}
         <View style={styles.infoCard}>
-          <Text style={styles.infoLabel}>Référence</Text>
+          <Text style={styles.infoLabel}>
+            {t("contractorWizard.reference")}
+          </Text>
           <Text style={[styles.infoValue, { fontSize: 16 }]}>
             {job.code || job.id}
           </Text>
@@ -1108,7 +1149,7 @@ export const ContractorJobWizardModal: React.FC<
 
         <View style={styles.decisionContainer}>
           <Text style={styles.decisionTitle}>
-            Souhaitez-vous accepter ce job ?
+            {t("contractorWizard.acceptJobQuestion")}
           </Text>
           <View style={styles.decisionRow}>
             <Pressable
@@ -1124,7 +1165,9 @@ export const ContractorJobWizardModal: React.FC<
                 size={20}
                 color={colors.error}
               />
-              <Text style={styles.declineBtnText}>Refuser</Text>
+              <Text style={styles.declineBtnText}>
+                {t("contractorWizard.refuse")}
+              </Text>
             </Pressable>
 
             <Pressable
@@ -1144,7 +1187,9 @@ export const ContractorJobWizardModal: React.FC<
                   color={colors.success}
                 />
               )}
-              <Text style={styles.acceptBtnText}>Accepter</Text>
+              <Text style={styles.acceptBtnText}>
+                {t("negotiation.accept")}
+              </Text>
             </Pressable>
           </View>
 
@@ -1169,7 +1214,7 @@ export const ContractorJobWizardModal: React.FC<
               color={colors.textSecondary}
             />
             <Text style={styles.secondaryActionBtnText}>
-              Faire une nouvelle proposition
+              {t("contractorWizard.newProposal")}
             </Text>
           </Pressable>
         </View>
@@ -1180,7 +1225,9 @@ export const ContractorJobWizardModal: React.FC<
           style={styles.secondaryActionBtn}
           onPress={() => setStep("overview")}
         >
-          <Text style={styles.secondaryActionBtnText}>← Retour</Text>
+          <Text style={styles.secondaryActionBtnText}>
+            {t("contractorWizard.backButton")}
+          </Text>
         </Pressable>
       </View>
     </>
@@ -1204,17 +1251,17 @@ export const ContractorJobWizardModal: React.FC<
           <Ionicons name="checkmark-circle" size={22} color={colors.success} />
           <View style={styles.companyBadgeText}>
             <Text style={[styles.companyLabel, { color: colors.success }]}>
-              Job accepté
+              {t("contractorWizard.jobAccepted")}
             </Text>
             <Text style={styles.companyName}>
-              Assigner vos employés (optionnel)
+              {t("contractorWizard.assignEmployees")}
             </Text>
           </View>
         </View>
 
         <TextInput
           style={styles.searchInput}
-          placeholder="Rechercher un employé..."
+          placeholder={t("contractorWizard.searchEmployee")}
           placeholderTextColor={colors.textSecondary}
           value={staffSearchQuery}
           onChangeText={setStaffSearchQuery}
@@ -1234,7 +1281,7 @@ export const ContractorJobWizardModal: React.FC<
               color={colors.textSecondary}
             />
             <Text style={styles.emptyStaffText}>
-              Aucun employé actif trouvé
+              {t("contractorWizard.noActiveEmployee")}
             </Text>
           </View>
         ) : (
@@ -1294,7 +1341,9 @@ export const ContractorJobWizardModal: React.FC<
           onPress={handleSkipAssignment}
           disabled={isSubmitting}
         >
-          <Text style={styles.secondaryActionBtnText}>Plus tard</Text>
+          <Text style={styles.secondaryActionBtnText}>
+            {t("contractorWizard.later")}
+          </Text>
         </Pressable>
         <Pressable
           style={[styles.primaryActionBtn, { opacity: isSubmitting ? 0.6 : 1 }]}
@@ -1312,8 +1361,10 @@ export const ContractorJobWizardModal: React.FC<
           )}
           <Text style={styles.primaryActionBtnText}>
             {selectedStaffIds.length > 0
-              ? `Confirmer (${selectedStaffIds.length})`
-              : "Terminer"}
+              ? t("contractorWizard.confirmCount", {
+                  count: selectedStaffIds.length,
+                })
+              : t("contractorWizard.finish")}
           </Text>
         </Pressable>
       </View>
@@ -1343,7 +1394,7 @@ export const ContractorJobWizardModal: React.FC<
           />
           <View style={styles.companyBadgeText}>
             <Text style={[styles.companyLabel, { color: colors.error }]}>
-              Refus du job
+              {t("contractorWizard.jobRefusal")}
             </Text>
             <Text style={styles.companyName}>{job.code || job.id}</Text>
           </View>
@@ -1355,11 +1406,11 @@ export const ContractorJobWizardModal: React.FC<
             { marginBottom: DESIGN_TOKENS.spacing.sm },
           ]}
         >
-          Motif du refus *
+          {t("contractorWizard.refusalReason")}
         </Text>
         <TextInput
           style={styles.reasonInput}
-          placeholder="Indiquez la raison de votre refus (capacité insuffisante, conflit de planning, zone géographique, etc.)"
+          placeholder={t("contractorWizard.refusalPlaceholder")}
           placeholderTextColor={colors.textSecondary}
           value={declineReason}
           onChangeText={setDeclineReason}
@@ -1385,7 +1436,9 @@ export const ContractorJobWizardModal: React.FC<
           onPress={() => setStep("decision")}
           disabled={isSubmitting}
         >
-          <Text style={styles.secondaryActionBtnText}>← Retour</Text>
+          <Text style={styles.secondaryActionBtnText}>
+            {t("contractorWizard.backButton")}
+          </Text>
         </Pressable>
         <Pressable
           style={[
@@ -1402,7 +1455,9 @@ export const ContractorJobWizardModal: React.FC<
           ) : (
             <Ionicons name="close-circle" size={18} color="#fff" />
           )}
-          <Text style={styles.dangerActionBtnText}>Confirmer le refus</Text>
+          <Text style={styles.dangerActionBtnText}>
+            {t("contractorWizard.confirmRefusal")}
+          </Text>
         </Pressable>
       </View>
     </>
@@ -1439,7 +1494,7 @@ export const ContractorJobWizardModal: React.FC<
           </Text>
           {originalValue != null && (
             <Text style={{ fontSize: 12, color: colors.textSecondary }}>
-              Demandé : {originalValue}
+              {t("contractorWizard.requested")} : {originalValue}
             </Text>
           )}
         </View>
@@ -1537,14 +1592,16 @@ export const ContractorJobWizardModal: React.FC<
             />
             <View style={styles.companyBadgeText}>
               <Text style={[styles.companyLabel, { color: colors.warning }]}>
-                Contre-proposition
+                {t("contractorWizard.counterProposalLabel")}
               </Text>
               <Text style={styles.companyName}>{job.code || job.id}</Text>
             </View>
           </View>
 
           {/* Résumé de la proposition originale */}
-          <Text style={styles.sectionTitle}>Proposition originale</Text>
+          <Text style={styles.sectionTitle}>
+            {t("contractorWizard.originalProposal")}
+          </Text>
           <View
             style={[
               styles.infoCard,
@@ -1581,7 +1638,9 @@ export const ContractorJobWizardModal: React.FC<
           </View>
 
           {/* Créneau */}
-          <Text style={styles.sectionTitle}>Nouveau créneau *</Text>
+          <Text style={styles.sectionTitle}>
+            {t("contractorWizard.newSlot")}
+          </Text>
           <View
             style={{
               flexDirection: "row",
@@ -1591,7 +1650,7 @@ export const ContractorJobWizardModal: React.FC<
           >
             <View style={{ flex: 1 }}>
               <Text style={[styles.infoLabel, { marginBottom: 4 }]}>
-                Début (HH:MM)
+                {t("contractorWizard.startHHMM")}
               </Text>
               <TextInput
                 style={styles.searchInput}
@@ -1605,7 +1664,7 @@ export const ContractorJobWizardModal: React.FC<
             </View>
             <View style={{ flex: 1 }}>
               <Text style={[styles.infoLabel, { marginBottom: 4 }]}>
-                Fin (HH:MM)
+                {t("contractorWizard.endHHMM")}
               </Text>
               <TextInput
                 style={styles.searchInput}
@@ -1620,7 +1679,9 @@ export const ContractorJobWizardModal: React.FC<
           </View>
 
           {/* Prix */}
-          <Text style={styles.sectionTitle}>Prix proposé (optionnel)</Text>
+          <Text style={styles.sectionTitle}>
+            {t("contractorWizard.proposedPrice")}
+          </Text>
           <View
             style={{
               flexDirection: "row",
@@ -1656,7 +1717,9 @@ export const ContractorJobWizardModal: React.FC<
                         : colors.textSecondary,
                   }}
                 >
-                  {type === "flat" ? "Forfait" : "Horaire (A$/h)"}
+                  {type === "flat"
+                    ? t("contractorWizard.flatType")
+                    : t("contractorWizard.hourlyType")}
                 </Text>
               </Pressable>
             ))}
@@ -1678,7 +1741,9 @@ export const ContractorJobWizardModal: React.FC<
           {/* Véhicule — seulement si le commanditaire a demandé un véhicule */}
           {hasVehicleRequest && vehicles.length > 0 && (
             <>
-              <Text style={styles.sectionTitle}>Véhicule proposé</Text>
+              <Text style={styles.sectionTitle}>
+                {t("contractorWizard.proposedVehicle")}
+              </Text>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -1711,7 +1776,7 @@ export const ContractorJobWizardModal: React.FC<
                           : colors.textSecondary,
                     }}
                   >
-                    Aucun
+                    {t("contractorWizard.noneOption")}
                   </Text>
                 </Pressable>
                 {vehicles.map((v) => (
@@ -1759,7 +1824,9 @@ export const ContractorJobWizardModal: React.FC<
           )}
 
           {/* Ressources */}
-          <Text style={styles.sectionTitle}>Ressources proposées</Text>
+          <Text style={styles.sectionTitle}>
+            {t("contractorWizard.proposedResources")}
+          </Text>
           <View
             style={[
               styles.infoCard,
@@ -1771,21 +1838,21 @@ export const ContractorJobWizardModal: React.FC<
             ]}
           >
             <CountRow
-              label="Chauffeurs"
+              label={t("contractorWizard.driversLabel")}
               value={proposedDrivers}
               originalValue={origDrivers}
               onInc={() => setProposedDrivers((n) => Math.min(n + 1, 10))}
               onDec={() => setProposedDrivers((n) => Math.max(n - 1, 0))}
             />
             <CountRow
-              label="Offsiders"
+              label={t("contractorWizard.offsidersLabel")}
               value={proposedOffsiders}
               originalValue={origOffsiders}
               onInc={() => setProposedOffsiders((n) => Math.min(n + 1, 10))}
               onDec={() => setProposedOffsiders((n) => Math.max(n - 1, 0))}
             />
             <CountRow
-              label="Packers"
+              label={t("contractorWizard.packersLabel")}
               value={proposedPackers}
               originalValue={null}
               onInc={() => setProposedPackers((n) => Math.min(n + 1, 10))}
@@ -1800,11 +1867,11 @@ export const ContractorJobWizardModal: React.FC<
               { marginTop: DESIGN_TOKENS.spacing.md },
             ]}
           >
-            Note (optionnel)
+            {t("contractorWizard.noteOptional")}
           </Text>
           <TextInput
             style={styles.reasonInput}
-            placeholder="Expliquez votre contrainte (véhicule indisponible, autre chantier, etc.)"
+            placeholder={t("contractorWizard.counterNotePlaceholder")}
             placeholderTextColor={colors.textSecondary}
             value={counterNote}
             onChangeText={setCounterNote}
@@ -1819,7 +1886,9 @@ export const ContractorJobWizardModal: React.FC<
             onPress={() => setStep("decision")}
             disabled={isSubmitting}
           >
-            <Text style={styles.secondaryActionBtnText}>← Retour</Text>
+            <Text style={styles.secondaryActionBtnText}>
+              {t("contractorWizard.backButton")}
+            </Text>
           </Pressable>
           <Pressable
             testID="counter-proposal-submit-btn"
@@ -1840,7 +1909,7 @@ export const ContractorJobWizardModal: React.FC<
               <Ionicons name="swap-horizontal" size={18} color="#fff" />
             )}
             <Text style={styles.primaryActionBtnText}>
-              Envoyer la proposition
+              {t("contractorWizard.sendProposal")}
             </Text>
           </Pressable>
         </View>
@@ -1860,9 +1929,13 @@ export const ContractorJobWizardModal: React.FC<
           >
             <Ionicons name="swap-horizontal" size={44} color={colors.warning} />
           </View>
-          <Text style={styles.resultTitle}>Proposition envoyée</Text>
+          <Text style={styles.resultTitle}>
+            {t("contractorWizard.proposalSent")}
+          </Text>
           <Text style={styles.resultSubtitle}>
-            {`Votre contre-proposition a été transmise à ${contracteeName}.\nVous serez notifié de leur réponse.`}
+            {t("contractorWizard.proposalSentDesc", {
+              company: contracteeName,
+            })}
           </Text>
         </View>
       </View>
@@ -1873,7 +1946,7 @@ export const ContractorJobWizardModal: React.FC<
             size={18}
             color={colors.buttonPrimaryText}
           />
-          <Text style={styles.primaryActionBtnText}>Fermer</Text>
+          <Text style={styles.primaryActionBtnText}>{t("common.close")}</Text>
         </Pressable>
       </View>
     </>
@@ -1895,11 +1968,15 @@ export const ContractorJobWizardModal: React.FC<
               color={colors.success}
             />
           </View>
-          <Text style={styles.resultTitle}>Job accepté !</Text>
+          <Text style={styles.resultTitle}>
+            {t("contractorWizard.jobAcceptedSuccess")}
+          </Text>
           <Text style={styles.resultSubtitle}>
             {selectedStaffIds.length > 0
-              ? `${selectedStaffIds.length} employé(s) assigné(s) avec succès.\n${contracteeName} a été notifié.`
-              : `Job accepté avec succès.\n${contracteeName} a été notifié.\nVous pouvez assigner vos employés depuis les détails du job.`}
+              ? t("contractorWizard.employeesAssigned", {
+                  count: selectedStaffIds.length,
+                })
+              : t("contractorWizard.jobAcceptedNoStaff")}
           </Text>
         </View>
       </View>
@@ -1910,7 +1987,7 @@ export const ContractorJobWizardModal: React.FC<
             size={18}
             color={colors.buttonPrimaryText}
           />
-          <Text style={styles.primaryActionBtnText}>Fermer</Text>
+          <Text style={styles.primaryActionBtnText}>{t("common.close")}</Text>
         </Pressable>
       </View>
     </>
@@ -1928,15 +2005,17 @@ export const ContractorJobWizardModal: React.FC<
           >
             <Ionicons name="close-circle" size={44} color={colors.error} />
           </View>
-          <Text style={styles.resultTitle}>Job refusé</Text>
+          <Text style={styles.resultTitle}>
+            {t("contractorWizard.jobDeclined")}
+          </Text>
           <Text style={styles.resultSubtitle}>
-            {`${contracteeName} a été informé de votre refus.\nSi votre situation change, contactez-les directement.`}
+            {t("contractorWizard.jobDeclinedDesc", { company: contracteeName })}
           </Text>
         </View>
       </View>
       <View style={styles.actionBar}>
         <Pressable style={styles.primaryActionBtn} onPress={onClose}>
-          <Text style={styles.primaryActionBtnText}>Fermer</Text>
+          <Text style={styles.primaryActionBtnText}>{t("common.close")}</Text>
         </Pressable>
       </View>
     </>
@@ -1947,14 +2026,38 @@ export const ContractorJobWizardModal: React.FC<
   // ─────────────────────────────────────────────
 
   const stepConfig: Record<WizardStep, { label: string; title: string }> = {
-    overview: { label: "Aperçu", title: "Détails du job" },
-    decision: { label: "Réponse", title: "Accepter ou Refuser ?" },
-    assign_staff: { label: "Équipe", title: "Assigner vos employés" },
-    decline_reason: { label: "Refus", title: "Motif du refus" },
-    counter_proposal: { label: "Contre-prop.", title: "Nouvelle proposition" },
-    counter_proposed: { label: "Terminé", title: "Proposition envoyée" },
-    success: { label: "Terminé", title: "Confirmé" },
-    declined: { label: "Terminé", title: "Job refusé" },
+    overview: {
+      label: t("contractorWizard.stepOverview"),
+      title: t("contractorWizard.stepOverviewTitle"),
+    },
+    decision: {
+      label: t("contractorWizard.stepDecision"),
+      title: t("contractorWizard.stepDecisionTitle"),
+    },
+    assign_staff: {
+      label: t("contractorWizard.stepTeam"),
+      title: t("contractorWizard.stepTeamTitle"),
+    },
+    decline_reason: {
+      label: t("contractorWizard.stepRefusal"),
+      title: t("contractorWizard.stepRefusalTitle"),
+    },
+    counter_proposal: {
+      label: t("contractorWizard.stepCounter"),
+      title: t("contractorWizard.stepCounterTitle"),
+    },
+    counter_proposed: {
+      label: t("contractorWizard.stepDone"),
+      title: t("contractorWizard.proposalSent"),
+    },
+    success: {
+      label: t("contractorWizard.stepDone"),
+      title: t("contractorWizard.stepConfirmed"),
+    },
+    declined: {
+      label: t("contractorWizard.stepDone"),
+      title: t("contractorWizard.stepDeclinedTitle"),
+    },
   };
 
   const { label: stepLabel, title: stepTitle } = stepConfig[step];

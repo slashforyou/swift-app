@@ -19,6 +19,7 @@ import {
   Pressable,
   ScrollView,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { DESIGN_TOKENS } from "../../constants/Styles";
@@ -70,6 +71,94 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({
     name: "",
     number: 0,
   });
+
+  // Pause duration modal state
+  const [showPauseModal, setShowPauseModal] = React.useState(false);
+  const [customMinutes, setCustomMinutes] = React.useState("");
+  const [showCustomInput, setShowCustomInput] = React.useState(false);
+  const [pauseResumeTime, setPauseResumeTime] = React.useState<number | null>(
+    null,
+  );
+  const [pauseCountdown, setPauseCountdown] = React.useState("");
+  const pauseTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const countdownIntervalRef = React.useRef<ReturnType<
+    typeof setInterval
+  > | null>(null);
+
+  const PAUSE_OPTIONS = [
+    { label: t("jobs.timer.noDuration" as any), minutes: 0 },
+    { label: t("jobs.timer.minutes" as any, { count: 10 }), minutes: 10 },
+    { label: t("jobs.timer.minutes" as any, { count: 15 }), minutes: 15 },
+    { label: t("jobs.timer.minutes" as any, { count: 30 }), minutes: 30 },
+  ];
+
+  const handlePauseWithDuration = (minutes: number) => {
+    togglePause(); // Pause the timer
+    setShowPauseModal(false);
+    setShowCustomInput(false);
+    setCustomMinutes("");
+
+    if (minutes > 0) {
+      const resumeAt = Date.now() + minutes * 60 * 1000;
+      setPauseResumeTime(resumeAt);
+
+      // Auto-resume timer
+      pauseTimerRef.current = setTimeout(
+        () => {
+          togglePause(); // Resume
+          setPauseResumeTime(null);
+          setPauseCountdown("");
+        },
+        minutes * 60 * 1000,
+      );
+    } else {
+      setPauseResumeTime(null);
+    }
+  };
+
+  // Countdown display while paused with duration
+  React.useEffect(() => {
+    if (pauseResumeTime && isOnBreak) {
+      countdownIntervalRef.current = setInterval(() => {
+        const remaining = pauseResumeTime - Date.now();
+        if (remaining <= 0) {
+          setPauseCountdown("");
+          setPauseResumeTime(null);
+          if (countdownIntervalRef.current)
+            clearInterval(countdownIntervalRef.current);
+          return;
+        }
+        const mins = Math.floor(remaining / 60000);
+        const secs = Math.floor((remaining % 60000) / 1000);
+        setPauseCountdown(`${mins}:${secs.toString().padStart(2, "0")}`);
+      }, 1000);
+      return () => {
+        if (countdownIntervalRef.current)
+          clearInterval(countdownIntervalRef.current);
+      };
+    }
+  }, [pauseResumeTime, isOnBreak]);
+
+  // Clear auto-resume if manually resumed
+  React.useEffect(() => {
+    if (!isOnBreak && pauseTimerRef.current) {
+      clearTimeout(pauseTimerRef.current);
+      pauseTimerRef.current = null;
+      setPauseResumeTime(null);
+      setPauseCountdown("");
+    }
+  }, [isOnBreak]);
+
+  // Cleanup on unmount
+  React.useEffect(() => {
+    return () => {
+      if (pauseTimerRef.current) clearTimeout(pauseTimerRef.current);
+      if (countdownIntervalRef.current)
+        clearInterval(countdownIntervalRef.current);
+    };
+  }, []);
 
   // ✅ Loading state: attendre que les données soient prêtes
   const [isLoadingSignature, setIsLoadingSignature] = React.useState(true);
@@ -495,7 +584,7 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({
           <>
             <Pressable
               testID="job-timer-pause-btn"
-              onPress={togglePause}
+              onPress={() => setShowPauseModal(true)}
               style={({ pressed }) => ({
                 paddingHorizontal: DESIGN_TOKENS.spacing.lg,
                 paddingVertical: DESIGN_TOKENS.spacing.md,
@@ -557,32 +646,47 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({
           </>
         )}
 
-        {/* === PAUSED: Play button only === */}
+        {/* === PAUSED: Play button + countdown === */}
         {displayState === "PAUSED" && (
-          <Pressable
-            testID="job-timer-play-btn"
-            onPress={togglePause}
-            style={({ pressed }) => ({
-              paddingHorizontal: DESIGN_TOKENS.spacing.lg,
-              paddingVertical: DESIGN_TOKENS.spacing.md,
-              borderRadius: DESIGN_TOKENS.radius.md,
-              backgroundColor: pressed ? colors.success + "DD" : colors.success,
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 8,
-              flex: 1,
-              justifyContent: "center",
-              minHeight: 48,
-            })}
-          >
-            <Ionicons name="play" size={20} color="#FFFFFF" />
-            <Text
-              style={{ color: "#FFFFFF", fontSize: 15, fontWeight: "700" }}
-              numberOfLines={1}
+          <View style={{ flex: 1, gap: DESIGN_TOKENS.spacing.sm }}>
+            <Pressable
+              testID="job-timer-play-btn"
+              onPress={togglePause}
+              style={({ pressed }) => ({
+                paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+                paddingVertical: DESIGN_TOKENS.spacing.md,
+                borderRadius: DESIGN_TOKENS.radius.md,
+                backgroundColor: pressed
+                  ? colors.success + "DD"
+                  : colors.success,
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 8,
+                justifyContent: "center",
+                minHeight: 48,
+              })}
             >
-              {t("jobs.timer.start")}
-            </Text>
-          </Pressable>
+              <Ionicons name="play" size={20} color="#FFFFFF" />
+              <Text
+                style={{ color: "#FFFFFF", fontSize: 15, fontWeight: "700" }}
+                numberOfLines={1}
+              >
+                {t("jobs.timer.resume")}
+              </Text>
+            </Pressable>
+            {pauseCountdown !== "" && (
+              <Text
+                style={{
+                  textAlign: "center",
+                  fontSize: 13,
+                  color: colors.warning,
+                  fontWeight: "600",
+                }}
+              >
+                {t("jobs.timer.resumesIn" as any, { time: pauseCountdown })}
+              </Text>
+            )}
+          </View>
         )}
 
         {/* === COMPLETED_NEEDS_SIGNATURE: Signature button === */}
@@ -790,6 +894,180 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({
             </View>
           </View>
         </View>
+      </Modal>
+
+      {/* Modal: Pause duration selection */}
+      <Modal
+        visible={showPauseModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => {
+          setShowPauseModal(false);
+          setShowCustomInput(false);
+          setCustomMinutes("");
+        }}
+      >
+        <Pressable
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            justifyContent: "center",
+            alignItems: "center",
+            padding: 20,
+          }}
+          onPress={() => {
+            setShowPauseModal(false);
+            setShowCustomInput(false);
+            setCustomMinutes("");
+          }}
+        >
+          <Pressable
+            onPress={(e) => e.stopPropagation()}
+            style={{
+              backgroundColor: colors.background,
+              borderRadius: 16,
+              padding: 24,
+              width: "100%",
+              maxWidth: 340,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+              elevation: 8,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: "700",
+                color: colors.text,
+                marginBottom: 16,
+                textAlign: "center",
+              }}
+            >
+              ⏸️ {t("jobs.timer.pauseDuration" as any)}
+            </Text>
+
+            <View style={{ gap: DESIGN_TOKENS.spacing.sm }}>
+              {PAUSE_OPTIONS.map((option) => (
+                <Pressable
+                  key={option.minutes}
+                  onPress={() => handlePauseWithDuration(option.minutes)}
+                  style={({ pressed }) => ({
+                    paddingVertical: DESIGN_TOKENS.spacing.md,
+                    paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+                    borderRadius: DESIGN_TOKENS.radius.md,
+                    backgroundColor: pressed
+                      ? colors.warning + "20"
+                      : colors.backgroundSecondary,
+                    borderWidth: 1,
+                    borderColor: pressed ? colors.warning : colors.border,
+                    alignItems: "center",
+                  })}
+                >
+                  <Text
+                    style={{
+                      fontSize: 15,
+                      fontWeight: "600",
+                      color: colors.text,
+                    }}
+                  >
+                    {option.label}
+                  </Text>
+                </Pressable>
+              ))}
+
+              {/* Custom duration option */}
+              {!showCustomInput ? (
+                <Pressable
+                  onPress={() => setShowCustomInput(true)}
+                  style={({ pressed }) => ({
+                    paddingVertical: DESIGN_TOKENS.spacing.md,
+                    paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+                    borderRadius: DESIGN_TOKENS.radius.md,
+                    backgroundColor: pressed
+                      ? colors.primary + "20"
+                      : colors.backgroundSecondary,
+                    borderWidth: 1,
+                    borderColor: pressed ? colors.primary : colors.border,
+                    alignItems: "center",
+                    flexDirection: "row",
+                    justifyContent: "center",
+                    gap: 8,
+                  })}
+                >
+                  <Ionicons
+                    name="timer-outline"
+                    size={18}
+                    color={colors.primary}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 15,
+                      fontWeight: "600",
+                      color: colors.primary,
+                    }}
+                  >
+                    {t("jobs.timer.custom" as any)}
+                  </Text>
+                </Pressable>
+              ) : (
+                <View style={{ gap: DESIGN_TOKENS.spacing.sm }}>
+                  <TextInput
+                    autoFocus
+                    keyboardType="number-pad"
+                    placeholder={t("jobs.timer.customMinutes" as any)}
+                    placeholderTextColor={colors.textMuted}
+                    value={customMinutes}
+                    onChangeText={(text) =>
+                      setCustomMinutes(text.replace(/[^0-9]/g, ""))
+                    }
+                    maxLength={3}
+                    style={{
+                      borderWidth: 1,
+                      borderColor: colors.border,
+                      borderRadius: DESIGN_TOKENS.radius.md,
+                      padding: DESIGN_TOKENS.spacing.md,
+                      fontSize: 16,
+                      color: colors.text,
+                      textAlign: "center",
+                    }}
+                  />
+                  <Pressable
+                    onPress={() => {
+                      const mins = parseInt(customMinutes, 10);
+                      if (mins > 0) handlePauseWithDuration(mins);
+                    }}
+                    disabled={
+                      !customMinutes || parseInt(customMinutes, 10) <= 0
+                    }
+                    style={({ pressed }) => ({
+                      paddingVertical: DESIGN_TOKENS.spacing.md,
+                      borderRadius: DESIGN_TOKENS.radius.md,
+                      backgroundColor:
+                        !customMinutes || parseInt(customMinutes, 10) <= 0
+                          ? colors.warning + "60"
+                          : pressed
+                            ? colors.warning + "DD"
+                            : colors.warning,
+                      alignItems: "center",
+                    })}
+                  >
+                    <Text
+                      style={{
+                        color: "#FFFFFF",
+                        fontSize: 15,
+                        fontWeight: "700",
+                      }}
+                    >
+                      {t("jobs.timer.confirm" as any)}
+                    </Text>
+                  </Pressable>
+                </View>
+              )}
+            </View>
+          </Pressable>
+        </Pressable>
       </Modal>
     </View>
   );

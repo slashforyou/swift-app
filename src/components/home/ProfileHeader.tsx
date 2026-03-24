@@ -15,17 +15,17 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { Image, Pressable, Text, View } from "react-native";
+import { getAvatarSource } from "../ui/AvatarPickerModal";
 import { DESIGN_TOKENS } from "../../constants/Styles";
-import { useNotifications } from "../../context/NotificationsProvider";
 import { useTheme } from "../../context/ThemeProvider";
 import { useGamification } from "../../hooks/useGamification";
 import { useLocalization } from "../../localization";
 import { HStack } from "../primitives/Stack";
-import NotificationsPanel from "./NotificationsPanel";
 
 interface ProfileHeaderProps {
   navigation: any;
   onLanguagePress?: () => void;
+  avatarId?: string | null;
   user?: {
     firstName?: string;
     lastName?: string;
@@ -49,12 +49,11 @@ let lastTapTime = 0;
 const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   navigation,
   onLanguagePress,
+  avatarId,
 }) => {
   const { data: gamificationData, isLoading, addXP } = useGamification();
   const { colors } = useTheme();
   const { t } = useLocalization();
-  const { unreadCount } = useNotifications();
-  const [showNotifications, setShowNotifications] = useState(false);
 
   // Utiliser les données de gamification ou des valeurs par défaut
   const user = gamificationData || {
@@ -77,63 +76,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
     <>
       {/* Container */}
       <View testID="home-profile-header">
-        {/* Barre du haut - Notifications + Langue */}
-        <HStack
-          gap="sm"
-          align="center"
-          justify="flex-end"
-          style={{
-            paddingHorizontal: DESIGN_TOKENS.spacing.lg,
-            marginBottom: DESIGN_TOKENS.spacing.sm,
-          }}
-        >
-          <Pressable
-            testID="home-notifications-btn"
-            onPress={() => setShowNotifications(true)}
-            style={({ pressed }) => ({
-              width: 40,
-              height: 40,
-              borderRadius: 20,
-              backgroundColor: pressed
-                ? colors.backgroundTertiary
-                : colors.backgroundSecondary,
-              justifyContent: "center",
-              alignItems: "center",
-            })}
-          >
-            <Ionicons
-              name="notifications"
-              size={20}
-              color={colors.textSecondary}
-            />
-            {unreadCount > 0 && (
-              <View
-                style={{
-                  position: "absolute",
-                  top: -2,
-                  right: -2,
-                  backgroundColor: colors.error,
-                  borderRadius: 9,
-                  minWidth: 18,
-                  height: 18,
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                <Text
-                  style={{
-                    color: "white",
-                    fontSize: 10,
-                    fontWeight: "700",
-                  }}
-                >
-                  {unreadCount > 9 ? "9+" : unreadCount}
-                </Text>
-              </View>
-            )}
-          </Pressable>
-        </HStack>
-
         {/* Card compacte - Avatar + Level + Progression */}
         <Pressable
           testID="home-profile-card"
@@ -180,10 +122,12 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                 }}
               >
                 <Image
-                  source={require("../../../assets/images/mascot/mascotte_profil.png")}
+                  source={getAvatarSource(avatarId)}
                   style={{
-                    width: "100%",
-                    height: "100%",
+                    width: "125%",
+                    height: "125%",
+                    marginLeft: "-12.5%",
+                    marginTop: "-12.5%",
                   }}
                   resizeMode="cover"
                 />
@@ -295,12 +239,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           </HStack>
         </Pressable>
       </View>
-
-      {/* Panel des notifications */}
-      <NotificationsPanel
-        isVisible={showNotifications}
-        onClose={() => setShowNotifications(false)}
-      />
     </>
   );
 };

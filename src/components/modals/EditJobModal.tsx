@@ -355,13 +355,14 @@ export default function EditJobModal({
                 >
                   <Text style={styles.optionEmoji}>{option.emoji}</Text>
                   <Text style={[styles.optionLabel, { color: colors.text }]}>
-                    {option.label}
+                    {t(
+                      `editJobModal.status${option.key.charAt(0).toUpperCase() + option.key.slice(1).replace(/-./g, (c) => c[1].toUpperCase())}` as any,
+                    )}
                   </Text>
                 </Pressable>
               ))}
             </View>
 
-            {/* Priority */}
             <Text style={styles.sectionLabel}>
               {t("jobs.priority") || "Priority"}
             </Text>
@@ -384,13 +385,12 @@ export default function EditJobModal({
                 >
                   <Text style={styles.optionEmoji}>{option.emoji}</Text>
                   <Text style={[styles.optionLabel, { color: colors.text }]}>
-                    {option.label}
+                    {t(`editJobModal.${option.key}` as any)}
                   </Text>
                 </Pressable>
               ))}
             </View>
 
-            {/* Addresses */}
             {addresses && addresses.length > 0 && (
               <>
                 <Text style={styles.sectionLabel}>
@@ -408,7 +408,9 @@ export default function EditJobModal({
                           { color: colors.textSecondary },
                         ]}
                       >
-                        {address.type === "pickup" ? "Pickup" : "Delivery"}
+                        {address.type === "pickup"
+                          ? t("editJobModal.pickupType")
+                          : t("editJobModal.deliveryType")}
                       </Text>
                     </View>
                     <View
@@ -419,7 +421,7 @@ export default function EditJobModal({
                     >
                       <TextInput
                         style={[styles.input, { color: colors.text }]}
-                        placeholder="Street"
+                        placeholder={t("editJobModal.streetPlaceholder")}
                         placeholderTextColor={colors.textSecondary}
                         value={address.street}
                         onChangeText={(value) =>
@@ -437,7 +439,7 @@ export default function EditJobModal({
                       >
                         <TextInput
                           style={[styles.input, { color: colors.text }]}
-                          placeholder="City"
+                          placeholder={t("editJobModal.cityPlaceholder")}
                           placeholderTextColor={colors.textSecondary}
                           value={address.city}
                           onChangeText={(value) =>
@@ -454,7 +456,7 @@ export default function EditJobModal({
                       >
                         <TextInput
                           style={[styles.input, { color: colors.text }]}
-                          placeholder="State"
+                          placeholder={t("editJobModal.statePlaceholder")}
                           placeholderTextColor={colors.textSecondary}
                           value={address.state}
                           onChangeText={(value) =>
@@ -474,7 +476,9 @@ export default function EditJobModal({
             </Text>
             <View style={styles.timeSection}>
               <View style={styles.timeBlock}>
-                <Text style={styles.timeLabel}>Start Time</Text>
+                <Text style={styles.timeLabel}>
+                  {t("editJobModal.startTime")}
+                </Text>
                 <View
                   style={[
                     styles.inputGroup,
@@ -499,7 +503,9 @@ export default function EditJobModal({
                 </View>
               </View>
               <View style={styles.timeBlock}>
-                <Text style={styles.timeLabel}>End Time</Text>
+                <Text style={styles.timeLabel}>
+                  {t("editJobModal.endTime")}
+                </Text>
                 <View
                   style={[
                     styles.inputGroup,

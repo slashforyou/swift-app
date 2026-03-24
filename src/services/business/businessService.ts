@@ -18,6 +18,7 @@ export interface BusinessInfo {
   email: string;
   businessType: string;
   website?: string;
+  logo_url?: string;
   created_at: string;
   updated_at: string;
 }
@@ -275,6 +276,45 @@ export const fetchBusinessStats = async (
   } catch (error) {
     // Fallback silencieux sur mock data
     return mockBusinessStats;
+  }
+};
+
+/**
+ * Upload le logo d'une entreprise
+ */
+export const uploadCompanyLogo = async (
+  companyId: string,
+  imageUri: string,
+): Promise<{ success: boolean; logo_url?: string }> => {
+  try {
+    const formData = new FormData();
+    const filename = imageUri.split("/").pop() || "logo.jpg";
+    const match = /\.(\w+)$/.exec(filename);
+    const type = match ? `image/${match[1]}` : "image/jpeg";
+
+    formData.append("logo", {
+      uri: imageUri,
+      name: filename,
+      type,
+    } as any);
+
+    const response = await fetchWithAuth(
+      `${ServerData.serverUrl}v1/company/${companyId}/logo`,
+      {
+        method: "POST",
+        body: formData,
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { success: true, logo_url: data.logo_url };
+  } catch (error) {
+    console.error("[BusinessService] Error uploading logo:", error);
+    return { success: false };
   }
 };
 

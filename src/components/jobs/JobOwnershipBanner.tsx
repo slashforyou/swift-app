@@ -7,6 +7,7 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
+import { useTranslation } from "../../localization";
 
 export interface JobOwnership {
   // Contractee (créateur du job, reçoit le paiement)
@@ -45,6 +46,7 @@ export const JobOwnershipBanner: React.FC<JobOwnershipBannerProps> = ({
   variant = "compact",
 }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   // Validation défensive - Vérifier que toutes les données nécessaires existent
   if (
     !ownership ||
@@ -86,21 +88,21 @@ export const JobOwnershipBanner: React.FC<JobOwnershipBannerProps> = ({
     switch (assignment_status) {
       case "pending":
         return {
-          text: "En attente d'acceptation",
+          text: t("ownership.pendingAcceptance"),
           icon: "time-outline" as const,
           color: colors.warning,
           bgColor: colors.warning + "20",
         };
       case "accepted":
         return {
-          text: "Accepté",
+          text: t("ownership.acceptedStatus"),
           icon: "checkmark-circle-outline" as const,
           color: colors.success,
           bgColor: colors.success + "20",
         };
       case "declined":
         return {
-          text: "Refusé",
+          text: t("ownership.declinedStatus"),
           icon: "close-circle-outline" as const,
           color: colors.error,
           bgColor: colors.error + "20",
@@ -186,8 +188,8 @@ export const JobOwnershipBanner: React.FC<JobOwnershipBannerProps> = ({
           />
           <Text style={styles.title}>
             {permissions.is_owner
-              ? "Votre Job"
-              : `Job de: ${contractee.company_name}`}
+              ? t("ownership.yourJob")
+              : `${t("ownership.jobFrom")} ${contractee.company_name}`}
           </Text>
         </View>
 
@@ -222,17 +224,17 @@ export const JobOwnershipBanner: React.FC<JobOwnershipBannerProps> = ({
           color={colors.textSecondary}
           style={styles.icon}
         />
-        <Text style={styles.title}>Parties Impliquées</Text>
+        <Text style={styles.title}>{t("ownership.partiesInvolved")}</Text>
       </View>
 
       <View>
         <View style={styles.row}>
-          <Text style={styles.label}>Créateur (Contractee):</Text>
+          <Text style={styles.label}>{t("ownership.creatorContractee")}</Text>
         </View>
         <Text style={styles.companyName}>{contractee.company_name}</Text>
         {contractee.created_by_name && (
           <Text style={[styles.label, { marginTop: 2 }]}>
-            par {contractee.created_by_name}
+            {t("ownership.by")} {contractee.created_by_name}
           </Text>
         )}
       </View>
@@ -243,12 +245,14 @@ export const JobOwnershipBanner: React.FC<JobOwnershipBannerProps> = ({
 
           <View>
             <View style={styles.row}>
-              <Text style={styles.label}>Exécutant (Contractor):</Text>
+              <Text style={styles.label}>
+                {t("ownership.executorContractor")}
+              </Text>
             </View>
             <Text style={styles.companyName}>{contractor.company_name}</Text>
             {contractor.assigned_staff_name && (
               <Text style={[styles.label, { marginTop: 2 }]}>
-                Assigné à {contractor.assigned_staff_name}
+                {t("ownership.assignedTo")} {contractor.assigned_staff_name}
               </Text>
             )}
           </View>

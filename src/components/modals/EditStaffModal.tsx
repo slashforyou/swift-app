@@ -2,25 +2,25 @@
  * EditStaffModal - Modal pour modifier un membre du personnel
  * Permet d'éditer un employé ou un prestataire
  */
-import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect, useState } from 'react';
+import { Ionicons } from "@expo/vector-icons";
+import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
-} from 'react-native';
-import { DESIGN_TOKENS } from '../../constants/Styles';
-import { useTheme } from '../../context/ThemeProvider';
-import { useLocalization } from '../../localization/useLocalization';
-import { Contractor, Employee, StaffMember } from '../../types/staff';
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import { DESIGN_TOKENS } from "../../constants/Styles";
+import { useTheme } from "../../context/ThemeProvider";
+import { useLocalization } from "../../localization/useLocalization";
+import { Contractor, Employee, StaffMember } from "../../types/staff";
 
 interface EditStaffModalProps {
   visible: boolean;
@@ -40,21 +40,27 @@ export default function EditStaffModal({
   const [isLoading, setIsLoading] = useState(false);
 
   // Champs communs
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [role, setRole] = useState('');
-  const [team, setTeam] = useState('');
-  const [status, setStatus] = useState<'active' | 'inactive' | 'pending'>('active');
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [role, setRole] = useState("");
+  const [team, setTeam] = useState("");
+  const [status, setStatus] = useState<"active" | "inactive" | "pending">(
+    "active",
+  );
 
   // Champs employé
-  const [hourlyRate, setHourlyRate] = useState('');
+  const [hourlyRate, setHourlyRate] = useState("");
 
   // Champs prestataire
-  const [rate, setRate] = useState('');
-  const [rateType, setRateType] = useState<'hourly' | 'fixed' | 'project'>('hourly');
-  const [contractStatus, setContractStatus] = useState<'non-exclusive' | 'exclusive' | 'preferred' | 'standard'>('standard');
+  const [rate, setRate] = useState("");
+  const [rateType, setRateType] = useState<"hourly" | "fixed" | "project">(
+    "hourly",
+  );
+  const [contractStatus, setContractStatus] = useState<
+    "non-exclusive" | "exclusive" | "preferred" | "standard"
+  >("standard");
 
   useEffect(() => {
     if (member) {
@@ -63,10 +69,10 @@ export default function EditStaffModal({
       setEmail(member.email);
       setPhone(member.phone);
       setRole(member.role);
-      setTeam(member.team || '');
+      setTeam(member.team || "");
       setStatus(member.status);
 
-      if (member.type === 'employee') {
+      if (member.type === "employee") {
         const emp = member as Employee;
         setHourlyRate(emp.hourlyRate.toString());
       } else {
@@ -82,15 +88,24 @@ export default function EditStaffModal({
     if (!member) return;
 
     if (!firstName || !lastName) {
-      Alert.alert(t('staffModals.editStaff.validation.error'), t('staffModals.editStaff.validation.nameRequired'));
+      Alert.alert(
+        t("staffModals.editStaff.validation.error"),
+        t("staffModals.editStaff.validation.nameRequired"),
+      );
       return;
     }
     if (!email) {
-      Alert.alert(t('staffModals.editStaff.validation.error'), t('staffModals.editStaff.validation.emailRequired'));
+      Alert.alert(
+        t("staffModals.editStaff.validation.error"),
+        t("staffModals.editStaff.validation.emailRequired"),
+      );
       return;
     }
     if (!role) {
-      Alert.alert(t('staffModals.editStaff.validation.error'), t('staffModals.editStaff.validation.positionRequired'));
+      Alert.alert(
+        t("staffModals.editStaff.validation.error"),
+        t("staffModals.editStaff.validation.positionRequired"),
+      );
       return;
     }
 
@@ -106,8 +121,9 @@ export default function EditStaffModal({
         status,
       };
 
-      if (member.type === 'employee') {
-        (updateData as Partial<Employee>).hourlyRate = parseFloat(hourlyRate) || 0;
+      if (member.type === "employee") {
+        (updateData as Partial<Employee>).hourlyRate =
+          parseFloat(hourlyRate) || 0;
       } else {
         (updateData as Partial<Contractor>).rate = parseFloat(rate) || 0;
         (updateData as Partial<Contractor>).rateType = rateType;
@@ -115,33 +131,39 @@ export default function EditStaffModal({
       }
 
       await onSave(member.id, updateData);
-      Alert.alert(t('staffModals.editStaff.success.title'), t('staffModals.editStaff.success.memberUpdated'));
+      Alert.alert(
+        t("staffModals.editStaff.success.title"),
+        t("staffModals.editStaff.success.memberUpdated"),
+      );
       onClose();
     } catch (error) {
-      Alert.alert(t('staffModals.editStaff.error.title'), t('staffModals.editStaff.error.updateFailed'));
+      Alert.alert(
+        t("staffModals.editStaff.error.title"),
+        t("staffModals.editStaff.error.updateFailed"),
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   const roles = [
-    'Moving Supervisor',
-    'Senior Mover',
-    'Mover',
-    'Packing Specialist',
-    'Truck Driver',
-    'Warehouse Manager',
-    'Storage Specialist',
-    'Admin',
+    "Moving Supervisor",
+    "Senior Mover",
+    "Mover",
+    "Packing Specialist",
+    "Truck Driver",
+    "Warehouse Manager",
+    "Storage Specialist",
+    "Admin",
   ];
 
   const teams = [
-    'Local Moving Team A',
-    'Local Moving Team B',
-    'Interstate Moving Team',
-    'External Contractors',
-    'Warehouse Team',
-    'Office Staff',
+    "Local Moving Team A",
+    "Local Moving Team B",
+    "Interstate Moving Team",
+    "External Contractors",
+    "Warehouse Team",
+    "Office Staff",
   ];
 
   if (!member) return null;
@@ -155,7 +177,7 @@ export default function EditStaffModal({
     >
       <KeyboardAvoidingView
         style={[styles.container, { backgroundColor: colors.background }]}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         {/* Header */}
         <View style={[styles.header, { borderBottomColor: colors.border }]}>
@@ -163,7 +185,9 @@ export default function EditStaffModal({
             <Ionicons name="close" size={28} color={colors.text} />
           </Pressable>
           <Text style={[styles.headerTitle, { color: colors.text }]}>
-            Modifier {member.type === 'employee' ? 'l\'employé' : 'le prestataire'}
+            {member.type === "employee"
+              ? t("staffMgmt.editEmployee")
+              : t("staffMgmt.editContractor")}
           </Text>
           <Pressable
             onPress={handleSave}
@@ -173,71 +197,109 @@ export default function EditStaffModal({
             {isLoading ? (
               <ActivityIndicator size="small" color={colors.background} />
             ) : (
-              <Text style={[styles.saveButtonText, { color: colors.background }]}>Enregistrer</Text>
+              <Text
+                style={[styles.saveButtonText, { color: colors.background }]}
+              >
+                {t("common.save")}
+              </Text>
             )}
           </Pressable>
         </View>
 
-        <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.content}
+        >
           {/* Type indicator */}
-          <View style={[styles.typeIndicator, { 
-            backgroundColor: member.type === 'employee' ? `${colors.success}20` : `${colors.info}20` 
-          }]}>
-            <Ionicons 
-              name={member.type === 'employee' ? 'person' : 'briefcase'} 
-              size={24} 
-              color={member.type === 'employee' ? colors.success : colors.info} 
+          <View
+            style={[
+              styles.typeIndicator,
+              {
+                backgroundColor:
+                  member.type === "employee"
+                    ? `${colors.success}20`
+                    : `${colors.info}20`,
+              },
+            ]}
+          >
+            <Ionicons
+              name={member.type === "employee" ? "person" : "briefcase"}
+              size={24}
+              color={member.type === "employee" ? colors.success : colors.info}
             />
-            <Text style={[styles.typeText, { 
-              color: member.type === 'employee' ? colors.success : colors.info 
-            }]}>
-              {member.type === 'employee' ? 'Employé (TFN)' : 'Prestataire (ABN)'}
+            <Text
+              style={[
+                styles.typeText,
+                {
+                  color:
+                    member.type === "employee" ? colors.success : colors.info,
+                },
+              ]}
+            >
+              {member.type === "employee"
+                ? t("staffMgmt.employeeTFN")
+                : t("staffMgmt.contractorABN")}
             </Text>
           </View>
 
           {/* Informations personnelles */}
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Informations personnelles
+            {t("staffMgmt.personalInfo")}
           </Text>
 
           <View style={styles.row}>
             <View style={styles.halfField}>
-              <Text style={[styles.label, { color: colors.textSecondary }]}>Prénom</Text>
+              <Text style={[styles.label, { color: colors.textSecondary }]}>
+                {t("staffMgmt.firstName")}
+              </Text>
               <TextInput
-                style={[styles.input, { 
-                  backgroundColor: colors.backgroundSecondary,
-                  color: colors.text,
-                  borderColor: colors.border
-                }]}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: colors.backgroundSecondary,
+                    color: colors.text,
+                    borderColor: colors.border,
+                  },
+                ]}
                 value={firstName}
                 onChangeText={setFirstName}
-                placeholder="Prénom"
+                placeholder={t("staffMgmt.firstName")}
                 placeholderTextColor={colors.textSecondary}
               />
             </View>
             <View style={styles.halfField}>
-              <Text style={[styles.label, { color: colors.textSecondary }]}>Nom</Text>
+              <Text style={[styles.label, { color: colors.textSecondary }]}>
+                {t("staffMgmt.lastName")}
+              </Text>
               <TextInput
-                style={[styles.input, { 
-                  backgroundColor: colors.backgroundSecondary,
-                  color: colors.text,
-                  borderColor: colors.border
-                }]}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: colors.backgroundSecondary,
+                    color: colors.text,
+                    borderColor: colors.border,
+                  },
+                ]}
                 value={lastName}
                 onChangeText={setLastName}
-                placeholder="Nom"
+                placeholder={t("staffMgmt.lastName")}
                 placeholderTextColor={colors.textSecondary}
               />
             </View>
           </View>
 
-          <Text style={[styles.label, { color: colors.textSecondary }]}>Email</Text>
+          <Text style={[styles.label, { color: colors.textSecondary }]}>
+            {t("staffMgmt.emailLabel")}
+          </Text>
           <TextInput
-            style={[styles.input, { 
-              backgroundColor: colors.backgroundSecondary,
-              color: colors.text,
-              borderColor: colors.border
-            }]}
+            style={[
+              styles.input,
+              {
+                backgroundColor: colors.backgroundSecondary,
+                color: colors.text,
+                borderColor: colors.border,
+              },
+            ]}
             value={email}
             onChangeText={setEmail}
             placeholder="email@exemple.com"
@@ -246,13 +308,18 @@ export default function EditStaffModal({
             autoCapitalize="none"
           />
 
-          <Text style={[styles.label, { color: colors.textSecondary }]}>Téléphone</Text>
+          <Text style={[styles.label, { color: colors.textSecondary }]}>
+            {t("staffMgmt.phoneLabel")}
+          </Text>
           <TextInput
-            style={[styles.input, { 
-              backgroundColor: colors.backgroundSecondary,
-              color: colors.text,
-              borderColor: colors.border
-            }]}
+            style={[
+              styles.input,
+              {
+                backgroundColor: colors.backgroundSecondary,
+                color: colors.text,
+                borderColor: colors.border,
+              },
+            ]}
             value={phone}
             onChangeText={setPhone}
             placeholder="+61 400 000 000"
@@ -262,12 +329,14 @@ export default function EditStaffModal({
 
           {/* Rôle et équipe */}
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Poste et équipe
+            {t("staffMgmt.positionAndTeam")}
           </Text>
 
-          <Text style={[styles.label, { color: colors.textSecondary }]}>Poste</Text>
-          <ScrollView 
-            horizontal 
+          <Text style={[styles.label, { color: colors.textSecondary }]}>
+            {t("staffMgmt.position")}
+          </Text>
+          <ScrollView
+            horizontal
             showsHorizontalScrollIndicator={false}
             style={styles.optionsScroll}
           >
@@ -294,9 +363,11 @@ export default function EditStaffModal({
             ))}
           </ScrollView>
 
-          <Text style={[styles.label, { color: colors.textSecondary }]}>Équipe</Text>
-          <ScrollView 
-            horizontal 
+          <Text style={[styles.label, { color: colors.textSecondary }]}>
+            {t("staffMgmt.team")}
+          </Text>
+          <ScrollView
+            horizontal
             showsHorizontalScrollIndicator={false}
             style={styles.optionsScroll}
           >
@@ -325,34 +396,45 @@ export default function EditStaffModal({
 
           {/* Statut */}
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Statut
+            {t("staffMgmt.statusSection")}
           </Text>
           <View style={styles.statusOptions}>
-            {(['active', 'inactive', 'pending'] as const).map((s) => (
+            {(["active", "inactive", "pending"] as const).map((s) => (
               <Pressable
                 key={s}
                 style={[
                   styles.statusChip,
                   { backgroundColor: colors.backgroundSecondary },
-                  status === s && { 
-                    backgroundColor: s === 'active' ? `${colors.success}20` : 
-                                     s === 'pending' ? `${colors.warning}20` : `${colors.textSecondary}20`
+                  status === s && {
+                    backgroundColor:
+                      s === "active"
+                        ? `${colors.success}20`
+                        : s === "pending"
+                          ? `${colors.warning}20`
+                          : `${colors.textSecondary}20`,
                   },
                 ]}
                 onPress={() => setStatus(s)}
               >
-                <View style={[
-                  styles.statusDot,
-                  { backgroundColor: s === 'active' ? colors.success : 
-                                    s === 'pending' ? colors.warning : colors.textSecondary }
-                ]} />
-                <Text
+                <View
                   style={[
-                    styles.statusChipText,
-                    { color: colors.text },
+                    styles.statusDot,
+                    {
+                      backgroundColor:
+                        s === "active"
+                          ? colors.success
+                          : s === "pending"
+                            ? colors.warning
+                            : colors.textSecondary,
+                    },
                   ]}
-                >
-                  {s === 'active' ? 'Actif' : s === 'pending' ? 'En attente' : 'Inactif'}
+                />
+                <Text style={[styles.statusChipText, { color: colors.text }]}>
+                  {s === "active"
+                    ? t("staffMgmt.active")
+                    : s === "pending"
+                      ? t("staffMgmt.pendingStatus")
+                      : t("staffMgmt.inactive")}
                 </Text>
               </Pressable>
             ))}
@@ -360,20 +442,23 @@ export default function EditStaffModal({
 
           {/* Rémunération */}
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Rémunération
+            {t("staffMgmt.compensation")}
           </Text>
 
-          {member.type === 'employee' ? (
+          {member.type === "employee" ? (
             <>
               <Text style={[styles.label, { color: colors.textSecondary }]}>
-                Taux horaire ($)
+                {t("staffMgmt.hourlyRateLabel")}
               </Text>
               <TextInput
-                style={[styles.input, { 
-                  backgroundColor: colors.backgroundSecondary,
-                  color: colors.text,
-                  borderColor: colors.border
-                }]}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: colors.backgroundSecondary,
+                    color: colors.text,
+                    borderColor: colors.border,
+                  },
+                ]}
                 value={hourlyRate}
                 onChangeText={setHourlyRate}
                 placeholder="35"
@@ -384,16 +469,18 @@ export default function EditStaffModal({
           ) : (
             <>
               <Text style={[styles.label, { color: colors.textSecondary }]}>
-                Type de tarif
+                {t("staffMgmt.rateType")}
               </Text>
               <View style={styles.statusOptions}>
-                {(['hourly', 'fixed', 'project'] as const).map((rt) => (
+                {(["hourly", "fixed", "project"] as const).map((rt) => (
                   <Pressable
                     key={rt}
                     style={[
                       styles.statusChip,
                       { backgroundColor: colors.backgroundSecondary },
-                      rateType === rt && { backgroundColor: colors.primary + '20' },
+                      rateType === rt && {
+                        backgroundColor: colors.primary + "20",
+                      },
                     ]}
                     onPress={() => setRateType(rt)}
                   >
@@ -404,21 +491,28 @@ export default function EditStaffModal({
                         rateType === rt && { color: colors.primary },
                       ]}
                     >
-                      {rt === 'hourly' ? 'Horaire' : rt === 'fixed' ? 'Fixe' : 'Projet'}
+                      {rt === "hourly"
+                        ? t("staffMgmt.hourlyType")
+                        : rt === "fixed"
+                          ? t("staffMgmt.fixedType")
+                          : t("staffMgmt.projectType")}
                     </Text>
                   </Pressable>
                 ))}
               </View>
 
               <Text style={[styles.label, { color: colors.textSecondary }]}>
-                Tarif ($)
+                {t("staffMgmt.rateLabel")}
               </Text>
               <TextInput
-                style={[styles.input, { 
-                  backgroundColor: colors.backgroundSecondary,
-                  color: colors.text,
-                  borderColor: colors.border
-                }]}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: colors.backgroundSecondary,
+                    color: colors.text,
+                    borderColor: colors.border,
+                  },
+                ]}
                 value={rate}
                 onChangeText={setRate}
                 placeholder="40"
@@ -427,16 +521,25 @@ export default function EditStaffModal({
               />
 
               <Text style={[styles.label, { color: colors.textSecondary }]}>
-                Statut du contrat
+                {t("staffMgmt.contractStatus")}
               </Text>
               <View style={styles.statusOptions}>
-                {(['standard', 'non-exclusive', 'exclusive', 'preferred'] as const).map((cs) => (
+                {(
+                  [
+                    "standard",
+                    "non-exclusive",
+                    "exclusive",
+                    "preferred",
+                  ] as const
+                ).map((cs) => (
                   <Pressable
                     key={cs}
                     style={[
                       styles.statusChip,
                       { backgroundColor: colors.backgroundSecondary },
-                      contractStatus === cs && { backgroundColor: `${colors.info}20` },
+                      contractStatus === cs && {
+                        backgroundColor: `${colors.info}20`,
+                      },
                     ]}
                     onPress={() => setContractStatus(cs)}
                   >
@@ -447,9 +550,13 @@ export default function EditStaffModal({
                         contractStatus === cs && { color: colors.info },
                       ]}
                     >
-                      {cs === 'standard' ? 'Standard' : 
-                       cs === 'non-exclusive' ? 'Non-exclusif' : 
-                       cs === 'exclusive' ? 'Exclusif' : 'Préféré'}
+                      {cs === "standard"
+                        ? t("staffMgmt.standard")
+                        : cs === "non-exclusive"
+                          ? t("staffMgmt.nonExclusive")
+                          : cs === "exclusive"
+                            ? t("staffMgmt.exclusive")
+                            : t("staffMgmt.preferred")}
                     </Text>
                   </Pressable>
                 ))}
@@ -470,23 +577,23 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     padding: DESIGN_TOKENS.spacing.md,
     borderBottomWidth: 1,
   },
   closeButton: {
     width: 44,
     height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     flex: 1,
-    textAlign: 'center',
+    textAlign: "center",
   },
   saveButton: {
     paddingHorizontal: DESIGN_TOKENS.spacing.md,
@@ -494,9 +601,9 @@ const styles = StyleSheet.create({
     borderRadius: DESIGN_TOKENS.radius.md,
   },
   saveButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   scrollView: {
     flex: 1,
@@ -505,8 +612,8 @@ const styles = StyleSheet.create({
     padding: DESIGN_TOKENS.spacing.lg,
   },
   typeIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: DESIGN_TOKENS.spacing.md,
     borderRadius: DESIGN_TOKENS.radius.md,
     marginBottom: DESIGN_TOKENS.spacing.lg,
@@ -514,16 +621,16 @@ const styles = StyleSheet.create({
   },
   typeText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     marginTop: DESIGN_TOKENS.spacing.lg,
     marginBottom: DESIGN_TOKENS.spacing.md,
   },
   row: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: DESIGN_TOKENS.spacing.md,
   },
   halfField: {
@@ -551,16 +658,16 @@ const styles = StyleSheet.create({
   },
   optionChipText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   statusOptions: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: DESIGN_TOKENS.spacing.sm,
   },
   statusChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: DESIGN_TOKENS.spacing.md,
     paddingVertical: DESIGN_TOKENS.spacing.sm,
     borderRadius: DESIGN_TOKENS.radius.md,
@@ -573,6 +680,6 @@ const styles = StyleSheet.create({
   },
   statusChipText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
 });

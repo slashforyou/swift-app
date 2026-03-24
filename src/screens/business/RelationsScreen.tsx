@@ -10,32 +10,33 @@ import Ionicons from "@react-native-vector-icons/ionicons";
 import * as Clipboard from "expo-clipboard";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-    ActionSheetIOS,
-    Alert,
-    Modal,
-    Platform,
-    Pressable,
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  ActionSheetIOS,
+  Alert,
+  Modal,
+  Platform,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import CompanyCodeInput from "../../components/modals/TransferJobModal/CompanyCodeInput";
 import RelationsCarnet from "../../components/modals/TransferJobModal/RelationsCarnet";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
+import { useTranslation } from "../../localization";
 import { useCompanyProfile } from "../../hooks/useCompanyProfile";
 import {
-    deleteRelation,
-    listRelations,
-    saveRelation,
-    updateRelationNickname,
+  deleteRelation,
+  listRelations,
+  saveRelation,
+  updateRelationNickname,
 } from "../../services/companyRelations";
 import type {
-    CompanyLookupResult,
-    CompanyRelation,
+  CompanyLookupResult,
+  CompanyRelation,
 } from "../../types/jobTransfer";
 
 // ─────────────────────────────────────────────────────────────
@@ -67,6 +68,7 @@ function useRelations() {
 
 export default function RelationsScreen() {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const { companyCode } = useCompanyProfile(); // hook existant — expose company_code
   const { relations, isLoading, load, setRelations } = useRelations();
 
@@ -116,13 +118,13 @@ export default function RelationsScreen() {
     } catch (e: any) {
       if (e?.message?.includes("409") || e?.message?.includes("déjà")) {
         Alert.alert(
-          "Déjà enregistré",
-          "Cette entreprise est déjà dans votre carnet.",
+          t("relations.alreadyRegistered"),
+          t("relations.alreadyRegisteredMsg"),
         );
       } else {
         Alert.alert(
-          "Erreur",
-          e?.message ?? "Impossible d'enregistrer la relation",
+          t("common.error"),
+          e?.message ?? t("relations.errorRegister"),
         );
       }
     } finally {
@@ -142,7 +144,11 @@ export default function RelationsScreen() {
       if (Platform.OS === "ios") {
         ActionSheetIOS.showActionSheetWithOptions(
           {
-            options: ["Renommer", "Supprimer", "Annuler"],
+            options: [
+              t("relations.rename"),
+              t("relations.deleteLabel"),
+              t("common.cancel"),
+            ],
             destructiveButtonIndex: 1,
             cancelButtonIndex: 2,
             title: name,
@@ -158,18 +164,18 @@ export default function RelationsScreen() {
       } else {
         Alert.alert(name, undefined, [
           {
-            text: "Renommer",
+            text: t("relations.rename"),
             onPress: () => {
               setRenameTarget(relation);
               setRenameValue(relation.nickname ?? "");
             },
           },
           {
-            text: "Supprimer",
+            text: t("relations.deleteLabel"),
             style: "destructive",
             onPress: () => confirmDelete(relation),
           },
-          { text: "Annuler", style: "cancel" },
+          { text: t("common.cancel"), style: "cancel" },
         ]);
       }
     },
@@ -185,12 +191,12 @@ export default function RelationsScreen() {
         relation.related_contractor_name ||
         "cette relation";
       Alert.alert(
-        "Supprimer de votre carnet ?",
-        `"${name}" sera retirée. Les délégations existantes ne sont pas affectées.`,
+        t("relations.deleteConfirm"),
+        t("relations.deleteConfirmMsg", { company: name }),
         [
-          { text: "Annuler", style: "cancel" },
+          { text: t("common.cancel"), style: "cancel" },
           {
-            text: "Supprimer",
+            text: t("relations.deleteLabel"),
             style: "destructive",
             onPress: async () => {
               try {
@@ -199,7 +205,10 @@ export default function RelationsScreen() {
                   prev.filter((r) => r.id !== relation.id),
                 );
               } catch (e: any) {
-                Alert.alert("Erreur", e?.message ?? "Impossible de supprimer");
+                Alert.alert(
+                  t("common.error"),
+                  e?.message ?? t("relations.errorDelete"),
+                );
               }
             },
           },
@@ -220,7 +229,7 @@ export default function RelationsScreen() {
       );
       setRenameTarget(null);
     } catch (e: any) {
-      Alert.alert("Erreur", e?.message ?? "Impossible de renommer");
+      Alert.alert(t("common.error"), e?.message ?? t("relations.errorRename"));
     }
   }, [renameTarget, renameValue, setRelations]);
 
@@ -352,7 +361,7 @@ export default function RelationsScreen() {
       >
         {/* ── Section code entreprise ── */}
         <View style={s.section}>
-          <Text style={s.sectionTitle}>Votre code entreprise</Text>
+          <Text style={s.sectionTitle}>{t("relations.yourCompanyCode")}</Text>
           <View style={s.codeCard}>
             <Ionicons name="key" size={20} color={colors.textSecondary} />
             <Text style={s.codeText}>{companyCode ?? "…"}</Text>
@@ -367,15 +376,11 @@ export default function RelationsScreen() {
                 color={codeCopied ? "#22C55E" : colors.textSecondary}
               />
               <Text style={s.copyLabel}>
-                {codeCopied ? "Copié !" : "Copier"}
+                {codeCopied ? t("relations.copied") : t("relations.copy")}
               </Text>
             </Pressable>
           </View>
-          <Text style={s.hint}>
-            {
-              "Partagez ce code à un partenaire pour qu'il puisse vous déléguer un job directement."
-            }
-          </Text>
+          <Text style={s.hint}>{t("relations.shareCodeHint")}</Text>
         </View>
 
         {/* ── Section aide ── */}
@@ -402,7 +407,7 @@ export default function RelationsScreen() {
             <Text
               style={{ color: colors.text, fontWeight: "600", fontSize: 14 }}
             >
-              Comment ajouter un partenaire ?
+              {t("relations.howToAdd")}
             </Text>
           </View>
           <Ionicons
@@ -435,7 +440,7 @@ export default function RelationsScreen() {
                   flex: 1,
                 }}
               >
-                Envoyez votre code entreprise à votre partenaire (ci-dessus).
+                {t("relations.step1")}
               </Text>
             </View>
             <View
@@ -450,8 +455,7 @@ export default function RelationsScreen() {
                   flex: 1,
                 }}
               >
-                Votre partenaire saisit votre code dans sa propre application
-                pour vous ajouter.
+                {t("relations.step2")}
               </Text>
             </View>
             <View
@@ -466,8 +470,7 @@ export default function RelationsScreen() {
                   flex: 1,
                 }}
               >
-                Acceptez la demande de relation quand elle apparaît dans votre
-                carnet.
+                {t("relations.step3")}
               </Text>
             </View>
             <View
@@ -482,7 +485,7 @@ export default function RelationsScreen() {
                   flex: 1,
                 }}
               >
-                Vous pouvez maintenant vous déléguer des jobs mutuellement !
+                {t("relations.step4")}
               </Text>
             </View>
           </View>
@@ -491,31 +494,28 @@ export default function RelationsScreen() {
         {/* ── Section carnet ── */}
         <View style={s.section}>
           <View style={s.rowHeader}>
-            <Text style={s.sectionTitle}>Carnet de relations</Text>
+            <Text style={s.sectionTitle}>{t("relations.contactBook")}</Text>
             <Pressable style={s.addBtn} onPress={() => setShowAddModal(true)}>
               <Ionicons
                 name="add-circle-outline"
                 size={18}
                 color={colors.primary}
               />
-              <Text style={s.addLabel}>Ajouter</Text>
+              <Text style={s.addLabel}>{t("relations.addLabel")}</Text>
             </Pressable>
           </View>
 
           {!isLoading && relations.length === 0 ? (
             <View style={s.emptyContainer}>
               <Ionicons name="people-outline" size={48} color={colors.border} />
-              <Text style={s.emptyTitle}>Votre carnet est vide</Text>
-              <Text style={s.emptyHint}>
-                Ajoutez votre premier partenaire en saisissant son code
-                entreprise pour lui déléguer un job rapidement.
-              </Text>
+              <Text style={s.emptyTitle}>{t("relations.emptyBook")}</Text>
+              <Text style={s.emptyHint}>{t("relations.emptyBookHint")}</Text>
               <Pressable
                 style={s.confirmBtn}
                 onPress={() => setShowAddModal(true)}
               >
                 <Text style={{ color: "#fff", fontWeight: "700" }}>
-                  + Ajouter une relation
+                  {t("relations.addRelation")}
                 </Text>
               </Pressable>
             </View>
@@ -545,7 +545,9 @@ export default function RelationsScreen() {
             }}
           >
             <View style={s.sheet}>
-              <Text style={s.modalTitle}>Ajouter une relation</Text>
+              <Text style={s.modalTitle}>
+                {t("relations.addRelationTitle")}
+              </Text>
 
               <CompanyCodeInput
                 onSelect={setAddLookupResult}
@@ -558,7 +560,7 @@ export default function RelationsScreen() {
                     style={s.input}
                     value={addNickname}
                     onChangeText={setAddNickname}
-                    placeholder="Surnom (optionnel)"
+                    placeholder={t("relations.nicknamePlaceholder")}
                     placeholderTextColor={colors.textSecondary}
                   />
                   <Pressable
@@ -572,7 +574,7 @@ export default function RelationsScreen() {
                     <Text
                       style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}
                     >
-                      {addLoading ? "Enregistrement…" : "Enregistrer"}
+                      {addLoading ? t("relations.saving") : t("common.save")}
                     </Text>
                   </Pressable>
                 </>
@@ -596,12 +598,12 @@ export default function RelationsScreen() {
             }}
           >
             <View style={s.sheet}>
-              <Text style={s.modalTitle}>Renommer</Text>
+              <Text style={s.modalTitle}>{t("relations.renameTitle")}</Text>
               <TextInput
                 style={s.input}
                 value={renameValue}
                 onChangeText={setRenameValue}
-                placeholder="Nouveau surnom"
+                placeholder={t("relations.newNickname")}
                 placeholderTextColor={colors.textSecondary}
                 autoFocus
               />
@@ -615,7 +617,7 @@ export default function RelationsScreen() {
                 <Text
                   style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}
                 >
-                  Enregistrer
+                  {t("common.save")}
                 </Text>
               </Pressable>
             </View>

@@ -12,7 +12,8 @@ export interface Job {
     | "in-progress"
     | "completed"
     | "cancelled"
-    | "declined";
+    | "declined"
+    | "overdue";
   priority: "low" | "medium" | "high" | "urgent";
 
   // Ownership info
@@ -198,6 +199,22 @@ function convertAPIJobToLocal(apiJob: any): Job {
   };
 
   // TEMP_DISABLED: console.log('✅ Converted job:', JSON.stringify(converted, null, 2));
+
+  // Mark jobs as overdue if past 48h and not completed/cancelled
+  const OVERDUE_THRESHOLD_MS = 48 * 60 * 60 * 1000;
+  const jobEndTime =
+    converted.time.endWindowEnd ||
+    converted.time.startWindowEnd ||
+    converted.time.startWindowStart;
+  if (
+    jobEndTime &&
+    converted.status !== "completed" &&
+    converted.status !== "cancelled" &&
+    Date.now() - new Date(jobEndTime).getTime() > OVERDUE_THRESHOLD_MS
+  ) {
+    converted.status = "overdue";
+  }
+
   return converted;
 }
 
@@ -211,7 +228,8 @@ function mapApiStatus(
   | "in-progress"
   | "completed"
   | "cancelled"
-  | "declined" {
+  | "declined"
+  | "overdue" {
   const statusMap: Record<
     string,
     | "pending"
@@ -221,6 +239,7 @@ function mapApiStatus(
     | "completed"
     | "cancelled"
     | "declined"
+    | "overdue"
   > = {
     scheduled: "pending",
     pending: "pending",
@@ -549,7 +568,8 @@ export const useJobsForDay = (
           return priorityOrder[b.priority] - priorityOrder[a.priority];
         case "status":
           const statusOrder = {
-            "in-progress": 4,
+            "in-progress": 5,
+            overdue: 4,
             pending: 3,
             completed: 2,
             cancelled: 1,

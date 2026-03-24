@@ -6,21 +6,22 @@ import { Ionicons } from "@expo/vector-icons";
 import * as SecureStore from "expo-secure-store";
 import React, { useEffect, useState } from "react";
 import {
-    Alert,
-    Modal,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  Alert,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
 import { useTranslation } from "../../localization";
 import {
-    clearStripeCache,
-    deleteStripeAccount,
+  clearStripeCache,
+  deleteStripeAccount,
 } from "../../services/StripeService";
+import { scheduleLocalNotification } from "../../services/pushNotifications";
 import type { CompanyRole } from "../../services/user";
 
 interface DevMenuProps {
@@ -119,10 +120,7 @@ export default function DevMenu({ visible, onClose }: DevMenuProps) {
         await SecureStore.deleteItemAsync("dev_stripe_status");
         clearStripeCache();
         setCurrentStripeStatus("real");
-        Alert.alert(
-          t("devMenu.realModeTitle"),
-          t("devMenu.realModeMessage"),
-        );
+        Alert.alert(t("devMenu.realModeTitle"), t("devMenu.realModeMessage"));
         setLoading(false);
         return;
       }
@@ -229,6 +227,23 @@ export default function DevMenu({ visible, onClose }: DevMenuProps) {
         },
       ],
     );
+  };
+
+  const handleTestPushNotification = async () => {
+    try {
+      await scheduleLocalNotification(
+        "Nouveau job assigné",
+        "Un job de déménagement a été assigné à votre entreprise. Cliquez pour voir les détails.",
+        { type: "new_job", job_id: "test-123", screen: "JobDetails" },
+      );
+      Alert.alert(
+        "✅ Notification envoyée",
+        "La notification de test devrait apparaître dans quelques secondes.",
+      );
+    } catch (error) {
+      console.error("Error sending test notification:", error);
+      Alert.alert("Erreur", "Impossible d'envoyer la notification de test.");
+    }
   };
 
   const getRoleLabel = (role: CompanyRole): string => {
@@ -456,6 +471,29 @@ export default function DevMenu({ visible, onClose }: DevMenuProps) {
                   )}
                 </Pressable>
               ))}
+            </View>
+
+            {/* Section: Test Notifications */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>🔔 Notifications</Text>
+              <Pressable
+                style={[
+                  styles.optionButton,
+                  { justifyContent: "center", gap: DESIGN_TOKENS.spacing.sm },
+                ]}
+                onPress={handleTestPushNotification}
+              >
+                <Ionicons
+                  name="notifications"
+                  size={20}
+                  color={colors.primary}
+                />
+                <Text
+                  style={[styles.optionText, { flex: 0, fontWeight: "600" }]}
+                >
+                  Test notification push (job)
+                </Text>
+              </Pressable>
             </View>
 
             {/* Section: Actions destructives */}

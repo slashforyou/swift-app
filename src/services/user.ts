@@ -43,6 +43,7 @@ export interface UserProfile {
   joinDate: string;
   lastLogin?: string;
   profilePicture?: string;
+  avatarId?: string;
 
   // Gamification
   level?: number;
@@ -85,6 +86,9 @@ export interface UpdateUserProfile {
   companyName?: string;
   siret?: string;
   tva?: string;
+
+  // Avatar
+  avatarId?: string;
 
   preferences?: {
     theme: "light" | "dark" | "auto";
@@ -272,6 +276,7 @@ function normalizeUserProfile(apiData: any): UserProfile {
     joinDate: apiData.joinDate || apiData.join_date || apiData.created_at || "",
     lastLogin: apiData.lastLogin || apiData.last_login || "",
     profilePicture: apiData.profilePicture || apiData.profile_picture || "",
+    avatarId: apiData.avatarId || apiData.avatar_id || apiData.avatar_url || undefined,
 
     // Gamification
     level: apiData.level || 1,

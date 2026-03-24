@@ -26,6 +26,7 @@ import {
 
 // Hooks business
 import { useStripeAccount, useStripePayments } from "../../../hooks/useStripe";
+import { useTranslation } from "../../../localization";
 
 interface PaymentsDashboardProps {
   onRefresh?: () => void;
@@ -41,6 +42,7 @@ export const PaymentsDashboard: React.FC<PaymentsDashboardProps> = ({
 }) => {
   const { colors } = useTheme();
   const { tokens } = useDesignSystem();
+  const { t } = useTranslation();
 
   // États locaux
   const [selectedPeriod, setSelectedPeriod] = useState("7d");
@@ -93,10 +95,10 @@ export const PaymentsDashboard: React.FC<PaymentsDashboardProps> = ({
             style={{ marginBottom: tokens.spacing.md }}
           />
           <Body style={{ color: colors.error, textAlign: "center" }}>
-            Erreur lors du chargement du dashboard
+            {t("paymentsDashboard.loadError")}
           </Body>
           <Button
-            title="Réessayer"
+            title={t("common.retry")}
             variant="primary"
             onPress={handleRefresh}
             style={{ marginTop: tokens.spacing.lg }}
@@ -146,6 +148,7 @@ const BalanceCard: React.FC<{ balance: any; loading: boolean }> = ({
 }) => {
   const { colors } = useTheme();
   const { tokens } = useDesignSystem();
+  const { t } = useTranslation();
 
   return (
     <Card
@@ -157,7 +160,7 @@ const BalanceCard: React.FC<{ balance: any; loading: boolean }> = ({
     >
       <View style={{ padding: tokens.spacing.lg }}>
         <BodySmall style={{ color: colors.background, opacity: 0.8 }}>
-          Solde disponible
+          {t("paymentsDashboard.availableBalance")}
         </BodySmall>
         <BodyLarge
           style={{
@@ -177,7 +180,8 @@ const BalanceCard: React.FC<{ balance: any; loading: boolean }> = ({
           }}
         >
           <BodySmall style={{ color: colors.background, opacity: 0.8 }}>
-            En attente: {loading ? "---" : `${balance?.pending || "0"} €`}
+            {t("paymentsDashboard.pendingLabel")}{" "}
+            {loading ? "---" : `${balance?.pending || "0"} €`}
           </BodySmall>
           <TouchableOpacity>
             <Ionicons name="eye-outline" size={20} color={colors.background} />
@@ -193,23 +197,36 @@ const BalanceCard: React.FC<{ balance: any; loading: boolean }> = ({
  */
 const QuickActionsCard: React.FC = () => {
   const { tokens } = useDesignSystem();
+  const { t } = useTranslation();
 
   const actions = [
-    { icon: "card-outline", label: "Nouveau paiement", action: "payment" },
+    {
+      icon: "card-outline",
+      label: t("paymentsDashboard.newPayment"),
+      action: "payment",
+    },
     {
       icon: "document-text-outline",
-      label: "Créer facture",
+      label: t("paymentsDashboard.createInvoice"),
       action: "invoice",
     },
-    { icon: "cash-outline", label: "Demander virement", action: "payout" },
-    { icon: "analytics-outline", label: "Voir rapports", action: "reports" },
+    {
+      icon: "cash-outline",
+      label: t("paymentsDashboard.requestTransfer"),
+      action: "payout",
+    },
+    {
+      icon: "analytics-outline",
+      label: t("paymentsDashboard.viewReports"),
+      action: "reports",
+    },
   ];
 
   return (
     <Card style={{ margin: tokens.spacing.lg }}>
       <View style={{ padding: tokens.spacing.lg }}>
         <Heading3 style={{ marginBottom: tokens.spacing.md }}>
-          Actions rapides
+          {t("paymentsDashboard.quickActions")}
         </Heading3>
         <View
           style={{
@@ -287,15 +304,16 @@ const StatsOverviewCard: React.FC<{
   onPeriodChange: (period: string) => void;
 }> = ({ stats, selectedPeriod, onPeriodChange }) => {
   const { tokens } = useDesignSystem();
+  const { t } = useTranslation();
 
   return (
     <Card style={{ margin: tokens.spacing.lg }}>
       <View style={{ padding: tokens.spacing.lg }}>
         <Heading3 style={{ marginBottom: tokens.spacing.md }}>
-          Statistiques
+          {t("paymentsDashboard.statistics")}
         </Heading3>
         {/* Contenu des stats à implémenter */}
-        <Body>Statistiques détaillées à venir...</Body>
+        <Body>{t("paymentsDashboard.statisticsPlaceholder")}</Body>
       </View>
     </Card>
   );
@@ -309,15 +327,16 @@ const RecentPaymentsCard: React.FC<{
   loading: boolean;
 }> = ({ payments, loading }) => {
   const { tokens } = useDesignSystem();
+  const { t } = useTranslation();
 
   return (
     <Card style={{ margin: tokens.spacing.lg }}>
       <View style={{ padding: tokens.spacing.lg }}>
         <Heading3 style={{ marginBottom: tokens.spacing.md }}>
-          Paiements récents
+          {t("paymentsDashboard.recentPayments")}
         </Heading3>
         {/* Liste des paiements à implémenter */}
-        <Body>Liste des paiements récents à venir...</Body>
+        <Body>{t("paymentsDashboard.recentPaymentsPlaceholder")}</Body>
       </View>
     </Card>
   );

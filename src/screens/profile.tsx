@@ -21,6 +21,7 @@ import {
 
 // Utiliser le système unifié au lieu du design system avancé
 import LanguageButton from "../components/calendar/LanguageButton";
+import AvatarPickerModal, { getAvatarSource } from "../components/ui/AvatarPickerModal";
 import MascotLoading from "../components/ui/MascotLoading";
 import { DESIGN_TOKENS } from "../constants/Styles";
 import { useTheme } from "../context/ThemeProvider";
@@ -275,6 +276,7 @@ const ProfileScreen: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
 
   // Collapsible sections state - all collapsed by default
   const [expandedSections, setExpandedSections] = useState<{
@@ -526,30 +528,57 @@ const ProfileScreen: React.FC = () => {
             marginBottom: DESIGN_TOKENS.spacing.xl,
           }}
         >
-          <View
-            style={{
-              width: 100,
-              height: 100,
-              borderRadius: 50,
-              overflow: "hidden",
-              shadowColor: colors.shadow,
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.2,
-              shadowRadius: 8,
-              elevation: 6,
-              borderWidth: 3,
-              borderColor: "#FF8C00",
-            }}
+          <Pressable
+            onPress={() => setShowAvatarPicker(true)}
+            style={({ pressed }) => ({
+              opacity: pressed ? 0.7 : 1,
+            })}
           >
-            <Image
-              source={require("../../assets/images/mascot/mascotte_profil.png")}
+            <View
               style={{
-                width: "100%",
-                height: "100%",
+                width: 100,
+                height: 100,
+                borderRadius: 50,
+                overflow: "hidden",
+                shadowColor: colors.shadow,
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.2,
+                shadowRadius: 8,
+                elevation: 6,
+                borderWidth: 3,
+                borderColor: "#FF8C00",
               }}
-              resizeMode="cover"
-            />
-          </View>
+            >
+              <Image
+                source={getAvatarSource(profile?.avatarId)}
+                style={{
+                  width: "125%",
+                  height: "125%",
+                  marginLeft: "-12.5%",
+                  marginTop: "-12.5%",
+                }}
+                resizeMode="cover"
+              />
+            </View>
+            {/* Edit badge */}
+            <View
+              style={{
+                position: "absolute",
+                bottom: 0,
+                right: 0,
+                backgroundColor: "#FF8C00",
+                borderRadius: 12,
+                width: 24,
+                height: 24,
+                alignItems: "center",
+                justifyContent: "center",
+                borderWidth: 2,
+                borderColor: colors.background,
+              }}
+            >
+              <Text style={{ color: "white", fontSize: 12 }}>✎</Text>
+            </View>
+          </Pressable>
         </View>
 
         {/* Personal Information Section */}
@@ -1148,6 +1177,17 @@ const ProfileScreen: React.FC = () => {
           </View>
         </View>
       </Modal>
+
+      {/* Avatar Picker Modal */}
+      <AvatarPickerModal
+        visible={showAvatarPicker}
+        currentAvatarId={profile?.avatarId}
+        onSelect={async (avatarId) => {
+          setShowAvatarPicker(false);
+          await updateProfile({ avatarId });
+        }}
+        onClose={() => setShowAvatarPicker(false)}
+      />
     </SafeAreaView>
   );
 };

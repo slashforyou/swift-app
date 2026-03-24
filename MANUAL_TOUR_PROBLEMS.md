@@ -7,7 +7,9 @@
 - [x] Le bouton retour de la page month (celle ou l'on voit les jours du mois) doit renvoyer vers la page home, celui de la page day doit renvoyer vers la page month
 - [x] Le wizard "creation de job" se réduit trop quand on sélectionne un input, fait en sorte que ce soit plus agréable pour l'utilisateur
 - [x] Sur la page day, le bouton "details" dans la section "vehicules" d'un job doit renvoyer vers la section "Ressources" de la page "job details"
-- Cette section doit se mettre à jour quand un véhicule est ajouté, même celui d'un prestataire.
+- [x] Sur la page Day la section pour les vehicules d'un job doit se mettre à jour quand un véhicule est ajouté, même celui d'un prestataire.
+- [x] Le calendrier fini un peu trop bas sur l'écran il faut réduire légèrement la marge en dessous du logo.
+- [x] Les jobs passés qui ne sont pas terminé après 48h, doivent être noté comme étant passé (a toi de voir pour la notation approprié)
 
 ## Paramètres
 
@@ -34,12 +36,14 @@
 - [x] Sur la page de paiement du job il faut faire apparaitre le status Stripe, soit il est actif et on dit au client qu'il peut accepter tout type de paiement, soit il est inactif et on lui recommande d'activer son compte avec un bouton pointant directement vers la page Stripe.
 - [x] Le status Stripe doit apparaitre avant même que le job commence et durant tout le job si le status n'est pas valide.
 - [x] Lors du paiement si le client a choisis de facturer les frais Stripe à son client ça doit figurer sur la facture comme "frais stripe" et "frais cobbr", toute facture est en anglais et ne peut pas être traduite pour le moment.
+- [x] Permettre une pause d'une durée défini : on clique sur pause ça nous propose soit pas de durée, soit 10 min, 15 min, 30 min, personnalisé en min
 
 ## Home
 
 - [x] Je veux une section qui alerte si Stripe n'est pas actif, avec un bouton vers la page pour activer Stripe et un message alertant que la personne ne pourra pas encaisser de paiement dans l'app ou même facturer sans Stripe.
 - [x] Il nous faut un bouton logo "conversation" qui permet au utilisateurs de nous envoyer un message, dans celui ci ils peuvent soit demander de l'aide, donner leur avis, demander une modication (feature), signaler un problème.
 - [x] Traduire le wizard conversation dans toute les langues
+- [x] Le wizard conversation est mal calibré lorsqu'on ouvre le clavier, il faut qu'il soit facile de naviguer même avec le clavier ouvert
 
 ## Business
 
@@ -49,9 +53,10 @@
 - [x] Il faut une explication sur la page Stripe avant création du compte disant que le compte Stripe permet au utilisateur d'encaisser des paiement et de facturer depuis l'app. Ce paragraphe doit être traduit dans chaques langues.
 - [x] Pour la page Stripe quand le compte est actif l'utilisateur doit pouvoir activer en un clic (checkbox, bouton slide) choisir de payer lui même les frais Stripe ou de les refacturer au client.
 - [x] Pour la page partenaire une section "aide" doit expliquer que pour ajouter un partenaire il faut lui envoyer un code puis l'accepter. ce panneau doit être rétractable et fermé par défaut
+- [x] Permettre au société d'ajouter leur logo sur la page business info
 
 ## AUTRES
 
-- Faire un test de notification avec une notification push pour un job
+- [x] Faire un test de notification avec une notification push pour un job
 - [x] Vérifier que l'ensemble des fichiers de traductions soient complets
 - [x] Faire en sorte que le logo soit bien centré sur toute les page en le haut de l'écran et l'élément en dessous du logo. Le logo doit être plus bas que la barre d'icones (du haut) du téléphone

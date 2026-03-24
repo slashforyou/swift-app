@@ -43,21 +43,21 @@ const JobBox: React.FC<JobBoxProps> = ({
           color: colors.info,
           backgroundColor: colors.backgroundTertiary,
           icon: "person-add-outline" as const,
-          text: "Assigné",
+          text: t("calendar.jobStatus.assigned"),
         };
       case "accepted":
         return {
           color: colors.success,
           backgroundColor: colors.backgroundTertiary,
           icon: "checkmark-circle-outline" as const,
-          text: "Accepté",
+          text: t("calendar.jobStatus.accepted"),
         };
       case "declined":
         return {
           color: colors.error,
           backgroundColor: colors.backgroundTertiary,
           icon: "close-circle-outline" as const,
-          text: "Refusé",
+          text: t("calendar.jobStatus.declined"),
         };
       case "in-progress":
         return {
@@ -79,6 +79,13 @@ const JobBox: React.FC<JobBoxProps> = ({
           backgroundColor: colors.backgroundTertiary,
           icon: "close-circle-outline" as const,
           text: t("calendar.jobStatus.cancelled"),
+        };
+      case "overdue":
+        return {
+          color: colors.error,
+          backgroundColor: colors.backgroundTertiary,
+          icon: "alert-circle-outline" as const,
+          text: t("calendar.jobStatus.overdue"),
         };
       default:
         return {

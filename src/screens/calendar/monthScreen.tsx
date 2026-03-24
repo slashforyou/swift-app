@@ -3,14 +3,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback, useMemo, useState } from "react";
 import {
-    Animated,
-    Dimensions,
-    Pressable,
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  Animated,
+  Dimensions,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CalendarHeader from "../../components/calendar/CalendarHeader";
@@ -576,12 +576,13 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
     <View testID="calendar-month-screen" style={customStyles.container}>
       {/* Logo */}
       <View style={{ alignItems: "center", paddingTop: insets.top }}>
-        <HeaderLogo preset="sm" variant="rectangle" marginVertical={4} />
+        <HeaderLogo preset="sm" variant="rectangle" marginVertical={2} />
       </View>
       {/* Header unifié avec style Business - Position fixe en haut */}
       <CalendarHeader
         navigation={navigation}
         title={selectedYear.toString()}
+        skipSafeAreaTop={true}
         onBackPress={() => navigation.navigate("Home")}
       />
 

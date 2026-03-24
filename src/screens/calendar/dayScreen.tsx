@@ -2,22 +2,23 @@
 
 import JobBox from "@/src/components/calendar/modernJobBox";
 import Ionicons from "@react-native-vector-icons/ionicons";
+import { useFocusEffect } from "@react-navigation/native";
 import React, { useCallback, useMemo, useState } from "react";
 import {
-    Pressable,
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CalendarHeader from "../../components/calendar/CalendarHeader";
 import ContractorJobWizardModal from "../../components/calendar/ContractorJobWizardModal";
 import {
-    EmptyDayState,
-    ErrorState,
-    JobsLoadingSkeleton,
+  EmptyDayState,
+  ErrorState,
+  JobsLoadingSkeleton,
 } from "../../components/calendar/DayScreenComponents";
 import CreateJobModal from "../../components/modals/CreateJobModal";
 import HeaderLogo from "../../components/ui/HeaderLogo";
@@ -142,6 +143,13 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
       });
     },
     [navigation, selectedDay, selectedMonth, selectedYear, currentCompany],
+  );
+
+  // Refetch jobs when screen regains focus (e.g. returning from JobDetails after vehicle change)
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch]),
   );
 
   // Handle refresh
@@ -440,13 +448,14 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
     <View testID="calendar-day-screen" style={styles.container}>
       {/* Logo */}
       <View style={{ alignItems: "center", paddingTop: insets.top }}>
-        <HeaderLogo preset="sm" variant="rectangle" marginVertical={4} />
+        <HeaderLogo preset="sm" variant="rectangle" marginVertical={2} />
       </View>
       {/* Header unifié avec style Business et label dynamique */}
       <CalendarHeader
         navigation={navigation}
         title={formattedDate}
         useCompanyLabel={true}
+        skipSafeAreaTop={true}
         onBackPress={() =>
           navigation.navigate("Month", {
             year: selectedYear,

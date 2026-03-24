@@ -13,23 +13,24 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Modal,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  ActivityIndicator,
+  Alert,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
 import { useVehicles } from "../../hooks/useVehicles";
+import { useTranslation } from "../../localization";
 import {
-    acceptCounterProposal,
-    rejectCounterProposal,
+  acceptCounterProposal,
+  rejectCounterProposal,
 } from "../../services/jobs";
 
 // ─────────────────────────────────────────────
@@ -203,6 +204,7 @@ export const ContracteeNegotiationModal: React.FC<
   ContracteeNegotiationModalProps
 > = ({ visible, info, onClose, onJobUpdated }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const { vehicles } = useVehicles();
 
   const [step, setStep] = useState<WizardStep>("overview");
@@ -274,11 +276,9 @@ export const ContracteeNegotiationModal: React.FC<
       setStep("accepted");
       onJobUpdated();
     } catch {
-      Alert.alert(
-        "Erreur",
-        "Impossible d'accepter la proposition. Veuillez réessayer.",
-        [{ text: "OK" }],
-      );
+      Alert.alert(t("common.error"), t("negotiation.errorAccept"), [
+        { text: t("common.ok") },
+      ]);
     } finally {
       setIsSubmitting(false);
     }
@@ -292,11 +292,9 @@ export const ContracteeNegotiationModal: React.FC<
       setStep("rejected");
       onJobUpdated();
     } catch {
-      Alert.alert(
-        "Erreur",
-        "Impossible de rejeter la proposition. Veuillez réessayer.",
-        [{ text: "OK" }],
-      );
+      Alert.alert(t("common.error"), t("negotiation.errorReject"), [
+        { text: t("common.ok") },
+      ]);
     } finally {
       setIsSubmitting(false);
     }
@@ -309,26 +307,26 @@ export const ContracteeNegotiationModal: React.FC<
   const getStepLabel = () => {
     switch (step) {
       case "overview":
-        return "Étape 1/2 — Proposition reçue";
+        return t("negotiation.stepProposalReceived");
       case "decision":
-        return "Étape 2/2 — Votre décision";
+        return t("negotiation.stepYourDecision");
       case "accepted":
-        return "Négociation terminée";
+        return t("negotiation.negotiationComplete");
       case "rejected":
-        return "Négociation terminée";
+        return t("negotiation.negotiationComplete");
     }
   };
 
   const getHeaderTitle = () => {
     switch (step) {
       case "overview":
-        return "Contre-proposition";
+        return t("negotiation.counterProposal");
       case "decision":
-        return "Votre réponse";
+        return t("negotiation.yourResponse");
       case "accepted":
-        return "Proposition acceptée";
+        return t("negotiation.proposalAccepted");
       case "rejected":
-        return "Proposition rejetée";
+        return t("negotiation.proposalRejected");
     }
   };
 
@@ -771,7 +769,9 @@ export const ContracteeNegotiationModal: React.FC<
             size={14}
             color={colors.warning || "#F59E0B"}
           />
-          <Text style={styles.statusText}>En négociation</Text>
+          <Text style={styles.statusText}>
+            {t("negotiation.inNegotiation")}
+          </Text>
         </View>
 
         {/* Contractor banner */}
@@ -779,7 +779,9 @@ export const ContracteeNegotiationModal: React.FC<
           <View style={styles.contractorBadge}>
             <Ionicons name="business" size={22} color={colors.info} />
             <View style={styles.contractorBadgeText}>
-              <Text style={styles.contractorLabel}>Proposition de</Text>
+              <Text style={styles.contractorLabel}>
+                {t("negotiation.proposalFrom")}
+              </Text>
               <Text style={styles.contractorName}>{info.contractorName}</Text>
               {info.proposedAt && (
                 <Text
@@ -789,7 +791,8 @@ export const ContracteeNegotiationModal: React.FC<
                     marginTop: 2,
                   }}
                 >
-                  Soumise le {formatDateTime(info.proposedAt)}
+                  {t("negotiation.submittedOn")}{" "}
+                  {formatDateTime(info.proposedAt)}
                 </Text>
               )}
             </View>
@@ -797,11 +800,15 @@ export const ContracteeNegotiationModal: React.FC<
         )}
 
         {/* Créneaux */}
-        <Text style={styles.sectionTitle}>Créneaux proposés</Text>
+        <Text style={styles.sectionTitle}>
+          {t("negotiation.proposedSlots")}
+        </Text>
         <View style={styles.scheduleCard}>
           <View style={styles.scheduleRow}>
             <View style={styles.scheduleBlock}>
-              <Text style={styles.scheduleBlockLabel}>Début</Text>
+              <Text style={styles.scheduleBlockLabel}>
+                {t("negotiation.start")}
+              </Text>
               <Text style={styles.scheduleTime}>
                 {formatTime(info?.proposedStart)}
               </Text>
@@ -817,7 +824,9 @@ export const ContracteeNegotiationModal: React.FC<
               />
             </View>
             <View style={styles.scheduleBlock}>
-              <Text style={styles.scheduleBlockLabel}>Fin</Text>
+              <Text style={styles.scheduleBlockLabel}>
+                {t("negotiation.end")}
+              </Text>
               <Text style={styles.scheduleTime}>
                 {formatTime(info?.proposedEnd)}
               </Text>
@@ -829,14 +838,16 @@ export const ContracteeNegotiationModal: React.FC<
           {estimatedDuration && (
             <View style={styles.scheduleDuration}>
               <Text style={styles.scheduleDurationText}>
-                ⏱ Durée estimée : {estimatedDuration}
+                ⏱ {t("negotiation.estimatedDuration")} : {estimatedDuration}
               </Text>
             </View>
           )}
         </View>
 
         {/* Prix */}
-        <Text style={styles.sectionTitle}>Tarification proposée</Text>
+        <Text style={styles.sectionTitle}>
+          {t("negotiation.proposedPricing")}
+        </Text>
         <View style={styles.priceCard}>
           {parsed.proposedPrice != null ? (
             <View style={styles.priceRow}>
@@ -850,14 +861,22 @@ export const ContracteeNegotiationModal: React.FC<
                   {parsed.priceType && (
                     <View style={styles.priceTypeTag}>
                       <Text style={styles.priceTypeText}>
-                        {priceTypeLabel(parsed.priceType)}
+                        {parsed.priceType === "hourly"
+                          ? t("negotiation.hourly")
+                          : parsed.priceType === "daily"
+                            ? t("negotiation.daily")
+                            : t("negotiation.flat")}
                       </Text>
                     </View>
                   )}
                   <Text style={styles.priceAmount}>
                     {formatCurrency(parsed.proposedPrice)}
                     <Text style={styles.priceSuffix}>
-                      {priceTypeSuffix(parsed.priceType)}
+                      {parsed.priceType === "hourly"
+                        ? t("negotiation.perHour")
+                        : parsed.priceType === "daily"
+                          ? t("negotiation.perDay")
+                          : ""}
                     </Text>
                   </Text>
                 </View>
@@ -871,13 +890,15 @@ export const ContracteeNegotiationModal: React.FC<
                 color={colors.textSecondary}
                 style={styles.infoIcon}
               />
-              <Text style={styles.noPriceText}>Prix non spécifié</Text>
+              <Text style={styles.noPriceText}>
+                {t("negotiation.priceNotSpecified")}
+              </Text>
             </View>
           )}
         </View>
 
         {/* Véhicule */}
-        <Text style={styles.sectionTitle}>Véhicule</Text>
+        <Text style={styles.sectionTitle}>{t("negotiation.vehicle")}</Text>
         <View style={styles.infoCard}>
           <View style={styles.infoRow}>
             <Ionicons
@@ -887,7 +908,9 @@ export const ContracteeNegotiationModal: React.FC<
               style={styles.infoIcon}
             />
             <View style={{ flex: 1 }}>
-              <Text style={styles.infoLabel}>Camion proposé</Text>
+              <Text style={styles.infoLabel}>
+                {t("negotiation.proposedTruck")}
+              </Text>
               <Text
                 style={[
                   styles.infoValue,
@@ -898,14 +921,16 @@ export const ContracteeNegotiationModal: React.FC<
                   },
                 ]}
               >
-                {vehicleName ?? "Non spécifié"}
+                {vehicleName ?? t("negotiation.notSpecified")}
               </Text>
             </View>
           </View>
         </View>
 
         {/* Équipe */}
-        <Text style={styles.sectionTitle}>Composition de l&apos;équipe</Text>
+        <Text style={styles.sectionTitle}>
+          {t("negotiation.teamComposition")}
+        </Text>
         <View style={styles.crewCard}>
           <View style={styles.crewGrid}>
             <View
@@ -932,7 +957,9 @@ export const ContracteeNegotiationModal: React.FC<
                 {parsed.proposedDrivers ?? 0}
               </Text>
               <Text style={styles.crewLabel}>
-                Chauffeur{(parsed.proposedDrivers ?? 0) > 1 ? "s" : ""}
+                {(parsed.proposedDrivers ?? 0) > 1
+                  ? t("negotiation.drivers")
+                  : t("negotiation.driver")}
               </Text>
             </View>
             <View
@@ -959,7 +986,9 @@ export const ContracteeNegotiationModal: React.FC<
                 {parsed.proposedOffsiders ?? 0}
               </Text>
               <Text style={styles.crewLabel}>
-                Offsider{(parsed.proposedOffsiders ?? 0) > 1 ? "s" : ""}
+                {(parsed.proposedOffsiders ?? 0) > 1
+                  ? t("negotiation.offsiders")
+                  : t("negotiation.offsider")}
               </Text>
             </View>
             <View
@@ -986,13 +1015,15 @@ export const ContracteeNegotiationModal: React.FC<
                 {parsed.proposedPackers ?? 0}
               </Text>
               <Text style={styles.crewLabel}>
-                Packer{(parsed.proposedPackers ?? 0) > 1 ? "s" : ""}
+                {(parsed.proposedPackers ?? 0) > 1
+                  ? t("negotiation.packers")
+                  : t("negotiation.packer")}
               </Text>
             </View>
           </View>
           {totalCrew > 0 && (
             <Text style={styles.crewTotal}>
-              {totalCrew} personne{totalCrew > 1 ? "s" : ""} au total
+              {totalCrew} {t("negotiation.totalPersons")}
             </Text>
           )}
         </View>
@@ -1000,7 +1031,9 @@ export const ContracteeNegotiationModal: React.FC<
         {/* Note du prestataire */}
         {parsed.text && (
           <>
-            <Text style={styles.sectionTitle}>Note du prestataire</Text>
+            <Text style={styles.sectionTitle}>
+              {t("negotiation.providerNote")}
+            </Text>
             <View style={styles.infoCard}>
               <View style={styles.infoRow}>
                 <Ionicons
@@ -1010,7 +1043,9 @@ export const ContracteeNegotiationModal: React.FC<
                   style={styles.infoIcon}
                 />
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.infoLabel}>Message</Text>
+                  <Text style={styles.infoLabel}>
+                    {t("negotiation.message")}
+                  </Text>
                   <Text style={styles.infoValue}>{parsed.text}</Text>
                 </View>
               </View>
@@ -1034,7 +1069,7 @@ export const ContracteeNegotiationModal: React.FC<
             size={18}
             color={colors.error || "#EF4444"}
           />
-          <Text style={styles.btnRejectText}>Rejeter</Text>
+          <Text style={styles.btnRejectText}>{t("negotiation.reject")}</Text>
         </Pressable>
         <Pressable
           testID="counter-proposal-accept-btn"
@@ -1044,11 +1079,11 @@ export const ContracteeNegotiationModal: React.FC<
           ]}
           onPress={() =>
             Alert.alert(
-              "Accepter la proposition ?",
-              `Confirmer l'accord avec ${info?.contractorName ?? "le prestataire"} ?`,
+              t("negotiation.acceptProposal"),
+              `${t("negotiation.confirmAgreement")} ${info?.contractorName ?? ""} ?`,
               [
-                { text: "Annuler", style: "cancel" },
-                { text: "Accepter", onPress: handleAccept },
+                { text: t("common.cancel"), style: "cancel" },
+                { text: t("negotiation.accept"), onPress: handleAccept },
               ],
             )
           }
@@ -1063,7 +1098,9 @@ export const ContracteeNegotiationModal: React.FC<
                 size={18}
                 color={colors.success || "#22C55E"}
               />
-              <Text style={styles.btnAcceptText}>Accepter</Text>
+              <Text style={styles.btnAcceptText}>
+                {t("negotiation.accept")}
+              </Text>
             </>
           )}
         </Pressable>
@@ -1074,11 +1111,11 @@ export const ContracteeNegotiationModal: React.FC<
   const renderDecision = () => (
     <>
       <Text style={styles.textareaLabel}>
-        Raison du rejet (optionnel — le prestataire sera informé)
+        {t("negotiation.rejectionReason")}
       </Text>
       <TextInput
         style={styles.textarea}
-        placeholder="Expliquez pourquoi cette proposition ne convient pas…"
+        placeholder={t("negotiation.rejectionReasonPlaceholder")}
         placeholderTextColor={colors.textSecondary}
         value={rejectReason}
         onChangeText={setRejectReason}
@@ -1094,8 +1131,7 @@ export const ContracteeNegotiationModal: React.FC<
           marginBottom: DESIGN_TOKENS.spacing.sm,
         }}
       >
-        En rejetant, le job revient en attente et le prestataire pourra
-        soumettre une nouvelle proposition.
+        {t("negotiation.rejectionWarning")}
       </Text>
 
       <View style={styles.actionBar}>
@@ -1107,7 +1143,9 @@ export const ContracteeNegotiationModal: React.FC<
           onPress={() => setStep("overview")}
           disabled={isSubmitting}
         >
-          <Text style={styles.btnSecondaryText}>← Retour</Text>
+          <Text style={styles.btnSecondaryText}>
+            {t("negotiation.backButton")}
+          </Text>
         </Pressable>
         <Pressable
           style={({ pressed }) => [
@@ -1122,7 +1160,9 @@ export const ContracteeNegotiationModal: React.FC<
           ) : (
             <>
               <Ionicons name="close-circle" size={18} color="#fff" />
-              <Text style={styles.btnFullDangerText}>Confirmer le rejet</Text>
+              <Text style={styles.btnFullDangerText}>
+                {t("negotiation.confirmRejection")}
+              </Text>
             </>
           )}
         </Pressable>
@@ -1146,10 +1186,11 @@ export const ContracteeNegotiationModal: React.FC<
               color={colors.success || "#22C55E"}
             />
           </View>
-          <Text style={styles.resultTitle}>Proposition acceptée !</Text>
+          <Text style={styles.resultTitle}>
+            {t("negotiation.proposalAccepted")}
+          </Text>
           <Text style={styles.resultSubtitle}>
-            {info?.contractorName ?? "Le prestataire"} a été informé. Le job est
-            maintenant confirmé sur les créneaux convenus.
+            {info?.contractorName ?? ""} {t("negotiation.proposalAcceptedDesc")}
           </Text>
         </View>
       </ScrollView>
@@ -1162,7 +1203,7 @@ export const ContracteeNegotiationModal: React.FC<
           onPress={onClose}
         >
           <Ionicons name="checkmark" size={18} color="#fff" />
-          <Text style={styles.btnFullSuccessText}>Fermer</Text>
+          <Text style={styles.btnFullSuccessText}>{t("common.close")}</Text>
         </Pressable>
       </View>
     </>
@@ -1184,11 +1225,11 @@ export const ContracteeNegotiationModal: React.FC<
               color={colors.error || "#EF4444"}
             />
           </View>
-          <Text style={styles.resultTitle}>Proposition rejetée</Text>
+          <Text style={styles.resultTitle}>
+            {t("negotiation.proposalRejected")}
+          </Text>
           <Text style={styles.resultSubtitle}>
-            {info?.contractorName ?? "Le prestataire"} a été informé que sa
-            proposition n&apos;a pas été retenue. Il peut soumettre une nouvelle
-            proposition ou le job peut être redélégué.
+            {info?.contractorName ?? ""} {t("negotiation.proposalRejectedDesc")}
           </Text>
         </View>
       </ScrollView>
@@ -1200,7 +1241,7 @@ export const ContracteeNegotiationModal: React.FC<
           ]}
           onPress={onClose}
         >
-          <Text style={styles.btnSecondaryText}>Fermer</Text>
+          <Text style={styles.btnSecondaryText}>{t("common.close")}</Text>
         </Pressable>
       </View>
     </>

@@ -19,6 +19,7 @@ interface CalendarHeaderProps {
   rightComponent?: React.ReactNode;
   navigation?: any;
   useCompanyLabel?: boolean; // New: use company-based label from permissions
+  skipSafeAreaTop?: boolean; // Skip top safe area padding when logo already handles it
 }
 
 const CalendarHeader: React.FC<CalendarHeaderProps> = ({
@@ -28,6 +29,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
   rightComponent,
   navigation: propNavigation,
   useCompanyLabel = false,
+  skipSafeAreaTop = false,
 }) => {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
@@ -73,13 +75,15 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
 
   const styles = StyleSheet.create({
     container: {
-      paddingTop: insets.top + DESIGN_TOKENS.spacing.md,
+      paddingTop: skipSafeAreaTop
+        ? DESIGN_TOKENS.spacing.sm
+        : insets.top + DESIGN_TOKENS.spacing.md,
       paddingHorizontal: DESIGN_TOKENS.spacing.lg,
       paddingBottom: DESIGN_TOKENS.spacing.md,
       backgroundColor: colors.background,
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
-      minHeight: 76 + insets.top, // Header plus grand
+      minHeight: skipSafeAreaTop ? 56 : 76 + insets.top,
     },
     leftSection: {
       flexDirection: "row",

@@ -236,11 +236,13 @@ export const JobAssignmentActions: React.FC<JobAssignmentActionsProps> = ({
             color={colors.info}
             style={styles.icon}
           />
-          <Text style={styles.title}>Action Requise</Text>
+          <Text style={styles.title}>
+            {t("assignmentActions.actionRequired")}
+          </Text>
         </View>
 
         <Text style={styles.description}>
-          Ce job vous a été assigné. Acceptez-vous de le prendre en charge ?
+          {t("assignmentActions.actionRequiredDesc")}
         </Text>
 
         <View style={styles.buttonsRow}>
@@ -261,7 +263,7 @@ export const JobAssignmentActions: React.FC<JobAssignmentActionsProps> = ({
                     color={colors.success}
                   />
                   <Text style={[styles.buttonText, styles.acceptButtonText]}>
-                    Accepter
+                    {t("assignmentActions.acceptBtn")}
                   </Text>
                 </>
               )}
@@ -281,7 +283,7 @@ export const JobAssignmentActions: React.FC<JobAssignmentActionsProps> = ({
                 color={colors.textSecondary}
               />
               <Text style={[styles.buttonText, styles.declineButtonText]}>
-                Refuser
+                {t("assignmentActions.declineBtn")}
               </Text>
             </TouchableOpacity>
           )}
@@ -297,10 +299,11 @@ export const JobAssignmentActions: React.FC<JobAssignmentActionsProps> = ({
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Refuser le Job</Text>
+            <Text style={styles.modalTitle}>
+              {t("assignmentActions.declineJobTitle")}
+            </Text>
             <Text style={styles.modalSubtitle}>
-              Veuillez indiquer la raison de votre refus. Le créateur du job
-              sera notifié.
+              {t("assignmentActions.declineJobDesc")}
             </Text>
 
             <TextInput
@@ -325,7 +328,7 @@ export const JobAssignmentActions: React.FC<JobAssignmentActionsProps> = ({
                 disabled={isLoading}
               >
                 <Text style={[styles.modalButtonText, styles.modalCancelText]}>
-                  Annuler
+                  {t("common.cancel")}
                 </Text>
               </TouchableOpacity>
 
@@ -341,7 +344,7 @@ export const JobAssignmentActions: React.FC<JobAssignmentActionsProps> = ({
                   <Text
                     style={[styles.modalButtonText, styles.modalConfirmText]}
                   >
-                    Confirmer
+                    {t("assignmentActions.confirmBtn")}
                   </Text>
                 )}
               </TouchableOpacity>

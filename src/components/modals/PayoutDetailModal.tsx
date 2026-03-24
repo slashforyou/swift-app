@@ -4,21 +4,21 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import {
-    Modal,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
 import type { Payout } from "../../hooks/useStripe";
 import {
-    formatDateWithDay,
-    formatCurrency as formatLocalizedCurrency,
-    formatTime as formatLocalizedTime,
-    useLocalization,
+  formatDateWithDay,
+  formatCurrency as formatLocalizedCurrency,
+  formatTime as formatLocalizedTime,
+  useLocalization,
 } from "../../localization";
 
 interface PayoutDetailModalProps {
@@ -71,13 +71,13 @@ export default function PayoutDetailModal({
   const getStatusLabel = (status: Payout["status"]) => {
     switch (status) {
       case "paid":
-        return "Completed";
+        return t("payout.completedStatus");
       case "in_transit":
-        return "In Transit";
+        return t("payout.inTransit");
       case "pending":
-        return "Pending";
+        return t("payout.pendingStatus");
       case "failed":
-        return "Failed";
+        return t("payout.failedStatus");
       default:
         return status;
     }
@@ -112,7 +112,7 @@ export default function PayoutDetailModal({
             <Ionicons name="close" size={28} color={colors.text} />
           </Pressable>
           <Text style={[styles.headerTitle, { color: colors.text }]}>
-            Payout Details
+            {t("payout.title")}
           </Text>
           <View style={{ width: 44 }} />
         </View>
@@ -125,7 +125,7 @@ export default function PayoutDetailModal({
           <View
             style={[styles.amountCard, { backgroundColor: colors.primary }]}
           >
-            <Text style={styles.amountLabel}>Amount</Text>
+            <Text style={styles.amountLabel}>{t("payout.amountLabel")}</Text>
             <Text
               style={[styles.amountValue, { color: colors.buttonPrimaryText }]}
             >
@@ -158,7 +158,7 @@ export default function PayoutDetailModal({
             ]}
           >
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
-              Transaction Details
+              {t("payout.transactionDetails")}
             </Text>
 
             <View style={styles.detailRow}>
@@ -173,7 +173,7 @@ export default function PayoutDetailModal({
                 <Text
                   style={[styles.detailLabel, { color: colors.textSecondary }]}
                 >
-                  Payout ID
+                  {t("payout.payoutId")}
                 </Text>
                 <Text style={[styles.detailValue, { color: colors.text }]}>
                   {payout.id}
@@ -193,7 +193,7 @@ export default function PayoutDetailModal({
                 <Text
                   style={[styles.detailLabel, { color: colors.textSecondary }]}
                 >
-                  Created Date
+                  {t("payout.createdDate")}
                 </Text>
                 <Text style={[styles.detailValue, { color: colors.text }]}>
                   {formatDate(payout.arrivalDate)}
@@ -213,10 +213,11 @@ export default function PayoutDetailModal({
                 <Text
                   style={[styles.detailLabel, { color: colors.textSecondary }]}
                 >
-                  Expected Arrival
+                  {t("payout.expectedArrival")}
                 </Text>
                 <Text style={[styles.detailValue, { color: colors.text }]}>
-                  {formatDate(payout.arrivalDate)} at{" "}
+                  {formatDate(payout.arrivalDate)}
+                  {t("payout.at")}
                   {formatTime(payout.arrivalDate)}
                 </Text>
               </View>
@@ -234,11 +235,11 @@ export default function PayoutDetailModal({
                 <Text
                   style={[styles.detailLabel, { color: colors.textSecondary }]}
                 >
-                  Type
+                  {t("payout.typeLabel")}
                 </Text>
                 <Text style={[styles.detailValue, { color: colors.text }]}>
                   {payout.type === "bank_account"
-                    ? "Bank Transfer"
+                    ? t("payout.bankTransfer")
                     : payout.type}
                 </Text>
               </View>
@@ -253,7 +254,7 @@ export default function PayoutDetailModal({
             ]}
           >
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
-              Destination
+              {t("payout.destination")}
             </Text>
 
             <View style={styles.bankInfo}>
@@ -271,7 +272,7 @@ export default function PayoutDetailModal({
               </View>
               <View style={styles.bankDetails}>
                 <Text style={[styles.bankName, { color: colors.text }]}>
-                  Bank Account
+                  {t("payout.bankAccount")}
                 </Text>
                 <Text
                   style={[styles.bankAccount, { color: colors.textSecondary }]}
@@ -290,13 +291,13 @@ export default function PayoutDetailModal({
             ]}
           >
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
-              Status Timeline
+              {t("payout.statusTimeline")}
             </Text>
 
             <View style={styles.timeline}>
               <TimelineItem
                 icon="checkmark-circle"
-                title="Payout Created"
+                title={t("payout.payoutCreated")}
                 subtitle={formatDate(payout.arrivalDate)}
                 isCompleted={true}
                 isLast={false}
@@ -304,11 +305,11 @@ export default function PayoutDetailModal({
               />
               <TimelineItem
                 icon="airplane"
-                title="In Transit"
+                title={t("payout.inTransit")}
                 subtitle={
                   payout.status === "in_transit" || payout.status === "paid"
-                    ? "Processing..."
-                    : "Pending"
+                    ? t("payout.processing")
+                    : t("payout.pendingStatus")
                 }
                 isCompleted={
                   payout.status === "in_transit" || payout.status === "paid"
@@ -318,11 +319,11 @@ export default function PayoutDetailModal({
               />
               <TimelineItem
                 icon="checkmark-done-circle"
-                title="Delivered"
+                title={t("payout.delivered")}
                 subtitle={
                   payout.status === "paid"
                     ? formatDate(payout.arrivalDate)
-                    : "Pending"
+                    : t("payout.pendingStatus")
                 }
                 isCompleted={payout.status === "paid"}
                 isLast={true}

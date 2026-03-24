@@ -20,25 +20,26 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useCallback, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Modal,
-    Pressable,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  ActivityIndicator,
+  Alert,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import { DESIGN_TOKENS } from "../../../constants/Styles";
 import { useTheme } from "../../../context/ThemeProvider";
+import { useTranslation } from "../../../localization";
 import {
-    cancelTransfer,
-    respondToTransfer,
+  cancelTransfer,
+  respondToTransfer,
 } from "../../../services/jobTransfer";
 import type { JobTransfer, TransferStatus } from "../../../types/jobTransfer";
 import {
-    DELEGATED_ROLE_LABELS,
-    PRICING_TYPE_LABELS,
+  DELEGATED_ROLE_LABELS,
+  PRICING_TYPE_LABELS,
 } from "../../../types/jobTransfer";
 
 // ─────────────────────────────────────────────────────────────
@@ -97,6 +98,7 @@ const TransferBannerSection: React.FC<TransferBannerSectionProps> = ({
   onTransferUpdated,
 }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const [showDeclineModal, setShowDeclineModal] = useState(false);
   const [declineReason, setDeclineReason] = useState("");
@@ -116,12 +118,12 @@ const TransferBannerSection: React.FC<TransferBannerSectionProps> = ({
   // ── Annuler (cédant) ──
   const handleCancel = useCallback(() => {
     Alert.alert(
-      "Annuler la délégation",
-      `Voulez-vous annuler la délégation envoyée à ${recipientName} ?`,
+      t("transfer.cancelDelegation"),
+      t("transfer.cancelDelegationConfirm", { company: recipientName }),
       [
-        { text: "Retour", style: "cancel" },
+        { text: t("common.back"), style: "cancel" },
         {
-          text: "Annuler la délégation",
+          text: t("transfer.cancelDelegationBtn"),
           style: "destructive",
           onPress: async () => {
             try {
@@ -129,7 +131,10 @@ const TransferBannerSection: React.FC<TransferBannerSectionProps> = ({
               await cancelTransfer(jobId, transfer.id);
               onTransferUpdated();
             } catch (e: any) {
-              Alert.alert("Erreur", e?.message ?? "Impossible d'annuler");
+              Alert.alert(
+                t("common.error"),
+                e?.message ?? t("transfer.errorCancel"),
+              );
             } finally {
               setIsLoading(false);
             }
@@ -142,19 +147,22 @@ const TransferBannerSection: React.FC<TransferBannerSectionProps> = ({
   // ── Accepter (cessionnaire OU cédant sur une contre-proposition) ──
   const handleAccept = useCallback(() => {
     Alert.alert(
-      "Accepter la délégation",
-      `Confirmer l'acceptation du job délégué par ${senderName} ?`,
+      t("transfer.acceptDelegation"),
+      t("transfer.acceptDelegationConfirm", { company: senderName }),
       [
-        { text: "Annuler", style: "cancel" },
+        { text: t("common.cancel"), style: "cancel" },
         {
-          text: "Accepter",
+          text: t("negotiation.accept"),
           onPress: async () => {
             try {
               setIsLoading(true);
               await respondToTransfer(jobId, transfer.id, { action: "accept" });
               onTransferUpdated();
             } catch (e: any) {
-              Alert.alert("Erreur", e?.message ?? "Impossible d'accepter");
+              Alert.alert(
+                t("common.error"),
+                e?.message ?? t("transfer.errorAccept"),
+              );
             } finally {
               setIsLoading(false);
             }
@@ -168,7 +176,7 @@ const TransferBannerSection: React.FC<TransferBannerSectionProps> = ({
   const handleCounterConfirm = useCallback(async () => {
     const amount = parseFloat(counterAmount.replace(",", "."));
     if (isNaN(amount) || amount <= 0) {
-      Alert.alert("Montant invalide", "Veuillez saisir un montant valide.");
+      Alert.alert(t("transfer.invalidAmount"), t("transfer.invalidAmountMsg"));
       return;
     }
     try {
@@ -184,7 +192,7 @@ const TransferBannerSection: React.FC<TransferBannerSectionProps> = ({
       setCounterMessage("");
       onTransferUpdated();
     } catch (e: any) {
-      Alert.alert("Erreur", e?.message ?? "Impossible de soumettre");
+      Alert.alert(t("common.error"), e?.message ?? t("transfer.errorSubmit"));
     } finally {
       setIsLoading(false);
     }
@@ -202,7 +210,7 @@ const TransferBannerSection: React.FC<TransferBannerSectionProps> = ({
       setDeclineReason("");
       onTransferUpdated();
     } catch (e: any) {
-      Alert.alert("Erreur", e?.message ?? "Impossible de refuser");
+      Alert.alert(t("common.error"), e?.message ?? t("transfer.errorDecline"));
     } finally {
       setIsLoading(false);
     }
@@ -309,15 +317,21 @@ const TransferBannerSection: React.FC<TransferBannerSectionProps> = ({
         {/* Header statut */}
         <View style={styles.headerRow}>
           <Ionicons name={cfg.icon as any} size={20} color={cfg.color} />
-          <Text style={styles.statusLabel}>Délégation {cfg.label}</Text>
+          <Text style={styles.statusLabel}>
+            {t("transfer.delegationLabel")} {cfg.label}
+          </Text>
           {isLoading && <ActivityIndicator size="small" color={cfg.color} />}
         </View>
 
         {/* Entreprise concernée */}
         {isOwner ? (
-          <Text style={styles.companyName}>Envoyée à {recipientName}</Text>
+          <Text style={styles.companyName}>
+            {t("transfer.sentTo")} {recipientName}
+          </Text>
         ) : (
-          <Text style={styles.companyName}>Reçue de {senderName}</Text>
+          <Text style={styles.companyName}>
+            {t("transfer.receivedFrom")} {senderName}
+          </Text>
         )}
 
         {/* Détails */}
@@ -333,7 +347,7 @@ const TransferBannerSection: React.FC<TransferBannerSectionProps> = ({
         {/* Raison refus */}
         {transfer.decline_reason ? (
           <Text style={styles.detailText}>
-            Raison : {transfer.decline_reason}
+            {t("transfer.reason")} : {transfer.decline_reason}
           </Text>
         ) : null}
 
@@ -353,7 +367,7 @@ const TransferBannerSection: React.FC<TransferBannerSectionProps> = ({
               <Text
                 style={{ color: "#8B5CF6", fontWeight: "700", fontSize: 12 }}
               >
-                CONTRE-PROPOSITION DU CONTRACTOR
+                {t("transfer.counterProposalFromContractor")}
               </Text>
               <Text
                 style={{ color: colors.text, fontSize: 14, fontWeight: "600" }}
@@ -380,7 +394,7 @@ const TransferBannerSection: React.FC<TransferBannerSectionProps> = ({
         {transfer.status === "pending" && !isLoading && isOwner && (
           <Pressable style={styles.btnCancel} onPress={handleCancel}>
             <Text style={{ color: colors.textSecondary, fontSize: 13 }}>
-              Annuler la délégation
+              {t("transfer.cancelBtn")}
             </Text>
           </Pressable>
         )}
@@ -395,7 +409,7 @@ const TransferBannerSection: React.FC<TransferBannerSectionProps> = ({
               <Text
                 style={{ color: "#EF4444", fontWeight: "600", fontSize: 13 }}
               >
-                Refuser
+                {t("transfer.declineBtn")}
               </Text>
             </Pressable>
             <Pressable
@@ -412,12 +426,12 @@ const TransferBannerSection: React.FC<TransferBannerSectionProps> = ({
               <Text
                 style={{ color: "#8B5CF6", fontWeight: "600", fontSize: 13 }}
               >
-                Négocier
+                {t("transfer.negotiateBtn")}
               </Text>
             </Pressable>
             <Pressable style={styles.btnPrimary} onPress={handleAccept}>
               <Text style={{ color: "#fff", fontWeight: "700", fontSize: 13 }}>
-                Accepter
+                {t("transfer.acceptBtn")}
               </Text>
             </Pressable>
           </View>
@@ -433,12 +447,12 @@ const TransferBannerSection: React.FC<TransferBannerSectionProps> = ({
               <Text
                 style={{ color: "#EF4444", fontWeight: "600", fontSize: 13 }}
               >
-                Refuser
+                {t("transfer.declineBtn")}
               </Text>
             </Pressable>
             <Pressable style={styles.btnPrimary} onPress={handleAccept}>
               <Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>
-                Accepter
+                {t("transfer.acceptBtn")}
               </Text>
             </Pressable>
           </View>
@@ -447,7 +461,7 @@ const TransferBannerSection: React.FC<TransferBannerSectionProps> = ({
         {/* Actions — negotiating : coté cessionnaire (lecture seule) */}
         {transfer.status === "negotiating" && !isLoading && canRespond && (
           <Text style={{ color: "#8B5CF6", fontSize: 12, fontStyle: "italic" }}>
-            Votre contre-proposition attend la réponse du contractee.
+            {t("transfer.counterProposalPending")}
           </Text>
         )}
       </View>
@@ -470,13 +484,13 @@ const TransferBannerSection: React.FC<TransferBannerSectionProps> = ({
           >
             <View style={styles.declineSheet}>
               <Text style={styles.declineTitle}>
-                Motif du refus (optionnel)
+                {t("transfer.declineReasonLabel")}
               </Text>
               <TextInput
                 style={styles.declineInput}
                 value={declineReason}
                 onChangeText={setDeclineReason}
-                placeholder="Expliquez pourquoi vous refusez..."
+                placeholder={t("transfer.declinePlaceholder")}
                 placeholderTextColor={colors.textSecondary}
                 multiline
                 autoFocus
@@ -495,7 +509,7 @@ const TransferBannerSection: React.FC<TransferBannerSectionProps> = ({
                   <Text
                     style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}
                   >
-                    Confirmer le refus
+                    {t("transfer.confirmDecline")}
                   </Text>
                 )}
               </Pressable>
@@ -521,17 +535,21 @@ const TransferBannerSection: React.FC<TransferBannerSectionProps> = ({
             }}
           >
             <View style={styles.declineSheet}>
-              <Text style={styles.declineTitle}>Contre-proposition</Text>
+              <Text style={styles.declineTitle}>
+                {t("transfer.counterProposalTitle")}
+              </Text>
               <Text style={{ color: colors.textSecondary, fontSize: 13 }}>
-                Prix actuel : {transfer.pricing_amount.toFixed(2)}{" "}
-                {transfer.pricing_currency}
+                {t("transfer.currentPrice")} :{" "}
+                {transfer.pricing_amount.toFixed(2)} {transfer.pricing_currency}
                 {transfer.pricing_type === "hourly" ? "/h" : ""}
               </Text>
               <TextInput
                 style={[styles.declineInput, { minHeight: 44 }]}
                 value={counterAmount}
                 onChangeText={setCounterAmount}
-                placeholder={`Nouveau montant (${transfer.pricing_currency})`}
+                placeholder={t("transfer.newAmountPlaceholder", {
+                  currency: transfer.pricing_currency,
+                })}
                 placeholderTextColor={colors.textSecondary}
                 keyboardType="decimal-pad"
                 autoFocus
@@ -540,7 +558,7 @@ const TransferBannerSection: React.FC<TransferBannerSectionProps> = ({
                 style={styles.declineInput}
                 value={counterMessage}
                 onChangeText={setCounterMessage}
-                placeholder="Message explicatif (optionnel)..."
+                placeholder={t("transfer.explanationPlaceholder")}
                 placeholderTextColor={colors.textSecondary}
                 multiline
               />
@@ -559,7 +577,7 @@ const TransferBannerSection: React.FC<TransferBannerSectionProps> = ({
                   <Text
                     style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}
                   >
-                    Envoyer la contre-proposition
+                    {t("transfer.sendCounterProposal")}
                   </Text>
                 )}
               </Pressable>

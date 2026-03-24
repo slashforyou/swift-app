@@ -353,7 +353,7 @@ export default function CreatePaymentLinkModal({
         <View style={styles.overlay}>
           <View style={styles.container}>
             <View style={styles.header}>
-              <Text style={styles.headerTitle}>Payment Link Created</Text>
+              <Text style={styles.headerTitle}>{t("paymentLink.title")}</Text>
               <TouchableOpacity
                 style={styles.closeButton}
                 onPress={handleClose}
@@ -371,10 +371,11 @@ export default function CreatePaymentLinkModal({
                 />
               </View>
 
-              <Text style={styles.successTitle}>Link Ready!</Text>
+              <Text style={styles.successTitle}>
+                {t("paymentLink.linkReady")}
+              </Text>
               <Text style={styles.successText}>
-                Your payment link has been created. Share it with your customer
-                via SMS, email, or any messaging app.
+                {t("paymentLink.linkReadyDesc")}
               </Text>
 
               <View style={styles.linkBox}>
@@ -389,7 +390,9 @@ export default function CreatePaymentLinkModal({
                   onPress={handleCopyLink}
                 >
                   <Ionicons name="copy-outline" size={20} color={colors.text} />
-                  <Text style={styles.actionButtonText}>Copy</Text>
+                  <Text style={styles.actionButtonText}>
+                    {t("paymentLink.copyBtn")}
+                  </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -401,12 +404,16 @@ export default function CreatePaymentLinkModal({
                     size={20}
                     color={colors.text}
                   />
-                  <Text style={styles.actionButtonText}>Share</Text>
+                  <Text style={styles.actionButtonText}>
+                    {t("paymentLink.shareBtn")}
+                  </Text>
                 </TouchableOpacity>
               </View>
 
               <TouchableOpacity style={styles.doneButton} onPress={handleClose}>
-                <Text style={styles.doneButtonText}>Done</Text>
+                <Text style={styles.doneButtonText}>
+                  {t("paymentLink.doneBtn")}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -429,7 +436,9 @@ export default function CreatePaymentLinkModal({
       >
         <View style={styles.container}>
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>Create Payment Link</Text>
+            <Text style={styles.headerTitle}>
+              {t("paymentLink.createTitle")}
+            </Text>
             <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
               <Ionicons name="close" size={24} color={colors.text} />
             </TouchableOpacity>
@@ -442,13 +451,13 @@ export default function CreatePaymentLinkModal({
                 {formatCurrency(amount || "0")}
               </Text>
               <Text style={styles.previewDescription}>
-                {description || "Payment request"}
+                {description || t("paymentLink.defaultDescription")}
               </Text>
             </View>
 
             {/* Amount Input */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Amount</Text>
+              <Text style={styles.label}>{t("paymentLink.amountLabel")}</Text>
               <View style={styles.amountContainer}>
                 <Text style={styles.currencyPrefix}>$</Text>
                 <TextInput
@@ -466,7 +475,8 @@ export default function CreatePaymentLinkModal({
             {/* Description Input */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>
-                Description <Text style={styles.labelOptional}>(optional)</Text>
+                {t("paymentLink.descriptionLabel")}{" "}
+                <Text style={styles.labelOptional}>(optional)</Text>
               </Text>
               <TextInput
                 style={styles.input}
@@ -481,7 +491,7 @@ export default function CreatePaymentLinkModal({
             {/* Customer Email Input */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>
-                Customer Email{" "}
+                {t("paymentLink.customerEmail")}{" "}
                 <Text style={styles.labelOptional}>(optional)</Text>
               </Text>
               <TextInput
@@ -519,7 +529,7 @@ export default function CreatePaymentLinkModal({
                     color={colors.buttonPrimaryText}
                   />
                   <Text style={styles.createButtonText}>
-                    Create Payment Link
+                    {t("paymentLink.createBtn")}
                   </Text>
                 </>
               )}

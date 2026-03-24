@@ -2,12 +2,24 @@
  * Analytics Dashboard Component - Dashboard temps réel pour monitoring
  */
 
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { DESIGN_TOKENS } from '../../constants/Styles';
-import { useTheme } from '../../context/ThemeProvider';
-import { useAnalytics } from '../../hooks/useAnalytics';
-import { getBusinessMetrics, getStripeAnalytics, getUsageAnalytics } from '../../services/analytics';
+import React, { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { DESIGN_TOKENS } from "../../constants/Styles";
+import { useTheme } from "../../context/ThemeProvider";
+import { useAnalytics } from "../../hooks/useAnalytics";
+import { useTranslation } from "../../localization";
+import {
+  getBusinessMetrics,
+  getStripeAnalytics,
+  getUsageAnalytics,
+} from "../../services/analytics";
 
 interface DashboardMetrics {
   jobs: {
@@ -36,12 +48,15 @@ interface DashboardMetrics {
 
 const AnalyticsDashboard: React.FC = () => {
   const { colors } = useTheme();
-  const { track } = useAnalytics('analytics_dashboard');
-  
+  const { t } = useTranslation();
+  const { track } = useAnalytics("analytics_dashboard");
+
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedPeriod, setSelectedPeriod] = useState<'24h' | '7d' | '30d'>('24h');
+  const [selectedPeriod, setSelectedPeriod] = useState<"24h" | "7d" | "30d">(
+    "24h",
+  );
 
   useEffect(() => {
     loadDashboardData();
@@ -50,45 +65,91 @@ const AnalyticsDashboard: React.FC = () => {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      track.userAction('dashboard_load_started', { period: selectedPeriod });// Paralléliser les appels API
+      track.userAction("dashboard_load_started", { period: selectedPeriod }); // Paralléliser les appels API
       const [businessData, usageData, stripeData] = await Promise.allSettled([
         getBusinessMetrics(selectedPeriod),
         getUsageAnalytics(selectedPeriod),
-        getStripeAnalytics('', selectedPeriod) // Empty company ID to get global stats
+        getStripeAnalytics("", selectedPeriod), // Empty company ID to get global stats
       ]);
 
       // Agréger les données
       const aggregatedMetrics: DashboardMetrics = {
         jobs: {
-          total: businessData.status === 'fulfilled' ? businessData.value?.jobs?.total || 0 : 0,
-          completed: businessData.status === 'fulfilled' ? businessData.value?.jobs?.completed || 0 : 0,
-          inProgress: businessData.status === 'fulfilled' ? businessData.value?.jobs?.in_progress || 0 : 0,
-          success_rate: businessData.status === 'fulfilled' ? businessData.value?.jobs?.success_rate || 0 : 0,
+          total:
+            businessData.status === "fulfilled"
+              ? businessData.value?.jobs?.total || 0
+              : 0,
+          completed:
+            businessData.status === "fulfilled"
+              ? businessData.value?.jobs?.completed || 0
+              : 0,
+          inProgress:
+            businessData.status === "fulfilled"
+              ? businessData.value?.jobs?.in_progress || 0
+              : 0,
+          success_rate:
+            businessData.status === "fulfilled"
+              ? businessData.value?.jobs?.success_rate || 0
+              : 0,
         },
         payments: {
-          total_amount: stripeData.status === 'fulfilled' ? stripeData.value?.data?.metrics?.total_revenue || 0 : 0,
-          total_transactions: stripeData.status === 'fulfilled' ? stripeData.value?.data?.metrics?.total_transactions || 0 : 0,
-          success_rate: stripeData.status === 'fulfilled' ? stripeData.value?.data?.metrics?.success_rate || 0 : 0,
-          failed_transactions: stripeData.status === 'fulfilled' ? stripeData.value?.data?.metrics?.failed_transactions || 0 : 0,
+          total_amount:
+            stripeData.status === "fulfilled"
+              ? stripeData.value?.data?.metrics?.total_revenue || 0
+              : 0,
+          total_transactions:
+            stripeData.status === "fulfilled"
+              ? stripeData.value?.data?.metrics?.total_transactions || 0
+              : 0,
+          success_rate:
+            stripeData.status === "fulfilled"
+              ? stripeData.value?.data?.metrics?.success_rate || 0
+              : 0,
+          failed_transactions:
+            stripeData.status === "fulfilled"
+              ? stripeData.value?.data?.metrics?.failed_transactions || 0
+              : 0,
         },
         users: {
-          active_users: usageData.status === 'fulfilled' ? usageData.value?.users?.active || 0 : 0,
-          total_sessions: usageData.status === 'fulfilled' ? usageData.value?.users?.sessions || 0 : 0,
-          avg_session_duration: usageData.status === 'fulfilled' ? usageData.value?.users?.avg_session_duration || 0 : 0,
+          active_users:
+            usageData.status === "fulfilled"
+              ? usageData.value?.users?.active || 0
+              : 0,
+          total_sessions:
+            usageData.status === "fulfilled"
+              ? usageData.value?.users?.sessions || 0
+              : 0,
+          avg_session_duration:
+            usageData.status === "fulfilled"
+              ? usageData.value?.users?.avg_session_duration || 0
+              : 0,
         },
         performance: {
-          avg_api_response: usageData.status === 'fulfilled' ? usageData.value?.performance?.avg_response_time || 0 : 0,
-          error_rate: usageData.status === 'fulfilled' ? usageData.value?.performance?.error_rate || 0 : 0,
-          uptime: usageData.status === 'fulfilled' ? usageData.value?.performance?.uptime || 0 : 0,
-        }
+          avg_api_response:
+            usageData.status === "fulfilled"
+              ? usageData.value?.performance?.avg_response_time || 0
+              : 0,
+          error_rate:
+            usageData.status === "fulfilled"
+              ? usageData.value?.performance?.error_rate || 0
+              : 0,
+          uptime:
+            usageData.status === "fulfilled"
+              ? usageData.value?.performance?.uptime || 0
+              : 0,
+        },
       };
 
       setMetrics(aggregatedMetrics);
-      track.businessEvent('dashboard_loaded', { period: selectedPeriod, success: true });
-
-    } catch (error) {
-      console.error('Error loading dashboard data:', error);
-      track.error('api_error', `Dashboard load failed: ${error}`, { period: selectedPeriod });
+      track.businessEvent("dashboard_loaded", {
+        period: selectedPeriod,
+        success: true,
+      });
+    } catch (error) {
+      console.error("Error loading dashboard data:", error);
+      track.error("api_error", `Dashboard load failed: ${error}`, {
+        period: selectedPeriod,
+      });
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -108,20 +169,35 @@ const AnalyticsDashboard: React.FC = () => {
     return `${(value * 100).toFixed(1)}%`;
   };
 
-  const MetricCard = ({ title, value, subtitle, color = colors.primary, icon }: {
+  const MetricCard = ({
+    title,
+    value,
+    subtitle,
+    color = colors.primary,
+    icon,
+  }: {
     title: string;
     value: string | number;
     subtitle?: string;
     color?: string;
     icon?: string;
   }) => (
-    <View style={[styles.metricCard, { backgroundColor: colors.backgroundSecondary }]}>
+    <View
+      style={[
+        styles.metricCard,
+        { backgroundColor: colors.backgroundSecondary },
+      ]}
+    >
       <View style={styles.metricHeader}>
-        <Text style={[styles.metricTitle, { color: colors.textSecondary }]}>{title}</Text>
+        <Text style={[styles.metricTitle, { color: colors.textSecondary }]}>
+          {title}
+        </Text>
       </View>
       <Text style={[styles.metricValue, { color: color }]}>{value}</Text>
       {subtitle && (
-        <Text style={[styles.metricSubtitle, { color: colors.textSecondary }]}>{subtitle}</Text>
+        <Text style={[styles.metricSubtitle, { color: colors.textSecondary }]}>
+          {subtitle}
+        </Text>
       )}
     </View>
   );
@@ -138,7 +214,7 @@ const AnalyticsDashboard: React.FC = () => {
     },
     title: {
       fontSize: 24,
-      fontWeight: '700',
+      fontWeight: "700",
       color: colors.text,
       marginBottom: DESIGN_TOKENS.spacing.xs,
     },
@@ -147,7 +223,7 @@ const AnalyticsDashboard: React.FC = () => {
       color: colors.textSecondary,
     },
     periodSelector: {
-      flexDirection: 'row',
+      flexDirection: "row",
       marginVertical: DESIGN_TOKENS.spacing.md,
       paddingHorizontal: DESIGN_TOKENS.spacing.lg,
     },
@@ -157,7 +233,7 @@ const AnalyticsDashboard: React.FC = () => {
       paddingHorizontal: DESIGN_TOKENS.spacing.md,
       borderRadius: DESIGN_TOKENS.radius.md,
       marginHorizontal: DESIGN_TOKENS.spacing.xs,
-      alignItems: 'center',
+      alignItems: "center",
     },
     periodButtonActive: {
       backgroundColor: colors.primary,
@@ -167,7 +243,7 @@ const AnalyticsDashboard: React.FC = () => {
     },
     periodButtonText: {
       fontSize: 14,
-      fontWeight: '600',
+      fontWeight: "600",
     },
     periodButtonTextActive: {
       color: colors.background,
@@ -183,13 +259,13 @@ const AnalyticsDashboard: React.FC = () => {
     },
     sectionTitle: {
       fontSize: 18,
-      fontWeight: '600',
+      fontWeight: "600",
       color: colors.text,
       marginBottom: DESIGN_TOKENS.spacing.md,
     },
     metricsRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
+      flexDirection: "row",
+      justifyContent: "space-between",
       marginBottom: DESIGN_TOKENS.spacing.md,
     },
     metricCard: {
@@ -201,20 +277,20 @@ const AnalyticsDashboard: React.FC = () => {
       borderColor: colors.border,
     },
     metricHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
       marginBottom: DESIGN_TOKENS.spacing.xs,
     },
     metricTitle: {
       fontSize: 12,
-      fontWeight: '500',
-      textTransform: 'uppercase',
+      fontWeight: "500",
+      textTransform: "uppercase",
       letterSpacing: 0.5,
     },
     metricValue: {
       fontSize: 24,
-      fontWeight: '700',
+      fontWeight: "700",
       marginBottom: DESIGN_TOKENS.spacing.xs,
     },
     metricSubtitle: {
@@ -222,8 +298,8 @@ const AnalyticsDashboard: React.FC = () => {
     },
     loadingContainer: {
       flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
+      justifyContent: "center",
+      alignItems: "center",
     },
     loadingText: {
       marginTop: DESIGN_TOKENS.spacing.md,
@@ -236,7 +312,7 @@ const AnalyticsDashboard: React.FC = () => {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.loadingText}>Chargement des métriques...</Text>
+        <Text style={styles.loadingText}>{t("analytics.loadingMetrics")}</Text>
       </View>
     );
   }
@@ -245,26 +321,36 @@ const AnalyticsDashboard: React.FC = () => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Dashboard Analytics</Text>
-        <Text style={styles.subtitle}>Monitoring en temps réel</Text>
+        <Text style={styles.title}>{t("analytics.title")}</Text>
+        <Text style={styles.subtitle}>{t("analytics.subtitle")}</Text>
       </View>
 
       {/* Period Selector */}
       <View style={styles.periodSelector}>
-        {(['24h', '7d', '30d'] as const).map((period) => (
+        {(["24h", "7d", "30d"] as const).map((period) => (
           <Text
             key={period}
             style={[
               styles.periodButton,
-              selectedPeriod === period ? styles.periodButtonActive : styles.periodButtonInactive,
+              selectedPeriod === period
+                ? styles.periodButtonActive
+                : styles.periodButtonInactive,
             ]}
             onPress={() => setSelectedPeriod(period)}
           >
-            <Text style={[
-              styles.periodButtonText,
-              selectedPeriod === period ? styles.periodButtonTextActive : styles.periodButtonTextInactive,
-            ]}>
-              {period === '24h' ? '24h' : period === '7d' ? '7 jours' : '30 jours'}
+            <Text
+              style={[
+                styles.periodButtonText,
+                selectedPeriod === period
+                  ? styles.periodButtonTextActive
+                  : styles.periodButtonTextInactive,
+              ]}
+            >
+              {period === "24h"
+                ? t("analytics.period24h")
+                : period === "7d"
+                  ? t("analytics.period7d")
+                  : t("analytics.period30d")}
             </Text>
           </Text>
         ))}
@@ -272,20 +358,24 @@ const AnalyticsDashboard: React.FC = () => {
 
       <ScrollView
         style={styles.content}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
       >
         {/* Jobs Metrics */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Jobs & Progression</Text>
+          <Text style={styles.sectionTitle}>
+            {t("analytics.jobsProgression")}
+          </Text>
           <View style={styles.metricsRow}>
             <MetricCard
-              title="Total Jobs"
+              title={t("analytics.totalJobs")}
               value={metrics?.jobs?.total || 0}
-              subtitle="Créés"
+              subtitle={t("analytics.created")}
               color={colors.primary}
             />
             <MetricCard
-              title="Complétés"
+              title={t("analytics.completedLabel")}
               value={metrics?.jobs?.completed || 0}
               subtitle={formatPercentage(metrics?.jobs?.success_rate || 0)}
               color={colors.success}
@@ -293,9 +383,9 @@ const AnalyticsDashboard: React.FC = () => {
           </View>
           <View style={styles.metricsRow}>
             <MetricCard
-              title="En Cours"
+              title={t("analytics.inProgress")}
               value={metrics?.jobs?.inProgress || 0}
-              subtitle="Actifs"
+              subtitle={t("analytics.active")}
               color={colors.warning}
             />
           </View>
@@ -303,16 +393,18 @@ const AnalyticsDashboard: React.FC = () => {
 
         {/* Payments Metrics */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Paiements Stripe</Text>
+          <Text style={styles.sectionTitle}>
+            {t("analytics.stripePayments")}
+          </Text>
           <View style={styles.metricsRow}>
             <MetricCard
-              title="Revenus"
+              title={t("analytics.revenue")}
               value={formatCurrency(metrics?.payments?.total_amount || 0)}
-              subtitle="AUD"
+              subtitle={t("analytics.aud")}
               color={colors.success}
             />
             <MetricCard
-              title="Transactions"
+              title={t("analytics.transactions")}
               value={metrics?.payments?.total_transactions || 0}
               subtitle={formatPercentage(metrics?.payments?.success_rate || 0)}
               color={colors.primary}
@@ -322,16 +414,18 @@ const AnalyticsDashboard: React.FC = () => {
 
         {/* User Metrics */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Utilisateurs & Engagement</Text>
+          <Text style={styles.sectionTitle}>
+            {t("analytics.usersEngagement")}
+          </Text>
           <View style={styles.metricsRow}>
             <MetricCard
-              title="Utilisateurs Actifs"
+              title={t("analytics.activeUsers")}
               value={metrics?.users?.active_users || 0}
-              subtitle="Période"
+              subtitle={t("analytics.period")}
               color={colors.primary}
             />
             <MetricCard
-              title="Sessions"
+              title={t("analytics.sessions")}
               value={metrics?.users?.total_sessions || 0}
               subtitle={`${Math.round((metrics?.users?.avg_session_duration || 0) / 60)}min moy.`}
               color={colors.secondary}
@@ -341,26 +435,28 @@ const AnalyticsDashboard: React.FC = () => {
 
         {/* Performance Metrics */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Performance Système</Text>
+          <Text style={styles.sectionTitle}>
+            {t("analytics.systemPerformance")}
+          </Text>
           <View style={styles.metricsRow}>
             <MetricCard
-              title="API Response"
+              title={t("analytics.apiResponse")}
               value={`${metrics?.performance?.avg_api_response || 0}ms`}
-              subtitle="Moyenne"
+              subtitle={t("analytics.average")}
               color={colors.primary}
             />
             <MetricCard
-              title="Uptime"
+              title={t("analytics.uptime")}
               value={formatPercentage(metrics?.performance?.uptime || 0)}
-              subtitle="Disponibilité"
+              subtitle={t("analytics.availability")}
               color={colors.success}
             />
           </View>
           <View style={styles.metricsRow}>
             <MetricCard
-              title="Taux d'Erreur"
+              title={t("analytics.errorRate")}
               value={formatPercentage(metrics?.performance?.error_rate || 0)}
-              subtitle="API Errors"
+              subtitle={t("analytics.apiErrors")}
               color={colors.error}
             />
           </View>

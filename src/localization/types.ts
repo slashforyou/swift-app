@@ -2534,6 +2534,593 @@ export interface TranslationKeys {
     loadMore: string;
     noMoreEntries: string;
   };
+  // Negotiation (ContracteeNegotiationModal)
+  negotiation?: {
+    inNegotiation?: string;
+    proposalFrom?: string;
+    submittedOn?: string;
+    proposedSlots?: string;
+    start?: string;
+    end?: string;
+    estimatedDuration?: string;
+    proposedPricing?: string;
+    priceNotSpecified?: string;
+    vehicle?: string;
+    proposedTruck?: string;
+    notSpecified?: string;
+    teamComposition?: string;
+    driver?: string;
+    drivers?: string;
+    offsider?: string;
+    offsiders?: string;
+    packer?: string;
+    packers?: string;
+    totalPersons?: string;
+    providerNote?: string;
+    message?: string;
+    reject?: string;
+    acceptProposal?: string;
+    confirmAgreement?: string;
+    accept?: string;
+    rejectionReason?: string;
+    rejectionReasonPlaceholder?: string;
+    rejectionWarning?: string;
+    backButton?: string;
+    confirmRejection?: string;
+    proposalAccepted?: string;
+    proposalAcceptedDesc?: string;
+    proposalRejected?: string;
+    proposalRejectedDesc?: string;
+    stepProposalReceived?: string;
+    stepYourDecision?: string;
+    negotiationComplete?: string;
+    counterProposal?: string;
+    yourResponse?: string;
+    hourly?: string;
+    daily?: string;
+    flat?: string;
+    perHour?: string;
+    perDay?: string;
+    errorAccept?: string;
+    errorReject?: string;
+  };
+
+  // Contractor Job Wizard (ContractorJobWizardModal)
+  contractorWizard?: {
+    errorAcceptJob?: string;
+    errorDeclineJob?: string;
+    reasonRequired?: string;
+    reasonRequiredMsg?: string;
+    errorAssign?: string;
+    errorAssignPartial?: string;
+    slotsRequired?: string;
+    slotsRequiredMsg?: string;
+    errorCounterProposal?: string;
+    unknownCompany?: string;
+    priorityUrgent?: string;
+    priorityHigh?: string;
+    priorityMedium?: string;
+    priorityLow?: string;
+    assignedBy?: string;
+    contact?: string;
+    pendingResponse?: string;
+    counterProposalSent?: string;
+    accepted?: string;
+    declined?: string;
+    internalJob?: string;
+    priority?: string;
+    whatIsRequested?: string;
+    driversLabel?: string;
+    offsidersLabel?: string;
+    requestedTruck?: string;
+    hourlyPrice?: string;
+    dailyPrice?: string;
+    flatPrice?: string;
+    resourceNote?: string;
+    messageLabel?: string;
+    clientSection?: string;
+    nameLabel?: string;
+    phoneLabel?: string;
+    dateTimeSection?: string;
+    dateLabel?: string;
+    slotLabel?: string;
+    estimatedDuration?: string;
+    addressesSection?: string;
+    pickupLabel?: string;
+    deliveryLabel?: string;
+    notesSection?: string;
+    respond?: string;
+    jobFrom?: string;
+    reference?: string;
+    acceptJobQuestion?: string;
+    refuse?: string;
+    newProposal?: string;
+    backButton?: string;
+    jobAccepted?: string;
+    assignEmployees?: string;
+    searchEmployee?: string;
+    noActiveEmployee?: string;
+    later?: string;
+    confirmCount?: string;
+    finish?: string;
+    jobRefusal?: string;
+    refusalReason?: string;
+    refusalPlaceholder?: string;
+    confirmRefusal?: string;
+    requested?: string;
+    counterProposalLabel?: string;
+    originalProposal?: string;
+    newSlot?: string;
+    startHHMM?: string;
+    endHHMM?: string;
+    proposedPrice?: string;
+    flatType?: string;
+    hourlyType?: string;
+    proposedVehicle?: string;
+    noneOption?: string;
+    proposedResources?: string;
+    packersLabel?: string;
+    noteOptional?: string;
+    counterNotePlaceholder?: string;
+    sendProposal?: string;
+    proposalSent?: string;
+    proposalSentDesc?: string;
+    jobAcceptedSuccess?: string;
+    employeesAssigned?: string;
+    jobAcceptedNoStaff?: string;
+    jobDeclined?: string;
+    jobDeclinedDesc?: string;
+    // Step config
+    stepOverview?: string;
+    stepOverviewTitle?: string;
+    stepDecision?: string;
+    stepDecisionTitle?: string;
+    stepTeam?: string;
+    stepTeamTitle?: string;
+    stepRefusal?: string;
+    stepRefusalTitle?: string;
+    stepCounter?: string;
+    stepCounterTitle?: string;
+    stepDone?: string;
+    stepDoneTitle?: string;
+    stepConfirmed?: string;
+    stepDeclinedTitle?: string;
+  };
+
+  // Transfer (TransferBannerSection)
+  transfer?: {
+    pending?: string;
+    negotiating?: string;
+    acceptedStatus?: string;
+    declinedStatus?: string;
+    cancelledStatus?: string;
+    cancelDelegation?: string;
+    cancelDelegationConfirm?: string;
+    cancelDelegationBtn?: string;
+    errorCancel?: string;
+    acceptDelegation?: string;
+    acceptDelegationConfirm?: string;
+    errorAccept?: string;
+    invalidAmount?: string;
+    invalidAmountMsg?: string;
+    errorSubmit?: string;
+    errorDecline?: string;
+    delegationLabel?: string;
+    sentTo?: string;
+    receivedFrom?: string;
+    reason?: string;
+    counterProposalFromContractor?: string;
+    cancelBtn?: string;
+    declineBtn?: string;
+    negotiateBtn?: string;
+    acceptBtn?: string;
+    counterProposalPending?: string;
+    declineReasonLabel?: string;
+    declinePlaceholder?: string;
+    confirmDecline?: string;
+    counterProposalTitle?: string;
+    currentPrice?: string;
+    newAmountPlaceholder?: string;
+    explanationPlaceholder?: string;
+    sendCounterProposal?: string;
+  };
+
+  // Relations (RelationsScreen)
+  relations?: {
+    alreadyRegistered?: string;
+    alreadyRegisteredMsg?: string;
+    errorRegister?: string;
+    rename?: string;
+    deleteLabel?: string;
+    deleteConfirm?: string;
+    deleteConfirmMsg?: string;
+    errorDelete?: string;
+    errorRename?: string;
+    yourCompanyCode?: string;
+    copied?: string;
+    copy?: string;
+    shareCodeHint?: string;
+    howToAdd?: string;
+    step1?: string;
+    step2?: string;
+    step3?: string;
+    step4?: string;
+    contactBook?: string;
+    addLabel?: string;
+    emptyBook?: string;
+    emptyBookHint?: string;
+    addRelation?: string;
+    addRelationTitle?: string;
+    nicknamePlaceholder?: string;
+    saving?: string;
+    renameTitle?: string;
+    newNickname?: string;
+  };
+
+  // Ownership (JobOwnershipBanner)
+  ownership?: {
+    pendingAcceptance?: string;
+    acceptedStatus?: string;
+    declinedStatus?: string;
+    yourJob?: string;
+    jobFrom?: string;
+    partiesInvolved?: string;
+    creatorLabel?: string;
+    by?: string;
+    executorLabel?: string;
+    assignedTo?: string;
+  };
+
+  // Assignment Actions (JobAssignmentActions)
+  assignmentActions?: {
+    actionRequired?: string;
+    actionRequiredDesc?: string;
+    acceptBtn?: string;
+    declineBtn?: string;
+    declineJobTitle?: string;
+    declineJobDesc?: string;
+    confirmBtn?: string;
+  };
+
+  // Invoice Edit (InvoiceCreateEditModal)
+  invoiceEdit?: {
+    editInvoice?: string;
+    newInvoice?: string;
+    clientInfo?: string;
+    clientName?: string;
+    clientEmail?: string;
+    invoiceDetails?: string;
+    invoiceNumber?: string;
+    description?: string;
+    dueDate?: string;
+    datePlaceholder?: string;
+    elements?: string;
+    addBtn?: string;
+    descriptionLabel?: string;
+    quantity?: string;
+    unitPrice?: string;
+    total?: string;
+    removeBtn?: string;
+    invoiceTotal?: string;
+    deleteBtn?: string;
+    savingBtn?: string;
+    saveBtn?: string;
+  };
+
+  // Create Invoice (CreateInvoiceModal)
+  createInvoice?: {
+    title?: string;
+    subtitle?: string;
+    clientInfo?: string;
+    clientName?: string;
+    email?: string;
+    clientAddress?: string;
+    jobDetails?: string;
+    jobType?: string;
+    moveDate?: string;
+    fromAddress?: string;
+    toAddress?: string;
+    invoiceItems?: string;
+    descriptionHeader?: string;
+    qtyHeader?: string;
+    rateHeader?: string;
+    amountHeader?: string;
+    addService?: string;
+    subtotal?: string;
+    totalLabel?: string;
+    paymentTerms?: string;
+    additionalNotes?: string;
+    creating?: string;
+    createBtn?: string;
+    selectService?: string;
+    customService?: string;
+    // Job types
+    residential?: string;
+    commercial?: string;
+    interstate?: string;
+    storage?: string;
+    packing?: string;
+    specialty?: string;
+    // Payment terms
+    dueOnCompletion?: string;
+    dueOnCompletionDesc?: string;
+    net7?: string;
+    net7Desc?: string;
+    net14?: string;
+    net14Desc?: string;
+    net30?: string;
+    net30Desc?: string;
+    // Validation
+    clientNameRequired?: string;
+    clientEmailRequired?: string;
+    invalidEmail?: string;
+    moveDateRequired?: string;
+    fromAddressRequired?: string;
+    toAddressRequired?: string;
+    itemRequired?: string;
+    // Common services
+    movingBaseRate?: string;
+    labourPerHour?: string;
+    truckRental?: string;
+    truckRentalSmall?: string;
+    truckRentalLarge?: string;
+    packingPerHour?: string;
+    unpackingPerHour?: string;
+    disassemblyAssembly?: string;
+    pianoMoving?: string;
+    storagePerMonth?: string;
+    interstateSurcharge?: string;
+    packingMaterials?: string;
+    insurancePremium?: string;
+    newService?: string;
+  };
+
+  // Payment Link (CreatePaymentLinkModal)
+  paymentLink?: {
+    title?: string;
+    linkReady?: string;
+    linkReadyDesc?: string;
+    copyBtn?: string;
+    shareBtn?: string;
+    doneBtn?: string;
+    createTitle?: string;
+    defaultDescription?: string;
+    amountLabel?: string;
+    descriptionLabel?: string;
+    customerEmail?: string;
+    createBtn?: string;
+  };
+
+  // Edit Job (EditJobModal)
+  editJobModal?: {
+    title?: string;
+    statusLabel?: string;
+    priorityLabel?: string;
+    addressesLabel?: string;
+    pickupType?: string;
+    deliveryType?: string;
+    streetPlaceholder?: string;
+    cityPlaceholder?: string;
+    statePlaceholder?: string;
+    scheduleLabel?: string;
+    startTime?: string;
+    endTime?: string;
+    notesLabel?: string;
+    notesPlaceholder?: string;
+    updateSuccess?: string;
+    updateError?: string;
+    // Priority & status options
+    low?: string;
+    medium?: string;
+    high?: string;
+    urgent?: string;
+    statusPending?: string;
+    statusInProgress?: string;
+    statusCompleted?: string;
+    statusCancelled?: string;
+  };
+
+  // Edit Vehicle (EditVehicleModal)
+  editVehicle?: {
+    title?: string;
+    makeLabel?: string;
+    modelLabel?: string;
+    yearLabel?: string;
+    registrationLabel?: string;
+    registrationHint?: string;
+    capacityLabel?: string;
+    nextServiceLabel?: string;
+    depotLabel?: string;
+    updateBtn?: string;
+    // Validation
+    makeRequired?: string;
+    modelRequired?: string;
+    yearInvalid?: string;
+    registrationRequired?: string;
+    registrationFormatError?: string;
+    serviceDateFuture?: string;
+    locationRequired?: string;
+    // Vehicle types
+    movingTruck?: string;
+    van?: string;
+    trailer?: string;
+    ute?: string;
+    dolly?: string;
+    toolsEquipment?: string;
+  };
+
+  // Payout Detail (PayoutDetailModal)
+  payout?: {
+    title?: string;
+    amountLabel?: string;
+    transactionDetails?: string;
+    payoutId?: string;
+    createdDate?: string;
+    expectedArrival?: string;
+    at?: string;
+    typeLabel?: string;
+    bankTransfer?: string;
+    destination?: string;
+    bankAccount?: string;
+    statusTimeline?: string;
+    payoutCreated?: string;
+    inTransit?: string;
+    processing?: string;
+    pendingStatus?: string;
+    delivered?: string;
+    completedStatus?: string;
+    failedStatus?: string;
+  };
+
+  // Job Template (AddJobTemplateModal)
+  jobTemplate?: {
+    title?: string;
+    subtitle?: string;
+    serviceCategory?: string;
+    basicInfo?: string;
+    templateName?: string;
+    templateNameHint?: string;
+    description?: string;
+    duration?: string;
+    basePrice?: string;
+    pricingStructure?: string;
+    pricingType?: string;
+    rate?: string;
+    minCharge?: string;
+    perHour?: string;
+    perM3?: string;
+    fixedAmount?: string;
+    requirements?: string;
+    staffRequired?: string;
+    staffRequiredHint?: string;
+    vehicleTypes?: string;
+    equipmentNeeded?: string;
+    whatsIncluded?: string;
+    creating?: string;
+    createBtn?: string;
+    // Categories
+    residentialMove?: string;
+    commercialMove?: string;
+    interstateMove?: string;
+    storageServices?: string;
+    packingServices?: string;
+    specialtyItems?: string;
+    // Pricing types
+    fixedPrice?: string;
+    hourlyRate?: string;
+    volumeBased?: string;
+  };
+
+  // Staff Management (EditStaffModal)
+  staffMgmt?: {
+    editEmployee?: string;
+    editContractor?: string;
+    employeeTFN?: string;
+    contractorABN?: string;
+    personalInfo?: string;
+    firstName?: string;
+    lastName?: string;
+    emailLabel?: string;
+    phoneLabel?: string;
+    positionAndTeam?: string;
+    position?: string;
+    team?: string;
+    statusSection?: string;
+    active?: string;
+    pendingStatus?: string;
+    inactive?: string;
+    compensation?: string;
+    hourlyRateLabel?: string;
+    rateType?: string;
+    hourlyType?: string;
+    fixedType?: string;
+    projectType?: string;
+    rateLabel?: string;
+    contractStatus?: string;
+    standard?: string;
+    nonExclusive?: string;
+    exclusive?: string;
+    preferred?: string;
+    // AddStaffModal (business)
+    addTitle?: string;
+    addSubtitle?: string;
+    tfnLabel?: string;
+    tfnHint?: string;
+    roleLabel?: string;
+    roleHint?: string;
+    teamLabel?: string;
+    // Validation
+    firstNameRequired?: string;
+    lastNameRequired?: string;
+    tfnRequired?: string;
+    tfnInvalid?: string;
+    phoneRequired?: string;
+    phoneInvalid?: string;
+    emailRequired?: string;
+    emailInvalid?: string;
+    hourlyRateRequired?: string;
+    hourlyRateInvalid?: string;
+  };
+
+  // Add Vehicle (business modals)
+  addVehicle?: {
+    title?: string;
+    subtitle?: string;
+    vehicleType?: string;
+    vehicleName?: string;
+    registrationRequired?: string;
+    registrationInvalid?: string;
+    modelRequired?: string;
+    yearRequired?: string;
+  };
+
+  // Analytics Dashboard
+  analytics?: {
+    loadingMetrics?: string;
+    title?: string;
+    subtitle?: string;
+    period24h?: string;
+    period7d?: string;
+    period30d?: string;
+    jobsProgression?: string;
+    totalJobs?: string;
+    created?: string;
+    completedLabel?: string;
+    inProgress?: string;
+    active?: string;
+    stripePayments?: string;
+    revenue?: string;
+    aud?: string;
+    transactions?: string;
+    usersEngagement?: string;
+    activeUsers?: string;
+    period?: string;
+    sessions?: string;
+    systemPerformance?: string;
+    apiResponse?: string;
+    average?: string;
+    uptime?: string;
+    availability?: string;
+    errorRate?: string;
+    apiErrors?: string;
+  };
+
+  // Payments Dashboard
+  paymentsDashboard?: {
+    loadError?: string;
+    availableBalance?: string;
+    pendingLabel?: string;
+    newPayment?: string;
+    createInvoice?: string;
+    requestTransfer?: string;
+    viewReports?: string;
+    quickActions?: string;
+    statistics?: string;
+    statisticsPlaceholder?: string;
+    recentPayments?: string;
+    recentPaymentsPlaceholder?: string;
+  };
+
   registration?: { [key: string]: unknown };
   connectionScreen?: {
     logoText?: string;

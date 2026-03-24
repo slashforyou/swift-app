@@ -2,56 +2,65 @@
  * EditVehicleModal - Modal d'édition de véhicule
  * Réutilise AddVehicleModal en mode édition
  */
-import { Ionicons } from '@expo/vector-icons'
-import React, { useEffect, useState } from 'react'
+import { Ionicons } from "@expo/vector-icons";
+import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Modal,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
-} from 'react-native'
-import { DESIGN_TOKENS } from '../../constants/Styles'
-import { useTheme } from '../../context/ThemeProvider'
-import { useTranslation } from '../../localization'
+  ActivityIndicator,
+  Alert,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import { DESIGN_TOKENS } from "../../constants/Styles";
+import { useTheme } from "../../context/ThemeProvider";
+import { useTranslation } from "../../localization";
 
 // Types
 export interface VehicleEditData {
-  id: string
-  type: 'moving-truck' | 'van' | 'trailer' | 'ute' | 'dolly' | 'tools'
-  make: string
-  model: string
-  year: number
-  registration: string
-  capacity: string
-  nextService: string
-  location: string
+  id: string;
+  type: "moving-truck" | "van" | "trailer" | "ute" | "dolly" | "tools";
+  make: string;
+  model: string;
+  year: number;
+  registration: string;
+  capacity: string;
+  nextService: string;
+  location: string;
 }
 
 interface EditVehicleModalProps {
-  visible: boolean
-  vehicle: VehicleEditData | null
-  onClose: () => void
-  onUpdateVehicle: (data: VehicleEditData) => Promise<void>
+  visible: boolean;
+  vehicle: VehicleEditData | null;
+  onClose: () => void;
+  onUpdateVehicle: (data: VehicleEditData) => Promise<void>;
 }
 
 const VEHICLE_MAKES = [
-  'Isuzu', 'Ford', 'Toyota', 'Mitsubishi', 'Mercedes-Benz',
-  'Hino', 'Fuso', 'Nissan', 'Volkswagen', 'Renault', 'Custom'
-]
+  "Isuzu",
+  "Ford",
+  "Toyota",
+  "Mitsubishi",
+  "Mercedes-Benz",
+  "Hino",
+  "Fuso",
+  "Nissan",
+  "Volkswagen",
+  "Renault",
+  "Custom",
+];
 
 const DEPOT_LOCATIONS = [
-  'Sydney Depot',
-  'Melbourne Branch',
-  'Brisbane Office',
-  'Perth Warehouse',
-  'Adelaide Center',
-  'Gold Coast Hub',
-]
+  "Sydney Depot",
+  "Melbourne Branch",
+  "Brisbane Office",
+  "Perth Warehouse",
+  "Adelaide Center",
+  "Gold Coast Hub",
+];
 
 export default function EditVehicleModal({
   visible,
@@ -59,82 +68,83 @@ export default function EditVehicleModal({
   onClose,
   onUpdateVehicle,
 }: EditVehicleModalProps) {
-  const { colors } = useTheme()
-  const { t } = useTranslation()
+  const { colors } = useTheme();
+  const { t } = useTranslation();
 
   // Form state
-  const [selectedMake, setSelectedMake] = useState('')
-  const [model, setModel] = useState('')
-  const [year, setYear] = useState('')
-  const [registration, setRegistration] = useState('')
-  const [capacity, setCapacity] = useState('')
-  const [nextService, setNextService] = useState('')
-  const [selectedLocation, setSelectedLocation] = useState('')
+  const [selectedMake, setSelectedMake] = useState("");
+  const [model, setModel] = useState("");
+  const [year, setYear] = useState("");
+  const [registration, setRegistration] = useState("");
+  const [capacity, setCapacity] = useState("");
+  const [nextService, setNextService] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState("");
 
-  const [errors, setErrors] = useState<{ [key: string]: string }>({})
-  const [isLoading, setIsLoading] = useState(false)
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [isLoading, setIsLoading] = useState(false);
 
   // Initialize form with vehicle data
   useEffect(() => {
     if (vehicle) {
-      setSelectedMake(vehicle.make)
-      setModel(vehicle.model)
-      setYear(vehicle.year.toString())
-      setRegistration(vehicle.registration)
-      setCapacity(vehicle.capacity || '')
-      setNextService(vehicle.nextService)
-      setSelectedLocation(vehicle.location)
+      setSelectedMake(vehicle.make);
+      setModel(vehicle.model);
+      setYear(vehicle.year.toString());
+      setRegistration(vehicle.registration);
+      setCapacity(vehicle.capacity || "");
+      setNextService(vehicle.nextService);
+      setSelectedLocation(vehicle.location);
     }
-  }, [vehicle])
+  }, [vehicle]);
 
   // Reset form when modal closes
   useEffect(() => {
     if (!visible) {
-      setErrors({})
+      setErrors({});
     }
-  }, [visible])
+  }, [visible]);
 
   // Validation functions
   const validateRegistration = (reg: string): boolean => {
-    const pattern1 = /^[A-Z]{3}-\d{3}$/ // ABC-123
-    const pattern2 = /^[A-Z]{2}-\d{2}-[A-Z]{2}$/ // AB-12-CD
-    return pattern1.test(reg) || pattern2.test(reg)
-  }
+    const pattern1 = /^[A-Z]{3}-\d{3}$/; // ABC-123
+    const pattern2 = /^[A-Z]{2}-\d{2}-[A-Z]{2}$/; // AB-12-CD
+    return pattern1.test(reg) || pattern2.test(reg);
+  };
 
   const validateForm = (): boolean => {
-    const newErrors: { [key: string]: string } = {}
+    const newErrors: { [key: string]: string } = {};
 
-    if (!selectedMake) newErrors.make = 'Please select a make'
-    if (!model.trim()) newErrors.model = 'Model is required'
-    
-    const yearNum = parseInt(year)
+    if (!selectedMake) newErrors.make = t("editVehicle.makeRequired");
+    if (!model.trim()) newErrors.model = t("editVehicle.modelRequired");
+
+    const yearNum = parseInt(year);
     if (!year || isNaN(yearNum) || yearNum < 1990 || yearNum > 2025) {
-      newErrors.year = 'Year must be between 1990 and 2025'
+      newErrors.year = t("editVehicle.yearInvalid");
     }
 
     if (!registration.trim()) {
-      newErrors.registration = 'Registration is required'
+      newErrors.registration = t("editVehicle.registrationRequired");
     } else if (!validateRegistration(registration.toUpperCase())) {
-      newErrors.registration = 'Invalid format. Use ABC-123 or AB-12-CD'
+      newErrors.registration = t("editVehicle.registrationFormatError");
     }
 
     if (nextService) {
-      const serviceDate = new Date(nextService)
+      const serviceDate = new Date(nextService);
       if (serviceDate <= new Date()) {
-        newErrors.nextService = 'Service date must be in the future'
+        newErrors.nextService = t("editVehicle.serviceDateFuture");
       }
     }
 
-    if (!selectedLocation) newErrors.location = 'Please select a location'
+    if (!selectedLocation)
+      newErrors.location = t("editVehicle.locationRequired");
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async () => {
-    if (!validateForm() || !vehicle) return
+    if (!validateForm() || !vehicle) return;
 
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       const updatedVehicle: VehicleEditData = {
         id: vehicle.id,
@@ -146,43 +156,42 @@ export default function EditVehicleModal({
         capacity: capacity.trim(),
         nextService,
         location: selectedLocation,
-      }
+      };
 
-      await onUpdateVehicle(updatedVehicle)
-      onClose()
+      await onUpdateVehicle(updatedVehicle);
+      onClose();
     } catch (error) {
-
-      Alert.alert(t('common.error'), t('vehicles.updateError'))
+      Alert.alert(t("common.error"), t("vehicles.updateError"));
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
-  if (!vehicle) return null
+  if (!vehicle) return null;
 
-  const getTypeLabel = (type: VehicleEditData['type']): string => {
-    const labels = {
-      'moving-truck': 'Moving Truck',
-      'van': 'Van',
-      'trailer': 'Trailer',
-      'ute': 'Ute',
-      'dolly': 'Dolly',
-      'tools': 'Tools/Equipment'
-    }
-    return labels[type] || 'Vehicle'
-  }
+  const getTypeLabel = (type: VehicleEditData["type"]): string => {
+    const labels: Record<string, string> = {
+      "moving-truck": t("editVehicle.movingTruck"),
+      van: t("editVehicle.van"),
+      trailer: t("editVehicle.trailer"),
+      ute: t("editVehicle.ute"),
+      dolly: t("editVehicle.dolly"),
+      tools: t("editVehicle.toolsEquipment"),
+    };
+    return labels[type] || "Vehicle";
+  };
 
-  const getTypeEmoji = (type: VehicleEditData['type']): string => {
+  const getTypeEmoji = (type: VehicleEditData["type"]): string => {
     const emojis = {
-      'moving-truck': '🚛',
-      'van': '🚐',
-      'trailer': '🚜',
-      'ute': '🛻',
-      'dolly': '🛒',
-      'tools': '🔧'
-    }
-    return emojis[type] || '🚛'
-  }
+      "moving-truck": "🚛",
+      van: "🚐",
+      trailer: "🚜",
+      ute: "🛻",
+      dolly: "🛒",
+      tools: "🔧",
+    };
+    return emojis[type] || "🚛";
+  };
 
   return (
     <Modal
@@ -193,14 +202,21 @@ export default function EditVehicleModal({
     >
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         {/* Header */}
-        <View style={[styles.header, { backgroundColor: colors.backgroundSecondary }]}>
+        <View
+          style={[
+            styles.header,
+            { backgroundColor: colors.backgroundSecondary },
+          ]}
+        >
           <View style={styles.headerLeft}>
             <Text style={styles.headerEmoji}>{getTypeEmoji(vehicle.type)}</Text>
             <View>
               <Text style={[styles.headerTitle, { color: colors.text }]}>
-                Edit Vehicle
+                {t("editVehicle.title")}
               </Text>
-              <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
+              <Text
+                style={[styles.headerSubtitle, { color: colors.textSecondary }]}
+              >
                 {getTypeLabel(vehicle.type)}
               </Text>
             </View>
@@ -222,7 +238,8 @@ export default function EditVehicleModal({
           {/* Make Selection */}
           <View style={styles.section}>
             <Text style={[styles.label, { color: colors.text }]}>
-              Vehicle Make <Text style={[styles.required, { color: colors.error }]}>*</Text>
+              {t("editVehicle.makeLabel")}{" "}
+              <Text style={[styles.required, { color: colors.error }]}>*</Text>
             </Text>
             <ScrollView
               horizontal
@@ -241,8 +258,8 @@ export default function EditVehicleModal({
                       },
                     ]}
                     onPress={() => {
-                      setSelectedMake(make)
-                      setErrors((prev) => ({ ...prev, make: '' }))
+                      setSelectedMake(make);
+                      setErrors((prev) => ({ ...prev, make: "" }));
                     }}
                   >
                     <Text
@@ -259,14 +276,17 @@ export default function EditVehicleModal({
               </View>
             </ScrollView>
             {errors.make && (
-              <Text style={[styles.errorText, { color: colors.error }]}>{errors.make}</Text>
+              <Text style={[styles.errorText, { color: colors.error }]}>
+                {errors.make}
+              </Text>
             )}
           </View>
 
           {/* Model Input */}
           <View style={styles.section}>
             <Text style={[styles.label, { color: colors.text }]}>
-              Model <Text style={[styles.required, { color: colors.error }]}>*</Text>
+              {t("editVehicle.modelLabel")}{" "}
+              <Text style={[styles.required, { color: colors.error }]}>*</Text>
             </Text>
             <TextInput
               style={[
@@ -274,26 +294,29 @@ export default function EditVehicleModal({
                 {
                   backgroundColor: colors.backgroundSecondary,
                   color: colors.text,
-                  borderColor: errors.model ? colors.error : 'transparent',
+                  borderColor: errors.model ? colors.error : "transparent",
                 },
               ]}
               placeholder="Enter model"
               placeholderTextColor={colors.textSecondary}
               value={model}
               onChangeText={(text) => {
-                setModel(text)
-                setErrors((prev) => ({ ...prev, model: '' }))
+                setModel(text);
+                setErrors((prev) => ({ ...prev, model: "" }));
               }}
             />
             {errors.model && (
-              <Text style={[styles.errorText, { color: colors.error }]}>{errors.model}</Text>
+              <Text style={[styles.errorText, { color: colors.error }]}>
+                {errors.model}
+              </Text>
             )}
           </View>
 
           {/* Year Input */}
           <View style={styles.section}>
             <Text style={[styles.label, { color: colors.text }]}>
-              Year <Text style={[styles.required, { color: colors.error }]}>*</Text>
+              {t("editVehicle.yearLabel")}{" "}
+              <Text style={[styles.required, { color: colors.error }]}>*</Text>
             </Text>
             <TextInput
               style={[
@@ -301,28 +324,31 @@ export default function EditVehicleModal({
                 {
                   backgroundColor: colors.backgroundSecondary,
                   color: colors.text,
-                  borderColor: errors.year ? colors.error : 'transparent',
+                  borderColor: errors.year ? colors.error : "transparent",
                 },
               ]}
               placeholder="YYYY"
               placeholderTextColor={colors.textSecondary}
               value={year}
               onChangeText={(text) => {
-                setYear(text)
-                setErrors((prev) => ({ ...prev, year: '' }))
+                setYear(text);
+                setErrors((prev) => ({ ...prev, year: "" }));
               }}
               keyboardType="numeric"
               maxLength={4}
             />
             {errors.year && (
-              <Text style={[styles.errorText, { color: colors.error }]}>{errors.year}</Text>
+              <Text style={[styles.errorText, { color: colors.error }]}>
+                {errors.year}
+              </Text>
             )}
           </View>
 
           {/* Registration Input */}
           <View style={styles.section}>
             <Text style={[styles.label, { color: colors.text }]}>
-              Registration <Text style={[styles.required, { color: colors.error }]}>*</Text>
+              {t("editVehicle.registrationLabel")}{" "}
+              <Text style={[styles.required, { color: colors.error }]}>*</Text>
             </Text>
             <TextInput
               style={[
@@ -330,30 +356,34 @@ export default function EditVehicleModal({
                 {
                   backgroundColor: colors.backgroundSecondary,
                   color: colors.text,
-                  borderColor: errors.registration ? colors.error : 'transparent',
+                  borderColor: errors.registration
+                    ? colors.error
+                    : "transparent",
                 },
               ]}
               placeholder="Enter registration number"
               placeholderTextColor={colors.textSecondary}
               value={registration}
               onChangeText={(text) => {
-                setRegistration(text.toUpperCase())
-                setErrors((prev) => ({ ...prev, registration: '' }))
+                setRegistration(text.toUpperCase());
+                setErrors((prev) => ({ ...prev, registration: "" }));
               }}
               autoCapitalize="characters"
             />
             <Text style={[styles.hint, { color: colors.textSecondary }]}>
-              Format: ABC-123 or AB-12-CD
+              {t("editVehicle.registrationHint")}
             </Text>
             {errors.registration && (
-              <Text style={[styles.errorText, { color: colors.error }]}>{errors.registration}</Text>
+              <Text style={[styles.errorText, { color: colors.error }]}>
+                {errors.registration}
+              </Text>
             )}
           </View>
 
           {/* Capacity Input */}
           <View style={styles.section}>
             <Text style={[styles.label, { color: colors.text }]}>
-              Capacity (Optional)
+              {t("editVehicle.capacityLabel")}
             </Text>
             <TextInput
               style={[
@@ -373,7 +403,8 @@ export default function EditVehicleModal({
           {/* Next Service Date */}
           <View style={styles.section}>
             <Text style={[styles.label, { color: colors.text }]}>
-              Next Service Date <Text style={[styles.required, { color: colors.error }]}>*</Text>
+              {t("editVehicle.nextServiceLabel")}{" "}
+              <Text style={[styles.required, { color: colors.error }]}>*</Text>
             </Text>
             <TextInput
               style={[
@@ -381,26 +412,31 @@ export default function EditVehicleModal({
                 {
                   backgroundColor: colors.backgroundSecondary,
                   color: colors.text,
-                  borderColor: errors.nextService ? colors.error : 'transparent',
+                  borderColor: errors.nextService
+                    ? colors.error
+                    : "transparent",
                 },
               ]}
               placeholder="YYYY-MM-DD"
               placeholderTextColor={colors.textSecondary}
               value={nextService}
               onChangeText={(text) => {
-                setNextService(text)
-                setErrors((prev) => ({ ...prev, nextService: '' }))
+                setNextService(text);
+                setErrors((prev) => ({ ...prev, nextService: "" }));
               }}
             />
             {errors.nextService && (
-              <Text style={[styles.errorText, { color: colors.error }]}>{errors.nextService}</Text>
+              <Text style={[styles.errorText, { color: colors.error }]}>
+                {errors.nextService}
+              </Text>
             )}
           </View>
 
           {/* Location Selection */}
           <View style={styles.section}>
             <Text style={[styles.label, { color: colors.text }]}>
-              Depot Location <Text style={[styles.required, { color: colors.error }]}>*</Text>
+              {t("editVehicle.depotLabel")}{" "}
+              <Text style={[styles.required, { color: colors.error }]}>*</Text>
             </Text>
             <ScrollView
               horizontal
@@ -419,15 +455,17 @@ export default function EditVehicleModal({
                       },
                     ]}
                     onPress={() => {
-                      setSelectedLocation(location)
-                      setErrors((prev) => ({ ...prev, location: '' }))
+                      setSelectedLocation(location);
+                      setErrors((prev) => ({ ...prev, location: "" }));
                     }}
                   >
                     <Text
                       style={[
                         styles.optionText,
                         { color: colors.text },
-                        selectedLocation === location && { color: colors.background },
+                        selectedLocation === location && {
+                          color: colors.background,
+                        },
                       ]}
                     >
                       {location}
@@ -437,19 +475,29 @@ export default function EditVehicleModal({
               </View>
             </ScrollView>
             {errors.location && (
-              <Text style={[styles.errorText, { color: colors.error }]}>{errors.location}</Text>
+              <Text style={[styles.errorText, { color: colors.error }]}>
+                {errors.location}
+              </Text>
             )}
           </View>
         </ScrollView>
 
         {/* Footer */}
-        <View style={[styles.footer, { backgroundColor: colors.backgroundSecondary }]}>
+        <View
+          style={[
+            styles.footer,
+            { backgroundColor: colors.backgroundSecondary },
+          ]}
+        >
           <Pressable
-            style={[styles.cancelButton, { backgroundColor: colors.background }]}
+            style={[
+              styles.cancelButton,
+              { backgroundColor: colors.background },
+            ]}
             onPress={onClose}
           >
             <Text style={[styles.cancelButtonText, { color: colors.text }]}>
-              Cancel
+              {t("common.cancel")}
             </Text>
           </Pressable>
           <Pressable
@@ -464,13 +512,17 @@ export default function EditVehicleModal({
             {isLoading ? (
               <ActivityIndicator color={colors.background} />
             ) : (
-              <Text style={[styles.submitButtonText, { color: colors.background }]}>Update Vehicle</Text>
+              <Text
+                style={[styles.submitButtonText, { color: colors.background }]}
+              >
+                {t("editVehicle.updateBtn")}
+              </Text>
             )}
           </Pressable>
         </View>
       </View>
     </Modal>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -478,16 +530,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     padding: DESIGN_TOKENS.spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.1)',
+    borderBottomColor: "rgba(0,0,0,0.1)",
   },
   headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: DESIGN_TOKENS.spacing.md,
   },
   headerEmoji: {
@@ -495,7 +547,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   headerSubtitle: {
     fontSize: 14,
@@ -515,18 +567,18 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: DESIGN_TOKENS.spacing.sm,
   },
   required: {
-    color: '#EF4444',
+    color: "#EF4444",
   },
   horizontalScroll: {
     marginHorizontal: -DESIGN_TOKENS.spacing.lg,
     paddingHorizontal: DESIGN_TOKENS.spacing.lg,
   },
   optionsRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: DESIGN_TOKENS.spacing.sm,
   },
   option: {
@@ -536,7 +588,7 @@ const styles = StyleSheet.create({
   },
   optionText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   input: {
     padding: DESIGN_TOKENS.spacing.md,
@@ -549,39 +601,39 @@ const styles = StyleSheet.create({
     marginTop: DESIGN_TOKENS.spacing.xs,
   },
   errorText: {
-    color: '#EF4444',
+    color: "#EF4444",
     fontSize: 12,
     marginTop: DESIGN_TOKENS.spacing.xs,
   },
   footer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: DESIGN_TOKENS.spacing.md,
     padding: DESIGN_TOKENS.spacing.lg,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.1)',
+    borderTopColor: "rgba(0,0,0,0.1)",
   },
   cancelButton: {
     flex: 1,
     padding: DESIGN_TOKENS.spacing.md,
     borderRadius: DESIGN_TOKENS.radius.md,
-    alignItems: 'center',
+    alignItems: "center",
   },
   cancelButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   submitButton: {
     flex: 1,
     padding: DESIGN_TOKENS.spacing.md,
     borderRadius: DESIGN_TOKENS.radius.md,
-    alignItems: 'center',
+    alignItems: "center",
   },
   submitButtonDisabled: {
     opacity: 0.6,
   },
   submitButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
-})
+});
