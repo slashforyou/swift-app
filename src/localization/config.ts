@@ -5,7 +5,7 @@ export const SUPPORTED_LANGUAGES: Record<SupportedLanguage, LanguageInfo> = {
         code: 'en',
         name: 'English',
         nativeName: 'English',
-        flag: '�🇺',
+        flag: '🇬🇧',
     },
     fr: {
         code: 'fr', 
