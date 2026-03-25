@@ -9,7 +9,6 @@ import {
   Alert,
   Image,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -170,7 +169,7 @@ const BusinessInfoPage: React.FC = () => {
   }
 
   return (
-    <ScrollView
+    <View
       testID="business-info-scroll"
       style={[styles.container, { backgroundColor: colors.background }]}
     >
@@ -358,7 +357,7 @@ const BusinessInfoPage: React.FC = () => {
 
       {/* Espacement final */}
       <View style={styles.bottomSpacer} />
-    </ScrollView>
+    </View>
   );
 };
 

@@ -361,6 +361,9 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
       pendingActionTitle: "Réponse requise",
       pendingActionMessage:
         "Ce job a été assigné à votre entreprise. Veuillez l'accepter ou le refuser.",
+      awaitingContractorResponse: "En attente de réponse",
+      awaitingContractorMessage:
+        "{{contractor}} n'a pas encore répondu à cette assignation.",
     },
 
     address: {

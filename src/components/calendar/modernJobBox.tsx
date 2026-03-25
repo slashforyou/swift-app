@@ -1,6 +1,6 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
-import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import React, { useState } from "react";
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useThemeColors } from "../../../hooks/useThemeColor";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { Job } from "../../hooks/useJobsForDay";
@@ -11,15 +11,201 @@ import { getLocale } from "../../localization/formatters";
 interface JobBoxProps {
   job: Job;
   onPress: () => void;
+  onAccept?: (jobId: string) => Promise<void>;
+  onDecline?: (jobId: string, reason: string) => Promise<void>;
   navigation: any;
   day: number;
   month: number;
   year: number;
 }
 
+/**
+ * Inline accept/decline actions for pending contractor assignments
+ */
+const PendingAssignmentActions: React.FC<{
+  jobId: string;
+  onAccept: (jobId: string) => Promise<void>;
+  onDecline: (jobId: string, reason: string) => Promise<void>;
+  colors: any;
+  t: (key: string) => string;
+}> = ({ jobId, onAccept, onDecline, colors, t }) => {
+  const [isAccepting, setIsAccepting] = useState(false);
+  const [isDeclining, setIsDeclining] = useState(false);
+  const [showDeclineInput, setShowDeclineInput] = useState(false);
+  const [declineReason, setDeclineReason] = useState("");
+
+  const handleAccept = async () => {
+    Alert.alert(
+      t("contractorWizard.jobAccepted"),
+      t("contractorWizard.acceptJobQuestion"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("contractorWizard.respond"),
+          onPress: async () => {
+            setIsAccepting(true);
+            try {
+              await onAccept(jobId);
+            } finally {
+              setIsAccepting(false);
+            }
+          },
+        },
+      ],
+    );
+  };
+
+  const handleDecline = async () => {
+    if (!declineReason.trim()) return;
+    setIsDeclining(true);
+    try {
+      await onDecline(jobId, declineReason.trim());
+    } finally {
+      setIsDeclining(false);
+      setShowDeclineInput(false);
+      setDeclineReason("");
+    }
+  };
+
+  return (
+    <View
+      style={{
+        paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+        paddingVertical: DESIGN_TOKENS.spacing.md,
+        borderTopWidth: 1,
+        borderTopColor: colors.warning + "30",
+        backgroundColor: colors.warning + "08",
+      }}
+    >
+      {!showDeclineInput ? (
+        <View style={{ flexDirection: "row", gap: DESIGN_TOKENS.spacing.sm }}>
+          <Pressable
+            onPress={() => setShowDeclineInput(true)}
+            disabled={isAccepting}
+            style={({ pressed }) => ({
+              flex: 1,
+              paddingVertical: DESIGN_TOKENS.spacing.sm + 2,
+              borderRadius: DESIGN_TOKENS.radius.md,
+              borderWidth: 1.5,
+              borderColor: colors.error,
+              backgroundColor: pressed ? colors.error + "15" : "transparent",
+              alignItems: "center",
+              justifyContent: "center",
+              flexDirection: "row",
+              gap: 6,
+              opacity: isAccepting ? 0.5 : 1,
+            })}
+          >
+            <Ionicons name="close-circle-outline" size={18} color={colors.error} />
+            <Text style={{ color: colors.error, fontWeight: "600", fontSize: 14 }}>
+              {t("contractorWizard.refuse")}
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={handleAccept}
+            disabled={isAccepting || isDeclining}
+            style={({ pressed }) => ({
+              flex: 1,
+              paddingVertical: DESIGN_TOKENS.spacing.sm + 2,
+              borderRadius: DESIGN_TOKENS.radius.md,
+              backgroundColor: pressed ? colors.success + "DD" : colors.success,
+              alignItems: "center",
+              justifyContent: "center",
+              flexDirection: "row",
+              gap: 6,
+              opacity: isDeclining ? 0.5 : 1,
+            })}
+          >
+            {isAccepting ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <>
+                <Ionicons name="checkmark-circle-outline" size={18} color="#fff" />
+                <Text style={{ color: "#fff", fontWeight: "600", fontSize: 14 }}>
+                  {t("contractorWizard.respond")}
+                </Text>
+              </>
+            )}
+          </Pressable>
+        </View>
+      ) : (
+        <View style={{ gap: DESIGN_TOKENS.spacing.sm }}>
+          <TextInput
+            placeholder={t("contractorWizard.refusalPlaceholder")}
+            placeholderTextColor={colors.textSecondary}
+            value={declineReason}
+            onChangeText={setDeclineReason}
+            multiline
+            maxLength={500}
+            style={{
+              borderWidth: 1,
+              borderColor: colors.border,
+              borderRadius: DESIGN_TOKENS.radius.md,
+              padding: DESIGN_TOKENS.spacing.sm,
+              color: colors.text,
+              fontSize: 14,
+              minHeight: 60,
+              backgroundColor: colors.backgroundSecondary,
+            }}
+          />
+          <View style={{ flexDirection: "row", gap: DESIGN_TOKENS.spacing.sm }}>
+            <Pressable
+              onPress={() => {
+                setShowDeclineInput(false);
+                setDeclineReason("");
+              }}
+              style={{
+                flex: 1,
+                paddingVertical: DESIGN_TOKENS.spacing.sm,
+                borderRadius: DESIGN_TOKENS.radius.md,
+                borderWidth: 1,
+                borderColor: colors.border,
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ color: colors.textSecondary, fontWeight: "600" }}>
+                {t("common.cancel")}
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={handleDecline}
+              disabled={isDeclining || !declineReason.trim()}
+              style={({ pressed }) => ({
+                flex: 1,
+                paddingVertical: DESIGN_TOKENS.spacing.sm,
+                borderRadius: DESIGN_TOKENS.radius.md,
+                backgroundColor:
+                  !declineReason.trim()
+                    ? colors.error + "60"
+                    : pressed
+                      ? colors.error + "DD"
+                      : colors.error,
+                alignItems: "center",
+                justifyContent: "center",
+                flexDirection: "row",
+                gap: 6,
+              })}
+            >
+              {isDeclining ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={{ color: "#fff", fontWeight: "600" }}>
+                  {t("contractorWizard.confirmRefusal")}
+                </Text>
+              )}
+            </Pressable>
+          </View>
+        </View>
+      )}
+    </View>
+  );
+};
+
 const JobBox: React.FC<JobBoxProps> = ({
   job,
   onPress,
+  onAccept,
+  onDecline,
   navigation,
   day,
   month,
@@ -658,6 +844,17 @@ const JobBox: React.FC<JobBoxProps> = ({
           </View>
         </View>
       </View>
+
+      {/* Inline Accept/Decline actions for pending assignments */}
+      {isPendingAssignment && onAccept && onDecline && (
+        <PendingAssignmentActions
+          jobId={job.id}
+          onAccept={onAccept}
+          onDecline={onDecline}
+          colors={colors}
+          t={t}
+        />
+      )}
 
       {/* Footer - Truck Info Moderne */}
       <View style={styles.modernTruckSection}>

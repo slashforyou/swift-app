@@ -243,6 +243,9 @@ export const enTranslations: TranslationKeys = {
     pendingActionTitle: "Response Required",
     pendingActionMessage:
       "This job has been assigned to your company. Please accept or decline it.",
+    awaitingContractorResponse: "Awaiting response",
+    awaitingContractorMessage:
+      "{{contractor}} has not yet responded to this assignment.",
     // Payment translations
     payment: "Payment Details (optional)",
     quoteAmount: "Quote Amount ($)",

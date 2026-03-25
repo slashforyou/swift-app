@@ -28,7 +28,7 @@ import { useCompanyPermissions } from "../../hooks/useCompanyPermissions";
 import { Job, useJobsForDay } from "../../hooks/useJobsForDay";
 import { useLocalization, useTranslation } from "../../localization";
 import { formatDateWithDay } from "../../localization/formatters";
-import { createJob, CreateJobRequest } from "../../services/jobs";
+import { acceptJob, createJob, CreateJobRequest, declineJob } from "../../services/jobs";
 
 interface DayScreenProps {
   route: {
@@ -116,7 +116,7 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
         job.contractee.company_id !== job.contractor.company_id;
 
       // Si c'est un job externe ET que l'utilisateur est du côté contractor
-      // (pas le créateur du job) → ouvrir le wizard pour pending/negotiating
+      // et en négociation → ouvrir le wizard
       const currentCompanyId = currentCompany?.id;
       const isCurrentUserContractor =
         isExternal &&
@@ -125,8 +125,7 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
 
       if (
         isCurrentUserContractor &&
-        (job.assignment_status === "pending" ||
-          job.assignment_status === "negotiating")
+        job.assignment_status === "negotiating"
       ) {
         setWizardJob(job);
         setShowWizard(true);
@@ -162,6 +161,24 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
     async (jobData: CreateJobRequest) => {
       await createJob(jobData);
       await refetch(); // Refresh the jobs list
+    },
+    [refetch],
+  );
+
+  // Handle inline accept job
+  const handleInlineAccept = useCallback(
+    async (jobId: string) => {
+      await acceptJob(jobId);
+      await refetch();
+    },
+    [refetch],
+  );
+
+  // Handle inline decline job
+  const handleInlineDecline = useCallback(
+    async (jobId: string, reason: string) => {
+      await declineJob(jobId, reason);
+      await refetch();
     },
     [refetch],
   );
@@ -633,6 +650,8 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
                   key={job.id}
                   job={job}
                   onPress={() => handleJobPress(job)}
+                  onAccept={handleInlineAccept}
+                  onDecline={handleInlineDecline}
                   navigation={navigation}
                   day={selectedDay}
                   month={selectedMonth}

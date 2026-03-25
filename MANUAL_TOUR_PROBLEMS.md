@@ -37,6 +37,8 @@
 - [x] Le status Stripe doit apparaitre avant même que le job commence et durant tout le job si le status n'est pas valide.
 - [x] Lors du paiement si le client a choisis de facturer les frais Stripe à son client ça doit figurer sur la facture comme "frais stripe" et "frais cobbr", toute facture est en anglais et ne peut pas être traduite pour le moment.
 - [x] Permettre une pause d'une durée défini : on clique sur pause ça nous propose soit pas de durée, soit 10 min, 15 min, 30 min, personnalisé en min
+- [x] accepter et refuser un job ne fonctionne pas, l'action ne produit aucun effet
+
 
 ## Home
 
@@ -44,6 +46,7 @@
 - [x] Il nous faut un bouton logo "conversation" qui permet au utilisateurs de nous envoyer un message, dans celui ci ils peuvent soit demander de l'aide, donner leur avis, demander une modication (feature), signaler un problème.
 - [x] Traduire le wizard conversation dans toute les langues
 - [x] Le wizard conversation est mal calibré lorsqu'on ouvre le clavier, il faut qu'il soit facile de naviguer même avec le clavier ouvert
+- [x] le systeme de messages (aide, soutiens...) ne fonctionne pas, les message ne partent pas.
 
 ## Business
 
@@ -54,6 +57,8 @@
 - [x] Pour la page Stripe quand le compte est actif l'utilisateur doit pouvoir activer en un clic (checkbox, bouton slide) choisir de payer lui même les frais Stripe ou de les refacturer au client.
 - [x] Pour la page partenaire une section "aide" doit expliquer que pour ajouter un partenaire il faut lui envoyer un code puis l'accepter. ce panneau doit être rétractable et fermé par défaut
 - [x] Permettre au société d'ajouter leur logo sur la page business info
+- [x] impossible d'ajouter un logo, le clic sur la photo n'active rien
+- [x] reponse aux jobs en attente pas clair, à modifier (placer en dessous du job)
 
 ## AUTRES
 

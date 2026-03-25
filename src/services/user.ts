@@ -276,7 +276,8 @@ function normalizeUserProfile(apiData: any): UserProfile {
     joinDate: apiData.joinDate || apiData.join_date || apiData.created_at || "",
     lastLogin: apiData.lastLogin || apiData.last_login || "",
     profilePicture: apiData.profilePicture || apiData.profile_picture || "",
-    avatarId: apiData.avatarId || apiData.avatar_id || apiData.avatar_url || undefined,
+    avatarId:
+      apiData.avatarId || apiData.avatar_id || apiData.avatar_url || undefined,
 
     // Gamification
     level: apiData.level || 1,

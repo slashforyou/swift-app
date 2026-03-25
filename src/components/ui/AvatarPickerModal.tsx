@@ -14,14 +14,38 @@ import { useTheme } from "../../context/ThemeProvider";
 // Avatar map — require() must be static, so we list them explicitly.
 // To add more avatars, just add entries here.
 const AVATARS: { id: string; source: ImageSourcePropType }[] = [
-  { id: "0", source: require("../../../assets/images/mascot/mascotte_profil/0.png") },
-  { id: "1", source: require("../../../assets/images/mascot/mascotte_profil/1.png") },
-  { id: "2", source: require("../../../assets/images/mascot/mascotte_profil/2.png") },
-  { id: "3", source: require("../../../assets/images/mascot/mascotte_profil/3.png") },
-  { id: "4", source: require("../../../assets/images/mascot/mascotte_profil/4.png") },
-  { id: "5", source: require("../../../assets/images/mascot/mascotte_profil/5.png") },
-  { id: "6", source: require("../../../assets/images/mascot/mascotte_profil/6.png") },
-  { id: "7", source: require("../../../assets/images/mascot/mascotte_profil/7.png") },
+  {
+    id: "0",
+    source: require("../../../assets/images/mascot/mascotte_profil/0.png"),
+  },
+  {
+    id: "1",
+    source: require("../../../assets/images/mascot/mascotte_profil/1.png"),
+  },
+  {
+    id: "2",
+    source: require("../../../assets/images/mascot/mascotte_profil/2.png"),
+  },
+  {
+    id: "3",
+    source: require("../../../assets/images/mascot/mascotte_profil/3.png"),
+  },
+  {
+    id: "4",
+    source: require("../../../assets/images/mascot/mascotte_profil/4.png"),
+  },
+  {
+    id: "5",
+    source: require("../../../assets/images/mascot/mascotte_profil/5.png"),
+  },
+  {
+    id: "6",
+    source: require("../../../assets/images/mascot/mascotte_profil/6.png"),
+  },
+  {
+    id: "7",
+    source: require("../../../assets/images/mascot/mascotte_profil/7.png"),
+  },
 ];
 
 /** Default avatar (mascotte de base = id 0) */
@@ -54,7 +78,7 @@ const COLUMNS = 3;
 const AVATAR_GAP = 12;
 const MODAL_PADDING = 24;
 const AVATAR_SIZE = Math.floor(
-  (SCREEN_WIDTH - MODAL_PADDING * 2 - AVATAR_GAP * (COLUMNS - 1)) / COLUMNS
+  (SCREEN_WIDTH - MODAL_PADDING * 2 - AVATAR_GAP * (COLUMNS - 1)) / COLUMNS,
 );
 
 export default function AvatarPickerModal({
@@ -131,7 +155,12 @@ export default function AvatarPickerModal({
                   >
                     <Image
                       source={avatar.source}
-                      style={{ width: "125%", height: "125%", marginLeft: "-12.5%", marginTop: "-12.5%" }}
+                      style={{
+                        width: "125%",
+                        height: "125%",
+                        marginLeft: "-12.5%",
+                        marginTop: "-12.5%",
+                      }}
                       resizeMode="cover"
                     />
                     {isSelected && (
@@ -148,7 +177,15 @@ export default function AvatarPickerModal({
                           justifyContent: "center",
                         }}
                       >
-                        <Text style={{ color: "white", fontSize: 12, fontWeight: "800" }}>✓</Text>
+                        <Text
+                          style={{
+                            color: "white",
+                            fontSize: 12,
+                            fontWeight: "800",
+                          }}
+                        >
+                          ✓
+                        </Text>
                       </View>
                     )}
                   </Pressable>
@@ -168,7 +205,9 @@ export default function AvatarPickerModal({
               alignItems: "center",
             }}
           >
-            <Text style={{ color: colors.text, fontWeight: "600" }}>Fermer</Text>
+            <Text style={{ color: colors.text, fontWeight: "600" }}>
+              Fermer
+            </Text>
           </Pressable>
         </Pressable>
       </Pressable>

@@ -2,26 +2,28 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
 import {
-    Alert,
-    Image,
-    LayoutAnimation,
-    Modal,
-    Platform,
-    Pressable,
-    ScrollView,
-    Text,
-    TextInput,
-    UIManager,
-    View,
+  Alert,
+  Image,
+  LayoutAnimation,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  UIManager,
+  View,
 } from "react-native";
 import {
-    SafeAreaView,
-    useSafeAreaInsets,
+  SafeAreaView,
+  useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
 // Utiliser le système unifié au lieu du design system avancé
 import LanguageButton from "../components/calendar/LanguageButton";
-import AvatarPickerModal, { getAvatarSource } from "../components/ui/AvatarPickerModal";
+import AvatarPickerModal, {
+  getAvatarSource,
+} from "../components/ui/AvatarPickerModal";
 import MascotLoading from "../components/ui/MascotLoading";
 import { DESIGN_TOKENS } from "../constants/Styles";
 import { useTheme } from "../context/ThemeProvider";

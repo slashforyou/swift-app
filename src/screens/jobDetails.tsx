@@ -1008,6 +1008,61 @@ const JobDetails: React.FC<JobDetailsProps> = ({
           />
         )}
 
+        {/* Contractee: pending assignment awaiting contractor response */}
+        {job.assignment_status === "pending" &&
+          !job.permissions?.can_accept &&
+          !job.permissions?.can_decline &&
+          job.permissions?.is_contractee &&
+          !job.permissions?.is_owner && (
+            <View
+              style={{
+                backgroundColor: colors.warning + "12",
+                borderRadius: DESIGN_TOKENS.radius.md,
+                padding: DESIGN_TOKENS.spacing.md,
+                borderWidth: 1,
+                borderColor: colors.warning + "40",
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 8,
+                  marginBottom: 4,
+                }}
+              >
+                <Ionicons
+                  name="hourglass-outline"
+                  size={18}
+                  color={colors.warning}
+                />
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: "600",
+                    color: colors.warning,
+                  }}
+                >
+                  {t("jobs.awaitingContractorResponse") ||
+                    "En attente de réponse"}
+                </Text>
+              </View>
+              <Text
+                style={{
+                  fontSize: 13,
+                  color: colors.textSecondary,
+                  lineHeight: 18,
+                }}
+              >
+                {t("jobs.awaitingContractorMessage", {
+                  contractor:
+                    job.contractor?.company_name || t("common.contractor"),
+                }) ||
+                  `${job.contractor?.company_name || "Le prestataire"} n'a pas encore répondu à cette assignation.`}
+              </Text>
+            </View>
+          )}
+
         {/* 🔄 Négociation en cours — visible uniquement pour le CRÉATEUR (contractee)
             quand le prestataire a soumis une contre-proposition */}
         {job.assignment_status === "negotiating" &&
