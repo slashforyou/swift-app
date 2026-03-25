@@ -1,18 +1,18 @@
 /**
  * Upload Company Logo Endpoint
  * Route: POST /swift-app/v1/company/:companyId/logo
- * 
+ *
  * Uploads a logo image to GCS and stores the URL in companies.logo_url
  */
 
-const { bucket } = require('../../utils/gcsClient');
-const gcsConfig = require('../../config/gcs');
-const { connect, close } = require('../../swiftDb');
+const { bucket } = require("../../utils/gcsClient");
+const gcsConfig = require("../../config/gcs");
+const { connect, close } = require("../../swiftDb");
 
 const uploadCompanyLogoEndpoint = async (req, res) => {
-  console.log('[ Upload Company Logo ]', {
+  console.log("[ Upload Company Logo ]", {
     companyId: req.params.companyId,
-    hasFile: !!req.file
+    hasFile: !!req.file,
   });
 
   let connection;
@@ -21,7 +21,7 @@ const uploadCompanyLogoEndpoint = async (req, res) => {
     if (!req.file) {
       return res.status(400).json({
         success: false,
-        error: 'No image file provided'
+        error: "No image file provided",
       });
     }
 
@@ -30,15 +30,17 @@ const uploadCompanyLogoEndpoint = async (req, res) => {
     const userId = req.user?.id;
 
     if (!userId) {
-      return res.status(401).json({ success: false, error: 'Authentication required' });
+      return res
+        .status(401)
+        .json({ success: false, error: "Authentication required" });
     }
 
     // Validate mime type
-    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    const allowedMimeTypes = ["image/jpeg", "image/png", "image/webp"];
     if (!allowedMimeTypes.includes(mimetype)) {
       return res.status(400).json({
         success: false,
-        error: 'Unsupported file type. Allowed: jpeg, png, webp'
+        error: "Unsupported file type. Allowed: jpeg, png, webp",
       });
     }
 
@@ -46,7 +48,7 @@ const uploadCompanyLogoEndpoint = async (req, res) => {
     if (size > 5 * 1024 * 1024) {
       return res.status(400).json({
         success: false,
-        error: 'File too large. Max size: 5MB'
+        error: "File too large. Max size: 5MB",
       });
     }
 
@@ -54,26 +56,28 @@ const uploadCompanyLogoEndpoint = async (req, res) => {
 
     // Verify user belongs to this company
     const [companyCheck] = await connection.execute(
-      'SELECT id FROM companies WHERE id = ?',
-      [companyId]
+      "SELECT id FROM companies WHERE id = ?",
+      [companyId],
     );
     if (companyCheck.length === 0) {
-      return res.status(404).json({ success: false, error: 'Company not found' });
+      return res
+        .status(404)
+        .json({ success: false, error: "Company not found" });
     }
 
     // Ensure logo_url column exists
     try {
       await connection.execute(
-        "ALTER TABLE companies ADD COLUMN logo_url VARCHAR(500) NULL AFTER company_code"
+        "ALTER TABLE companies ADD COLUMN logo_url VARCHAR(500) NULL AFTER company_code",
       );
-      console.log('✅ Added logo_url column to companies');
+      console.log("✅ Added logo_url column to companies");
     } catch (_e) {
       // Column already exists - ignore
     }
 
     // Upload to GCS
     const timestamp = Date.now();
-    const ext = originalname.split('.').pop() || 'jpg';
+    const ext = originalname.split(".").pop() || "jpg";
     const gcsPath = `logos/${companyId}/${timestamp}_logo.${ext}`;
     const file = bucket.file(gcsPath);
 
@@ -81,33 +85,34 @@ const uploadCompanyLogoEndpoint = async (req, res) => {
       contentType: mimetype,
       resumable: false,
       metadata: {
-        cacheControl: 'public, max-age=31536000',
-      }
+        cacheControl: "public, max-age=31536000",
+      },
     });
 
     // Get signed URL
     const [signedUrl] = await file.getSignedUrl({
-      action: 'read',
-      expires: Date.now() + (gcsConfig.signedUrlExpires || 3600) * 1000
+      action: "read",
+      expires: Date.now() + (gcsConfig.signedUrlExpires || 3600) * 1000,
     });
 
     // Update company record
-    await connection.execute(
-      'UPDATE companies SET logo_url = ? WHERE id = ?',
-      [gcsPath, companyId]
-    );
+    await connection.execute("UPDATE companies SET logo_url = ? WHERE id = ?", [
+      gcsPath,
+      companyId,
+    ]);
 
-    console.log(`✅ Company logo uploaded for company ${companyId}: ${gcsPath}`);
+    console.log(
+      `✅ Company logo uploaded for company ${companyId}: ${gcsPath}`,
+    );
 
     res.json({
       success: true,
-      message: 'Logo uploaded successfully',
-      logo_url: signedUrl
+      message: "Logo uploaded successfully",
+      logo_url: signedUrl,
     });
-
   } catch (error) {
-    console.error('❌ Upload company logo error:', error);
-    res.status(500).json({ success: false, error: 'Internal server error' });
+    console.error("❌ Upload company logo error:", error);
+    res.status(500).json({ success: false, error: "Internal server error" });
   } finally {
     if (connection) await close(connection);
   }

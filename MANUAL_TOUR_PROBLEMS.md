@@ -39,7 +39,6 @@
 - [x] Permettre une pause d'une durée défini : on clique sur pause ça nous propose soit pas de durée, soit 10 min, 15 min, 30 min, personnalisé en min
 - [x] accepter et refuser un job ne fonctionne pas, l'action ne produit aucun effet
 
-
 ## Home
 
 - [x] Je veux une section qui alerte si Stripe n'est pas actif, avec un bouton vers la page pour activer Stripe et un message alertant que la personne ne pourra pas encaisser de paiement dans l'app ou même facturer sans Stripe.

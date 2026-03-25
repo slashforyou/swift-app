@@ -1,6 +1,14 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useState } from "react";
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { useThemeColors } from "../../../hooks/useThemeColor";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { Job } from "../../hooks/useJobsForDay";
@@ -96,8 +104,14 @@ const PendingAssignmentActions: React.FC<{
               opacity: isAccepting ? 0.5 : 1,
             })}
           >
-            <Ionicons name="close-circle-outline" size={18} color={colors.error} />
-            <Text style={{ color: colors.error, fontWeight: "600", fontSize: 14 }}>
+            <Ionicons
+              name="close-circle-outline"
+              size={18}
+              color={colors.error}
+            />
+            <Text
+              style={{ color: colors.error, fontWeight: "600", fontSize: 14 }}
+            >
               {t("contractorWizard.refuse")}
             </Text>
           </Pressable>
@@ -120,8 +134,14 @@ const PendingAssignmentActions: React.FC<{
               <ActivityIndicator size="small" color="#fff" />
             ) : (
               <>
-                <Ionicons name="checkmark-circle-outline" size={18} color="#fff" />
-                <Text style={{ color: "#fff", fontWeight: "600", fontSize: 14 }}>
+                <Ionicons
+                  name="checkmark-circle-outline"
+                  size={18}
+                  color="#fff"
+                />
+                <Text
+                  style={{ color: "#fff", fontWeight: "600", fontSize: 14 }}
+                >
                   {t("contractorWizard.respond")}
                 </Text>
               </>
@@ -174,12 +194,11 @@ const PendingAssignmentActions: React.FC<{
                 flex: 1,
                 paddingVertical: DESIGN_TOKENS.spacing.sm,
                 borderRadius: DESIGN_TOKENS.radius.md,
-                backgroundColor:
-                  !declineReason.trim()
-                    ? colors.error + "60"
-                    : pressed
-                      ? colors.error + "DD"
-                      : colors.error,
+                backgroundColor: !declineReason.trim()
+                  ? colors.error + "60"
+                  : pressed
+                    ? colors.error + "DD"
+                    : colors.error,
                 alignItems: "center",
                 justifyContent: "center",
                 flexDirection: "row",

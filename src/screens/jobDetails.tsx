@@ -18,8 +18,8 @@ import HeaderLogo from "../components/ui/HeaderLogo";
 import TabMenu from "../components/ui/TabMenu";
 import Toast from "../components/ui/toastNotification";
 import {
-    DEFAULT_STEPS,
-    generateStepsFromAddresses,
+  DEFAULT_STEPS,
+  generateStepsFromAddresses,
 } from "../constants/JobStepsConfig";
 import { DESIGN_TOKENS } from "../constants/Styles";
 import { JobStateProvider } from "../context/JobStateProvider";
@@ -30,25 +30,25 @@ import { useJobNotes } from "../hooks/useJobNotes";
 import { usePerformanceMetrics } from "../hooks/usePerformanceMetrics";
 import { useLocalization } from "../localization/useLocalization";
 import {
-    assignStaffToJob,
-    getJobCrew,
-    removeCrewMember,
+  assignStaffToJob,
+  getJobCrew,
+  removeCrewMember,
 } from "../services/crewService";
 import {
-    filterServerCorrectableIssues,
-    requestServerCorrection,
+  filterServerCorrectableIssues,
+  requestServerCorrection,
 } from "../services/jobCorrection";
 import {
-    acceptJob,
-    declineJob,
-    deleteJob,
-    updateJob as updateJobAPI,
-    UpdateJobRequest,
+  acceptJob,
+  declineJob,
+  deleteJob,
+  updateJob as updateJobAPI,
+  UpdateJobRequest,
 } from "../services/jobs";
 import { useAuthCheck } from "../utils/checkAuth";
 import {
-    formatValidationReport,
-    validateJobConsistency,
+  formatValidationReport,
+  validateJobConsistency,
 } from "../utils/jobValidation";
 import JobClient from "./JobDetailsScreens/client";
 import JobPage from "./JobDetailsScreens/job";

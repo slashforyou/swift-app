@@ -33,14 +33,28 @@ jobs:
         uses: android-actions/setup-android@v3
 
       # ── Node / Expo ────────────────────────────────────────────────────────
-      - name: Set up Node 20
+      - name: Set up Node 22
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: "npm"
 
       - name: Install dependencies
         run: npm ci
+
+      # ── Install Maestro ────────────────────────────────────────────────────
+      - name: Install Maestro CLI
+        run: |
+          curl -Ls "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> $GITHUB_PATH
+
+      # ── Download Expo Go APK ───────────────────────────────────────────────
+      - name: Download Expo Go APK
+        run: |
+          EXPO_GO_URL=$(curl -s "https://expo.dev/--/api/v2/versions" \
+            | python3 -c "import sys,json; print(json.load(sys.stdin)['androidUrl'])")
+          echo "Downloading Expo Go from: $EXPO_GO_URL"
+          curl -L "$EXPO_GO_URL" -o expo-go.apk
 
       # ── Android Emulator ───────────────────────────────────────────────────
       - name: Enable KVM
@@ -49,8 +63,13 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Start Android Emulator (API 33)
+      # ── Run everything in a single emulator session ────────────────────────
+      - name: Run E2E tests
         uses: ReactiveCircus/android-emulator-runner@v2
+        env:
+          EMAIL: ${{ secrets.E2E_TEST_EMAIL }}
+          PASSWORD: ${{ secrets.E2E_TEST_PASSWORD }}
+          EXPO_NO_DOTENV: "1"
         with:
           api-level: 33
           arch: x86_64
@@ -58,61 +77,28 @@ jobs:
           avd-name: maestro-avd
           emulator-options: "-no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none"
           disable-animations: true
-          script: echo "Emulator started"
-
-      # ── Install Maestro ────────────────────────────────────────────────────
-      - name: Install Maestro CLI
-        run: |
-          curl -Ls "https://get.maestro.mobile.dev" | bash
-          echo "$HOME/.maestro/bin" >> $GITHUB_PATH
-
-      # ── Build & install Expo Go / app APK ─────────────────────────────────
-      # For dev/PR testing we use Expo Go. For production, swap for a real APK.
-      - name: Download Expo Go APK
-        run: |
-          EXPO_GO_URL="https://d1ahtucjixef4r.cloudfront.net/Exponent-2.31.2.apk"
-          curl -L "$EXPO_GO_URL" -o expo-go.apk
-
-      - name: Install Expo Go on emulator
-        uses: ReactiveCircus/android-emulator-runner@v2
-        with:
-          api-level: 33
-          arch: x86_64
-          avd-name: maestro-avd
-          emulator-options: "-no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none"
-          disable-animations: true
-          script: adb install -r expo-go.apk
-
-      # ── Start Metro bundler ────────────────────────────────────────────────
-      - name: Start Metro bundler
-        run: npx expo start --android --non-interactive &
-        env:
-          EXPO_NO_DOTENV: 1
-
-      - name: Wait for Metro bundler to be ready
-        run: |
-          for i in $(seq 1 30); do
-            if curl -s http://localhost:8081/status | grep -q packager-status:running; then
-              echo "Metro is ready"
-              break
-            fi
-            echo "Waiting for Metro... ($i/30)"
-            sleep 5
-          done
-
-      # ── Run Maestro flows ──────────────────────────────────────────────────
-      - name: Run Maestro flow
-        uses: ReactiveCircus/android-emulator-runner@v2
-        env:
-          EMAIL: ${{ secrets.E2E_TEST_EMAIL }}
-          PASSWORD: ${{ secrets.E2E_TEST_PASSWORD }}
-        with:
-          api-level: 33
-          arch: x86_64
-          avd-name: maestro-avd
-          emulator-options: "-no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none"
-          disable-animations: true
           script: |
+            # Install Expo Go on emulator
+            adb install -r expo-go.apk
+
+            # Start Metro bundler in background
+            npx expo start --android --non-interactive &
+            METRO_PID=$!
+
+            # Wait for Metro to be ready (up to 2 min)
+            for i in $(seq 1 24); do
+              if curl -s http://localhost:8081/status | grep -q packager-status:running; then
+                echo "✅ Metro is ready"
+                break
+              fi
+              echo "Waiting for Metro... ($i/24)"
+              sleep 5
+            done
+
+            # Give app time to load on emulator
+            sleep 10
+
+            # Run Maestro flow
             maestro test e2e/flows/${{ github.event.inputs.flow || '001-launch-login-calendar.yaml' }} \
               --env EMAIL="$EMAIL" \
               --env PASSWORD="$PASSWORD" \

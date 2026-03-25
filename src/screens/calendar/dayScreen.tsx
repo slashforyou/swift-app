@@ -28,7 +28,12 @@ import { useCompanyPermissions } from "../../hooks/useCompanyPermissions";
 import { Job, useJobsForDay } from "../../hooks/useJobsForDay";
 import { useLocalization, useTranslation } from "../../localization";
 import { formatDateWithDay } from "../../localization/formatters";
-import { acceptJob, createJob, CreateJobRequest, declineJob } from "../../services/jobs";
+import {
+  acceptJob,
+  createJob,
+  CreateJobRequest,
+  declineJob,
+} from "../../services/jobs";
 
 interface DayScreenProps {
   route: {
@@ -123,10 +128,7 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
         currentCompanyId != null &&
         job.contractor?.company_id === currentCompanyId;
 
-      if (
-        isCurrentUserContractor &&
-        job.assignment_status === "negotiating"
-      ) {
+      if (isCurrentUserContractor && job.assignment_status === "negotiating") {
         setWizardJob(job);
         setShowWizard(true);
         return;
