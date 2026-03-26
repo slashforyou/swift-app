@@ -10,6 +10,7 @@ import {
     fetchBusinessDetails,
     fetchBusinessList,
     fetchBusinessStats,
+    fetchMyCompany,
     updateBusinessInfo,
     type BusinessInfo,
     type BusinessStats,
@@ -106,6 +107,15 @@ export const useBusinessInfo = (): UseBusinessInfoReturn => {
             );
             setBusinesses([businessFromProfile]);
             setCurrentBusiness(businessFromProfile);
+            setIsLoading(false);
+
+            // Fetch complete data from API in background (for logo_url, etc.)
+            fetchMyCompany().then((fullCompany) => {
+              if (fullCompany) {
+                setBusinesses([fullCompany]);
+                setCurrentBusiness(fullCompany);
+              }
+            }).catch(() => {});
 
             // Charger les stats si possible
             try {
@@ -118,7 +128,6 @@ export const useBusinessInfo = (): UseBusinessInfoReturn => {
               );
             }
 
-            setIsLoading(false);
             return;
           }
         }

@@ -280,6 +280,44 @@ export const fetchBusinessStats = async (
 };
 
 /**
+ * Récupère les infos de l'entreprise de l'utilisateur connecté (GET /companies/me)
+ */
+export const fetchMyCompany = async (): Promise<BusinessInfo | null> => {
+  try {
+    const response = await fetchWithAuth(
+      `${ServerData.serverUrl}v1/companies/me`,
+      { method: "GET" },
+    );
+
+    if (!response.ok) return null;
+
+    const json = await response.json();
+    if (!json.success || !json.data) return null;
+
+    const d = json.data;
+    return {
+      id: String(d.id),
+      name: d.name || "",
+      abn: d.abn || undefined,
+      address: d.address?.street || "",
+      city: d.address?.suburb || "",
+      state: d.address?.state || "",
+      postcode: d.address?.postcode || "",
+      phone: d.phone || "",
+      email: d.email || "",
+      businessType: "Moving Services",
+      website: undefined,
+      logo_url: d.logo_url || undefined,
+      created_at: d.created_at || "",
+      updated_at: d.updated_at || "",
+    };
+  } catch (error) {
+    console.error("[BusinessService] Error fetching my company:", error);
+    return null;
+  }
+};
+
+/**
  * Upload le logo d'une entreprise
  */
 export const uploadCompanyLogo = async (
