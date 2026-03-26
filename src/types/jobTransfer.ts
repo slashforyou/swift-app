@@ -17,6 +17,8 @@ export type TransferDelegatedRole =
 
 export type TransferPricingType = "hourly" | "flat";
 
+export type HourCountingType = "depot_to_depot" | "site_only";
+
 export type TransferStatus =
   | "pending" // Envoyé — attend la validation du contractor
   | "negotiating" // Contractor contre-propose — attend la validation du contractee
@@ -46,6 +48,7 @@ export interface JobTransfer {
   pricing_type: TransferPricingType;
   pricing_amount: number;
   pricing_currency: string;
+  hour_counting_type?: HourCountingType;
 
   status: TransferStatus;
   message?: string;
@@ -78,7 +81,10 @@ export interface CreateJobTransferRequest {
   delegated_role_label?: string;
   pricing_type: TransferPricingType;
   pricing_amount: number;
+  hour_counting_type?: HourCountingType;
   message?: string;
+  vehicle_id?: number;
+  vehicle_label?: string;
   // Resource requirements
   requested_drivers?: number;
   requested_offsiders?: number;
@@ -163,4 +169,9 @@ export const DELEGATED_ROLE_LABELS: Record<TransferDelegatedRole, string> = {
 export const PRICING_TYPE_LABELS: Record<TransferPricingType, string> = {
   hourly: "À l'heure",
   flat: "Forfait",
+};
+
+export const HOUR_COUNTING_LABELS: Record<HourCountingType, string> = {
+  depot_to_depot: "Dépôt à dépôt",
+  site_only: "Sur site uniquement",
 };

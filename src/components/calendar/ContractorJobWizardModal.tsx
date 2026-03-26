@@ -790,6 +790,34 @@ export const ContractorJobWizardModal: React.FC<
               {t("contractorWizard.whatIsRequested")}
             </Text>
             <View style={styles.infoCard}>
+              {/* Proposition – description du rôle */}
+              {job.transfer?.delegated_role ? (
+                <View style={[styles.infoRow, { backgroundColor: colors.primaryLight || '#EEF2FF', borderRadius: DESIGN_TOKENS.borderRadius.md, padding: 10, marginBottom: 8 }]}>
+                  <Ionicons
+                    name="briefcase-outline"
+                    size={20}
+                    color={colors.primary}
+                    style={styles.infoIcon}
+                  />
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.infoLabel, { fontWeight: "700" }]}>
+                      {t("contractorWizard.propositionLabel") || "Proposition"}
+                    </Text>
+                    <Text style={[styles.infoValue, { fontWeight: "600" }]}>
+                      {job.transfer.delegated_role === "driver"
+                        ? job.transfer.vehicle_label
+                          ? `Être chauffeur du camion ${job.transfer.vehicle_label}`
+                          : "Être chauffeur"
+                        : job.transfer.delegated_role === "offsider"
+                          ? "Être offsider"
+                          : job.transfer.delegated_role === "full_job"
+                            ? "Job entier délégué"
+                            : job.transfer.delegated_role_label || "Rôle personnalisé"}
+                    </Text>
+                  </View>
+                </View>
+              ) : null}
+
               {/* Chauffeurs */}
               <View style={styles.infoRow}>
                 <Ionicons
@@ -893,6 +921,28 @@ export const ContractorJobWizardModal: React.FC<
                   </Text>
                 </View>
               </View>
+
+              {/* Type de comptage d'heures */}
+              {job.transfer?.hour_counting_type ? (
+                <View style={styles.infoRow}>
+                  <Ionicons
+                    name="time-outline"
+                    size={18}
+                    color={colors.primary}
+                    style={styles.infoIcon}
+                  />
+                  <View>
+                    <Text style={styles.infoLabel}>
+                      {t("contractorWizard.hourCountingLabel") || "Comptage des heures"}
+                    </Text>
+                    <Text style={styles.infoValue}>
+                      {job.transfer.hour_counting_type === "depot_to_depot"
+                        ? "Dépôt à dépôt"
+                        : "Sur site uniquement"}
+                    </Text>
+                  </View>
+                </View>
+              ) : null}
 
               {/* Note de ressource */}
               {job.transfer?.resource_note ? (

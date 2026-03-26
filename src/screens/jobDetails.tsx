@@ -13,7 +13,7 @@ import { JobAssignmentActions, JobOwnershipBanner } from "../components/jobs";
 import ContracteeNegotiationModal from "../components/jobs/ContracteeNegotiationModal";
 import AssignStaffModal from "../components/modals/AssignStaffModal";
 import EditJobModal from "../components/modals/EditJobModal";
-import TransferJobModal from "../components/modals/TransferJobModal";
+import DelegateJobWizard from "../components/modals/DelegateJobWizard";
 import HeaderLogo from "../components/ui/HeaderLogo";
 import TabMenu from "../components/ui/TabMenu";
 import Toast from "../components/ui/toastNotification";
@@ -290,8 +290,8 @@ const JobDetails: React.FC<JobDetailsProps> = ({
   const [isAssignStaffModalVisible, setIsAssignStaffModalVisible] =
     useState(false);
 
-  // State for Transfer Job Modal
-  const [isTransferModalVisible, setIsTransferModalVisible] = useState(false);
+  // State for Delegate Job Wizard
+  const [isDelegateWizardVisible, setIsDelegateWizardVisible] = useState(false);
 
   // State for Contractee Negotiation Modal (réponse à une contre-proposition)
   const [isNegotiationModalVisible, setIsNegotiationModalVisible] =
@@ -1088,10 +1088,10 @@ const JobDetails: React.FC<JobDetailsProps> = ({
             Number(job.timer_total_hours) === 0) && (
             <Pressable
               testID="job-details-transfer-btn"
-              onPress={() => setIsTransferModalVisible(true)}
+              onPress={() => setIsDelegateWizardVisible(true)}
             >
               <Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>
-                Déléguer ce job
+                Gérer les ressources
               </Text>
             </Pressable>
           )}
@@ -1201,13 +1201,13 @@ const JobDetails: React.FC<JobDetailsProps> = ({
           onClose={() => setIsAssignStaffModalVisible(false)}
         />
 
-        {/* Modal de délégation B2B */}
-        <TransferJobModal
-          visible={isTransferModalVisible}
+        {/* Wizard de délégation / ressources */}
+        <DelegateJobWizard
+          visible={isDelegateWizardVisible}
           jobId={job.id}
-          onClose={() => setIsTransferModalVisible(false)}
+          onClose={() => setIsDelegateWizardVisible(false)}
           onSuccess={() => {
-            setIsTransferModalVisible(false);
+            setIsDelegateWizardVisible(false);
             refreshJobDetails();
           }}
         />

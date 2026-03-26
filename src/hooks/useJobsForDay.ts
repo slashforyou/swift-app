@@ -49,6 +49,10 @@ export interface Job {
     transfer_message?: string | null;
     preferred_truck_id?: number | null;
     resource_note?: string | null;
+    delegated_role?: string | null;
+    delegated_role_label?: string | null;
+    vehicle_label?: string | null;
+    hour_counting_type?: "depot_to_depot" | "site_only" | null;
   } | null;
 
   client: {
@@ -154,6 +158,10 @@ function convertAPIJobToLocal(apiJob: any): Job {
             transfer_message: apiJob.transfer_message ?? null,
             preferred_truck_id: apiJob.preferred_truck_id ?? null,
             resource_note: apiJob.resource_note ?? null,
+            delegated_role: apiJob.delegated_role ?? null,
+            delegated_role_label: apiJob.delegated_role_label ?? null,
+            vehicle_label: apiJob.vehicle_label ?? null,
+            hour_counting_type: apiJob.hour_counting_type ?? null,
           }
         : null,
 

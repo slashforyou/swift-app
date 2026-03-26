@@ -19,12 +19,10 @@ const getMyCompanyEndpoint = async (req, res) => {
   try {
     const companyId = req.user?.company_id;
     if (!companyId) {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          error: "No company associated with this user",
-        });
+      return res.status(403).json({
+        success: false,
+        error: "No company associated with this user",
+      });
     }
 
     connection = await connect();
@@ -84,13 +82,11 @@ const getMyCompanyEndpoint = async (req, res) => {
     });
   } catch (error) {
     console.error("❌ GET /companies/me error:", error);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        error: "Internal server error",
-        details: error.message,
-      });
+    return res.status(500).json({
+      success: false,
+      error: "Internal server error",
+      details: error.message,
+    });
   } finally {
     if (connection) connection.release();
   }

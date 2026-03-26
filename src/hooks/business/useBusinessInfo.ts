@@ -5,15 +5,15 @@
 import * as SecureStore from "expo-secure-store";
 import { useCallback, useEffect, useState } from "react";
 import {
-    createBusiness,
-    deleteBusiness,
-    fetchBusinessDetails,
-    fetchBusinessList,
-    fetchBusinessStats,
-    fetchMyCompany,
-    updateBusinessInfo,
-    type BusinessInfo,
-    type BusinessStats,
+  createBusiness,
+  deleteBusiness,
+  fetchBusinessDetails,
+  fetchBusinessList,
+  fetchBusinessStats,
+  fetchMyCompany,
+  updateBusinessInfo,
+  type BusinessInfo,
+  type BusinessStats,
 } from "../../services/business";
 
 interface UseBusinessInfoReturn {
@@ -110,12 +110,14 @@ export const useBusinessInfo = (): UseBusinessInfoReturn => {
             setIsLoading(false);
 
             // Fetch complete data from API in background (for logo_url, etc.)
-            fetchMyCompany().then((fullCompany) => {
-              if (fullCompany) {
-                setBusinesses([fullCompany]);
-                setCurrentBusiness(fullCompany);
-              }
-            }).catch(() => {});
+            fetchMyCompany()
+              .then((fullCompany) => {
+                if (fullCompany) {
+                  setBusinesses([fullCompany]);
+                  setCurrentBusiness(fullCompany);
+                }
+              })
+              .catch(() => {});
 
             // Charger les stats si possible
             try {
