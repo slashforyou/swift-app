@@ -1,4 +1,4 @@
-/**
+﻿/**
  * StepValidationBadge - Badge affichant l'état de validation du step avec correction
  */
 
@@ -61,7 +61,6 @@ export const StepValidationBadge: React.FC<StepValidationBadgeProps> = ({
         setIsCorrect(true);
 
         try {
-            // TEMP_DISABLED: console.log('🔧 [STEP VALIDATION] Correcting step...');
             
             const result = await correctJobStep(jobCode, validation);
             

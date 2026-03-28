@@ -46,7 +46,6 @@ export const usePayouts = (): UsePayoutsResult => {
       // Traiter les payouts
       if (payoutsResponse.ok) {
         const payoutsData = await payoutsResponse.json();
-        console.log('✅ [usePayouts] Payouts fetched:', payoutsData);
         
         // Mapper les données API vers notre type Payout
         const apiPayouts: Payout[] = (payoutsData.data || payoutsData || []).map((p: any) => ({
@@ -62,14 +61,12 @@ export const usePayouts = (): UsePayoutsResult => {
         }));
         setPayouts(apiPayouts);
       } else {
-        console.warn('[usePayouts] Could not fetch payouts, using empty list');
         setPayouts([]);
       }
 
       // Traiter le balance
       if (balanceResponse.ok) {
         const balanceData = await balanceResponse.json();
-        console.log('✅ [usePayouts] Balance fetched:', balanceData);
         
         // Stripe retourne le balance en centimes
         const available = balanceData.data?.available?.[0] || balanceData.available?.[0] || { amount: 0, currency: 'aud' };
@@ -81,7 +78,6 @@ export const usePayouts = (): UsePayoutsResult => {
           currency: (available.currency || 'aud').toUpperCase(),
         });
       } else {
-        console.warn('[usePayouts] Could not fetch balance, using defaults');
         setBalance({ available: 0, pending: 0, currency: 'AUD' });
       }
     } catch (err) {
@@ -96,7 +92,6 @@ export const usePayouts = (): UsePayoutsResult => {
     setError(null);
     
     try {
-      console.log('[usePayouts] Creating payout for amount:', amount);
       
       // ✅ Appeler l'API réelle POST /stripe/payouts/create
       const response = await fetchWithAuth(`${ServerData.serverUrl}v1/stripe/payouts/create`, {
@@ -117,7 +112,6 @@ export const usePayouts = (): UsePayoutsResult => {
       }
 
       const data = await response.json();
-      console.log('✅ [usePayouts] Payout created:', data);
 
       const newPayout: Payout = {
         id: data.data?.id || data.id || `po_${Date.now()}`,

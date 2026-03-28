@@ -1,4 +1,4 @@
-// utils/device.ts
+﻿// utils/device.ts
 import { Platform } from "react-native";
 import * as Device from "expo-device";
 import * as Application from "expo-application";
@@ -25,7 +25,6 @@ export async function getOrCreateLocalDeviceKey() {
 }
 
 export async function collectDevicePayload() {
-    // TEMP_DISABLED: console.log("Collecting device payload...");
 
   const localKey = await getOrCreateLocalDeviceKey();
 

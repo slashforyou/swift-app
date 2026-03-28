@@ -1,4 +1,4 @@
-// services/jobs.ts
+﻿// services/jobs.ts
 import { ServerData } from "../constants/ServerData";
 import { getAuthHeaders } from "../utils/auth";
 
@@ -176,20 +176,17 @@ async function authenticatedFetch(
   });
 
   // 🔍 DIAGNOSTIC: Log de la réponse HTTP
-  // TEMP_DISABLED: console.log(`🔍 [authenticatedFetch] ${options.method || 'GET'} ${url} → ${response.status} ${response.statusText}`);
 
   // Si 401/403 et qu'on n'a pas encore retry, tenter le refresh
   if (
     (response.status === 401 || response.status === 403) &&
     retryCount === 0
   ) {
-    // TEMP_DISABLED: console.log('🔄 Token expired, attempting refresh...');
 
     const { refreshToken } = await import("../utils/auth");
     const refreshSuccess = await refreshToken();
 
     if (refreshSuccess) {
-      // TEMP_DISABLED: console.log('✅ Token refreshed, retrying request...');
       // Retry avec le nouveau token
       return authenticatedFetch(url, options, retryCount + 1);
     } else {
@@ -229,9 +226,6 @@ export async function fetchJobs(
     const startDateFormatted = formatDateForAPI(start);
     const endDateFormatted = formatDateForAPI(end);
 
-    console.log(
-      `📡 [fetchJobs] Fetching jobs via calendar-days from ${startDateFormatted} to ${endDateFormatted}`,
-    );
 
     const res = await authenticatedFetch(`${API}calendar-days`, {
       method: "POST",
@@ -249,29 +243,15 @@ export async function fetchJobs(
     const data = await res.json();
 
     // 🔍 DIAGNOSTIC: Analyser la structure de calendar-days
-    console.log(
-      "🔍 [fetchJobs] Calendar-days response:",
-      JSON.stringify(data, null, 2),
-    );
 
     // L'endpoint calendar-days peut retourner { jobs: [...] } ou directement [...]
     let jobsArray: any[] = [];
 
     if (Array.isArray(data)) {
       jobsArray = data;
-      console.log(
-        `✅ [fetchJobs] Direct array from calendar-days with ${jobsArray.length} jobs`,
-      );
     } else if (data && data.jobs && Array.isArray(data.jobs)) {
       jobsArray = data.jobs;
-      console.log(
-        `✅ [fetchJobs] Jobs array from calendar-days with ${jobsArray.length} jobs`,
-      );
     } else {
-      console.warn(
-        "⚠️ [fetchJobs] Unexpected calendar-days response format:",
-        data,
-      );
       return [];
     }
 
@@ -287,7 +267,6 @@ export async function fetchJobs(
  */
 export async function fetchJobById(jobId: string): Promise<JobAPI> {
   try {
-    // TEMP_DISABLED: console.log('📡 [fetchJobById] Fetching job:', jobId);
 
     const res = await authenticatedFetch(`${API}v1/jobs/${jobId}`, {
       method: "GET",
@@ -299,7 +278,6 @@ export async function fetchJobById(jobId: string): Promise<JobAPI> {
     }
 
     const data = await res.json();
-    // TEMP_DISABLED: console.log('✅ [fetchJobById] Successfully fetched job');
 
     return data;
   } catch (error) {
@@ -325,10 +303,6 @@ const AU_STATE_COORDS: Record<string, { lat: number; lng: number }> = {
  */
 export async function createJob(jobData: CreateJobRequest): Promise<JobAPI> {
   try {
-    console.log(
-      "📡 [createJob] Creating job with data:",
-      JSON.stringify(jobData, null, 2),
-    );
 
     // Convertir les données au format attendu par l'API (snake_case)
     const apiPayload: Record<string, unknown> = {
@@ -377,10 +351,6 @@ export async function createJob(jobData: CreateJobRequest): Promise<JobAPI> {
     // if (jobData.depot_to_depot != null) apiPayload.depot_to_depot = jobData.depot_to_depot ? 1 : 0;
     // if (jobData.time_rounding_minutes != null) apiPayload.time_rounding_minutes = jobData.time_rounding_minutes;
 
-    console.log(
-      "📡 [createJob] API payload (snake_case):",
-      JSON.stringify(apiPayload, null, 2),
-    );
 
     // L'API utilise /v1/job (singulier) et non /v1/jobs
     const res = await authenticatedFetch(`${API}v1/job`, {
@@ -398,7 +368,6 @@ export async function createJob(jobData: CreateJobRequest): Promise<JobAPI> {
     }
 
     const data = await res.json();
-    console.log("✅ [createJob] Successfully created job:", data);
 
     return data;
   } catch (error) {
@@ -415,7 +384,6 @@ export async function updateJob(
   jobData: UpdateJobRequest,
 ): Promise<JobAPI> {
   try {
-    // TEMP_DISABLED: console.log('📡 [updateJob] Updating job:', jobId);
 
     const primaryUrl = `${API}v1/jobs/${jobId}`;
     const fallbackUrl = `${API}v1/job/${jobId}`;
@@ -438,7 +406,6 @@ export async function updateJob(
     }
 
     const data = await res.json();
-    // TEMP_DISABLED: console.log('✅ [updateJob] Successfully updated job');
 
     return data;
   } catch (error) {
@@ -452,7 +419,6 @@ export async function updateJob(
  */
 export async function deleteJob(jobId: string): Promise<void> {
   try {
-    // TEMP_DISABLED: console.log('📡 [deleteJob] Deleting job:', jobId);
 
     const res = await authenticatedFetch(`${API}v1/jobs/${jobId}`, {
       method: "DELETE",
@@ -463,7 +429,6 @@ export async function deleteJob(jobId: string): Promise<void> {
       throw new Error(`HTTP ${res.status}: Failed to delete job`);
     }
 
-    // TEMP_DISABLED: console.log('✅ [deleteJob] Successfully deleted job');
   } catch (error) {
     console.error("❌ [deleteJob] Error deleting job:", error);
     throw error;
@@ -475,7 +440,6 @@ export async function deleteJob(jobId: string): Promise<void> {
  */
 export async function startJob(jobId: string): Promise<JobAPI> {
   try {
-    // TEMP_DISABLED: console.log('📡 [startJob] Starting job:', jobId);
 
     const res = await authenticatedFetch(`${API}v1/jobs/${jobId}/start`, {
       method: "POST",
@@ -487,7 +451,6 @@ export async function startJob(jobId: string): Promise<JobAPI> {
     }
 
     const data = await res.json();
-    // TEMP_DISABLED: console.log('✅ [startJob] Successfully started job');
 
     return data;
   } catch (error) {
@@ -501,7 +464,6 @@ export async function startJob(jobId: string): Promise<JobAPI> {
  */
 export async function pauseJob(jobId: string): Promise<JobAPI> {
   try {
-    // TEMP_DISABLED: console.log('📡 [pauseJob] Pausing job:', jobId);
 
     const res = await authenticatedFetch(`${API}v1/jobs/${jobId}/pause`, {
       method: "POST",
@@ -513,7 +475,6 @@ export async function pauseJob(jobId: string): Promise<JobAPI> {
     }
 
     const data = await res.json();
-    // TEMP_DISABLED: console.log('✅ [pauseJob] Successfully paused job');
 
     return data;
   } catch (error) {
@@ -527,7 +488,6 @@ export async function pauseJob(jobId: string): Promise<JobAPI> {
  */
 export async function resumeJob(jobId: string): Promise<JobAPI> {
   try {
-    // TEMP_DISABLED: console.log('📡 [resumeJob] Resuming job:', jobId);
 
     const res = await authenticatedFetch(`${API}v1/jobs/${jobId}/resume`, {
       method: "POST",
@@ -539,7 +499,6 @@ export async function resumeJob(jobId: string): Promise<JobAPI> {
     }
 
     const data = await res.json();
-    // TEMP_DISABLED: console.log('✅ [resumeJob] Successfully resumed job');
 
     return data;
   } catch (error) {
@@ -553,7 +512,6 @@ export async function resumeJob(jobId: string): Promise<JobAPI> {
  */
 export async function completeJob(jobId: string): Promise<JobAPI> {
   try {
-    // TEMP_DISABLED: console.log('📡 [completeJob] Completing job:', jobId);
 
     const res = await authenticatedFetch(`${API}v1/jobs/${jobId}/complete`, {
       method: "POST",
@@ -565,7 +523,6 @@ export async function completeJob(jobId: string): Promise<JobAPI> {
     }
 
     const data = await res.json();
-    // TEMP_DISABLED: console.log('✅ [completeJob] Successfully completed job');
 
     return data;
   } catch (error) {
@@ -580,11 +537,9 @@ export async function completeJob(jobId: string): Promise<JobAPI> {
  * Si échec, retour à l'écran précédent
  */
 export async function getJobDetails(jobCode: string): Promise<any> {
-  // TEMP_DISABLED: console.log(`📡 [getJobDetails] Starting fetch for jobCode: ${jobCode}`);
 
   try {
     const fullUrl = `${API}v1/job/${jobCode}/full`;
-    // TEMP_DISABLED: console.log(`📡 [getJobDetails] Fetching job details from URL: ${fullUrl}`);
 
     const res = await authenticatedFetch(fullUrl, {
       method: "GET",
@@ -598,8 +553,6 @@ export async function getJobDetails(jobCode: string): Promise<any> {
 
     const rawData = await res.json();
 
-    // TEMP_DISABLED: console.log('✅ [getJobDetails] Successfully fetched job details from /full endpoint');
-    // TEMP_DISABLED: console.log('🔍 [getJobDetails] /full endpoint raw response:', JSON.stringify(rawData, null, 2));
 
     // Transformer les données au format attendu par useJobDetails
     if (!rawData.success || !rawData.data) {
@@ -615,7 +568,6 @@ export async function getJobDetails(jobCode: string): Promise<any> {
     const totalStepsFromAPI =
       data.workflow?.total_steps || data.addresses?.length || 5;
 
-    // TEMP_DISABLED: console.log('🔍 [getJobDetails] Step data from API:', {
     // jobCurrentStep: data.job?.current_step,
     // workflowCurrentStep: data.workflow?.current_step,
     // workflowTotalSteps: data.workflow?.total_steps,
@@ -632,14 +584,6 @@ export async function getJobDetails(jobCode: string): Promise<any> {
     const assignmentStatus = data.job?.assignment_status || "none";
     const isSameCompany = contracteeCompanyId === contractorCompanyId;
 
-    console.log("🏢 [OWNERSHIP] Traitement des données d'entreprise:", {
-      contractorCompanyId,
-      contracteeCompanyId,
-      hasCompanyData: !!companyData,
-      hasContracteeCompanyData: !!contracteeCompanyData,
-      assignmentStatus,
-      isSameCompany,
-    });
 
     let contractorObj = null;
     let contracteeObj = null;
@@ -656,10 +600,6 @@ export async function getJobDetails(jobCode: string): Promise<any> {
             : undefined,
         stripe_account_id: contracteeCompanyData.stripe_account_id || undefined,
       };
-      console.log(
-        `✅ [OWNERSHIP] Contractee construit (${isSameCompany ? "JOB INTERNE" : "MULTI-ENTREPRISE"}):`,
-        contracteeObj,
-      );
     }
 
     // Construire l'objet contractor (entreprise exécutante)
@@ -676,10 +616,6 @@ export async function getJobDetails(jobCode: string): Promise<any> {
             : undefined,
           assigned_at: data.crew?.[0]?.assigned_at || undefined,
         };
-        console.log(
-          "✅ [OWNERSHIP] Contractor construit (JOB INTERNE - réutilise contractee):",
-          contractorObj,
-        );
       } else if (companyData) {
         // Job multi-entreprise - Utiliser company de l'API
         contractorObj = {
@@ -692,14 +628,7 @@ export async function getJobDetails(jobCode: string): Promise<any> {
             : undefined,
           assigned_at: data.crew?.[0]?.assigned_at || undefined,
         };
-        console.log(
-          "✅ [OWNERSHIP] Contractor construit (MULTI-ENTREPRISE - company API):",
-          contractorObj,
-        );
       } else {
-        console.warn(
-          "⚠️ [OWNERSHIP] Impossible de construire contractor - company absent pour job multi-entreprise",
-        );
       }
     }
 
@@ -738,7 +667,6 @@ export async function getJobDetails(jobCode: string): Promise<any> {
       can_assign_resources: isContractor || isSameCompany,
     };
 
-    console.log("🔐 [OWNERSHIP] Permissions calculées:", permissions);
 
     // Format attendu par useJobDetails
     const transformedData = {
@@ -757,6 +685,8 @@ export async function getJobDetails(jobCode: string): Promise<any> {
         contractee: contracteeObj,
         contractor: contractorObj,
         permissions: permissions,
+        // ✅ DELEGATION: Transfert actif (remonté depuis data.active_transfer)
+        active_transfer: data.active_transfer || null,
       },
       client: data.client,
       company: data.company,
@@ -773,7 +703,6 @@ export async function getJobDetails(jobCode: string): Promise<any> {
           checked: item.checked || item.item_checked || false,
           item_checked: item.item_checked || item.checked || false,
         };
-        // TEMP_DISABLED: console.log(`[getJobDetails] Item ${index}: Original ID=${item.id}, Final ID=${transformedItem.id}, Name="${item.name}"`);
         return transformedItem;
       }),
       notes: data.notes || [],
@@ -781,28 +710,7 @@ export async function getJobDetails(jobCode: string): Promise<any> {
       addresses: data.addresses || [], // Ajouter les vraies adresses de l'API
     };
 
-    console.log("🔄 [getJobDetails] Data transformed for useJobDetails:", {
-      hasJob: !!transformedData.job,
-      jobId: transformedData.job?.id,
-      jobCode: transformedData.job?.code,
-      hasClient: !!transformedData.client,
-      clientName:
-        `${transformedData.client?.firstName || ""} ${transformedData.client?.lastName || ""}`.trim(),
-      trucksCount: transformedData.trucks.length,
-      workersCount: transformedData.workers.length,
-      itemsCount: transformedData.items.length,
-      notesCount: transformedData.notes.length,
-      addressesCount: transformedData.addresses.length,
-      // 🏢 Ownership data
-      hasContractee: !!transformedData.job.contractee,
-      hasContractor: !!transformedData.job.contractor,
-      assignmentStatus: transformedData.job.assignment_status,
-      contracteeName: transformedData.job.contractee?.company_name,
-      contractorName: transformedData.job.contractor?.company_name,
-      isOwner: transformedData.job.permissions?.is_owner,
-    });
 
-    // TEMP_DISABLED: console.log('🔍 [getJobDetails] OLD LOG - addressesCount: transformedData.addresses.length,
     // ✅ AJOUTER: Log du step transformé
     // stepActualStep: transformedData.job?.step?.actualStep,
     // stepTotalSteps: transformedData.job?.step?.totalSteps,
@@ -814,9 +722,7 @@ export async function getJobDetails(jobCode: string): Promise<any> {
     // });
 
     // ✅ AJOUTER: Log détaillé du step pour debug
-    // TEMP_DISABLED: console.log('🔍 [getJobDetails] Transformed job.step:', transformedData.job?.step);
 
-    // TEMP_DISABLED: console.log('🏠 [getJobDetails] Addresses data:', JSON.stringify(transformedData.addresses, null, 2));
 
     return transformedData;
   } catch (error) {
@@ -880,7 +786,6 @@ export async function addJobItem(
   jobId: string,
   item: { name: string; quantity: number; description?: string },
 ) {
-  // TEMP_DISABLED: console.log(`[addJobItem] Adding item to job ${jobId}:`, item);
 
   const headers = await getAuthHeaders();
 
@@ -894,8 +799,6 @@ export async function addJobItem(
     `${API}/job/${jobId}/item`, // Format minimal avec slash
   ];
 
-  // TEMP_DISABLED: console.log(`[addJobItem] API base URL: ${API}`);
-  // TEMP_DISABLED: console.log(`[addJobItem] Auth headers:`, headers);
 
   for (const url of urlsToTry) {
     try {
@@ -908,11 +811,9 @@ export async function addJobItem(
         body: JSON.stringify(item),
       });
 
-      // TEMP_DISABLED: console.log(`[addJobItem] Response for ${url}: ${res.status} ${res.statusText}`);
 
       if (res.ok) {
         const data = await res.json();
-        // TEMP_DISABLED: console.log(`[addJobItem] Success with URL: ${url}`, data);
         return data;
       } else if (res.status !== 404) {
         // Si ce n'est pas une 404, c'est peut-être le bon endpoint mais avec une autre erreur
@@ -937,7 +838,6 @@ export async function addJobItem(
 
 // Fonction pour récupérer les détails du job avec ses items réels
 export async function getJobWithItems(jobId: string) {
-  // TEMP_DISABLED: console.log(`[getJobWithItems] Fetching job ${jobId} to see real item IDs`);
 
   const headers = await getAuthHeaders();
 
@@ -949,7 +849,6 @@ export async function getJobWithItems(jobId: string) {
 
     if (res.ok) {
       const data = await res.json();
-      // TEMP_DISABLED: console.log(`[getJobWithItems] Job data:`, JSON.stringify(data, null, 2));
 
       if (data.items) {
         data.items = data.items.map((item: any) => ({
@@ -982,7 +881,6 @@ export async function updateJobItem(
     completedQuantity?: number;
   },
 ) {
-  // TEMP_DISABLED: console.log(`[updateJobItem] Updating item ${itemId} in job ${jobId} with:`, updates);
 
   const headers = await getAuthHeaders();
 
@@ -997,7 +895,6 @@ export async function updateJobItem(
   if (updates.is_checked !== undefined)
     apiPayload.is_checked = updates.is_checked;
 
-  // TEMP_DISABLED: console.log(`[updateJobItem] PATCH ${url}`, apiPayload);
 
   try {
     const res = await fetch(url, {
@@ -1009,11 +906,9 @@ export async function updateJobItem(
       body: JSON.stringify(apiPayload),
     });
 
-    // TEMP_DISABLED: console.log(`[updateJobItem] Response: ${res.status} ${res.statusText}`);
 
     if (res.ok) {
       const data = await res.json();
-      // TEMP_DISABLED: console.log(`[updateJobItem] Success:`, data);
       return data;
     } else {
       const errorText = await res.text();
@@ -1239,9 +1134,6 @@ export async function fetchPendingAssignments(): Promise<PendingAssignment[]> {
     const response = await fetch(url, { method: "GET", headers });
 
     if (!response.ok) {
-      console.warn(
-        `[fetchPendingAssignments] HTTP ${response.status} – returning []`,
-      );
       return [];
     }
 

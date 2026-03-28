@@ -83,11 +83,9 @@ export default function ReviewScreen({ navigation, route }: ReviewScreenProps) {
     setIsSubmitting(true);
 
     try {
-      console.log("🎉 [Review] Verifying onboarding...");
 
       const response = await verifyOnboarding(tosAccepted);
 
-      console.log("✅ [Review] Verification response:", response);
 
       if (response.success && response.onboarding_complete) {
         // Backend v3: finalize ToS via /complete only once requirements are cleared

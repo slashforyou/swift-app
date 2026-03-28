@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ⚠️ DEPRECATED - This service is no longer used
  * 
  * All functionality has been migrated to jobSteps.ts which uses working API endpoints:
@@ -77,7 +77,6 @@ export async function syncTimerToAPI(timerData: JobTimerData): Promise<any> {
   try {
     const syncData = convertTimerDataToAPI(timerData);
 
-    // TEMP_DISABLED: console.log('📤 [syncTimerToAPI] Syncing timer to API:', {
       // jobId: syncData.jobId,
       // currentStep: syncData.currentStep,
       // totalElapsedHours: (syncData.totalElapsedMs / (1000 * 60 * 60)).toFixed(2),
@@ -108,7 +107,6 @@ export async function syncTimerToAPI(timerData: JobTimerData): Promise<any> {
     });
 
     const data = await response.json();
-    // TEMP_DISABLED: console.log('✅ [syncTimerToAPI] Timer synced successfully:', data);
     return data;
 
   } catch (error: any) {
@@ -147,8 +145,6 @@ export async function startTimerAPI(jobCodeOrId: string): Promise<any> {
     }
     
     const url = `${API}v1/job/${numericId}/start`;
-    console.log('🚀 [startTimerAPI] Starting job timer:', jobCodeOrId, '→ numeric ID:', numericId);
-    console.log('🚀 [startTimerAPI] Full URL:', url);
 
     const headers = await getAuthHeaders();
     const response = await fetch(url, {
@@ -160,8 +156,6 @@ export async function startTimerAPI(jobCodeOrId: string): Promise<any> {
 
     const data = await response.json();
     
-    console.log('🚀 [startTimerAPI] Response status:', response.status, 'OK:', response.ok);
-    console.log('🚀 [startTimerAPI] Response data:', data);
     
     // Vérifier si la réponse est un succès
     if (data.error || !response.ok) {
@@ -169,7 +163,6 @@ export async function startTimerAPI(jobCodeOrId: string): Promise<any> {
       return { success: false, error: data.error || 'Unknown error', data };
     }
     
-    console.log('✅ [startTimerAPI] Job started successfully:', data);
     return { success: true, ...data };
 
   } catch (error: any) {
@@ -190,7 +183,6 @@ export async function advanceStepAPI(
   stepDurationMs: number
 ): Promise<any> {
   try {
-    // TEMP_DISABLED: console.log('⏭️ [advanceStepAPI] Advancing step:', {
       // jobId,
       // fromStep,
       // toStep,
@@ -210,7 +202,6 @@ export async function advanceStepAPI(
     });
 
     const data = await response.json();
-    // TEMP_DISABLED: console.log('✅ [advanceStepAPI] Step advanced:', data);
     return data;
 
   } catch (error: any) {
@@ -230,7 +221,6 @@ export async function pauseTimerAPI(
   totalElapsedMs: number
 ): Promise<any> {
   try {
-    // TEMP_DISABLED: console.log('⏸️ [pauseTimerAPI] Pausing timer:', {
       // jobId,
       // currentStep,
       // elapsedHours: (totalElapsedMs / (1000 * 60 * 60)).toFixed(2)
@@ -248,7 +238,6 @@ export async function pauseTimerAPI(
     });
 
     const data = await response.json();
-    // TEMP_DISABLED: console.log('✅ [pauseTimerAPI] Timer paused:', data);
     return data;
 
   } catch (error: any) {
@@ -267,7 +256,6 @@ export async function resumeTimerAPI(
   breakDurationMs: number
 ): Promise<any> {
   try {
-    // TEMP_DISABLED: console.log('▶️ [resumeTimerAPI] Resuming timer:', {
       // jobId,
       // breakHours: (breakDurationMs / (1000 * 60 * 60)).toFixed(2)
     // });
@@ -283,7 +271,6 @@ export async function resumeTimerAPI(
     });
 
     const data = await response.json();
-    // TEMP_DISABLED: console.log('✅ [resumeTimerAPI] Timer resumed:', data);
     return data;
 
   } catch (error: any) {
@@ -305,7 +292,6 @@ export async function completeJobAPI(
   try {
     const syncData = convertTimerDataToAPI(timerData);
 
-    // TEMP_DISABLED: console.log('✅ [completeJobAPI] Completing job:', {
       // jobId,
       // billableHours: (syncData.billableMs / (1000 * 60 * 60)).toFixed(2),
       // breakHours: (syncData.totalBreakMs / (1000 * 60 * 60)).toFixed(2),
@@ -332,7 +318,6 @@ export async function completeJobAPI(
     });
 
     const data = await response.json();
-    // TEMP_DISABLED: console.log('✅ [completeJobAPI] Job completed:', data);
     return data;
 
   } catch (error: any) {

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Job Validation Utility
  * 
  * Détecte et corrige les incohérences dans les données de job
@@ -56,7 +56,6 @@ export async function validateJobConsistency(
   const timerTotalHours = parseFloat(jobData.timer_total_hours || '0');
   const timerIsRunning = jobData.timer_is_running === 1 || jobData.timer_is_running === true;
 
-  // TEMP_DISABLED: console.log(`🔍 [JobValidation] Validating job: ${jobId}, Step ${currentStep}, Status ${status}, Timer running: ${timerIsRunning}`);
 
   // ============================================
   // INCOHÉRENCE 1: Étape > 1 mais timer jamais démarré
@@ -77,10 +76,8 @@ export async function validateJobConsistency(
       correctionType: 'reset_status'
     };
     inconsistencies.push(inconsistency);
-    console.log('ℹ️ [JobValidation] timer_not_started détecté → Correction serveur sera appelée');
   }
   */
-  console.log('⚠️ [JobValidation] timer_not_started detection DISABLED (backend ne corrige pas réellement)');
   // ============================================
 
   // ============================================
@@ -130,7 +127,6 @@ export async function validateJobConsistency(
 
     // Auto-correction: Arrêter le timer localement
     try {
-      // TEMP_DISABLED: console.log('🔧 [JobValidation] Auto-correction: Arrêt du timer pour job completed');
       
       // Note: On ne fait PAS d'appel API ici car le job est déjà completed
       // On corrige juste l'incohérence locale
@@ -139,7 +135,6 @@ export async function validateJobConsistency(
       autoCorrected = true;
       corrections.push('Timer arrêté car job completed');
       
-      // TEMP_DISABLED: console.log('✅ [JobValidation] Timer marqué comme arrêté localement');
     } catch (error) {
 
       console.error('❌ [JobValidation] Échec arrêt timer:', error);
@@ -313,7 +308,6 @@ export async function validateJobConsistency(
 
   const isValid = inconsistencies.length === 0;
 
-  // TEMP_DISABLED: console.log(`${isValid ? '✅' : '⚠️'} [JobValidation] Validation result:`, {
     // isValid,
     // inconsistenciesCount: inconsistencies.length,
     // autoCorrected,
@@ -321,7 +315,6 @@ export async function validateJobConsistency(
   // });
 
   if (!isValid) {
-    console.warn('⚠️ [JobValidation] Inconsistencies detected:', inconsistencies);
   }
 
   return {
@@ -340,8 +333,6 @@ async function autoCorrectTimerNotStarted(
   currentStep: number,
   localTimerData?: any
 ): Promise<void> {
-  console.warn('⚠️ [JobValidation] AUTO-CORRECTION: Timer non démarré');
-  console.warn(`⚠️ [JobValidation] Job ${jobCode} à l'étape ${currentStep}/5 mais timer jamais démarré`);
 
   // ✅ MODIFIÉ: Toujours tenter l'appel API même si timer local existe
   // Le timer local n'est qu'un fallback, l'API est la source de vérité
@@ -350,20 +341,15 @@ async function autoCorrectTimerNotStarted(
   const now = Date.now();
   const estimatedStartTime = now - (24 * 60 * 60 * 1000); // 24h ago
 
-  // TEMP_DISABLED: console.log(`🔧 [JobValidation] Création timer rétroactif: Job ${jobCode}, Step ${currentStep}, Start ${new Date(estimatedStartTime).toISOString()}`);
 
   // Tenter de synchroniser avec l'API
   try {
-    // TEMP_DISABLED: console.log('📡 [JobValidation] Calling startTimerAPI with jobCode:', jobCode);
     const result = await startTimerAPI(jobCode);
-    // TEMP_DISABLED: console.log(`📡 [JobValidation] startTimerAPI returned success: ${!!result?.success}`);
     
     // ✅ Vérifier si l'API a vraiment réussi
     if (result && result.success) {
-      // TEMP_DISABLED: console.log('✅ [JobValidation] Timer créé et synchronisé avec l\'API');
     } else {
         const errorMsg = result?.error || result?.data?.error || 'Unknown error';
-      console.warn('⚠️ [JobValidation] API timer start failed:', errorMsg);
       
       // Stocker localement pour sync ultérieure
       await savePendingCorrection({
@@ -375,7 +361,6 @@ async function autoCorrectTimerNotStarted(
         }
       });
       
-      // TEMP_DISABLED: console.log('💾 [JobValidation] Timer stocké localement, synchronisation en attente');
     }
   } catch (error: any) {
 
@@ -391,7 +376,6 @@ async function autoCorrectTimerNotStarted(
       }
     });
 
-    // TEMP_DISABLED: console.log('💾 [JobValidation] Correction stockée localement (hors-ligne)');
   }
 }
 
@@ -408,7 +392,6 @@ async function savePendingCorrection(correction: PendingCorrection): Promise<voi
     if (!exists) {
       corrections.push(correction);
       await AsyncStorage.setItem(PENDING_CORRECTIONS_KEY, JSON.stringify(corrections));
-      // TEMP_DISABLED: console.log('💾 [JobValidation] Correction sauvegardée:', correction);
     }
   } catch (error) {
 
@@ -446,7 +429,6 @@ export async function applyPendingCorrections(jobId?: string | number): Promise<
       if (correction.correction.type === 'start_timer') {
         await startTimerAPI(String(correction.jobId));
         appliedCount++;
-        // TEMP_DISABLED: console.log('✅ [JobValidation] Correction appliquée:', correction.jobId);
       }
       // Ajouter d'autres types de corrections ici
     } catch (error: any) {
@@ -461,7 +443,6 @@ export async function applyPendingCorrections(jobId?: string | number): Promise<
       jobId ? c.jobId !== jobId : !toApply.includes(c)
     );
     await AsyncStorage.setItem(PENDING_CORRECTIONS_KEY, JSON.stringify(remaining));
-    // TEMP_DISABLED: console.log(`🧹 [JobValidation] ${appliedCount} corrections appliquées, ${remaining.length} restantes`);
   }
 
   return appliedCount;
@@ -501,10 +482,8 @@ export async function reconcileJobData(
   const resolution: string[] = [];
   let hadConflicts = false;
 
-  // TEMP_DISABLED: console.log('🔄 [JobValidation] Reconciliation:', { jobId, hasNetwork });
 
   if (!hasNetwork) {
-    console.warn('⚠️ [JobValidation] Pas de réseau, utilisation données locales');
     resolution.push('Hors-ligne: données locales utilisées');
     return { reconciled: localData, hadConflicts: false, resolution };
   }
@@ -515,7 +494,6 @@ export async function reconcileJobData(
 
   if (apiStep !== localStep) {
     hadConflicts = true;
-    console.warn('⚠️ [JobValidation] Conflit step:', { api: apiStep, local: localStep });
     
     // L'API fait foi si réseau disponible
     resolution.push(`Step: API (${apiStep}) prioritaire sur local (${localStep})`);

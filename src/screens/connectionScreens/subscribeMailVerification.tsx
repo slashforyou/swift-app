@@ -1,15 +1,15 @@
-import { ServerData } from "@/src/constants/ServerData";
+﻿import { ServerData } from "@/src/constants/ServerData";
 import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    ScrollView,
-    Text,
-    TextInput,
-    View,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AlertMessage from "../../components/ui/AlertMessage";
@@ -57,8 +57,6 @@ const SubscribeMailVerification = ({ route }: any) => {
   };
 
   const handleVerification = async () => {
-    // TEMP_DISABLED: console.log('Verification function called with code:', verificationCode, 'and email:', mail);
-
     // Validation des champs
     if (!verificationCode.trim()) {
       showAlert(
@@ -102,16 +100,12 @@ const SubscribeMailVerification = ({ route }: any) => {
       // MODE TEST : Accepter automatiquement le code 123456 pour les emails de test
       const cleanCode = verificationCode.trim();
       const isTestEmail =
-        mail && (mail.endsWith(".test") || mail.includes("@swiftapp.test") || mail.includes("@mailinator.com"));
-      console.log("[TEST MODE] Email:", mail);
-      console.log("[TEST MODE] Code:", `"${cleanCode}"`);
-      console.log("[TEST MODE] Is test email?", isTestEmail);
-      console.log("[TEST MODE] Is code 123456?", cleanCode === "123456");
+        mail &&
+        (mail.endsWith(".test") ||
+          mail.includes("@swiftapp.test") ||
+          mail.includes("@mailinator.com"));
 
       if (isTestEmail && cleanCode === "123456") {
-        console.log(
-          "[TEST MODE] ✅ Bypassing server verification for test email",
-        );
         showAlert(
           "success",
           t("auth.emailVerification.verificationSuccess"),
@@ -125,7 +119,12 @@ const SubscribeMailVerification = ({ route }: any) => {
             Alert.alert(
               t("auth.emailVerification.completeProfileTitle"),
               t("auth.emailVerification.completeProfileMessage"),
-              [{ text: t("common.ok"), onPress: () => navigation.navigate("Login") }],
+              [
+                {
+                  text: t("common.ok"),
+                  onPress: () => navigation.navigate("Login"),
+                },
+              ],
             );
           } else {
             navigation.navigate("Login");
@@ -135,9 +134,6 @@ const SubscribeMailVerification = ({ route }: any) => {
         return;
       }
 
-      console.log("[TEST MODE] ❌ Not bypassing - calling server");
-
-      // TEMP_DISABLED: console.log('[ Verify Mail endpoint called ]', mail, verificationCode);
       const response = await fetch(`${ServerData.serverUrl}verifyMail`, {
         method: "POST",
         headers: {
@@ -220,7 +216,7 @@ const SubscribeMailVerification = ({ route }: any) => {
   };
 
   return (
-    <SafeAreaView testID="mail-verification-screen" style={styles.container}>}
+    <SafeAreaView testID="mail-verification-screen" style={styles.container}>
       <AnimatedBackground opacity={0.15} />
 
       <KeyboardAvoidingView

@@ -19,6 +19,9 @@
       "icon": "./assets/ios-light.png",
       "bundleIdentifier": "com.slash4u.cobbr",
       "buildNumber": "3",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      },
       "runtimeVersion": {
         "policy": "appVersion"
       }

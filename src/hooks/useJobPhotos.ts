@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+﻿import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useState } from "react";
 import { useJobState } from "../context/JobStateProvider";
 import {
@@ -26,7 +26,6 @@ const getLocalPhotos = async (jobId: string): Promise<JobPhotoAPI[]> => {
     const stored = await AsyncStorage.getItem(key);
     return stored ? JSON.parse(stored) : [];
   } catch (error) {
-    console.warn("Error reading local photos:", error);
     return [];
   }
 };
@@ -39,7 +38,7 @@ const saveLocalPhotos = async (
     const key = getLocalPhotosKey(jobId);
     await AsyncStorage.setItem(key, JSON.stringify(photos));
   } catch (error) {
-    console.warn("Error saving local photos:", error);
+    // Non-critical: cache write is optional
   }
 };
 
@@ -93,7 +92,6 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
     jobStateContext = useJobState();
   } catch (e) {
     // Provider not available, use local state
-    // TEMP_DISABLED: console.log('📸 JobStateProvider not available, using local upload statuses');
   }
 
   // ✅ Helper pour set upload status (provider si disponible, sinon local)
@@ -131,8 +129,6 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
 
   const fetchPhotos = useCallback(
     async (reset: boolean = true) => {
-      // TEMP_DISABLED: console.log('📸 [useJobPhotos] fetchPhotos - DÉBUT - jobId:', jobId, 'reset:', reset);
-
       if (!jobId) {
         setPhotos([]);
         setIsLoading(false);
@@ -146,7 +142,6 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
         }
         setError(null);
 
-        // TEMP_DISABLED: console.log('📸 [useJobPhotos] Vérification connexion...');
         // Vérifier si l'utilisateur est connecté
         const loggedIn = await isLoggedIn();
         if (!loggedIn) {
@@ -155,7 +150,6 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
           return;
         }
 
-        // TEMP_DISABLED: console.log('✅ [useJobPhotos] Connecté, fetch API...');
         // Essayer l'API réelle
         try {
           const offset = reset ? 0 : currentOffset;
@@ -163,8 +157,6 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
             limit: PHOTOS_PER_PAGE,
             offset,
           });
-
-          // TEMP_DISABLED: console.log('✅ [useJobPhotos] API photos reçues:', result.photos.length, 'hasMore:', result.pagination.hasMore);
 
           if (reset) {
             setPhotos(result.photos);
@@ -177,9 +169,7 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
           setHasMore(result.pagination.hasMore);
           setCurrentOffset(offset + result.photos.length);
         } catch (fetchError) {
-          // TEMP_DISABLED: console.log('📸 [useJobPhotos] API photos endpoint not available, loading from local storage');
           const localPhotos = await getLocalPhotos(jobId);
-          // TEMP_DISABLED: console.log('📸 [useJobPhotos] Photos locales:', localPhotos?.length || 0);
           setPhotos(localPhotos);
           setHasMore(false);
 
@@ -205,7 +195,6 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
         setHasMore(false);
       } finally {
         setIsLoading(false);
-        // TEMP_DISABLED: console.log('📸 [useJobPhotos] fetchPhotos - FIN');
       }
     },
     [jobId, currentOffset, PHOTOS_PER_PAGE],
@@ -218,11 +207,9 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
   // ✅ Charger 8 photos supplémentaires
   const loadMore = useCallback(async () => {
     if (isLoadingMore || !hasMore) {
-      // TEMP_DISABLED: console.log('📸 [loadMore] Skipping - isLoadingMore:', isLoadingMore, 'hasMore:', hasMore);
       return;
     }
 
-    // TEMP_DISABLED: console.log('📸 [loadMore] Loading more photos from offset:', currentOffset);
     setIsLoadingMore(true);
 
     try {
@@ -237,12 +224,6 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
       photoUri: string,
       description?: string,
     ): Promise<JobPhotoAPI | null> => {
-      // TEMP_DISABLED: console.log('📤 [DEBUG useJobPhotos] uploadPhotoCallback - DÉBUT');
-      // TEMP_DISABLED: console.log('📤 [DEBUG] jobId:', jobId);
-      // TEMP_DISABLED: console.log('📤 [DEBUG] photoUri:', photoUri);
-      // TEMP_DISABLED: console.log('📤 [DEBUG] description:', description);
-      // TEMP_DISABLED: console.log('📤 [DEBUG] profile:', profile);
-
       if (!jobId || !profile) {
         console.error("❌ [DEBUG] Manque jobId ou profile");
         // Alert removed
@@ -250,7 +231,6 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
       }
 
       const photoKey = photoUri; // Utiliser l'URI comme clé temporaire
-      // TEMP_DISABLED: console.log('🔑 [DEBUG] photoKey:', photoKey);
 
       try {
         setUploadStatus(photoKey, {
@@ -260,7 +240,6 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
           timestamp: new Date().toISOString(),
         });
 
-        // TEMP_DISABLED: console.log('📤 [DEBUG] ÉTAPE 2: Uploading vers API...');
         // ✅ ÉTAPE 2: Uploading
         setUploadStatus(photoKey, {
           status: "uploading",
@@ -271,20 +250,11 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
 
         // ✅ Session 10 FIX: Passer userId au service pour le backend
         const userId = profile?.id?.toString();
-        console.log("📸 [useJobPhotos] Calling uploadJobPhoto", {
-          jobId,
-          userId,
-          hasDescription: !!description,
-        });
         const newPhoto = await uploadJobPhoto(
           jobId,
           photoUri,
           description,
           userId,
-        );
-        console.log(
-          "✅ [useJobPhotos] Photo uploaded successfully:",
-          newPhoto?.id,
         );
 
         // ✅ ÉTAPE 3: Success (API)
@@ -295,13 +265,11 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
           timestamp: new Date().toISOString(),
         });
 
-        // TEMP_DISABLED: console.log('📝 [DEBUG] Ajout de la photo à la liste...');
         setPhotos((prevPhotos) => {
           const safePhotos = Array.isArray(prevPhotos) ? prevPhotos : [];
           return [newPhoto, ...safePhotos];
         });
 
-        // TEMP_DISABLED: console.log('🧹 [DEBUG] Nettoyage des statuts dans 3s...');
         // Nettoyer le statut après 3 secondes
         setTimeout(() => {
           if (jobStateContext) {
@@ -317,15 +285,12 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
           }
         }, 3000);
 
-        // TEMP_DISABLED: console.log('✅ [DEBUG] uploadPhotoCallback - FIN SUCCÈS');
         return newPhoto;
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : "An error occurred";
 
         if (errorMessage.includes("404") || errorMessage.includes("400")) {
-          // TEMP_DISABLED: console.log('ℹ️ [INFO] API non disponible (attendu), sauvegarde locale en cours...');
-          // TEMP_DISABLED: console.log('📝 [INFO] Détails:', errorMessage);
           // Alert removed
 
           const localPhoto: JobPhotoAPI = {
@@ -342,9 +307,6 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
             updated_at: new Date().toISOString(),
           };
 
-          // TEMP_DISABLED: console.log('💾 [DEBUG] Photo locale créée:', localPhoto);
-
-          // TEMP_DISABLED: console.log('💾 [DEBUG] ÉTAPE 3b: Local (pas uploadé au serveur)');
           // ✅ ÉTAPE 3b: Local (pas uploadé au serveur)
           setUploadStatus(String(localPhoto.id), {
             status: "local",
@@ -513,25 +475,14 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
         );
 
         if (localPhotos.length > 0) {
-          console.log(
-            `📸 [schedulePhotoSync] Retrying upload for ${localPhotos.length} local photos`,
-          );
-
           for (const localPhoto of localPhotos) {
             // ✅ Récupérer l'URI originale depuis le statut d'upload ou le filename
             const uploadStatus = getUploadStatusHelper(String(localPhoto.id));
             const photoUri = uploadStatus?.photoUri || localPhoto.filename;
 
             if (!photoUri) {
-              console.warn(
-                `⚠️ [schedulePhotoSync] No URI found for photo ${localPhoto.id}`,
-              );
               continue;
             }
-
-            console.log(
-              `📸 [schedulePhotoSync] Retrying upload for photo ${localPhoto.id}`,
-            );
 
             try {
               // ✅ Tenter le re-upload vers l'API
@@ -539,10 +490,6 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
                 jobId,
                 photoUri,
                 localPhoto.description || "",
-              );
-
-              console.log(
-                `✅ [schedulePhotoSync] Photo ${localPhoto.id} uploaded successfully as ${newPhoto.id}`,
               );
 
               // ✅ Remplacer la photo locale par la photo serveur
@@ -578,10 +525,6 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
                 photos.filter((p) => p.id !== localPhoto.id),
               );
             } catch (uploadError) {
-              console.warn(
-                `⚠️ [schedulePhotoSync] Failed to re-upload photo ${localPhoto.id}:`,
-                uploadError,
-              );
               // Ne pas arrêter la boucle, continuer avec les autres photos
               // Le prochain schedulePhotoSync réessayera
             }
@@ -594,7 +537,6 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
   }, [photos, jobId, getUploadStatusHelper, setUploadStatus, jobStateContext]);
 
   useEffect(() => {
-    // TEMP_DISABLED: console.log('📸 [useJobPhotos] useEffect triggered - jobId:', jobId);
     fetchPhotos(true); // Initial load
   }, [jobId]); // ✅ FIXED: Ne dépendre QUE de jobId, pas de fetchPhotos (sinon boucle infinie)
 
@@ -606,7 +548,6 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
       String(p?.id).startsWith("local-"),
     );
     if (hasLocalPhotos) {
-      console.log("📸 [useJobPhotos] Found local photos, scheduling sync...");
       // Délai de 5s pour laisser le temps à l'app de se stabiliser
       const timer = setTimeout(() => {
         schedulePhotoSync();

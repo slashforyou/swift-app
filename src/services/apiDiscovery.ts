@@ -124,7 +124,6 @@ class ApiDiscoveryService {
 
       // Log uniquement au premier appel
       if (!this.hasLoggedInitialFailure) {
-        console.log("[ApiDiscovery] Fetching all endpoints from server...");
       }
       this.isFetchingDiscovery = true;
 
@@ -146,11 +145,6 @@ class ApiDiscoveryService {
 
       if (data.success && data.data?.endpoints) {
         this.setCache(cacheKey, data.data.endpoints);
-        console.log(
-          "✅ [ApiDiscovery] Connected - cached",
-          data.data.endpoints.length,
-          "endpoints",
-        );
         return data.data.endpoints;
       }
 
@@ -165,9 +159,6 @@ class ApiDiscoveryService {
 
       // ✅ Log une seule fois l'erreur, puis silencieux
       if (!this.hasLoggedInitialFailure) {
-        console.warn(
-          "[ApiDiscovery] Service unavailable - falling back to offline mode",
-        );
         this.hasLoggedInitialFailure = true;
       }
       return [];
@@ -469,7 +460,6 @@ class ApiDiscoveryService {
    */
   clearCache(): void {
     this.cache.clear();
-    console.log("[ApiDiscovery] Cache cleared");
   }
 
   /**
@@ -487,7 +477,6 @@ class ApiDiscoveryService {
   async refresh(): Promise<void> {
     this.clearCache();
     await this.getAllEndpoints();
-    console.log("[ApiDiscovery] Cache refreshed with latest endpoints");
   }
 
   // ========================================
@@ -508,7 +497,6 @@ class ApiDiscoveryService {
    */
   setCacheExpiry(durationMs: number): void {
     this.cacheExpiry = durationMs;
-    console.log(`[ApiDiscovery] Cache expiry set to ${durationMs}ms`);
   }
 
   /**

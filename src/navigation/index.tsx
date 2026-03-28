@@ -1,4 +1,4 @@
-import {
+﻿import {
     NavigationContainer,
     NavigationContainerRef,
 } from "@react-navigation/native";
@@ -76,7 +76,6 @@ export default function Navigation() {
       testController.setNavigation(navigationRef.current as any);
 
       if (__DEV__) {
-        // TEMP_DISABLED: console.log('🧭 Navigation reference set in TestController');
       }
     }
   }, []);

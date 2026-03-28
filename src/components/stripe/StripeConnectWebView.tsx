@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+﻿import { Ionicons } from "@expo/vector-icons";
 import React, { useRef, useState } from "react";
 import {
     ActivityIndicator,
@@ -120,7 +120,6 @@ export const StripeConnectWebView: React.FC<StripeConnectWebViewProps> = ({
   });
 
   const handleNavigationStateChange = (navState: any) => {
-    // TEMP_DISABLED: console.log('🌐 WebView navigation:', navState.url)
 
     // Détection des URLs de succès (backend configure: https://cobbr.altivo.fr/settings/stripe/success)
     if (
@@ -137,7 +136,6 @@ export const StripeConnectWebView: React.FC<StripeConnectWebViewProps> = ({
       navState.url.includes("/settings/stripe/refresh") ||
       navState.url.includes("cobbr://stripe/refresh")
     ) {
-      // TEMP_DISABLED: console.log('🔄 Stripe Connect refresh requested')
       webViewRef.current?.reload();
       return;
     }
@@ -157,7 +155,6 @@ export const StripeConnectWebView: React.FC<StripeConnectWebViewProps> = ({
 
   const handleLoad = () => {
     setLoading(false);
-    // TEMP_DISABLED: console.log('✅ Stripe Connect WebView loaded successfully')
   };
 
   const handleRetry = () => {

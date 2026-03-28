@@ -1050,6 +1050,17 @@ export interface TranslationKeys {
         cancelConfirmMessage?: string;
         cancelConfirmYes?: string;
         cancelConfirmNo?: string;
+        delegation?: string;
+        delegatedTo?: string;
+        delegationPending?: string;
+        delegationNegotiating?: string;
+        delegationAccepted?: string;
+        delegationDeclined?: string;
+        delegationFullJob?: string;
+        cancelDelegationTitle?: string;
+        cancelDelegationMessage?: string;
+        cancelDelegationYes?: string;
+        error?: string;
         modal?: { [key: string]: string };
       };
       contact?: {
@@ -2723,6 +2734,68 @@ export interface TranslationKeys {
     newAmountPlaceholder?: string;
     explanationPlaceholder?: string;
     sendCounterProposal?: string;
+  };
+
+  // DelegateJobWizard
+  delegateWizard?: {
+    manageResources?: string;
+    jobManagement?: string;
+    whatDoYouWant?: string;
+    addTruckStaff?: string;
+    addTruckStaffDesc?: string;
+    delegatePart?: string;
+    delegatePartDesc?: string;
+    delegateFull?: string;
+    delegateFullDesc?: string;
+    selectResources?: string;
+    summary?: string;
+    trucks?: string;
+    noVehicleAvailable?: string;
+    staff?: string;
+    noActiveStaff?: string;
+    driver?: string;
+    offsider?: string;
+    roleToDelegate?: string;
+    describeRole?: string;
+    associatedVehicle?: string;
+    none?: string;
+    pricing?: string;
+    hourly?: string;
+    flat?: string;
+    hourCounting?: string;
+    depotToDepot?: string;
+    siteOnly?: string;
+    recipient?: string;
+    orAddByCode?: string;
+    messageOptional?: string;
+    messagePlaceholder?: string;
+    requestedResources?: string;
+    preferredTruck?: string;
+    anyChoice?: string;
+    drivers?: string;
+    offsiders?: string;
+    resourcesToAssign?: string;
+    partialDelegation?: string;
+    fullDelegation?: string;
+    role?: string;
+    fullJob?: string;
+    vehicle?: string;
+    price?: string;
+    perHour?: string;
+    flatRate?: string;
+    recipientLabel?: string;
+    requestedTeam?: string;
+    driverCount?: string;
+    offsiderCount?: string;
+    message?: string;
+    assign?: string;
+    delegateTo?: string;
+    send?: string;
+    next?: string;
+    back?: string;
+    error?: string;
+    errorSendDelegation?: string;
+    delegationSuccess?: string;
   };
 
   // Relations (RelationsScreen)

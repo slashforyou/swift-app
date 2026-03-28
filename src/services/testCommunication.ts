@@ -1,4 +1,4 @@
-// src/services/testCommunication.ts
+﻿// src/services/testCommunication.ts
 /**
  * TestCommunication - Interface de communication pour Copilot
  * Permet à Copilot d'envoyer des commandes via HTTP/WebSocket
@@ -130,7 +130,8 @@ class TestCommunication {
           const command = body as TestCommand;
           const result = await this.handleCommand(command);
           return { success: true, data: result, requestId: body.requestId };
-        } catch (error: any) {
+        } catch (error: any) {
+
           return { success: false, error: error.message, requestId: body.requestId };
         }
       },
@@ -141,7 +142,8 @@ class TestCommunication {
           const commands = body.commands as TestCommand[];
           const results = await this.handleBatch(commands);
           return { success: true, data: results, requestId: body.requestId };
-        } catch (error: any) {
+        } catch (error: any) {
+
           return { success: false, error: error.message, requestId: body.requestId };
         }
       },
@@ -151,7 +153,8 @@ class TestCommunication {
         try {
           const status = this.getStatus();
           return { success: true, data: status };
-        } catch (error: any) {
+        } catch (error: any) {
+
           return { success: false, error: error.message };
         }
       },
@@ -161,7 +164,8 @@ class TestCommunication {
         try {
           this.handleStop();
           return { success: true, data: { stopped: true } };
-        } catch (error: any) {
+        } catch (error: any) {
+
           return { success: false, error: error.message };
         }
       }
@@ -344,7 +348,8 @@ class TestCommunication {
       simpleSessionLogger.logInfo(`Stripe test suite completed: ${allResults.filter(r => r.success).length}/${allResults.length} passed`, 'stripe-tests');
       
       return allResults;
-    } catch (error: any) {
+    } catch (error: any) {
+
       simpleSessionLogger.logError('Stripe test suite failed', error, 'stripe-tests');
       throw error;
     }
@@ -383,12 +388,4 @@ export default testCommunication;
 
 // Log initialization
 if (__DEV__) {
-  // TEMP_DISABLED: console.log('🤖 TEST COMMUNICATION READY');
-  // TEMP_DISABLED: console.log('📡 Available APIs:');
-  // TEMP_DISABLED: console.log('   - global.copilotAPI.sendCommand(command)');
-  // TEMP_DISABLED: console.log('   - global.copilotAPI.sendBatch(commands)');
-  // TEMP_DISABLED: console.log('   - global.copilotAPI.getStatus()');
-  // TEMP_DISABLED: console.log('   - global.copilotAPI.quickTest.*');
-  // TEMP_DISABLED: console.log('   - global.httpAPI.* (HTTP simulation)');
-  // TEMP_DISABLED: console.log('   - global.testController (direct access)');
 }

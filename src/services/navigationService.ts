@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Navigation service avec analytics intégré
  * Gère les transitions d'écrans et tracking automatique
  */
@@ -84,12 +84,12 @@ export class NavigationService {
       this.currentScreen = screenName;
       this.screenStartTime = now;
 
-      // TEMP_DISABLED: console.log(`🧭 [NAVIGATION] ${previousScreen} → ${screenName}`, {
         // timeOnScreen: `${(timeOnScreen / 1000).toFixed(1)}s`,
         // params: options.params
       // });
 
-    } catch (error) {
+    } catch (error) {
+
       logger.error('Navigation error', {
         targetScreen: screenName,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -139,9 +139,9 @@ export class NavigationService {
       this.currentScreen = previousScreen;
       this.screenStartTime = currentTime;
 
-      // TEMP_DISABLED: console.log(`🔙 [NAVIGATION] Back to ${previousScreen}`);
 
-    } catch (error) {
+    } catch (error) {
+
       logger.error('Navigation back error', {
         error: error instanceof Error ? error.message : 'Unknown error'
       });
@@ -218,7 +218,6 @@ export class NavigationService {
     this.navigationHistory = [];
     
     logger.info('Navigation service initialized', { startScreen });
-    // TEMP_DISABLED: console.log(`🧭 [NAVIGATION] Service initialized on ${startScreen}`);
   }
 }
 

@@ -6,11 +6,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-    Pressable,
-    RefreshControl,
-    ScrollView,
-    Text,
-    View,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Text,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import HeaderLogo from "../components/ui/HeaderLogo";
@@ -19,9 +19,9 @@ import { DESIGN_TOKENS } from "../constants/Styles";
 import { useTheme } from "../context/ThemeProvider";
 import { useTranslation } from "../localization";
 import {
-    BadgeDetailed,
-    fetchGamification,
-    getBadgesByCategory,
+  BadgeDetailed,
+  fetchGamification,
+  getBadgesByCategory,
 } from "../services/gamification";
 
 type BadgeCategory =
@@ -50,10 +50,6 @@ const CATEGORIES: CategoryInfo[] = [
 ];
 
 const BadgesScreen: React.FC = () => {
-  console.log("\n🎖️ ═══════════════════════════════════════");
-  console.log("🎖️ [BADGES] Screen mounted");
-  console.log("🎖️ ═══════════════════════════════════════\n");
-
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
@@ -68,7 +64,6 @@ const BadgesScreen: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const loadBadges = useCallback(async () => {
-    console.log("🎖️ [BADGES] Loading badges...");
     try {
       setError(null);
       const data = await fetchGamification();
@@ -76,13 +71,11 @@ const BadgesScreen: React.FC = () => {
       // Badges gagnés
       const earned =
         data.badgesDetailed?.filter((b) => b.earned || b.earnedAt) || [];
-      console.log("🎖️ [BADGES] ✅ Earned badges:", earned.length);
       setEarnedBadges(earned);
 
       // Badges disponibles (non gagnés)
       const available =
         data.availableBadges?.filter((b) => !b.earned && !b.earnedAt) || [];
-      console.log("🎖️ [BADGES] ✅ Available badges:", available.length);
       setAvailableBadges(available);
     } catch (err) {
       console.error("Failed to load badges:", err);

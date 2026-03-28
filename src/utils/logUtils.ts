@@ -1,4 +1,4 @@
-// src/utils/logUtils.ts
+﻿// src/utils/logUtils.ts
 /**
  * Utilitaires pour logger les erreurs de manière sécurisée
  * Évite les références circulaires et les objets trop volumineux
@@ -59,7 +59,8 @@ export const safeLogError = (message: string, error: any) => {
     // Sinon, convertir en string de manière sécurisée
     console.error(message, String(error).substring(0, 200));
     
-  } catch (logError) {
+  } catch (logError) {
+
     // En dernier recours si même le logging échoue
     console.error(message, '[Error object could not be logged safely]');
     console.error('Logging error:', logError);
@@ -70,22 +71,19 @@ export const safeLogWarning = (message: string, data?: any) => {
   try {
     if (data && typeof data === 'object') {
       const safeData = JSON.parse(JSON.stringify(data, null, 0));
-      console.warn(message, safeData);
     } else {
-      console.warn(message, data);
     }
-  } catch (error) {
-    console.warn(message, '[Data could not be logged safely]');
+  } catch (error) {
+
   }
 };
 
 export const safeLogInfo = (message: string, data?: any) => {
   try {
     if (data && typeof data === 'object') {
-      // TEMP_DISABLED: console.log(message, JSON.stringify(data, null, 0).substring(0, 300));
     } else {
         }
-  } catch (error) {
-    // TEMP_DISABLED: console.log(message, '[Data could not be logged safely]');
+  } catch (error) {
+
   }
 };

@@ -226,13 +226,6 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({
   // ===== Handlers =====
   const handleNextStep = () => {
     if (showNextStepModal) return;
-    console.log("🔘 [JobTimerDisplay] handleNextStep clicked", {
-      currentStep,
-      totalSteps,
-      isRunning,
-      isOnBreak,
-      effectiveCurrentStep,
-    });
     const nextStepNumber = currentStep + 1;
     const nextStepName =
       job?.steps?.[currentStep]?.name || `Étape ${nextStepNumber}`;
@@ -241,7 +234,6 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({
   };
 
   const handleConfirmNextStep = () => {
-    console.log("✅ [JobTimerDisplay] User confirmed next step");
     setShowNextStepModal(false);
     nextStepRef.current();
   };

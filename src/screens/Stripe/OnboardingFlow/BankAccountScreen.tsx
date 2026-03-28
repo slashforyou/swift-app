@@ -172,7 +172,6 @@ export default function BankAccountScreen({
     setIsSubmitting(true);
 
     try {
-      console.log("💳 [BankAccount] Submitting data to API...");
 
       const payload = {
         bsb: formData.bsb.replace("-", ""), // Remove hyphen: "062-000" -> "062000"
@@ -181,7 +180,6 @@ export default function BankAccountScreen({
       };
 
       const response = await submitBankAccount(payload);
-      console.log("✅ [BankAccount] Success! Progress:", response.progress);
 
       const updatedAccount = await fetchStripeAccount();
       const acct = updatedAccount as any;

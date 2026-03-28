@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Demo Screen - Démonstration des composants avancés du Design System
  * Showcase des nouveaux composants Typography, Button, Card, Input
  */
@@ -204,7 +204,6 @@ export const DesignSystemDemoScreen: React.FC = () => {
         <InteractiveCard
           padding="md"
           onPress={() => {
-            // TEMP_DISABLED: console.log('Card pressed');
           }}
           style={{ marginBottom: SEMANTIC_SPACING.md }}
         >

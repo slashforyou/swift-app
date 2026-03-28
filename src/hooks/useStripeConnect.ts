@@ -38,7 +38,6 @@ export const useStripeConnect = (): UseStripeConnectResult => {
 
       if (!response.ok) {
         // Si pas connecté (404 ou autre), mettre le statut à not_connected
-        console.log('[useStripeConnect] Account not connected or API error:', response.status);
         setStatus({
           isConnected: false,
           status: 'not_connected',
@@ -47,7 +46,6 @@ export const useStripeConnect = (): UseStripeConnectResult => {
       }
 
       const data = await response.json();
-      console.log('✅ [useStripeConnect] Status fetched:', data);
 
       const statusData = data.data || data;
       setStatus({
@@ -86,7 +84,6 @@ export const useStripeConnect = (): UseStripeConnectResult => {
       }
 
       const data = await response.json();
-      console.log('✅ [useStripeConnect] Onboarding URL fetched:', data);
 
       // Retourner l'URL d'onboarding
       const onboardingUrl = data.data?.url || data.url || data.onboarding_url;
@@ -109,7 +106,6 @@ export const useStripeConnect = (): UseStripeConnectResult => {
     
     try {
       // ✅ Appeler l'API réelle DELETE /stripe/connect/disconnect
-      console.log('[useStripeConnect] Disconnecting account...');
       
       const response = await fetchWithAuth(`${ServerData.serverUrl}v1/stripe/connect/disconnect`, {
         method: 'DELETE',
@@ -120,7 +116,6 @@ export const useStripeConnect = (): UseStripeConnectResult => {
         throw new Error(errorData.message || `HTTP ${response.status}: Échec de la déconnexion`);
       }
 
-      console.log('✅ [useStripeConnect] Account disconnected');
       
       setStatus({
         isConnected: false,

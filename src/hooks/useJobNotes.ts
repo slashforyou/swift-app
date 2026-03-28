@@ -1,16 +1,16 @@
-// hooks/useJobNotes.ts
+﻿// hooks/useJobNotes.ts
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useState } from "react";
 import {
-    addJobNote,
-    CreateJobNoteRequest,
-    deleteJobNote,
-    fetchJobNotes,
-    JobNoteAPI,
-    markAllNotesAsRead,
-    markNoteAsRead,
-    updateJobNote,
-    UpdateJobNoteRequest,
+  addJobNote,
+  CreateJobNoteRequest,
+  deleteJobNote,
+  fetchJobNotes,
+  JobNoteAPI,
+  markAllNotesAsRead,
+  markNoteAsRead,
+  updateJobNote,
+  UpdateJobNoteRequest,
 } from "../services/jobNotes";
 import { isLoggedIn } from "../utils/auth";
 import { useUserProfile } from "./useUserProfile";
@@ -24,7 +24,6 @@ const getLocalNotes = async (jobId: string): Promise<JobNoteAPI[]> => {
     const stored = await AsyncStorage.getItem(key);
     return stored ? JSON.parse(stored) : [];
   } catch (error) {
-    console.warn("Error reading local notes:", error);
     return [];
   }
 };
@@ -37,7 +36,7 @@ const saveLocalNotes = async (
     const key = getLocalNotesKey(jobId);
     await AsyncStorage.setItem(key, JSON.stringify(notes));
   } catch (error) {
-    console.warn("Error saving local notes:", error);
+    // Non-critical: cache write is optional
   }
 };
 
@@ -96,7 +95,6 @@ export const useJobNotes = (jobId: string): UseJobNotesReturn => {
           apiError.message?.includes("404") ||
           apiError.message?.includes("400")
         ) {
-          // TEMP_DISABLED: console.log('📝 API notes endpoint not yet available, using local storage');
           const localNotes = await getLocalNotes(jobId);
           setNotes(localNotes);
         } else {
@@ -142,20 +140,9 @@ export const useJobNotes = (jobId: string): UseJobNotesReturn => {
       // ✅ FIX: Si le profile n'est pas chargé, utiliser un ID par défaut ou attendre
       let userId = profile?.id;
       if (!userId) {
-        console.warn(
-          "⚠️ [useJobNotes] Profile not loaded, using default user ID",
-        );
         // Essayer de récupérer l'ID depuis AsyncStorage ou utiliser un placeholder
         userId = "current-user"; // Le backend peut résoudre cela avec le token
       }
-
-      console.log("📝 [useJobNotes] Adding note:", {
-        jobId,
-        userId,
-        noteType: noteData.note_type,
-        hasContent: !!noteData.content,
-        hasTitle: !!noteData.title,
-      });
 
       try {
         // Préparer les données avec l'utilisateur actuel
@@ -166,10 +153,6 @@ export const useJobNotes = (jobId: string): UseJobNotesReturn => {
 
         // Essayer d'abord l'API
         const newNote = await addJobNote(jobId, noteWithUser);
-        console.log(
-          "✅ [useJobNotes] Note added successfully via API:",
-          newNote.id,
-        );
 
         // Ajouter la nouvelle note à la liste locale
         setNotes((prevNotes) => [newNote, ...prevNotes]);
@@ -182,10 +165,6 @@ export const useJobNotes = (jobId: string): UseJobNotesReturn => {
 
         // Si l'API n'est pas disponible, sauvegarder localement
         if (errorMessage.includes("404") || errorMessage.includes("400")) {
-          console.log(
-            "📝 [useJobNotes] API notes endpoint not available (404/400), saving locally",
-          );
-
           // Créer une note locale temporaire
           const localNote: JobNoteAPI = {
             id: `local-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -197,8 +176,6 @@ export const useJobNotes = (jobId: string): UseJobNotesReturn => {
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           };
-
-          console.log("💾 [useJobNotes] Local note created:", localNote.id);
 
           // Ajouter à la liste locale
           const updatedNotes = [localNote, ...notes];
@@ -284,15 +261,9 @@ export const useJobNotes = (jobId: string): UseJobNotesReturn => {
   const markAllAsRead = useCallback(async () => {
     if (!jobId) return;
 
-    console.log("🔔 [NOTES] Step 1: Starting mark all as read process");
-
     try {
       // Étape 1: Envoyer à la BDD (les logs sont dans markAllNotesAsRead)
       await markAllNotesAsRead(jobId);
-
-      console.log(
-        "🔔 [NOTES] Step 2: 🎨 UPDATING UI IMMEDIATELY (setting is_read=true locally)",
-      );
 
       // Étape 2: Mettre à jour localement immédiatement pour l'UI
       setNotes((prevNotes) => {
@@ -300,30 +271,17 @@ export const useJobNotes = (jobId: string): UseJobNotesReturn => {
           ...note,
           is_read: true,
         }));
-        console.log("🔔 [NOTES] Local notes updated:", {
-          totalNotes: updatedNotes.length,
-          allMarkedAsRead: updatedNotes.every((n) => n.is_read),
-        });
         return updatedNotes;
       });
       setUnreadCount(0);
 
-      console.log("🔔 [NOTES] Step 3: 🔄 Fetching fresh data from server...");
-
       // Étape 3: Recharger depuis le serveur pour obtenir les données fraîches
       await fetchNotes();
-      console.log(
-        "✅ [NOTES] Step 4: ✅ ALL COMPLETE - Notes refreshed from server",
-      );
     } catch (err: any) {
       const errorMessage = err instanceof Error ? err.message : String(err);
 
       // Si l'endpoint n'est pas encore implémenté (404), marquer localement quand même
       if (errorMessage.includes("404")) {
-        console.warn(
-          "⚠️ [NOTES] Backend endpoint not implemented yet (404), marking as read locally only",
-        );
-
         // Mettre à jour localement même sans API
         setNotes((prevNotes) =>
           prevNotes.map((note) => ({ ...note, is_read: true })),

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * API Configuration - Configuration centralisée pour toutes les APIs
  * Gère les URLs, authentification et paramètres globaux
  * 
@@ -116,7 +116,6 @@ export const apiConfig = {
       
       // Gestion automatique des erreurs 401 (token expiré)
       if (response.status === 401) {
-        console.warn('⚠️ [apiConfig] Auth token expired, clearing storage');
         await apiConfig.clearAuthToken();
         // Vous pouvez ici déclencher une redirection vers login
       }
@@ -189,4 +188,3 @@ export type Environment = keyof typeof API_URLS;
 export type Platform = 'web' | 'mobile';
 export type APIEndpoint = keyof typeof API_ENDPOINTS;
 
-// TEMP_DISABLED: console.log(`🌐 [apiConfig] Initialized with baseURL: ${apiConfig.baseURL} (${getEnvironment()})`);

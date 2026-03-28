@@ -1,4 +1,4 @@
-// services/user.ts
+﻿// services/user.ts
 import { ServerData } from "../constants/ServerData";
 import { authenticatedFetch } from "../utils/auth";
 
@@ -101,16 +101,12 @@ export interface UpdateUserProfile {
  * Récupère les informations du profil utilisateur
  */
 export async function fetchUserProfile(): Promise<UserProfile> {
-  // TEMP_DISABLED: console.log('� [API FETCH] === STARTING API PROFILE FETCH ===');
-  // TEMP_DISABLED: console.log('🔍 [API FETCH] Step 1: Preparing API call to:', `${API}v1/user/profile`);
-  // TEMP_DISABLED: console.log('🔍 [API FETCH] Step 2: Using authenticatedFetch (with token refresh)...');
 
   // Utilise authenticatedFetch qui gère le refresh automatique
   const res = await authenticatedFetch(`${API}v1/user/profile`, {
     method: "GET",
   });
 
-  // TEMP_DISABLED: console.log('🔍 [API FETCH] Step 3: API response received - Status:', res.status, 'OK:', res.ok);
 
   if (!res.ok) {
     console.error(`❌ HTTP ${res.status} response for ${API}v1/user/profile`);
@@ -135,22 +131,15 @@ export async function fetchUserProfile(): Promise<UserProfile> {
     );
   }
 
-  // TEMP_DISABLED: console.log('🔍 [API FETCH] ✅ Step 4: API call SUCCESS - Parsing response...');
   let data;
   try {
     data = await res.json();
-    // TEMP_DISABLED: console.log('🔍 [API FETCH] Step 5: Response JSON parsed successfully');
-    // TEMP_DISABLED: console.log('✅ User profile fetched:', data);
   } catch (parseError) {
     throw new Error("Failed to parse server response");
   }
 
   // L'API peut retourner soit { success: true, user: {...} } soit { user: {...} }
-  // TEMP_DISABLED: console.log('🔍 [API FETCH] Step 6: Validating response format...');
-  // TEMP_DISABLED: console.log('🔍 [API FETCH] - success:', data.success);
-  // TEMP_DISABLED: console.log('🔍 [API FETCH] - user exists:', !!data.user);
 
-  // TEMP_DISABLED: Log temporaire pour vérifier company_id
   // console.log("🔍 [API FETCH] Raw user data from API:", { ... });
 
   // Accepter les deux formats de réponse
@@ -160,14 +149,11 @@ export async function fetchUserProfile(): Promise<UserProfile> {
 
   // Si success existe, il doit être true
   if (data.success !== undefined && !data.success) {
-    // TEMP_DISABLED: console.log('🔍 [API FETCH] ❌ Step 7: API returned success: false');
     throw new Error("API returned unsuccessful response");
   }
 
-  // TEMP_DISABLED: console.log('🔍 [API FETCH] Step 7: Response format valid, normalizing user data...');
   // Normaliser les données reçues
   const normalizedProfile = normalizeUserProfile(data.user);
-  // TEMP_DISABLED: console.log('🔍 [API FETCH] ✅ Step 8: Profile normalized successfully:', {
   // id: normalizedProfile.id,
   // firstName: normalizedProfile.firstName,
   // lastName: normalizedProfile.lastName,
@@ -183,7 +169,6 @@ export async function fetchUserProfile(): Promise<UserProfile> {
 export async function updateUserProfile(
   updates: UpdateUserProfile,
 ): Promise<UserProfile> {
-  // TEMP_DISABLED: console.log('🔄 Updating user profile...', updates);
 
   // Utilise authenticatedFetch qui gère le refresh automatique
   const res = await authenticatedFetch(`${API}v1/user/profile`, {
@@ -213,7 +198,6 @@ export async function updateUserProfile(
   }
 
   const data = await res.json();
-  // TEMP_DISABLED: console.log('✅ User profile updated:', data);
 
   // ✅ FIX: Accepter plusieurs formats de réponse API (comme fetchUserProfile)
   // Format 1: { success: true, user: {...} }
@@ -347,7 +331,6 @@ export async function requestEmailChange(newEmail: string): Promise<void> {
  * Récupère les statistiques détaillées de l'utilisateur
  */
 export async function fetchUserStats(): Promise<UserStats> {
-  // TEMP_DISABLED: console.log('📊 Fetching user statistics...');
 
   // Utilise authenticatedFetch qui gère le refresh automatique
   const res = await authenticatedFetch(`${API}v1/user/stats`, {
@@ -375,7 +358,6 @@ export async function fetchUserStats(): Promise<UserStats> {
   }
 
   const data = await res.json();
-  // TEMP_DISABLED: console.log('✅ User stats fetched:', data);
 
   if (!data.success || !data.stats) {
     throw new Error("Invalid response format from server");

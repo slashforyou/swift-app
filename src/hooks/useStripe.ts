@@ -231,14 +231,12 @@ export const useStripeAccount = () => {
             const parsed = JSON.parse(devStatus);
             // "none" status means no account
             if (parsed === null) {
-              console.log("🔧 [DEV] Simulating no Stripe account");
               setAccount(null);
               setBalance({ available: 0, pending: 0 });
               setLoading(false);
               return;
             }
             // Otherwise, create a mock account with the dev status
-            console.log("🔧 [DEV] Using simulated Stripe status:", parsed);
             const mockAccount: AccountInfo = {
               stripe_account_id: "acct_dev_simulated_123",
               charges_enabled: parsed.charges_enabled ?? false,
@@ -274,9 +272,6 @@ export const useStripeAccount = () => {
 
         // ✅ FIX: Si pas de compte Stripe (null), mettre account à null
         if (!accountData) {
-          console.log(
-            "ℹ️ [useStripeAccount] No Stripe account found, setting account to null",
-          );
           setAccount(null);
           setBalance({ available: 0, pending: 0 });
           return;

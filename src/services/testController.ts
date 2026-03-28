@@ -1,4 +1,4 @@
-// src/services/testController.ts
+﻿// src/services/testController.ts
 /**
  * TestController - Service de contrôle automatisé pour les tests E2E
  * Permet à Copilot de naviguer et interagir avec l'app automatiquement
@@ -143,7 +143,8 @@ class TestController {
 
       return testResult;
 
-    } catch (error: any) {
+    } catch (error: any) {
+
       const testResult: TestResult = {
         commandId: command.id,
         success: false,
@@ -383,7 +384,6 @@ export const testController = new TestController();
 if (__DEV__) {
   (global as any).testController = testController;
   (global as any).runTest = testController.executeBatch.bind(testController);
-  // TEMP_DISABLED: console.log('🤖 TestController available globally as: global.testController');
 }
 
 export default testController;

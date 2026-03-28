@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Centralized Logging Service - Système de logs centralisé avec niveaux et agrégation
  *
  * ✅ Session 8: Intégration API Discovery
@@ -259,7 +259,6 @@ class LoggingService {
         console.debug(message, entry.context);
         break;
       case "info":
-        // TEMP_DISABLED: console.log(message, entry.context);
         break;
       case "warn":
         console.warn(message, entry.context);
@@ -420,20 +419,20 @@ class LoggingService {
           },
           "global",
         );
+      });
+    }
 
-        // Aussi logger vers le session logger si disponible
-        if (typeof require !== "undefined") {
-          try {
-            const { logError } = require("./sessionLogger");
-            logError(
-              "Unhandled Promise Rejection",
-              event.reason,
-              "global-promise-rejection",
-            );
-          } catch (e) {
-            // Session logger pas encore disponible, ignore
-          }
-        }
+    // React Native global error handler (ErrorUtils)
+    if (typeof ErrorUtils !== "undefined") {
+      const originalHandler = ErrorUtils.getGlobalHandler();
+      ErrorUtils.setGlobalHandler((error, isFatal) => {
+        this.error(
+          isFatal ? "Fatal Error" : "Uncaught Error",
+          error,
+          { isFatal, errorName: error?.name, errorMessage: error?.message },
+          "global",
+        );
+        originalHandler?.(error, isFatal);
       });
     }
   }
@@ -442,12 +441,10 @@ class LoggingService {
 
   setLogLevel(level: LogLevel) {
     this.minLogLevel = level;
-    // TEMP_DISABLED: console.log(`📝 [LOGGING] Log level set to: ${level}`);
   }
 
   setEnabled(enabled: boolean) {
     this.isEnabled = enabled;
-    // TEMP_DISABLED: console.log(`📝 [LOGGING] Logging ${enabled ? 'enabled' : 'disabled'}`);
   }
 
   // Manual flush
@@ -468,7 +465,6 @@ class LoggingService {
   // Clear all logs
   clearLogs() {
     this.logQueue = [];
-    // TEMP_DISABLED: console.log('📝 [LOGGING] Log queue cleared');
   }
 }
 

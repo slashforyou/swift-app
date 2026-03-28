@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+﻿import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
 import {
@@ -42,7 +42,7 @@ try {
     UIManager.setLayoutAnimationEnabledExperimental(true);
   }
 } catch (e) {
-  console.warn("Failed to enable LayoutAnimation:", e);
+  // Platform-specific: LayoutAnimation not supported on all Android versions
 }
 
 // CollapsibleSection component
@@ -322,7 +322,7 @@ const ProfileScreen: React.FC = () => {
         setCompanyData(data);
       })
       .catch((error) => {
-        console.warn("[Profile] Failed to load company data:", error);
+        // Non-critical: company data is optional on profile
       });
   }, []);
 
@@ -340,7 +340,6 @@ const ProfileScreen: React.FC = () => {
 
   // Update form data when profile loads
   React.useEffect(() => {
-    // TEMP_DISABLED: console.log('🔍 [PROFILE SCREEN] useEffect - Profile changed:', {
     //   hasProfile: !!profile,
     //   profileData: profile ? {
     //     id: profile.id,
@@ -375,7 +374,6 @@ const ProfileScreen: React.FC = () => {
         Alert.alert(t("common.error"), t("profile.messages.updateError"));
       }
     } catch (error) {
-      // TEMP_DISABLED: console.error('❌ [PROFILE] Error updating profile:', error);
       Alert.alert(t("common.error"), t("profile.messages.updateError"));
     }
   };

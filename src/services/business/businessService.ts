@@ -77,10 +77,6 @@ const mockBusinessStats: BusinessStats = {
  */
 export const fetchBusinessList = async (): Promise<BusinessInfo[]> => {
   try {
-    console.log(
-      "[BusinessService] Fetching business list from:",
-      `${ServerData.serverUrl}v1/companies`,
-    );
 
     const response = await fetchWithAuth(
       `${ServerData.serverUrl}v1/companies`,
@@ -89,12 +85,8 @@ export const fetchBusinessList = async (): Promise<BusinessInfo[]> => {
       },
     );
 
-    console.log("[BusinessService] Response status:", response.status);
 
     if (!response.ok) {
-      console.warn(
-        "[BusinessService] API returned non-OK status, using fallback mock data",
-      );
       // Fallback silencieux sur mock data si l'API n'est pas disponible
       return [mockBusinessInfo];
     }
@@ -106,28 +98,16 @@ export const fetchBusinessList = async (): Promise<BusinessInfo[]> => {
     }
 
     const data: BusinessListResponse = await response.json();
-    console.log("[BusinessService] API response data:", data);
 
     if (!data.success) {
-      console.warn(
-        "[BusinessService] API returned success=false, using fallback mock data",
-      );
       // Fallback silencieux sur mock data
       return [mockBusinessInfo];
     }
 
-    console.log(
-      "[BusinessService] Successfully fetched",
-      data.companies?.length || 0,
-      "companies",
-    );
     return data.companies || [];
   } catch (error) {
     console.error("[BusinessService] Error fetching business list:", error);
     if (__DEV__) {
-      console.warn(
-        "[BusinessService] Using mock business data as fallback in development",
-      );
       return [mockBusinessInfo];
     }
     throw new Error(
@@ -166,7 +146,6 @@ export const fetchBusinessDetails = async (
   } catch (error) {
     console.error("Error fetching business details:", error);
     if (__DEV__) {
-      console.warn("Using mock business details as fallback in development");
       return { ...mockBusinessInfo, id: companyId };
     }
     throw new Error(

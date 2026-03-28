@@ -123,7 +123,6 @@ export default function DocumentsScreen({
 
       if (!result.canceled && result.assets && result.assets[0]) {
         const imageUri = result.assets[0].uri;
-        console.log(`📸 [Documents] Photo ${side} captured:`, imageUri);
 
         if (side === "front") {
           setFrontImage(imageUri);
@@ -166,11 +165,6 @@ export default function DocumentsScreen({
       return;
     }
 
-    console.log("🚀 [Documents] Uploading documents:", {
-      frontImage,
-      backImage,
-      documentType,
-    });
 
     isUploadingRef.current = true;
     setIsUploading(true);

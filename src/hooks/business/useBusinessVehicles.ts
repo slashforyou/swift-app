@@ -76,40 +76,20 @@ export const useBusinessVehicles = (
   useEffect(() => {
     const loadCompanyId = async () => {
       try {
-        console.log("🔍 [useBusinessVehicles] Loading company ID...");
 
         // Utiliser le prop si fourni
         if (companyIdProp) {
-          console.log(
-            "✅ [useBusinessVehicles] Using company ID from prop:",
-            companyIdProp,
-          );
           setCompanyId(companyIdProp);
           return;
         }
 
         // Sinon, récupérer depuis SecureStore
         const userDataStr = await SecureStore.getItemAsync("user_data");
-        console.log(
-          "📦 [useBusinessVehicles] User data string:",
-          userDataStr ? "Found" : "Not found",
-        );
 
         if (userDataStr) {
           const userData = JSON.parse(userDataStr);
-          console.log(
-            "👤 [useBusinessVehicles] Parsed user data company_id:",
-            userData.company_id,
-          );
-          console.log(
-            "🏢 [useBusinessVehicles] Company ID from user data:",
-            userData.company_id,
-          );
           setCompanyId(userData.company_id || null);
         } else {
-          console.warn(
-            "⚠️ [useBusinessVehicles] No user data found in SecureStore",
-          );
         }
       } catch (err) {
         console.error(
@@ -128,9 +108,6 @@ export const useBusinessVehicles = (
   const loadVehicles = useCallback(async () => {
     // Ne rien charger si pas de company_id
     if (!companyId) {
-      console.log(
-        "⚠️ [useBusinessVehicles] No company ID, skipping vehicle load",
-      );
       setVehicles([]);
       setIsLoading(false);
       return;
@@ -140,14 +117,7 @@ export const useBusinessVehicles = (
       setIsLoading(true);
       setError(null);
 
-      console.log(
-        "🚛 [useBusinessVehicles] Loading vehicles for company:",
-        companyId,
-      );
       const vehiclesList = await fetchBusinessVehicles(companyId);
-      console.log(
-        `✅ [useBusinessVehicles] Loaded ${vehiclesList.length} vehicles`,
-      );
       setVehicles(vehiclesList);
     } catch (err) {
       const errorMessage =
@@ -369,18 +339,9 @@ export const useBusinessVehicles = (
    * Chargement initial - attendre que company_id soit chargé
    */
   useEffect(() => {
-    console.log(
-      "🎯 [useBusinessVehicles] useEffect triggered, companyId:",
-      companyId,
-    );
     if (companyId) {
-      console.log(
-        "✅ [useBusinessVehicles] Company ID available, loading vehicles for:",
-        companyId,
-      );
       loadVehicles();
     } else {
-      console.log("⏳ [useBusinessVehicles] Waiting for company ID...");
     }
   }, [companyId, loadVehicles]);
 

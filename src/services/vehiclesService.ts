@@ -77,7 +77,6 @@ export async function updateVehicleStatus(vehicleId: string, status: string) {
  */
 export async function assignStaffToVehicle(vehicleId: string, staffName: string) {
   // Not directly supported by API - return optimistic update
-  console.warn('[vehiclesService] assignStaffToVehicle: API does not support this - optimistic update only');
   return { id: vehicleId, currentDriver: staffName };
 }
 
@@ -86,7 +85,6 @@ export async function assignStaffToVehicle(vehicleId: string, staffName: string)
  */
 export async function fetchVehicleMaintenance(vehicleId: string) {
   // Not supported by current API
-  console.warn('[vehiclesService] fetchVehicleMaintenance: API does not support this');
   return [];
 }
 
@@ -95,7 +93,6 @@ export async function fetchVehicleMaintenance(vehicleId: string) {
  */
 export async function createMaintenanceRecord(vehicleId: string, data: any) {
   // Not supported by current API
-  console.warn('[vehiclesService] createMaintenanceRecord: API does not support this');
   return {
     id: `maint-${Date.now()}`,
     vehicleId,

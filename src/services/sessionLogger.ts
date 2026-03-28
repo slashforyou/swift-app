@@ -1,4 +1,4 @@
-// src/services/sessionLogger.ts
+﻿// src/services/sessionLogger.ts
 import * as FileSystem from 'expo-file-system/legacy';
 import { Platform } from 'react-native';
 
@@ -28,7 +28,6 @@ class SessionLogger {
       const fileExists = await this.fileExists(this.logFilePath);
       if (fileExists) {
         await FileSystem.deleteAsync(this.logFilePath);
-        // TEMP_DISABLED: console.log('📄 [SESSION-LOG] Previous session log cleared');
       }
 
       // Créer nouveau fichier avec header de session
@@ -45,7 +44,6 @@ class SessionLogger {
         this.logQueue = [];
       }
 
-      // TEMP_DISABLED: console.log(`📄 [SESSION-LOG] Initialized: ${this.logFilePath}`);
     } catch (error) {
 
       console.error('❌ [SESSION-LOG] Failed to initialize:', error);
@@ -68,7 +66,6 @@ class SessionLogger {
     } catch (_error) {
 
       // Fallback si le package.json n'est pas accessible
-      // TEMP_DISABLED: console.log('📄 [SESSION-LOG] Unable to read app version from package.json');
     }
     
     return `
@@ -136,7 +133,6 @@ class SessionLogger {
         ].join('\n');
         
         await this.writeToFile(rotatedContent);
-        // TEMP_DISABLED: console.log('📄 [SESSION-LOG] Log file rotated');
       }
     } catch (error) {
 
@@ -214,7 +210,6 @@ class SessionLogger {
       context
     };
 
-    // TEMP_DISABLED: console.log(`🔵 [SESSION-LOG] ${message}`);
     await this.writeLogEntry(entry);
   }
 
@@ -229,7 +224,6 @@ class SessionLogger {
       context
     };
 
-    // TEMP_DISABLED: console.log(`⚪ [SESSION-LOG] ${message}`, data);
     await this.writeLogEntry(entry);
   }
 
@@ -261,7 +255,6 @@ class SessionLogger {
       }
     } catch {
 
-      // TEMP_DISABLED: console.log('📄 [SESSION-LOG] Unable to setup global error handler');
     }
 
     // Capturer les promesses rejetées non gérées (React Native)
@@ -278,7 +271,6 @@ class SessionLogger {
       });
     }
 
-    // TEMP_DISABLED: console.log('📄 [SESSION-LOG] Global error capture enabled');
   }
 
   // Obtenir le chemin du fichier de log pour debug

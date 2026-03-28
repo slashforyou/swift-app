@@ -40,25 +40,11 @@ export const JobAssignmentActions: React.FC<JobAssignmentActionsProps> = ({
   const [declineReason, setDeclineReason] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  console.log("🎯 [JobAssignmentActions] Rendu:", {
-    jobId,
-    jobTitle,
-    canAccept,
-    canDecline,
-    willDisplay: canAccept || canDecline,
-  });
 
   if (!canAccept && !canDecline) {
-    console.log(
-      "⚠️ [JobAssignmentActions] Composant masqué (pas de permissions)",
-    );
     return null;
   }
 
-  console.log("✅ [JobAssignmentActions] Boutons affichés:", {
-    acceptButton: canAccept,
-    declineButton: canDecline,
-  });
 
   const handleAccept = async () => {
     Alert.alert(

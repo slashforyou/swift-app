@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Système de logging ultra-simple et sûr pour éviter les crashes
  * Version minimaliste qui ne risque jamais de crasher l'app
  */
@@ -33,7 +33,8 @@ function ultraSafeStringify(obj: any): string {
     const keys = Object.keys(obj);
     return `{Object with ${keys.length} properties: ${keys.slice(0, 3).join(', ')}${keys.length > 3 ? '...' : ''}}`;
     
-  } catch (error) {
+  } catch (error) {
+
     return '[Cannot display object]';
   }
 }
@@ -43,12 +44,10 @@ export const safeLog = {
   info: (message: string, data?: any) => {
     try {
       if (data !== undefined) {
-        // TEMP_DISABLED: console.log(`ℹ️ ${message} | ${ultraSafeStringify(data)}`);
       } else {
-        // TEMP_DISABLED: console.log(`ℹ️ ${message}`);
       }
-    } catch (error) {
-      // TEMP_DISABLED: console.log(`ℹ️ ${message} | [data display failed]`);
+    } catch (error) {
+
     }
   },
   
@@ -59,7 +58,8 @@ export const safeLog = {
       } else {
         console.error(`❌ ${message}`);
       }
-    } catch (consoleError) {
+    } catch (consoleError) {
+
       console.error(`❌ ${message} | [error display failed]`);
     }
   },
@@ -68,14 +68,12 @@ export const safeLog = {
     try {
       if (__DEV__) {
         if (data !== undefined) {
-          // TEMP_DISABLED: console.log(`🔍 ${message} | ${ultraSafeStringify(data)}`);
         } else {
-          // TEMP_DISABLED: console.log(`🔍 ${message}`);
         }
       }
-    } catch (error) {
+    } catch (error) {
+
       if (__DEV__) {
-        // TEMP_DISABLED: console.log(`🔍 ${message} | [data display failed]`);
       }
     }
   },
@@ -87,7 +85,8 @@ export const safeLog = {
       } else {
         console.warn(`⚠️ ${message}`);
       }
-    } catch (error) {
+    } catch (error) {
+
       console.warn(`⚠️ ${message} | [data display failed]`);
     }
   }

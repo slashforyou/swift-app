@@ -1,13 +1,13 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-    ActivityIndicator,
-    Dimensions,
-    Pressable,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    View,
+  ActivityIndicator,
+  Dimensions,
+  Pressable,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DESIGN_TOKENS } from "../constants/Styles";
@@ -23,18 +23,13 @@ const ConnectionScreen = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // TEMP_DISABLED: console.log("ConnectionScreen mounted, checking session...");
-
     const checkSession = async () => {
       try {
         setIsLoading(true);
-        // TEMP_DISABLED: console.log("Checking user session...");
         const userLoggedIn = await ensureSession();
-        // TEMP_DISABLED: console.log("🔍 Session result:", userLoggedIn);
         // DÉSACTIVÉ TEMPORAIREMENT POUR DEBUG
         // if (userLoggedIn && userLoggedIn.authenticated === true) {} catch (error) {
-
-        console.error("Error checking session:", error);
+        // Error handled silently
       } finally {
         setIsLoading(false);
       }

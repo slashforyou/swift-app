@@ -1,4 +1,4 @@
-// openMap ouvre la carte à partir d'une adresse ou d'une position GPS
+﻿// openMap ouvre la carte à partir d'une adresse ou d'une position GPS
 import * as Linking from 'expo-linking';
 import { Platform } from 'react-native';
 const label = "Location"; // Default label for the map location
@@ -22,9 +22,9 @@ const openMap = async (address: string, latitude?: number, longitude?: number): 
         if (supported) {
             await Linking.openURL(url);
         } else {
-            // TEMP_DISABLED: console.log("Unsupported URL:", url);
         }
-    } catch (error) {
+    } catch (error) {
+
         console.error("Error opening map:", error);
     }
 };

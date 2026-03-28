@@ -100,12 +100,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
     setIsLoading(true);
 
-    console.log("🔐 [LoginScreen] Starting login with email:", email);
 
     try {
       await login(email, password);
 
-      console.log("✅ [LoginScreen] Login successful");
 
       // Load user permissions after successful login (with timeout)
       try {
@@ -116,10 +114,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         await Promise.race([permissionsPromise, timeoutPromise]);
       } catch (error) {
         // Permissions loading failure is non-blocking
-        console.warn(
-          "[Login] Failed to load permissions, continuing...",
-          error,
-        );
       }
 
       // Navigate to Home

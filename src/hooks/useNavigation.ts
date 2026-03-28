@@ -1,4 +1,4 @@
-/**
+﻿/**
  * useNavigation - Hook de navigation personnalisé
  */
 
@@ -26,7 +26,6 @@ export const useNavigation = () => {
     }));
     
     // Logique de navigation simulée
-    // TEMP_DISABLED: console.log(`Navigation vers: ${routeName}`, params);
   }, []);
 
   const goBack = useCallback(() => {

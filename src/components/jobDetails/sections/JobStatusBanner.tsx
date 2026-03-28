@@ -115,13 +115,19 @@ const JobStatusBanner: React.FC<JobStatusBannerProps> = React.memo(
       }
     }, [paymentStatus, colors, t]);
 
+    const isPending = jobStatus === "pending";
+
     const themedStyles = useMemo(
       () =>
         StyleSheet.create({
           container: {
             backgroundColor: statusConfig.bgColor,
-            borderRadius: DESIGN_TOKENS.radius.lg,
-            padding: DESIGN_TOKENS.spacing.md,
+            borderRadius: isPending
+              ? DESIGN_TOKENS.radius.md
+              : DESIGN_TOKENS.radius.lg,
+            padding: isPending
+              ? DESIGN_TOKENS.spacing.sm
+              : DESIGN_TOKENS.spacing.md,
             marginBottom: DESIGN_TOKENS.spacing.md,
             borderWidth: 1,
             borderColor: statusConfig.borderColor + "40",
@@ -137,12 +143,14 @@ const JobStatusBanner: React.FC<JobStatusBannerProps> = React.memo(
             flex: 1,
           },
           icon: {
-            fontSize: 20,
-            marginRight: DESIGN_TOKENS.spacing.sm,
+            fontSize: isPending ? 13 : 20,
+            marginRight: isPending
+              ? DESIGN_TOKENS.spacing.xs
+              : DESIGN_TOKENS.spacing.sm,
           },
           statusLabel: {
-            fontSize: 16,
-            fontWeight: "700",
+            fontSize: isPending ? 12 : 16,
+            fontWeight: isPending ? "600" : "700",
             color: statusConfig.textColor,
           },
           badges: {
@@ -160,7 +168,7 @@ const JobStatusBanner: React.FC<JobStatusBannerProps> = React.memo(
             fontWeight: "600",
           },
         }),
-      [statusConfig],
+      [statusConfig, isPending],
     );
 
     return (

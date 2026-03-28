@@ -217,7 +217,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             <HStack gap="sm">
               <Pressable
                 onPress={() => {
-                  console.log("🎖️ [NAV] Button pressed → Badges");
                   navigation.navigate("Badges");
                 }}
                 style={({ pressed }) => ({

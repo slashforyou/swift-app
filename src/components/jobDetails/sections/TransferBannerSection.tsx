@@ -47,9 +47,13 @@ import {
 // ─────────────────────────────────────────────────────────────
 
 function formatPrice(transfer: JobTransfer): string {
-  const label = PRICING_TYPE_LABELS[transfer.pricing_type];
+  const label =
+    PRICING_TYPE_LABELS[transfer.pricing_type] ?? transfer.pricing_type;
   const suffix = transfer.pricing_type === "hourly" ? "/h" : "";
-  return `${label} : ${transfer.pricing_amount.toFixed(2)} ${transfer.pricing_currency}${suffix}`;
+  const amount = Number(transfer.pricing_amount) || 0;
+  const currency =
+    transfer.pricing_currency ?? (transfer as any).currency ?? "AUD";
+  return `${label} : ${amount.toFixed(2)} ${currency}${suffix}`;
 }
 
 function formatRole(transfer: JobTransfer): string {
@@ -372,8 +376,10 @@ const TransferBannerSection: React.FC<TransferBannerSectionProps> = ({
               <Text
                 style={{ color: colors.text, fontSize: 14, fontWeight: "600" }}
               >
-                {transfer.counter_offer_amount.toFixed(2)}{" "}
-                {transfer.pricing_currency}
+                {Number(transfer.counter_offer_amount || 0).toFixed(2)}{" "}
+                {transfer.pricing_currency ??
+                  (transfer as any).currency ??
+                  "AUD"}
                 {transfer.pricing_type === "hourly" ? "/h" : " (forfait)"}
               </Text>
               {transfer.counter_offer_message ? (
@@ -540,7 +546,10 @@ const TransferBannerSection: React.FC<TransferBannerSectionProps> = ({
               </Text>
               <Text style={{ color: colors.textSecondary, fontSize: 13 }}>
                 {t("transfer.currentPrice")} :{" "}
-                {transfer.pricing_amount.toFixed(2)} {transfer.pricing_currency}
+                {Number(transfer.pricing_amount || 0).toFixed(2)}{" "}
+                {transfer.pricing_currency ??
+                  (transfer as any).currency ??
+                  "AUD"}
                 {transfer.pricing_type === "hourly" ? "/h" : ""}
               </Text>
               <TextInput
@@ -548,7 +557,10 @@ const TransferBannerSection: React.FC<TransferBannerSectionProps> = ({
                 value={counterAmount}
                 onChangeText={setCounterAmount}
                 placeholder={t("transfer.newAmountPlaceholder", {
-                  currency: transfer.pricing_currency,
+                  currency:
+                    transfer.pricing_currency ??
+                    (transfer as any).currency ??
+                    "AUD",
                 })}
                 placeholderTextColor={colors.textSecondary}
                 keyboardType="decimal-pad"

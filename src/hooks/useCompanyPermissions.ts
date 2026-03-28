@@ -10,12 +10,12 @@ import * as SecureStore from "expo-secure-store";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { CompanyRole } from "../services/user";
 import {
-    canCreateJob,
-    canSeeAllCompanyJobs,
-    getCalendarLabel,
-    getJobCreationErrorMessage,
-    isManager,
-    isOwner,
+  canCreateJob,
+  canSeeAllCompanyJobs,
+  getCalendarLabel,
+  getJobCreationErrorMessage,
+  isManager,
+  isOwner,
 } from "../utils/permissions";
 
 export interface CompanyPermissions {
@@ -61,7 +61,7 @@ export function useCompanyPermissions(): CompanyPermissions {
         setCompany(parsed.company ?? undefined);
       }
     } catch (e) {
-      console.warn("[useCompanyPermissions] Erreur lecture SecureStore:", e);
+      // Non-critical: SecureStore read may fail
     }
   }, []);
 

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Staff Service - API Service pour la gestion du personnel
  * Remplace les données mock par de vraies APIs REST
  */
@@ -19,7 +19,6 @@ const STAFF_API = ServerData.serverUrl;
  */
 export const fetchStaff = async (): Promise<StaffMember[]> => {
   try {
-    // TEMP_DISABLED: console.log('🌐 [staffService] Fetching all staff members...');
 
     const response = await apiConfig.authenticatedFetch(`${STAFF_API}v1/staff`);
 
@@ -28,7 +27,6 @@ export const fetchStaff = async (): Promise<StaffMember[]> => {
     }
 
     const data = await response.json();
-    // TEMP_DISABLED: console.log(`✅ [staffService] Retrieved ${data.staff.length} staff members`);
 
     return data.staff;
   } catch (error) {
@@ -42,7 +40,6 @@ export const fetchStaff = async (): Promise<StaffMember[]> => {
  */
 export const fetchEmployees = async (): Promise<Employee[]> => {
   try {
-    // TEMP_DISABLED: console.log('🌐 [staffService] Fetching employees...');
 
     const response = await apiConfig.authenticatedFetch(
       `${STAFF_API}v1/staff?role=driver,helper,offsider`,
@@ -53,7 +50,6 @@ export const fetchEmployees = async (): Promise<Employee[]> => {
     }
 
     const data = await response.json();
-    // TEMP_DISABLED: console.log(`✅ [staffService] Retrieved ${data.employees.length} employees`);
 
     return data.employees;
   } catch (error) {
@@ -66,7 +62,6 @@ export const fetchEmployees = async (): Promise<Employee[]> => {
  */
 export const fetchContractors = async (): Promise<Contractor[]> => {
   try {
-    // TEMP_DISABLED: console.log('🌐 [staffService] Fetching contractors...');
 
     const response = await apiConfig.authenticatedFetch(
       `${STAFF_API}v1/staff/contractors`,
@@ -77,7 +72,6 @@ export const fetchContractors = async (): Promise<Contractor[]> => {
     }
 
     const data = await response.json();
-    // TEMP_DISABLED: console.log(`✅ [staffService] Retrieved ${data.contractors.length} contractors`);
 
     return data.contractors;
   } catch (error) {
@@ -92,7 +86,6 @@ export const inviteEmployee = async (
   employeeData: InviteEmployeeData,
 ): Promise<{ success: boolean; employeeId: string }> => {
   try {
-    // TEMP_DISABLED: console.log('📧 [staffService] Sending employee invitation to:', employeeData.email);
 
     const response = await apiConfig.authenticatedFetch(
       `${apiConfig.baseURL}/api/staff/employees/invite`,
@@ -107,7 +100,6 @@ export const inviteEmployee = async (
     }
 
     const data = await response.json();
-    // TEMP_DISABLED: console.log(`✅ [staffService] Employee invitation sent, ID: ${data.employeeId}`);
 
     return {
       success: true,
@@ -125,7 +117,6 @@ export const searchContractors = async (
   searchTerm: string,
 ): Promise<Contractor[]> => {
   try {
-    // TEMP_DISABLED: console.log('🔍 [staffService] Searching contractors:', searchTerm);
 
     const params = new URLSearchParams({
       q: searchTerm,
@@ -141,7 +132,6 @@ export const searchContractors = async (
     }
 
     const data = await response.json();
-    // TEMP_DISABLED: console.log(`✅ [staffService] Found ${data.results.length} contractors`);
 
     return data.results;
   } catch (error) {
@@ -157,7 +147,6 @@ export const addContractorToStaff = async (
   contractStatus: Contractor["contractStatus"],
 ): Promise<{ success: boolean; contractor: Contractor }> => {
   try {
-    // TEMP_DISABLED: console.log('🤝 [staffService] Adding contractor to staff:', contractorId, contractStatus);
 
     const response = await apiConfig.authenticatedFetch(
       `${apiConfig.baseURL}/api/staff/contractors/add`,
@@ -175,7 +164,6 @@ export const addContractorToStaff = async (
     }
 
     const data = await response.json();
-    // TEMP_DISABLED: console.log(`✅ [staffService] Contractor added to staff successfully`);
 
     return {
       success: true,
@@ -194,7 +182,6 @@ export const updateStaffMember = async (
   updateData: Partial<StaffMember>,
 ): Promise<{ success: boolean; member: StaffMember }> => {
   try {
-    // TEMP_DISABLED: console.log('📝 [staffService] Updating staff member:', staffId);
 
     const response = await apiConfig.authenticatedFetch(
       `${apiConfig.baseURL}/api/staff/${staffId}`,
@@ -209,7 +196,6 @@ export const updateStaffMember = async (
     }
 
     const data = await response.json();
-    // TEMP_DISABLED: console.log(`✅ [staffService] Staff member updated successfully`);
 
     return {
       success: true,
@@ -227,7 +213,6 @@ export const removeStaffMember = async (
   staffId: string,
 ): Promise<{ success: boolean }> => {
   try {
-    // TEMP_DISABLED: console.log('🗑️ [staffService] Removing staff member:', staffId);
 
     const response = await apiConfig.authenticatedFetch(
       `${apiConfig.baseURL}/api/staff/${staffId}`,
@@ -240,7 +225,6 @@ export const removeStaffMember = async (
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    // TEMP_DISABLED: console.log(`✅ [staffService] Staff member removed successfully`);
 
     return { success: true };
   } catch (error) {
@@ -258,7 +242,6 @@ export const inviteContractor = async (
   lastName: string,
 ): Promise<{ success: boolean; message: string }> => {
   try {
-    // TEMP_DISABLED: console.log('📧 [staffService] Sending contractor invitation to:', email);
 
     const response = await apiConfig.authenticatedFetch(
       `${apiConfig.baseURL}/api/staff/contractors/invite`,
@@ -273,7 +256,6 @@ export const inviteContractor = async (
     }
 
     const data = await response.json();
-    // TEMP_DISABLED: console.log(`✅ [staffService] Contractor invitation sent to: ${email}`);
 
     return {
       success: true,

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * useJobPayment - Hook React pour gérer les paiements de jobs
  * Intégration complète avec le système Stripe Payment Intents
  */
@@ -116,7 +116,6 @@ export const useJobPayment = (): UseJobPaymentState & UseJobPaymentActions => {
         description?: string;
       },
     ): Promise<JobPaymentIntent> => {
-      // TEMP_DISABLED: console.log(`💳 [useJobPayment] Creating payment for job ${jobId}...`);
 
       updateState({ loading: true, error: null });
 
@@ -131,7 +130,6 @@ export const useJobPayment = (): UseJobPaymentState & UseJobPaymentActions => {
           loading: false,
         });
 
-        // TEMP_DISABLED: console.log(`✅ [useJobPayment] Payment Intent created:`, paymentIntent.payment_intent_id);
         return paymentIntent;
       } catch (error) {
         const errorMessage =
@@ -158,7 +156,6 @@ export const useJobPayment = (): UseJobPaymentState & UseJobPaymentActions => {
       paymentIntentId: string,
       status: "succeeded" | "failed",
     ): Promise<any> => {
-      // TEMP_DISABLED: console.log(`✅ [useJobPayment] Confirming payment for job ${jobId}...`);
 
       updateState({ confirming: true, error: null });
 
@@ -170,7 +167,6 @@ export const useJobPayment = (): UseJobPaymentState & UseJobPaymentActions => {
           confirmationResult: result,
         });
 
-        // TEMP_DISABLED: console.log(`✅ [useJobPayment] Payment confirmed:`, result.payment_status);
         return result;
       } catch (error) {
         const errorMessage =
@@ -193,7 +189,6 @@ export const useJobPayment = (): UseJobPaymentState & UseJobPaymentActions => {
   // Charger l'historique des paiements
   const loadHistory = useCallback(
     async (jobId: string | number): Promise<JobPaymentHistory> => {
-      // TEMP_DISABLED: console.log(`📊 [useJobPayment] Loading payment history for job ${jobId}...`);
 
       updateState({ loadingHistory: true, error: null });
 
@@ -205,7 +200,6 @@ export const useJobPayment = (): UseJobPaymentState & UseJobPaymentActions => {
           loadingHistory: false,
         });
 
-        // TEMP_DISABLED: console.log(`✅ [useJobPayment] History loaded:`, history.payments.length, 'payments');
         return history;
       } catch (error) {
         const errorMessage =
@@ -227,7 +221,6 @@ export const useJobPayment = (): UseJobPaymentState & UseJobPaymentActions => {
 
   // Reset de l'état
   const reset = useCallback(() => {
-    // TEMP_DISABLED: console.log('🔄 [useJobPayment] Resetting state...');
     setState({
       paymentIntent: null,
       loading: false,
@@ -269,7 +262,6 @@ export const useQuickJobPayment = () => {
       },
     ) => {
       try {
-        // TEMP_DISABLED: console.log(`🚀 [useQuickJobPayment] Processing payment for job ${jobId}...`);
 
         // 1. Créer le Payment Intent
         const paymentIntent = await jobPayment.createPayment(jobId, options);
@@ -287,7 +279,6 @@ export const useQuickJobPayment = () => {
           confirmStatus,
         );
 
-        // TEMP_DISABLED: console.log(`✅ [useQuickJobPayment] Payment processed successfully`);
         return { stripeResult, finalResult };
       } catch (error) {
         console.error(

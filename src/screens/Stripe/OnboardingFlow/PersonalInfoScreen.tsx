@@ -197,7 +197,6 @@ export default function PersonalInfoScreen({
     setIsSubmitting(true);
 
     try {
-      console.log("🚀 [PersonalInfo] Submitting data to API...");
 
       // Convertir la date en composantes jour/mois/année
       const dobDate = formData.dob!;
@@ -211,18 +210,6 @@ export default function PersonalInfoScreen({
         phone: `+61${formData.phone.replace(/\s/g, "")}`, // Format: +61xxxxxxxxx
       };
 
-      console.log("📤 [PersonalInfo] Payload:", payload);
-      console.log("🧾 [PersonalInfo] Payload fields:", Object.keys(payload));
-      console.log("🏢 [PersonalInfo] Stripe business_type:", {
-        business_type:
-          stripeAccount.account?.business_type ||
-          stripeAccount.account?.businessType ||
-          "unknown",
-        stripe_account_id:
-          stripeAccount.account?.stripe_account_id ||
-          stripeAccount.account?.accountId ||
-          "unknown",
-      });
 
       const currentBusinessType = resolveBusinessType(
         stripeAccount.account?.business_type ||
@@ -233,7 +220,6 @@ export default function PersonalInfoScreen({
       // Appel API
       const response = await submitPersonalInfo(payload, currentBusinessType);
 
-      console.log("✅ [PersonalInfo] Success! Progress:", response.progress);
 
       const updatedAccount = await fetchStripeAccount();
       if (!updatedAccount) {

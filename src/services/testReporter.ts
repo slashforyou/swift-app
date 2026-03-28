@@ -1,4 +1,4 @@
-// src/services/testReporter.ts
+﻿// src/services/testReporter.ts
 /**
  * TestReporter - Service pour rapporter les résultats de tests à Copilot
  * Capture screenshots, logs et métriques des tests automatisés
@@ -339,7 +339,6 @@ class TestReporter {
   sendReportToCopilot(report: TestReport): void {
     const formattedReport = this.formatReportForCopilot(report);
 
-    // TEMP_DISABLED: console.log(formattedReport);
     simpleSessionLogger.logInfo("Report sent to Copilot", "copilot-report");
 
     // In real implementation, could send via:
@@ -380,7 +379,6 @@ export const testReporter = new TestReporter();
 // Global access for Copilot
 if (__DEV__) {
   (global as any).testReporter = testReporter;
-  // TEMP_DISABLED: console.log('📊 TestReporter available globally as: global.testReporter');
 }
 
 export default testReporter;

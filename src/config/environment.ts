@@ -50,7 +50,8 @@ const stagingConfig: EnvironmentConfig = {
   name: "staging",
   apiUrl: "https://api-staging.swiftapp.com.au/",
   // Staging utilise la clé test
-  stripePublishableKey: "pk_test_51SMZIJInA65k4AVU4pfHe2XYbwfiqZqYNmCSCfgrIP7iyI2rQ4sw5Po5KbZC5nt1NVMOXiWzZXaxnD1wiDnPNd2m00BwhyWbwP",
+  stripePublishableKey:
+    "pk_test_51SMZIJInA65k4AVU4pfHe2XYbwfiqZqYNmCSCfgrIP7iyI2rQ4sw5Po5KbZC5nt1NVMOXiWzZXaxnD1wiDnPNd2m00BwhyWbwP",
   enableDebugLogs: true,
   enableAnalytics: true,
 };
@@ -59,7 +60,8 @@ const stagingConfig: EnvironmentConfig = {
 const productionConfig: EnvironmentConfig = {
   name: "production",
   apiUrl: "https://altivo.fr/swift-app/",
-  stripePublishableKey: "pk_live_51SMZIJInA65k4AVUCFcgBFYZYeRefTIecjdp30GeqaLMyQ8PZv2HLlO5Ofxm3a5oZCrVlxlSeCIdFnI0NyChqa6800peiyPmyf",
+  stripePublishableKey:
+    "pk_live_51SMZIJInA65k4AVUCFcgBFYZYeRefTIecjdp30GeqaLMyQ8PZv2HLlO5Ofxm3a5oZCrVlxlSeCIdFnI0NyChqa6800peiyPmyf",
   enableDebugLogs: false,
   enableAnalytics: true,
 };
@@ -117,10 +119,3 @@ if (IS_PRODUCTION && STRIPE_PUBLISHABLE_KEY.includes("VOTRE_CLE")) {
     "🚨 [ENV] Stripe key not configured! Please set your production key.",
   );
 }
-
-// Log de la configuration au démarrage (sans exposer les clés sensibles)
-console.log(`📱 [ENV] Environment: ${ENV.name}`);
-console.log(`📱 [ENV] API URL: ${ENV.apiUrl}`);
-console.log(
-  `📱 [ENV] Stripe Key: ${STRIPE_PUBLISHABLE_KEY.substring(0, 12)}...`,
-);

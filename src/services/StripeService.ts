@@ -1,4 +1,4 @@
-/**
+﻿/**
  * StripeService - Service API pour Stripe Connect
  * Version simplifiée pour tester avec Company ID 1
  */
@@ -7,11 +7,11 @@ import { ServerData } from "../constants/ServerData";
 import { safeLogError } from "../utils/logUtils";
 import { fetchWithAuth } from "../utils/session";
 import {
-    clearStripeCache as clearStripeCacheInternal,
-    getCachedCompanyId,
-    getInFlightCompanyIdPromise,
-    setCachedCompanyId,
-    setInFlightCompanyIdPromise,
+  clearStripeCache as clearStripeCacheInternal,
+  getCachedCompanyId,
+  getInFlightCompanyIdPromise,
+  setCachedCompanyId,
+  setInFlightCompanyIdPromise,
 } from "./stripeCache";
 import { fetchUserProfile } from "./user";
 
@@ -20,7 +20,6 @@ import { fetchUserProfile } from "./user";
  * ✅ FIX: Recommandation backend pour éviter les données obsolètes
  */
 export const clearStripeCache = () => {
-  console.log("🧹 [STRIPE CACHE] Clearing cached user/company ID");
   clearStripeCacheInternal();
 };
 
@@ -43,32 +42,17 @@ const getUserCompanyId = async (): Promise<string> => {
 
   const inFlightCompanyIdPromise = (async () => {
     try {
-      console.log("🔍 [COMPANY ID] Getting company_id from user profile...");
       const profile = await fetchUserProfile();
       const userId = profile.id.toString();
-
-      console.log(
-        "👤 [USER INFO] User ID:",
-        userId,
-        "- Company ID from API:",
-        profile.company_id,
-      );
 
       // ✅ PRIORITÉ 1: Utiliser company_id depuis le profil API (v1.1.0+)
       if (profile.company_id) {
         const companyId = profile.company_id.toString();
-        console.log(
-          "✅ [COMPANY ID] Using company_id from API profile:",
-          companyId,
-        );
         setCachedCompanyId(companyId);
         return companyId;
       }
 
       // ✅ FALLBACK 1: Essayer de récupérer depuis SecureStore (cache local)
-      console.warn(
-        "⚠️ [FALLBACK] No company_id in API profile, trying SecureStore...",
-      );
       try {
         // ✅ Essayer d'abord avec "user_data" (avec underscore - format utilisé par useBusinessInfo)
         let userDataStr = await SecureStore.getItemAsync("user_data");
@@ -80,29 +64,17 @@ const getUserCompanyId = async (): Promise<string> => {
 
         if (userDataStr) {
           const userData = JSON.parse(userDataStr);
-          console.log("📦 [SecureStore] User data found:", {
-            userId: userData.id,
-            companyId: userData.company_id,
-            hasCompany: !!userData.company,
-            companyInCompany: userData.company?.id,
-          });
 
           if (userData.company_id) {
             const companyId = userData.company_id.toString();
-            console.log(
-              "✅ [COMPANY ID] Using company_id from SecureStore:",
-              companyId,
-            );
             setCachedCompanyId(companyId);
             return companyId;
           }
         } else {
-          console.warn(
-            "📦 [SecureStore] No user data found (tried user_data and userData keys)",
-          );
+          // No userData in SecureStore
         }
       } catch (storeError) {
-        console.warn("⚠️ [SecureStore] Failed to read user data:", storeError);
+        // Non-critical: SecureStore read may fail, will throw below
       }
 
       // ❌ Ne pas fallback sur user_id: cela cible potentiellement la mauvaise company
@@ -139,27 +111,21 @@ export const checkStripeConnectionStatus = async (): Promise<{
 }> => {
   try {
     const companyId = await getUserCompanyId();
-    // TEMP_DISABLED: console.log('🔍 [STRIPE CONNECTION] Checking connection status for company_id:', companyId);
 
     // Utiliser l'endpoint confirmé par le backend
     const statusUrl = `${ServerData.serverUrl}v1/stripe/connect/status?company_id=${companyId}`;
-    // TEMP_DISABLED: console.log('🌐 [STRIPE STATUS] Calling confirmed endpoint:', statusUrl);
 
     const response = await fetchWithAuth(statusUrl, {
       method: "GET",
     });
 
-    // TEMP_DISABLED: console.log(`🔍 [STRIPE CONNECTION] Response status: ${response.status}`);
-
     if (response.ok) {
       const data = await response.json();
-      // TEMP_DISABLED: console.log('✅ [STRIPE CONNECTION] Success! Response received');
 
       // Analyser la réponse pour déterminer le statut de connexion
       return analyzeStripeConnectionResponse(data);
     } else {
       const errorText = await response.text().catch(() => "No error text");
-      // TEMP_DISABLED: console.log(`❌ [STRIPE CONNECTION] Error details: ${errorText}`);
 
       return {
         isConnected: false,
@@ -192,12 +158,8 @@ export const createStripeConnectAccount = async (): Promise<{
 }> => {
   try {
     const companyId = await getUserCompanyId();
-    // TEMP_DISABLED: console.log('🏢 Creating Stripe Connect Express account for company:', companyId);
 
     const createUrl = `${ServerData.serverUrl}v1/stripe/connect/create`;
-    // TEMP_DISABLED: console.log('🌐 Full URL being called:', createUrl);
-    // TEMP_DISABLED: console.log('🔧 ServerData.serverUrl:', ServerData.serverUrl);
-    // TEMP_DISABLED: console.log('🏢 Company ID:', companyId);
 
     // Appel du vrai endpoint POST du serveur avec company_id dans le body
     const response = await fetchWithAuth(createUrl, {
@@ -210,47 +172,35 @@ export const createStripeConnectAccount = async (): Promise<{
       }),
     });
 
-    // TEMP_DISABLED: console.log('📡 [STRIPE CREATE] Response status:', response.status);
-    // TEMP_DISABLED: console.log('📡 [STRIPE CREATE] Response ok:', response.ok);
-
     if (!response.ok) {
       if (response.status === 400) {
-        // TEMP_DISABLED: console.warn('⚠️ Account already exists for this company');
         throw new Error("Compte Stripe déjà existant pour cette entreprise");
       }
       const errorText = await response.text().catch(() => "No error text");
-      // TEMP_DISABLED: console.error('❌ [STRIPE CREATE] Error response:', errorText);
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();
-    // TEMP_DISABLED: console.log('✅ [STRIPE CREATE] Response data received');
 
     if (!data.success || !data.data?.stripe_account_id) {
       throw new Error("API returned invalid account data");
     }
-
-    // TEMP_DISABLED: console.log('✅ Stripe Connect Express account created:', data.data.stripe_account_id);
-    // TEMP_DISABLED: console.log('🔗 Onboarding URL received:', data.data.onboarding_url);
 
     return {
       accountId: data.data.stripe_account_id,
       onboardingUrl: data.data.onboarding_url,
     };
   } catch (error) {
-    // TEMP_DISABLED: console.error('Error creating Stripe Connect Express account:', error);
-
     // Si c'est un compte existant, essayer de récupérer le lien d'onboarding
     if (error instanceof Error && error.message.includes("déjà existant")) {
       try {
-        // TEMP_DISABLED: console.log('🔄 Account exists, trying to get onboarding link...');
         const onboardingUrl = await getStripeConnectOnboardingLink();
         return {
           accountId: "existing_account",
           onboardingUrl: onboardingUrl,
         };
       } catch (onboardingError) {
-        // TEMP_DISABLED: console.error('Failed to get existing account onboarding link:', onboardingError);
+        // Fallback: continues to create new account
       }
     }
 
@@ -266,10 +216,8 @@ export const createStripeConnectAccount = async (): Promise<{
 export const getStripeConnectOnboardingLink = async (): Promise<string> => {
   try {
     const companyId = await getUserCompanyId();
-    // TEMP_DISABLED: console.log('🔗 Getting Stripe Connect onboarding link for company:', companyId);
 
     const onboardingUrl = `${ServerData.serverUrl}v1/stripe/connect/onboarding?company_id=${companyId}`;
-    // TEMP_DISABLED: console.log('🌐 Onboarding URL being called:', onboardingUrl);
 
     const response = await fetchWithAuth(onboardingUrl, {
       method: "GET",
@@ -278,27 +226,19 @@ export const getStripeConnectOnboardingLink = async (): Promise<string> => {
       },
     });
 
-    // TEMP_DISABLED: console.log('📡 [STRIPE ONBOARDING] Response status:', response.status);
-
     if (!response.ok) {
       const errorText = await response.text().catch(() => "No error text");
-      // TEMP_DISABLED: console.error('❌ [STRIPE ONBOARDING] Error response:', errorText);
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();
-    // TEMP_DISABLED: console.log('✅ [STRIPE ONBOARDING] Response data received');
 
     if (!data.success || !data.data?.onboarding_url) {
       throw new Error("API returned invalid onboarding link data");
     }
 
-    // TEMP_DISABLED: console.log('✅ Onboarding link retrieved:', data.data.onboarding_url);
-    // TEMP_DISABLED: console.log('⏰ Expires at:', data.data.expires_at);
-
     return data.data.onboarding_url;
   } catch (error) {
-    // TEMP_DISABLED: console.error('Error getting Stripe Connect onboarding link:', error);
     // Re-throw the error - no mock URLs
     throw error;
   }
@@ -448,31 +388,16 @@ const analyzeStripeConnectionResponse = (
 export const fetchStripePayments = async () => {
   try {
     const companyId = await getUserCompanyId();
-    console.log(
-      "📊 [FETCH PAYMENTS] Testing NEW endpoint for company:",
-      companyId,
-    );
 
     // Essayer l'endpoint payments dédié - pattern: /v1/stripe/company/{id}/payments
     const paymentsUrl = `${ServerData.serverUrl}v1/stripe/company/${companyId}/payments`;
-    console.log("🌐 [FETCH PAYMENTS] Calling NEW endpoint:", paymentsUrl);
 
     const response = await fetchWithAuth(paymentsUrl, {
       method: "GET",
     });
 
-    console.log(
-      "📡 [FETCH PAYMENTS] Response status:",
-      response.status,
-      response.ok,
-    );
-
     if (response.ok) {
       const data = await response.json();
-      console.log(
-        "✅ [FETCH PAYMENTS] SUCCESS! API response:",
-        JSON.stringify(data).substring(0, 300),
-      );
 
       // Backend retourne: { success: true, payments: [...] }
       // Pas { success: true, data: [...] }
@@ -493,27 +418,15 @@ export const fetchStripePayments = async () => {
             null,
         }));
 
-        console.log(
-          "💳 [FETCH PAYMENTS] Processed payments:",
-          payments.length,
-          "items",
-        );
         return payments;
       }
     } else {
       const errorText = await response.text();
-      console.warn(
-        "⚠️ [FETCH PAYMENTS] Endpoint still failing, status:",
-        response.status,
-        "body:",
-        errorText.substring(0, 200),
-      );
     }
 
     throw new Error("Unable to fetch payments from API");
   } catch (error: any) {
     safeLogError("❌ [FETCH PAYMENTS] Error:", error);
-    console.log("💳 [FETCH PAYMENTS] Using empty payments list");
     return [];
   }
 };
@@ -521,11 +434,9 @@ export const fetchStripePayments = async () => {
 export const fetchStripePayouts = async () => {
   try {
     const companyId = await getUserCompanyId();
-    // TEMP_DISABLED: console.log('� [FETCH PAYOUTS] Loading REAL payouts data for company:', companyId);
 
     // Essayer l'endpoint payouts dédié
     const payoutsUrl = `${ServerData.serverUrl}v1/stripe/payouts?company_id=${companyId}`;
-    // TEMP_DISABLED: console.log('🌐 [FETCH PAYOUTS] Calling payouts endpoint:', payoutsUrl);
 
     const response = await fetchWithAuth(payoutsUrl, {
       method: "GET",
@@ -533,11 +444,9 @@ export const fetchStripePayouts = async () => {
 
     if (response.ok) {
       const data = await response.json();
-      // TEMP_DISABLED: console.log('✅ [FETCH PAYOUTS] Payouts API response received');
 
       if (data.success && data.data) {
         const payoutsList = data.data.payouts || data.data || [];
-        // TEMP_DISABLED: console.log('💸 [FETCH PAYOUTS] Raw payouts list:', payoutsList);
 
         const payouts = Array.isArray(payoutsList)
           ? payoutsList.map((payout: any) => ({
@@ -555,18 +464,15 @@ export const fetchStripePayouts = async () => {
             }))
           : [];
 
-        // TEMP_DISABLED: console.log('💸 [FETCH PAYOUTS] Processed payouts:', payouts.length, 'items');
         return payouts;
       }
     } else {
-      // TEMP_DISABLED: console.warn('⚠️ [FETCH PAYOUTS] Payouts endpoint failed, status:', response.status);
     }
 
     throw new Error("Unable to fetch payouts from API");
   } catch (error: any) {
     safeLogError("❌ [FETCH PAYOUTS] Error fetching real payouts:", error);
     // Retourner des données vides en cas d'erreur
-    // TEMP_DISABLED: console.log('💸 [FETCH PAYOUTS] Using empty payouts list');
     return [];
   }
 };
@@ -574,7 +480,6 @@ export const fetchStripePayouts = async () => {
 export const fetchStripeAccount = async () => {
   try {
     const companyId = await getUserCompanyId();
-    console.log("📊 [FETCH ACCOUNT] Loading account for company:", companyId);
 
     let statusData: any = null;
     try {
@@ -585,15 +490,11 @@ export const fetchStripeAccount = async () => {
         statusData = statusJson?.data || statusJson;
       }
     } catch (statusError) {
-      console.warn(
-        "⚠️ [FETCH ACCOUNT] Failed to load connect status:",
-        statusError,
-      );
+      // Non-critical: optional pre-fetch, main call follows
     }
 
     // ✅ NOUVEAU: Utiliser l'endpoint spécifique company/{id}/account
     const accountUrl = `${ServerData.serverUrl}v1/stripe/company/${companyId}/account`;
-    console.log("🌐 [FETCH ACCOUNT] Calling NEW endpoint:", accountUrl);
 
     const response = await fetchWithAuth(accountUrl, {
       method: "GET",
@@ -604,12 +505,6 @@ export const fetchStripeAccount = async () => {
     }
 
     const data = await response.json();
-    console.log("✅ [FETCH ACCOUNT] Response:", {
-      success: data.success,
-      companyName: data.company?.name,
-      stripeAccountId: data.stripe?.account_id,
-      status: data.stripe?.status,
-    });
 
     if (!data.success) {
       throw new Error("Invalid account data from API");
@@ -617,7 +512,6 @@ export const fetchStripeAccount = async () => {
 
     // Si pas de compte Stripe lié, retourner null
     if (!data.stripe) {
-      console.log("⚠️ [FETCH ACCOUNT] No Stripe account linked to company");
       return null;
     }
 
@@ -682,11 +576,6 @@ export const fetchStripeAccount = async () => {
         },
     };
 
-    console.log("✅ [FETCH ACCOUNT] Processed account data:", {
-      accountId: accountData.stripe_account_id,
-      businessName: accountData.business_name,
-      status: data.stripe.status,
-    });
     return accountData;
   } catch (error: any) {
     console.error(
@@ -704,13 +593,7 @@ export const fetchStripeAccount = async () => {
       errorMessage.includes("has_stripe_account");
 
     if (isNoAccountError) {
-      console.log(
-        "ℹ️ [FETCH ACCOUNT] No Stripe account exists for this company (expected)",
-      );
     } else {
-      console.warn(
-        "⚠️ [FETCH ACCOUNT] Network or server error, returning null",
-      );
     }
     return null;
   }
@@ -719,11 +602,9 @@ export const fetchStripeAccount = async () => {
 export const fetchStripeBalance = async () => {
   try {
     const companyId = await getUserCompanyId();
-    // TEMP_DISABLED: console.log('� [FETCH BALANCE] Loading REAL balance data for company:', companyId);
 
     // Essayer l'endpoint balance dédié
     const balanceUrl = `${ServerData.serverUrl}v1/stripe/balance?company_id=${companyId}`;
-    // TEMP_DISABLED: console.log('🌐 [FETCH BALANCE] Calling balance endpoint:', balanceUrl);
 
     const response = await fetchWithAuth(balanceUrl, {
       method: "GET",
@@ -731,25 +612,18 @@ export const fetchStripeBalance = async () => {
 
     if (response.ok) {
       const data = await response.json();
-      // TEMP_DISABLED: console.log('✅ [FETCH BALANCE] Balance API response:', JSON.stringify(data, null, 2));
 
       if (data.success && data.data) {
         const balanceData = {
           available: data.data.available?.amount || 0,
           pending: data.data.pending?.amount || 0,
         };
-        // TEMP_DISABLED: console.log('💰 [FETCH BALANCE] Processed balance:', balanceData);
         return balanceData;
       }
     } else {
-      console.warn(
-        "⚠️ [FETCH BALANCE] Balance endpoint failed, status:",
-        response.status,
-      );
     }
 
     // Si l'endpoint balance n'existe pas, essayer de récupérer depuis l'endpoint status
-    // TEMP_DISABLED: console.log('💰 [FETCH BALANCE] Fallback: trying to get balance from status endpoint');
 
     const statusUrl = `${ServerData.serverUrl}v1/stripe/connect/status?company_id=${companyId}`;
     const statusResponse = await fetchWithAuth(statusUrl, {
@@ -758,11 +632,9 @@ export const fetchStripeBalance = async () => {
 
     if (statusResponse.ok) {
       const statusData = await statusResponse.json();
-      // TEMP_DISABLED: console.log('💰 [FETCH BALANCE] Status response for balance:', JSON.stringify(statusData, null, 2));
 
       if (statusData.success && statusData.data) {
         const balance = statusData.data.balance || { available: 0, pending: 0 };
-        // TEMP_DISABLED: console.log('💰 [FETCH BALANCE] Balance from status endpoint:', balance);
         return balance;
       }
     }
@@ -772,7 +644,6 @@ export const fetchStripeBalance = async () => {
     console.error("❌ [FETCH BALANCE] Error fetching real balance:", error);
     // Fallback vers données mock avec valeurs réalistes
     const fallbackBalance = { available: 0, pending: 0 };
-    // TEMP_DISABLED: console.log('💰 [FETCH BALANCE] Using fallback balance:', fallbackBalance);
     return fallbackBalance;
   }
 };
@@ -784,12 +655,7 @@ export const fetchStripeBalance = async () => {
  */
 export const fetchAllCompanyStripeAccounts = async () => {
   try {
-    console.log(
-      "📊 [FETCH ALL ACCOUNTS] Loading all company Stripe accounts...",
-    );
-
     const accountsUrl = `${ServerData.serverUrl}v1/stripe/company-accounts`;
-    console.log("🌐 [FETCH ALL ACCOUNTS] Calling endpoint:", accountsUrl);
 
     const response = await fetchWithAuth(accountsUrl, {
       method: "GET",
@@ -800,12 +666,6 @@ export const fetchAllCompanyStripeAccounts = async () => {
     }
 
     const data = await response.json();
-    console.log("✅ [FETCH ALL ACCOUNTS] Response:", {
-      success: data.success,
-      totalCompanies: data.summary?.total_companies,
-      connected: data.summary?.connected,
-      active: data.summary?.active,
-    });
 
     if (!data.success) {
       throw new Error("Invalid accounts data from API");
@@ -841,22 +701,12 @@ export const createStripeConnectAccountAndLink = async (): Promise<{
   accountId?: string;
 }> => {
   try {
-    console.log("🔗 [CREATE & LINK] Checking if Stripe account exists...");
-
     // ✅ ÉTAPE 1: Vérifier si un compte existe déjà
     const existingAccount = await fetchStripeAccount();
 
     if (existingAccount && existingAccount.stripe_account_id) {
-      console.log(
-        "✅ [CREATE & LINK] Compte existant trouvé:",
-        existingAccount.stripe_account_id,
-      );
-
       // Compte existe, récupérer le lien d'onboarding
       const onboardingUrl = await getStripeConnectOnboardingLink();
-      console.log(
-        "✅ [CREATE & LINK] Lien d'onboarding récupéré pour compte existant",
-      );
 
       return {
         url: onboardingUrl,
@@ -866,11 +716,7 @@ export const createStripeConnectAccountAndLink = async (): Promise<{
     }
 
     // ✅ ÉTAPE 2: Pas de compte, en créer un nouveau
-    console.log(
-      "🆕 [CREATE & LINK] Aucun compte existant, création d'un nouveau...",
-    );
     const result = await createStripeConnectAccount();
-    console.log("✅ [CREATE & LINK] Nouveau compte créé:", result.accountId);
 
     return {
       url: result.onboardingUrl,
@@ -882,11 +728,7 @@ export const createStripeConnectAccountAndLink = async (): Promise<{
 
     // ✅ FALLBACK: En cas d'erreur, essayer de récupérer le lien d'onboarding
     try {
-      console.log(
-        "🔄 [CREATE & LINK] Fallback: tentative de récupération du lien...",
-      );
       const onboardingUrl = await getStripeConnectOnboardingLink();
-      console.log("✅ [CREATE & LINK] Lien d'onboarding récupéré (fallback)");
 
       return {
         url: onboardingUrl,
@@ -901,8 +743,6 @@ export const createStripeConnectAccountAndLink = async (): Promise<{
 
 // Fonctions additionnelles utilisées par les hooks
 export const createInstantPayout = async (amount: number): Promise<string> => {
-  console.log("💸 [CREATE PAYOUT] Creating instant payout for:", amount);
-
   try {
     // ✅ Utiliser l'endpoint réel POST /stripe/payouts/create
     const response = await fetchWithAuth(
@@ -933,7 +773,6 @@ export const createInstantPayout = async (amount: number): Promise<string> => {
     }
 
     const data = await response.json();
-    console.log("✅ [CREATE PAYOUT] Payout created:", data);
 
     // Retourner l'ID du payout
     return data.data?.id || data.id || `po_${Date.now()}`;
@@ -1021,10 +860,6 @@ export const fetchStripePaymentLinks = async (options?: {
 }): Promise<{ payment_links: PaymentLink[]; has_more: boolean }> => {
   try {
     const companyId = await getUserCompanyId();
-    console.log(
-      "📊 [FETCH PAYMENT LINKS] Testing FIXED endpoint for company:",
-      companyId,
-    );
 
     const params = new URLSearchParams();
     params.append("company_id", companyId.toString());
@@ -1033,40 +868,20 @@ export const fetchStripePaymentLinks = async (options?: {
       params.append("active", options.active.toString());
 
     const url = `${ServerData.serverUrl}v1/stripe/payment-links/list${params.toString() ? "?" + params.toString() : ""}`;
-    console.log("🌐 [FETCH PAYMENT LINKS] Calling FIXED endpoint:", url);
 
     const response = await fetchWithAuth(url, { method: "GET" });
 
-    console.log(
-      "📡 [FETCH PAYMENT LINKS] Response status:",
-      response.status,
-      response.ok,
-    );
-
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.warn(
-        "⚠️ [FETCH PAYMENT LINKS] Still failing:",
-        JSON.stringify(errorData),
-      );
       throw new Error(errorData.error || `HTTP error ${response.status}`);
     }
 
     const data = await response.json();
-    console.log(
-      "✅ [FETCH PAYMENT LINKS] SUCCESS! Response:",
-      JSON.stringify(data).substring(0, 300),
-    );
 
     if (!data.success) {
       throw new Error(data.error || "Failed to fetch payment links");
     }
 
-    console.log(
-      "🎉 [FETCH PAYMENT LINKS] Loaded",
-      data.data?.payment_links?.length || 0,
-      "payment links",
-    );
     return data.data;
   } catch (error) {
     safeLogError("FETCH_PAYMENT_LINKS", error);
@@ -1347,28 +1162,11 @@ export const createJobPaymentIntent = async (
   metadata: any;
 }> => {
   try {
-    console.log(`💳 [JOB PAYMENT] Creating Payment Intent for job ${jobId}...`);
-    console.log(
-      `📦 [JOB PAYMENT] Request body:`,
-      JSON.stringify(options, null, 2),
-    );
-
     const createUrl = `${ServerData.serverUrl}v1/jobs/${jobId}/payment/create`;
-    console.log("🌐 [JOB PAYMENT] Calling endpoint:", createUrl);
 
     // Test if we have a valid session token
     const token = await SecureStore.getItemAsync("session_token");
-    console.log(
-      "🔐 [JOB PAYMENT] Has session token:",
-      !!token,
-      "Length:",
-      token?.length,
-    );
     if (token) {
-      console.log(
-        "🔐 [JOB PAYMENT] Token preview:",
-        token.substring(0, 20) + "..." + token.substring(token.length - 10),
-      );
     }
 
     const response = await fetchWithAuth(createUrl, {
@@ -1378,8 +1176,6 @@ export const createJobPaymentIntent = async (
       },
       body: JSON.stringify(options),
     });
-
-    console.log(`📡 [JOB PAYMENT] Response status: ${response.status}`);
 
     if (!response.ok) {
       let errorData: any = null;
@@ -1428,24 +1224,10 @@ export const createJobPaymentIntent = async (
     }
 
     const data = await response.json();
-    console.log(
-      "✅ [JOB PAYMENT] Payment Intent created:",
-      JSON.stringify(data, null, 2),
-    );
 
     if (!data.success || !data.data?.payment_intent_id) {
       throw new Error("API returned invalid Payment Intent data");
     }
-
-    console.log(
-      `💳 [JOB PAYMENT] Payment Intent ID: ${data.data.payment_intent_id}`,
-    );
-    console.log(
-      `🔑 [JOB PAYMENT] Client Secret: ${data.data.client_secret?.substring(0, 30)}...`,
-    );
-    console.log(
-      `💰 [JOB PAYMENT] Amount: ${data.data.amount / 100} ${data.data.currency.toUpperCase()}`,
-    );
 
     return data.data;
   } catch (error) {
@@ -1473,11 +1255,7 @@ export const confirmJobPayment = async (
   message: string;
 }> => {
   try {
-    // TEMP_DISABLED: console.log(`✅ [JOB PAYMENT] Confirming payment for job ${jobId}...`);
-    // TEMP_DISABLED: console.log(`💳 [JOB PAYMENT] Payment Intent: ${paymentIntentId}, Status: ${status}`);
-
     const confirmUrl = `${ServerData.serverUrl}v1/jobs/${jobId}/payment/confirm`;
-    // TEMP_DISABLED: console.log('🌐 [JOB PAYMENT] Calling endpoint:', confirmUrl);
 
     const response = await fetchWithAuth(confirmUrl, {
       method: "POST",
@@ -1489,8 +1267,6 @@ export const confirmJobPayment = async (
         status: status,
       }),
     });
-
-    // TEMP_DISABLED: console.log(`📡 [JOB PAYMENT] Response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => "No error text");
@@ -1508,14 +1284,10 @@ export const confirmJobPayment = async (
     }
 
     const data = await response.json();
-    // TEMP_DISABLED: console.log('✅ [JOB PAYMENT] Payment confirmed:', JSON.stringify(data, null, 2));
 
     if (!data.success) {
       throw new Error("API returned error during payment confirmation");
     }
-
-    // TEMP_DISABLED: console.log(`✅ [JOB PAYMENT] Job updated with payment status: ${data.data.payment_status}`);
-    // TEMP_DISABLED: console.log(`💰 [JOB PAYMENT] Amount paid: ${data.data.job.amount_paid}`);
 
     return data.data;
   } catch (error) {
@@ -1559,16 +1331,11 @@ export const getJobPaymentHistory = async (
   };
 }> => {
   try {
-    // TEMP_DISABLED: console.log(`📊 [JOB PAYMENT] Getting payment history for job ${jobId}...`);
-
     const historyUrl = `${ServerData.serverUrl}v1/jobs/${jobId}/payments`;
-    // TEMP_DISABLED: console.log('🌐 [JOB PAYMENT] Calling endpoint:', historyUrl);
 
     const response = await fetchWithAuth(historyUrl, {
       method: "GET",
     });
-
-    // TEMP_DISABLED: console.log(`📡 [JOB PAYMENT] Response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => "No error text");
@@ -1586,14 +1353,10 @@ export const getJobPaymentHistory = async (
     }
 
     const data = await response.json();
-    // TEMP_DISABLED: console.log('✅ [JOB PAYMENT] Payment history retrieved:', JSON.stringify(data, null, 2));
 
     if (!data.success) {
       throw new Error("API returned error for payment history");
     }
-
-    // TEMP_DISABLED: console.log(`📊 [JOB PAYMENT] Found ${data.data.length} payments for job ${jobId}`);
-    // TEMP_DISABLED: console.log(`🔒 [JOB PAYMENT] Data source: ${data.meta?.source || 'stripe_api'} (sécurisé)`);
 
     return data;
   } catch (error) {
@@ -1634,10 +1397,7 @@ export const createStripeRefund = async (
   metadata: Record<string, string>;
 }> => {
   try {
-    // TEMP_DISABLED: console.log(`💸 [STRIPE REFUND] Creating refund for Payment Intent ${paymentIntentId}...`);
-
     const createUrl = `${ServerData.serverUrl}v1/stripe/refunds/create`;
-    // TEMP_DISABLED: console.log('🌐 [STRIPE REFUND] Calling endpoint:', createUrl);
 
     const response = await fetchWithAuth(createUrl, {
       method: "POST",
@@ -1649,8 +1409,6 @@ export const createStripeRefund = async (
         ...options,
       }),
     });
-
-    // TEMP_DISABLED: console.log(`📡 [STRIPE REFUND] Response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => "No error text");
@@ -1670,15 +1428,10 @@ export const createStripeRefund = async (
     }
 
     const data = await response.json();
-    // TEMP_DISABLED: console.log('✅ [STRIPE REFUND] Refund created:', JSON.stringify(data, null, 2));
 
     if (!data.success || !data.data?.refund_id) {
       throw new Error("API returned invalid refund data");
     }
-
-    // TEMP_DISABLED: console.log(`💸 [STRIPE REFUND] Refund ID: ${data.data.refund_id}`);
-    // TEMP_DISABLED: console.log(`💰 [STRIPE REFUND] Amount: ${data.data.amount / 100} ${data.data.currency.toUpperCase()}`);
-    // TEMP_DISABLED: console.log(`📋 [STRIPE REFUND] Status: ${data.data.status}`);
 
     return data.data;
   } catch (error) {
@@ -1725,7 +1478,6 @@ export const fetchStripeRefunds = async (
 }> => {
   try {
     const companyId = await getUserCompanyId();
-    // TEMP_DISABLED: console.log('💸 [FETCH REFUNDS] Loading refunds for company:', companyId);
 
     const queryParams = new URLSearchParams({
       company_id: companyId.toString(),
@@ -1738,13 +1490,10 @@ export const fetchStripeRefunds = async (
     });
 
     const refundsUrl = `${ServerData.serverUrl}v1/stripe/refunds?${queryParams}`;
-    // TEMP_DISABLED: console.log('🌐 [FETCH REFUNDS] Calling endpoint:', refundsUrl);
 
     const response = await fetchWithAuth(refundsUrl, {
       method: "GET",
     });
-
-    // TEMP_DISABLED: console.log(`📡 [FETCH REFUNDS] Response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => "No error text");
@@ -1760,14 +1509,10 @@ export const fetchStripeRefunds = async (
     }
 
     const data = await response.json();
-    // TEMP_DISABLED: console.log('✅ [FETCH REFUNDS] Refunds retrieved:', JSON.stringify(data, null, 2));
 
     if (!data.success) {
       throw new Error("API returned error for refunds");
     }
-
-    // TEMP_DISABLED: console.log(`💸 [FETCH REFUNDS] Found ${data.data.length} refunds`);
-    // TEMP_DISABLED: console.log(`🔒 [FETCH REFUNDS] Data source: ${data.meta?.source || 'stripe_api'} (sécurisé)`);
 
     return {
       refunds: data.data,
@@ -1808,16 +1553,11 @@ export const getStripeRefundDetails = async (
   } | null;
 }> => {
   try {
-    // TEMP_DISABLED: console.log(`💸 [REFUND DETAILS] Getting details for refund ${refundId}...`);
-
     const detailsUrl = `${ServerData.serverUrl}v1/stripe/refunds/${refundId}`;
-    // TEMP_DISABLED: console.log('🌐 [REFUND DETAILS] Calling endpoint:', detailsUrl);
 
     const response = await fetchWithAuth(detailsUrl, {
       method: "GET",
     });
-
-    // TEMP_DISABLED: console.log(`📡 [REFUND DETAILS] Response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => "No error text");
@@ -1835,14 +1575,10 @@ export const getStripeRefundDetails = async (
     }
 
     const data = await response.json();
-    // TEMP_DISABLED: console.log('✅ [REFUND DETAILS] Refund details retrieved:', JSON.stringify(data, null, 2));
 
     if (!data.success) {
       throw new Error("API returned error for refund details");
     }
-
-    // TEMP_DISABLED: console.log(`💸 [REFUND DETAILS] Refund ${refundId} status: ${data.data.status}`);
-    // TEMP_DISABLED: console.log(`💰 [REFUND DETAILS] Amount: ${data.data.amount / 100} ${data.data.currency.toUpperCase()}`);
 
     return data.data;
   } catch (error) {
@@ -1868,10 +1604,7 @@ export const cancelStripeRefund = async (
   currency: string;
 }> => {
   try {
-    // TEMP_DISABLED: console.log(`❌ [CANCEL REFUND] Canceling refund ${refundId}...`);
-
     const cancelUrl = `${ServerData.serverUrl}v1/stripe/refunds/${refundId}/cancel`;
-    // TEMP_DISABLED: console.log('🌐 [CANCEL REFUND] Calling endpoint:', cancelUrl);
 
     const response = await fetchWithAuth(cancelUrl, {
       method: "POST",
@@ -1879,8 +1612,6 @@ export const cancelStripeRefund = async (
         "Content-Type": "application/json",
       },
     });
-
-    // TEMP_DISABLED: console.log(`📡 [CANCEL REFUND] Response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => "No error text");
@@ -1902,13 +1633,10 @@ export const cancelStripeRefund = async (
     }
 
     const data = await response.json();
-    // TEMP_DISABLED: console.log('✅ [CANCEL REFUND] Refund canceled:', JSON.stringify(data, null, 2));
 
     if (!data.success) {
       throw new Error("API returned error during refund cancellation");
     }
-
-    // TEMP_DISABLED: console.log(`❌ [CANCEL REFUND] Refund ${refundId} successfully canceled`);
 
     return data.data;
   } catch (error) {
@@ -1957,10 +1685,7 @@ export const createStripeInvoice = async (invoiceData: {
   metadata: Record<string, string>;
 }> => {
   try {
-    // TEMP_DISABLED: console.log('🧾 [STRIPE INVOICE] Creating invoice...');
-
     const createUrl = `${ServerData.serverUrl}v1/stripe/invoices/create`;
-    // TEMP_DISABLED: console.log('🌐 [STRIPE INVOICE] Calling endpoint:', createUrl);
 
     const response = await fetchWithAuth(createUrl, {
       method: "POST",
@@ -1969,8 +1694,6 @@ export const createStripeInvoice = async (invoiceData: {
       },
       body: JSON.stringify(invoiceData),
     });
-
-    // TEMP_DISABLED: console.log(`📡 [STRIPE INVOICE] Response status: ${response.status}`);
 
     if (!response.ok) {
       let errorData: any = null;
@@ -2015,15 +1738,10 @@ export const createStripeInvoice = async (invoiceData: {
     }
 
     const data = await response.json();
-    // TEMP_DISABLED: console.log('✅ [STRIPE INVOICE] Invoice created:', JSON.stringify(data, null, 2));
 
     if (!data.success || !data.data?.invoice_id) {
       throw new Error("API returned invalid invoice data");
     }
-
-    // TEMP_DISABLED: console.log(`🧾 [STRIPE INVOICE] Invoice ID: ${data.data.invoice_id}`);
-    // TEMP_DISABLED: console.log(`💰 [STRIPE INVOICE] Amount due: ${data.data.amount_due / 100} ${data.data.currency.toUpperCase()}`);
-    // TEMP_DISABLED: console.log(`📧 [STRIPE INVOICE] Customer: ${data.data.customer_email}`);
 
     return data.data;
   } catch (error) {
@@ -2216,7 +1934,6 @@ export const fetchStripeInvoices = async (
 }> => {
   try {
     const companyId = await getUserCompanyId();
-    // TEMP_DISABLED: console.log('🧾 [FETCH INVOICES] Loading invoices for company:', companyId);
 
     const queryParams = new URLSearchParams({
       company_id: companyId.toString(),
@@ -2229,13 +1946,10 @@ export const fetchStripeInvoices = async (
     });
 
     const invoicesUrl = `${ServerData.serverUrl}v1/stripe/invoices?${queryParams}`;
-    // TEMP_DISABLED: console.log('🌐 [FETCH INVOICES] Calling endpoint:', invoicesUrl);
 
     const response = await fetchWithAuth(invoicesUrl, {
       method: "GET",
     });
-
-    // TEMP_DISABLED: console.log(`📡 [FETCH INVOICES] Response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => "No error text");
@@ -2251,14 +1965,10 @@ export const fetchStripeInvoices = async (
     }
 
     const data = await response.json();
-    // TEMP_DISABLED: console.log('✅ [FETCH INVOICES] Invoices retrieved:', JSON.stringify(data, null, 2));
 
     if (!data.success) {
       throw new Error("API returned error for invoices");
     }
-
-    // TEMP_DISABLED: console.log(`🧾 [FETCH INVOICES] Found ${data.data.length} invoices`);
-    // TEMP_DISABLED: console.log(`🔒 [FETCH INVOICES] Data source: ${data.meta?.source || 'stripe_api'} (sécurisé)`);
 
     return {
       invoices: data.data,
@@ -2286,10 +1996,7 @@ export const sendStripeInvoice = async (
   customer_email: string;
 }> => {
   try {
-    // TEMP_DISABLED: console.log(`📧 [SEND INVOICE] Sending invoice ${invoiceId} by email...`);
-
     const sendUrl = `${ServerData.serverUrl}v1/stripe/invoices/${invoiceId}/send`;
-    // TEMP_DISABLED: console.log('🌐 [SEND INVOICE] Calling endpoint:', sendUrl);
 
     const response = await fetchWithAuth(sendUrl, {
       method: "POST",
@@ -2297,8 +2004,6 @@ export const sendStripeInvoice = async (
         "Content-Type": "application/json",
       },
     });
-
-    // TEMP_DISABLED: console.log(`📡 [SEND INVOICE] Response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => "No error text");
@@ -2320,13 +2025,10 @@ export const sendStripeInvoice = async (
     }
 
     const data = await response.json();
-    // TEMP_DISABLED: console.log('✅ [SEND INVOICE] Invoice sent:', JSON.stringify(data, null, 2));
 
     if (!data.success) {
       throw new Error("API returned error during invoice sending");
     }
-
-    // TEMP_DISABLED: console.log(`📧 [SEND INVOICE] Invoice ${invoiceId} sent to ${data.data.customer_email}`);
 
     return data.data;
   } catch (error) {
@@ -2358,10 +2060,7 @@ export const markStripeInvoiceAsPaid = async (
   payment_method: string | null;
 }> => {
   try {
-    // TEMP_DISABLED: console.log(`✅ [MARK PAID] Marking invoice ${invoiceId} as paid...`);
-
     const markUrl = `${ServerData.serverUrl}v1/stripe/invoices/${invoiceId}/mark_paid`;
-    // TEMP_DISABLED: console.log('🌐 [MARK PAID] Calling endpoint:', markUrl);
 
     const response = await fetchWithAuth(markUrl, {
       method: "POST",
@@ -2370,8 +2069,6 @@ export const markStripeInvoiceAsPaid = async (
       },
       body: JSON.stringify(paymentDetails || {}),
     });
-
-    // TEMP_DISABLED: console.log(`📡 [MARK PAID] Response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => "No error text");
@@ -2391,13 +2088,10 @@ export const markStripeInvoiceAsPaid = async (
     }
 
     const data = await response.json();
-    // TEMP_DISABLED: console.log('✅ [MARK PAID] Invoice marked as paid:', JSON.stringify(data, null, 2));
 
     if (!data.success) {
       throw new Error("API returned error during invoice update");
     }
-
-    // TEMP_DISABLED: console.log(`✅ [MARK PAID] Invoice ${invoiceId} marked as paid`);
 
     return data.data;
   } catch (error) {
@@ -2421,10 +2115,7 @@ export const voidStripeInvoice = async (
   voided_at: string;
 }> => {
   try {
-    // TEMP_DISABLED: console.log(`❌ [VOID INVOICE] Voiding invoice ${invoiceId}...`);
-
     const voidUrl = `${ServerData.serverUrl}v1/stripe/invoices/${invoiceId}/void`;
-    // TEMP_DISABLED: console.log('🌐 [VOID INVOICE] Calling endpoint:', voidUrl);
 
     const response = await fetchWithAuth(voidUrl, {
       method: "POST",
@@ -2432,8 +2123,6 @@ export const voidStripeInvoice = async (
         "Content-Type": "application/json",
       },
     });
-
-    // TEMP_DISABLED: console.log(`📡 [VOID INVOICE] Response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => "No error text");
@@ -2455,13 +2144,10 @@ export const voidStripeInvoice = async (
     }
 
     const data = await response.json();
-    // TEMP_DISABLED: console.log('✅ [VOID INVOICE] Invoice voided:', JSON.stringify(data, null, 2));
 
     if (!data.success) {
       throw new Error("API returned error during invoice voiding");
     }
-
-    // TEMP_DISABLED: console.log(`❌ [VOID INVOICE] Invoice ${invoiceId} successfully voided`);
 
     return data.data;
   } catch (error) {
@@ -2534,7 +2220,6 @@ export const getStripeAnalytics = async (period: {
 }> => {
   try {
     const companyId = await getUserCompanyId();
-    // TEMP_DISABLED: console.log('📊 [STRIPE ANALYTICS] Loading analytics for company:', companyId);
 
     const queryParams = new URLSearchParams({
       company_id: companyId.toString(),
@@ -2544,13 +2229,10 @@ export const getStripeAnalytics = async (period: {
     });
 
     const analyticsUrl = `${ServerData.serverUrl}v1/stripe/analytics/overview?${queryParams}`;
-    // TEMP_DISABLED: console.log('🌐 [STRIPE ANALYTICS] Calling endpoint:', analyticsUrl);
 
     const response = await fetchWithAuth(analyticsUrl, {
       method: "GET",
     });
-
-    // TEMP_DISABLED: console.log(`📡 [STRIPE ANALYTICS] Response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => "No error text");
@@ -2566,15 +2248,10 @@ export const getStripeAnalytics = async (period: {
     }
 
     const data = await response.json();
-    // TEMP_DISABLED: console.log('✅ [STRIPE ANALYTICS] Analytics retrieved:', JSON.stringify(data, null, 2));
 
     if (!data.success) {
       throw new Error("API returned error for analytics");
     }
-
-    // TEMP_DISABLED: console.log(`📊 [STRIPE ANALYTICS] Revenue: ${data.data.metrics.total_revenue / 100} ${data.data.currency || 'AUD'}`);
-    // TEMP_DISABLED: console.log(`📊 [STRIPE ANALYTICS] Payments: ${data.data.metrics.total_payments}`);
-    // TEMP_DISABLED: console.log(`📊 [STRIPE ANALYTICS] Success rate: ${data.data.metrics.success_rate.toFixed(2)}%`);
 
     return data.data;
   } catch (error) {
@@ -2604,10 +2281,8 @@ export const exportStripeDataCSV = async (exportConfig: {
 }> => {
   try {
     const companyId = await getUserCompanyId();
-    // TEMP_DISABLED: console.log('📄 [CSV EXPORT] Creating CSV export for company:', companyId);
 
     const exportUrl = `${ServerData.serverUrl}v1/stripe/exports/csv`;
-    // TEMP_DISABLED: console.log('🌐 [CSV EXPORT] Calling endpoint:', exportUrl);
 
     const response = await fetchWithAuth(exportUrl, {
       method: "POST",
@@ -2619,8 +2294,6 @@ export const exportStripeDataCSV = async (exportConfig: {
         ...exportConfig,
       }),
     });
-
-    // TEMP_DISABLED: console.log(`📡 [CSV EXPORT] Response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => "No error text");
@@ -2638,15 +2311,10 @@ export const exportStripeDataCSV = async (exportConfig: {
     }
 
     const data = await response.json();
-    // TEMP_DISABLED: console.log('✅ [CSV EXPORT] Export created:', JSON.stringify(data, null, 2));
 
     if (!data.success || !data.data?.download_url) {
       throw new Error("API returned invalid export data");
     }
-
-    // TEMP_DISABLED: console.log(`📄 [CSV EXPORT] File: ${data.data.file_name}`);
-    // TEMP_DISABLED: console.log(`📊 [CSV EXPORT] Records: ${data.data.record_count}`);
-    // TEMP_DISABLED: console.log(`🔗 [CSV EXPORT] Download: ${data.data.download_url}`);
 
     return data.data;
   } catch (error) {
@@ -2681,10 +2349,8 @@ export const exportStripeDataPDF = async (reportConfig: {
 }> => {
   try {
     const companyId = await getUserCompanyId();
-    // TEMP_DISABLED: console.log('📊 [PDF EXPORT] Creating PDF report for company:', companyId);
 
     const exportUrl = `${ServerData.serverUrl}v1/stripe/exports/pdf`;
-    // TEMP_DISABLED: console.log('🌐 [PDF EXPORT] Calling endpoint:', exportUrl);
 
     const response = await fetchWithAuth(exportUrl, {
       method: "POST",
@@ -2696,8 +2362,6 @@ export const exportStripeDataPDF = async (reportConfig: {
         ...reportConfig,
       }),
     });
-
-    // TEMP_DISABLED: console.log(`📡 [PDF EXPORT] Response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => "No error text");
@@ -2715,15 +2379,10 @@ export const exportStripeDataPDF = async (reportConfig: {
     }
 
     const data = await response.json();
-    // TEMP_DISABLED: console.log('✅ [PDF EXPORT] Report created:', JSON.stringify(data, null, 2));
 
     if (!data.success || !data.data?.download_url) {
       throw new Error("API returned invalid report data");
     }
-
-    // TEMP_DISABLED: console.log(`📊 [PDF EXPORT] File: ${data.data.file_name}`);
-    // TEMP_DISABLED: console.log(`📄 [PDF EXPORT] Pages: ${data.data.page_count}`);
-    // TEMP_DISABLED: console.log(`🔗 [PDF EXPORT] Download: ${data.data.download_url}`);
 
     return data.data;
   } catch (error) {
@@ -2787,16 +2446,12 @@ export const getStripeRealtimeAnalytics = async (): Promise<{
 }> => {
   try {
     const companyId = await getUserCompanyId();
-    // TEMP_DISABLED: console.log('⚡ [REALTIME ANALYTICS] Loading real-time data for company:', companyId);
 
     const realtimeUrl = `${ServerData.serverUrl}v1/stripe/analytics/realtime?company_id=${companyId}`;
-    // TEMP_DISABLED: console.log('🌐 [REALTIME ANALYTICS] Calling endpoint:', realtimeUrl);
 
     const response = await fetchWithAuth(realtimeUrl, {
       method: "GET",
     });
-
-    // TEMP_DISABLED: console.log(`📡 [REALTIME ANALYTICS] Response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => "No error text");
@@ -2812,15 +2467,10 @@ export const getStripeRealtimeAnalytics = async (): Promise<{
     }
 
     const data = await response.json();
-    // TEMP_DISABLED: console.log('✅ [REALTIME ANALYTICS] Real-time data retrieved:', JSON.stringify(data, null, 2));
 
     if (!data.success) {
       throw new Error("API returned error for real-time analytics");
     }
-
-    // TEMP_DISABLED: console.log(`⚡ [REALTIME ANALYTICS] Today's revenue: ${data.data.today.revenue / 100} AUD`);
-    // TEMP_DISABLED: console.log(`⚡ [REALTIME ANALYTICS] Today's payments: ${data.data.today.payments_count}`);
-    // TEMP_DISABLED: console.log(`📈 [REALTIME ANALYTICS] Trend: ${data.data.trending.trend_direction} (${data.data.trending.revenue_change_pct}%)`);
 
     return data.data;
   } catch (error) {
@@ -2842,10 +2492,7 @@ export const refreshStripeAccountLink = async (): Promise<{
   expires_at: number;
 }> => {
   try {
-    console.log("🔄 [STRIPE LINK] Refreshing account link...");
-
     const refreshUrl = `${ServerData.serverUrl}v1/stripe/connect/refresh-link`;
-    console.log("🌐 [STRIPE LINK] Calling endpoint:", refreshUrl);
 
     const response = await fetchWithAuth(refreshUrl, {
       method: "POST",
@@ -2853,8 +2500,6 @@ export const refreshStripeAccountLink = async (): Promise<{
         "Content-Type": "application/json",
       },
     });
-
-    console.log(`📡 [STRIPE LINK] Response status: ${response.status}`);
 
     if (!response.ok) {
       const errorData = await response
@@ -2877,7 +2522,6 @@ export const refreshStripeAccountLink = async (): Promise<{
     }
 
     const data = await response.json();
-    console.log("✅ [STRIPE LINK] Account link created successfully");
 
     if (!data.success || !data.url) {
       throw new Error("API returned error or missing URL");
@@ -2886,10 +2530,8 @@ export const refreshStripeAccountLink = async (): Promise<{
     // Vérifier que l'URL expire dans le futur
     const now = Math.floor(Date.now() / 1000);
     if (data.expires_at && data.expires_at < now) {
-      console.warn("⚠️ [STRIPE LINK] URL already expired!");
     } else if (data.expires_at) {
       const expiresInMin = Math.floor((data.expires_at - now) / 60);
-      console.log(`⏰ [STRIPE LINK] URL expires in ${expiresInMin} minutes`);
     }
 
     return {
@@ -2924,21 +2566,12 @@ export const startStripeOnboarding = async (
   progress: number;
 }> => {
   try {
-    console.log(
-      "🚀 [ONBOARDING] Starting Stripe onboarding with business_type:",
-      businessType,
-    );
-
     // Build payload according to backend expected format
     const payload: any = { business_type: businessType };
 
     // Add business_profile if provided (will be applied at account creation level by backend)
     if (businessProfile) {
       payload.business_profile = businessProfile;
-      console.log(
-        "📋 [ONBOARDING] Including business_profile:",
-        businessProfile,
-      );
     }
 
     const response = await fetchWithAuth(
@@ -2952,8 +2585,6 @@ export const startStripeOnboarding = async (
       },
     );
 
-    console.log(`📡 [ONBOARDING] Response status: ${response.status}`);
-
     if (!response.ok) {
       const errorData = await response
         .json()
@@ -2963,10 +2594,6 @@ export const startStripeOnboarding = async (
     }
 
     const data = await response.json();
-    console.log(
-      "✅ [ONBOARDING] Started successfully:",
-      data.stripe_account_id,
-    );
 
     return {
       stripeAccountId: data.stripe_account_id,
@@ -2983,8 +2610,6 @@ export const startStripeOnboarding = async (
  */
 export const deleteStripeAccount = async (): Promise<{ success: boolean }> => {
   try {
-    console.log("🗑️ [STRIPE] Deleting Stripe account...");
-
     const response = await fetchWithAuth(
       `${ServerData.serverUrl}v1/stripe/account`,
       {
@@ -2995,8 +2620,6 @@ export const deleteStripeAccount = async (): Promise<{ success: boolean }> => {
       },
     );
 
-    console.log(`📡 [STRIPE] Response status: ${response.status}`);
-
     if (!response.ok) {
       const errorData = await response
         .json()
@@ -3006,7 +2629,6 @@ export const deleteStripeAccount = async (): Promise<{ success: boolean }> => {
     }
 
     const data = await response.json();
-    console.log("✅ [STRIPE] Account deleted successfully");
 
     return { success: true };
   } catch (error) {
@@ -3034,18 +2656,12 @@ export const startOnboarding = async (
   next_step: string;
 }> => {
   try {
-    console.log("🚀 [ONBOARDING] Starting Stripe Custom account creation...");
-
     // Build payload according to backend expected format
     const payload: any = { business_type: businessType };
 
     // Add business_profile if provided
     if (businessProfile) {
       payload.business_profile = businessProfile;
-      console.log(
-        "📋 [ONBOARDING] Including business_profile:",
-        businessProfile,
-      );
     }
 
     const response = await fetchWithAuth(
@@ -3059,8 +2675,6 @@ export const startOnboarding = async (
       },
     );
 
-    console.log(`📡 [ONBOARDING] Response status: ${response.status}`);
-
     if (!response.ok) {
       const errorData = await response
         .json()
@@ -3072,7 +2686,6 @@ export const startOnboarding = async (
     }
 
     const data = await response.json();
-    console.log("✅ [ONBOARDING] Account created:", data.stripe_account_id);
 
     return data;
   } catch (error) {
@@ -3106,8 +2719,6 @@ export const submitPersonalInfo = async (
   next_step?: string;
 }> => {
   try {
-    console.log("👤 [ONBOARDING] Submitting personal info...");
-
     // Build payload based on business type
     let payload: any;
 
@@ -3134,9 +2745,6 @@ export const submitPersonalInfo = async (
       };
     }
 
-    console.log("📤 [ONBOARDING] Payload:", payload);
-    console.log("🧾 [ONBOARDING] Payload fields:", Object.keys(payload));
-
     const response = await fetchWithAuth(
       `${ServerData.serverUrl}v1/stripe/onboarding/personal-info`,
       {
@@ -3148,8 +2756,6 @@ export const submitPersonalInfo = async (
       },
     );
 
-    console.log(`📡 [ONBOARDING] Response status: ${response.status}`);
-
     if (!response.ok) {
       const errorData = await response
         .json()
@@ -3159,10 +2765,6 @@ export const submitPersonalInfo = async (
     }
 
     const data = await response.json();
-    console.log(
-      "✅ [ONBOARDING] Personal info submitted, progress:",
-      data.onboarding_progress || data.progress,
-    );
 
     return {
       progress: data.onboarding_progress || data.progress,
@@ -3185,8 +2787,6 @@ export const submitBusinessProfile = async (profile: {
   product_description: string;
 }): Promise<{ progress: number }> => {
   try {
-    console.log("🏷️ [ONBOARDING] Submitting business profile...");
-
     const response = await fetchWithAuth(
       `${ServerData.serverUrl}v1/stripe/onboarding/business-profile`,
       {
@@ -3198,8 +2798,6 @@ export const submitBusinessProfile = async (profile: {
       },
     );
 
-    console.log(`📡 [ONBOARDING] Response status: ${response.status}`);
-
     if (!response.ok) {
       const errorData = await response
         .json()
@@ -3209,10 +2807,6 @@ export const submitBusinessProfile = async (profile: {
     }
 
     const data = await response.json();
-    console.log(
-      "✅ [ONBOARDING] Business profile submitted, progress:",
-      data.progress,
-    );
 
     return { progress: data.progress };
   } catch (error) {
@@ -3238,8 +2832,6 @@ export const submitAddress = async (address: {
   next_step?: string;
 }> => {
   try {
-    console.log("🏠 [ONBOARDING] Submitting address...");
-
     // Ensure country is included (default to AU for Australia)
     const payload = {
       ...address,
@@ -3257,8 +2849,6 @@ export const submitAddress = async (address: {
       },
     );
 
-    console.log(`📡 [ONBOARDING] Response status: ${response.status}`);
-
     if (!response.ok) {
       const errorData = await response
         .json()
@@ -3270,10 +2860,6 @@ export const submitAddress = async (address: {
     }
 
     const data = await response.json();
-    console.log(
-      "✅ [ONBOARDING] Address submitted, progress:",
-      data.onboarding_progress || data.progress,
-    );
 
     return {
       progress: data.onboarding_progress || data.progress,
@@ -3304,8 +2890,6 @@ export const submitCompanyDetails = async (company: {
   };
 }): Promise<{ progress: number }> => {
   try {
-    console.log("🏢 [ONBOARDING] Submitting company details (Custom flow)...");
-
     const personalInfoPayload = {
       company: {
         name: company.name,
@@ -3327,10 +2911,6 @@ export const submitCompanyDetails = async (company: {
       },
     );
 
-    console.log(
-      `📡 [ONBOARDING] /personal-info (company) status: ${personalInfoResponse.status}`,
-    );
-
     if (!personalInfoResponse.ok) {
       const errorData = await personalInfoResponse
         .json()
@@ -3347,9 +2927,6 @@ export const submitCompanyDetails = async (company: {
         requiredFields.includes("phone");
 
       if (requiresIndividualPayload) {
-        console.warn(
-          "⚠️ [ONBOARDING] Backend /personal-info currently expects individual payload. Skipping company payload and continuing with /address.",
-        );
       } else {
         console.error(
           `❌ [ONBOARDING] Error response (/personal-info company):`,
@@ -3383,8 +2960,6 @@ export const submitCompanyDetails = async (company: {
       },
     );
 
-    console.log(`📡 [ONBOARDING] /address status: ${addressResponse.status}`);
-
     if (!addressResponse.ok) {
       const errorData = await addressResponse
         .json()
@@ -3400,10 +2975,6 @@ export const submitCompanyDetails = async (company: {
     const addressData = await addressResponse.json();
     const progress =
       addressData.onboarding_progress || addressData.progress || 0;
-    console.log(
-      "✅ [ONBOARDING] Company details submitted (Custom flow), progress:",
-      progress,
-    );
     return { progress };
   } catch (error) {
     console.error("❌ [ONBOARDING] Error submitting company details:", error);
@@ -3439,10 +3010,6 @@ export const submitRepresentativeDetails = async (representative: {
   };
 }): Promise<{ progress: number }> => {
   try {
-    console.log(
-      "🧑‍💼 [ONBOARDING] Submitting representative details (Custom flow)...",
-    );
-
     const payload = {
       first_name: representative.first_name,
       last_name: representative.last_name,
@@ -3481,8 +3048,6 @@ export const submitRepresentativeDetails = async (representative: {
       },
     );
 
-    console.log(`📡 [ONBOARDING] /personal-info status: ${response.status}`);
-
     if (!response.ok) {
       const errorData = await response
         .json()
@@ -3497,10 +3062,6 @@ export const submitRepresentativeDetails = async (representative: {
         requiredFields.includes("company.name");
 
       if (requiresCompanyPayload) {
-        console.warn(
-          "⚠️ [ONBOARDING] Backend /personal-info expects company payload on representative step. Retrying with compatibility payload.",
-        );
-
         const currentAccount = await fetchStripeAccount();
         const fallbackCompanyName =
           currentAccount?.business_name ||
@@ -3521,10 +3082,6 @@ export const submitRepresentativeDetails = async (representative: {
           },
         );
 
-        console.log(
-          `📡 [ONBOARDING] /personal-info fallback(company) status: ${companyFallbackResponse.status}`,
-        );
-
         if (!companyFallbackResponse.ok) {
           const fallbackErrorData = await companyFallbackResponse
             .json()
@@ -3543,10 +3100,6 @@ export const submitRepresentativeDetails = async (representative: {
         const fallbackData = await companyFallbackResponse.json();
         const fallbackProgress =
           fallbackData.onboarding_progress || fallbackData.progress || 0;
-        console.log(
-          "✅ [ONBOARDING] Representative step accepted via compatibility fallback, progress:",
-          fallbackProgress,
-        );
         return { progress: fallbackProgress };
       }
 
@@ -3563,10 +3116,6 @@ export const submitRepresentativeDetails = async (representative: {
 
     const data = await response.json();
     const progress = data.onboarding_progress || data.progress || 0;
-    console.log(
-      "✅ [ONBOARDING] Representative details submitted (Custom flow), progress:",
-      progress,
-    );
     return { progress };
   } catch (error) {
     console.error(
@@ -3619,8 +3168,6 @@ export const submitCompanyPersons = async (payload: {
     past_due?: string[];
   };
 }> => {
-  console.log("👥 [ONBOARDING] Submitting company persons...");
-
   const response = await fetchWithAuth(
     `${ServerData.serverUrl}v1/stripe/onboarding/persons`,
     {
@@ -3632,8 +3179,6 @@ export const submitCompanyPersons = async (payload: {
     },
   );
 
-  console.log(`📡 [ONBOARDING] /persons status: ${response.status}`);
-
   const data = await response.json().catch(() => ({ success: false }));
   if (!response.ok || data?.success === false) {
     console.error("❌ [ONBOARDING] Error response (/persons):", data);
@@ -3643,7 +3188,6 @@ export const submitCompanyPersons = async (payload: {
   }
 
   if (data?.request_id) {
-    console.log(`🧾 [ONBOARDING] /persons request_id: ${data.request_id}`);
   }
 
   if (data?.person_id) {
@@ -3652,9 +3196,8 @@ export const submitCompanyPersons = async (payload: {
         "stripe_onboarding_person_id",
         String(data.person_id),
       );
-      console.log(`💾 [ONBOARDING] Stored person_id: ${data.person_id}`);
     } catch (storeError) {
-      console.warn("⚠️ [ONBOARDING] Failed to store person_id:", storeError);
+      // Non-critical: SecureStore write for person_id cache
     }
   }
 
@@ -3682,8 +3225,6 @@ export const submitBankAccount = async (bank: {
   next_step?: string;
 }> => {
   try {
-    console.log("💳 [ONBOARDING] Submitting bank account...");
-
     // Build payload based on what's provided
     let payload: any = {
       account_holder_name: bank.account_holder_name,
@@ -3712,11 +3253,6 @@ export const submitBankAccount = async (bank: {
       }
     }
 
-    console.log("📤 [ONBOARDING] Bank payload:", {
-      ...payload,
-      account_number: "***",
-    });
-
     const response = await fetchWithAuth(
       `${ServerData.serverUrl}v1/stripe/onboarding/bank-account`,
       {
@@ -3727,8 +3263,6 @@ export const submitBankAccount = async (bank: {
         body: JSON.stringify(payload),
       },
     );
-
-    console.log(`📡 [ONBOARDING] Response status: ${response.status}`);
 
     if (!response.ok) {
       const errorData = await response
@@ -3742,10 +3276,6 @@ export const submitBankAccount = async (bank: {
         response.status === 400 && requiredFields.includes("bsb");
 
       if (requiresBsb && payload.routing_number && !payload.bsb) {
-        console.warn(
-          "⚠️ [ONBOARDING] Backend requires bsb. Retrying bank-account with bsb compatibility field.",
-        );
-
         const retryPayload = {
           ...payload,
           bsb: String(payload.routing_number).replace(/-/g, ""),
@@ -3760,10 +3290,6 @@ export const submitBankAccount = async (bank: {
             },
             body: JSON.stringify(retryPayload),
           },
-        );
-
-        console.log(
-          `📡 [ONBOARDING] Retry /bank-account status: ${retryResponse.status}`,
         );
 
         if (retryResponse.ok) {
@@ -3788,10 +3314,6 @@ export const submitBankAccount = async (bank: {
     }
 
     const data = await response.json();
-    console.log(
-      "✅ [ONBOARDING] Bank account submitted, progress:",
-      data.onboarding_progress || data.progress,
-    );
 
     return {
       progress: data.onboarding_progress || data.progress,
@@ -3820,8 +3342,6 @@ export const uploadDocument = async (
   next_step?: string;
 }> => {
   try {
-    console.log(`📸 [ONBOARDING] Uploading document: ${documentType}...`);
-
     const createFileObject = (uri: string, name: string) => ({
       uri,
       type: "image/jpeg",
@@ -3931,9 +3451,6 @@ export const uploadDocument = async (
 
       if (personId) {
         appendPersonIdAliases(formData, String(personId));
-        console.log(
-          `🧾 [ONBOARDING] Attaching person_id to document: ${personId} (side=${side})`,
-        );
       }
 
       formData.append(
@@ -3945,9 +3462,7 @@ export const uploadDocument = async (
       formData.append("documentType", documentType);
       formData.append("type", documentType);
 
-      console.log(`📤 [ONBOARDING] /document upload side=${side} field=file`);
       const result = await postFormData(formData);
-      console.log(`📡 [ONBOARDING] /document status: ${result.status}`);
 
       if (!result.ok) {
         console.error("❌ [ONBOARDING] Error response (/document):", {
@@ -3976,10 +3491,6 @@ export const uploadDocument = async (
     }
 
     const data = lastBody && typeof lastBody === "object" ? lastBody : {};
-    console.log(
-      "✅ [ONBOARDING] Document uploaded, progress:",
-      (data as any).onboarding_progress || (data as any).progress,
-    );
     return {
       progress: (data as any).onboarding_progress || (data as any).progress,
       onboarding_progress: (data as any).onboarding_progress,
@@ -4010,8 +3521,6 @@ export const verifyOnboarding = async (
   };
 }> => {
   try {
-    console.log("🎉 [ONBOARDING] Verifying onboarding...");
-
     const normalizeVerifyResponse = (raw: any) => {
       const pendingRequirements = Array.isArray(raw?.requirements_pending)
         ? raw.requirements_pending
@@ -4065,8 +3574,6 @@ export const verifyOnboarding = async (
       },
     );
 
-    console.log(`📡 [ONBOARDING] Response status: ${response.status}`);
-
     if (!response.ok) {
       const errorData = await response
         .json()
@@ -4085,10 +3592,6 @@ export const verifyOnboarding = async (
             .includes("terms of service must be accepted"));
 
       if (requiresTosAcceptance && tosAcceptance) {
-        console.warn(
-          "⚠️ [ONBOARDING] /verify still requires ToS finalization. Falling back to /complete, then retrying /verify.",
-        );
-
         try {
           const completion = await completeOnboarding(true);
 
@@ -4103,18 +3606,11 @@ export const verifyOnboarding = async (
             },
           );
 
-          console.log(
-            `📡 [ONBOARDING] Retry /verify status: ${retryResponse.status}`,
-          );
-
           if (retryResponse.ok) {
             const retryData = await retryResponse.json();
             return normalizeVerifyResponse(retryData);
           }
 
-          console.warn(
-            "⚠️ [ONBOARDING] /verify retry still failing, returning normalized /complete result.",
-          );
           return {
             success: true,
             onboarding_progress: completion.progress,
@@ -4145,26 +3641,8 @@ export const verifyOnboarding = async (
 
     const data = await response.json();
     const normalizedData = normalizeVerifyResponse(data);
-    console.log("✅ [ONBOARDING] Verification complete:", {
-      progress: normalizedData.onboarding_progress,
-      complete: normalizedData.onboarding_complete,
-      charges_enabled: normalizedData.charges_enabled,
-      payouts_enabled: normalizedData.payouts_enabled,
-    });
 
     try {
-      console.log(
-        "🧾 [ONBOARDING] Requirements snapshot:",
-        JSON.stringify(
-          {
-            currently_due: normalizedData.requirements?.currently_due || [],
-            past_due: normalizedData.requirements?.past_due || [],
-            eventually_due: normalizedData.requirements?.eventually_due || [],
-          },
-          null,
-          2,
-        ),
-      );
     } catch {
       // ignore
     }
@@ -4192,8 +3670,6 @@ export const completeOnboarding = async (
   };
 }> => {
   try {
-    console.log("🎉 [ONBOARDING] Completing onboarding...");
-
     if (!tosAccepted) {
       throw new Error("Terms of service must be accepted");
     }
@@ -4208,8 +3684,6 @@ export const completeOnboarding = async (
         body: JSON.stringify({ tos_acceptance: tosAccepted }),
       },
     );
-
-    console.log(`📡 [ONBOARDING] Response status: ${response.status}`);
 
     if (!response.ok) {
       const contentType = response.headers.get("content-type") || "unknown";
@@ -4243,11 +3717,6 @@ export const completeOnboarding = async (
     }
 
     const data = await response.json();
-    console.log(
-      "✅ [ONBOARDING] Completed successfully, progress:",
-      data.progress,
-    );
-    console.log("📊 [ONBOARDING] Account status:", data.account_status);
 
     return {
       progress: data.progress,
@@ -4283,16 +3752,12 @@ export const getOnboardingStatus = async (): Promise<{
   };
 }> => {
   try {
-    console.log("📊 [ONBOARDING] Getting onboarding status...");
-
     const response = await fetchWithAuth(
       `${ServerData.serverUrl}v1/stripe/onboarding/status`,
       {
         method: "GET",
       },
     );
-
-    console.log(`📡 [ONBOARDING] Response status: ${response.status}`);
 
     if (!response.ok) {
       const errorData = await response
@@ -4303,8 +3768,6 @@ export const getOnboardingStatus = async (): Promise<{
     }
 
     const data = await response.json();
-    console.log("✅ [ONBOARDING] Status retrieved:", data.status);
-    console.log("📈 [ONBOARDING] Progress:", data.progress);
 
     return {
       progress: data.progress,

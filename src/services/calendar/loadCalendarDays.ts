@@ -1,4 +1,4 @@
-import { getAuthHeaders } from '../../utils/auth'
+﻿import { getAuthHeaders } from '../../utils/auth'
 
 // Types
 export interface CalendarDay {
@@ -74,7 +74,6 @@ const loadCalendarDays = async (
   endDate: Date
 ): Promise<CalendarDay[]> => {
 
-    // TEMP_DISABLED: console.log("***** loadCalendarDays called *****");
   // Validate inputs
   validateDateRange(startDate, endDate)
 
@@ -89,7 +88,6 @@ const loadCalendarDays = async (
     const formattedEndDate = formatDateForApi(endDate)
 
     if (__DEV__) {
-      // TEMP_DISABLED: console.log("Formatted dates:", { formattedStartDate, formattedEndDate })
     }
 
     // Prepare headers with proper typing
@@ -137,7 +135,6 @@ const loadCalendarDays = async (
     // }
 
     // if (__DEV__) {
-      // TEMP_DISABLED: console.log(`Calendar days loaded: ${data.data.length} days`)
     // }
 
     // return data.data

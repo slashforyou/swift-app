@@ -182,7 +182,6 @@ export function preloadScreen<T extends ComponentType<any>>(
   importFunc().catch(() => {
     // Silently fail - preloading is optional
     if (__DEV__) {
-      console.warn("Failed to preload screen");
     }
   });
 }

@@ -266,7 +266,6 @@ export const createInvoice = async (invoiceData: InvoiceCreateData): Promise<Inv
     });
 
     if (!response.ok) {
-      console.warn('Invoice creation API not available, creating mock invoice');
       const mockInvoice: Invoice = {
         id: `invoice-${Date.now()}`,
         ...invoiceData,
@@ -286,7 +285,6 @@ export const createInvoice = async (invoiceData: InvoiceCreateData): Promise<Inv
     const data: InvoiceResponse = await response.json();
     
     if (!data.success || !data.quote) {
-      console.warn('Invoice creation API returned invalid data, creating mock invoice');
       const mockInvoice: Invoice = {
         id: `invoice-${Date.now()}`,
         ...invoiceData,
@@ -307,7 +305,6 @@ export const createInvoice = async (invoiceData: InvoiceCreateData): Promise<Inv
   } catch (error) {
 
     console.error('Error creating invoice:', error);
-    console.warn('Creating mock invoice as fallback');
     // Utiliser les mêmes calculs que dans le try
     const itemsWithIds = invoiceData.items.map((item, index) => ({
       ...item,

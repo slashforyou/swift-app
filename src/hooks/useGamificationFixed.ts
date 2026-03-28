@@ -1,4 +1,4 @@
-/**
+﻿/**
  * useGamification - Version corrigée sans useEffect problématique
  */
 import { useState } from 'react';
@@ -117,11 +117,9 @@ export const useGamificationFixed = (): UseGamificationReturn => {
         // Si niveau up, on affiche un log
         const leveledUp = levelInfo.level > data.level;
         if (leveledUp) {
-            // TEMP_DISABLED: console.log(`🎉 Level Up! Vous êtes maintenant ${levelInfo.role} niveau ${levelInfo.level}!`);
         }
         
         setData(newData);
-        // TEMP_DISABLED: console.log(`+${amount} XP: ${reason}`);
     };
 
     const updateLevel = () => {

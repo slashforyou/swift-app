@@ -1,4 +1,4 @@
-// hooks/useJobsForYear.ts
+﻿// hooks/useJobsForYear.ts
 import { useState, useEffect } from 'react';
 import { fetchJobs, JobAPI } from '../services/jobs';
 
@@ -28,12 +28,10 @@ export const useJobsForYear = (year: number): UseJobsForYearResult => {
       const startDate = new Date(year, 0, 1); // 1er janvier
       const endDate = new Date(year, 11, 31); // 31 décembre
       
-      // TEMP_DISABLED: console.log(`📅 Fetching jobs for year ${year} (${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()})`);
       
       const fetchedJobs = await fetchJobs(startDate, endDate);
       
       if (!fetchedJobs || !Array.isArray(fetchedJobs)) {
-        console.warn('⚠️ Jobs API returned invalid data:', fetchedJobs);
         setJobsByMonth({});
         setTotalJobs(0);
         return;
@@ -56,12 +54,12 @@ export const useJobsForYear = (year: number): UseJobsForYearResult => {
         totalCount++;
       });
 
-      // TEMP_DISABLED: console.log(`✅ Found ${totalCount} jobs for year ${year}, grouped in ${Object.keys(groupedByMonth).length} months`);
       
       setJobsByMonth(groupedByMonth);
       setTotalJobs(totalCount);
 
-    } catch (err) {
+    } catch (err) {
+
       const errorMessage = err instanceof Error ? err.message : 'Erreur lors du chargement des jobs de l\'année';
       console.error('❌ Error loading year jobs:', err);
       setError(errorMessage);
@@ -80,7 +78,6 @@ export const useJobsForYear = (year: number): UseJobsForYearResult => {
     if (year && year > 2000 && year < 3000) { // Sanity check
       loadJobs();
     } else {
-      console.warn('⚠️ Invalid year:', year);
       setError('Année invalide');
     }
   }, [year]);

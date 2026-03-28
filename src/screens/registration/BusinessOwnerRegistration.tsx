@@ -195,7 +195,6 @@ const BusinessOwnerRegistration: React.FC<BusinessOwnerRegistrationProps> = ({
     setIsLoading(true);
     try {
       // Step 1: Call /swift-app/subscribe with only required fields
-      console.log("[REGISTRATION] Calling /swift-app/subscribe...");
       const response = await fetch(`${ServerData.serverUrl}subscribe`, {
         method: "POST",
         headers: {
@@ -210,7 +209,6 @@ const BusinessOwnerRegistration: React.FC<BusinessOwnerRegistrationProps> = ({
       });
 
       const data = await response.json();
-      console.log("[REGISTRATION] Response:", response.status, data);
 
       if (response.status !== 200 || !data.success) {
         const errorMsg =
@@ -266,7 +264,6 @@ const BusinessOwnerRegistration: React.FC<BusinessOwnerRegistrationProps> = ({
         "@pending_business_owner_profile",
         JSON.stringify(pendingProfileData),
       );
-      console.log("[REGISTRATION] Profile data saved for later completion");
 
       // Step 3: Clear registration draft
       await clearDraft();

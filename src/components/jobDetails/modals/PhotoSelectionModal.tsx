@@ -1,4 +1,4 @@
-/**
+﻿/**
  * PhotoSelectionModal - Modal de sélection de photo avec caméra et galerie
  */
 import Ionicons from '@react-native-vector-icons/ionicons';
@@ -34,13 +34,10 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
 
     // Vérifier et demander les permissions
     const requestPermissions = async () => {
-        // TEMP_DISABLED: console.log('🔐 [DEBUG] Demande des permissions...');
         
         const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
-        // TEMP_DISABLED: console.log('📷 [DEBUG] Permission caméra:', cameraStatus);
         
         const { status: mediaLibraryStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        // TEMP_DISABLED: console.log('🖼️ [DEBUG] Permission galerie:', mediaLibraryStatus);
         
         return {
             camera: cameraStatus === 'granted',
@@ -50,12 +47,10 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
 
     // Prendre une photo avec la caméra
     const handleTakePhoto = async () => {
-        // TEMP_DISABLED: console.log('📸 [DEBUG] handleTakePhoto - DÉBUT');
         
         try {
             const permissions = await requestPermissions();
             
-            // TEMP_DISABLED: console.log('🔐 [DEBUG] Permissions reçues:', permissions);
             
             if (!permissions.camera) {
                 Alert.alert(
@@ -66,8 +61,6 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
                 return;
             }
 
-            // TEMP_DISABLED: console.log('✅ [DEBUG] Image compressée:', compressed);
-            // TEMP_DISABLED: console.log('📤 [DEBUG] Envoi au parent via onPhotoSelected...');
             
             // Lancer la caméra pour prendre une photo
             const result = await ImagePicker.launchCameraAsync({
@@ -81,11 +74,9 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
                 onPhotoSelected(photoUri);
             }
             
-            // TEMP_DISABLED: console.log('✅ [DEBUG] Photo envoyée, fermeture modal...');
             
             onClose();
             
-            // TEMP_DISABLED: console.log('✅ [DEBUG] handleTakePhoto - FIN SUCCÈS');
         } catch (error) {
 
             console.error('❌ [DEBUG] ERREUR dans handleTakePhoto:', error);
@@ -96,12 +87,10 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
 
     // Sélectionner une photo dans la galerie
     const handleSelectFromGallery = async () => {
-        // TEMP_DISABLED: console.log('🖼️ [DEBUG] handleSelectFromGallery - DÉBUT');
         
         try {
             const permissions = await requestPermissions();
             
-            // TEMP_DISABLED: console.log('🔐 [DEBUG] Permissions reçues:', permissions);
             
             if (!permissions.mediaLibrary) {
                 Alert.alert(
@@ -112,8 +101,6 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
                 return;
             }
 
-            // TEMP_DISABLED: console.log('✅ [DEBUG] Image compressée:', compressed);
-            // TEMP_DISABLED: console.log('📤 [DEBUG] Envoi au parent via onPhotoSelected...');
             
             // Ouvrir la galerie pour sélectionner une photo
             const result = await ImagePicker.launchImageLibraryAsync({
@@ -127,11 +114,9 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
                 onPhotoSelected(photoUri);
             }
             
-            // TEMP_DISABLED: console.log('✅ [DEBUG] Photo envoyée, fermeture modal...');
             
             onClose();
             
-            // TEMP_DISABLED: console.log('✅ [DEBUG] handleSelectFromGallery - FIN SUCCÈS');
         } catch (error) {
 
             console.error('❌ [DEBUG] ERREUR dans handleSelectFromGallery:', error);

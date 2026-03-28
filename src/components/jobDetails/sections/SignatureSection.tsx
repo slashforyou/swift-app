@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SignatureSection - Section modulaire pour le statut de signature
  */
 import React, { useEffect, useState } from 'react';
@@ -35,12 +35,9 @@ const SignatureSection: React.FC<SignatureSectionProps> = ({ job, onSignContract
             }
 
             try {
-                // TEMP_DISABLED: console.log('🔍 [SignatureSection] Checking signature for job:', jobId);
                 const result = await checkJobSignatureExists(jobId, 'client');
-                // TEMP_DISABLED: console.log('🔍 [SignatureSection] Signature check result:', result);
                 setSignatureFromServer(result);
             } catch (error) {
-                // TEMP_DISABLED: console.error('❌ [SignatureSection] Error checking signature:', error);
             } finally {
                 setIsLoading(false);
             }
@@ -59,7 +56,6 @@ const SignatureSection: React.FC<SignatureSectionProps> = ({ job, onSignContract
 
     // Log pour debug
     useEffect(() => {
-        // TEMP_DISABLED: console.log('🔍 [SignatureSection] isContractSigned:', {
         //     signatureFromServer: signatureFromServer.exists,
         //     localSignature: !!(job.signatureDataUrl && job.signatureFileUri),
         //     signatureBlob: !!job.signature_blob,

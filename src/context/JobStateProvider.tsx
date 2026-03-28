@@ -1,4 +1,4 @@
-/**
+﻿/**
  * JobStateProvider - Context pour la gestion de l'état du job
  * 
  * Fournit:
@@ -25,14 +25,12 @@ async function fetchJobProgressFromAPI(jobId: string): Promise<{ currentStep: nu
         });
 
         if (!response.ok) {
-            console.warn(`[syncWithAPI] API returned ${response.status} for job ${jobId}`);
             return null;
         }
 
         const data = await response.json();
         
         if (!data.success || !data.data) {
-            console.warn('[syncWithAPI] Invalid API response format');
             return null;
         }
 
@@ -82,7 +80,6 @@ export const JobStateProvider: React.FC<JobStateProviderProps> = ({
             const stored = await loadJobState(jobId);
 
             if (stored) {
-                // TEMP_DISABLED: console.log(`📦 Loaded job state from storage: step ${stored.progress.actualStep}`);
                 setJobState(stored);
             } else if (initialProgress) {
                 // Créer un nouvel état avec les données initiales
@@ -95,7 +92,6 @@ export const JobStateProvider: React.FC<JobStateProviderProps> = ({
                     isDirty: false,
                 };
                 
-                // TEMP_DISABLED: console.log(`📦 Created new job state: step ${newState.progress.actualStep}`);
                 setJobState(newState);
                 await saveJobState(newState);
             } else {
@@ -114,7 +110,6 @@ export const JobStateProvider: React.FC<JobStateProviderProps> = ({
                     isDirty: false,
                 };
                 
-                // TEMP_DISABLED: console.log(`📦 Created default job state (no stored/initial progress)`);
                 setJobState(defaultState);
                 await saveJobState(defaultState);
             }
@@ -135,7 +130,6 @@ export const JobStateProvider: React.FC<JobStateProviderProps> = ({
             case 'SET_STEP': {
                 const newStep = action.payload;
                 if (newStep < 1 || newStep > state.progress.totalSteps) {
-                    console.warn(`Invalid step: ${newStep}`);
                     return state;
                 }
 
@@ -153,7 +147,6 @@ export const JobStateProvider: React.FC<JobStateProviderProps> = ({
             case 'NEXT_STEP': {
                 const nextStep = state.progress.actualStep + 1;
                 if (nextStep > state.progress.totalSteps) {
-                    console.warn('Already at last step');
                     return state;
                 }
 
@@ -171,7 +164,6 @@ export const JobStateProvider: React.FC<JobStateProviderProps> = ({
             case 'PREV_STEP': {
                 const prevStep = state.progress.actualStep - 1;
                 if (prevStep < 1) {
-                    console.warn('Already at first step');
                     return state;
                 }
 
@@ -304,7 +296,6 @@ export const JobStateProvider: React.FC<JobStateProviderProps> = ({
         setJobState(newState);
         await saveJobState(newState);
         
-        // TEMP_DISABLED: console.log(`📦 Job state updated: ${action.type}, step ${newState.progress.actualStep}`);
     };
 
     // Actions exposées au contexte
@@ -332,17 +323,14 @@ export const JobStateProvider: React.FC<JobStateProviderProps> = ({
         if (!jobState) return;
 
         try {
-            console.log('📡 [syncWithAPI] Syncing job state with API for job:', jobId);
             
             // ✅ Appeler l'API pour récupérer l'état actuel du job
             const apiData = await fetchJobProgressFromAPI(jobId);
             
             if (!apiData) {
-                console.warn('📡 [syncWithAPI] Could not fetch job progress from API');
                 return;
             }
 
-            console.log('📡 [syncWithAPI] API data received:', apiData);
 
             // ✅ Créer la progression à partir des données de l'API
             const apiProgress: JobProgress = {
@@ -355,7 +343,6 @@ export const JobStateProvider: React.FC<JobStateProviderProps> = ({
 
             // ✅ Dispatcher la synchronisation
             await dispatch({ type: 'SYNC_WITH_API', payload: apiProgress });
-            console.log('✅ [syncWithAPI] Job state synced with API');
         } catch (err) {
             console.error('❌ [syncWithAPI] Error syncing with API:', err);
             setError(err instanceof Error ? err.message : 'Sync failed');

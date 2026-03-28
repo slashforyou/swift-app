@@ -34,6 +34,10 @@ const pendingAssignmentsEndpoint = async (req, res) => {
            jtransfers.requested_offsiders,
            jtransfers.pricing_amount,
            jtransfers.pricing_type,
+           jtransfers.hour_counting_type,
+           jtransfers.delegated_role,
+           jtransfers.delegated_role_label,
+           jtransfers.vehicle_label,
            jtransfers.message AS transfer_message,
            cl.first_name AS client_first_name,
            cl.last_name  AS client_last_name
@@ -62,6 +66,10 @@ const pendingAssignmentsEndpoint = async (req, res) => {
            jtransfers.requested_offsiders,
            jtransfers.pricing_amount,
            jtransfers.pricing_type,
+           jtransfers.hour_counting_type,
+           jtransfers.delegated_role,
+           jtransfers.delegated_role_label,
+           jtransfers.vehicle_label,
            jtransfers.message AS transfer_message,
            cl.first_name AS client_first_name,
            cl.last_name  AS client_last_name
@@ -98,6 +106,10 @@ const pendingAssignmentsEndpoint = async (req, res) => {
       pricing_amount:
         row.pricing_amount != null ? Number(row.pricing_amount) : null,
       pricing_type: row.pricing_type || null,
+      hour_counting_type: row.hour_counting_type || null,
+      delegated_role: row.delegated_role || null,
+      delegated_role_label: row.delegated_role_label || null,
+      vehicle_label: row.vehicle_label || null,
       transfer_message: row.transfer_message || null,
     }));
 

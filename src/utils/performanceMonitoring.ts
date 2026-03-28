@@ -84,7 +84,6 @@ class PerformanceMonitor {
         };
         
         this.marks.set(name, mark);
-        console.log(`⏱️ [PERF] Mark: ${name}`);
     }
     
     /**
@@ -99,7 +98,6 @@ class PerformanceMonitor {
             : { timestamp: Date.now(), name: 'now', context: undefined };
         
         if (!startMark || !endMark) {
-            console.warn(`⚠️ [PERF] Mark not found: start="${startMarkName}", end="${endMarkName || 'now'}"`);
             return null;
         }
         
@@ -123,7 +121,6 @@ class PerformanceMonitor {
             context: measure.context,
         });
         
-        console.log(`📊 [PERF] Measure: ${name} = ${duration}ms`);
         
         return duration;
     }
@@ -153,7 +150,6 @@ class PerformanceMonitor {
         const startupTime = this.measure('time_to_interactive', 'app_start', 'app_interactive');
         
         if (startupTime && startupTime > this.thresholds.appStart) {
-            console.warn(`⚠️ [PERF] Slow app startup: ${startupTime}ms (threshold: ${this.thresholds.appStart}ms)`);
         }
     }
     
@@ -178,7 +174,6 @@ class PerformanceMonitor {
         );
         
         if (renderTime && renderTime > this.thresholds.screenRender) {
-            console.warn(`⚠️ [PERF] Slow screen render: ${screenName} = ${renderTime}ms (threshold: ${this.thresholds.screenRender}ms)`);
         }
     }
     
@@ -211,7 +206,6 @@ class PerformanceMonitor {
         const duration = this.measure(`navigation_${from}_to_${to}`, markName);
         
         if (duration && duration > this.thresholds.navigation) {
-            console.warn(`⚠️ [PERF] Slow navigation: ${from} → ${to} = ${duration}ms`);
         }
     }
     
@@ -237,7 +231,6 @@ class PerformanceMonitor {
             analytics.trackAPICall(endpoint, method, duration, 200);
             
             if (duration > this.thresholds.apiCall) {
-                console.warn(`⚠️ [PERF] Slow API: ${method} ${endpoint} = ${duration}ms`);
             }
             
             return result;
@@ -261,7 +254,6 @@ class PerformanceMonitor {
         });
         
         if (mountTime > this.thresholds.componentMount) {
-            console.warn(`⚠️ [PERF] Slow component mount: ${componentName} = ${mountTime}ms`);
         }
     }
     

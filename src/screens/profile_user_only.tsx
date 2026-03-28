@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+﻿import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import {
@@ -98,7 +98,6 @@ const ProfileScreen: React.FC = () => {
 
   // Update form data when profile loads
   React.useEffect(() => {
-    // TEMP_DISABLED: console.log('🔍 [PROFILE SCREEN] useEffect - Profile changed:', {
       // hasProfile: !!profile,
       // profileData: profile ? {
         // id: profile.id,

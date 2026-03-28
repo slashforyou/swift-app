@@ -74,11 +74,9 @@ const JobStepAdvanceModal: React.FC<JobStepAdvanceModalProps> = ({
       const stepConfig = jobSteps.find((s) => s.id === stepId);
       const stepName = stepConfig?.name || `Étape ${stepId}`;
 
-      console.log(`🔄 [MODAL] Advancing to step ${stepId}: ${stepName}`);
 
       await onAdvanceStep(stepId); // ✅ Passer directement l'ID (pas d'offset)
 
-      console.log(`✅ [MODAL] Successfully advanced to step ${stepId}`);
       showSuccess(
         t("jobDetails.components.stepAdvanceModal.stepUpdated"),
         t("jobDetails.components.stepAdvanceModal.stepUpdatedMessage", {

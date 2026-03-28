@@ -133,7 +133,6 @@ export const useGamification = (): UseGamificationReturn => {
     const addXP = (_amount: number, _reason: string) => {
         // L'XP est maintenant géré par le backend
         // Cette fonction peut déclencher un refetch si nécessaire
-        console.log('ℹ️ addXP appelé - L\'XP est géré par le backend, refetch des données...');
         loadGamificationData();
     };
 

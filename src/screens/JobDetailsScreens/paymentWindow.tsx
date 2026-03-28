@@ -298,7 +298,6 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
   };
 
   const handleCardPayment = async () => {
-    console.log("🎯 [PaymentSheet] Starting payment process...");
 
     updateState({ isProcessing: true, step: "processing" });
 
@@ -306,7 +305,6 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
       // ✅ 1. Extraire le jobId
       const jobData = job?.job || job;
       const jobId = jobData?.id;
-      console.log(`🔍 [PaymentSheet] Extracted jobId: ${jobId}`);
 
       if (!jobId) {
         throw new Error(t("payment.errors.jobIdNotFound"));
@@ -317,9 +315,6 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
       // ✅ Pré-check: s'assigner si nécessaire pour éviter 404 "Job introuvable"
       await ensureJobAssignment(jobData);
 
-      console.log(
-        `💳 [PaymentSheet] Creating Payment Intent for job ${jobId}, amount: ${paymentAmount} AUD`,
-      );
 
       // ✅ 2. Créer le PaymentIntent côté backend
       // ⚠️ NE PAS multiplier par 100 - le backend le fait déjà
@@ -329,42 +324,19 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
         description: `Paiement job ${job?.title || jobId}`,
       });
 
-      console.log(
-        `✅ [PaymentSheet] Payment Intent created: ${paymentIntent.payment_intent_id}`,
-      );
-      console.log(
-        `🔑 [PaymentSheet] Client Secret received: ${paymentIntent.client_secret?.substring(0, 30)}...`,
-      );
 
       // ✅ 2.5. CRITIQUE - Réinitialiser Stripe avec le Connected Account
       if (paymentIntent.stripe_account_id) {
-        console.log(
-          `🔗 [PaymentSheet] Connected Account detected: ${paymentIntent.stripe_account_id}`,
-        );
-        console.log(
-          "🔄 [PaymentSheet] Reinitializing Stripe SDK with Connected Account...",
-        );
 
         await initStripe({
           publishableKey: STRIPE_PUBLISHABLE_KEY,
           stripeAccountId: paymentIntent.stripe_account_id, // ← OBLIGATOIRE pour Stripe Connect
         });
 
-        console.log(
-          "✅ [PaymentSheet] Stripe SDK reinitialized with Connected Account",
-        );
       } else {
-        console.warn(
-          "⚠️ [PaymentSheet] No stripe_account_id in response - using platform account",
-        );
       }
 
       // ✅ 3. Initialiser le PaymentSheet
-      console.log("💳 [PaymentSheet] Initializing PaymentSheet...");
-      console.log(
-        "🔑 [PaymentSheet] Using client_secret:",
-        paymentIntent.client_secret?.substring(0, 30) + "...",
-      );
 
       const { error: initError } = await initPaymentSheet({
         paymentIntentClientSecret: paymentIntent.client_secret,
@@ -392,16 +364,13 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
         throw new Error(initError.message);
       }
 
-      console.log("✅ [PaymentSheet] Initialized successfully");
 
       // ✅ 4. Présenter le PaymentSheet (modal natif)
-      console.log("💳 [PaymentSheet] Presenting PaymentSheet...");
       const { error: presentError } = await presentPaymentSheet();
 
       if (presentError) {
         // L'utilisateur a annulé ou erreur
         if (presentError.code === "Canceled") {
-          console.log("⚠️ [PaymentSheet] User canceled payment");
           updateState({ isProcessing: false, step: "method" });
           return;
         }
@@ -409,12 +378,8 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
         throw new Error(presentError.message);
       }
 
-      console.log("✅ [PaymentSheet] Payment confirmed by user!");
 
       // ✅ 5. Confirmer le paiement côté backend
-      console.log(
-        `💳 [PaymentSheet] Confirming payment in backend: ${paymentIntent.payment_intent_id}`,
-      );
 
       const confirmResult = await jobPayment.confirmPayment(
         jobId,
@@ -422,10 +387,6 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
         "succeeded", // PaymentSheet garantit que le paiement a réussi
       );
 
-      console.log(
-        `✅ [PaymentSheet] Payment confirmed successfully!`,
-        confirmResult,
-      );
 
       // ✅ 6. Mettre à jour le job avec les nouvelles données
       // Merger avec les données existantes pour éviter de perdre client/addresses
@@ -443,13 +404,8 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
       try {
         const jobData = job?.job || job;
         if (jobData?.client?.email) {
-          console.log("📧 [PaymentSheet] Sending invoice to client...");
           await sendInvoiceWithConfirmation(jobData, t);
-          console.log("✅ [PaymentSheet] Invoice sent successfully");
         } else {
-          console.warn(
-            "⚠️ [PaymentSheet] No client email found, skipping invoice",
-          );
         }
       } catch (invoiceError) {
         console.error(
@@ -509,29 +465,10 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
             ? "virement"
             : "autre";
 
-      console.log("💰 [PaymentWindow] Starting offline payment process...");
-      console.log(
-        "🔍 [PaymentWindow DEBUG OFFLINE] job prop:",
-        JSON.stringify(
-          {
-            hasJob: !!job,
-            hasJobJob: !!job?.job,
-            jobId: job?.id,
-            jobJobId: job?.job?.id,
-            jobCode: job?.code,
-            jobJobCode: job?.job?.code,
-          },
-          null,
-          2,
-        ),
-      );
 
       // ✅ SESSION 10 FIX: Utiliser le vrai ID numérique, pas le code
       const jobData = job?.job || job;
       const jobId = jobData?.id; // ID numérique (ex: 29)
-      console.log(
-        `🔍 [PaymentWindow OFFLINE] Extracted jobId: ${jobId} (type: ${typeof jobId})`,
-      );
 
       if (!jobId) {
         throw new Error("ID du job non trouvé");
@@ -542,9 +479,6 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
       // ✅ Pré-check: s'assigner si nécessaire pour éviter 404 "Job introuvable"
       await ensureJobAssignment(jobData);
 
-      console.log(
-        `💰 [PaymentWindow] Recording offline payment (${methodLabel}), job ${jobId}`,
-      );
 
       const offlinePayload = {
         payment_status: "paid",
@@ -570,13 +504,8 @@ const PaymentWindow: React.FC<PaymentWindowProps> = ({
       try {
         const jobData = job?.job || job;
         if (jobData?.client?.email) {
-          console.log("📧 [PaymentWindow] Sending invoice to client...");
           await sendInvoiceWithConfirmation(jobData, t);
-          console.log("✅ [PaymentWindow] Invoice sent successfully");
         } else {
-          console.warn(
-            "⚠️ [PaymentWindow] No client email found, skipping invoice",
-          );
         }
       } catch (invoiceError) {
         console.error(

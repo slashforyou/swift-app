@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+﻿import { useCallback, useEffect, useState } from 'react';
 import { fetchJobs } from '../services/jobs';
 import { createStripeInvoice } from '../services/StripeService';
 
@@ -100,12 +100,10 @@ export const useJobsBilling = (): UseJobsBillingResult => {
       const startOfYear = new Date(now.getFullYear(), 0, 1);
       const endOfYear = new Date(now.getFullYear(), 11, 31);
       
-      // TEMP_DISABLED: console.log(`📋 [useJobsBilling] Fetching jobs for billing from ${startOfYear.toLocaleDateString()} to ${endOfYear.toLocaleDateString()}`);
       
       const apiJobs = await fetchJobs(startOfYear, endOfYear);
       
       if (!apiJobs || !Array.isArray(apiJobs)) {
-        console.warn('⚠️ [useJobsBilling] Invalid API response:', apiJobs);
         setJobs([]);
         return;
       }
@@ -116,7 +114,6 @@ export const useJobsBilling = (): UseJobsBillingResult => {
         .map(convertToJobBilling)
         .sort((a, b) => new Date(b.time.startWindowStart).getTime() - new Date(a.time.startWindowStart).getTime());
 
-      // TEMP_DISABLED: console.log(`✅ [useJobsBilling] Loaded ${billingJobs.length} jobs for billing`);
       setJobs(billingJobs);
 
     } catch (err) {
@@ -176,7 +173,6 @@ export const useJobsBilling = (): UseJobsBillingResult => {
         )
       );
       
-      // TEMP_DISABLED: console.log(`✅ [useJobsBilling] Invoice created for job ${jobId}`);
     } catch (err) {
 
       console.error('❌ [useJobsBilling] Error creating invoice:', err);
@@ -186,7 +182,6 @@ export const useJobsBilling = (): UseJobsBillingResult => {
 
   const processRefund = async (jobId: string, amount: number) => {
     try {
-      // TEMP_DISABLED: console.log(`💸 [useJobsBilling] Processing refund of ${amount} for job ${jobId}`);
       
       // Simuler le traitement du remboursement
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -209,7 +204,6 @@ export const useJobsBilling = (): UseJobsBillingResult => {
         })
       );
       
-      // TEMP_DISABLED: console.log(`✅ [useJobsBilling] Refund processed for job ${jobId}`);
     } catch (err) {
 
       console.error('❌ [useJobsBilling] Error processing refund:', err);

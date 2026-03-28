@@ -108,10 +108,6 @@ export async function ensureSession() {
         } catch (fetchError) {
           // Network timeout (AbortError) or connectivity issue — fail-open when token exists
           // Avoids logging out the user on temporary network issues (e.g. during screen transitions)
-          console.warn(
-            "⚠️ [Session] fetchMe network error, keeping session:",
-            fetchError,
-          );
           return {
             authenticated: true,
             user: { authenticated: true },
@@ -187,16 +183,12 @@ export async function ensureSession() {
         if (detectedToken) {
           // Fail-open: token exists but check timed out — stay authenticated
           // Prevents false sign-out on slow networks or screen transitions
-          console.warn(
-            "⚠️ [Session] Timeout with token present — staying authenticated",
-          );
           resolve({
             authenticated: true,
             user: { authenticated: true },
             reason: "timeout" as const,
           });
         } else {
-          console.warn("⚠️ [Session] ensureSession timed out after 8 seconds");
           resolve({
             authenticated: false,
             user: null,

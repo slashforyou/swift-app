@@ -405,7 +405,6 @@ export default function PaymentDetailModal({
                       text: "Open Stripe Dashboard",
                       onPress: () => {
                         // Note: Linking.openURL would require import
-                        console.log("Navigate to Stripe Dashboard");
                       },
                     },
                   ],

@@ -49,7 +49,6 @@ export const MIGRATION_MAP = {
  * Convertit l'ancien format DESIGN_TOKENS vers le nouveau
  */
 export const migrateOldDesignTokens = (oldTokens: any) => {
-  console.warn('[Design System] Utilisation d\'anciens design tokens détectée. Migrez vers le nouveau système centralisé.');
   
   return {
     spacing: MIGRATION_MAP.spacing,
@@ -64,7 +63,6 @@ export const migrateOldDesignTokens = (oldTokens: any) => {
  * @deprecated Utilisez directement les tokens du design system
  */
 export const useLegacyDesignTokens = () => {
-  console.warn('[Design System] useLegacyDesignTokens est déprécié. Utilisez les tokens du design system directement.');
   return MIGRATION_MAP;
 };
 

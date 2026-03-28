@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Client Page - Format profil avec avatar, nom en avant et actions rapides
  * Conforme aux normes mobiles iOS/Android - Touch targets ≥44pt, 8pt grid
  */
@@ -143,7 +143,6 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
   // ✅ SYNC: Synchroniser job state avec jobDetails.job (notamment signature_blob)
   useEffect(() => {
     if (jobDetails?.job) {
-      // TEMP_DISABLED: console.log('🔄 [JobClient] Syncing job state with jobDetails:', {
       //     hasSignatureInContext: !!jobDetails.job.signature_blob,
       //     hasSignatureInState: !!job?.signature_blob,
       //     signatureDate: jobDetails.job.signature_date
@@ -171,16 +170,12 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
   ]);
 
   const handleSignContract = () => {
-    // TEMP_DISABLED: console.log('🖋️ [JobClient] handleSignContract called - Opening signature modal');
     setIsSigningVisible(true);
   };
 
   // Fonction pour charger les données client étendues depuis l'API
   const loadExtendedClientData = useCallback(async () => {
     if (!job?.client_id) {
-      console.log(
-        "👤 [JobClient] loadExtendedClientData: no client_id, skipping",
-      );
       return;
     }
 
@@ -189,30 +184,11 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
       const loggedIn = await isLoggedIn();
 
       if (loggedIn) {
-        console.log(
-          "👤 [JobClient] Fetching extended client data for ID:",
-          job.client_id,
-        );
         const result = await fetchClientById(job.client_id);
-        console.log("👤 [JobClient] Extended client data received:", {
-          hasData: !!result,
-          firstName: result?.firstName,
-          lastName: result?.lastName,
-          phone: !!result?.phone,
-          email: !!result?.email,
-          keys: result ? Object.keys(result) : [],
-        });
         setExtendedClientData(result);
       } else {
-        console.log(
-          "👤 [JobClient] Not logged in, skipping extended client fetch",
-        );
       }
     } catch (error: any) {
-      console.warn(
-        "⚠️ [JobClient] Error loading extended client data:",
-        error?.message || error,
-      );
       // En cas d'erreur, on continue avec les données de base du job
     } finally {
       setIsLoadingClient(false);
@@ -231,12 +207,6 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
     const extended = extendedClientData;
 
     if (!extended) {
-      console.log("👤 [JobClient] clientData: using job.client only", {
-        firstName: base?.firstName,
-        lastName: base?.lastName,
-        phone: !!base?.phone,
-        email: !!base?.email,
-      });
       return base;
     }
 
@@ -248,13 +218,6 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
       }
     }
 
-    console.log("👤 [JobClient] clientData: merged extended + base", {
-      firstName: merged?.firstName,
-      lastName: merged?.lastName,
-      phone: !!merged?.phone,
-      email: !!merged?.email,
-      source: "merged",
-    });
 
     return merged;
   }, [extendedClientData, job.client]);
@@ -327,14 +290,6 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
   }, [company, address, notes]);
 
   // 🔍 DIAGNOSTIC
-  console.log("👤 [JobClient] render:", {
-    fullName,
-    phone: !!phone,
-    email: !!email,
-    actionsCount: actions.length,
-    secondaryCount: secondaryDetails.length,
-    isLoading: isLoadingClient,
-  });
 
   return (
     <>
@@ -488,7 +443,6 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
           isVisible={isSigningVisible}
           setIsVisible={setIsSigningVisible}
           onSave={(signature: any) => {
-            // TEMP_DISABLED: console.log('Signature saved:', signature);
           }}
           job={job}
           setJob={setJob}

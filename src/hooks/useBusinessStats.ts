@@ -1,4 +1,4 @@
-/**
+﻿/**
  * useBusinessStats - Hook pour les statistiques business avec API réelle
  * Remplace les données mock par de vraies données API
  */
@@ -272,7 +272,6 @@ export const useBusinessStats = (): UseBusinessStatsReturn => {
 
     try {
       if (USE_MOCK_BUSINESS_STATS) {
-        // TEMP_DISABLED: console.log('📊 [BUSINESS STATS] Using mock overview stats');
         await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate API delay
         setOverviewStats(mockOverviewStats);
       } else {
@@ -290,7 +289,6 @@ export const useBusinessStats = (): UseBusinessStatsReturn => {
 
       if (__DEV__) {
         // Fallback vers les données mock en développement uniquement
-        // TEMP_DISABLED: console.log('📊 [BUSINESS STATS] Using mock data as fallback for overview in DEV');
         setOverviewStats(mockOverviewStats);
       } else {
         setOverviewStats(null);
@@ -308,7 +306,6 @@ export const useBusinessStats = (): UseBusinessStatsReturn => {
 
     try {
       if (USE_MOCK_BUSINESS_STATS) {
-        // TEMP_DISABLED: console.log('📊 [BUSINESS STATS] Using mock performance metrics');
         await new Promise((resolve) => setTimeout(resolve, 500));
         setPerformanceMetrics(mockPerformanceMetrics);
       } else {
@@ -329,7 +326,6 @@ export const useBusinessStats = (): UseBusinessStatsReturn => {
 
       if (__DEV__) {
         // Fallback vers les données mock en développement uniquement
-        // TEMP_DISABLED: console.log('📊 [BUSINESS STATS] Using mock data as fallback for performance in DEV');
         setPerformanceMetrics(mockPerformanceMetrics);
       } else {
         setPerformanceMetrics(null);
@@ -354,11 +350,9 @@ export const useBusinessStats = (): UseBusinessStatsReturn => {
 
       try {
         if (USE_MOCK_BUSINESS_STATS) {
-          // TEMP_DISABLED: console.log(`📊 [BUSINESS STATS] Using mock trend data for period: ${period}`);
           await new Promise((resolve) => setTimeout(resolve, 500));
           setTrendData({ ...mockTrendData, period });
         } else {
-          // TEMP_DISABLED: console.log(`📊 [BUSINESS STATS] Loading real trend data from API for period: ${period}`);
           const trends = await fetchBusinessTrendData(period);
           setTrendData(trends);
         }
@@ -373,7 +367,6 @@ export const useBusinessStats = (): UseBusinessStatsReturn => {
 
         if (__DEV__) {
           // Fallback vers les données mock en développement uniquement
-          // TEMP_DISABLED: console.log('📊 [BUSINESS STATS] Using mock data as fallback for trends in DEV');
           setTrendData({ ...mockTrendData, period });
         } else {
           // En production, on ne masque pas les erreurs API
@@ -394,7 +387,6 @@ export const useBusinessStats = (): UseBusinessStatsReturn => {
 
     try {
       if (USE_MOCK_BUSINESS_STATS) {
-        // TEMP_DISABLED: console.log('📊 [BUSINESS STATS] Using mock regional stats');
         await new Promise((resolve) => setTimeout(resolve, 500));
         setRegionalStats(mockRegionalStats);
       } else {
@@ -412,7 +404,6 @@ export const useBusinessStats = (): UseBusinessStatsReturn => {
 
       if (__DEV__) {
         // Fallback vers les données mock en développement uniquement
-        // TEMP_DISABLED: console.log('📊 [BUSINESS STATS] Using mock data as fallback for regional in DEV');
         setRegionalStats(mockRegionalStats);
       } else {
         setRegionalStats(null);
@@ -430,7 +421,6 @@ export const useBusinessStats = (): UseBusinessStatsReturn => {
 
     try {
       if (USE_MOCK_BUSINESS_STATS) {
-        // TEMP_DISABLED: console.log('📊 [BUSINESS STATS] Using mock competitive analysis');
         await new Promise((resolve) => setTimeout(resolve, 500));
         setCompetitiveAnalysis(mockCompetitiveAnalysis);
       } else {
@@ -451,7 +441,6 @@ export const useBusinessStats = (): UseBusinessStatsReturn => {
 
       if (__DEV__) {
         // Fallback vers les données mock en développement uniquement
-        // TEMP_DISABLED: console.log('📊 [BUSINESS STATS] Using mock data as fallback for competitive in DEV');
         setCompetitiveAnalysis(mockCompetitiveAnalysis);
       } else {
         setCompetitiveAnalysis(null);
@@ -466,7 +455,6 @@ export const useBusinessStats = (): UseBusinessStatsReturn => {
   // ===========================
 
   const loadAllStats = useCallback(async () => {
-    // TEMP_DISABLED: console.log('📊 [BUSINESS STATS] Loading all business statistics...');
     await Promise.all([
       loadOverviewStats(),
       loadPerformanceMetrics(),
@@ -474,7 +462,6 @@ export const useBusinessStats = (): UseBusinessStatsReturn => {
       loadRegionalStats(),
       loadCompetitiveAnalysis(),
     ]);
-    // TEMP_DISABLED: console.log('✅ [BUSINESS STATS] All statistics loaded successfully');
   }, [
     loadOverviewStats,
     loadPerformanceMetrics,
@@ -488,7 +475,6 @@ export const useBusinessStats = (): UseBusinessStatsReturn => {
       if (!USE_MOCK_BUSINESS_STATS) {
         // Déclencher le refresh côté backend
         await refreshBusinessStats();
-        // TEMP_DISABLED: console.log('✅ [BUSINESS STATS] Backend refresh initiated');
 
         // Attendre un délai pour laisser le backend recalculer
         await new Promise((resolve) => setTimeout(resolve, 2000));

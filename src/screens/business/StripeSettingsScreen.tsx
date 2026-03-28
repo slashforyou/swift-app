@@ -74,15 +74,7 @@ export default function StripeSettingsScreen({
   // ✅ Log pour debug: vérifier quel compte Stripe est chargé
   React.useEffect(() => {
     if (account) {
-      console.log("🔍 [StripeSettings] Compte Stripe chargé:", {
-        stripe_account_id: account.stripe_account_id,
-        business_name: account.business_name,
-        country: account.country,
-        charges_enabled: account.charges_enabled,
-        payouts_enabled: account.payouts_enabled,
-      });
     } else if (!isLoading) {
-      console.log("⚠️ [StripeSettings] Aucun compte Stripe trouvé");
     }
   }, [account, isLoading]);
 

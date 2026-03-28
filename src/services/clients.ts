@@ -90,7 +90,6 @@ export async function fetchClients(): Promise<ClientAPI[]> {
     return response.clients;
   }
 
-  console.warn("[fetchClients] Unexpected response format:", response);
   return [];
 }
 

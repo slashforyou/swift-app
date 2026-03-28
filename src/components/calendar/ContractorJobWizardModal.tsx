@@ -208,9 +208,9 @@ export const ContractorJobWizardModal: React.FC<
       if (selectedStaffIds.length > 0) {
         await Promise.all(
           selectedStaffIds.map((staffId) =>
-            assignStaffToJob(job.id, staffId).catch(() =>
-              console.warn(`⚠️ Impossible d'assigner ${staffId}`),
-            ),
+            assignStaffToJob(job.id, staffId).catch(() => {
+              // Silently handle individual assignment failures
+            }),
           ),
         );
       }
@@ -792,7 +792,17 @@ export const ContractorJobWizardModal: React.FC<
             <View style={styles.infoCard}>
               {/* Proposition – description du rôle */}
               {job.transfer?.delegated_role ? (
-                <View style={[styles.infoRow, { backgroundColor: colors.primaryLight || '#EEF2FF', borderRadius: DESIGN_TOKENS.borderRadius.md, padding: 10, marginBottom: 8 }]}>
+                <View
+                  style={[
+                    styles.infoRow,
+                    {
+                      backgroundColor: colors.primaryLight || "#EEF2FF",
+                      borderRadius: DESIGN_TOKENS.borderRadius.md,
+                      padding: 10,
+                      marginBottom: 8,
+                    },
+                  ]}
+                >
                   <Ionicons
                     name="briefcase-outline"
                     size={20}
@@ -812,7 +822,8 @@ export const ContractorJobWizardModal: React.FC<
                           ? "Être offsider"
                           : job.transfer.delegated_role === "full_job"
                             ? "Job entier délégué"
-                            : job.transfer.delegated_role_label || "Rôle personnalisé"}
+                            : job.transfer.delegated_role_label ||
+                              "Rôle personnalisé"}
                     </Text>
                   </View>
                 </View>
@@ -933,7 +944,8 @@ export const ContractorJobWizardModal: React.FC<
                   />
                   <View>
                     <Text style={styles.infoLabel}>
-                      {t("contractorWizard.hourCountingLabel") || "Comptage des heures"}
+                      {t("contractorWizard.hourCountingLabel") ||
+                        "Comptage des heures"}
                     </Text>
                     <Text style={styles.infoValue}>
                       {job.transfer.hour_counting_type === "depot_to_depot"

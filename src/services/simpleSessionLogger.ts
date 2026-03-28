@@ -1,4 +1,4 @@
-// src/services/simpleSessionLogger.ts
+﻿// src/services/simpleSessionLogger.ts
 import { Platform } from "react-native";
 
 interface LogEntry {
@@ -52,11 +52,9 @@ class SimpleSessionLogger {
         console.warn(consoleMsg, entry.data);
         break;
       case "INFO":
-        // TEMP_DISABLED: console.log(consoleMsg, entry.data);
         break;
       case "DEBUG":
         if (__DEV__)
-          // TEMP_DISABLED: console.log(consoleMsg, entry.data);
           break;
     }
   }

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * JobTimerProvider - Context centralisé pour la gestion du timer
  * Partage le même état de timer entre toutes les pages (summary, job, payment)
  *
@@ -6,13 +6,13 @@
  */
 
 import React, {
-    createContext,
-    ReactNode,
-    useCallback,
-    useContext,
-    useEffect,
-    useMemo,
-    useRef,
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
 } from "react";
 import { calculateTotalSteps } from "../constants/JobStepsConfig";
 import { JobTimerData, useJobTimer } from "../hooks/useJobTimer";
@@ -113,48 +113,28 @@ export const JobTimerProvider: React.FC<JobTimerProviderProps> = ({
   // ✅ NOUVEAU: Arrêter le timer automatiquement si le job est completed
   useEffect(() => {
     if (jobStatus === "completed" && timer.isRunning) {
-      // TEMP_DISABLED: console.log('🛑 [JobTimerProvider] Job completed detected, stopping timer');
       timer.togglePause(); // Mettre en pause
     }
   }, [jobStatus, timer.isRunning, timer.togglePause]);
 
   // ✅ Helper pour avancer à l'étape suivante
   const nextStep = useCallback(() => {
-    console.log("⏭️ [TIMER_ACTION] nextStep called", {
-      jobId: safeJobId,
-      currentStep: timer.currentStep,
-      targetStep: timer.currentStep + 1,
-      safeTotalSteps,
-      timerIsRunning: timer.isRunning,
-      timerDataExists: !!timer.timerData,
-    });
     try {
       if (timer.currentStep < safeTotalSteps) {
         const newStep = timer.currentStep + 1;
-        console.log("🔄 [TIMER_ACTION] Advancing step...", {
-          from: timer.currentStep,
-          to: newStep,
-        });
         isInternalUpdateRef.current = true; // ✅ Marquer comme update interne
         timer.advanceStep(newStep);
 
         // Notifier le parent (jobDetails) du changement d'étape
         if (onStepChange) {
-          console.log("📢 [TIMER_ACTION] Notifying parent of step change");
           onStepChange(newStep);
         }
-
-        console.log("✅ [TIMER_ACTION] Step advanced to", newStep);
 
         // Reset après un court délai
         setTimeout(() => {
           isInternalUpdateRef.current = false;
         }, 100);
       } else {
-        console.log("⚠️ [TIMER_ACTION] Cannot advance, already at last step", {
-          currentStep: timer.currentStep,
-          safeTotalSteps,
-        });
       }
     } catch (error) {
       console.error("❌ [TIMER_ACTION] Error in nextStep:", error);
@@ -173,11 +153,6 @@ export const JobTimerProvider: React.FC<JobTimerProviderProps> = ({
 
   // ✅ Helper pour arrêter le timer (dernière étape)
   const stopTimer = useCallback(() => {
-    console.log("🛑 [TIMER_ACTION] stopTimer called", {
-      jobId: safeJobId,
-      currentStep: timer.currentStep,
-      targetStep: safeTotalSteps,
-    });
     try {
       timerLogger.sync("toContext", safeTotalSteps);
       isInternalUpdateRef.current = true; // ✅ Marquer comme update interne
@@ -185,11 +160,8 @@ export const JobTimerProvider: React.FC<JobTimerProviderProps> = ({
 
       // Notifier le parent
       if (onStepChange) {
-        console.log("📢 [TIMER_ACTION] Notifying parent of job completion");
         onStepChange(safeTotalSteps);
       }
-
-      console.log("✅ [TIMER_ACTION] Timer stopped");
 
       // Reset après un court délai
       setTimeout(() => {
@@ -211,25 +183,14 @@ export const JobTimerProvider: React.FC<JobTimerProviderProps> = ({
   // ✅ Wrapper pour advanceStep avec notification
   const advanceStepWithCallback = useCallback(
     (step: number) => {
-      console.log("⏭️ [TIMER_ACTION] advanceStepWithCallback called", {
-        jobId: safeJobId,
-        currentStep: timer.currentStep,
-        targetStep: step,
-      });
       try {
         isInternalUpdateRef.current = true; // ✅ Marquer comme update interne
         timer.advanceStep(step);
 
         // Notifier le parent du changement d'étape
         if (onStepChange) {
-          console.log(
-            "📢 [TIMER_ACTION] Notifying parent of step change to",
-            step,
-          );
           onStepChange(step);
         }
-
-        console.log("✅ [TIMER_ACTION] Step advanced to", step);
 
         // Reset après un court délai
         setTimeout(() => {
@@ -275,9 +236,6 @@ export const JobTimerProvider: React.FC<JobTimerProviderProps> = ({
       currentStep > timer.currentStep &&
       timer.isRunning
     ) {
-      console.log(
-        `🔄 [JobTimerProvider] SYNCING step from ${timer.currentStep} to ${currentStep}`,
-      );
       timerLogger.sync("toContext", currentStep);
       timer.advanceStep(currentStep);
       lastSyncedStepRef.current = currentStep;
@@ -308,16 +266,11 @@ export const JobTimerProvider: React.FC<JobTimerProviderProps> = ({
             breakHours,
             isRunning: timer.isRunning,
           })
-            .then((response) => {
-              if (response?.success) {
-                console.log("✅ [JobTimerProvider] Auto-sync timer successful");
-              }
+            .then(() => {
+              // Sync success — no action needed
             })
             .catch((error) => {
-              console.warn(
-                "⚠️ [JobTimerProvider] Auto-sync timer failed:",
-                error,
-              );
+              // Non-critical: periodic sync failure, will retry
             });
         }
       }, 30000); // 30 seconds

@@ -1,4 +1,4 @@
-// hooks/useJobsForMonth.ts
+﻿// hooks/useJobsForMonth.ts
 import { useState, useEffect } from 'react';
 import { fetchJobs, JobAPI } from '../services/jobs';
 
@@ -26,34 +26,26 @@ export const useJobsForMonth = (year: number, month: number): UseJobsForMonthRes
       const startDate = new Date(year, month - 1, 1);
       const endDate = new Date(year, month, 0); // Dernier jour du mois
       
-      // TEMP_DISABLED: console.log(`📅 Fetching jobs for ${month}/${year} (${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()})`);
       
       const fetchedJobs = await fetchJobs(startDate, endDate);
       
       // 🔍 DIAGNOSTIC: Analyser ce qu'on a reçu
-      // TEMP_DISABLED: console.log('🔍 [useJobsForMonth] fetchedJobs type:', typeof fetchedJobs);
-      // TEMP_DISABLED: console.log('🔍 [useJobsForMonth] fetchedJobs is array:', Array.isArray(fetchedJobs));
-      // TEMP_DISABLED: console.log('🔍 [useJobsForMonth] fetchedJobs length:', fetchedJobs?.length);
-      // TEMP_DISABLED: console.log('🔍 [useJobsForMonth] fetchedJobs content:', JSON.stringify(fetchedJobs, null, 2));
       
       if (!fetchedJobs || !Array.isArray(fetchedJobs)) {
-        console.warn('⚠️ Jobs API returned invalid data:', fetchedJobs);
         setJobs([]);
         return;
       }
 
       // L'API calendar-days retourne déjà les jobs filtrés par période
       if (!fetchedJobs || !Array.isArray(fetchedJobs)) {
-        console.warn('⚠️ Calendar API returned invalid data:', fetchedJobs);
         setJobs([]);
         return;
       }
 
-      // TEMP_DISABLED: console.log(`✅ Found ${fetchedJobs.length} jobs for ${month}/${year}`);
-      // TEMP_DISABLED: console.log('🔍 Jobs data:', JSON.stringify(fetchedJobs, null, 2));
       setJobs(fetchedJobs);
 
-    } catch (err) {
+    } catch (err) {
+
       let errorMessage = 'Erreur lors du chargement des jobs du mois';
       
       if (err instanceof Error) {
@@ -82,13 +74,10 @@ export const useJobsForMonth = (year: number, month: number): UseJobsForMonthRes
   };
 
   useEffect(() => {
-    // TEMP_DISABLED: console.log('🔍 [useJobsForMonth] useEffect triggered with:', { year, month });
     
     if (year && month && month >= 1 && month <= 12) {
-      // TEMP_DISABLED: console.log('🔍 [useJobsForMonth] Valid parameters, loading jobs...');
       loadJobs();
     } else {
-      console.warn('⚠️ Invalid year or month:', { year, month });
       setError('Année ou mois invalide');
     }
   }, [year, month]);

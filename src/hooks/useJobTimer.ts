@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Hook pour gérer le chronométrage des jobs
  * Persiste les données entre les sessions et calcule les temps par étape
  */
@@ -6,25 +6,25 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-    completeJob,
-    getTimerFromBackend,
-    syncStepToBackend,
-    updateJobStep,
+  completeJob,
+  getTimerFromBackend,
+  syncStepToBackend,
+  updateJobStep,
 } from "../services/jobSteps";
 import { timerLogger } from "../utils/logger";
 
 // ✅ Import du service de pricing centralisé
 import {
-    DEFAULT_PRICING_CONFIG,
-    PricingService,
-    type JobPricingConfig,
-    type PricingResult,
+  DEFAULT_PRICING_CONFIG,
+  PricingService,
+  type JobPricingConfig,
+  type PricingResult,
 } from "../services/pricing";
 
 // ✅ Imports depuis la configuration centralisée des steps
 import {
-    calculateTotalSteps,
-    generateStepsFromAddresses,
+  calculateTotalSteps,
+  generateStepsFromAddresses,
 } from "../constants/JobStepsConfig";
 
 // ✅ FIX SESSION 10: Ajouter realJobId comme paramètre optionnel
@@ -151,13 +151,11 @@ export const useJobTimer = (
   const loadTimerData = useCallback(async () => {
     // ✅ FIX BOUCLE INFINIE: Éviter les chargements multiples
     if (isLoadingRef.current) {
-      console.log("⏳ [useJobTimer] Already loading, skipping...");
       return;
     }
 
     // ✅ FIX: Si déjà chargé pour ce job, ne pas recharger
     if (hasLoadedRef.current && lastJobIdRef.current === jobId) {
-      console.log("✅ [useJobTimer] Already loaded for this job, skipping...");
       return;
     }
 
@@ -171,10 +169,6 @@ export const useJobTimer = (
 
       if (backendResponse.success && backendResponse.data?.timer) {
         const backendTimer = backendResponse.data.timer;
-        console.log(
-          "✅ [useJobTimer] Timer restored from backend:",
-          backendTimer,
-        );
 
         // Convertir les heures backend en données locales
         const now = Date.now();
@@ -206,7 +200,6 @@ export const useJobTimer = (
       }
 
       // Fallback: Charger depuis AsyncStorage si backend échoue
-      console.log("📱 [useJobTimer] Falling back to local storage");
       const storedData = await AsyncStorage.getItem(TIMER_STORAGE_KEY);
 
       // ✅ FIX: Utiliser la ref pour éviter les dépendances
@@ -222,13 +215,6 @@ export const useJobTimer = (
             stepValue > 1 &&
             (!jobTimer.startTime || jobTimer.startTime === 0)
           ) {
-            console.warn(
-              `⚠️ [useJobTimer] INCOHÉRENCE DÉTECTÉE: Job à l'étape ${stepValue}/5 mais timer jamais démarré (startTime = ${jobTimer.startTime})`,
-            );
-            console.warn(
-              "⚠️ [useJobTimer] Auto-correction: Démarrage automatique du timer pour synchroniser les données",
-            );
-
             // Auto-start timer avec timestamp rétroactif (estimé)
             const now = Date.now();
             const estimatedStartTime = now - 24 * 60 * 60 * 1000; // 24h avant (estimation)
@@ -255,9 +241,7 @@ export const useJobTimer = (
 
             // Sync to API - utiliser updateJobStep pour démarrer
             updateJobStep(jobId, 1, "Timer auto-started", options?.realJobId)
-              .then(() => {
-                // TEMP_DISABLED: console.log('✅ [useJobTimer] Timer auto-started and synced to API');
-              })
+              .then(() => {})
               .catch(() =>
                 console.error(
                   "❌ [useJobTimer] Failed to sync auto-started timer",
@@ -348,9 +332,7 @@ export const useJobTimer = (
 
     // ✅ FIX: Synchroniser le démarrage avec updateJobStep
     updateJobStep(jobId, 1, "Timer started", options?.realJobId)
-      .then(() => {
-        // TEMP_DISABLED: console.log('✅ [useJobTimer] Timer started and synced to API');
-      })
+      .then(() => {})
       .catch(() => {
         console.error("❌ [useJobTimer] Failed to sync timer start");
       });
@@ -400,18 +382,8 @@ export const useJobTimer = (
       // ✅ FIX: Permettre l'avancement même si le timer n'est pas en cours
       // On vérifie seulement que timerData existe, pas qu'il soit running
       if (!timerData) {
-        console.warn(
-          "⚠️ [useJobTimer] advanceStep called but timerData is null",
-        );
         return;
       }
-
-      console.log("🔄 [useJobTimer] advanceStep called", {
-        newStep,
-        currentStep: timerData.currentStep,
-        isRunning: timerData.isRunning,
-        totalSteps,
-      });
 
       const now = Date.now();
       const updatedStepTimes = [...timerData.stepTimes];
@@ -477,9 +449,7 @@ export const useJobTimer = (
       if (isLastStep) {
         // Si c'est la dernière étape, compléter le job
         completeJob(jobId, options?.realJobId)
-          .then(() => {
-            // TEMP_DISABLED: console.log('✅ [useJobTimer] Job completed and synced to API');
-          })
+          .then(() => {})
           .catch(() => {
             console.error("❌ [useJobTimer] Failed to sync job completion");
           });
@@ -488,12 +458,8 @@ export const useJobTimer = (
         syncStepToBackend(jobId, newStep, options?.realJobId)
           .then((response) => {
             if (response.success) {
-              console.log(`✅ [useJobTimer] Step ${newStep} synced to backend`);
             } else {
               // Fallback sur l'ancienne API si la nouvelle échoue
-              console.warn(
-                "⚠️ [useJobTimer] syncStepToBackend failed, using fallback",
-              );
               updateJobStep(
                 jobId,
                 newStep,
@@ -510,7 +476,9 @@ export const useJobTimer = (
               newStep,
               `Avancé à l'étape ${newStep}`,
               options?.realJobId,
-            ).catch(() => {});
+            ).catch(() => {
+              /* Fire-and-forget fallback */
+            });
           });
       }
     },
@@ -571,8 +539,6 @@ export const useJobTimer = (
   const togglePause = useCallback(() => {
     if (!timerData) return;
 
-    // TEMP_DISABLED: console.log('🔄 [togglePause] Current state:', { isRunning: timerData.isRunning, isOnBreak: timerData.isOnBreak });
-
     const now = Date.now();
 
     if (timerData.isRunning) {
@@ -585,7 +551,6 @@ export const useJobTimer = (
         totalElapsed: elapsedMs, // Freeze le temps
       };
 
-      // TEMP_DISABLED: console.log('⏸️ [togglePause] PAUSE - Freezing at:', elapsedMs / 1000, 'seconds');
       setTimerData(updatedData);
       saveTimerData(updatedData);
     } else {
@@ -597,7 +562,6 @@ export const useJobTimer = (
         startTime: newStartTime, // Ajuster pour reprendre au bon moment
       };
 
-      // TEMP_DISABLED: console.log('▶️ [togglePause] PLAY - Resuming from:', timerData.totalElapsed / 1000, 'seconds');
       setTimerData(updatedData);
       saveTimerData(updatedData);
     }

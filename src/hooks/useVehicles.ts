@@ -469,7 +469,6 @@ export function useVehicleDetails(vehicleId: string): UseVehicleDetailsReturn {
           createdAt: new Date().toISOString(),
         };
         setMaintenanceHistory(prev => [newRecord, ...prev]);
-        console.warn('[useVehicleDetails] Maintenance API not available - stored locally only');
         return newRecord;
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la création';

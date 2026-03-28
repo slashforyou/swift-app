@@ -1,4 +1,4 @@
-// Modern month calendar screen with enhanced UX, job indicators, and modern design
+﻿// Modern month calendar screen with enhanced UX, job indicators, and modern design
 
 import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback, useMemo, useState } from "react";
@@ -185,7 +185,6 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
   );
 
   // Debug logs pour suivre l'état des jobs
-  // TEMP_DISABLED: console.log('🔍 [MONTH SCREEN] Component state:', {
   // selectedYear,
   // selectedMonth: selectedMonthIndex + 1,
   // jobsCount: jobs.length,
@@ -265,7 +264,6 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
 
   // Calculate month statistics
   const monthStats = useMemo(() => {
-    // TEMP_DISABLED: console.log('🔍 [MONTH STATS] Calculating stats for', jobs.length, 'jobs');
     let totalJobs = 0;
     let urgentJobs = 0;
     let completedJobs = 0;
@@ -285,7 +283,6 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
       }
     }
 
-    // TEMP_DISABLED: console.log('🔍 [MONTH STATS] Result:', { totalJobs, urgentJobs, completedJobs });
     return { totalJobs, urgentJobs, completedJobs };
   }, [selectedMonthIndex, selectedYear, daysInMonth, jobs]);
 

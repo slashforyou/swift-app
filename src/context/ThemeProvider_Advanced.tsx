@@ -286,7 +286,6 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
       } catch (error) {
 
-        console.warn('Failed to load theme from storage:', error);
       }
     };
 
@@ -309,7 +308,6 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       await AsyncStorage.setItem(STORAGE_KEY, mode);
     } catch (error) {
 
-      console.warn('Failed to save theme to storage:', error);
     }
   };
 

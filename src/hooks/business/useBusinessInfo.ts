@@ -79,11 +79,6 @@ export const useBusinessInfo = (): UseBusinessInfoReturn => {
         const userDataStr = await SecureStore.getItemAsync("user_data");
         if (userDataStr) {
           const userData = JSON.parse(userDataStr);
-          console.log("[useBusinessInfo] User data loaded:", {
-            hasCompany: !!userData.company,
-            company_id: userData.company_id,
-            company_role: userData.company_role,
-          });
 
           // Si l'utilisateur a une company dans son profil, l'utiliser
           if (userData.company && userData.company_id) {
@@ -101,10 +96,6 @@ export const useBusinessInfo = (): UseBusinessInfoReturn => {
               updated_at: new Date().toISOString(),
             };
 
-            console.log(
-              "[useBusinessInfo] Using business from user profile:",
-              businessFromProfile,
-            );
             setBusinesses([businessFromProfile]);
             setCurrentBusiness(businessFromProfile);
             setIsLoading(false);
@@ -124,26 +115,18 @@ export const useBusinessInfo = (): UseBusinessInfoReturn => {
               const stats = await fetchBusinessStats(businessFromProfile.id);
               setBusinessStats(stats);
             } catch (statsError) {
-              console.warn(
-                "[useBusinessInfo] Could not load business stats:",
-                statsError,
-              );
+              // Non-critical: stats fetch is optional
             }
 
             return;
           }
         }
       } catch (userDataError) {
-        console.warn(
-          "[useBusinessInfo] Could not load user data from SecureStore:",
-          userDataError,
-        );
+        // Fallback: continues to API fetch below
       }
 
       // Sinon, essayer l'API
-      console.log("[useBusinessInfo] Fetching from API...");
       const businesses = await fetchBusinessList();
-      console.log("[useBusinessInfo] Fetched businesses:", businesses);
       setBusinesses(businesses);
 
       // Charger les stats depuis l'API avec fallback
@@ -152,10 +135,6 @@ export const useBusinessInfo = (): UseBusinessInfoReturn => {
           const stats = await fetchBusinessStats(businesses[0].id);
           setBusinessStats(stats);
         } catch (statsError) {
-          console.warn(
-            "[useBusinessInfo] Could not load business stats:",
-            statsError,
-          );
           // Les stats par défaut sont gérées dans le service avec fallback
         }
       }

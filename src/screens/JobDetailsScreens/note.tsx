@@ -61,10 +61,6 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob, jobId }) => {
   // ✅ Marquer automatiquement toutes les notes comme lues quand on ouvre la page
   useEffect(() => {
     if (unreadCount > 0) {
-      console.log(
-        "📖 [JobNote] Marking all notes as read on mount, unreadCount:",
-        unreadCount,
-      );
       markAllAsRead();
     }
   }, []); // Exécuter seulement au montage du composant
@@ -202,15 +198,6 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob, jobId }) => {
 
   // Ouvrir le modal d'édition
   const openEditModal = (note: JobNoteAPI) => {
-    console.log("📝 [note.tsx] Opening edit modal with:", {
-      id: note.id,
-      title: note.title,
-      titleExists: !!note.title,
-      content: note.content?.substring(0, 50),
-      contentExists: !!note.content,
-      type: note.note_type,
-      fullNote: note, // Log complet pour voir la structure
-    });
     setEditingNote(note);
     setIsNoteModalVisible(true);
     setSelectedNoteMenu(null);

@@ -1,4 +1,4 @@
-// Modern day screen with enhanced UX, loading states, filters, and animations
+﻿// Modern day screen with enhanced UX, loading states, filters, and animations
 
 import JobBox from "@/src/components/calendar/modernJobBox";
 import Ionicons from "@react-native-vector-icons/ionicons";
@@ -90,8 +90,6 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
   );
 
   // Debug logs
-  // TEMP_DISABLED: console.log(`🏠 DayScreen Hook Results - Date: ${selectedDay}/${selectedMonth}/${selectedYear}`);
-  // TEMP_DISABLED: console.log(`📊 Hook State - isLoading: ${isLoading}, error: ${error}, jobs: ${jobs.length}, filteredJobs: ${filteredJobs.length}`);
 
   // Format date for display - utilise la langue courante
   const formattedDate = useMemo(() => {
@@ -638,9 +636,6 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
             showsVerticalScrollIndicator={false}
           >
             {(() => {
-              // TEMP_DISABLED: console.log(`🔍 Day Screen Render - isLoading: ${isLoading}, jobs: ${jobs.length}, filteredJobs: ${filteredJobs.length}`);
-              // TEMP_DISABLED: console.log('📋 Jobs data:', JSON.stringify(jobs, null, 2));
-              // TEMP_DISABLED: console.log('🔽 Filtered jobs:', JSON.stringify(filteredJobs, null, 2));
               return null;
             })()}
 

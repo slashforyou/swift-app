@@ -50,6 +50,7 @@ interface JobPageProps {
   isVisible?: boolean;
   onAssignStaff?: () => void;
   onVehicleUpdated?: (vehicle: any) => void;
+  onRefresh?: () => void;
 }
 
 interface ItemRowProps {
@@ -489,7 +490,12 @@ const ItemRow: React.FC<ItemRowProps> = ({
   );
 };
 
-const JobPage: React.FC<JobPageProps> = ({ job, setJob, isVisible = true }) => {
+const JobPage: React.FC<JobPageProps> = ({
+  job,
+  setJob,
+  isVisible = true,
+  onRefresh,
+}) => {
   const { colors } = useTheme();
   const { t } = useLocalization();
   const [showAddItemModal, setShowAddItemModal] = useState(false);
@@ -527,9 +533,6 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob, isVisible = true }) => {
 
     // Synchroniser avec l'API si l'item a un ID et n'est pas temporaire
     if (item.id && !item.isTemp) {
-      // TEMP_DISABLED: console.log(`[handleItemToggle] DEBUG - Item structure:`, JSON.stringify(item, null, 2));
-      // TEMP_DISABLED: console.log(`[handleItemToggle] DEBUG - itemIndex: ${itemIndex}, item.id: "${item.id}" (type: ${typeof item.id})`);
-      // TEMP_DISABLED: console.log(`[handleItemToggle] Job ID: ${numericJobId}, Item ID: ${item.id}`);
 
       const itemKey = `${itemIndex}-${item.id}`;
       setSyncingItems((prev) => new Set(prev).add(itemKey));
@@ -539,7 +542,6 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob, isVisible = true }) => {
           is_checked: checked,
           completedQuantity: item.completedQuantity || 0,
         });
-        // TEMP_DISABLED: console.log(`[handleItemToggle] Successfully updated item ${item.id} in API`);
       } catch (error) {
         console.error(
           `[handleItemToggle] Failed to update item ${item.id} in API:`,
@@ -553,7 +555,6 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob, isVisible = true }) => {
         });
       }
     } else {
-      // TEMP_DISABLED: console.log(`[handleItemToggle] Item has no ID or is temporary, skipping API sync`);
     }
   };
 
@@ -567,9 +568,6 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob, isVisible = true }) => {
 
     // Synchroniser avec l'API si l'item a un ID et n'est pas temporaire
     if (item.id && !item.isTemp) {
-      // TEMP_DISABLED: console.log(`[handleQuantitySync] DEBUG - Item structure:`, JSON.stringify(item, null, 2));
-      // TEMP_DISABLED: console.log(`[handleQuantitySync] DEBUG - itemIndex: ${itemIndex}, item.id: "${item.id}" (type: ${typeof item.id})`);
-      // TEMP_DISABLED: console.log(`[handleQuantitySync] Job ID: ${numericJobId}, Item ID: ${item.id}, Quantity: ${completedQuantity}`);
 
       const itemKey = `${itemIndex}-${item.id}`;
       setSyncingItems((prev) => new Set(prev).add(itemKey));
@@ -579,7 +577,6 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob, isVisible = true }) => {
           completedQuantity,
           is_checked: item.item_checked || item.checked || false,
         });
-        // TEMP_DISABLED: console.log(`[handleQuantitySync] Successfully updated quantity for item ${item.id} in API`);
       } catch (error) {
         console.error(
           `[handleQuantitySync] Failed to update quantity for item ${item.id} in API:`,
@@ -593,7 +590,6 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob, isVisible = true }) => {
         });
       }
     } else {
-      // TEMP_DISABLED: console.log(`[handleQuantitySync] Item has no ID or is temporary, skipping API sync`);
     }
   };
 
@@ -614,7 +610,6 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob, isVisible = true }) => {
 
   const handleAddItem = async (name: string, quantity: number) => {
     try {
-      // TEMP_DISABLED: console.log(`[handleAddItem] Using numeric job ID: ${numericJobId} (from ${job.id})`);
 
       await addJobItem(numericJobId, { name, quantity });
 
@@ -640,7 +635,6 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob, isVisible = true }) => {
       console.error("Error adding item via API:", error);
 
       // Fallback: ajouter localement même si l'API échoue
-      // TEMP_DISABLED: console.log('Falling back to local addition');
       const updatedJob = { ...job };
       if (!updatedJob.items) {
         updatedJob.items = [];
@@ -821,7 +815,11 @@ const JobPage: React.FC<JobPageProps> = ({ job, setJob, isVisible = true }) => {
         <JobPhotosSection jobId={numericJobId} isVisible={isVisible} />
 
         {/* ═══ Ressources ═══ */}
-        <StaffingSection job={job} />
+        <StaffingSection
+          job={job}
+          activeTransfer={job.active_transfer}
+          onJobRefresh={onRefresh}
+        />
 
         {/* ═══ Company Details ═══ */}
         <CompanyDetailsSection job={job} />

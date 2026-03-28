@@ -25,22 +25,15 @@ export const useClients = (): UseClientsReturn => {
 
       // Vérifier si l'utilisateur est connecté
       const loggedIn = await isLoggedIn();
-      console.log("🔍 [useClients] User logged in:", loggedIn);
 
       if (!loggedIn) {
-        console.warn("⚠️ [useClients] User not logged in");
         setError("Vous devez être connecté pour voir les clients.");
         setClients([]);
         return;
       }
 
       // Utiliser l'API réelle
-      console.log("📡 [useClients] Fetching clients from API...");
       const apiClients = await fetchClients();
-      console.log(
-        `✅ [useClients] Received ${apiClients?.length || 0} clients:`,
-        JSON.stringify(apiClients, null, 2),
-      );
 
       if (!Array.isArray(apiClients)) {
         console.error(

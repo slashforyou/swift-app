@@ -16,21 +16,17 @@ const PENDING_PROFILE_KEY = "@pending_business_owner_profile";
  * @returns API response with businessOwnerId and stripe details
  */
 export async function completeBusinessOwnerProfile(sessionToken: string) {
-  console.log("[BUSINESS_OWNER] Starting profile completion...");
 
   // Get pending profile data from AsyncStorage
   const pendingDataStr = await AsyncStorage.getItem(PENDING_PROFILE_KEY);
 
   if (!pendingDataStr) {
-    console.log("[BUSINESS_OWNER] No pending profile data found");
     throw new Error("No pending profile data found");
   }
 
   const profileData = JSON.parse(pendingDataStr);
-  console.log("[BUSINESS_OWNER] Loaded profile data from storage");
 
   // Call API endpoint
-  console.log("[BUSINESS_OWNER] Calling /business-owner/complete-profile...");
   const response = await fetch(
     `${ServerData.serverUrl}business-owner/complete-profile`,
     {
@@ -44,12 +40,10 @@ export async function completeBusinessOwnerProfile(sessionToken: string) {
   );
 
   const data = await response.json();
-  console.log("[BUSINESS_OWNER] Response:", response.status, data);
 
   if (response.status === 200 && data.success) {
     // Success: remove pending data
     await AsyncStorage.removeItem(PENDING_PROFILE_KEY);
-    console.log("[BUSINESS_OWNER] ✅ Profile completed successfully");
     return data;
   } else {
     // Error: keep data for retry
@@ -85,5 +79,4 @@ export async function getPendingProfile() {
  */
 export async function clearPendingProfile() {
   await AsyncStorage.removeItem(PENDING_PROFILE_KEY);
-  console.log("[BUSINESS_OWNER] Pending profile data cleared");
 }

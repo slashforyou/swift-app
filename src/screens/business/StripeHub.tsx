@@ -1,4 +1,4 @@
-/**
+﻿/**
  * StripeHub - Hub de gestion des paiements Stripe
  * Remplace JobsBillingScreen avec une interface moderne pour Stripe
  */
@@ -107,16 +107,7 @@ export default function StripeHub({
   // ✅ Log au chargement pour vérifier le compte Stripe
   React.useEffect(() => {
     if (stripeAccount.account) {
-      console.log("✅ [StripeHub] Compte Stripe initial:", {
-        accountId: stripeAccount.account.stripe_account_id,
-        businessName: stripeAccount.account.business_name,
-        country: stripeAccount.account.country,
-        currency: stripeAccount.account.default_currency,
-        chargesEnabled: stripeAccount.account.charges_enabled,
-        payoutsEnabled: stripeAccount.account.payouts_enabled,
-      });
     } else if (!stripeAccount.loading) {
-      console.log("⚠️ [StripeHub] Aucun compte Stripe trouvé");
     }
   }, [stripeAccount.account, stripeAccount.loading]);
 
@@ -199,12 +190,6 @@ export default function StripeHub({
 
       // ✅ Log après refresh pour vérifier le compte
       if (stripeAccount.account) {
-        console.log("✅ [StripeHub] Compte Stripe chargé:", {
-          accountId: stripeAccount.account.stripe_account_id,
-          businessName: stripeAccount.account.business_name,
-          country: stripeAccount.account.country,
-          currency: stripeAccount.account.default_currency,
-        });
       }
     } catch (error) {
       console.error("❌ [StripeHub] Error refreshing Stripe data:", error);
@@ -231,8 +216,6 @@ export default function StripeHub({
   );
 
   const handleCompleteProfile = async () => {
-    console.log("🟡 [StripeHub] handleCompleteProfile appelé!");
-    console.log("🔍 [StripeHub] mainNavigation disponible:", !!mainNavigation);
 
     if (!mainNavigation) {
       console.error("❌ [StripeHub] mainNavigation est undefined!");
@@ -244,7 +227,6 @@ export default function StripeHub({
     }
 
     try {
-      console.log("🔄 [StripeHub] Reprise de l'onboarding Stripe...");
 
       const businessType = resolveBusinessType(
         stripeAccount.account?.business_type ||
@@ -256,12 +238,10 @@ export default function StripeHub({
         businessType,
       );
 
-      console.log("🚀 [StripeHub] Navigation vers StripeOnboarding...");
       // Navigation vers le stack d'onboarding
       mainNavigation.navigate("StripeOnboarding", {
         screen: startStep,
       });
-      console.log("✅ [StripeHub] Navigation réussie!");
     } catch (error) {
       console.error("❌ [StripeHub] Error:", error);
       Alert.alert(t("common.error"), t("stripe.hub.errorLoadingForm"));
@@ -280,7 +260,6 @@ export default function StripeHub({
           style: "destructive",
           onPress: async () => {
             try {
-              console.log("🗑️ [StripeHub] Deleting account...");
               await deleteStripeAccount();
 
               // Recharger les données
@@ -298,9 +277,6 @@ export default function StripeHub({
   };
 
   const handleStripeConnect = async () => {
-    console.log("🔵 [StripeHub] handleStripeConnect appelé!");
-    console.log("🔍 [StripeHub] mainNavigation disponible:", !!mainNavigation);
-    console.log("🔍 [StripeHub] Compte existant:", accountId);
 
     if (!mainNavigation) {
       console.error("❌ [StripeHub] mainNavigation est undefined!");
@@ -312,12 +288,8 @@ export default function StripeHub({
     }
 
     try {
-      console.log("🔧 [StripeHub] Démarrage de l'onboarding Stripe natif...");
       // Si un compte existe déjà, naviguer directement sans créer de compte
       if (accountId) {
-        console.log(
-          "⚠️ [StripeHub] Compte existant détecté, navigation directe vers onboarding",
-        );
         const businessType = resolveBusinessType(
           stripeAccount.account?.business_type ||
             stripeAccount.account?.businessType,
@@ -338,17 +310,11 @@ export default function StripeHub({
       // Appel API pour démarrer l'onboarding (créer nouveau compte)
       const result = await startStripeOnboarding("company");
 
-      console.log("✅ [StripeHub] Onboarding démarré:", {
-        stripeAccountId: result.stripeAccountId,
-        progress: result.progress,
-      });
 
-      console.log("🚀 [StripeHub] Navigation vers StripeOnboarding...");
       // Navigation vers le stack d'onboarding
       mainNavigation.navigate("StripeOnboarding", {
         screen: "Welcome",
       });
-      console.log("✅ [StripeHub] Navigation réussie!");
     } catch (error) {
       console.error("❌ [StripeHub] Error:", error);
       Alert.alert(
@@ -361,7 +327,6 @@ export default function StripeHub({
   };
 
   const handleViewPayments = () => {
-    // TEMP_DISABLED: console.log('Navigate to payments list')
     // Navigation vers la liste des paiements
     if (navigation?.navigate) {
       navigation.navigate("PaymentsList");
@@ -369,7 +334,6 @@ export default function StripeHub({
   };
 
   const handleViewPayouts = () => {
-    // TEMP_DISABLED: console.log('Navigate to payouts')
     // Navigation vers les payouts
     if (navigation?.navigate) {
       navigation.navigate("Payouts");
@@ -559,22 +523,9 @@ export default function StripeHub({
     const isOnboardingComplete = hasAccount && !hasMissingRequirements;
 
     // 🔍 DEBUG: Voir la vraie valeur
-    console.log("🔍 [renderOnboardingScreen] DEBUG:");
-    console.log("  - stripeAccount.account:", stripeAccount.account);
-    console.log(
-      "  - stripe_account_id:",
-      stripeAccount.account?.stripe_account_id,
-    );
-    console.log("  - accountId:", stripeAccount.account?.accountId);
-    console.log("  - hasAccount:", hasAccount);
-    console.log("  - isOnboardingComplete:", isOnboardingComplete);
-    console.log("  - accountInfo:", accountInfo);
 
     // ✅ CAS 0: Compte complet → Retourner null pour afficher le dashboard
     if (hasAccount && isOnboardingComplete) {
-      console.log(
-        "✅ [renderOnboardingScreen] Compte complet, affichage du dashboard",
-      );
       return null;
     }
 
@@ -1857,21 +1808,9 @@ export default function StripeHub({
     stripeAccount.account?.chargesEnabled
   );
 
-  console.log("🔍 [StripeHub] Display logic:", {
-    accountExists,
-    isAccountActive,
-    details_submitted: stripeAccount.account?.details_submitted,
-    charges_enabled:
-      stripeAccount.account?.charges_enabled ||
-      stripeAccount.account?.chargesEnabled,
-    payouts_enabled:
-      stripeAccount.account?.payouts_enabled ||
-      stripeAccount.account?.payoutsEnabled,
-  });
 
   // Cas 1: Compte existe ET paiements activés → Dashboard complet
   if (accountExists && isAccountActive) {
-    console.log("✅ [StripeHub] Affichage du dashboard complet");
     return (
       <>
         {renderConnectedScreen()}
@@ -1890,7 +1829,6 @@ export default function StripeHub({
   }
 
   // Cas 2: Pas de compte OU onboarding incomplet → Afficher renderOnboardingScreen
-  console.log("⚠️ [StripeHub] Affichage du screen d'onboarding");
   const onboardingScreen = renderOnboardingScreen();
 
   // Si renderOnboardingScreen retourne null (ne devrait pas arriver), afficher dashboard par défaut

@@ -1,4 +1,4 @@
-// services/jobDetails.ts
+﻿// services/jobDetails.ts
 import { ServerData } from "../constants/ServerData";
 import { authenticatedFetch } from "../utils/auth";
 import { getMockJobDetails } from "./jobDetailsMockData";
@@ -288,9 +288,6 @@ export interface JobMedia {
 export async function fetchJobDetails(
   jobId: string,
 ): Promise<JobDetailsComplete> {
-  // TEMP_DISABLED: console.log('🔍 [JOB DETAILS] === FETCHING COMPLETE JOB DATA ===');
-  // TEMP_DISABLED: console.log('🔍 [JOB DETAILS] Job ID:', jobId);
-  // TEMP_DISABLED: console.log('🔍 [JOB DETAILS] USE_MOCK_DATA:', USE_MOCK_DATA);
 
   // Mode développement avec données mock
   if (USE_MOCK_DATA) {
@@ -298,7 +295,6 @@ export async function fetchJobDetails(
   }
 
   try {
-    // TEMP_DISABLED: console.log('🔍 [JOB DETAILS] Using optimized calendar-days endpoint...');
 
     // D'abord, récupérer le job de base pour avoir sa date
     const jobResponse = await authenticatedFetch(`${API}v1/job/${jobId}`, {
@@ -310,7 +306,6 @@ export async function fetchJobDetails(
     }
 
     const basicJobData = await jobResponse.json();
-    // TEMP_DISABLED: console.log('🔍 [JOB DETAILS] Basic job data received:', { id: basicJobData.id, scheduledDate: basicJobData.scheduledDate });
 
     // Utiliser la date du job pour récupérer toutes les données complètes via calendar-days
     const jobDate = new Date(
@@ -330,7 +325,6 @@ export async function fetchJobDetails(
       endDate: formatDate(jobDate),
     };
 
-    // TEMP_DISABLED: console.log('� [JOB DETAILS] Fetching complete job data via calendar-days for date:', formatDate(jobDate));
 
     const calendarResponse = await authenticatedFetch(`${API}calendar-days`, {
       method: "POST",
@@ -338,16 +332,12 @@ export async function fetchJobDetails(
     });
 
     if (!calendarResponse.ok) {
-      console.warn(
-        "⚠️ Calendar-days failed, falling back to individual endpoints",
-      );
       return await fetchJobDetailsClassic(jobId);
     }
 
     const calendarData = await calendarResponse.json();
     const jobs = calendarData.jobs || calendarData || [];
 
-    // TEMP_DISABLED: console.log('✅ [JOB DETAILS] Calendar-days response received, jobs count:', jobs.length);
 
     // Trouver notre job spécifique dans la réponse
     const targetJob = jobs.find(
@@ -355,14 +345,9 @@ export async function fetchJobDetails(
     );
 
     if (!targetJob) {
-      console.warn(
-        "⚠️ Job not found in calendar-days response, falling back to individual endpoints",
-      );
       return await fetchJobDetailsClassic(jobId);
     }
 
-    // TEMP_DISABLED: console.log('🎯 [JOB DETAILS] Target job found in calendar response:', targetJob.title || targetJob.name);
-    // TEMP_DISABLED: console.log('🎯 [JOB DETAILS] Full targetJob structure:', JSON.stringify(targetJob, null, 2));
 
     // Normaliser les données complètes reçues de calendar-days
     const completeJobDetails: JobDetailsComplete = {
@@ -379,14 +364,12 @@ export async function fetchJobDetails(
       addresses: (targetJob.addresses || []).map(normalizeJobAddress), // Ajouter le support des adresses
     };
 
-    // TEMP_DISABLED: console.log('🔍 [JOB DETAILS] ✅ Complete job details assembled from calendar-days successfully');
     return completeJobDetails;
   } catch (error) {
     console.error(
       "❌ [JOB DETAILS] Error fetching job details via calendar-days:",
       error,
     );
-    // TEMP_DISABLED: console.log('🔄 [JOB DETAILS] Falling back to classic endpoint approach...');
     return await fetchJobDetailsClassic(jobId);
   }
 }
@@ -632,7 +615,6 @@ export async function updateJobInfo(
   jobId: string,
   updates: Partial<JobInfo>,
 ): Promise<JobInfo> {
-  // TEMP_DISABLED: console.log('🔄 [JOB DETAILS] Updating job info:', jobId, updates);
 
   const response = await authenticatedFetch(`${API}v1/job/${jobId}`, {
     method: "PATCH",
@@ -644,7 +626,6 @@ export async function updateJobInfo(
   }
 
   const updatedJob = await response.json();
-  // TEMP_DISABLED: console.log('✅ [JOB DETAILS] Job updated successfully');
 
   return normalizeJobInfo(updatedJob);
 }
@@ -667,7 +648,6 @@ export async function addJobNote(
   }
 
   const newNote = await response.json();
-  // TEMP_DISABLED: console.log('✅ [JOB DETAILS] Note added successfully');
 
   return normalizeJobNote(newNote);
 }
@@ -687,7 +667,6 @@ export async function performJobAction(
     throw new Error(`Failed to ${action} job: ${response.status}`);
   }
 
-  // TEMP_DISABLED: console.log(`✅ [JOB DETAILS] Job ${action} completed successfully`);
 }
 
 /**
@@ -696,7 +675,6 @@ export async function performJobAction(
 async function fetchJobDetailsClassic(
   jobId: string,
 ): Promise<JobDetailsComplete> {
-  // TEMP_DISABLED: console.log('🔍 [JOB DETAILS] === CLASSIC ENDPOINT APPROACH ===');
 
   try {
     const [
@@ -732,7 +710,6 @@ async function fetchJobDetailsClassic(
       }).catch(() => null), // Optionnel
     ]);
 
-    // TEMP_DISABLED: console.log('🔍 [JOB DETAILS] API calls completed');
 
     // Parsing des données de base du job
     if (!jobResponse?.ok) {
@@ -740,19 +717,16 @@ async function fetchJobDetailsClassic(
     }
 
     const jobData = await jobResponse.json();
-    // TEMP_DISABLED: console.log('🔍 [JOB DETAILS] Job data received:', { id: jobData.id, title: jobData.title });
 
     // Maintenant récupérer les données du client avec l'ID client
     let clientData = null;
     if (jobData.clientId) {
-      // TEMP_DISABLED: console.log('🔍 [JOB DETAILS] Fetching client data for ID:', jobData.clientId);
       const clientResp = await authenticatedFetch(
         `${API}v1/client/${jobData.clientId}`,
         { method: "GET" },
       );
       if (clientResp.ok) {
         clientData = await clientResp.json();
-        // TEMP_DISABLED: console.log('🔍 [JOB DETAILS] Client data received:', clientData.name);
       }
     }
 
@@ -773,8 +747,6 @@ async function fetchJobDetailsClassic(
       mediaResponse?.ok ? mediaResponse.json() : { media: [] },
     ]);
 
-    // TEMP_DISABLED: console.log('🔍 [JOB DETAILS] All data parsed successfully');
-    // TEMP_DISABLED: console.log('🔍 [JOB DETAILS] Data summary:', {
     // jobTitle: jobData.title,
     // clientName: clientData?.name || 'Unknown',
     // crewCount: crewData.crew?.length || 0,
@@ -802,7 +774,6 @@ async function fetchJobDetailsClassic(
         : [],
     };
 
-    // TEMP_DISABLED: console.log('🔍 [JOB DETAILS] ✅ Complete job details assembled successfully (classic method)');
     return completeJobDetails;
   } catch (error) {
     console.error(
@@ -831,7 +802,6 @@ export async function saveJobSignature(
   existingSignatureId?: number; // ID de la signature existante si erreur 400
 }> {
   try {
-    // TEMP_DISABLED: console.log('📝 [SAVE SIGNATURE] Starting signature save for job:', jobId);
 
     // ✅ Vérifier que signatureDataUrl commence par "data:image/"
     if (!signatureDataUrl.startsWith("data:image/")) {
@@ -844,7 +814,6 @@ export async function saveJobSignature(
       };
     }
 
-    // TEMP_DISABLED: console.log('📝 [SAVE SIGNATURE] Signature format valid:', {
     // length: signatureDataUrl.length,
     // type: signatureDataUrl.substring(0, 30) + '...'
     // });
@@ -855,7 +824,6 @@ export async function saveJobSignature(
       signature_type: signatureType, // "client", "delivery", ou "pickup"
     };
 
-    // TEMP_DISABLED: console.log('📝 [SAVE SIGNATURE] Sending to API:', {
     // jobId,
     // signature_type: signatureType,
     // signature_data_length: signatureDataUrl.length
@@ -894,10 +862,6 @@ export async function saveJobSignature(
 
       // ✅ FIX: Utiliser warn au lieu de error pour "existe déjà" (cas géré normalement)
       if (errorMessage.includes("existe déjà")) {
-        console.warn("⚠️ [SAVE SIGNATURE] Signature already exists:", {
-          status: uploadResponse.status,
-          existingSignatureId,
-        });
       } else {
         console.error("❌ [SAVE SIGNATURE] Upload failed:", {
           status: uploadResponse.status,
@@ -913,7 +877,6 @@ export async function saveJobSignature(
     }
 
     const result = await uploadResponse.json();
-    // TEMP_DISABLED: console.log('✅ [SAVE SIGNATURE] Signature saved successfully:', result);
 
     return {
       success: true,
@@ -947,7 +910,6 @@ export async function getJobSignatures(jobId: number | string): Promise<{
   message?: string;
 }> {
   try {
-    console.log("🔍 [GET SIGNATURES] Fetching signatures for job:", jobId);
 
     const response = await authenticatedFetch(
       `${API}v1/job/${jobId}/signatures`,
@@ -957,7 +919,6 @@ export async function getJobSignatures(jobId: number | string): Promise<{
     if (!response.ok) {
       if (response.status === 404) {
         // Pas de signatures = OK, juste vide
-        console.log("ℹ️ [GET SIGNATURES] No signatures found (404)");
         return { success: true, signatures: [] };
       }
 
@@ -973,9 +934,6 @@ export async function getJobSignatures(jobId: number | string): Promise<{
     }
 
     const result = await response.json();
-    console.log("✅ [GET SIGNATURES] Signatures fetched:", {
-      count: result.signatures?.length || result.length || 0,
-    });
 
     // Normaliser la réponse (le backend peut retourner { signatures: [...] } ou directement [...])
     const signatures =
@@ -1020,10 +978,6 @@ export async function checkJobSignatureExists(
   );
 
   if (signature) {
-    console.log("✅ [CHECK SIGNATURE] Found existing signature:", {
-      id: signature.id,
-      type: signatureType,
-    });
     return {
       exists: true,
       signatureId: signature.id,

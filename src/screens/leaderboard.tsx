@@ -35,10 +35,6 @@ interface LeaderboardScreenProps {
 const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({
   navigation,
 }) => {
-  console.log("\n🏆 ═══════════════════════════════════════");
-  console.log("🏆 [LEADERBOARD] Screen mounted");
-  console.log("🏆 ═══════════════════════════════════════\n");
-
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const { t } = useTranslation();
@@ -54,12 +50,6 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({
 
   const loadLeaderboard = useCallback(
     async (showRefresh = false, period: LeaderboardPeriod = selectedPeriod) => {
-      console.log(
-        "🏆 [LEADERBOARD] Loading data...",
-        showRefresh ? "(refresh)" : "(initial)",
-        "period:",
-        period,
-      );
       try {
         if (showRefresh) {
           setIsRefreshing(true);
@@ -70,12 +60,6 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({
 
         const response = await fetchLeaderboard(50, period);
         const leaderboardData = response?.leaderboard || [];
-        console.log(
-          "🏆 [LEADERBOARD] ✅ Data loaded:",
-          leaderboardData.length,
-          "drivers, userRank:",
-          response?.userRank,
-        );
         setLeaderboard(leaderboardData);
         setUserRank(response?.userRank ?? null);
       } catch (err) {
@@ -284,7 +268,7 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({
           paddingVertical: 4,
         }}
       >
-        {("week", "month", "year", "all" as LeaderboardPeriod[]).map(
+        {(["week", "month", "year", "all"] as LeaderboardPeriod[]).map(
           (period) => (
             <Pressable
               key={period}

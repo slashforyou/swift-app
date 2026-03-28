@@ -1,4 +1,4 @@
-import * as SecureStore from "expo-secure-store";
+﻿import * as SecureStore from "expo-secure-store";
 import { useCallback, useEffect, useState } from "react";
 import { staffService } from "../services/staff/staffService";
 import {
@@ -109,26 +109,15 @@ export const useStaff = (): UseStaffResult => {
       setIsLoading(true);
       setError(null);
 
-      console.log(
-        `📋 [useStaff] Loading staff members... (USE_MOCK: ${USE_MOCK_DATA})`,
-      );
 
       // 1️⃣ Récupérer d'abord les données utilisateur depuis SecureStore
       let staffList: StaffMember[] = [];
 
       try {
         const userDataStr = await SecureStore.getItemAsync("user_data");
-        console.log("📦 [useStaff] User data from SecureStore:", userDataStr);
 
         if (userDataStr) {
           const userData = JSON.parse(userDataStr);
-          console.log("👤 [useStaff] Parsed user data:", {
-            email: userData.email,
-            first_name: userData.first_name,
-            last_name: userData.last_name,
-            company_role: userData.company_role,
-            company_id: userData.company_id,
-          });
 
           // Créer un staff member à partir de l'utilisateur connecté
           if (userData.company_id) {
@@ -155,10 +144,6 @@ export const useStaff = (): UseStaffResult => {
             };
 
             staffList.push(currentUserStaff);
-            console.log(
-              "✅ [useStaff] Added current user to staff list:",
-              currentUserStaff,
-            );
           }
         }
       } catch (storeError) {
@@ -170,18 +155,13 @@ export const useStaff = (): UseStaffResult => {
 
       if (USE_MOCK_DATA) {
         // Utiliser les données mock en développement ou en cas de problème API
-        console.log("🔄 [useStaff] Using mock data");
         await new Promise((resolve) => setTimeout(resolve, 1000)); // Simuler latence réseau
 
         // Combiner les données mock avec l'utilisateur actuel
         const combinedStaff = [...staffList, ...mockStaff];
         setStaff(combinedStaff);
-        console.log(
-          `✅ [useStaff] Loaded ${combinedStaff.length} mock staff members (including current user)`,
-        );
       } else {
         // 2️⃣ Essayer de récupérer depuis l'API
-        console.log("🌐 [useStaff] Trying to load from API...");
         try {
           const apiStaff = await staffService.fetchStaff();
 
@@ -195,19 +175,9 @@ export const useStaff = (): UseStaffResult => {
           }
 
           setStaff(combinedStaff);
-          console.log(
-            `✅ [useStaff] Loaded ${combinedStaff.length} staff members (${apiStaff.length} from API + current user)`,
-          );
         } catch (apiError) {
           // Si l'API échoue, utiliser uniquement l'utilisateur actuel
-          console.warn(
-            "⚠️ [useStaff] API failed, using only current user:",
-            apiError,
-          );
           setStaff(staffList);
-          console.log(
-            `✅ [useStaff] Loaded ${staffList.length} staff members (current user only)`,
-          );
         }
       }
     } catch (err) {
@@ -258,7 +228,6 @@ export const useStaff = (): UseStaffResult => {
   const inviteEmployee = useCallback(
     async (employeeData: InviteEmployeeData) => {
       try {
-        // TEMP_DISABLED: console.log('📧 [useStaff] Inviting employee:', employeeData.email);
 
         if (USE_MOCK_DATA) {
           await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -280,7 +249,6 @@ export const useStaff = (): UseStaffResult => {
           };
 
           setStaff((prev) => [...prev, newEmployee]);
-          // TEMP_DISABLED: console.log(`✅ [useStaff] Mock employee invitation sent to ${employeeData.email}`);
         } else {
           // Mode API : vraie invitation
           const result = await staffService.inviteEmployee(employeeData);
@@ -288,7 +256,6 @@ export const useStaff = (): UseStaffResult => {
           // Recharger la liste pour avoir les données à jour
           await loadStaff();
 
-          // TEMP_DISABLED: console.log(`✅ [useStaff] Real employee invitation sent to ${employeeData.email}, ID: ${result.employeeId}`);
         }
       } catch (err) {
         console.error("❌ [useStaff] Error inviting employee:", err);
@@ -301,7 +268,6 @@ export const useStaff = (): UseStaffResult => {
   const searchContractor = useCallback(
     async (searchTerm: string): Promise<Contractor[]> => {
       try {
-        // TEMP_DISABLED: console.log('🔍 [useStaff] Searching contractors:', searchTerm);
 
         if (USE_MOCK_DATA) {
           await new Promise((resolve) => setTimeout(resolve, 800));
@@ -359,12 +325,10 @@ export const useStaff = (): UseStaffResult => {
             return fullName.includes(searchLower);
           });
 
-          // TEMP_DISABLED: console.log(`✅ [useStaff] Found ${results.length} mock contractors`);
           return results;
         } else {
           // Mode API : vraie recherche
           const results = await staffService.searchContractors(searchTerm);
-          // TEMP_DISABLED: console.log(`✅ [useStaff] Found ${results.length} contractors via API`);
           return results;
         }
       } catch (err) {
@@ -381,7 +345,6 @@ export const useStaff = (): UseStaffResult => {
       contractStatus: Contractor["contractStatus"],
     ) => {
       try {
-        // TEMP_DISABLED: console.log('🤝 [useStaff] Adding contractor to staff:', contractorId, contractStatus);
 
         if (USE_MOCK_DATA) {
           await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -405,7 +368,6 @@ export const useStaff = (): UseStaffResult => {
           };
 
           setStaff((prev) => [...prev, contractorData]);
-          // TEMP_DISABLED: console.log(`✅ [useStaff] Mock contractor added with ${contractStatus} status`);
         } else {
           // Mode API : vraie ajout
           const result = await staffService.addContractorToStaff(
@@ -416,7 +378,6 @@ export const useStaff = (): UseStaffResult => {
           // Recharger la liste pour avoir les données à jour
           await loadStaff();
 
-          // TEMP_DISABLED: console.log(`✅ [useStaff] Real contractor added with ${contractStatus} status`);
         }
       } catch (err) {
         console.error("❌ [useStaff] Error adding contractor:", err);

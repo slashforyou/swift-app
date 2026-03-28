@@ -173,7 +173,6 @@ export default function AddressScreen({
     setIsSubmitting(true);
 
     try {
-      console.log("🏠 [Address] Submitting data to API...");
 
       const payload = {
         line1: formData.line1.trim(),
@@ -184,7 +183,6 @@ export default function AddressScreen({
       };
 
       const response = await submitAddress(payload);
-      console.log("✅ [Address] Success! Progress:", response.progress);
 
       const updatedAccount = await fetchStripeAccount();
       const acct = updatedAccount as any;

@@ -1,9 +1,9 @@
 // src/App.tsx
 import {
-    SpaceGrotesk_400Regular,
-    SpaceGrotesk_600SemiBold,
-    SpaceGrotesk_700Bold,
-    useFonts,
+  SpaceGrotesk_400Regular,
+  SpaceGrotesk_600SemiBold,
+  SpaceGrotesk_700Bold,
+  useFonts,
 } from "@expo-google-fonts/space-grotesk";
 import { StripeProvider } from "@stripe/stripe-react-native";
 import React, { useEffect } from "react";
@@ -22,6 +22,7 @@ import Navigation from "./navigation/index";
 import { appAlert } from "./services/appAlert";
 import { initializePushNotifications } from "./services/pushNotifications";
 import { logInfo, simpleSessionLogger } from "./services/simpleSessionLogger";
+import "./services/logger"; // Initialize global error handlers early
 import "./services/testCommunication"; // Initialize test communication
 import "./services/testReporter"; // Initialize test reporter
 import { performanceMonitor } from "./utils/performanceMonitoring";
@@ -62,23 +63,12 @@ export default function App() {
       })
       .catch((error) => {
         // Silently fail - notifications are optional
-        console.warn("[Push] Failed to initialize:", error);
       });
 
     // Marquer l'app comme interactive après initialisation
     setTimeout(() => {
       performanceMonitor.markInteractive();
     }, 100);
-
-    // Signal to Copilot that app is ready for testing
-    if (__DEV__) {
-      setTimeout(() => {
-        logInfo("🤖 APP READY FOR COPILOT TESTING", "copilot-ready");
-        console.log("🚀 COPILOT: App is ready for automated testing!");
-        console.log("📡 Available commands: global.copilotAPI.*");
-        console.log("📊 Performance summary:", performanceMonitor.getSummary());
-      }, 2000); // Wait for full app initialization
-    }
 
     return () => {
       logInfo("Cobbr shutting down", "app-shutdown");

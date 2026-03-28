@@ -1,7 +1,15 @@
 /**
  * Données de test pour l'onboarding Stripe (DEV uniquement)
- * Les valeurs changent à chaque rechargement pour identifier facilement chaque test
+ * En production, toutes les fonctions retournent null.
  */
+
+if (!__DEV__) {
+  module.exports = {
+    generateStripeTestData: () => null,
+    getStripeTestData: () => null,
+    regenerateStripeTestData: () => null,
+  };
+}
 
 // Génère un ID court basé sur le timestamp
 const getTestId = () => {

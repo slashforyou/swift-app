@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Asset Optimization Utilities
  *
  * Centralise les bonnes pratiques pour l'optimisation des assets dans l'app.
@@ -76,9 +76,8 @@ export async function preloadImages(urls: string[]): Promise<void> {
 
   try {
     await Promise.all(urls.map((url) => Image.prefetch(url)));
-    // TEMP_DISABLED: console.log(`✅ [AssetOptimization] Preloaded ${urls.length} images`);
   } catch (error) {
-    // TEMP_DISABLED: console.warn('⚠️ [AssetOptimization] Some images failed to preload:', error);
+    // Non-critical: image preload is best-effort
   }
 }
 
@@ -111,9 +110,8 @@ export async function clearImageCache(): Promise<void> {
   try {
     await Image.clearDiskCache();
     await Image.clearMemoryCache();
-    // TEMP_DISABLED: console.log('✅ [AssetOptimization] Image cache cleared');
   } catch (error) {
-    // TEMP_DISABLED: console.error('❌ [AssetOptimization] Failed to clear cache:', error);
+    // Non-critical: cache clear is best-effort
   }
 }
 
@@ -124,9 +122,8 @@ export async function clearImageCache(): Promise<void> {
 export async function clearMemoryCache(): Promise<void> {
   try {
     await Image.clearMemoryCache();
-    // TEMP_DISABLED: console.log('✅ [AssetOptimization] Memory cache cleared');
   } catch (error) {
-    // TEMP_DISABLED: console.error('❌ [AssetOptimization] Failed to clear memory cache:', error);
+    // Non-critical: cache clear is best-effort
   }
 }
 

@@ -36,7 +36,6 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
   const [isStarting, setIsStarting] = React.useState(false);
 
   const handleStart = async () => {
-    console.log("🚀 [Onboarding] Starting Stripe onboarding flow");
 
     setIsStarting(true);
 
@@ -46,12 +45,7 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
 
       if (!hasStripeAccount) {
         // Create Stripe Custom account first
-        console.log("🆕 [Onboarding] No Stripe account, creating one...");
         const result = await startOnboarding("company");
-        console.log(
-          "✅ [Onboarding] Account created:",
-          result.stripe_account_id,
-        );
 
         // Refresh the stripe account in context
         await stripeAccount.refresh?.();
@@ -79,7 +73,6 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
   };
 
   const handleGoBack = () => {
-    console.log("← [Onboarding] User canceled at welcome screen");
     navigation.goBack();
   };
 

@@ -19,6 +19,7 @@ import SignaturePreviewSection from "../../components/jobDetails/sections/Signat
 import StaffingBannerSection from "../../components/jobDetails/sections/StaffingBannerSection";
 import TimeWindowsSection from "../../components/jobDetails/sections/TimeWindowsSection";
 import TransferBannerSection from "../../components/jobDetails/sections/TransferBannerSection";
+import PrepareJobSection from "../../components/jobDetails/sections/PrepareJobSection";
 
 import SigningBloc from "../../components/signingBloc";
 import { useTheme } from "../../context/ThemeProvider";
@@ -36,12 +37,16 @@ const JobSummary = ({
   onOpenPaymentPanel,
   isLoading = false,
   onRefresh,
+  onOpenDelegateWizard,
 }: {
   job: JobSummaryData;
   setJob: React.Dispatch<React.SetStateAction<JobSummaryData>>;
   onOpenPaymentPanel?: () => void;
   isLoading?: boolean;
   onRefresh?: () => void;
+  onOpenDelegateWizard?: (
+    mode: "resources" | "delegate_part" | "delegate_full",
+  ) => void;
 }) => {
   const [isSigningVisible, setIsSigningVisible] = useState(false);
   const [isPhotoModalVisible, setIsPhotoModalVisible] = useState(false);
@@ -206,7 +211,11 @@ const JobSummary = ({
               <TransferBannerSection
                 jobId={String(job.id)}
                 transfer={job.active_transfer}
-                isOwner={job.permissions?.is_owner ?? false}
+                isOwner={
+                  job.permissions?.is_contractee ??
+                  job.permissions?.is_owner ??
+                  false
+                }
                 canRespond={job.permissions?.can_respond_transfer ?? false}
                 onTransferUpdated={onRefresh ?? (() => {})}
               />
@@ -226,6 +235,21 @@ const JobSummary = ({
               onOpenSignatureModal={() => setIsSigningVisible(true)}
               onOpenPaymentPanel={onOpenPaymentPanel}
             />
+
+            {/* Section préparation du job (avant démarrage uniquement) */}
+            {job.status !== "in-progress" &&
+              job.status !== "completed" &&
+              job.status !== "cancelled" &&
+              !job.timer_info?.timer_is_running &&
+              !(Number(job.timer_info?.timer_billable_hours ?? 0) > 0) &&
+              job.permissions?.can_create_transfer && (
+                <PrepareJobSection
+                  jobId={String(job.id)}
+                  activeTransfer={job.active_transfer}
+                  onOpenWizard={onOpenDelegateWizard ?? (() => {})}
+                  onRefresh={onRefresh ?? (() => {})}
+                />
+              )}
 
             {/* Historique des étapes (si disponible) */}
             {!!job?.timer_info?.step_history?.length && (

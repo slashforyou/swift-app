@@ -414,12 +414,7 @@ export default function CreateJobModal({
         time_rounding_minutes: timeRounding,
       };
 
-      console.log(
-        "📤 [CreateJobModal] Submitting job data:",
-        JSON.stringify(jobData, null, 2),
-      );
       await onCreateJob(jobData);
-      console.log("✅ [CreateJobModal] Job created successfully");
       return true; // Return success status
     } catch (error: any) {
       console.error("❌ [CreateJobModal] Error creating job:", error);
@@ -2345,26 +2340,14 @@ export default function CreateJobModal({
     try {
       let newClient: ClientAPI;
       try {
-        console.log("🔵 [CreateNewClient] Calling createClient API...");
         newClient = await createClient(newClientData);
-        console.log("✅ [CreateNewClient] Client created:", newClient.id);
       } catch (createErr: any) {
-        console.warn(
-          "⚠️ [CreateNewClient] createClient failed:",
-          createErr?.message,
-        );
         // If creation failed (e.g. duplicate email), fetch fresh client list and reuse
-        console.log("🔄 [CreateNewClient] Fetching all clients as fallback...");
         const allClients = await fetchClients();
-        console.log("📋 [CreateNewClient] Got", allClients.length, "clients");
         const existing = allClients.find(
           (c) => c.email === newClientData.email,
         );
         if (existing) {
-          console.log(
-            "✅ [CreateNewClient] Found existing client:",
-            existing.id,
-          );
           newClient = existing;
         } else {
           console.error(
@@ -2380,7 +2363,6 @@ export default function CreateJobModal({
       // Sélectionner automatiquement le nouveau client
       setSelectedClient(newClient);
       // Passer à l'étape suivante (address)
-      console.log("✅ [CreateNewClient] Navigating to address step");
       setStep("address");
       // Réinitialiser le formulaire
       setNewClientData({

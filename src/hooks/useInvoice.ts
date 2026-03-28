@@ -105,10 +105,6 @@ export const useInvoice = () => {
           auto_advance: sendByEmail, // Auto-finaliser si envoi par email
         });
 
-        console.log(
-          "✅ [INVOICE] Facture créée et envoyée:",
-          stripeInvoice.invoice_id,
-        );
 
         // 4. Callback de succès
         if (onSuccess) {

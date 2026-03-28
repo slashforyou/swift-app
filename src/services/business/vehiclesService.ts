@@ -62,12 +62,6 @@ export const fetchBusinessVehicles = async (
   companyId: string,
 ): Promise<BusinessVehicle[]> => {
   try {
-    console.log(
-      `🚛 [vehiclesService] Fetching vehicles for company: ${companyId}`,
-    );
-    console.log(
-      `🌐 [vehiclesService] API URL: ${ServerData.serverUrl}v1/company/${companyId}/trucks`,
-    );
 
     const response = await fetchWithAuth(
       `${ServerData.serverUrl}v1/company/${companyId}/trucks`,
@@ -76,33 +70,19 @@ export const fetchBusinessVehicles = async (
       },
     );
 
-    console.log(`📡 [vehiclesService] API Response status: ${response.status}`);
 
     if (!response.ok) {
-      console.warn(
-        "⚠️ [vehiclesService] API not available - returning empty array",
-      );
       return [];
     }
 
     const data = await response.json();
-    console.log(
-      "📦 [vehiclesService] API Response data:",
-      JSON.stringify(data, null, 2),
-    );
 
     if (!data.success) {
-      console.warn(
-        "⚠️ [vehiclesService] API returned success: false - returning empty array",
-      );
       return [];
     }
 
     // L'API retourne { success, data: { trucks: [...] } }
     const trucks = data.data?.trucks || data.trucks || [];
-    console.log(
-      `✅ [vehiclesService] Successfully loaded ${trucks.length} vehicles`,
-    );
     return trucks;
   } catch (error) {
     console.error("❌ [vehiclesService] Error fetching vehicles:", error);
@@ -150,11 +130,6 @@ export const createBusinessVehicle = async (
   vehicleData: VehicleCreateData,
 ): Promise<BusinessVehicle> => {
   try {
-    console.log(
-      "🚛 [vehiclesService] Creating vehicle for company:",
-      companyId,
-    );
-    console.log("📋 [vehiclesService] Vehicle data:", vehicleData);
 
     const response = await fetchWithAuth(
       `${ServerData.serverUrl}v1/company/${companyId}/truck`,
@@ -167,22 +142,17 @@ export const createBusinessVehicle = async (
       },
     );
 
-    console.log(
-      `📡 [vehiclesService] Create vehicle response status: ${response.status}`,
-    );
 
     if (!response.ok) {
       throw new Error(`API returned status ${response.status}`);
     }
 
     const data: VehicleResponse = await response.json();
-    console.log("📦 [vehiclesService] Create vehicle response:", data);
 
     if (!data.success || !data.truck) {
       throw new Error("API returned invalid data");
     }
 
-    console.log("✅ [vehiclesService] Vehicle created successfully");
     return data.truck;
   } catch (error) {
     console.error("❌ [vehiclesService] Error creating vehicle:", error);

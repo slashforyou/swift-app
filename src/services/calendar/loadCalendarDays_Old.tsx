@@ -1,8 +1,7 @@
-import { getAuthHeaders } from '../../utils/auth';
+﻿import { getAuthHeaders } from '../../utils/auth';
 import { ServerData } from '@/src/constants/ServerData';
 
 const loadCalendarDays = async (startDate: Date, endDate: Date) => {
-    // TEMP_DISABLED: console.log("Loading calendar days from", startDate, "to", endDate);
 
   try {
     const headers = await getAuthHeaders();
@@ -11,7 +10,6 @@ const loadCalendarDays = async (startDate: Date, endDate: Date) => {
     const formattedStartDate = startDate.toISOString().split('T')[0].split('-').reverse().join('-');
     const formattedEndDate = endDate.toISOString().split('T')[0].split('-').reverse().join('-');
 
-    // TEMP_DISABLED: console.log("Formatted dates:", { formattedStartDate, formattedEndDate });
 
     const response = await fetch(`${ServerData.serverUrl}calendar-days`, {
       method: 'POST',
@@ -34,10 +32,10 @@ const loadCalendarDays = async (startDate: Date, endDate: Date) => {
         throw new Error(data.error || 'Failed to fetch calendar days');
     }
 
-    // TEMP_DISABLED: console.log("Calendar days loaded:", data.json);
 
     return data.json;
-  } catch (error) {
+  } catch (error) {
+
     console.error('Error loading calendar days:', error);
     throw error;
   }

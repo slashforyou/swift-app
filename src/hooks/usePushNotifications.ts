@@ -238,7 +238,6 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
     const subscription = addNotificationReceivedListener((notification) => {
       // Notification reçue pendant que l'app est au premier plan
       const data = parseNotificationData(notification);
-      console.log("[Push] Notification received:", data);
     });
 
     return () => subscription.remove();

@@ -72,7 +72,6 @@ export function usePerformanceMetrics(
         performanceMonitor.measureComponentMount(screenName, mountTime);
         performanceMonitor.markScreenStart(screenName);
         
-        console.log(`📊 [PERF] Screen mounted: ${screenName} in ${mountTime}ms`);
         
         // Cleanup au démontage
         return () => {
@@ -81,7 +80,6 @@ export function usePerformanceMetrics(
             // Tracker le temps total passé sur l'écran
             analytics.trackScreenTime(screenName, totalTime);
             
-            console.log(`📊 [PERF] Screen unmounted: ${screenName} after ${totalTime}ms`);
         };
     }, [screenName, isDisabled]);
     
@@ -92,7 +90,6 @@ export function usePerformanceMetrics(
         performanceMonitor.markScreenInteractive(screenName);
         
         const timeToInteractive = Date.now() - mountTimeRef.current;
-        console.log(`📊 [PERF] Screen interactive: ${screenName} in ${timeToInteractive}ms`);
     };
     
     const markCustomEvent = (eventName: string) => {

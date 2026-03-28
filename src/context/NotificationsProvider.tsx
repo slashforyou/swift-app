@@ -7,26 +7,26 @@
  */
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, {
-    createContext,
-    useCallback,
-    useContext,
-    useEffect,
-    useState,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
 } from "react";
 import { AppState, AppStateStatus } from "react-native";
 import { handleNotificationNavigation } from "../services/navRef";
 import {
-    deleteNotificationApi,
-    fetchNotifications,
-    mapServerNotification,
-    markAllNotificationsReadApi,
-    markNotificationRead,
+  deleteNotificationApi,
+  fetchNotifications,
+  mapServerNotification,
+  markAllNotificationsReadApi,
+  markNotificationRead,
 } from "../services/notificationsApi";
 import {
-    addNotificationReceivedListener,
-    addNotificationResponseListener,
-    clearBadge,
-    setBadgeCount,
+  addNotificationReceivedListener,
+  addNotificationResponseListener,
+  clearBadge,
+  setBadgeCount,
 } from "../services/pushNotifications";
 
 // ========================================
@@ -108,15 +108,7 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
         saveNotifications(deduped);
         return deduped;
       });
-
-      console.log(
-        `🔔 [Notifications] Loaded ${serverNotifs.length} from API (${res.statistics.unread} unread)`,
-      );
     } catch (apiError) {
-      console.warn(
-        "[Notifications] API unavailable, falling back to cache:",
-        apiError,
-      );
       // Fallback : lire depuis AsyncStorage
       try {
         const stored = await AsyncStorage.getItem(STORAGE_KEY);
@@ -168,8 +160,6 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
         saveNotifications(updated);
         return updated;
       });
-
-      console.log("🔔 [Notifications] Added:", newNotification.title);
     },
     [saveNotifications],
   );
@@ -193,9 +183,9 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
       );
       const serverId = notif?.data?.serverId;
       if (serverId) {
-        markNotificationRead(serverId).catch((err) =>
-          console.warn("[Notifications] markAsRead API error:", err),
-        );
+        markNotificationRead(serverId).catch(() => {
+          /* Fire-and-forget */
+        });
       }
     },
     [saveNotifications, notifications],
@@ -215,9 +205,9 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
     clearBadge();
 
     // Appel API
-    markAllNotificationsReadApi().catch((err) =>
-      console.warn("[Notifications] markAllAsRead API error:", err),
-    );
+    markAllNotificationsReadApi().catch(() => {
+      /* Fire-and-forget */
+    });
   }, [saveNotifications]);
 
   // Supprimer une notification
@@ -237,9 +227,9 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
 
       // Appel API si notification serveur
       if (serverId) {
-        deleteNotificationApi(serverId).catch((err) =>
-          console.warn("[Notifications] deleteNotification API error:", err),
-        );
+        deleteNotificationApi(serverId).catch(() => {
+          /* Fire-and-forget */
+        });
       }
     },
     [saveNotifications, notifications],
@@ -293,7 +283,6 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
 
       // Naviguer vers l'écran approprié si spécifié
       if (data.screen) {
-        console.log("🔔 [Notifications] Navigate to:", data.screen, data);
         handleNotificationNavigation(data as Record<string, any>);
       }
     });

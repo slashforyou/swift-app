@@ -27,9 +27,6 @@ interface XpEntry {
 }
 
 const XpHistoryScreen: React.FC = () => {
-  console.log("\n⚡ ═══════════════════════════════════════");
-  console.log("⚡ [XP HISTORY] Screen mounted");
-  console.log("⚡ ═══════════════════════════════════════\n");
 
   const navigation = useNavigation();
   const { t } = useTranslation();
@@ -45,20 +42,10 @@ const XpHistoryScreen: React.FC = () => {
 
   const loadHistory = useCallback(
     async (reset: boolean = false) => {
-      console.log(
-        "⚡ [XP HISTORY] Loading...",
-        reset ? "(reset)" : `(offset: ${offset})`,
-      );
       try {
         setError(null);
         const currentOffset = reset ? 0 : offset;
         const data = await fetchXpHistory(LIMIT, currentOffset);
-        console.log(
-          "⚡ [XP HISTORY] ✅ Loaded:",
-          data.history.length,
-          "entries, total:",
-          data.total,
-        );
 
         if (reset) {
           setHistory(data.history);

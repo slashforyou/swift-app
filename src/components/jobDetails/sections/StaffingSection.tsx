@@ -17,6 +17,7 @@ import {
   deleteAssignment,
   listAssignments,
 } from "../../../services/jobAssignments";
+import { cancelTransfer } from "../../../services/jobTransfer";
 import type {
   AssignmentStatus,
   JobAssignment,
@@ -25,6 +26,7 @@ import type {
   StaffResource,
   VehicleResource,
 } from "../../../types/jobAssignment";
+import type { JobTransfer } from "../../../types/jobTransfer";
 import AssignResourceModal from "../../modals/AssignResourceModal";
 
 // ─────────────────────────────────────────────────────────────
@@ -88,6 +90,25 @@ function getVehicleDetails(resource: VehicleResource): string | null {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Transfer status config
+// ─────────────────────────────────────────────────────────────
+
+const TRANSFER_STATUS_COLOR: Record<string, string> = {
+  pending: "#F59E0B",
+  negotiating: "#3B82F6",
+  accepted: "#22C55E",
+  declined: "#EF4444",
+  cancelled: "#94A3B8",
+};
+const TRANSFER_STATUS_ICON: Record<string, string> = {
+  pending: "time-outline",
+  negotiating: "chatbubbles-outline",
+  accepted: "checkmark-circle",
+  declined: "close-circle",
+  cancelled: "ban-outline",
+};
+
+// ─────────────────────────────────────────────────────────────
 // Props
 // ─────────────────────────────────────────────────────────────
 
@@ -105,6 +126,8 @@ interface StaffingSectionProps {
       is_owner?: boolean;
     };
   };
+  /** Transfert / délégation actif sur ce job */
+  activeTransfer?: JobTransfer;
   /** Rafraîchir le job parent si nécessaire */
   onJobRefresh?: () => void;
 }
@@ -115,6 +138,7 @@ interface StaffingSectionProps {
 
 const StaffingSection: React.FC<StaffingSectionProps> = ({
   job,
+  activeTransfer,
   onJobRefresh,
 }) => {
   const { colors } = useTheme();
@@ -175,6 +199,44 @@ const StaffingSection: React.FC<StaffingSectionProps> = ({
         },
       ],
     );
+  };
+
+  const handleCancelTransfer = () => {
+    if (!activeTransfer) return;
+    Alert.alert(
+      ts("cancelDelegationTitle"),
+      ts("cancelDelegationMessage", {
+        name:
+          activeTransfer.recipient_company_name ??
+          activeTransfer.recipient_contractor_name ??
+          "—",
+      }),
+      [
+        { text: ts("cancelConfirmNo"), style: "cancel" },
+        {
+          text: ts("cancelDelegationYes"),
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await cancelTransfer(String(job.id), activeTransfer.id);
+              onJobRefresh?.();
+            } catch (err: unknown) {
+              const msg = err instanceof Error ? err.message : "Error";
+              Alert.alert(ts("error") || "Error", msg);
+            }
+          },
+        },
+      ],
+    );
+  };
+
+  // ── Transfer status labels ──
+  const TRANSFER_STATUS_LABEL: Record<string, string> = {
+    pending: ts("delegationPending"),
+    negotiating: ts("delegationNegotiating"),
+    accepted: ts("delegationAccepted"),
+    declined: ts("delegationDeclined"),
+    cancelled: ts("statusCancelled"),
   };
 
   // ── Status labels (need t) ──
@@ -242,7 +304,8 @@ const StaffingSection: React.FC<StaffingSectionProps> = ({
     activeAssignments.length > 0 ||
     missingVehicles > 0 ||
     missingDrivers > 0 ||
-    missingOffsiders > 0;
+    missingOffsiders > 0 ||
+    !!activeTransfer;
 
   // ─────────────────────────────────────────────────
   // Render helpers
@@ -468,6 +531,146 @@ const StaffingSection: React.FC<StaffingSectionProps> = ({
           <Text style={{ fontSize: 11, color: colors.textSecondary + "90" }}>
             {desc}
           </Text>
+        </View>
+      </View>
+    );
+  };
+
+  /** Carte de délégation / transfert actif */
+  const renderTransferCard = (transfer: JobTransfer) => {
+    const sc = TRANSFER_STATUS_COLOR[transfer.status] ?? "#94A3B8";
+    const si = TRANSFER_STATUS_ICON[transfer.status] ?? "help-outline";
+    const sl = TRANSFER_STATUS_LABEL[transfer.status] ?? transfer.status;
+    const recipientName =
+      transfer.recipient_company_name ??
+      transfer.recipient_contractor_name ??
+      "—";
+    const roleLabel =
+      transfer.delegated_role === "full_job"
+        ? ts("delegationFullJob")
+        : transfer.delegated_role === "driver"
+          ? ts("roleDriver")
+          : transfer.delegated_role === "offsider"
+            ? ts("roleOffsider")
+            : (transfer.delegated_role_label ?? transfer.delegated_role);
+    const accentColor = "#8B5CF6";
+
+    return (
+      <View
+        key={`transfer-${transfer.id}`}
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          backgroundColor: colors.backgroundTertiary,
+          borderRadius: DESIGN_TOKENS.radius.md,
+          marginTop: DESIGN_TOKENS.spacing.xs,
+          overflow: "hidden",
+        }}
+      >
+        {/* Accent strip */}
+        <View
+          style={{
+            width: 4,
+            alignSelf: "stretch",
+            backgroundColor: accentColor,
+          }}
+        />
+
+        {/* Icon */}
+        <View
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            backgroundColor: accentColor + "18",
+            alignItems: "center",
+            justifyContent: "center",
+            marginHorizontal: DESIGN_TOKENS.spacing.sm,
+            flexShrink: 0,
+          }}
+        >
+          <Ionicons name="send-outline" size={18} color={accentColor} />
+        </View>
+
+        {/* Info */}
+        <View style={{ flex: 1, paddingVertical: DESIGN_TOKENS.spacing.sm }}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              alignSelf: "flex-start",
+              marginBottom: 2,
+              paddingHorizontal: 6,
+              paddingVertical: 2,
+              borderRadius: DESIGN_TOKENS.radius.full,
+              backgroundColor: accentColor + "18",
+              borderWidth: 1,
+              borderColor: accentColor + "30",
+            }}
+          >
+            <Ionicons
+              name="business-outline"
+              size={10}
+              color={accentColor}
+              style={{ marginRight: 3 }}
+            />
+            <Text
+              style={{
+                fontSize: 10,
+                fontWeight: "600",
+                color: accentColor,
+              }}
+              numberOfLines={1}
+            >
+              {ts("delegatedTo", { name: recipientName })}
+            </Text>
+          </View>
+          <Text
+            style={{ fontSize: 14, fontWeight: "600", color: colors.text }}
+            numberOfLines={1}
+          >
+            {recipientName}
+          </Text>
+          <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+            {roleLabel}
+          </Text>
+        </View>
+
+        {/* Status badge + cancel */}
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 6,
+            paddingHorizontal: DESIGN_TOKENS.spacing.sm,
+          }}
+        >
+          <View
+            style={{
+              paddingHorizontal: 8,
+              paddingVertical: 3,
+              borderRadius: DESIGN_TOKENS.radius.full,
+              backgroundColor: sc + "20",
+            }}
+          >
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 3 }}
+            >
+              <Ionicons name={si as any} size={11} color={sc} />
+              <Text style={{ fontSize: 11, fontWeight: "600", color: sc }}>
+                {sl}
+              </Text>
+            </View>
+          </View>
+          {transfer.status === "pending" && canAssign && (
+            <Pressable onPress={handleCancelTransfer} hitSlop={10}>
+              <Ionicons
+                name="close-circle-outline"
+                size={18}
+                color={colors.textSecondary}
+              />
+            </Pressable>
+          )}
         </View>
       </View>
     );
@@ -761,6 +964,34 @@ const StaffingSection: React.FC<StaffingSectionProps> = ({
                   {Array.from({ length: missingOffsiders }, (_, i) =>
                     renderEmptySlot("offsider", `empty-offsider-${i}`),
                   )}
+                </View>
+              )}
+
+              {/* ── Groupe Délégation ── */}
+              {activeTransfer && (
+                <View style={{ marginTop: DESIGN_TOKENS.spacing.sm }}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 6,
+                      marginBottom: DESIGN_TOKENS.spacing.xs,
+                    }}
+                  >
+                    <Ionicons name="send-outline" size={13} color="#8B5CF6" />
+                    <Text
+                      style={{
+                        fontSize: 11,
+                        fontWeight: "700",
+                        color: "#8B5CF6",
+                        textTransform: "uppercase",
+                        letterSpacing: 0.6,
+                      }}
+                    >
+                      {ts("delegation")}
+                    </Text>
+                  </View>
+                  {renderTransferCard(activeTransfer)}
                 </View>
               )}
 

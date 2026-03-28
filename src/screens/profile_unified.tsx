@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+﻿import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import {
@@ -77,7 +77,6 @@ const ProfileFormField: React.FC<ProfileFormFieldProps> = ({
 };
 
 export const ProfileScreen: React.FC = () => {
-  // TEMP_DISABLED: console.log('🔍 [PROFILE SCREEN] === PROFILE COMPONENT RENDERING ===');
   
   const { colors } = useTheme();
   const { t } = useTranslation();
@@ -86,7 +85,6 @@ export const ProfileScreen: React.FC = () => {
   
   const { profile, isLoading, error, updateProfile, refreshProfile, isUpdating } = useUserProfile();
 
-  // TEMP_DISABLED: console.log('🔍 [PROFILE SCREEN] Hook state:', {
     // hasProfile: !!profile,
     // profileId: profile?.id,
     // profileName: profile ? `${profile.firstName} ${profile.lastName}` : 'null',
@@ -114,7 +112,6 @@ export const ProfileScreen: React.FC = () => {
 
   // Update form data when profile loads
   React.useEffect(() => {
-    // TEMP_DISABLED: console.log('🔍 [PROFILE SCREEN] useEffect - Profile changed:', {
       // hasProfile: !!profile,
       // profileData: profile ? {
         // id: profile.id,

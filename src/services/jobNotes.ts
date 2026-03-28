@@ -149,16 +149,6 @@ export async function addJobNote(
     ...headers,
   };
 
-  console.log("📤 [jobNotes] POST Request:", {
-    url,
-    jobId: `${jobId} (${typeof jobId})`,
-    payload,
-    headers: {
-      hasAuth: !!headers.Authorization,
-      authHeader: headers.Authorization,
-      contentType: requestHeaders["Content-Type"],
-    },
-  });
 
   const res = await fetch(url, {
     method: "POST",
@@ -177,7 +167,6 @@ export async function addJobNote(
   }
 
   const data = await res.json();
-  console.log("✅ [jobNotes] Note created:", data);
   return data.note || data;
 }
 
@@ -195,7 +184,6 @@ export async function updateJobNote(
 ): Promise<JobNoteAPI> {
   const headers = await getAuthHeaders();
 
-  console.log("📝 [jobNotes] Updating note:", { jobId, noteId, noteData });
 
   const res = await fetch(`${API}v1/job/${jobId}/notes/${noteId}`, {
     method: "PATCH",
@@ -220,7 +208,6 @@ export async function updateJobNote(
   }
 
   const data = await res.json();
-  console.log("✅ [jobNotes] Note updated:", data.note?.id || data.id);
   return data.note || data;
 }
 
@@ -234,16 +221,6 @@ export async function deleteJobNote(
 ): Promise<void> {
   const headers = await getAuthHeaders();
 
-  console.log("� [jobNotes] Auth headers for delete:", {
-    hasAuthorization: !!headers.Authorization,
-    authPrefix: headers.Authorization?.substring(0, 20),
-  });
-  console.log("🗑️ [jobNotes] Deleting note:", {
-    jobId,
-    noteId,
-    noteIdType: typeof noteId,
-    url: `${API}v1/job/${jobId}/notes/${noteId}`,
-  });
 
   // ⚠️ WORKAROUND: Copier exactement la structure de POST pour éviter le 401
   const requestHeaders = {
@@ -269,7 +246,6 @@ export async function deleteJobNote(
     );
   }
 
-  console.log("✅ [jobNotes] Note deleted successfully");
 }
 
 /**
@@ -313,12 +289,6 @@ export async function markAllNotesAsRead(
   const payload = noteIds ? { note_ids: noteIds } : {};
   const url = `${API}v1/job/${jobId}/notes/read-all`;
 
-  console.log("🔔 [markAllNotesAsRead] 📤 SENDING TO DATABASE:", {
-    url,
-    jobId,
-    noteCount: noteIds?.length || "ALL",
-    payload,
-  });
 
   const res = await fetch(url, {
     method: "POST",
@@ -339,9 +309,5 @@ export async function markAllNotesAsRead(
   }
 
   const data = await res.json();
-  console.log("✅ [markAllNotesAsRead] ✅ DATABASE UPDATED SUCCESSFULLY:", {
-    markedCount: data.marked_count || 0,
-    jobId,
-  });
   return { marked_count: data.marked_count || 0 };
 }

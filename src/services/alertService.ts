@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Alert System Service - Système d'alertes critiques pour monitoring proactif
  */
 
@@ -231,7 +231,6 @@ class AlertService {
 
     this.activeAlerts.push(alert);
 
-    console.warn(`🚨 [ALERT TRIGGERED] ${alert.title} - ${alert.description}`);
 
     // Track the alert
     analytics.trackCustomEvent("alert_triggered", "error", {
@@ -259,7 +258,6 @@ class AlertService {
     alert.status = "resolved";
     alert.resolved_at = new Date().toISOString();
 
-    // TEMP_DISABLED: console.log(`✅ [ALERT RESOLVED] ${alert.title}`);
 
     // Track resolution
     analytics.trackCustomEvent("alert_resolved", "business", {
@@ -329,7 +327,6 @@ class AlertService {
 
   private async sendPushNotification(alert: Alert) {
     // Implementation for push notifications
-    // TEMP_DISABLED: console.log(`📱 [PUSH] ${alert.severity.toUpperCase()}: ${alert.title}`);
   }
 
   private async sendEmailNotification(alert: Alert) {
@@ -352,7 +349,6 @@ class AlertService {
         }),
       });
 
-      // TEMP_DISABLED: console.log(`📧 [EMAIL] Alert notification sent for: ${alert.title}`);
     } catch (error) {
       console.error("❌ [ALERTS] Failed to send email notification:", error);
     }
@@ -361,13 +357,11 @@ class AlertService {
   private async sendSMSNotification(alert: Alert) {
     // Implementation for SMS notifications (only critical alerts)
     if (alert.severity === "critical") {
-      // TEMP_DISABLED: console.log(`📱 [SMS] CRITICAL ALERT: ${alert.title}`);
     }
   }
 
   private async sendWebhookNotification(alert: Alert) {
     // Implementation for webhook notifications
-    // TEMP_DISABLED: console.log(`🔗 [WEBHOOK] Alert sent: ${alert.title}`);
   }
 
   // ========== BACKEND SYNC ==========
@@ -417,7 +411,6 @@ class AlertService {
       this.checkAlertRules();
     }, this.checkIntervalMs);
 
-    // TEMP_DISABLED: console.log('🚨 [ALERTS] Monitoring started');
   }
 
   public stopMonitoring() {
@@ -425,7 +418,6 @@ class AlertService {
       clearInterval(this.monitoringInterval);
       this.monitoringInterval = null;
     }
-    // TEMP_DISABLED: console.log('🚨 [ALERTS] Monitoring stopped');
   }
 
   public getActiveAlerts(): Alert[] {

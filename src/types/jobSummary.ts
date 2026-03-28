@@ -98,11 +98,13 @@ export interface JobTimeWindows {
 export interface JobPermissions {
   is_owner: boolean;
   is_assigned: boolean;
+  is_contractee?: boolean;
   can_accept: boolean;
   can_decline: boolean;
   can_start: boolean;
   can_complete: boolean;
   can_edit: boolean;
+  can_create_transfer?: boolean;
   can_respond_transfer?: boolean;
 }
 

@@ -169,7 +169,6 @@ export function useAppPermissions(): AppPermissions {
       const raw = await SecureStore.getItemAsync(SECURE_STORE_KEY);
       setUser(raw ? (JSON.parse(raw) as StoredUser) : null);
     } catch (e) {
-      console.warn("[useAppPermissions] Erreur lecture SecureStore:", e);
       setUser(null);
     } finally {
       setIsLoaded(true);

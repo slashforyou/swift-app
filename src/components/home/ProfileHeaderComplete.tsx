@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ProfileHeaderComplete - Header avec gamification pour la page d'accueil (version complète)
  * Utilise les vraies données du profil utilisateur via useUserProfile
  */
@@ -107,7 +107,6 @@ const ProfileHeaderComplete: React.FC<ProfileHeaderProps> = ({
         xpRemaining: Math.max(targetXP - currentXP, 0),
       };
     } catch (error) {
-      console.warn("Error calculating progress data:", error);
       return {
         progressPercentage: 0,
         xpRemaining: 1000,
@@ -179,7 +178,6 @@ const ProfileHeaderComplete: React.FC<ProfileHeaderProps> = ({
 
             if (now - lastTapTime < 500) {
               // Double tap détecté - Easter egg !
-              // TEMP_DISABLED: console.log('🎉 Easter egg bonus detected!');
             } else {
               setTimeout(() => {
                 if (Date.now() - now > 400) {

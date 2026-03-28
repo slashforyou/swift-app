@@ -54,30 +54,11 @@ export const JobOwnershipBanner: React.FC<JobOwnershipBannerProps> = ({
     !ownership.contractor ||
     !ownership.permissions
   ) {
-    console.warn(
-      "⚠️ [JobOwnershipBanner] Données ownership incomplètes - composant masqué",
-      {
-        hasOwnership: !!ownership,
-        hasContractee: !!ownership?.contractee,
-        hasContractor: !!ownership?.contractor,
-        hasPermissions: !!ownership?.permissions,
-        hasAssignmentStatus: !!ownership?.assignment_status,
-      },
-    );
     return null;
   }
   const { contractee, contractor, assignment_status, permissions } = ownership;
   const isDifferentCompany = contractee.company_id !== contractor.company_id;
 
-  console.log("👑 [JobOwnershipBanner] Rendu:", {
-    variant,
-    isDifferentCompany,
-    assignmentStatus: assignment_status,
-    isOwner: permissions.is_owner,
-    isAssigned: permissions.is_assigned,
-    contracteeName: contractee.company_name,
-    contractorName: contractor.company_name,
-  });
 
   // Ne rien afficher si même company et pas d'assignation externe
   if (!isDifferentCompany && assignment_status === "none") {

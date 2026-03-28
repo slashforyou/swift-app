@@ -59,7 +59,8 @@ export const LocalizationProvider: React.FC<LocalizationProviderProps> = ({ chil
             if (savedLanguage && Object.keys(SUPPORTED_LANGUAGES).includes(savedLanguage)) {
                 setCurrentLanguage(savedLanguage as SupportedLanguage);
             }
-        } catch (error) {
+        } catch (error) {
+
             console.error('Error loading saved language:', error);
         } finally {
             setIsLoading(false);
@@ -70,7 +71,8 @@ export const LocalizationProvider: React.FC<LocalizationProviderProps> = ({ chil
         try {
             await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, language);
             setCurrentLanguage(language);
-        } catch (error) {
+        } catch (error) {
+
             console.error('Error saving language:', error);
             throw error;
         }
@@ -86,7 +88,6 @@ export const LocalizationProvider: React.FC<LocalizationProviderProps> = ({ chil
         }, translations);
 
         if (typeof value !== 'string') {
-            console.warn(`Translation key "${key}" not found for language "${currentLanguage}"`);
             // Fallback vers l'anglais si la traduction n'existe pas
             const fallbackValue = key.split('.').reduce((obj: any, k) => {
                 return obj?.[k];

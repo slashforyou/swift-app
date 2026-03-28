@@ -62,13 +62,6 @@ const ImprovedNoteModal: React.FC<ImprovedNoteModalProps> = ({
 
   // Reset form when modal opens with new data
   React.useEffect(() => {
-    console.log("🔄 [ImprovedNoteModal] useEffect triggered:", {
-      isVisible,
-      editMode,
-      initialTitle,
-      initialContent: initialContent?.substring(0, 50),
-      initialType,
-    });
     // ✅ FIX: Ne reset que si le modal est visible pour éviter de vider les champs
     if (isVisible && editMode) {
       // Mode édition : charger les données

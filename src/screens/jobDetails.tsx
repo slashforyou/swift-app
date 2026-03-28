@@ -1,4 +1,4 @@
-/**
+﻿/**
  * JobDetails - Écran principal des détails de tâche
  * Architecture moderne avec gestion correcte des Safe Areas et marges
  *
@@ -292,6 +292,9 @@ const JobDetails: React.FC<JobDetailsProps> = ({
 
   // State for Delegate Job Wizard
   const [isDelegateWizardVisible, setIsDelegateWizardVisible] = useState(false);
+  const [wizardInitialMode, setWizardInitialMode] = useState<
+    "resources" | "delegate_part" | "delegate_full" | undefined
+  >(undefined);
 
   // State for Contractee Negotiation Modal (réponse à une contre-proposition)
   const [isNegotiationModalVisible, setIsNegotiationModalVisible] =
@@ -307,20 +310,14 @@ const JobDetails: React.FC<JobDetailsProps> = ({
 
   // Handle Edit Job
   const handleEditJob = useCallback(() => {
-    console.log("📝 [JOB_ACTION] handleEditJob called", { jobId: actualJobId });
     setIsEditModalVisible(true);
   }, [actualJobId]);
 
   // Handle Update Job (called from EditJobModal)
   const handleUpdateJob = useCallback(
     async (updateData: UpdateJobRequest) => {
-      console.log("📝 [JOB_ACTION] handleUpdateJob called", {
-        jobId: actualJobId,
-        updateData: JSON.stringify(updateData, null, 2),
-      });
       if (!actualJobId) return;
       await updateJobAPI(actualJobId, updateData);
-      console.log("✅ [JOB_ACTION] handleUpdateJob completed");
       await refreshJobDetails(); // Refresh after update
     },
     [actualJobId, refreshJobDetails],
@@ -328,22 +325,14 @@ const JobDetails: React.FC<JobDetailsProps> = ({
 
   // Handle Assign Staff
   const handleOpenAssignStaff = useCallback(() => {
-    console.log("👥 [JOB_ACTION] handleOpenAssignStaff called", {
-      jobId: actualJobId,
-    });
     setIsAssignStaffModalVisible(true);
   }, [actualJobId]);
 
   const handleAssignStaff = useCallback(
     async (staffId: string) => {
-      console.log("👥 [JOB_ACTION] handleAssignStaff called", {
-        jobId: actualJobId,
-        staffId,
-      });
       if (!actualJobId) return;
       try {
         if (staffId === "") {
-          console.log("👥 [JOB_ACTION] Unassigning all staff...");
           // Unassign: retirer tous les membres du crew
           const currentCrew = await getJobCrew(actualJobId);
           await Promise.all(
@@ -351,16 +340,13 @@ const JobDetails: React.FC<JobDetailsProps> = ({
               removeCrewMember(actualJobId, member.id),
             ),
           );
-          console.log("✅ [JOB_ACTION] Staff unassigned successfully");
           showToast(
             t("staff.unassignSuccess") || "Staff unassigned successfully",
             "success",
           );
         } else {
-          console.log("👥 [JOB_ACTION] Assigning staff to job...");
           // Assign: ajouter au crew via POST /job/:id/crew
           await assignStaffToJob(actualJobId, staffId);
-          console.log("✅ [JOB_ACTION] Staff assigned successfully");
           showToast(
             t("staff.assignSuccess") || "Staff assigned successfully",
             "success",
@@ -378,9 +364,6 @@ const JobDetails: React.FC<JobDetailsProps> = ({
 
   // Handle Delete Job
   const handleDeleteJob = useCallback(() => {
-    console.log("🗑️ [JOB_ACTION] handleDeleteJob called", {
-      jobId: actualJobId,
-    });
     Alert.alert(
       t("jobs.deleteConfirmTitle") || "Delete Job",
       t("jobs.deleteConfirmMessage") ||
@@ -395,11 +378,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({
           style: "destructive",
           onPress: async () => {
             try {
-              console.log("🗑️ [JOB_ACTION] Deleting job...", {
-                jobId: actualJobId,
-              });
               await deleteJob(actualJobId);
-              console.log("✅ [JOB_ACTION] Job deleted successfully");
               showToast(
                 t("jobs.deleteSuccess") || "Job deleted successfully",
                 "success",
@@ -422,12 +401,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({
   const handleAcceptJob = useCallback(
     async (notes?: string) => {
       try {
-        console.log("✅ [JOB_ACTION] Accepting job...", {
-          jobId: actualJobId,
-          notes,
-        });
         await acceptJob(actualJobId, notes);
-        console.log("✅ [JOB_ACTION] Job accepted successfully");
         showToast(
           t("jobs.acceptSuccess") || "Job accepted successfully",
           "success",
@@ -446,12 +420,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({
   const handleDeclineJob = useCallback(
     async (reason: string) => {
       try {
-        console.log("❌ [JOB_ACTION] Declining job...", {
-          jobId: actualJobId,
-          reason,
-        });
         await declineJob(actualJobId, reason);
-        console.log("✅ [JOB_ACTION] Job declined successfully");
         showToast(
           t("jobs.declineSuccess") || "Job declined successfully",
           "success",
@@ -472,32 +441,16 @@ const JobDetails: React.FC<JobDetailsProps> = ({
       // 📊 Marquer l'écran comme interactif quand les données sont chargées
       perf.markInteractive();
 
-      console.log("🔄 [JobDetails] Updating local job data from API data...");
-      console.log("🔍 [JobDetails] jobDetails structure:", {
-        hasJob: !!jobDetails.job,
-        hasClient: !!jobDetails.client,
-        clientKeys: jobDetails.client ? Object.keys(jobDetails.client) : [],
-        jobKeys: jobDetails.job ? Object.keys(jobDetails.job) : [],
-      });
 
       // 🔍 VALIDATION: Vérifier la cohérence du job à chaque chargement
       // ✅ Rate-limiting restauré: Une seule validation par job
       if (jobDetails.job && !hasValidatedRef.current) {
         hasValidatedRef.current = true; // Marquer comme validé (évite boucle infinie)
-        console.log(
-          "🔍 [JobDetails] Starting validation for job:",
-          jobDetails.job.id,
-        );
 
         validateJobConsistency(jobDetails.job)
           .then(async (validation) => {
             if (!validation.isValid) {
-              console.warn(
-                "⚠️ [JobDetails] Incohérences détectées:",
-                validation.inconsistencies,
-              );
               const report = formatValidationReport(validation);
-              // TEMP_DISABLED: console.log(report);
 
               // ✅ PRIORITÉ: Correction serveur AVANT auto-correction locale
               const serverCorrectableIssues = filterServerCorrectableIssues(
@@ -505,15 +458,6 @@ const JobDetails: React.FC<JobDetailsProps> = ({
               );
 
               if (serverCorrectableIssues.length > 0) {
-                console.log(
-                  "🔧 [JobDetails] Requesting server correction for",
-                  serverCorrectableIssues.length,
-                  "issues",
-                );
-                console.log(
-                  "📋 [JobDetails] Issues to correct:",
-                  serverCorrectableIssues.map((i) => i.type),
-                );
 
                 // Afficher message à l'utilisateur
                 showToast("Correction automatique en cours...", "info");
@@ -532,22 +476,11 @@ const JobDetails: React.FC<JobDetailsProps> = ({
                     );
 
                     // ✅ RECHARGER le job corrigé
-                    console.log("🔄 [JobDetails] Reloading corrected job...");
                     await new Promise((resolve) => setTimeout(resolve, 1500));
                     refreshJobDetails();
-                    console.log(
-                      "✅ [JobDetails] Job reloaded after server correction",
-                    );
                     return; // ⚡ STOP ICI, ne pas faire auto-correction locale
                   } else if (result.success && !result.fixed) {
-                    console.log(
-                      "ℹ️ [JobDetails] Server analyzed but no corrections needed",
-                    );
                   } else {
-                    console.warn(
-                      "⚠️ [JobDetails] Server correction failed:",
-                      result.error,
-                    );
                     showToast(
                       `⚠️ ${t("jobDetails.components.stepValidation.autoCorrectionFailed")}`,
                       "error",
@@ -569,9 +502,6 @@ const JobDetails: React.FC<JobDetailsProps> = ({
             // ⚠️ DÉSACTIVÉ: Auto-correction locale (on priorise correction serveur)
             // Auto-correction locale (si reste des incohérences)
             if (validation.autoCorrected) {
-              console.log(
-                "ℹ️ [JobDetails] Auto-correction locale désactivée, utiliser correction serveur",
-              );
               // ANCIEN CODE (désactivé):
               // showToast('Incohérence corrigée localement', 'success');
               // await new Promise(resolve => setTimeout(resolve, 1000));
@@ -585,7 +515,6 @@ const JobDetails: React.FC<JobDetailsProps> = ({
             );
           });
       } else if (jobDetails.job && hasValidatedRef.current) {
-        // TEMP_DISABLED: console.log('🔍 [JobDetails] Validation déjà effectuée pour ce job, skip');
       }
 
       // Mise à jour des données avec les vraies données de l'API transformées
@@ -710,7 +639,6 @@ const JobDetails: React.FC<JobDetailsProps> = ({
             jobDetails.job?.active_transfer ?? prevJob.active_transfer,
         };
       });
-      // TEMP_DISABLED: console.log('✅ [JobDetails] Local job data updated with API data');
     }
   }, [jobDetails]);
 
@@ -787,12 +715,6 @@ const JobDetails: React.FC<JobDetailsProps> = ({
   const handleStepChange = (newStep: number) => {
     const addressCount = job.addresses?.length || 2;
     const dynamicTotalSteps = 2 + addressCount * 2;
-    console.log("🔄 [JOB_ACTION] handleStepChange called", {
-      jobId: actualJobId,
-      oldStep: job.step?.actualStep,
-      newStep,
-      totalSteps: dynamicTotalSteps,
-    });
     setJob((prevJob: any) => ({
       ...prevJob,
       step: {
@@ -801,16 +723,10 @@ const JobDetails: React.FC<JobDetailsProps> = ({
       },
       current_step: newStep,
     }));
-    console.log("✅ [JOB_ACTION] Step updated locally to", newStep);
   };
 
   // ✅ Handler pour la complétion du job
   const handleJobCompleted = (finalCost: number, billableHours: number) => {
-    console.log("🎉 [JOB_ACTION] handleJobCompleted called", {
-      jobId: actualJobId,
-      finalCost,
-      billableHours,
-    });
 
     // Basculer automatiquement vers le panel de paiement
     setJobPanel("payment");
@@ -824,15 +740,10 @@ const JobDetails: React.FC<JobDetailsProps> = ({
 
   // Handler pour TabMenu
   const handleTabPress = (tabId: string) => {
-    console.log("📑 [JOB_ACTION] Tab pressed:", tabId);
     setJobPanel(tabId);
 
     // ✅ Marquer toutes les notes comme lues quand l'utilisateur ouvre l'onglet Notes
     if (tabId === "notes" && unreadCount > 0) {
-      console.log(
-        "🔔 [NOTES] Marking all notes as read, unreadCount:",
-        unreadCount,
-      );
       markAllAsRead();
     }
   };
@@ -931,17 +842,6 @@ const JobDetails: React.FC<JobDetailsProps> = ({
   const currentStep = isJobCompletedByBackend ? totalSteps : rawCurrentStep;
 
   // 🔍 DEBUG: Afficher les infos de step pour diagnostiquer le problème
-  console.log("🔍 [JobDetails] Step configuration:", {
-    rawStep: rawCurrentStep,
-    actualStep: job.step?.actualStep,
-    currentStep,
-    totalSteps,
-    addressCount,
-    stepsArray: job.steps?.map((s: any) => s.name),
-    jobStatus,
-    isJobCompletedByBackend,
-    isCompleted: currentStep >= totalSteps || isJobCompletedByBackend,
-  });
 
   return (
     <JobTimerProvider
@@ -1079,22 +979,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({
             </Pressable>
           )}
 
-        {/* Déléguer ce job — visible uniquement si aucune délégation n'est en cours
-            (statut "none") ou si la précédente a été refusée ("declined").
-            Masqué si le timer a tourné, ou si une contre-proposition B2B est en cours. */}
-        {job.permissions?.can_create_transfer &&
-          !job.timer_is_running &&
-          (job.timer_total_hours == null ||
-            Number(job.timer_total_hours) === 0) && (
-            <Pressable
-              testID="job-details-transfer-btn"
-              onPress={() => setIsDelegateWizardVisible(true)}
-            >
-              <Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>
-                Gérer les ressources
-              </Text>
-            </Pressable>
-          )}
+        {/* Déléguer ce job — SUPPRIMÉ : remplacé par PrepareJobSection dans summary */}
 
         {/* ScrollView principal */}
         <ScrollView
@@ -1114,6 +999,10 @@ const JobDetails: React.FC<JobDetailsProps> = ({
               onOpenPaymentPanel={() => setJobPanel("payment")}
               isLoading={jobLoading}
               onRefresh={refreshJobDetails}
+              onOpenDelegateWizard={(mode) => {
+                setWizardInitialMode(mode);
+                setIsDelegateWizardVisible(true);
+              }}
             />
           )}
           {jobPanel === "job" && (
@@ -1122,6 +1011,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({
               setJob={setJob}
               isVisible={jobPanel === "job"}
               onAssignStaff={handleOpenAssignStaff}
+              onRefresh={refreshJobDetails}
               onVehicleUpdated={(vehicle) => {
                 setJob((prevJob: any) => ({
                   ...prevJob,
@@ -1205,10 +1095,16 @@ const JobDetails: React.FC<JobDetailsProps> = ({
         <DelegateJobWizard
           visible={isDelegateWizardVisible}
           jobId={job.id}
-          onClose={() => setIsDelegateWizardVisible(false)}
+          initialMode={wizardInitialMode}
+          onClose={() => {
+            setIsDelegateWizardVisible(false);
+            setWizardInitialMode(undefined);
+          }}
           onSuccess={() => {
             setIsDelegateWizardVisible(false);
+            setWizardInitialMode(undefined);
             refreshJobDetails();
+            showToast(t("delegateWizard.delegationSuccess"), "success");
           }}
         />
 

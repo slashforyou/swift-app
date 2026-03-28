@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Logger utilitaire - Logs conditionnels basés sur l'environnement
  * 
  * En développement (__DEV__): tous les logs sont affichés
@@ -49,7 +49,6 @@ export const logger = {
    */
   log: (...args: any[]) => {
     if (IS_DEV) {
-      // TEMP_DISABLED: console.log(PREFIX.LOG, ...args);
     }
   },
 
@@ -90,7 +89,6 @@ export const logger = {
    */
   success: (...args: any[]) => {
     if (IS_DEV) {
-      // TEMP_DISABLED: console.log(PREFIX.SUCCESS, ...args);
     }
   },
 
@@ -99,7 +97,6 @@ export const logger = {
    */
   timer: (...args: any[]) => {
     if (IS_DEV) {
-      // TEMP_DISABLED: console.log(PREFIX.TIMER, ...args);
     }
   },
 
@@ -108,7 +105,6 @@ export const logger = {
    */
   api: (...args: any[]) => {
     if (IS_DEV) {
-      // TEMP_DISABLED: console.log(PREFIX.API, ...args);
     }
   },
 
@@ -117,7 +113,6 @@ export const logger = {
    */
   storage: (...args: any[]) => {
     if (IS_DEV) {
-      // TEMP_DISABLED: console.log(PREFIX.STORAGE, ...args);
     }
   },
 

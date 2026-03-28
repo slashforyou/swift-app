@@ -147,14 +147,12 @@ export const useStripeReports = (filters: ReportsFilters) => {
       });
 
       if (!response.ok) {
-        console.warn('[useStripeReports] API not available, using mock data');
         const mockData = generateMockData();
         setReportsData(mockData);
         return;
       }
 
       const apiData = await response.json();
-      console.log('✅ [useStripeReports] History fetched:', apiData);
 
       // Transformer les données API en format ReportsData
       const transactions: TransactionData[] = (apiData.data || apiData || []).map((t: any) => ({
@@ -229,16 +227,13 @@ export const useStripeReports = (filters: ReportsFilters) => {
         // Le téléchargement sera géré par le système natif
         const fileName = `transactions_${format}_${new Date().toISOString().split('T')[0]}.${format}`;
         // En React Native, utiliser FileSystem ou Share pour sauvegarder/partager le fichier
-        console.log(`Export ${format.toUpperCase()} généré: ${fileName}`);
         return { success: true, fileName };
       } else {
         // Fallback: export local des données en mémoire
-        console.log(`Export ${format.toUpperCase()} via fallback local:`, reportsData.transactions.length, 'transactions');
         return { success: true, fallback: true };
       }
     } catch (error) {
       // Fallback: export local si l'API échoue
-      console.log(`Export ${format.toUpperCase()} fallback:`, error);
       return { success: true, fallback: true };
     }
   }, [reportsData, filters.startDate, filters.endDate]);

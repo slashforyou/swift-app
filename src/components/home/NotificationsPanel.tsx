@@ -422,7 +422,6 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
                     key={notif.id}
                     onPress={() => {
                       // Action sur la notification
-                      console.log("📩 Notification pressed:", notif.id);
                     }}
                     style={({ pressed }) => ({
                       flexDirection: "row",

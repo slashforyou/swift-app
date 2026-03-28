@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Job State Storage Utility
  * 
  * Gestion du stockage persistant de l'état du job dans AsyncStorage
@@ -33,8 +33,8 @@ export async function saveJobState(jobState: JobState): Promise<void> {
         // Mettre à jour l'index des jobs
         await updateJobsIndex(jobState.jobId);
         
-        // TEMP_DISABLED: console.log(`💾 Job state saved: ${jobState.jobId}, step ${jobState.progress.actualStep}`);
-    } catch (error) {
+    } catch (error) {
+
         console.error('Error saving job state:', error);
         throw new Error('Failed to save job state');
     }
@@ -52,15 +52,14 @@ export async function loadJobState(jobId: string): Promise<JobState | null> {
         const data = await AsyncStorage.getItem(key);
         
         if (!data) {
-            // TEMP_DISABLED: console.log(`💾 No stored state found for job: ${jobId}`);
             return null;
         }
         
         const jobState: JobState = JSON.parse(data);
-        // TEMP_DISABLED: console.log(`💾 Job state loaded: ${jobId}, step ${jobState.progress.actualStep}`);
         
         return jobState;
-    } catch (error) {
+    } catch (error) {
+
         console.error('Error loading job state:', error);
         return null;
     }
@@ -80,8 +79,8 @@ export async function deleteJobState(jobId: string): Promise<void> {
         // Retirer de l'index
         await removeFromJobsIndex(jobId);
         
-        // TEMP_DISABLED: console.log(`💾 Job state deleted: ${jobId}`);
-    } catch (error) {
+    } catch (error) {
+
         console.error('Error deleting job state:', error);
         throw new Error('Failed to delete job state');
     }
@@ -104,9 +103,9 @@ export async function loadAllJobStates(): Promise<JobState[]> {
             }
         }
         
-        // TEMP_DISABLED: console.log(`💾 Loaded ${states.length} job states`);
         return states;
-    } catch (error) {
+    } catch (error) {
+
         console.error('Error loading all job states:', error);
         return [];
     }
@@ -133,9 +132,9 @@ export async function cleanOldJobStates(daysOld: number = 30): Promise<number> {
             }
         }
         
-        // TEMP_DISABLED: console.log(`💾 Cleaned ${cleaned} old job states (older than ${daysOld} days)`);
         return cleaned;
-    } catch (error) {
+    } catch (error) {
+
         console.error('Error cleaning old job states:', error);
         return 0;
     }
@@ -154,7 +153,8 @@ async function updateJobsIndex(jobId: string): Promise<void> {
             index.push(jobId);
             await AsyncStorage.setItem(STORAGE_INDEX_KEY, JSON.stringify(index));
         }
-    } catch (error) {
+    } catch (error) {
+
         console.error('Error updating jobs index:', error);
     }
 }
@@ -169,7 +169,8 @@ async function removeFromJobsIndex(jobId: string): Promise<void> {
         const index = await getJobsIndex();
         const newIndex = index.filter(id => id !== jobId);
         await AsyncStorage.setItem(STORAGE_INDEX_KEY, JSON.stringify(newIndex));
-    } catch (error) {
+    } catch (error) {
+
         console.error('Error removing from jobs index:', error);
     }
 }
@@ -183,7 +184,8 @@ async function getJobsIndex(): Promise<string[]> {
     try {
         const data = await AsyncStorage.getItem(STORAGE_INDEX_KEY);
         return data ? JSON.parse(data) : [];
-    } catch (error) {
+    } catch (error) {
+
         console.error('Error getting jobs index:', error);
         return [];
     }

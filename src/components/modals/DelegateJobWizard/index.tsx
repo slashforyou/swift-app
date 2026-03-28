@@ -17,6 +17,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Dimensions,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -32,17 +33,19 @@ import { DESIGN_TOKENS } from "../../../constants/Styles";
 import { useTheme } from "../../../context/ThemeProvider";
 import { useStaff } from "../../../hooks/useStaff";
 import { useVehicles } from "../../../hooks/useVehicles";
+import { useLocalization } from "../../../localization/useLocalization";
 import {
   fetchCompanyPublicTrucks,
   listRelations,
   saveRelation,
 } from "../../../services/companyRelations";
 import { createAssignment } from "../../../services/jobAssignments";
-import { createTransfer } from "../../../services/jobTransfer";
+import { createTransfer, listTransfers } from "../../../services/jobTransfer";
 import type {
   CompanyLookupResult,
   CompanyRelation,
   HourCountingType,
+  JobTransfer,
   PublicTruck,
   TransferDelegatedRole,
   TransferPricingType,
@@ -66,6 +69,8 @@ interface DelegateJobWizardProps {
   visible: boolean;
   jobId: string;
   companyId?: number;
+  /** Si fourni, le wizard s'ouvre directement à l'étape config avec ce mode */
+  initialMode?: WizardMode;
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -154,21 +159,29 @@ const ModeCard: React.FC<{
   isActive: boolean;
   onPress: () => void;
   colors: any;
-}> = ({ title, description, icon, isActive, onPress, colors }) => (
+  disabled?: boolean;
+}> = ({ title, description, icon, isActive, onPress, colors, disabled }) => (
   <Pressable
-    onPress={onPress}
+    onPress={disabled ? undefined : onPress}
+    disabled={disabled}
     style={({ pressed }) => ({
       flexDirection: "row",
       alignItems: "center",
       padding: DESIGN_TOKENS.spacing.md,
       borderRadius: DESIGN_TOKENS.radius.lg,
       borderWidth: 2,
-      borderColor: isActive ? colors.primary : colors.border,
-      backgroundColor: isActive
-        ? colors.primary + "10"
-        : colors.backgroundSecondary,
+      borderColor: disabled
+        ? colors.border + "60"
+        : isActive
+          ? colors.primary
+          : colors.border,
+      backgroundColor: disabled
+        ? colors.backgroundSecondary + "80"
+        : isActive
+          ? colors.primary + "10"
+          : colors.backgroundSecondary,
       marginBottom: DESIGN_TOKENS.spacing.sm,
-      opacity: pressed ? 0.8 : 1,
+      opacity: disabled ? 0.45 : pressed ? 0.8 : 1,
     })}
   >
     <View
@@ -176,7 +189,9 @@ const ModeCard: React.FC<{
         width: 44,
         height: 44,
         borderRadius: 22,
-        backgroundColor: isActive ? colors.primary + "20" : colors.border + "40",
+        backgroundColor: isActive
+          ? colors.primary + "20"
+          : colors.border + "40",
         alignItems: "center",
         justifyContent: "center",
         marginRight: DESIGN_TOKENS.spacing.md,
@@ -335,17 +350,28 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
   visible,
   jobId,
   companyId,
+  initialMode,
   onClose,
   onSuccess,
 }) => {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const { t } = useLocalization();
   const { vehicles, isLoading: vehiclesLoading } = useVehicles();
   const { staff, isLoading: staffLoading } = useStaff();
+  const windowHeight = Dimensions.get("window").height;
 
   // ── Wizard state ──
-  const [step, setStep] = useState<WizardStep>("mode");
-  const [mode, setMode] = useState<WizardMode | null>(null);
+  const [step, setStep] = useState<WizardStep>(initialMode ? "config" : "mode");
+  const [mode, setMode] = useState<WizardMode | null>(initialMode ?? null);
+
+  // ── Sync initialMode when opening ──
+  useEffect(() => {
+    if (visible && initialMode) {
+      setMode(initialMode);
+      setStep("config");
+    }
+  }, [visible, initialMode]);
 
   // ── Resources mode state ──
   const [selectedResources, setSelectedResources] = useState<ResourceEntry[]>(
@@ -389,17 +415,58 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
   // ── Submission ──
   const [isSending, setIsSending] = useState(false);
 
-  // ── Load relations when opening ──
+  // ── Existing transfers (to exclude already-assigned companies) ──
+  const [existingTransfers, setExistingTransfers] = useState<JobTransfer[]>([]);
+
+  /** Company IDs that already have an active transfer (pending/negotiating/accepted) */
+  const assignedCompanyIds = useMemo(() => {
+    const ids = new Set<number>();
+    for (const t of existingTransfers) {
+      if (["pending", "negotiating", "accepted"].includes(t.status)) {
+        if (t.recipient_company_id) ids.add(t.recipient_company_id);
+      }
+    }
+    return ids;
+  }, [existingTransfers]);
+
+  /** Relations filtered: exclude already-assigned companies.
+   *  For delegate_full, also exclude individual contractors (only companies). */
+  const filteredRelations = useMemo(() => {
+    return relations.filter((r) => {
+      // Exclude companies that already have an active transfer
+      if (r.related_company_id && assignedCompanyIds.has(r.related_company_id))
+        return false;
+      // For full delegation, only show companies (not individual contractors)
+      if (mode === "delegate_full" && r.related_type !== "company")
+        return false;
+      return true;
+    });
+  }, [relations, assignedCompanyIds, mode]);
+
+  /** Whether partial delegation should be disabled (no providers left) */
+  const delegatePartDisabled = useMemo(() => {
+    if (relations.length === 0) return false; // No relations loaded yet, don't disable
+    const available = relations.filter(
+      (r) =>
+        !r.related_company_id || !assignedCompanyIds.has(r.related_company_id),
+    );
+    return available.length === 0;
+  }, [relations, assignedCompanyIds]);
+
+  // ── Load relations + existing transfers when opening ──
   useEffect(() => {
     if (!visible) return;
-    if (mode === "delegate_part" || mode === "delegate_full") {
-      setRelationsLoading(true);
-      listRelations()
-        .then(setRelations)
-        .catch(() => setRelations([]))
-        .finally(() => setRelationsLoading(false));
-    }
-  }, [visible, mode]);
+    // Always fetch existing transfers to know which companies are already assigned
+    listTransfers(jobId)
+      .then((transfers) => setExistingTransfers(transfers))
+      .catch(() => setExistingTransfers([]));
+    // Also pre-load relations for disabled state computation
+    setRelationsLoading(true);
+    listRelations()
+      .then(setRelations)
+      .catch(() => setRelations([]))
+      .finally(() => setRelationsLoading(false));
+  }, [visible, jobId]);
 
   // ── Load partner trucks when recipient selected ──
   useEffect(() => {
@@ -488,7 +555,12 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
 
   // ── Resource toggling (own vehicles / staff) ──
   const toggleVehicle = useCallback(
-    (v: { id: string; registration: string; make?: string; model?: string }) => {
+    (v: {
+      id: string;
+      registration: string;
+      make?: string;
+      model?: string;
+    }) => {
       setSelectedResources((prev) => {
         const exists = prev.find(
           (r) => r.type === "vehicle" && r.resourceId === v.id,
@@ -536,10 +608,22 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
   );
 
   // ── Recipient handling ──
-  const handleCodeSelect = useCallback((result: CompanyLookupResult) => {
-    setLookupResult(result);
-    setSelectedRelation(null);
-  }, []);
+  const handleCodeSelect = useCallback(
+    (result: CompanyLookupResult) => {
+      // Block if this company already has an active transfer
+      if (result.id && assignedCompanyIds.has(result.id)) {
+        Alert.alert(
+          t("delegateWizard.alreadyAssigned") || "Déjà assigné",
+          t("delegateWizard.alreadyAssignedDesc") ||
+            "Cette entreprise a déjà une délégation active sur ce job.",
+        );
+        return;
+      }
+      setLookupResult(result);
+      setSelectedRelation(null);
+    },
+    [assignedCompanyIds, t],
+  );
 
   const handleCodeClear = useCallback(() => {
     setLookupResult(null);
@@ -587,8 +671,7 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
         // delegate_part or delegate_full → create a transfer
         const recipientCompanyId =
           selectedRelation?.related_company_id ?? lookupResult?.id;
-        const recipientContractorId =
-          selectedRelation?.related_contractor_id;
+        const recipientContractorId = selectedRelation?.related_contractor_id;
         const recipientType = selectedRelation?.related_type ?? "company";
 
         const role: TransferDelegatedRole =
@@ -609,7 +692,7 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
           vehicle_id:
             mode === "delegate_part" && selectedVehicleId
               ? parseInt(selectedVehicleId, 10)
-              : preferredTruckId ?? undefined,
+              : (preferredTruckId ?? undefined),
           vehicle_label:
             mode === "delegate_part" ? vehicleLabel || undefined : undefined,
           requested_drivers:
@@ -617,7 +700,9 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
           requested_offsiders:
             mode === "delegate_full" ? requestedOffsiders : undefined,
           preferred_truck_id:
-            mode === "delegate_full" ? preferredTruckId ?? undefined : undefined,
+            mode === "delegate_full"
+              ? (preferredTruckId ?? undefined)
+              : undefined,
         });
 
         // Save unsaved lookup result as a relation
@@ -625,7 +710,9 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
           saveRelation({
             related_type: "company",
             related_company_id: lookupResult.id,
-          }).catch(() => {});
+          }).catch(() => {
+            /* Fire-and-forget */
+          });
         }
       }
 
@@ -633,8 +720,10 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
       handleClose();
     } catch (e: any) {
       Alert.alert(
-        "Erreur",
-        e?.message ?? "Impossible d'envoyer la délégation",
+        t("delegateWizard.error") || "Erreur",
+        e?.message ??
+          (t("delegateWizard.errorSendDelegation") ||
+            "Impossible d'envoyer la délégation"),
       );
     } finally {
       setIsSending(false);
@@ -658,6 +747,7 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
     requestedOffsiders,
     onSuccess,
     handleClose,
+    t,
   ]);
 
   // ─────────────────────────────────────────────────────────────
@@ -677,12 +767,17 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
           marginBottom: DESIGN_TOKENS.spacing.lg,
         }}
       >
-        Que souhaitez-vous faire ?
+        {t("delegateWizard.whatDoYouWant") || "Que souhaitez-vous faire ?"}
       </Text>
 
       <ModeCard
-        title="Ajouter camion / personnel"
-        description="Assigner vos propres camions et employés à ce job"
+        title={
+          t("delegateWizard.addTruckStaff") || "Ajouter camion / personnel"
+        }
+        description={
+          t("delegateWizard.addTruckStaffDesc") ||
+          "Assigner vos propres camions et employés à ce job"
+        }
         icon="add-circle-outline"
         isActive={mode === "resources"}
         onPress={() => setMode("resources")}
@@ -690,17 +785,27 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
       />
 
       <ModeCard
-        title="Déléguer une partie"
-        description="Envoyer un rôle (chauffeur, offsider) à un prestataire externe"
+        title={t("delegateWizard.delegatePart") || "Déléguer une partie"}
+        description={
+          delegatePartDisabled
+            ? t("delegateWizard.allProvidersAssigned") ||
+              "Tous vos prestataires sont déjà affectés à ce job"
+            : t("delegateWizard.delegatePartDesc") ||
+              "Envoyer un rôle (chauffeur, offsider) à un prestataire externe"
+        }
         icon="person-add-outline"
         isActive={mode === "delegate_part"}
         onPress={() => setMode("delegate_part")}
         colors={colors}
+        disabled={delegatePartDisabled}
       />
 
       <ModeCard
-        title="Déléguer le job entier"
-        description="Confier le job complet à une autre entreprise"
+        title={t("delegateWizard.delegateFull") || "Déléguer le job entier"}
+        description={
+          t("delegateWizard.delegateFullDesc") ||
+          "Confier le job complet à une autre entreprise"
+        }
         icon="business-outline"
         isActive={mode === "delegate_full"}
         onPress={() => setMode("delegate_full")}
@@ -723,7 +828,9 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
         contentContainerStyle={{ paddingBottom: DESIGN_TOKENS.spacing.xl }}
       >
         {/* Vehicles */}
-        <SectionTitle colors={colors}>Camions</SectionTitle>
+        <SectionTitle colors={colors}>
+          {t("delegateWizard.trucks") || "Camions"}
+        </SectionTitle>
         {vehiclesLoading ? (
           <ActivityIndicator
             size="small"
@@ -738,7 +845,8 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
               marginBottom: DESIGN_TOKENS.spacing.md,
             }}
           >
-            Aucun véhicule disponible
+            {t("delegateWizard.noVehicleAvailable") ||
+              "Aucun véhicule disponible"}
           </Text>
         ) : (
           <View style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
@@ -803,7 +911,9 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
         )}
 
         {/* Staff */}
-        <SectionTitle colors={colors}>Personnel</SectionTitle>
+        <SectionTitle colors={colors}>
+          {t("delegateWizard.staff") || "Personnel"}
+        </SectionTitle>
         {staffLoading ? (
           <ActivityIndicator size="small" color={colors.primary} />
         ) : activeStaff.length === 0 ? (
@@ -814,7 +924,7 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
               marginBottom: DESIGN_TOKENS.spacing.md,
             }}
           >
-            Aucun employé actif
+            {t("delegateWizard.noActiveStaff") || "Aucun employé actif"}
           </Text>
         ) : (
           <View>
@@ -889,11 +999,10 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
                         }}
                       >
                         {selectedResources.find(
-                          (r) =>
-                            r.type === "staff" && r.resourceId === s.id,
+                          (r) => r.type === "staff" && r.resourceId === s.id,
                         )?.role === "driver"
-                          ? "Chauffeur"
-                          : "Offsider"}
+                          ? t("delegateWizard.driver") || "Chauffeur"
+                          : t("delegateWizard.offsider") || "Offsider"}
                       </Text>
                     </View>
                   )}
@@ -915,7 +1024,9 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
     >
       {/* Role */}
       <View style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
-        <SectionTitle colors={colors}>Rôle à déléguer</SectionTitle>
+        <SectionTitle colors={colors}>
+          {t("delegateWizard.roleToDelegate") || "Rôle à déléguer"}
+        </SectionTitle>
         <View
           style={{
             flexDirection: "row",
@@ -949,7 +1060,9 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
             }}
             value={roleCustomLabel}
             onChangeText={setRoleCustomLabel}
-            placeholder="Décrivez le rôle..."
+            placeholder={
+              t("delegateWizard.describeRole") || "Décrivez le rôle..."
+            }
             placeholderTextColor={colors.textSecondary}
           />
         )}
@@ -957,14 +1070,17 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
 
       {/* Véhicule associé */}
       <View style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
-        <SectionTitle colors={colors}>Véhicule associé (optionnel)</SectionTitle>
+        <SectionTitle colors={colors}>
+          {t("delegateWizard.associatedVehicle") ||
+            "Véhicule associé (optionnel)"}
+        </SectionTitle>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ gap: DESIGN_TOKENS.spacing.sm }}
         >
           <ChipButton
-            label="Aucun"
+            label={t("delegateWizard.none") || "Aucun"}
             icon="close-circle-outline"
             isActive={selectedVehicleId === null}
             onPress={() => {
@@ -988,9 +1104,7 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
                   borderRadius: DESIGN_TOKENS.radius.md,
                   borderWidth: 1.5,
                   borderColor:
-                    selectedVehicleId === v.id
-                      ? colors.primary
-                      : colors.border,
+                    selectedVehicleId === v.id ? colors.primary : colors.border,
                   backgroundColor:
                     selectedVehicleId === v.id
                       ? colors.primary + "18"
@@ -1015,9 +1129,7 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
                     fontSize: 13,
                     fontWeight: "600",
                     color:
-                      selectedVehicleId === v.id
-                        ? colors.primary
-                        : colors.text,
+                      selectedVehicleId === v.id ? colors.primary : colors.text,
                   }}
                 >
                   {v.registration}
@@ -1054,7 +1166,9 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
       {/* Partner Resources (drivers, offsiders, trucks) */}
       {(selectedRelation || lookupResult) && (
         <View style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
-          <SectionTitle colors={colors}>Ressources demandées</SectionTitle>
+          <SectionTitle colors={colors}>
+            {t("delegateWizard.requestedResources") || "Ressources demandées"}
+          </SectionTitle>
 
           {/* Partner trucks */}
           <Text
@@ -1065,7 +1179,7 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
               marginBottom: DESIGN_TOKENS.spacing.sm,
             }}
           >
-            Camion préféré
+            {t("delegateWizard.preferredTruck") || "Camion préféré"}
           </Text>
           {trucksLoading ? (
             <ActivityIndicator
@@ -1087,9 +1201,7 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
                   borderRadius: DESIGN_TOKENS.radius.md,
                   borderWidth: 1.5,
                   borderColor:
-                    preferredTruckId === null
-                      ? colors.primary
-                      : colors.border,
+                    preferredTruckId === null ? colors.primary : colors.border,
                   backgroundColor:
                     preferredTruckId === null
                       ? colors.primary + "18"
@@ -1111,17 +1223,15 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
                         : colors.textSecondary,
                   }}
                 >
-                  Au choix
+                  {t("delegateWizard.anyChoice") || "Au choix"}
                 </Text>
               </Pressable>
-              {partnerTrucks.map((t) => {
-                const active = preferredTruckId === t.id;
+              {partnerTrucks.map((pt) => {
+                const active = preferredTruckId === pt.id;
                 return (
                   <Pressable
-                    key={t.id}
-                    onPress={() =>
-                      setPreferredTruckId(active ? null : t.id)
-                    }
+                    key={pt.id}
+                    onPress={() => setPreferredTruckId(active ? null : pt.id)}
                     style={({ pressed }) => ({
                       paddingVertical: 8,
                       paddingHorizontal: 12,
@@ -1142,16 +1252,16 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
                         color: active ? colors.primary : colors.text,
                       }}
                     >
-                      {t.name}
+                      {pt.name}
                     </Text>
-                    {t.license_plate && (
+                    {pt.license_plate && (
                       <Text
                         style={{
                           fontSize: 11,
                           color: colors.textSecondary,
                         }}
                       >
-                        {t.license_plate}
+                        {pt.license_plate}
                       </Text>
                     )}
                   </Pressable>
@@ -1169,7 +1279,7 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
             }}
           >
             <Stepper
-              label="Chauffeurs"
+              label={t("delegateWizard.drivers") || "Chauffeurs"}
               value={requestedDrivers}
               min={0}
               max={5}
@@ -1177,7 +1287,7 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
               colors={colors}
             />
             <Stepper
-              label="Offsiders"
+              label={t("delegateWizard.offsiders") || "Offsiders"}
               value={requestedOffsiders}
               min={0}
               max={10}
@@ -1199,7 +1309,9 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
 
   const renderPricingSection = () => (
     <View style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
-      <SectionTitle colors={colors}>Tarification</SectionTitle>
+      <SectionTitle colors={colors}>
+        {t("delegateWizard.pricing") || "Tarification"}
+      </SectionTitle>
       <View
         style={{
           flexDirection: "row",
@@ -1271,7 +1383,7 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
               marginBottom: DESIGN_TOKENS.spacing.xs,
             }}
           >
-            Comptage des heures
+            {t("delegateWizard.hourCounting") || "Comptage des heures"}
           </Text>
           <View
             style={{
@@ -1298,10 +1410,12 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
 
   const renderRecipientSection = () => (
     <View style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
-      <SectionTitle colors={colors}>Destinataire</SectionTitle>
+      <SectionTitle colors={colors}>
+        {t("delegateWizard.recipient") || "Destinataire"}
+      </SectionTitle>
 
       <RelationsCarnet
-        relations={relations}
+        relations={filteredRelations}
         isLoading={relationsLoading}
         mode="select"
         selectedId={selectedRelation?.id}
@@ -1316,19 +1430,18 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
           marginVertical: DESIGN_TOKENS.spacing.sm,
         }}
       >
-        — ou ajouter par code —
+        {t("delegateWizard.orAddByCode") || "— ou ajouter par code —"}
       </Text>
 
-      <CompanyCodeInput
-        onSelect={handleCodeSelect}
-        onClear={handleCodeClear}
-      />
+      <CompanyCodeInput onSelect={handleCodeSelect} onClear={handleCodeClear} />
     </View>
   );
 
   const renderMessageSection = () => (
     <View style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
-      <SectionTitle colors={colors}>Message (optionnel)</SectionTitle>
+      <SectionTitle colors={colors}>
+        {t("delegateWizard.messageOptional") || "Message (optionnel)"}
+      </SectionTitle>
       <TextInput
         style={{
           borderWidth: 1,
@@ -1343,7 +1456,9 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
         }}
         value={message}
         onChangeText={setMessage}
-        placeholder="Saisissez un message..."
+        placeholder={
+          t("delegateWizard.messagePlaceholder") || "Saisissez un message..."
+        }
         placeholderTextColor={colors.textSecondary}
         multiline
         maxLength={500}
@@ -1423,10 +1538,11 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
             }}
           >
             {mode === "resources"
-              ? "Ressources à assigner"
+              ? t("delegateWizard.resourcesToAssign") || "Ressources à assigner"
               : mode === "delegate_part"
-                ? "Délégation partielle"
-                : "Délégation complète"}
+                ? t("delegateWizard.partialDelegation") ||
+                  "Délégation partielle"
+                : t("delegateWizard.fullDelegation") || "Délégation complète"}
           </Text>
 
           {mode === "resources" ? (
@@ -1435,9 +1551,15 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
                 <SummaryRow
                   key={r.id}
                   icon={
-                    r.type === "vehicle" ? "car-sport-outline" : "person-outline"
+                    r.type === "vehicle"
+                      ? "car-sport-outline"
+                      : "person-outline"
                   }
-                  label={r.type === "vehicle" ? "Véhicule" : "Personnel"}
+                  label={
+                    r.type === "vehicle"
+                      ? t("delegateWizard.vehicle") || "Véhicule"
+                      : t("delegateWizard.staff") || "Personnel"
+                  }
                   value={`${r.label}${r.sublabel ? ` (${r.sublabel})` : ""}`}
                 />
               ))}
@@ -1447,10 +1569,10 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
               {/* Role */}
               <SummaryRow
                 icon="briefcase-outline"
-                label="Rôle"
+                label={t("delegateWizard.role") || "Rôle"}
                 value={
                   mode === "delegate_full"
-                    ? "Job entier"
+                    ? t("delegateWizard.fullJob") || "Job entier"
                     : delegateRole === "custom"
                       ? roleCustomLabel
                       : DELEGATED_ROLE_LABELS[delegateRole]
@@ -1461,7 +1583,7 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
               {mode === "delegate_part" && vehicleLabel && (
                 <SummaryRow
                   icon="car-sport-outline"
-                  label="Véhicule"
+                  label={t("delegateWizard.vehicle") || "Véhicule"}
                   value={vehicleLabel}
                 />
               )}
@@ -1469,15 +1591,17 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
               {/* Pricing */}
               <SummaryRow
                 icon="cash-outline"
-                label="Prix"
-                value={`$${pricingAmount} ${pricingType === "hourly" ? "/ heure" : "(forfait)"}`}
+                label={t("delegateWizard.price") || "Prix"}
+                value={`$${pricingAmount} ${pricingType === "hourly" ? t("delegateWizard.perHour") || "/ heure" : t("delegateWizard.flatRate") || "(forfait)"}`}
               />
 
               {/* Hour counting */}
               {pricingType === "hourly" && (
                 <SummaryRow
                   icon="time-outline"
-                  label="Comptage des heures"
+                  label={
+                    t("delegateWizard.hourCounting") || "Comptage des heures"
+                  }
                   value={HOUR_COUNTING_LABELS[hourCountingType]}
                 />
               )}
@@ -1485,7 +1609,7 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
               {/* Recipient */}
               <SummaryRow
                 icon="business-outline"
-                label="Destinataire"
+                label={t("delegateWizard.recipientLabel") || "Destinataire"}
                 value={resolvedRecipientName || "—"}
               />
 
@@ -1493,8 +1617,8 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
               {mode === "delegate_full" && (
                 <SummaryRow
                   icon="people-outline"
-                  label="Équipe demandée"
-                  value={`${requestedDrivers} chauffeur(s), ${requestedOffsiders} offsider(s)`}
+                  label={t("delegateWizard.requestedTeam") || "Équipe demandée"}
+                  value={`${t("delegateWizard.driverCount", { count: requestedDrivers }) || `${requestedDrivers} chauffeur(s)`}, ${t("delegateWizard.offsiderCount", { count: requestedOffsiders }) || `${requestedOffsiders} offsider(s)`}`}
                 />
               )}
 
@@ -1502,7 +1626,7 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
               {message.trim() && (
                 <SummaryRow
                   icon="chatbubble-outline"
-                  label="Message"
+                  label={t("delegateWizard.message") || "Message"}
                   value={message.trim()}
                 />
               )}
@@ -1530,8 +1654,8 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
       paddingTop: DESIGN_TOKENS.spacing.sm,
       paddingHorizontal: DESIGN_TOKENS.spacing.lg,
       paddingBottom: insets.bottom + DESIGN_TOKENS.spacing.lg,
-      maxHeight: "92%",
-      minHeight: "60%",
+      maxHeight: windowHeight * 0.92,
+      minHeight: windowHeight * 0.6,
     },
     handle: {
       width: 40,
@@ -1577,23 +1701,24 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
 
   const stepTitle =
     step === "mode"
-      ? "Gestion du job"
+      ? t("delegateWizard.jobManagement") || "Gestion du job"
       : step === "config"
         ? mode === "resources"
-          ? "Sélectionner les ressources"
+          ? t("delegateWizard.selectResources") || "Sélectionner les ressources"
           : mode === "delegate_part"
-            ? "Déléguer une partie"
-            : "Déléguer le job entier"
-        : "Récapitulatif";
+            ? t("delegateWizard.delegatePart") || "Déléguer une partie"
+            : t("delegateWizard.delegateFull") || "Déléguer le job entier"
+        : t("delegateWizard.summary") || "Récapitulatif";
 
   const nextLabel =
     step === "summary"
       ? mode === "resources"
-        ? "Assigner"
+        ? t("delegateWizard.assign") || "Assigner"
         : resolvedRecipientName
-          ? `Déléguer à ${resolvedRecipientName}`
-          : "Envoyer"
-      : "Suivant";
+          ? t("delegateWizard.delegateTo", { name: resolvedRecipientName }) ||
+            `Déléguer à ${resolvedRecipientName}`
+          : t("delegateWizard.send") || "Envoyer"
+      : t("delegateWizard.next") || "Suivant";
 
   return (
     <Modal
@@ -1649,7 +1774,7 @@ const DelegateJobWizard: React.FC<DelegateJobWizardProps> = ({
                         fontSize: 15,
                       }}
                     >
-                      Retour
+                      {t("delegateWizard.back") || "Retour"}
                     </Text>
                   </Pressable>
                 )}

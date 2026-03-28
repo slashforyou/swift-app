@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ProfileHeader - Header avec gamification pour la page d'accueil
  */
 import { Ionicons } from '@expo/vector-icons';
@@ -94,7 +94,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                     if (now - lastTapTime < 500) {
                         // Double tap détecté - bonus XP !
                         addXP(5, '🎯 Easter egg bonus!');
-                        // TEMP_DISABLED: console.log('🎉 +5 XP Easter egg!');
                     } else {
         setTimeout(() => {
                             if (Date.now() - now > 400) {
@@ -212,7 +211,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             {/* Bouton notifications en haut à droite */}
             <Pressable
                 onPress={() => {
-                    // TEMP_DISABLED: console.log('Notifications pressed');
                 }}
                 style={({ pressed }) => ({
                     position: 'absolute',

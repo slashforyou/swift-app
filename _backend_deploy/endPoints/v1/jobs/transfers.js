@@ -52,12 +52,10 @@ const createTransferEndpoint = async (req, res) => {
 
     const job = jobRows[0];
     if (job.contractee_company_id !== senderCompanyId) {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          error: "Only the job owner can create a transfer",
-        });
+      return res.status(403).json({
+        success: false,
+        error: "Only the job owner can create a transfer",
+      });
     }
     if (["completed", "cancelled"].includes(job.status)) {
       return res
@@ -71,12 +69,10 @@ const createTransferEndpoint = async (req, res) => {
       [jobId],
     );
     if (existing.length > 0) {
-      return res
-        .status(409)
-        .json({
-          success: false,
-          error: "A pending transfer already exists for this job",
-        });
+      return res.status(409).json({
+        success: false,
+        error: "A pending transfer already exists for this job",
+      });
     }
 
     const {
@@ -87,16 +83,17 @@ const createTransferEndpoint = async (req, res) => {
       delegated_role_label,
       pricing_type = "flat",
       pricing_amount,
+      hour_counting_type,
+      vehicle_id,
+      vehicle_label,
       message,
     } = req.body;
 
     if (!recipient_company_id && !recipient_contractor_id) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          error: "recipient_company_id or recipient_contractor_id is required",
-        });
+      return res.status(400).json({
+        success: false,
+        error: "recipient_company_id or recipient_contractor_id is required",
+      });
     }
     if (!pricing_amount || parseFloat(pricing_amount) <= 0) {
       return res
@@ -107,8 +104,9 @@ const createTransferEndpoint = async (req, res) => {
     const [result] = await connection.execute(
       `INSERT INTO job_transfers
          (job_id, sender_company_id, recipient_type, recipient_company_id, recipient_contractor_id,
-          delegated_role, delegated_role_label, pricing_type, pricing_amount, message, created_by_user_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          delegated_role, delegated_role_label, pricing_type, pricing_amount, hour_counting_type,
+          vehicle_id, vehicle_label, message, created_by_user_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         jobId,
         senderCompanyId,
@@ -119,6 +117,9 @@ const createTransferEndpoint = async (req, res) => {
         delegated_role_label || null,
         pricing_type,
         parseFloat(pricing_amount),
+        hour_counting_type || null,
+        vehicle_id ? parseInt(vehicle_id) : null,
+        vehicle_label || null,
         message || null,
         userId,
       ],
@@ -138,13 +139,11 @@ const createTransferEndpoint = async (req, res) => {
     return res.status(201).json({ success: true, data: transfer[0] });
   } catch (error) {
     console.error("❌ POST /jobs/:jobId/transfers error:", error);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        error: "Internal server error",
-        details: error.message,
-      });
+    return res.status(500).json({
+      success: false,
+      error: "Internal server error",
+      details: error.message,
+    });
   } finally {
     if (connection) connection.release();
   }
@@ -226,30 +225,24 @@ const respondToTransferEndpoint = async (req, res) => {
 
     // Seul le recipient peut répondre
     if (transfer.recipient_company_id !== companyId) {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          error: "Only the recipient can respond to this transfer",
-        });
+      return res.status(403).json({
+        success: false,
+        error: "Only the recipient can respond to this transfer",
+      });
     }
     if (transfer.status !== "pending") {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          error: `Transfer is already ${transfer.status}`,
-        });
+      return res.status(400).json({
+        success: false,
+        error: `Transfer is already ${transfer.status}`,
+      });
     }
 
     const { action, decline_reason } = req.body;
     if (!["accept", "decline"].includes(action)) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          error: 'action must be "accept" or "decline"',
-        });
+      return res.status(400).json({
+        success: false,
+        error: 'action must be "accept" or "decline"',
+      });
     }
 
     const newStatus = action === "accept" ? "accepted" : "declined";
@@ -311,20 +304,16 @@ const cancelTransferEndpoint = async (req, res) => {
 
     const transfer = rows[0];
     if (transfer.sender_company_id !== companyId) {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          error: "Only the sender can cancel this transfer",
-        });
+      return res.status(403).json({
+        success: false,
+        error: "Only the sender can cancel this transfer",
+      });
     }
     if (transfer.status !== "pending") {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          error: `Cannot cancel a ${transfer.status} transfer`,
-        });
+      return res.status(400).json({
+        success: false,
+        error: `Cannot cancel a ${transfer.status} transfer`,
+      });
     }
 
     await connection.execute(

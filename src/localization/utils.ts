@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Utilitaire pour générer des templates de traduction
  * Facilite l'ajout de nouvelles clés de traduction
  */
@@ -132,13 +132,10 @@ export const exampleUsage = () => {
         category: 'jobs'
     });
     
-    // TEMP_DISABLED: console.log('Example new translation template:');
-    // TEMP_DISABLED: console.log(newTranslation);
     
     // Exemple 2: Valider des clés
     const keys = ['home.title', 'invalid-key', 'settings.theme.dark'];
     keys.forEach(key => {
-        // TEMP_DISABLED: console.log(`Key "${key}" is valid: ${validateTranslationKey(key)}`);
     });
 };
 

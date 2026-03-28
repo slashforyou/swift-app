@@ -1,4 +1,4 @@
-/**
+﻿/**
  * JobPhotosSection - Section photos pour les détails de job
  * Permet l'upload, affichage, édition de description et suppression des photos
  *
@@ -983,29 +983,21 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({
   // ✅ Session 10: Refetch quand l'onglet devient visible (false -> true)
   React.useEffect(() => {
     if (isVisible && !prevIsVisibleRef.current) {
-      console.log(
-        "📸 [JobPhotosSection] Tab became visible, refetching photos...",
-      );
       refetch();
     }
     prevIsVisibleRef.current = isVisible;
   }, [isVisible, refetch]);
 
   const handlePhotoSelection = async (photoUri: string) => {
-    // TEMP_DISABLED: console.log('🎯 [DEBUG] handlePhotoSelection - REÇU du modal');
-    // TEMP_DISABLED: console.log('🎯 [DEBUG] photoUri reçu:', photoUri);
 
     setShowPhotoModal(false);
-    // TEMP_DISABLED: console.log('✅ [DEBUG] Modal fermé');
 
     try {
       const result = await uploadPhoto(photoUri, "");
 
-      // TEMP_DISABLED: console.log('✅ [DEBUG] uploadPhoto terminé:', result);
 
       if (result) {
         await refetch();
-        // TEMP_DISABLED: console.log('✅ [DEBUG] Photos rechargées');
 
         Alert.alert(
           t("jobDetails.components.photos.success"),
@@ -1188,7 +1180,6 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({
                   numColumns={1}
                   scrollEnabled={false} // Désactiver scroll interne (on scroll la page parente)
                   onEndReached={() => {
-                    // TEMP_DISABLED: console.log('📸 [FlatList] onEndReached - hasMore:', hasMore, 'isLoadingMore:', isLoadingMore);
                     if (hasMore && !isLoadingMore) {
                       loadMore();
                     }

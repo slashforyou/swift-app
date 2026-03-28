@@ -1,4 +1,4 @@
-// services/jobDetailsMockData.ts
+﻿// services/jobDetailsMockData.ts
 import { JobDetailsComplete } from './jobDetails';
 
 export const mockJobDetailsData: JobDetailsComplete = {
@@ -363,7 +363,6 @@ export function getMockJobDetails(jobId: string): Promise<JobDetailsComplete> {
   return new Promise((resolve) => {
     // Simuler un délai de réseau réaliste
     setTimeout(() => {
-      // TEMP_DISABLED: console.log(`🧪 [MOCK] Returning mock job details for ID: ${jobId}`);
       resolve({
         ...mockJobDetailsData,
         job: {

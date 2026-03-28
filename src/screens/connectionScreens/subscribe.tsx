@@ -1,4 +1,4 @@
-import { ServerData } from "@/src/constants/ServerData";
+﻿import { ServerData } from "@/src/constants/ServerData";
 import React, { useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -75,7 +75,6 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
   };
 
   const subscribe = async () => {
-    // TEMP_DISABLED: console.log('Subscribe function called');
 
     // Validation des champs
     if (!firstName.trim()) {
@@ -165,7 +164,6 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
         }),
       });
 
-      // TEMP_DISABLED: console.log('Response status:', response.status);
 
       if (response.status === 200) {
         const data = await response.json();

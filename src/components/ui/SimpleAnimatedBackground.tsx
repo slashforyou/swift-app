@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 
 interface SimpleAnimatedBackgroundProps {
@@ -11,7 +11,6 @@ const SimpleAnimatedBackground: React.FC<SimpleAnimatedBackgroundProps> = ({
   const [visible, setVisible] = useState(true);
   const { width, height } = Dimensions.get('window');
 
-  // TEMP_DISABLED: console.log('🟢 SimpleAnimatedBackground rendering - dimensions:', width, 'x', height);
 
   // Test simple clignotement pour vérifier la visibilité
   useEffect(() => {

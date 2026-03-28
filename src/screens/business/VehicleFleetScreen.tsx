@@ -33,7 +33,6 @@ const VehicleFleetScreen: React.FC = () => {
   const { colors } = useTheme();
   const { t } = useTranslation();
 
-  console.log("🚗 [VehicleFleetScreen] Screen mounted");
 
   // Hook business vehicles
   const {

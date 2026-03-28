@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Payment Page - Gestion moderne des paiements conforme au design Summary
  * Utilise le timer en temps réel pour calculer les coûts
  */
@@ -102,16 +102,13 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
       }
 
       try {
-        // TEMP_DISABLED: console.log('🔍 [Payment] Checking signature on server for job:', jobId);
         const result = await checkJobSignatureExists(jobId, "client");
-        // TEMP_DISABLED: console.log('🔍 [Payment] Server signature check result:', result);
         setSignatureFromServer({
           exists: result.exists,
           signatureId: result.signatureId,
           isLoading: false,
         });
       } catch (error) {
-        // TEMP_DISABLED: console.error('❌ [Payment] Error checking signature:', error);
         setSignatureFromServer({ exists: false, isLoading: false });
       }
     };
@@ -122,7 +119,6 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
   // ✅ SYNC: Synchroniser job state avec jobDetails.job (notamment signature_blob)
   useEffect(() => {
     if (jobDetails?.job) {
-      // TEMP_DISABLED: console.log('🔄 [Payment] Syncing job state with jobDetails:', {
       //     hasSignatureInContext: !!jobDetails.job.signature_blob,
       //     hasSignatureInState: !!job.signature_blob,
       //     signatureDate: jobDetails.job.signature_date
@@ -295,7 +291,6 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
     const isStatusCompleted =
       jobStatus === "completed" || jobJobStatus === "completed";
 
-    // TEMP_DISABLED: console.log('🔍 [Payment] isJobCompleted check:', {
     //     currentStep,
     //     totalSteps,
     //     isStepCompleted,
@@ -327,7 +322,6 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
 
   // Log uniquement quand la valeur change (pas à chaque render)
   useEffect(() => {
-    // TEMP_DISABLED: console.log('🔍 [Payment] hasSignature changed:', {
     //     signatureFromServer: signatureFromServer.exists,
     //     signatureDataUrl: !!job?.signatureDataUrl,
     //     signatureFileUri: !!job?.signatureFileUri,
@@ -433,7 +427,6 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
           isVisible={isSigningVisible}
           setIsVisible={setIsSigningVisible}
           onSave={(signature: any) => {
-            // TEMP_DISABLED: console.log('Signature saved:', signature);
           }}
           job={job}
           setJob={setJob}

@@ -1,4 +1,4 @@
-// services/auth.ts
+﻿// services/auth.ts
 import * as SecureStore from "expo-secure-store";
 import { ServerData } from "../constants/ServerData";
 import { collectDevicePayload } from "./device";
@@ -6,18 +6,13 @@ import { collectDevicePayload } from "./device";
 const API = ServerData.serverUrl;
 
 export async function login(mail: string, password: string) {
-  console.log("🔐 [AUTH] Starting login for:", mail);
-
   const device = await collectDevicePayload();
 
   if (!device) throw new Error("device_info_unavailable");
 
-  console.log("🔐 [AUTH] Device info collected, making API call...");
-
   // Timeout pour éviter un chargement infini
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
-    console.warn("⚠️ [AUTH] Login request timed out after 20 seconds");
     controller.abort();
   }, 20000); // 20 seconds timeout
 
@@ -38,24 +33,13 @@ export async function login(mail: string, password: string) {
   } catch (error: any) {
     clearTimeout(timeoutId);
     if (error.name === "AbortError") {
-      console.error("❌ [AUTH] Login request aborted due to timeout");
       throw new Error("timeout");
     }
-    console.error("❌ [AUTH] Network error during login:", error);
     throw new Error("network_error");
   }
 
-  console.log("🔐 [AUTH] API response:", { status: res.status, ok: res.ok });
-
   if (!res.ok) {
     const e = await res.json().catch(() => ({}));
-    console.log("🔐 [AUTH] Error response body:", e);
-    // Log pour debug serveur
-    if (e?.details?.error === "Too many connections") {
-      console.warn(
-        "⚠️ [LOGIN] Server database overloaded - Too many connections",
-      );
-    }
 
     let errorMessage = "login_failed";
     if (res.status === 400) {
@@ -76,37 +60,21 @@ export async function login(mail: string, password: string) {
 
   const json = await res.json();
 
-  console.log("🔐 [AUTH] Login response data:", {
-    hasSessionToken: !!json.sessionToken,
-    hasRefreshToken: !!json.refreshToken,
-    hasSessionExpiry: !!json.sessionExpiry,
-    success: json.success,
-    hasUser: !!json.user,
-  });
-
   const { sessionToken, refreshToken, success, user, sessionExpiry } = json;
 
   if (!sessionToken || !success) {
-    console.error("❌ [AUTH] Invalid login response:", {
-      hasToken: !!sessionToken,
-      success,
-    });
     throw new Error("invalid_login_response");
   }
-
-  console.log("✅ [AUTH] Login successful, storing tokens...");
 
   await SecureStore.setItemAsync("session_token", sessionToken);
 
   // Store session expiry if provided (API v1.1.0+)
   if (sessionExpiry) {
     await SecureStore.setItemAsync("session_expiry", sessionExpiry);
-    // TEMP_DISABLED: console.log("🔐 Session expiry stored:", sessionExpiry);
   } else {
     // Si pas fourni, calculer 15 minutes à partir de maintenant
     const expiry = new Date(Date.now() + 15 * 60 * 1000).toISOString();
     await SecureStore.setItemAsync("session_expiry", expiry);
-    // TEMP_DISABLED: console.log("🔐 Session expiry calculated (15min):", expiry);
   }
 
   if (refreshToken) {
@@ -139,8 +107,6 @@ export async function getAuthHeaders(): Promise<Record<string, string>> {
   const st = await SecureStore.getItemAsync("session_token");
 
   if (st) {
-    // TEMP_DISABLED: console.log('🔐 Session token found, length:', st.length);
-    // TEMP_DISABLED: console.log('🔐 Token preview:', st.substring(0, 20) + '...');
     return { Authorization: `Bearer ${st}` };
   } else {
     // Silencieux - pas de session est un état normal (non connecté)
@@ -175,19 +141,15 @@ async function ensureValidToken(): Promise<void> {
     const shouldRefresh = now >= new Date(expiryDate.getTime() - 60000);
 
     if (shouldRefresh) {
-      // TEMP_DISABLED: console.log("🔄 Token about to expire, refreshing...");
       const refreshed = await refreshToken();
 
       if (!refreshed) {
-        // TEMP_DISABLED: console.warn("⚠️ Token refresh failed, token may be expired");
         // On laisse la requête continuer, elle échouera avec 401 si vraiment expiré
       } else {
-        // TEMP_DISABLED: console.log("✅ Token refreshed successfully");
       }
     }
   } catch (error) {
     // En cas d'erreur, on continue sans bloquer
-    // TEMP_DISABLED: console.warn("⚠️ Error checking token validity:", error);
   }
 }
 
@@ -198,18 +160,11 @@ export async function isLoggedIn(): Promise<boolean> {
 
 export async function refreshToken(): Promise<boolean> {
   try {
-    // TEMP_DISABLED: console.log('🔍 [TOKEN REFRESH] === STARTING TOKEN REFRESH ===');
-
     const refreshToken = await SecureStore.getItemAsync("refresh_token");
-    // TEMP_DISABLED: console.log('🔍 [TOKEN REFRESH] Step 1: Getting refresh token from storage...');
-    // TEMP_DISABLED: console.log('🔍 [TOKEN REFRESH] Step 2: Refresh token exists:', !!refreshToken);
 
     if (!refreshToken) {
       return false;
     }
-
-    // TEMP_DISABLED: console.log('� [TOKEN REFRESH] Step 3: Refresh token found, length:', refreshToken.length);
-    // TEMP_DISABLED: console.log('🔍 [TOKEN REFRESH] Step 4: Making refresh API call to:', `${API}auth/refresh`);
 
     const res = await fetch(`${API}auth/refresh`, {
       method: "POST",
@@ -222,35 +177,27 @@ export async function refreshToken(): Promise<boolean> {
       }),
     });
 
-    // TEMP_DISABLED: console.log('🔍 [TOKEN REFRESH] Step 5: API response received - Status:', res.status, 'OK:', res.ok);
-
     if (!res.ok) {
       try {
         const errorBody = await res.text();
-        // TEMP_DISABLED: console.log('🔍 [TOKEN REFRESH] Error response body:', errorBody);
 
         try {
           const errorJson = JSON.parse(errorBody);
-          // TEMP_DISABLED: console.log('🔍 [TOKEN REFRESH] Error JSON parsed:', errorJson);
         } catch (parseError) {
-          // TEMP_DISABLED: console.log('🔍 [TOKEN REFRESH] Could not parse error JSON:', parseError);
+          // Non-critical: error body JSON parse is optional
         }
       } catch (e) {
-        // TEMP_DISABLED: console.log('🔍 [TOKEN REFRESH] Could not read error body:', e);
+        // Non-critical: error text read failed
       }
 
-      // TEMP_DISABLED: console.error('❌ Token refresh failed:', res.status);
       return false;
     }
 
-    // TEMP_DISABLED: console.log('🔍 [TOKEN REFRESH] ✅ Step 6: API call SUCCESS - Parsing response...');
     const json = await res.json();
-    // TEMP_DISABLED: console.log('🔍 [TOKEN REFRESH] Step 7: Response parsed:', {
     //   success: json.success,
     //   hasSessionToken: !!json.sessionToken,
     //   hasNewRefreshToken: !!json.refreshToken
     // });
-    // TEMP_DISABLED: console.log('✅ Token refresh response:', json);
 
     const {
       sessionToken,
@@ -260,15 +207,11 @@ export async function refreshToken(): Promise<boolean> {
     } = json;
 
     if (!sessionToken || !success) {
-      // TEMP_DISABLED: console.log('🔍 [TOKEN REFRESH] ❌ Step 8: Invalid refresh response format');
-      // TEMP_DISABLED: console.error('❌ Invalid refresh response');
       return false;
     }
 
-    // TEMP_DISABLED: console.log('🔍 [TOKEN REFRESH] Step 8: Valid response - Saving new tokens...');
     // Sauvegarder les nouveaux tokens
     await SecureStore.setItemAsync("session_token", sessionToken);
-    // TEMP_DISABLED: console.log('🔍 [TOKEN REFRESH] Step 9: New session token saved');
 
     // Store new session expiry (API v1.1.0+)
     if (sessionExpiry) {
@@ -281,13 +224,10 @@ export async function refreshToken(): Promise<boolean> {
 
     if (newRefreshToken) {
       await SecureStore.setItemAsync("refresh_token", newRefreshToken);
-      // TEMP_DISABLED: console.log('🔍 [TOKEN REFRESH] Step 10: New refresh token saved');
     }
 
-    // TEMP_DISABLED: console.log('🔍 [TOKEN REFRESH] ✅ SUCCESS: Token refresh completed successfully');
     return true;
   } catch (error) {
-    // TEMP_DISABLED: console.error('❌ Token refresh error:', error);
     return false;
   }
 }
@@ -304,13 +244,8 @@ export async function authenticatedFetch(
   url: string,
   options: RequestInit = {},
 ): Promise<Response> {
-  // TEMP_DISABLED: console.log('🔍 [AUTH FETCH] === STARTING AUTHENTICATED FETCH ===');
-  // TEMP_DISABLED: console.log('🔍 [AUTH FETCH] Step 1: Target URL:', url);
-  // TEMP_DISABLED: console.log('🔍 [AUTH FETCH] Step 2: Getting auth headers...');
-
   // Première tentative avec le token actuel
   let headers = await getAuthHeaders();
-  // TEMP_DISABLED: console.log('🔍 [AUTH FETCH] Step 3: Auth headers retrieved:', Object.keys(headers));
 
   const requestOptions: RequestInit = {
     ...options,
@@ -321,27 +256,21 @@ export async function authenticatedFetch(
     },
   };
 
-  // TEMP_DISABLED: console.log('🔍 [AUTH FETCH] Step 4: Making first API attempt...');
   let response = await fetch(url, requestOptions);
-  // TEMP_DISABLED: console.log('🔍 [AUTH FETCH] Step 5: First attempt response - Status:', response.status, 'OK:', response.ok);
 
   // Si 401, essayer de refresh le token
   if (response.status === 401) {
     const refreshSuccess = await refreshToken();
-    // TEMP_DISABLED: console.log('🔍 [AUTH FETCH] Step 7: Token refresh result:', refreshSuccess);
 
     if (refreshSuccess) {
       headers = await getAuthHeaders();
-      // TEMP_DISABLED: console.log('🔍 [AUTH FETCH] Step 9: New auth headers retrieved');
       requestOptions.headers = {
         "Content-Type": "application/json",
         ...headers,
         ...options.headers,
       };
 
-      // TEMP_DISABLED: console.log('🔍 [AUTH FETCH] Step 10: Making second API attempt with new token...');
       response = await fetch(url, requestOptions);
-      // TEMP_DISABLED: console.log('🔍 [AUTH FETCH] Step 11: Second attempt response - Status:', response.status, 'OK:', response.ok);
 
       if (response.status === 401) {
         await clearSession();
@@ -349,13 +278,10 @@ export async function authenticatedFetch(
       }
     } else {
       // Refresh a échoué, clear session
-      // TEMP_DISABLED: console.log('🔍 [AUTH FETCH] ❌ Step 8: Refresh FAILED - SESSION EXPIRED');
-      // TEMP_DISABLED: console.log('❌ Token refresh failed, clearing session');
       await clearSession();
       throw new Error("SESSION_EXPIRED");
     }
   }
 
-  // TEMP_DISABLED: console.log('🔍 [AUTH FETCH] ✅ SUCCESS: Authenticated request completed with status:', response.status);
   return response;
 }

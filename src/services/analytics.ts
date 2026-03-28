@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Analytics Service - Système de tracking et monitoring complet
  *
  * Fonctionnalités:
@@ -188,7 +188,6 @@ class AnalyticsService {
       queueLength: this.eventQueue.length,
     });
 
-    // TEMP_DISABLED: console.log('📊 [ANALYTICS] Event tracked:', event.event_type, event.event_category);
 
     // Flush si la queue est pleine
     if (this.eventQueue.length >= this.batchSize) {
@@ -280,7 +279,6 @@ class AnalyticsService {
       }
 
       const data = await response.json();
-      // TEMP_DISABLED: console.log('📊 [ANALYTICS] Business metrics retrieved successfully');
 
       return data;
     } catch (error) {
@@ -317,7 +315,6 @@ class AnalyticsService {
       }
 
       const data = await response.json();
-      // TEMP_DISABLED: console.log('📊 [ANALYTICS] Usage analytics retrieved successfully');
 
       return data;
     } catch (error) {
@@ -367,7 +364,6 @@ class AnalyticsService {
       const authHeaders = await getAuthHeaders();
       if (!authHeaders) {
         logger.warn("No auth headers available, skipping analytics flush");
-        console.warn("⚠️ [ANALYTICS] No auth headers, skipping flush");
         return;
       }
 
@@ -389,7 +385,6 @@ class AnalyticsService {
           eventCount: eventsToFlush.length,
           status: response.status,
         });
-        // TEMP_DISABLED: console.log(`✅ [ANALYTICS] Flushed ${eventsToFlush.length} events to backend`);
       } else {
         // ⚠️ Si on arrive ici, c'est une VRAIE erreur (endpoint existe mais erreur serveur)
         logger.warn("Failed to flush analytics events (server error)", {
@@ -397,7 +392,6 @@ class AnalyticsService {
           statusText: response.statusText,
           eventCount: eventsToFlush.length,
         });
-        console.warn("⚠️ [ANALYTICS] Failed to flush events:", response.status);
         // Ne PAS remettre en queue pour éviter accumulation infinie
       }
     } catch (error) {
@@ -409,7 +403,6 @@ class AnalyticsService {
           eventCount: eventsToFlush.length,
         },
       );
-      console.warn("⚠️ [ANALYTICS] Error flushing events (network issue)");
       // Ne PAS remettre en queue pour éviter accumulation infinie
       // this.eventQueue.unshift(...eventsToFlush);
     }
@@ -451,7 +444,6 @@ class AnalyticsService {
    */
   setEnabled(enabled: boolean) {
     this.isEnabled = enabled;
-    // TEMP_DISABLED: console.log(`📊 [ANALYTICS] ${enabled ? 'Enabled' : 'Disabled'}`);
   }
 }
 

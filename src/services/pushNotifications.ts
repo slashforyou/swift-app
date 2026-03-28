@@ -73,15 +73,11 @@ export const getExpoPushToken = async (): Promise<string | null> => {
   try {
     // Expo Go limitations (SDK 53+ removed remote notifications support)
     if (Constants.appOwnership === "expo") {
-      console.warn(
-        "[Push] Expo Go does not fully support remote push notifications. Use a development build.",
-      );
       return null;
     }
 
     // Vérifier si c'est un device physique (pas un simulateur)
     if (!Device.isDevice) {
-      console.warn("[Push] Must use physical device for push notifications");
       return null;
     }
 
@@ -96,7 +92,6 @@ export const getExpoPushToken = async (): Promise<string | null> => {
     }
 
     if (finalStatus !== "granted") {
-      console.warn("[Push] Permission not granted");
       return null;
     }
 
@@ -116,9 +111,6 @@ export const getExpoPushToken = async (): Promise<string | null> => {
       (Constants.expoConfig as any)?.extra?.eas?.projectId;
 
     if (!projectId || typeof projectId !== "string") {
-      console.warn(
-        "[Push] Missing EAS projectId; skipping Expo push token registration.",
-      );
       return null;
     }
 
@@ -130,7 +122,6 @@ export const getExpoPushToken = async (): Promise<string | null> => {
     return tokenData.data;
   } catch (error) {
     // Non-blocking: push is optional and can fail depending on environment.
-    console.warn("[Push] Unable to get push token:", error);
     return null;
   }
 };
@@ -216,7 +207,6 @@ export const initializePushNotifications = async (): Promise<boolean> => {
 
     const registered = await registerPushToken(token);
     if (registered) {
-      console.log("[Push] Successfully registered push token");
     }
     return registered;
   } catch (error) {

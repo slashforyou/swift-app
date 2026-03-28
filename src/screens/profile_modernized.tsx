@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+﻿import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
 import { ActivityIndicator, Alert, ScrollView, View } from "react-native";
@@ -60,7 +60,6 @@ const ProfileFormField: React.FC<ProfileFormFieldProps> = ({
 };
 
 export const ProfileScreen: React.FC = () => {
-  // TEMP_DISABLED: console.log('🔍 [PROFILE SCREEN] === PROFILE COMPONENT RENDERING ===');
 
   const { colors } = useTheme();
   const { t } = useTranslation();
@@ -120,7 +119,6 @@ export const ProfileScreen: React.FC = () => {
     if (!profile?.id) return;
 
     try {
-      // TEMP_DISABLED: console.log('💾 Saving profile changes...', formData);
       await updateProfile(formData);
       setIsEditing(false);
       Alert.alert(t("common.success"), t("profile.updateSuccess"));

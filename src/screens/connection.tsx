@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import HeaderLogo from "../components/ui/HeaderLogo";
@@ -28,12 +28,10 @@ const ConnectionScreen: React.FC<ConnectionScreenProps> = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // TEMP_DISABLED: console.log("ConnectionScreen mounted, checking session...");
 
     const checkSession = async () => {
       try {
         setIsLoading(true);
-        // TEMP_DISABLED: console.log("Checking user session...");
         const userLoggedIn = await ensureSession();
         if (userLoggedIn && userLoggedIn.authenticated === true) {
           navigation.navigate("Home");
