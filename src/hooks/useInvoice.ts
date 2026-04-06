@@ -9,12 +9,13 @@ import { useCallback } from "react";
 import { Alert } from "react-native";
 import { useJobTimerContext } from "../context/JobTimerProvider";
 import {
-  confirmInvoicePayment,
-  createInvoicePaymentIntent,
-  createStripeInvoice,
+    confirmInvoicePayment,
+    createInvoicePaymentIntent,
+    createStripeInvoice,
 } from "../services/StripeService";
 import type { Invoice } from "../services/pricing/PricingConfig";
 import { PricingService } from "../services/pricing/PricingService";
+import { useStripeConnection } from "./useStripeConnection";
 
 export interface SendInvoiceOptions {
   job: any;
@@ -25,6 +26,7 @@ export interface SendInvoiceOptions {
 
 export const useInvoice = () => {
   const { calculateCost, billableTime } = useJobTimerContext();
+  const { status: stripeStatus } = useStripeConnection();
 
   /**
    * Génère les données de facture à partir d'un job
@@ -136,6 +138,20 @@ export const useInvoice = () => {
       job: any,
       t: (key: string, params?: Record<string, string | number>) => string,
     ) => {
+      // Hard gate: block if Stripe not active
+      if (stripeStatus !== "active") {
+        return new Promise<void>((resolve) => {
+          Alert.alert(
+            t("stripeGate.title"),
+            t("stripeGate.message"),
+            [
+              { text: t("common.cancel"), style: "cancel", onPress: () => resolve() },
+              { text: t("stripeGate.cta"), onPress: () => resolve() },
+            ],
+          );
+        });
+      }
+
       return new Promise<void>((resolve, reject) => {
         Alert.alert(
           t("payment.window.sendInvoiceConfirmTitle"),
@@ -185,7 +201,7 @@ export const useInvoice = () => {
         );
       });
     },
-    [sendInvoice],
+    [sendInvoice, stripeStatus],
   );
 
   const createPaymentIntent = useCallback(

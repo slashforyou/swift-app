@@ -109,7 +109,7 @@ export interface RespondToTransferRequest {
 export type RelatedEntityType = "company" | "contractor";
 
 export interface CompanyRelation {
-  id: number;
+  id: number | null;
   owner_company_id: number;
   related_type: RelatedEntityType;
   related_company_id?: number;
@@ -120,6 +120,8 @@ export interface CompanyRelation {
   nickname?: string;
   last_used_at?: string;
   created_at: string;
+  /** 'manual' = from company_relations, 'transfer' = auto-detected via job_transfers */
+  source?: "manual" | "transfer";
 }
 
 export interface SaveRelationRequest {

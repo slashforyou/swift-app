@@ -56,7 +56,7 @@ Version courte, organisée pour une lecture humaine. Chaque section renvoie vers
 
 ## 📞 **CONTACTS & RESSOURCES**
 
-- **API Backend** : `https://altivo.fr/swift-app/`
+- **API Backend** : `https://cobbr-app.com/swift-app/`
 - **Repo GitHub** : `slashforyou/swift-app`
 - **Framework** : React Native + Expo
 - **Tests** : Jest + React Native Testing Library

@@ -64,6 +64,20 @@ const getBusinessTabsConfig = (t: any): BusinessTabItem[] => [
     routeName: "Relations",
     accessibilityLabel: "Partners Relations Book Tab",
   },
+  {
+    id: "JobTemplates",
+    label: "Modèles",
+    icon: "documents-outline",
+    routeName: "JobTemplates",
+    accessibilityLabel: "Modular Job Templates Tab",
+  },
+  {
+    id: "Contracts",
+    label: "Contrats",
+    icon: "document-text-outline",
+    routeName: "Contracts",
+    accessibilityLabel: "Contract Clauses Management Tab",
+  },
 ];
 
 const BusinessTabMenu: React.FC<BusinessTabMenuProps> = ({

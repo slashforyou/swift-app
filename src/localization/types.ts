@@ -49,6 +49,45 @@ export interface TranslationKeys {
     paymentDesc: string;
     address: string;
   };
+  stripeGate: {
+    title: string;
+    message: string;
+    cta: string;
+  };
+  completeProfile: {
+    title: string;
+    hint: string;
+    businessDetails: string;
+    companyName: string;
+    tradingName: string;
+    legalName: string;
+    abn: string;
+    acn: string;
+    businessType: string;
+    industryType: string;
+    contactDetails: string;
+    email: string;
+    phone: string;
+    website: string;
+    address: string;
+    streetAddress: string;
+    suburb: string;
+    state: string;
+    postcode: string;
+    banking: string;
+    bankAccountName: string;
+    bsb: string;
+    bankAccountNumber: string;
+    insurance: string;
+    hasInsurance: string;
+    insuranceProvider: string;
+    policyNumber: string;
+    insuranceExpiry: string;
+    save: string;
+    saveError: string;
+    savedTitle: string;
+    savedMessage: string;
+  };
   // Common
   common: {
     save: string;
@@ -82,6 +121,8 @@ export interface TranslationKeys {
     none?: string;
     checkingAuth?: string;
     later?: string;
+    today?: string;
+    yesterday?: string;
   };
 
   // Home Screen
@@ -147,9 +188,21 @@ export interface TranslationKeys {
       thankYouMessage: string;
       errorSending: string;
     };
+    onboarding: {
+      title: string;
+      completed: string;
+      completeProfile: string;
+      createFirstJob: string;
+      inviteTeam: string;
+      setupPayments: string;
+      planSuggestionTitle?: string;
+      planSuggestionMessage?: string;
+      planSuggestionCta?: string;
+    };
     stripeAlert: {
       title: string;
       description: string;
+      cta?: string;
     };
   };
 
@@ -1524,6 +1577,29 @@ export interface TranslationKeys {
       createAccount: string;
       back: string;
       forgotPassword: string;
+    };
+    forgotPassword: {
+      title: string;
+      subtitle: string;
+      emailRequired: string;
+      sendCode: string;
+      codeSent: string;
+      enterCode: string;
+      codeSentTo: string;
+      codeInvalid: string;
+      verify: string;
+      resendCode: string;
+      newPasswordTitle: string;
+      newPasswordSubtitle: string;
+      newPassword: string;
+      confirmPassword: string;
+      passwordRequired: string;
+      passwordTooShort: string;
+      passwordMismatch: string;
+      resetPassword: string;
+      successTitle: string;
+      successMessage: string;
+      backToLogin: string;
     };
     register: {
       title: string;
@@ -3208,6 +3284,94 @@ export interface TranslationKeys {
   businessModals?: { [key: string]: unknown };
   devMenu?: { [key: string]: unknown };
   devTools?: { [key: string]: unknown };
+
+  // Support messaging
+  support?: {
+    title?: string;
+    newConversation?: string;
+    emptyTitle?: string;
+    emptyDescription?: string;
+    admin?: string;
+    noMessages?: string;
+    messagePlaceholder?: string;
+    chooseCategory?: string;
+    subjectLabel?: string;
+    messageLabel?: string;
+    send?: string;
+    sending?: string;
+    errorSending?: string;
+    categories?: {
+      help?: string;
+      feedback?: string;
+      feature?: string;
+      bug?: string;
+    };
+    status?: {
+      open?: string;
+      answered?: string;
+      closed?: string;
+    };
+  };
+
+  // Subscription
+  subscription?: {
+    title?: string;
+    currentPlan?: string;
+    yourUsage?: string;
+    allPlans?: string;
+    unlimited?: string;
+    free?: string;
+    users?: string;
+    includedUsers?: string;
+    extraUsers?: string;
+    perUser?: string;
+    jobsPerMonth?: string;
+    jobsThisMonth?: string;
+    jobsRemaining?: string;
+    commission?: string;
+    branding?: string;
+    prioritySupport?: string;
+  };
+
+  // Contracts — Modular contract clauses
+  contracts?: {
+    title?: string;
+    subtitle?: string;
+    addClause?: string;
+    deleteTitle?: string;
+    deleteMessage?: string;
+    emptyTitle?: string;
+    emptyMessage?: string;
+    newClause?: string;
+    editClause?: string;
+    clauseTitle?: string;
+    clauseTitlePlaceholder?: string;
+    clauseContent?: string;
+    clauseContentPlaceholder?: string;
+    conditions?: string;
+    conditionLabel?: string;
+    conditionsHelp?: string;
+    titleRequired?: string;
+    contentRequired?: string;
+    saveError?: string;
+    contractSection?: string;
+    generateHint?: string;
+    generateButton?: string;
+    generateError?: string;
+    clausesCount?: string;
+    regenerate?: string;
+    signButton?: string;
+  };
+
+  validation?: {
+    password?: {
+      tooShort?: string;
+      needsUppercase?: string;
+      needsLowercase?: string;
+      needsNumber?: string;
+      needsSpecial?: string;
+    };
+  };
 }
 
 export type TranslationFunction = (

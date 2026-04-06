@@ -135,6 +135,9 @@ export default function RelationsScreen() {
   // ── Actions kebab (iOS ActionSheet / Alert cross-platform) ──
   const handleKebab = useCallback(
     (relation: CompanyRelation) => {
+      // Auto-detected relations (from transfers) can't be renamed/deleted
+      if (relation.source === "transfer") return;
+
       const name =
         relation.nickname ||
         relation.related_company_name ||
@@ -199,6 +202,7 @@ export default function RelationsScreen() {
             text: t("relations.deleteLabel"),
             style: "destructive",
             onPress: async () => {
+              if (!relation.id) return;
               try {
                 await deleteRelation(relation.id);
                 setRelations((prev) =>
@@ -219,7 +223,7 @@ export default function RelationsScreen() {
   );
 
   const handleRenameConfirm = useCallback(async () => {
-    if (!renameTarget) return;
+    if (!renameTarget || !renameTarget.id) return;
     try {
       const updated = await updateRelationNickname(renameTarget.id, {
         nickname: renameValue.trim(),

@@ -37,9 +37,9 @@ interface EnvironmentConfig {
 // Configuration Development
 const developmentConfig: EnvironmentConfig = {
   name: "development",
-  apiUrl: "https://altivo.fr/swift-app/",
-  // ✅ Clé Stripe TEST réelle (depuis la doc PAYMENT_ENDPOINT_404.md)
+  apiUrl: process.env.EXPO_PUBLIC_API_URL || "https://cobbr-app.com/swift-app/",
   stripePublishableKey:
+    process.env.EXPO_PUBLIC_STRIPE_KEY ||
     "pk_test_51SMZIJInA65k4AVU4pfHe2XYbwfiqZqYNmCSCfgrIP7iyI2rQ4sw5Po5KbZC5nt1NVMOXiWzZXaxnD1wiDnPNd2m00BwhyWbwP",
   enableDebugLogs: true,
   enableAnalytics: false,
@@ -48,9 +48,9 @@ const developmentConfig: EnvironmentConfig = {
 // Configuration Staging
 const stagingConfig: EnvironmentConfig = {
   name: "staging",
-  apiUrl: "https://api-staging.swiftapp.com.au/",
-  // Staging utilise la clé test
+  apiUrl: process.env.EXPO_PUBLIC_API_URL || "https://api-staging.swiftapp.com.au/",
   stripePublishableKey:
+    process.env.EXPO_PUBLIC_STRIPE_KEY ||
     "pk_test_51SMZIJInA65k4AVU4pfHe2XYbwfiqZqYNmCSCfgrIP7iyI2rQ4sw5Po5KbZC5nt1NVMOXiWzZXaxnD1wiDnPNd2m00BwhyWbwP",
   enableDebugLogs: true,
   enableAnalytics: true,
@@ -59,8 +59,9 @@ const stagingConfig: EnvironmentConfig = {
 // Configuration Production
 const productionConfig: EnvironmentConfig = {
   name: "production",
-  apiUrl: "https://altivo.fr/swift-app/",
+  apiUrl: process.env.EXPO_PUBLIC_API_URL || "https://cobbr-app.com/swift-app/",
   stripePublishableKey:
+    process.env.EXPO_PUBLIC_STRIPE_KEY ||
     "pk_live_51SMZIJInA65k4AVUCFcgBFYZYeRefTIecjdp30GeqaLMyQ8PZv2HLlO5Ofxm3a5oZCrVlxlSeCIdFnI0NyChqa6800peiyPmyf",
   enableDebugLogs: false,
   enableAnalytics: true,

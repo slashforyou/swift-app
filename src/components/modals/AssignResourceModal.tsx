@@ -12,7 +12,7 @@
  * - Confirmation → POST /v1/jobs/:jobId/assignments
  */
 import Ionicons from "@react-native-vector-icons/ionicons";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
@@ -21,6 +21,7 @@ import {
     ScrollView,
     StyleSheet,
     Text,
+    TextInput,
     View,
 } from "react-native";
 import { DESIGN_TOKENS } from "../../constants/Styles";
@@ -94,6 +95,9 @@ export default function AssignResourceModal({
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  // Search
+  const [searchQuery, setSearchQuery] = useState("");
+
   // Selected resource  (id + type)
   const [selectedVehicleId, setSelectedVehicleId] = useState<number | null>(
     null,
@@ -150,9 +154,57 @@ export default function AssignResourceModal({
   useEffect(() => {
     if (visible) {
       setActiveTab("vehicle");
+      setSearchQuery("");
       loadAvailability();
     }
   }, [visible, loadAvailability]);
+
+  // ── Filtering + Grouping ──
+  const q = searchQuery.toLowerCase().trim();
+
+  const filteredVehicles = useMemo(() => {
+    if (!q) return vehicles;
+    return vehicles.filter(
+      (v) =>
+        v.name?.toLowerCase().includes(q) ||
+        v.license_plate?.toLowerCase().includes(q) ||
+        v.capacity?.toString().includes(q) ||
+        (v as any).company_name?.toLowerCase().includes(q),
+    );
+  }, [vehicles, q]);
+
+  const filteredStaff = useMemo(() => {
+    if (!q) return staff;
+    return staff.filter(
+      (s) =>
+        s.firstName?.toLowerCase().includes(q) ||
+        s.lastName?.toLowerCase().includes(q) ||
+        s.email?.toLowerCase().includes(q) ||
+        (s as any).company_name?.toLowerCase().includes(q),
+    );
+  }, [staff, q]);
+
+  // Group vehicles by company
+  const groupedVehicles = useMemo(() => {
+    const groups: Record<string, AvailableVehicle[]> = {};
+    for (const v of filteredVehicles) {
+      const company = (v as any).company_name || "My Company";
+      if (!groups[company]) groups[company] = [];
+      groups[company].push(v);
+    }
+    return groups;
+  }, [filteredVehicles]);
+
+  // Group staff by company
+  const groupedStaff = useMemo(() => {
+    const groups: Record<string, AvailableStaff[]> = {};
+    for (const s of filteredStaff) {
+      const company = (s as any).company_name || "My Company";
+      if (!groups[company]) groups[company] = [];
+      groups[company].push(s);
+    }
+    return groups;
+  }, [filteredStaff]);
 
   // ── Confirm assignment ──
   const handleAssign = async () => {
@@ -458,6 +510,27 @@ export default function AssignResourceModal({
             })}
           </View>
 
+          {/* ── Search Bar ── */}
+          {!loading && (
+            <View style={[styles.searchBar, { borderBottomColor: colors.border }]}>
+              <Ionicons name="search-outline" size={16} color={colors.textSecondary} />
+              <TextInput
+                style={[styles.searchInput, { color: colors.text }]}
+                placeholder={t("common.search")}
+                placeholderTextColor={colors.textSecondary}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                autoCorrect={false}
+                clearButtonMode="while-editing"
+              />
+              {searchQuery.length > 0 && (
+                <Pressable onPress={() => setSearchQuery("")} hitSlop={8}>
+                  <Ionicons name="close-circle" size={16} color={colors.textSecondary} />
+                </Pressable>
+              )}
+            </View>
+          )}
+
           {/* ── Content ── */}
           {loading ? (
             <View style={styles.centered}>
@@ -475,23 +548,43 @@ export default function AssignResourceModal({
               keyboardShouldPersistTaps="handled"
             >
               {activeTab === "vehicle" ? (
-                vehicles.length === 0 ? (
+                filteredVehicles.length === 0 ? (
                   <Text
                     style={[styles.emptyText, { color: colors.textSecondary }]}
                   >
                     {tm("noVehicles")}
                   </Text>
                 ) : (
-                  vehicles.map(renderVehicleItem)
+                  Object.entries(groupedVehicles).map(([companyName, items]) => (
+                    <View key={companyName} style={[styles.companyGroup, { borderColor: colors.border }]}>
+                      <View style={styles.companyHeader}>
+                        <Ionicons name="business-outline" size={14} color={colors.textSecondary} />
+                        <Text style={[styles.companyName, { color: colors.textSecondary }]}>
+                          {companyName}
+                        </Text>
+                      </View>
+                      {items.map(renderVehicleItem)}
+                    </View>
+                  ))
                 )
-              ) : staff.length === 0 ? (
+              ) : filteredStaff.length === 0 ? (
                 <Text
                   style={[styles.emptyText, { color: colors.textSecondary }]}
                 >
                   {tm("noStaff")}
                 </Text>
               ) : (
-                staff.map(renderStaffItem)
+                Object.entries(groupedStaff).map(([companyName, items]) => (
+                  <View key={companyName} style={[styles.companyGroup, { borderColor: colors.border }]}>
+                    <View style={styles.companyHeader}>
+                      <Ionicons name="business-outline" size={14} color={colors.textSecondary} />
+                      <Text style={[styles.companyName, { color: colors.textSecondary }]}>
+                        {companyName}
+                      </Text>
+                    </View>
+                    {items.map(renderStaffItem)}
+                  </View>
+                ))
               )}
             </ScrollView>
           )}
@@ -698,5 +791,37 @@ const styles = StyleSheet.create({
   footerBtnText: {
     fontSize: 14,
     fontWeight: "700",
+  },
+  searchBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: DESIGN_TOKENS.spacing.md,
+    paddingVertical: DESIGN_TOKENS.spacing.sm,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    paddingVertical: 4,
+  },
+  companyGroup: {
+    borderWidth: 1.5,
+    borderRadius: DESIGN_TOKENS.radius.md,
+    padding: DESIGN_TOKENS.spacing.sm,
+    marginBottom: DESIGN_TOKENS.spacing.sm,
+    gap: DESIGN_TOKENS.spacing.xs,
+  },
+  companyHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 4,
+  },
+  companyName: {
+    fontSize: 12,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
 });

@@ -7,11 +7,11 @@ import { ServerData } from "../constants/ServerData";
 import { safeLogError } from "../utils/logUtils";
 import { fetchWithAuth } from "../utils/session";
 import {
-  clearStripeCache as clearStripeCacheInternal,
-  getCachedCompanyId,
-  getInFlightCompanyIdPromise,
-  setCachedCompanyId,
-  setInFlightCompanyIdPromise,
+    clearStripeCache as clearStripeCacheInternal,
+    getCachedCompanyId,
+    getInFlightCompanyIdPromise,
+    setCachedCompanyId,
+    setInFlightCompanyIdPromise,
 } from "./stripeCache";
 import { fetchUserProfile } from "./user";
 
@@ -112,38 +112,64 @@ export const checkStripeConnectionStatus = async (): Promise<{
   try {
     const companyId = await getUserCompanyId();
 
-    // Utiliser l'endpoint confirmé par le backend
-    const statusUrl = `${ServerData.serverUrl}v1/stripe/connect/status?company_id=${companyId}`;
+    // Essayer d'abord l'endpoint connect/status
+    try {
+      const statusUrl = `${ServerData.serverUrl}v1/stripe/connect/status?company_id=${companyId}`;
+      const response = await fetchWithAuth(statusUrl, { method: "GET" });
 
-    const response = await fetchWithAuth(statusUrl, {
-      method: "GET",
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-
-      // Analyser la réponse pour déterminer le statut de connexion
-      return analyzeStripeConnectionResponse(data);
-    } else {
-      const errorText = await response.text().catch(() => "No error text");
-
-      return {
-        isConnected: false,
-        status: "not_connected",
-        details: `Status endpoint error: ${response.status}`,
-      };
+      if (response.ok) {
+        const data = await response.json();
+        const result = analyzeStripeConnectionResponse(data);
+        if (result.status !== "not_connected") {
+          return result;
+        }
+      }
+    } catch {
+      // Fallback to account endpoint below
     }
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    console.error(
-      "❌ [STRIPE CONNECTION] Error checking connection status:",
-      error,
-    );
+
+    // Fallback: utiliser l'endpoint company account qui est plus fiable
+    try {
+      const accountUrl = `${ServerData.serverUrl}v1/stripe/company/${companyId}/account`;
+      const response = await fetchWithAuth(accountUrl, { method: "GET" });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.stripe) {
+          const chargesEnabled = data.stripe.charges_enabled === true;
+          const payoutsEnabled = data.stripe.payouts_enabled === true;
+          const detailsSubmitted = data.stripe.details_submitted === true;
+          const accountId = data.stripe.account_id || data.stripe.stripe_account_id;
+
+          if (!accountId) {
+            return { isConnected: false, status: "not_connected", details: "No Stripe account ID" };
+          }
+
+          if (chargesEnabled && payoutsEnabled && detailsSubmitted) {
+            return { isConnected: true, status: "active", account: data, details: "Account is fully operational" };
+          }
+
+          if (chargesEnabled && detailsSubmitted) {
+            return { isConnected: true, status: "active", account: data, details: "Charges enabled" };
+          }
+
+          return { isConnected: true, status: "incomplete", account: data, details: "Onboarding not completed" };
+        }
+      }
+    } catch {
+      // Both endpoints failed
+    }
+
     return {
       isConnected: false,
       status: "not_connected",
-      details: `Error: ${errorMessage}`,
+      details: "Could not reach Stripe API",
+    };
+  } catch (error) {
+    return {
+      isConnected: false,
+      status: "not_connected",
+      details: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
     };
   }
 };
@@ -357,7 +383,9 @@ const analyzeStripeConnectionResponse = (
     };
   }
 
-  if (!detailsSubmitted || !chargesEnabled || !payoutsEnabled) {
+  if (!detailsSubmitted || !chargesEnabled) {
+    // Only require charges_enabled and details_submitted for "active"
+    // payouts_enabled is not required — account can still accept payments
     return {
       isConnected: true,
       status: "incomplete",

@@ -1,13 +1,13 @@
 ﻿import { ServerData } from "@/src/constants/ServerData";
 import React, { useState } from "react";
 import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
+    KeyboardAvoidingView,
+    Platform,
+    Pressable,
+    ScrollView,
+    Text,
+    TextInput,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AlertMessage from "../../components/ui/AlertMessage";
@@ -16,6 +16,7 @@ import { HeaderLogo } from "../../components/ui/HeaderLogo";
 import RoundLanguageButton from "../../components/ui/RoundLanguageButton";
 import { useCommonThemedStyles } from "../../hooks/useCommonStyles";
 import { useTranslation } from "../../localization";
+import { validatePassword } from "../../utils/validators/passwordValidator";
 
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
@@ -45,6 +46,7 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [companyName, setCompanyName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlert] = useState<{
     visible: boolean;
@@ -95,6 +97,15 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
       return;
     }
 
+    if (!companyName.trim()) {
+      showAlert(
+        "warning",
+        t("auth.validation.companyNameRequired"),
+        t("auth.register.companyName"),
+      );
+      return;
+    }
+
     if (!email.trim()) {
       showAlert(
         "warning",
@@ -130,10 +141,11 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
     }
 
     // Validation mot de passe
-    if (password.length < 6) {
+    const pwResult = validatePassword(password);
+    if (!pwResult.valid) {
       showAlert(
         "error",
-        t("auth.validation.passwordTooShort"),
+        t(pwResult.errorKey!) || t("auth.validation.passwordTooShort"),
         t("common.error"),
       );
       return;
@@ -161,6 +173,7 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
           password,
           firstName,
           lastName,
+          companyName: companyName.trim(),
         }),
       });
 
@@ -363,6 +376,28 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation }) => {
                 placeholderTextColor={colors.textSecondary}
                 value={lastName}
                 onChangeText={setLastName}
+                autoCapitalize="words"
+                editable={!isLoading}
+              />
+            </View>
+
+            <View
+              testID="subscribe-companyname-field"
+              style={{ marginBottom: 20 }}
+            >
+              <Text
+                testID="subscribe-companyname-label"
+                style={[styles.subtitle, { marginBottom: 8 }]}
+              >
+                {t("auth.register.companyName")}
+              </Text>
+              <TextInput
+                testID="subscribe-companyname-input"
+                style={styles.inputBase}
+                placeholder={t("auth.register.companyNamePlaceholder")}
+                placeholderTextColor={colors.textSecondary}
+                value={companyName}
+                onChangeText={setCompanyName}
                 autoCapitalize="words"
                 editable={!isLoading}
               />

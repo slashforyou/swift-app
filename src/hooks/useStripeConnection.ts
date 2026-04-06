@@ -18,31 +18,34 @@ export const useStripeConnection = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hasSucceeded, setHasSucceeded] = useState(false);
 
   const checkConnection = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
       
-      // ✅ RÉACTIVÉ: Appel réel à l'API Stripe
       const status = await checkStripeConnectionStatus();
       
       setConnectionStatus(status);
+      setHasSucceeded(true);
       
     } catch (err) {
-
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       setError(errorMessage);
-      setConnectionStatus({
-        isConnected: false,
-        status: 'not_connected',
-        details: errorMessage
-      });
-      
+      // Only set not_connected if we never had a successful check
+      // This prevents flickering the banner on transient network errors
+      if (!hasSucceeded) {
+        setConnectionStatus({
+          isConnected: false,
+          status: 'not_connected',
+          details: errorMessage
+        });
+      }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [hasSucceeded]);
 
   useEffect(() => {
     checkConnection();

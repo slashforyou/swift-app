@@ -58,6 +58,9 @@ export const ptTranslations = mergeWithBaseTranslations(enTranslations, {
     noSelection: "Nenhum funcionário atribuído",
     none: "Nenhum",
     checkingAuth: "Verificando autenticação",
+    change: "Alterar",
+    accept: "Aceitar",
+    decline: "Recusar",
   },
 
   home: {
@@ -126,6 +129,16 @@ export const ptTranslations = mergeWithBaseTranslations(enTranslations, {
       title: "Stripe não ativado",
       description:
         "Você não pode receber pagamentos nem faturar sem o Stripe. Ative-o agora.",
+    },
+    pendingJobs: {
+      button: "{{count}} trabalho(s) aguardando resposta",
+      loading: "Carregando…",
+      title: "Trabalhos pendentes",
+      message: "Mensagem",
+      accepted: "Trabalho aceito!",
+      declined: "Trabalho recusado.",
+      declineReason: "Motivo da recusa...",
+      viewJob: "Ver trabalho",
     },
   },
 
@@ -204,6 +217,17 @@ export const ptTranslations = mergeWithBaseTranslations(enTranslations, {
     selectClientDescription: "Escolha um cliente para este trabalho",
     enterAddresses: "Inserir endereços",
     enterAddressesDescription: "Locais de recolha e entrega",
+    organization: {
+      title: "Organização do trabalho",
+      subtitle: "Escolha o tipo de trabalho e construa-o passo a passo",
+      chooseTemplate: "Tipo de trabalho",
+      steps: "etapas",
+      segmentsTitle: "Etapas do trabalho",
+      addLocation: "+ Local",
+      addTravel: "+ Percurso",
+      addStorage: "+ Armazenamento",
+      addLoading: "+ Carregamento",
+    },
     schedule: "Horário",
     scheduleDescription: "Definir janela horária para este trabalho",
     selectStaff: "Selecionar um funcionário...",
@@ -254,6 +278,7 @@ export const ptTranslations = mergeWithBaseTranslations(enTranslations, {
       bank_transfer: "Transferência bancária",
       invoice: "Fatura posterior",
     },
+    minimumHours: "Horas mínimas faturáveis",
     hours: "horas",
     estimated: "{{hours}}h estimadas",
     marginMinutes: "+{{minutes}}min margem",

@@ -27,7 +27,7 @@ import { API_URL } from "../config/environment";
 import { apiDiscovery } from "./apiDiscovery";
 import { logger } from "./logger";
 
-// Extraire l'origin (ex: "https://altivo.fr") depuis API_URL pour construire les URLs complètes
+// Extraire l'origin (ex: "https://cobbr-app.com") depuis API_URL pour construire les URLs complètes
 const API_BASE_ORIGIN = API_URL.replace(/\/swift-app\/.*$/, "");
 
 // ========================================

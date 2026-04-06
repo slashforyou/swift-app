@@ -137,6 +137,15 @@ export interface CreateJobRequest {
   call_out_fee_minutes?: number; // Forfait déplacement en minutes (0 si depot-to-depot)
   depot_to_depot?: boolean; // true = tarification dépôt-à-dépôt
   time_rounding_minutes?: number; // Arrondi temps (1, 15, 30, 60)
+  // Modular job templates
+  template_id?: string; // ID du template modulaire utilisé
+  segments?: import('../types/jobSegment').JobSegmentInstance[];
+  billing_mode?: import('../types/jobSegment').BillingMode;
+  return_trip_minutes?: number; // Durée configurable du retour (dépôt-à-dépôt)
+  // Forfait (flat_rate)
+  flat_rate_amount?: number; // Montant fixe du forfait
+  flat_rate_max_hours?: number; // Limite horaire incluse
+  flat_rate_overage_rate?: number; // Taux horaire si dépassement
 }
 
 export interface UpdateJobRequest {
@@ -344,12 +353,20 @@ export async function createJob(jobData: CreateJobRequest): Promise<JobAPI> {
         }) || [],
     };
 
-    // Pricing fields — commented out until backend migration adds these columns
-    // if (jobData.hourly_rate != null) apiPayload.hourly_rate = jobData.hourly_rate;
-    // if (jobData.minimum_hours != null) apiPayload.minimum_hours = jobData.minimum_hours;
-    // if (jobData.call_out_fee_minutes != null) apiPayload.call_out_fee_minutes = jobData.call_out_fee_minutes;
-    // if (jobData.depot_to_depot != null) apiPayload.depot_to_depot = jobData.depot_to_depot ? 1 : 0;
-    // if (jobData.time_rounding_minutes != null) apiPayload.time_rounding_minutes = jobData.time_rounding_minutes;
+    // Pricing fields
+    if (jobData.hourly_rate != null) apiPayload.hourly_rate = jobData.hourly_rate;
+    if (jobData.minimum_hours != null) apiPayload.minimum_hours = jobData.minimum_hours;
+    if (jobData.call_out_fee_minutes != null) apiPayload.call_out_fee_minutes = jobData.call_out_fee_minutes;
+    if (jobData.depot_to_depot != null) apiPayload.depot_to_depot = jobData.depot_to_depot ? 1 : 0;
+    if (jobData.time_rounding_minutes != null) apiPayload.time_rounding_minutes = jobData.time_rounding_minutes;
+
+    // Modular template fields
+    if (jobData.template_id != null) apiPayload.modular_template_id = jobData.template_id;
+    if (jobData.billing_mode != null) apiPayload.billing_mode = jobData.billing_mode;
+    if (jobData.flat_rate_amount != null) apiPayload.flat_rate_amount = jobData.flat_rate_amount;
+    if (jobData.flat_rate_max_hours != null) apiPayload.flat_rate_max_hours = jobData.flat_rate_max_hours;
+    if (jobData.flat_rate_overage_rate != null) apiPayload.flat_rate_overage_rate = jobData.flat_rate_overage_rate;
+    if (jobData.return_trip_minutes != null) apiPayload.return_trip_minutes = jobData.return_trip_minutes;
 
 
     // L'API utilise /v1/job (singulier) et non /v1/jobs
@@ -368,6 +385,19 @@ export async function createJob(jobData: CreateJobRequest): Promise<JobAPI> {
     }
 
     const data = await res.json();
+
+    // Init segments from template if a numeric template ID was provided
+    if (jobData.template_id && data.job?.id) {
+      const numericId = parseInt(String(jobData.template_id), 10);
+      if (!isNaN(numericId) && numericId > 0) {
+        try {
+          const { initJobSegments } = await import('./jobSegmentApiService');
+          await initJobSegments(data.job.id, numericId);
+        } catch (segErr) {
+          console.warn('⚠️ [createJob] Failed to init segments (non-blocking):', segErr);
+        }
+      }
+    }
 
     return data;
   } catch (error) {

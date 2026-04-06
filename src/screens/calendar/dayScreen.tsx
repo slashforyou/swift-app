@@ -1,24 +1,26 @@
 ﻿// Modern day screen with enhanced UX, loading states, filters, and animations
 
 import JobBox from "@/src/components/calendar/modernJobBox";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import Ionicons from "@react-native-vector-icons/ionicons";
 import { useFocusEffect } from "@react-navigation/native";
 import React, { useCallback, useMemo, useState } from "react";
 import {
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
+    Alert,
+    Pressable,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CalendarHeader from "../../components/calendar/CalendarHeader";
 import ContractorJobWizardModal from "../../components/calendar/ContractorJobWizardModal";
 import {
-  EmptyDayState,
-  ErrorState,
-  JobsLoadingSkeleton,
+    EmptyDayState,
+    ErrorState,
+    JobsLoadingSkeleton,
 } from "../../components/calendar/DayScreenComponents";
 import CreateJobModal from "../../components/modals/CreateJobModal";
 import HeaderLogo from "../../components/ui/HeaderLogo";
@@ -29,10 +31,10 @@ import { Job, useJobsForDay } from "../../hooks/useJobsForDay";
 import { useLocalization, useTranslation } from "../../localization";
 import { formatDateWithDay } from "../../localization/formatters";
 import {
-  acceptJob,
-  createJob,
-  CreateJobRequest,
-  declineJob,
+    acceptJob,
+    createJob,
+    CreateJobRequest,
+    declineJob,
 } from "../../services/jobs";
 
 interface DayScreenProps {
@@ -159,10 +161,32 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
   // Handle create job
   const handleCreateJob = useCallback(
     async (jobData: CreateJobRequest) => {
+      const wasFirstJob = totalJobs === 0;
       await createJob(jobData);
       await refetch(); // Refresh the jobs list
+
+      // C6: After first job created, suggest plan selection (one-time)
+      if (wasFirstJob) {
+        const alreadySuggested = await AsyncStorage.getItem("plan_suggestion_shown");
+        if (!alreadySuggested) {
+          await AsyncStorage.setItem("plan_suggestion_shown", "1");
+          setTimeout(() => {
+            Alert.alert(
+              t("home.onboarding.planSuggestionTitle") || "Unlock premium features",
+              t("home.onboarding.planSuggestionMessage") || "Now that your first job is created, explore our plans to get the most out of Swift.",
+              [
+                { text: t("common.skip") || "Skip", style: "cancel" },
+                {
+                  text: t("home.onboarding.planSuggestionCta") || "View plans",
+                  onPress: () => navigation.navigate("Subscription"),
+                },
+              ],
+            );
+          }, 500);
+        }
+      }
     },
-    [refetch],
+    [refetch, totalJobs, navigation, t],
   );
 
   // Handle inline accept job

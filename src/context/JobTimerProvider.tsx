@@ -6,18 +6,25 @@
  */
 
 import React, {
-  createContext,
-  ReactNode,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
+    createContext,
+    ReactNode,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
 } from "react";
 import { calculateTotalSteps } from "../constants/JobStepsConfig";
 import { JobTimerData, useJobTimer } from "../hooks/useJobTimer";
+import {
+    completeSegmentApi,
+    startSegmentApi,
+    updateReturnTripApi,
+} from '../services/jobSegmentApiService';
 import { syncTimerToBackend } from "../services/jobSteps";
 import { type PricingResult } from "../services/pricing";
+import type { JobSegmentInstance } from "../types/jobSegment";
 import { timerLogger } from "../utils/logger";
 
 interface JobTimerContextValue {
@@ -30,7 +37,7 @@ interface JobTimerContextValue {
   currentStep: number;
   totalSteps: number;
   isCompleted: boolean;
-  stepTimes: any[]; // ✅ NOUVEAU: Historique des temps par étape
+  stepTimes: any[]; // ✅ Historique des temps par étape
 
   // Valeurs finales (freezées à la complétion)
   finalCost: number | null;
@@ -39,14 +46,22 @@ interface JobTimerContextValue {
   // Actions
   startTimer: () => void;
   advanceStep: (step: number) => void;
-  nextStep: () => void; // ✅ Helper pour avancer à l'étape suivante
-  stopTimer: () => void; // ✅ Arrêter complètement (dernière étape)
-  togglePause: () => void; // ✅ V1.0: Simple Play/Pause toggle
+  nextStep: () => void;
+  stopTimer: () => void;
+  togglePause: () => void;
 
   // Utilitaires
   formatTime: (milliseconds: number, includeSeconds?: boolean) => string;
   calculateCost: (milliseconds: number) => PricingResult;
   HOURLY_RATE_AUD: number;
+
+  // ── Segments modulaires (optionnel — activé si segments[] fourni) ──
+  segments: JobSegmentInstance[];
+  currentSegment: JobSegmentInstance | null;
+  segmentTimes: Record<string, number>; // segmentId → elapsed ms
+  startSegment: (segmentId: string) => void;
+  completeSegment: (segmentId: string) => void;
+  setReturnTripDuration: (minutes: number) => void;
 }
 
 const JobTimerContext = createContext<JobTimerContextValue | undefined>(
@@ -56,27 +71,30 @@ const JobTimerContext = createContext<JobTimerContextValue | undefined>(
 interface JobTimerProviderProps {
   children: ReactNode;
   jobId: string;
-  realJobId?: number | string; // ✅ FIX SESSION 10: Le vrai ID numérique depuis job.id
+  realJobId?: number | string;
   currentStep: number;
   totalSteps?: number;
-  stepNames?: string[]; // ✅ Noms des steps depuis job.steps
-  addresses?: any[]; // ✅ NOUVEAU: Adresses du job pour calcul dynamique des steps
-  jobStatus?: string; // ✅ Statut du job ('completed', 'in_progress', etc.)
-  onStepChange?: (newStep: number) => void; // ✅ Callback pour synchroniser avec job.step.actualStep
+  stepNames?: string[];
+  addresses?: any[];
+  jobStatus?: string;
+  onStepChange?: (newStep: number) => void;
   onJobCompleted?: (finalCost: number, billableHours: number) => void;
+  // ── Segments modulaires (optionnel) ──
+  initialSegments?: JobSegmentInstance[];
 }
 
 export const JobTimerProvider: React.FC<JobTimerProviderProps> = ({
   children,
   jobId,
-  realJobId, // ✅ FIX SESSION 10: Recevoir le vrai ID
+  realJobId,
   currentStep,
   totalSteps: totalStepsProp,
-  stepNames = [], // ✅ Par défaut vide
-  addresses = [], // ✅ Par défaut vide
-  jobStatus, // ✅ NOUVEAU
+  stepNames = [],
+  addresses = [],
+  jobStatus,
   onStepChange,
   onJobCompleted,
+  initialSegments,
 }) => {
   // ✅ Ref pour éviter les loops infinis de synchronisation
   const isInternalUpdateRef = useRef(false);
@@ -102,13 +120,120 @@ export const JobTimerProvider: React.FC<JobTimerProviderProps> = ({
   }, [safeJobId, safeCurrentStep, safeTotalSteps]);
 
   const timer = useJobTimer(safeJobId, safeCurrentStep, {
-    realJobId, // ✅ FIX SESSION 10: Passer le vrai ID numérique
+    realJobId,
     totalSteps: safeTotalSteps,
-    stepNames, // ✅ Passer les noms des steps
-    addresses, // ✅ NOUVEAU: Passer les adresses pour calcul dynamique
+    stepNames,
+    addresses,
     onJobCompleted,
-    jobStatus, // ✅ FIX: Passer le statut du job pour détecter "completed"
+    jobStatus,
   });
+
+  // ── Segments modulaires ──
+  const [segments, setSegments] = useState<JobSegmentInstance[]>(
+    initialSegments ?? [],
+  );
+  const [segmentTimes, setSegmentTimes] = useState<Record<string, number>>({});
+  const activeSegmentIdRef = useRef<string | null>(null);
+  const segmentStartRef = useRef<number | null>(null);
+
+  // Réinitialiser les segments si initialSegments change
+  useEffect(() => {
+    if (initialSegments && initialSegments.length > 0) {
+      setSegments(initialSegments);
+    }
+  }, [initialSegments]);
+
+  // Mettre à jour le temps du segment courant (chaque seconde)
+  useEffect(() => {
+    if (activeSegmentIdRef.current && segmentStartRef.current && timer.isRunning && !timer.isOnBreak) {
+      const id = activeSegmentIdRef.current;
+      const elapsed = Date.now() - segmentStartRef.current;
+      setSegmentTimes((prev) => ({ ...prev, [id]: elapsed }));
+    }
+  }, [timer.isRunning, timer.isOnBreak, timer.totalElapsed]); // tick chaque seconde via totalElapsed
+
+  const currentSegment = useMemo(() => {
+    if (!activeSegmentIdRef.current) return null;
+    return segments.find((s) => s.id === activeSegmentIdRef.current) ?? null;
+  }, [segments, segmentTimes]); // segmentTimes force refresh
+
+  const startSegment = useCallback((segmentId: string) => {
+    const now = Date.now();
+    activeSegmentIdRef.current = segmentId;
+    segmentStartRef.current = now;
+    setSegments((prev) =>
+      prev.map((s) =>
+        s.id === segmentId ? { ...s, startedAt: new Date(now).toISOString() } : s,
+      ),
+    );
+    // Persist to backend (fire-and-forget)
+    if (realJobId) {
+      startSegmentApi(realJobId, segmentId).catch((err) =>
+        console.warn('Failed to sync startSegment to API:', err.message),
+      );
+    }
+  }, [realJobId]);
+
+  const completeSegment = useCallback((segmentId: string) => {
+    const now = Date.now();
+    const elapsed = segmentStartRef.current
+      ? now - segmentStartRef.current
+      : 0;
+
+    setSegments((prev) =>
+      prev.map((s) =>
+        s.id === segmentId
+          ? { ...s, completedAt: new Date(now).toISOString(), durationMs: elapsed }
+          : s,
+      ),
+    );
+    setSegmentTimes((prev) => ({ ...prev, [segmentId]: elapsed }));
+
+    // Persist to backend (fire-and-forget)
+    if (realJobId) {
+      completeSegmentApi(realJobId, segmentId).catch((err) =>
+        console.warn('Failed to sync completeSegment to API:', err.message),
+      );
+    }
+
+    // Passer au segment suivant
+    const currentIdx = segments.findIndex((s) => s.id === segmentId);
+    const nextSeg = segments[currentIdx + 1];
+    if (nextSeg) {
+      activeSegmentIdRef.current = nextSeg.id;
+      segmentStartRef.current = now;
+      setSegments((prev) =>
+        prev.map((s) =>
+          s.id === nextSeg.id ? { ...s, startedAt: new Date(now).toISOString() } : s,
+        ),
+      );
+      // Start next segment on backend
+      if (realJobId) {
+        startSegmentApi(realJobId, nextSeg.id).catch((err) =>
+          console.warn('Failed to sync startSegment (next) to API:', err.message),
+        );
+      }
+    } else {
+      activeSegmentIdRef.current = null;
+      segmentStartRef.current = null;
+    }
+  }, [segments, realJobId]);
+
+  const setReturnTripDuration = useCallback((minutes: number) => {
+    setSegments((prev) =>
+      prev.map((s) =>
+        s.isReturnTrip
+          ? { ...s, configuredDurationMinutes: minutes, durationMs: minutes * 60 * 1000 }
+          : s,
+      ),
+    );
+    // Persist to backend (fire-and-forget)
+    if (realJobId) {
+      updateReturnTripApi(realJobId, minutes).catch((err) =>
+        console.warn('Failed to sync returnTrip to API:', err.message),
+      );
+    }
+  }, [realJobId]);
 
   // ✅ NOUVEAU: Arrêter le timer automatiquement si le job est completed
   useEffect(() => {
@@ -300,7 +425,7 @@ export const JobTimerProvider: React.FC<JobTimerProviderProps> = ({
       currentStep: timer.currentStep,
       totalSteps: timer.totalSteps,
       isCompleted: timer.isCompleted,
-      stepTimes: timer.timerData?.stepTimes || [], // ✅ NOUVEAU: Exposer stepTimes
+      stepTimes: timer.timerData?.stepTimes || [],
       finalCost: timer.finalCost,
       finalBillableHours: timer.finalBillableHours,
 
@@ -309,12 +434,20 @@ export const JobTimerProvider: React.FC<JobTimerProviderProps> = ({
       advanceStep: advanceStepWithCallback,
       nextStep,
       stopTimer,
-      togglePause: timer.togglePause, // ✅ V1.0: Simple Play/Pause
+      togglePause: timer.togglePause,
 
       // Utilitaires
       formatTime: timer.formatTime,
       calculateCost: timer.calculateCost,
       HOURLY_RATE_AUD: timer.HOURLY_RATE_AUD,
+
+      // Segments modulaires
+      segments,
+      currentSegment,
+      segmentTimes,
+      startSegment,
+      completeSegment,
+      setReturnTripDuration,
     }),
     [
       timer.timerData,
@@ -335,6 +468,12 @@ export const JobTimerProvider: React.FC<JobTimerProviderProps> = ({
       timer.formatTime,
       timer.calculateCost,
       timer.HOURLY_RATE_AUD,
+      segments,
+      currentSegment,
+      segmentTimes,
+      startSegment,
+      completeSegment,
+      setReturnTripDuration,
     ],
   );
 

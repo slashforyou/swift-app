@@ -5,22 +5,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import React, { useCallback, useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Alert, Modal, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import DevMenu from "../components/dev/DevMenu";
-import PendingAssignmentsSection from "../components/home/PendingAssignmentsSection";
 import NotificationsPanel from "../components/home/NotificationsPanel";
+import OnboardingChecklistCard from "../components/home/OnboardingChecklist";
+import PendingAssignmentsSection from "../components/home/PendingAssignmentsSection";
 import ProfileHeader from "../components/home/ProfileHeader";
 import TodaySection from "../components/home/TodaySection";
 import { Screen } from "../components/primitives/Screen";
@@ -31,12 +21,12 @@ import { DESIGN_TOKENS } from "../constants/Styles";
 import { useNotifications } from "../context/NotificationsProvider";
 import { useTheme } from "../context/ThemeProvider";
 import { useStripeConnection } from "../hooks/useStripeConnection";
+import { useConversations } from "../hooks/useSupport";
+import { useUserProfile } from "../hooks/useUserProfile";
 import { useTranslation } from "../localization";
-import { FeedbackType, submitFeedback } from "../services/feedbackService";
 import { clearSession } from "../utils/auth";
 import { useAuthCheck } from "../utils/checkAuth";
 import { clearLocalSession } from "../utils/session";
-import { useUserProfile } from "../hooks/useUserProfile";
 
 // Types et interfaces
 interface HomeScreenProps {
@@ -47,7 +37,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const { status: stripeStatus, loading: stripeLoading } =
+  const { status: stripeStatus, loading: stripeLoading, error: stripeError } =
     useStripeConnection();
   const { isLoading, LoadingComponent } = useAuthCheck(
     navigation,
@@ -55,13 +45,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   );
   const [showDevMenu, setShowDevMenu] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [showContactModal, setShowContactModal] = useState(false);
-  const [feedbackType, setFeedbackType] = useState<FeedbackType | null>(null);
-  const [feedbackMessage, setFeedbackMessage] = useState("");
-  const [feedbackSending, setFeedbackSending] = useState(false);
   const { unreadCount } = useNotifications();
   const [showNotifications, setShowNotifications] = useState(false);
   const { profile, refreshProfile } = useUserProfile();
+  const { unreadTotal: supportUnread } = useConversations();
 
   // Rafraîchir le profil quand l'écran revient au focus (ex: après changement d'avatar)
   useFocusEffect(
@@ -69,59 +56,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       refreshProfile();
     }, []),
   );
-
-  const contactCategories = [
-    {
-      key: "help" as FeedbackType,
-      icon: "help-circle-outline" as const,
-      label: t("home.contact.helpLabel"),
-      color: colors.info,
-    },
-    {
-      key: "feedback" as FeedbackType,
-      icon: "chatbubble-ellipses-outline" as const,
-      label: t("home.contact.feedbackLabel"),
-      color: colors.success,
-    },
-    {
-      key: "feature" as FeedbackType,
-      icon: "bulb-outline" as const,
-      label: t("home.contact.featureLabel"),
-      color: colors.warning,
-    },
-    {
-      key: "bug" as FeedbackType,
-      icon: "bug-outline" as const,
-      label: t("home.contact.bugLabel"),
-      color: colors.error,
-    },
-  ];
-
-  const closeContactModal = () => {
-    setShowContactModal(false);
-    setFeedbackType(null);
-    setFeedbackMessage("");
-  };
-
-  const handleSendFeedback = async () => {
-    if (!feedbackType || !feedbackMessage.trim()) return;
-    setFeedbackSending(true);
-    try {
-      await submitFeedback({
-        type: feedbackType,
-        message: feedbackMessage.trim(),
-      });
-      closeContactModal();
-      Alert.alert(
-        t("home.contact.thankYou"),
-        t("home.contact.thankYouMessage"),
-      );
-    } catch {
-      Alert.alert(t("common.error"), t("home.contact.errorSending"));
-    } finally {
-      setFeedbackSending(false);
-    }
-  };
 
   const handleLogout = () => {
     setShowLogoutConfirm(true);
@@ -334,8 +268,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         {/* Pending contractor assignments – visible only when present */}
         <PendingAssignmentsSection navigation={navigation} />
 
-        {/* Stripe alert – visible si Stripe n'est pas actif */}
-        {!stripeLoading && stripeStatus !== "active" && (
+        {/* Onboarding checklist – visible until all steps completed */}
+        <OnboardingChecklistCard navigation={navigation} />
+
+        {/* Stripe soft gate – persistent non-blocking banner */}
+        {!stripeLoading && !stripeError && stripeStatus !== "active" && (
           <Pressable
             testID="home-stripe-alert"
             onPress={() =>
@@ -343,11 +280,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             }
             style={({ pressed }) => ({
               backgroundColor: pressed
-                ? colors.error + "30"
-                : colors.error + "15",
+                ? "#F59E0B30"
+                : "#F59E0B15",
               borderRadius: DESIGN_TOKENS.radius.md,
               borderWidth: 1,
-              borderColor: colors.error + "40",
+              borderColor: "#F59E0B40",
               padding: DESIGN_TOKENS.spacing.md,
               marginBottom: DESIGN_TOKENS.spacing.sm,
               flexDirection: "row",
@@ -360,19 +297,19 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                 width: 40,
                 height: 40,
                 borderRadius: 20,
-                backgroundColor: colors.error + "20",
+                backgroundColor: "#F59E0B20",
                 justifyContent: "center",
                 alignItems: "center",
               }}
             >
-              <Ionicons name="card-outline" size={22} color={colors.error} />
+              <Ionicons name="warning-outline" size={22} color="#D97706" />
             </View>
             <View style={{ flex: 1 }}>
               <Text
                 style={{
                   fontSize: DESIGN_TOKENS.typography.body.fontSize,
                   fontWeight: "700",
-                  color: colors.error,
+                  color: "#D97706",
                   marginBottom: 2,
                 }}
               >
@@ -388,7 +325,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                 {t("home.stripeAlert.description")}
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={colors.error} />
+            <Ionicons name="chevron-forward" size={20} color="#D97706" />
           </Pressable>
         )}
 
@@ -529,10 +466,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         </View>
       </VStack>
 
-      {/* Bouton contact / feedback — FAB en bas à gauche */}
+      {/* Bouton contact / support — FAB en bas à gauche */}
       <Pressable
         testID="home-contact-btn"
-        onPress={() => setShowContactModal(true)}
+        onPress={() => navigation.navigate("SupportInbox")}
         style={({ pressed }) => ({
           position: "absolute",
           bottom: insets.bottom + DESIGN_TOKENS.spacing.lg,
@@ -553,227 +490,27 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         hitSlop={DESIGN_TOKENS.touch.hitSlop}
       >
         <Ionicons name="chatbubbles" size={26} color="white" />
-      </Pressable>
-
-      {/* Contact modal */}
-      <Modal
-        testID="contact-modal"
-        visible={showContactModal}
-        transparent
-        animationType="fade"
-        onRequestClose={closeContactModal}
-      >
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-        >
-          <ScrollView
-            contentContainerStyle={{
-              flexGrow: 1,
-              justifyContent: "flex-end",
-              paddingHorizontal: DESIGN_TOKENS.spacing.lg,
-              paddingBottom: insets.bottom + DESIGN_TOKENS.spacing.xl,
+        {supportUnread > 0 && (
+          <View
+            style={{
+              position: "absolute",
+              top: -4,
+              right: -4,
+              backgroundColor: colors.error,
+              borderRadius: 10,
+              minWidth: 20,
+              height: 20,
+              justifyContent: "center",
+              alignItems: "center",
+              paddingHorizontal: 4,
             }}
-            keyboardShouldPersistTaps="handled"
           >
-            <Pressable
-              style={{
-                flex: 1,
-                backgroundColor: "rgba(0,0,0,0.5)",
-                justifyContent: "flex-end",
-              }}
-              onPress={closeContactModal}
-            >
-              <Pressable
-                onPress={(e) => e.stopPropagation()}
-                style={{
-                  backgroundColor: colors.background,
-                  borderRadius: DESIGN_TOKENS.radius.xl,
-                  padding: DESIGN_TOKENS.spacing.lg,
-                  gap: DESIGN_TOKENS.spacing.sm,
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: DESIGN_TOKENS.typography.title.fontSize,
-                    fontWeight: "700",
-                    color: colors.text,
-                    textAlign: "center",
-                    marginBottom: DESIGN_TOKENS.spacing.sm,
-                  }}
-                >
-                  {feedbackType
-                    ? t("home.contact.yourMessage")
-                    : t("home.contact.title")}
-                </Text>
-
-                {!feedbackType ? (
-                  /* Step 1 : Choisir une catégorie */
-                  contactCategories.map((cat) => (
-                    <Pressable
-                      key={cat.key}
-                      testID={`contact-${cat.key}-btn`}
-                      onPress={() => setFeedbackType(cat.key)}
-                      style={({ pressed }) => ({
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: DESIGN_TOKENS.spacing.md,
-                        padding: DESIGN_TOKENS.spacing.md,
-                        borderRadius: DESIGN_TOKENS.radius.md,
-                        backgroundColor: pressed
-                          ? cat.color + "15"
-                          : "transparent",
-                        borderWidth: 1,
-                        borderColor: colors.border,
-                      })}
-                    >
-                      <View
-                        style={{
-                          width: 40,
-                          height: 40,
-                          borderRadius: 20,
-                          backgroundColor: cat.color + "20",
-                          justifyContent: "center",
-                          alignItems: "center",
-                        }}
-                      >
-                        <Ionicons name={cat.icon} size={22} color={cat.color} />
-                      </View>
-                      <Text
-                        style={{
-                          flex: 1,
-                          fontSize: DESIGN_TOKENS.typography.body.fontSize,
-                          fontWeight: "600",
-                          color: colors.text,
-                        }}
-                      >
-                        {cat.label}
-                      </Text>
-                      <Ionicons
-                        name="chevron-forward"
-                        size={18}
-                        color={colors.textMuted}
-                      />
-                    </Pressable>
-                  ))
-                ) : (
-                  /* Step 2 : Écrire et envoyer le message */
-                  <>
-                    <Pressable
-                      onPress={() => setFeedbackType(null)}
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: DESIGN_TOKENS.spacing.xs,
-                        marginBottom: DESIGN_TOKENS.spacing.xs,
-                      }}
-                    >
-                      <Ionicons
-                        name="arrow-back"
-                        size={18}
-                        color={colors.primary}
-                      />
-                      <Text
-                        style={{
-                          color: colors.primary,
-                          fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-                          fontWeight: "600",
-                        }}
-                      >
-                        {
-                          contactCategories.find((c) => c.key === feedbackType)
-                            ?.label
-                        }
-                      </Text>
-                    </Pressable>
-                    <TextInput
-                      testID="feedback-message-input"
-                      placeholder={t("home.contact.placeholder")}
-                      placeholderTextColor={colors.textMuted}
-                      value={feedbackMessage}
-                      onChangeText={setFeedbackMessage}
-                      multiline
-                      maxLength={5000}
-                      style={{
-                        borderWidth: 1,
-                        borderColor: colors.border,
-                        borderRadius: DESIGN_TOKENS.radius.md,
-                        padding: DESIGN_TOKENS.spacing.md,
-                        minHeight: 120,
-                        textAlignVertical: "top",
-                        color: colors.text,
-                        fontSize: DESIGN_TOKENS.typography.body.fontSize,
-                      }}
-                    />
-                    <Pressable
-                      testID="feedback-send-btn"
-                      onPress={handleSendFeedback}
-                      disabled={
-                        feedbackSending || feedbackMessage.trim().length === 0
-                      }
-                      style={({ pressed }) => ({
-                        backgroundColor:
-                          feedbackSending || feedbackMessage.trim().length === 0
-                            ? colors.primary + "60"
-                            : pressed
-                              ? colors.primary + "DD"
-                              : colors.primary,
-                        borderRadius: DESIGN_TOKENS.radius.md,
-                        paddingVertical: DESIGN_TOKENS.spacing.md,
-                        alignItems: "center",
-                        flexDirection: "row",
-                        justifyContent: "center",
-                        gap: DESIGN_TOKENS.spacing.sm,
-                      })}
-                    >
-                      {feedbackSending ? (
-                        <ActivityIndicator size="small" color="white" />
-                      ) : (
-                        <Ionicons name="send" size={18} color="white" />
-                      )}
-                      <Text
-                        style={{
-                          color: "white",
-                          fontSize: DESIGN_TOKENS.typography.body.fontSize,
-                          fontWeight: "700",
-                        }}
-                      >
-                        {feedbackSending
-                          ? t("home.contact.sending")
-                          : t("home.contact.send")}
-                      </Text>
-                    </Pressable>
-                  </>
-                )}
-
-                <Pressable
-                  testID="contact-cancel-btn"
-                  onPress={closeContactModal}
-                  style={({ pressed }) => ({
-                    paddingVertical: DESIGN_TOKENS.spacing.md,
-                    borderRadius: DESIGN_TOKENS.radius.md,
-                    backgroundColor: pressed
-                      ? colors.backgroundTertiary
-                      : colors.backgroundSecondary,
-                    marginTop: DESIGN_TOKENS.spacing.xs,
-                  })}
-                >
-                  <Text
-                    style={{
-                      textAlign: "center",
-                      fontSize: DESIGN_TOKENS.typography.body.fontSize,
-                      fontWeight: "600",
-                      color: colors.textSecondary,
-                    }}
-                  >
-                    {t("home.contact.cancel")}
-                  </Text>
-                </Pressable>
-              </Pressable>
-            </Pressable>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </Modal>
+            <Text style={{ color: "white", fontSize: 10, fontWeight: "700" }}>
+              {supportUnread > 9 ? "9+" : supportUnread}
+            </Text>
+          </View>
+        )}
+      </Pressable>
 
       {__DEV__ && (
         <Pressable

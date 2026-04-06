@@ -248,6 +248,9 @@ const JobSummary = ({
                   activeTransfer={job.active_transfer}
                   onOpenWizard={onOpenDelegateWizard ?? (() => {})}
                   onRefresh={onRefresh ?? (() => {})}
+                  companyId={job.contractor?.company_id ?? job.contractee?.company_id ?? 0}
+                  startAt={job.start_window_start}
+                  endAt={job.end_window_end ?? job.end_window_start}
                 />
               )}
 

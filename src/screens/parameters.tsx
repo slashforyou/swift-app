@@ -5,19 +5,21 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
-  Alert,
-  Linking,
-  Pressable,
-  ScrollView,
-  Switch,
-  Text,
-  View,
+    ActivityIndicator,
+    Alert,
+    Linking,
+    Pressable,
+    ScrollView,
+    Switch,
+    Text,
+    View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Screen } from "../components/primitives/Screen";
 import { HStack, VStack } from "../components/primitives/Stack";
 import { DESIGN_TOKENS } from "../constants/Styles";
 import { useTheme } from "../context/ThemeProvider";
+import { useSubscription } from "../hooks/usePlans";
 import { useTranslation } from "../localization/useLocalization";
 import { deleteUserAccount } from "../services/user";
 import { clearSession } from "../utils/auth";
@@ -189,8 +191,7 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
   const { isLoading, LoadingComponent } = useAuthCheck(
     navigation,
     t("common.checkingAuth"),
-  );
-  const [settings, setSettings] = useState<AppSettings>({
+  );  const { companyPlan, isLoading: planLoading } = useSubscription();  const [settings, setSettings] = useState<AppSettings>({
     notifications: {
       pushNotifications: true,
       emailNotifications: false,
@@ -600,6 +601,90 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
                     "Terms of Service"}{" "}
                   →
                 </Text>
+              </HStack>
+            </Pressable>
+          </SettingSection>
+
+          {/* Subscription / Plan Section */}
+          <SettingSection
+            colors={colors}
+            title={t("subscription.title") || "Subscription"}
+            icon="diamond-outline"
+          >
+            <Pressable
+              testID="parameters-subscription-btn"
+              onPress={() => navigation?.navigate("Subscription")}
+              style={({ pressed }) => ({
+                backgroundColor: pressed
+                  ? colors.backgroundTertiary
+                  : colors.background,
+                borderRadius: DESIGN_TOKENS.radius.md,
+                padding: DESIGN_TOKENS.spacing.md,
+                borderWidth: 1,
+                borderColor: colors.border,
+                minHeight: DESIGN_TOKENS.touch.minSize + 10,
+              })}
+            >
+              <HStack gap="md" align="center">
+                <View
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 20,
+                    backgroundColor: "#8B5CF615",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <Ionicons name="card-outline" size={22} color="#8B5CF6" />
+                </View>
+                <VStack gap={2} style={{ flex: 1 }}>
+                  <Text
+                    style={{
+                      fontSize: DESIGN_TOKENS.typography.body.fontSize,
+                      fontWeight: "600",
+                      color: colors.text,
+                    }}
+                  >
+                    {planLoading ? (
+                      <ActivityIndicator size="small" color={colors.textSecondary} />
+                    ) : (
+                      companyPlan?.plan?.display_name || companyPlan?.plan?.label || "Free"
+                    )}
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: DESIGN_TOKENS.typography.caption.fontSize,
+                      color: colors.textSecondary,
+                    }}
+                  >
+                    {t("subscription.changePlan") || "Change plan"}
+                  </Text>
+                </VStack>
+                <View
+                  style={{
+                    backgroundColor: "#8B5CF620",
+                    borderRadius: DESIGN_TOKENS.radius.sm,
+                    paddingHorizontal: 8,
+                    paddingVertical: 4,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontWeight: "700",
+                      color: "#8B5CF6",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {t("subscription.currentPlan") || "Current"}
+                  </Text>
+                </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color={colors.textSecondary}
+                />
               </HStack>
             </Pressable>
           </SettingSection>

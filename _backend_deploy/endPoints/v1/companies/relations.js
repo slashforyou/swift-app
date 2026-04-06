@@ -23,16 +23,43 @@ const listRelationsEndpoint = async (req, res) => {
       return res.status(403).json({ success: false, error: "No company" });
 
     connection = await connect();
+
+    // Fusionne les relations manuelles (company_relations) avec les
+    // partenaires auto-détectés via job_transfers (Option A du rapport).
     const [rows] = await connection.execute(
       `SELECT cr.id, cr.related_type, cr.related_company_id, cr.related_contractor_id,
               cr.nickname, cr.created_at,
-              COALESCE(cr.nickname, c.trading_name, c.name) AS related_company_name,
-              c.company_code AS related_company_code
+              COALESCE(cr.nickname, c.trading_name COLLATE utf8mb4_unicode_ci, c.name COLLATE utf8mb4_unicode_ci) AS related_company_name,
+              c.company_code COLLATE utf8mb4_unicode_ci AS related_company_code,
+              'manual' AS source
        FROM company_relations cr
        LEFT JOIN companies c ON c.id = cr.related_company_id
        WHERE cr.owner_company_id = ?
-       ORDER BY COALESCE(cr.nickname, c.trading_name, c.name) ASC`,
-      [ownerCompanyId],
+
+       UNION
+
+       SELECT NULL AS id, 'company' AS related_type, c.id AS related_company_id,
+              NULL AS related_contractor_id,
+              NULL AS nickname, MIN(jt.created_at) AS created_at,
+              COALESCE(c.trading_name COLLATE utf8mb4_unicode_ci, c.name COLLATE utf8mb4_unicode_ci) AS related_company_name,
+              c.company_code COLLATE utf8mb4_unicode_ci AS related_company_code,
+              'transfer' AS source
+       FROM job_transfers jt
+       JOIN companies c ON c.id = CASE
+         WHEN jt.sender_company_id = ? THEN jt.recipient_company_id
+         ELSE jt.sender_company_id
+       END
+       WHERE (jt.sender_company_id = ? OR jt.recipient_company_id = ?)
+         AND jt.status IN ('pending', 'accepted')
+         AND c.id != ?
+         AND c.id NOT IN (
+           SELECT related_company_id FROM company_relations
+           WHERE owner_company_id = ? AND related_company_id IS NOT NULL
+         )
+       GROUP BY c.id, c.trading_name, c.name, c.company_code
+
+       ORDER BY related_company_name ASC`,
+      [ownerCompanyId, ownerCompanyId, ownerCompanyId, ownerCompanyId, ownerCompanyId, ownerCompanyId],
     );
 
     return res.json({ success: true, data: rows });

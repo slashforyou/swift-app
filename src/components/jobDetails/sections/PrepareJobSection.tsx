@@ -15,6 +15,7 @@ import { useTheme } from "../../../context/ThemeProvider";
 import { useLocalization } from "../../../localization/useLocalization";
 import { listAssignments } from "../../../services/jobAssignments";
 import type { JobTransfer } from "../../../types/jobTransfer";
+import AssignResourceModal from "../../modals/AssignResourceModal";
 
 interface PrepareJobSectionProps {
   jobId: string | number;
@@ -22,6 +23,9 @@ interface PrepareJobSectionProps {
   /** Ouvrir le wizard avec un mode pré-sélectionné */
   onOpenWizard: (mode: "resources" | "delegate_part" | "delegate_full") => void;
   onRefresh?: () => void;
+  companyId?: number;
+  startAt?: string;
+  endAt?: string;
 }
 
 const PrepareJobSection: React.FC<PrepareJobSectionProps> = ({
@@ -29,6 +33,9 @@ const PrepareJobSection: React.FC<PrepareJobSectionProps> = ({
   activeTransfer,
   onOpenWizard,
   onRefresh,
+  companyId,
+  startAt,
+  endAt,
 }) => {
   const { colors } = useTheme();
   const { t } = useLocalization();
@@ -38,6 +45,7 @@ const PrepareJobSection: React.FC<PrepareJobSectionProps> = ({
   const [hasWorkers, setHasWorkers] = useState(false);
   const [noVehicleNeeded, setNoVehicleNeeded] = useState(false);
   const [workerCount, setWorkerCount] = useState(0);
+  const [showAssignModal, setShowAssignModal] = useState(false);
 
   const isFullyDelegated =
     activeTransfer &&
@@ -212,18 +220,27 @@ const PrepareJobSection: React.FC<PrepareJobSectionProps> = ({
           paddingBottom: DESIGN_TOKENS.spacing.md,
         }}
       >
-        {/* 1. Véhicule */}
+        {/* 1. Véhicule / Travailleurs */}
         {renderStep(
-          "car-outline",
-          t("prepareJob.addVehicle") || "Ajouter un véhicule",
-          hasVehicle
-            ? t("prepareJob.vehicleAssigned") || "Véhicule assigné"
-            : noVehicleNeeded
-              ? t("prepareJob.noVehicleNeeded") || "Pas de véhicule requis"
-              : t("prepareJob.addVehicleDesc") ||
-                "Sélectionnez un camion pour ce job",
-          vehicleDone,
-          () => onOpenWizard("resources"),
+          "people-outline",
+          t("prepareJob.addVehicleWorker") || "Add vehicle / worker",
+          vehicleDone && workersDone
+            ? isFullyDelegated
+              ? t("prepareJob.jobDelegated") || "Job fully delegated"
+              : [
+                  hasVehicle
+                    ? t("prepareJob.vehicleAssigned") || "Vehicle assigned"
+                    : null,
+                  workerCount > 0
+                    ? `${workerCount} ${t("prepareJob.workersAssigned") || "worker(s) assigned"}`
+                    : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ") || t("prepareJob.allAssigned") || "All assigned"
+            : t("prepareJob.addVehicleWorkerDesc") ||
+                "Assign a vehicle and/or workers to this job",
+          vehicleDone && workersDone,
+          () => setShowAssignModal(true),
           /* Checkbox "pas de véhicule" — visible seulement si pas encore de véhicule */
           !hasVehicle ? (
             <Pressable
@@ -244,7 +261,7 @@ const PrepareJobSection: React.FC<PrepareJobSectionProps> = ({
                   color: colors.textSecondary,
                 }}
               >
-                {t("prepareJob.notNeeded") || "Pas nécessaire"}
+                {t("prepareJob.notNeeded") || "Not needed"}
               </Text>
               <Switch
                 value={noVehicleNeeded}
@@ -258,20 +275,6 @@ const PrepareJobSection: React.FC<PrepareJobSectionProps> = ({
               />
             </Pressable>
           ) : undefined,
-        )}
-
-        {/* 2. Travailleurs */}
-        {renderStep(
-          "people-outline",
-          t("prepareJob.addWorkers") || "Ajouter des travailleurs",
-          workersDone
-            ? isFullyDelegated
-              ? t("prepareJob.jobDelegated") || "Job entièrement délégué"
-              : `${workerCount} ${t("prepareJob.workersAssigned") || "travailleur(s) assigné(s)"}`
-            : t("prepareJob.addWorkersDesc") ||
-                "Employés ou prestataires externes",
-          workersDone,
-          () => onOpenWizard("resources"),
         )}
 
         {/* Divider "ou" */}
@@ -323,6 +326,23 @@ const PrepareJobSection: React.FC<PrepareJobSectionProps> = ({
           () => onOpenWizard("delegate_full"),
         )}
       </View>
+
+      {/* Modal d'affectation de ressources (véhicule + équipage) */}
+      {(companyId ?? 0) > 0 && (
+        <AssignResourceModal
+          visible={showAssignModal}
+          onClose={() => setShowAssignModal(false)}
+          onAssigned={() => {
+            setShowAssignModal(false);
+            load();
+            onRefresh?.();
+          }}
+          jobId={jobId}
+          companyId={companyId!}
+          startAt={startAt}
+          endAt={endAt}
+        />
+      )}
     </View>
   );
 };

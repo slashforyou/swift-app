@@ -23,6 +23,8 @@ const linking = {
       Calendar: "calendar",
       Profile: "profile",
       StripeOnboarding: "stripe-onboarding",
+      JobTemplateEditor: "business/templates/edit",
+      JobTimeBreakdown: "job/time-breakdown",
     },
   },
 };
@@ -42,6 +44,9 @@ const BusinessOwnerRegistration = lazyScreen(
 );
 const SubscribeMailVerification = lazyScreen(
   () => import("../screens/connectionScreens/subscribeMailVerification"),
+);
+const ForgotPasswordScreen = lazyScreen(
+  () => import("../screens/connectionScreens/forgotPassword"),
 );
 const JobDetails = lazyScreen(() => import("../screens/jobDetails"));
 const Profile = lazyScreen(() => import("../screens/profile"));
@@ -64,6 +69,35 @@ const TeamsManagement = lazyScreen(
 const Leaderboard = lazyScreen(() => import("../screens/leaderboard"));
 const Badges = lazyScreen(() => import("../screens/badges"));
 const XpHistory = lazyScreen(() => import("../screens/xpHistory"));
+
+// Support screens
+const SupportInbox = lazyScreen(
+  () => import("../screens/support/SupportInbox"),
+);
+const SupportConversation = lazyScreen(
+  () => import("../screens/support/SupportConversation"),
+);
+const SupportNewConversation = lazyScreen(
+  () => import("../screens/support/SupportNewConversation"),
+);
+
+// Subscription screen
+const SubscriptionScreen = lazyScreen(
+  () => import("../screens/SubscriptionScreen"),
+);
+
+// Modular job templates screens
+const JobTemplateEditor = lazyScreen(
+  () => import("../screens/business/JobTemplateEditor"),
+);
+const JobTimeBreakdownScreen = lazyScreen(
+  () => import("../screens/job/JobTimeBreakdownScreen"),
+);
+
+// Onboarding screens
+const CompleteProfileScreen = lazyScreen(
+  () => import("../screens/CompleteProfileScreen"),
+);
 
 const Stack = createNativeStackNavigator();
 
@@ -88,7 +122,11 @@ export default function Navigation() {
   };
 
   return (
-    <NavigationContainer ref={navigationRef} onReady={onReady} linking={linking}>
+    <NavigationContainer
+      ref={navigationRef}
+      onReady={onReady}
+      linking={linking}
+    >
       <Stack.Navigator
         initialRouteName="Connection"
         screenOptions={{ headerShown: false }}
@@ -109,6 +147,7 @@ export default function Navigation() {
           name="SubscribeMailVerification"
           component={SubscribeMailVerification}
         />
+        <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Calendar" component={CalendarNavigation} />
         <Stack.Screen name="Business" component={BusinessNavigation} />
@@ -128,6 +167,31 @@ export default function Navigation() {
         <Stack.Screen name="Leaderboard" component={Leaderboard} />
         <Stack.Screen name="Badges" component={Badges} />
         <Stack.Screen name="XpHistory" component={XpHistory} />
+        <Stack.Screen name="SupportInbox" component={SupportInbox} />
+        <Stack.Screen
+          name="SupportConversation"
+          component={SupportConversation}
+        />
+        <Stack.Screen
+          name="SupportNewConversation"
+          component={SupportNewConversation}
+        />
+        <Stack.Screen name="Subscription" component={SubscriptionScreen} />
+        <Stack.Screen
+          name="JobTemplateEditor"
+          component={JobTemplateEditor}
+          options={{ animation: "slide_from_bottom" }}
+        />
+        <Stack.Screen
+          name="JobTimeBreakdown"
+          component={JobTimeBreakdownScreen}
+          options={{ animation: "slide_from_bottom" }}
+        />
+        <Stack.Screen
+          name="CompleteProfile"
+          component={CompleteProfileScreen}
+          options={{ animation: "slide_from_right" }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

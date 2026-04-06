@@ -6,7 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker, {
     DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
@@ -28,12 +28,21 @@ import { useBusinessVehicles } from "../../hooks/business/useBusinessVehicles";
 import { useClients } from "../../hooks/useClients";
 import { getLocale, useLocalization } from "../../localization";
 import {
+    fetchModularTemplates,
+    getDefaultModularTemplates,
+} from "../../services/business/templatesService";
+import {
     ClientAPI,
     createClient,
     CreateClientRequest,
     fetchClients,
 } from "../../services/clients";
 import { CreateJobRequest } from "../../services/jobs";
+import {
+    JobSegmentTemplate,
+    ModularJobTemplate,
+    SegmentType,
+} from "../../types/jobSegment";
 
 interface CreateJobModalProps {
   visible: boolean;
@@ -45,7 +54,7 @@ interface CreateJobModalProps {
 type Step =
   | "client"
   | "new-client"
-  | "address"
+  | "organization"
   | "schedule"
   | "details"
   | "pricing"
@@ -165,6 +174,16 @@ export default function CreateJobModal({
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Scroll reset when step changes
+  const stepScrollRef = useRef<any>(null);
+  useEffect(() => {
+    if (stepScrollRef.current?.scrollTo) {
+      stepScrollRef.current.scrollTo({ y: 0, animated: false });
+    } else if (stepScrollRef.current?.scrollToPosition) {
+      stepScrollRef.current.scrollToPosition(0, 0, false);
+    }
+  }, [step]);
+
   // Form state
   const [selectedClient, setSelectedClient] = useState<ClientAPI | null>(null);
   const [addresses, setAddresses] = useState<CreateJobRequest["addresses"]>([
@@ -177,6 +196,17 @@ export default function CreateJobModal({
     useState<CreateJobRequest["priority"]>("medium");
   const [estimatedDuration, setEstimatedDuration] = useState("4");
   const [notes, setNotes] = useState("");
+
+  // 🧩 Organization / Template state
+  const [templates, setTemplates] = useState<ModularJobTemplate[]>([]);
+  const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] =
+    useState<ModularJobTemplate | null>(null);
+  const [jobSegments, setJobSegments] = useState<
+    (JobSegmentTemplate & {
+      address?: { street: string; city: string; state: string; zip: string };
+    })[]
+  >([]);
 
   // Staff, Vehicle and Extras state
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
@@ -281,6 +311,9 @@ export default function CreateJobModal({
     setCallOutFeeMinutes(30);
     setDepotToDepot(false);
     setTimeRounding(30);
+    // Reset organization state
+    setSelectedTemplate(null);
+    setJobSegments([]);
     setNewClientData({
       firstName: "",
       lastName: "",
@@ -294,6 +327,17 @@ export default function CreateJobModal({
   useEffect(() => {
     if (!visible) {
       resetModal();
+    }
+  }, [visible]);
+
+  // Fetch modular templates when modal opens
+  useEffect(() => {
+    if (visible && templates.length === 0) {
+      setIsLoadingTemplates(true);
+      fetchModularTemplates()
+        .then((data) => setTemplates(data))
+        .catch(() => setTemplates(getDefaultModularTemplates()))
+        .finally(() => setIsLoadingTemplates(false));
     }
   }, [visible]);
 
@@ -311,7 +355,7 @@ export default function CreateJobModal({
         { type: "dropoff", street: "", city: "", state: "", zip: "" },
       ]);
     }
-    setStep("address");
+    setStep("organization");
   };
 
   const updateAddress = (index: number, field: string, value: string) => {
@@ -412,6 +456,21 @@ export default function CreateJobModal({
         call_out_fee_minutes: depotToDepot ? 0 : callOutFeeMinutes,
         depot_to_depot: depotToDepot,
         time_rounding_minutes: timeRounding,
+        // Template / segments
+        template_id: selectedTemplate?.id || undefined,
+        billing_mode: selectedTemplate?.billingMode || undefined,
+        segments: jobSegments.length > 0
+          ? jobSegments.map((seg) => ({
+              id: seg.id,
+              templateSegmentId: seg.id,
+              order: seg.order,
+              type: seg.type,
+              label: seg.label,
+              locationType: seg.locationType,
+              isBillable: seg.isBillable,
+              assignedEmployees: [],
+            }))
+          : undefined,
       };
 
       await onCreateJob(jobData);
@@ -461,7 +520,7 @@ export default function CreateJobModal({
   const getStepNumber = (s: Step): number => {
     const steps: Step[] = [
       "client",
-      "address",
+      "organization",
       "schedule",
       "details",
       "pricing",
@@ -474,7 +533,7 @@ export default function CreateJobModal({
     <View style={styles.progressContainer}>
       {[
         "client",
-        "address",
+        "organization",
         "schedule",
         "details",
         "pricing",
@@ -607,7 +666,7 @@ export default function CreateJobModal({
       <ScrollView
         style={styles.clientList}
         showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
+        keyboardShouldPersistTaps="always"
       >
         {isLoadingClients ? (
           <ActivityIndicator size="large" color={colors.primary} />
@@ -682,10 +741,11 @@ export default function CreateJobModal({
       </Text>
 
       <ScrollView
+        ref={stepScrollRef}
         testID="address-step-scroll"
         style={styles.addressList}
         showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
+        keyboardShouldPersistTaps="always"
       >
         {addresses.map((address, index) => (
           <View key={index} style={styles.addressBlock}>
@@ -823,6 +883,642 @@ export default function CreateJobModal({
     </View>
   );
 
+  // Helper: segment icon by type
+  const getSegmentIcon = (type: SegmentType): string => {
+    switch (type) {
+      case "location":
+        return "location";
+      case "travel":
+        return "car";
+      case "storage":
+        return "cube";
+      case "loading":
+        return "archive";
+      default:
+        return "ellipse";
+    }
+  };
+
+  // Helper: segment color by type
+  const getSegmentColor = (type: SegmentType): string => {
+    switch (type) {
+      case "location":
+        return colors.primary;
+      case "travel":
+        return colors.info || "#3b82f6";
+      case "storage":
+        return colors.warning || "#f59e0b";
+      case "loading":
+        return colors.success || "#22c55e";
+      default:
+        return colors.textSecondary;
+    }
+  };
+
+  // Select template and populate segments
+  const handleSelectTemplate = useCallback(
+    (template: ModularJobTemplate) => {
+      setSelectedTemplate(template);
+      // Copy segments from template, adding address fields for location types
+      const segments = template.segments.map((seg) => ({
+        ...seg,
+        address:
+          seg.type === "location" || seg.type === "storage" || seg.type === "loading"
+            ? { street: "", city: "", state: "", zip: "" }
+            : undefined,
+      }));
+      setJobSegments(segments);
+
+      // Pre-fill pricing from template
+      if (template.defaultHourlyRate) {
+        setHourlyRate(template.defaultHourlyRate.toString());
+      }
+      if (template.minimumHours) {
+        setMinimumHours(template.minimumHours);
+      }
+      if (template.timeRoundingMinutes) {
+        setTimeRounding(template.timeRoundingMinutes);
+      }
+      setDepotToDepot(template.billingMode === "depot_to_depot");
+    },
+    [],
+  );
+
+  // Add a new segment to the list
+  const handleAddSegment = useCallback(
+    (type: SegmentType) => {
+      const newOrder = jobSegments.length + 1;
+      const locationCount = jobSegments.filter(
+        (s) => s.type === "location" || s.type === "storage" || s.type === "loading",
+      ).length;
+      const newSeg: JobSegmentTemplate & {
+        address?: { street: string; city: string; state: string; zip: string };
+      } = {
+        id: `custom-seg-${Date.now()}`,
+        order: newOrder,
+        type,
+        label:
+          type === "location"
+            ? `${t("jobs.organization.addLocation").replace("+ ", "") || "Location"} #${locationCount + 1}`
+            : type === "travel"
+              ? t("jobs.organization.addTravel").replace("+ ", "") || "Travel"
+              : type === "storage"
+                ? t("jobs.organization.addStorage").replace("+ ", "") || "Storage"
+                : t("jobs.organization.addLoading").replace("+ ", "") || "Loading",
+        isBillable: type !== "travel",
+        locationType: type === "location" ? "house" : type === "storage" ? "depot" : undefined,
+        address:
+          type === "location" || type === "storage" || type === "loading"
+            ? { street: "", city: "", state: "", zip: "" }
+            : undefined,
+      };
+      setJobSegments((prev) => [...prev, newSeg]);
+    },
+    [jobSegments],
+  );
+
+  // Remove a segment by index
+  const handleRemoveSegment = useCallback((index: number) => {
+    setJobSegments((prev) =>
+      prev
+        .filter((_, i) => i !== index)
+        .map((s, i) => ({ ...s, order: i + 1 })),
+    );
+  }, []);
+
+  // Toggle billable state for a segment
+  const handleToggleBillable = useCallback((index: number) => {
+    setJobSegments((prev) =>
+      prev.map((seg, i) =>
+        i === index ? { ...seg, isBillable: !seg.isBillable } : seg,
+      ),
+    );
+  }, []);
+
+  // Update segment address
+  const updateSegmentAddress = useCallback(
+    (index: number, field: string, value: string) => {
+      setJobSegments((prev) =>
+        prev.map((seg, i) =>
+          i === index
+            ? { ...seg, address: { ...seg.address!, [field]: value } }
+            : seg,
+        ),
+      );
+    },
+    [],
+  );
+
+  // Can proceed from organization step
+  const canProceedFromOrganization = (): boolean => {
+    if (!selectedTemplate || jobSegments.length === 0) return false;
+    // Check all location/storage/loading segments have at least street+city
+    return jobSegments
+      .filter((s) => s.address)
+      .every((s) => s.address!.street.length > 0 && s.address!.city.length > 0);
+  };
+
+  // Template category icons
+  const getCategoryIcon = (category: string): string => {
+    switch (category) {
+      case "residential":
+        return "home";
+      case "commercial":
+        return "business";
+      case "storage":
+        return "cube";
+      case "packing":
+        return "archive";
+      default:
+        return "briefcase";
+    }
+  };
+
+  const renderOrganizationStep = () => (
+    <View style={styles.stepContent}>
+      <Text style={[styles.stepTitle, { color: colors.text }]}>
+        {t("jobs.organization.title") || "Job Organisation"}
+      </Text>
+      <Text style={[styles.stepDescription, { color: colors.textSecondary }]}>
+        {t("jobs.organization.subtitle") ||
+          "Choose the job type then build it step by step"}
+      </Text>
+
+      <ScrollView
+        ref={stepScrollRef}
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="always"
+      >
+        {/* Template selection */}
+        {!selectedTemplate ? (
+          <>
+            <Text
+              style={[
+                styles.sectionLabel,
+                { color: colors.text, marginTop: 0 },
+              ]}
+            >
+              {t("jobs.organization.chooseTemplate") || "Job type"}
+            </Text>
+            {isLoadingTemplates ? (
+              <ActivityIndicator
+                size="large"
+                color={colors.primary}
+                style={{ marginVertical: DESIGN_TOKENS.spacing.xl }}
+              />
+            ) : (
+              <View style={{ gap: DESIGN_TOKENS.spacing.sm }}>
+                {templates.map((template) => (
+                  <Pressable
+                    key={template.id}
+                    onPress={() => handleSelectTemplate(template)}
+                    style={({ pressed }) => ({
+                      flexDirection: "row",
+                      alignItems: "center",
+                      padding: DESIGN_TOKENS.spacing.md,
+                      borderRadius: DESIGN_TOKENS.radius.md,
+                      backgroundColor: pressed
+                        ? colors.primary + "15"
+                        : colors.backgroundSecondary,
+                      borderWidth: 1,
+                      borderColor: colors.border,
+                    })}
+                  >
+                    <View
+                      style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: 22,
+                        backgroundColor: colors.primary + "20",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Ionicons
+                        name={
+                          getCategoryIcon(template.category) as any
+                        }
+                        size={22}
+                        color={colors.primary}
+                      />
+                    </View>
+                    <View style={{ flex: 1, marginLeft: DESIGN_TOKENS.spacing.md }}>
+                      <Text
+                        style={{
+                          fontSize: DESIGN_TOKENS.typography.body.fontSize,
+                          fontWeight: "600",
+                          color: colors.text,
+                        }}
+                      >
+                        {template.name}
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: DESIGN_TOKENS.typography.caption.fontSize,
+                          color: colors.textSecondary,
+                          marginTop: 2,
+                        }}
+                      >
+                        {template.description}
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: 11,
+                          color: colors.primary,
+                          marginTop: 4,
+                        }}
+                      >
+                        {template.segments.length}{" "}
+                        {t("jobs.organization.steps") || "steps"} •{" "}
+                        {template.billingMode.replace(/_/g, " ")}
+                      </Text>
+                    </View>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={20}
+                      color={colors.textSecondary}
+                    />
+                  </Pressable>
+                ))}
+              </View>
+            )}
+          </>
+        ) : (
+          <>
+            {/* Selected template header — tap to change */}
+            <Pressable
+              onPress={() => {
+                setSelectedTemplate(null);
+                setJobSegments([]);
+              }}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                padding: DESIGN_TOKENS.spacing.md,
+                borderRadius: DESIGN_TOKENS.radius.md,
+                backgroundColor: colors.primary + "15",
+                borderWidth: 1,
+                borderColor: colors.primary + "40",
+                marginBottom: DESIGN_TOKENS.spacing.lg,
+              }}
+            >
+              <Ionicons
+                name={getCategoryIcon(selectedTemplate.category) as any}
+                size={20}
+                color={colors.primary}
+              />
+              <Text
+                style={{
+                  flex: 1,
+                  marginLeft: DESIGN_TOKENS.spacing.sm,
+                  fontSize: DESIGN_TOKENS.typography.body.fontSize,
+                  fontWeight: "600",
+                  color: colors.primary,
+                }}
+              >
+                {selectedTemplate.name}
+              </Text>
+              <Text
+                style={{
+                  fontSize: DESIGN_TOKENS.typography.caption.fontSize,
+                  color: colors.primary,
+                }}
+              >
+                {t("common.change") || "Change"}
+              </Text>
+              <Ionicons
+                name="swap-horizontal"
+                size={16}
+                color={colors.primary}
+                style={{ marginLeft: 4 }}
+              />
+            </Pressable>
+
+            {/* Segments (the lego blocks) */}
+            <Text style={[styles.sectionLabel, { color: colors.text, marginTop: 0 }]}>
+              {t("jobs.organization.segmentsTitle") || "Job steps"}
+            </Text>
+            {jobSegments.map((seg, index) => (
+              <View
+                key={`${seg.id}-${index}`}
+                style={{
+                  marginBottom: DESIGN_TOKENS.spacing.md,
+                  borderRadius: DESIGN_TOKENS.radius.md,
+                  borderWidth: 1,
+                  borderColor: getSegmentColor(seg.type) + "40",
+                  backgroundColor: getSegmentColor(seg.type) + "08",
+                  overflow: "hidden",
+                }}
+              >
+                {/* Segment header */}
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    padding: DESIGN_TOKENS.spacing.md,
+                    backgroundColor: getSegmentColor(seg.type) + "15",
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: 14,
+                      backgroundColor: getSegmentColor(seg.type) + "30",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Ionicons
+                      name={getSegmentIcon(seg.type) as any}
+                      size={14}
+                      color={getSegmentColor(seg.type)}
+                    />
+                  </View>
+                  <Text
+                    style={{
+                      flex: 1,
+                      marginLeft: DESIGN_TOKENS.spacing.sm,
+                      fontWeight: "600",
+                      fontSize: DESIGN_TOKENS.typography.body.fontSize,
+                      color: colors.text,
+                    }}
+                  >
+                    {seg.order}. {seg.label}
+                  </Text>
+                  <Pressable
+                    onPress={() => handleToggleBillable(index)}
+                    style={{
+                      paddingHorizontal: DESIGN_TOKENS.spacing.sm,
+                      paddingVertical: 4,
+                      borderRadius: 12,
+                      backgroundColor: seg.isBillable
+                        ? (colors.success || "#22c55e") + "20"
+                        : (colors.textSecondary || "#999") + "20",
+                      marginRight: DESIGN_TOKENS.spacing.sm,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 10,
+                        color: seg.isBillable
+                          ? colors.success || "#22c55e"
+                          : colors.textSecondary || "#999",
+                        fontWeight: "600",
+                      }}
+                    >
+                      {seg.isBillable ? "💰" : "🚫"}
+                    </Text>
+                  </Pressable>
+                  {jobSegments.length > 1 && (
+                    <Pressable onPress={() => handleRemoveSegment(index)}>
+                      <Ionicons
+                        name="close-circle"
+                        size={22}
+                        color={colors.error || "#ef4444"}
+                      />
+                    </Pressable>
+                  )}
+                </View>
+
+                {/* Address form for location/storage/loading segments */}
+                {seg.address && (
+                  <View style={{ padding: DESIGN_TOKENS.spacing.md }}>
+                    <View
+                      style={[
+                        styles.inputGroup,
+                        { backgroundColor: colors.backgroundSecondary },
+                      ]}
+                    >
+                      <TextInput
+                        style={[styles.input, { color: colors.text }]}
+                        placeholder={t("address.street") || "Street address"}
+                        placeholderTextColor={colors.textSecondary}
+                        value={seg.address.street}
+                        onChangeText={(v) =>
+                          updateSegmentAddress(index, "street", v)
+                        }
+                      />
+                    </View>
+                    <View style={styles.inputRow}>
+                      <View
+                        style={[
+                          styles.inputGroup,
+                          styles.inputHalf,
+                          { backgroundColor: colors.backgroundSecondary },
+                        ]}
+                      >
+                        <TextInput
+                          style={[styles.input, { color: colors.text }]}
+                          placeholder={t("address.city") || "City"}
+                          placeholderTextColor={colors.textSecondary}
+                          value={seg.address.city}
+                          onChangeText={(v) =>
+                            updateSegmentAddress(index, "city", v)
+                          }
+                        />
+                      </View>
+                      <Pressable
+                        style={[
+                          styles.inputGroup,
+                          styles.inputHalf,
+                          { backgroundColor: colors.backgroundSecondary },
+                        ]}
+                        onPress={() => {
+                          setCurrentAddressIndex(index);
+                          setShowStatePicker(true);
+                        }}
+                      >
+                        <Text
+                          style={[
+                            styles.input,
+                            {
+                              color: seg.address.state
+                                ? colors.text
+                                : colors.textSecondary,
+                            },
+                          ]}
+                        >
+                          {seg.address.state || t("address.state") || "State"}
+                        </Text>
+                        <Ionicons
+                          name="chevron-down"
+                          size={16}
+                          color={colors.textSecondary}
+                        />
+                      </Pressable>
+                    </View>
+                    <View
+                      style={[
+                        styles.inputGroup,
+                        styles.inputZip,
+                        { backgroundColor: colors.backgroundSecondary },
+                      ]}
+                    >
+                      <TextInput
+                        style={[styles.input, { color: colors.text }]}
+                        placeholder={t("address.zip") || "Postal code"}
+                        placeholderTextColor={colors.textSecondary}
+                        value={seg.address.zip}
+                        onChangeText={(v) =>
+                          updateSegmentAddress(index, "zip", v)
+                        }
+                        keyboardType="numeric"
+                      />
+                    </View>
+                  </View>
+                )}
+
+                {/* Connector line between segments (except last) */}
+                {index < jobSegments.length - 1 && (
+                  <View
+                    style={{
+                      alignItems: "center",
+                      paddingBottom: 4,
+                    }}
+                  >
+                    <View
+                      style={{
+                        width: 2,
+                        height: 16,
+                        backgroundColor: colors.border,
+                      }}
+                    />
+                    <Ionicons
+                      name="chevron-down"
+                      size={14}
+                      color={colors.border}
+                    />
+                  </View>
+                )}
+              </View>
+            ))}
+
+            {/* Add segment buttons */}
+            <View
+              style={{
+                flexDirection: "row",
+                flexWrap: "wrap",
+                gap: DESIGN_TOKENS.spacing.sm,
+                marginTop: DESIGN_TOKENS.spacing.sm,
+                marginBottom: DESIGN_TOKENS.spacing.md,
+              }}
+            >
+              {(
+                [
+                  {
+                    type: "location" as SegmentType,
+                    label: t("jobs.organization.addLocation") || "+ Location",
+                    icon: "location",
+                  },
+                  {
+                    type: "travel" as SegmentType,
+                    label: t("jobs.organization.addTravel") || "+ Travel",
+                    icon: "car",
+                  },
+                  {
+                    type: "storage" as SegmentType,
+                    label: t("jobs.organization.addStorage") || "+ Storage",
+                    icon: "cube",
+                  },
+                  {
+                    type: "loading" as SegmentType,
+                    label: t("jobs.organization.addLoading") || "+ Loading",
+                    icon: "archive",
+                  },
+                ] as const
+              ).map((btn) => (
+                <Pressable
+                  key={btn.type}
+                  onPress={() => handleAddSegment(btn.type)}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    paddingVertical: DESIGN_TOKENS.spacing.sm,
+                    paddingHorizontal: DESIGN_TOKENS.spacing.md,
+                    borderRadius: DESIGN_TOKENS.radius.md,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                    borderStyle: "dashed",
+                    backgroundColor: colors.backgroundSecondary,
+                  }}
+                >
+                  <Ionicons
+                    name={btn.icon as any}
+                    size={16}
+                    color={colors.primary}
+                  />
+                  <Text
+                    style={{
+                      marginLeft: 6,
+                      fontSize: DESIGN_TOKENS.typography.caption.fontSize,
+                      color: colors.primary,
+                      fontWeight: "600",
+                    }}
+                  >
+                    {btn.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </>
+        )}
+
+        {/* Navigation buttons */}
+        <View style={[styles.buttonRow, { marginBottom: 20 }]}>
+          <Pressable
+            style={[
+              styles.button,
+              styles.buttonSecondary,
+              { borderColor: colors.border },
+            ]}
+            onPress={() => setStep("client")}
+          >
+            <Text style={[styles.buttonText, { color: colors.text }]}>
+              {t("common.back") || "Back"}
+            </Text>
+          </Pressable>
+          <Pressable
+            style={[
+              styles.button,
+              styles.buttonPrimary,
+              {
+                backgroundColor: canProceedFromOrganization()
+                  ? colors.primary
+                  : colors.border,
+              },
+            ]}
+            onPress={() => {
+              // Build addresses array from segments for compatibility
+              const segAddresses = jobSegments
+                .filter((s) => s.address)
+                .map((s, i) => ({
+                  type: i === 0 ? "pickup" : "dropoff",
+                  street: s.address!.street,
+                  city: s.address!.city,
+                  state: s.address!.state,
+                  zip: s.address!.zip,
+                }));
+              if (segAddresses.length > 0) {
+                setAddresses(segAddresses as CreateJobRequest["addresses"]);
+              }
+              setStep("schedule");
+            }}
+            disabled={!canProceedFromOrganization()}
+            testID="create-job-organization-next-btn"
+          >
+            <Text
+              style={[styles.buttonText, { color: colors.buttonPrimaryText }]}
+            >
+              {t("common.next") || "Next"}
+            </Text>
+          </Pressable>
+        </View>
+      </ScrollView>
+    </View>
+  );
+
   const renderScheduleStep = () => {
     // Handlers for date/time pickers
     const handleDateChange = (event: DateTimePickerEvent, date?: Date) => {
@@ -856,10 +1552,11 @@ export default function CreateJobModal({
         </Text>
 
         <KeyboardAwareScrollView
+          ref={stepScrollRef as any}
           showsVerticalScrollIndicator={false}
           enableOnAndroid={true}
           extraScrollHeight={100}
-          keyboardShouldPersistTaps="handled"
+          keyboardShouldPersistTaps="always"
         >
           {/* Date Picker - Clickable */}
           <Pressable
@@ -1102,7 +1799,7 @@ export default function CreateJobModal({
                 styles.buttonSecondary,
                 { borderColor: colors.border },
               ]}
-              onPress={() => setStep("address")}
+              onPress={() => setStep("organization")}
             >
               <Text style={[styles.buttonText, { color: colors.text }]}>
                 {t("common.back") || "Back"}
@@ -1144,10 +1841,11 @@ export default function CreateJobModal({
       </Text>
 
       <ScrollView
+        ref={stepScrollRef}
         testID="details-step-scroll"
         style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
+        keyboardShouldPersistTaps="always"
       >
         {/* Priority */}
         <Text style={[styles.sectionLabel, { color: colors.text }]}>
@@ -1201,306 +1899,6 @@ export default function CreateJobModal({
             textAlignVertical="top"
           />
         </View>
-
-        {/* Staff Assignment (Optional) */}
-        <Text style={[styles.sectionLabel, { color: colors.text }]}>
-          {t("jobs.assignStaff") || "Assign Staff (optional)"}
-        </Text>
-        <Pressable
-          style={[
-            styles.inputGroup,
-            { backgroundColor: colors.backgroundSecondary },
-          ]}
-          onPress={() => setShowStaffPicker(true)}
-        >
-          <Ionicons
-            name="person"
-            size={20}
-            color={selectedStaffId ? colors.primary : colors.textSecondary}
-          />
-          <Text
-            style={[
-              styles.selectText,
-              { color: selectedStaffId ? colors.text : colors.textSecondary },
-            ]}
-          >
-            {selectedStaffId
-              ? getActiveStaff().find((s) => s.id === selectedStaffId)
-                  ?.firstName +
-                " " +
-                getActiveStaff().find((s) => s.id === selectedStaffId)?.lastName
-              : t("jobs.selectStaff") || "Select a staff member..."}
-          </Text>
-          <Ionicons
-            name="chevron-down"
-            size={20}
-            color={colors.textSecondary}
-          />
-        </Pressable>
-
-        {/* Vehicle Type (Optional) */}
-        <Text
-          style={[
-            styles.sectionLabel,
-            { color: colors.text, marginTop: DESIGN_TOKENS.spacing.md },
-          ]}
-        >
-          {t("jobs.vehicleType") || "Vehicle Type (optional)"}
-        </Text>
-        <View style={styles.priorityGrid}>
-          {VEHICLE_TYPES.map((vehicle) => (
-            <Pressable
-              key={vehicle.key}
-              style={[
-                styles.priorityCard,
-                {
-                  backgroundColor:
-                    selectedVehicleType === vehicle.key
-                      ? colors.primary + "20"
-                      : colors.backgroundSecondary,
-                  borderColor:
-                    selectedVehicleType === vehicle.key
-                      ? colors.primary
-                      : colors.border,
-                },
-              ]}
-              onPress={() =>
-                setSelectedVehicleType(
-                  selectedVehicleType === vehicle.key ? null : vehicle.key,
-                )
-              }
-            >
-              <Text style={styles.priorityEmoji}>{vehicle.emoji}</Text>
-              <Text style={[styles.priorityLabel, { color: colors.text }]}>
-                {t(`jobs.vehicleTypes.${vehicle.key}`) || vehicle.label}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-
-        {/* Extras */}
-        <Text
-          style={[
-            styles.sectionLabel,
-            { color: colors.text, marginTop: DESIGN_TOKENS.spacing.md },
-          ]}
-        >
-          {t("jobs.extras") || "Extras (optional)"}
-        </Text>
-        <View style={styles.extrasGrid}>
-          {EXTRAS_OPTIONS.map((extra) => {
-            const isSelected = selectedExtras.includes(extra.key);
-            return (
-              <Pressable
-                key={extra.key}
-                style={[
-                  styles.extraCard,
-                  {
-                    backgroundColor: isSelected
-                      ? colors.primary + "20"
-                      : colors.backgroundSecondary,
-                    borderColor: isSelected ? colors.primary : colors.border,
-                  },
-                ]}
-                onPress={() => {
-                  if (isSelected) {
-                    setSelectedExtras(
-                      selectedExtras.filter((e) => e !== extra.key),
-                    );
-                  } else {
-                    setSelectedExtras([...selectedExtras, extra.key]);
-                  }
-                }}
-              >
-                <Text style={styles.extraEmoji}>{extra.emoji}</Text>
-                <Text
-                  style={[
-                    styles.extraLabel,
-                    { color: isSelected ? colors.primary : colors.text },
-                  ]}
-                  numberOfLines={2}
-                >
-                  {t(`jobs.extrasOptions.${extra.key}`) || extra.label}
-                </Text>
-                {isSelected && (
-                  <Ionicons
-                    name="checkmark-circle"
-                    size={16}
-                    color={colors.primary}
-                    style={{ position: "absolute", top: 4, right: 4 }}
-                  />
-                )}
-              </Pressable>
-            );
-          })}
-        </View>
-
-        {/* Payment Section */}
-        <Text
-          style={[
-            styles.sectionLabel,
-            { color: colors.text, marginTop: DESIGN_TOKENS.spacing.lg },
-          ]}
-        >
-          💰 {t("jobs.payment") || "Payment Details (optional)"}
-        </Text>
-
-        {/* Quote / Total Amount */}
-        <View
-          style={[
-            styles.inputGroup,
-            { backgroundColor: colors.backgroundSecondary },
-          ]}
-        >
-          <Ionicons
-            name="cash-outline"
-            size={20}
-            color={colors.textSecondary}
-          />
-          <TextInput
-            style={[styles.input, { color: colors.text }]}
-            placeholder={t("jobs.quoteAmount") || "Quote Amount ($)"}
-            placeholderTextColor={colors.textSecondary}
-            value={amountTotal}
-            onChangeText={setAmountTotal}
-            keyboardType="decimal-pad"
-          />
-        </View>
-
-        {/* Payment Method */}
-        <Text
-          style={[
-            styles.sectionLabel,
-            { color: colors.text, marginTop: DESIGN_TOKENS.spacing.md },
-          ]}
-        >
-          {t("jobs.paymentMethod") || "Payment Method"}
-        </Text>
-        <View style={styles.priorityGrid}>
-          {PAYMENT_METHOD_OPTIONS.map((method) => (
-            <Pressable
-              key={method.key}
-              style={[
-                styles.priorityCard,
-                {
-                  backgroundColor:
-                    paymentMethod === method.key
-                      ? colors.primary + "20"
-                      : colors.backgroundSecondary,
-                  borderColor:
-                    paymentMethod === method.key
-                      ? colors.primary
-                      : colors.border,
-                },
-              ]}
-              onPress={() =>
-                setPaymentMethod(
-                  paymentMethod === method.key ? null : method.key,
-                )
-              }
-            >
-              <Text style={styles.priorityEmoji}>{method.emoji}</Text>
-              <Text style={[styles.priorityLabel, { color: colors.text }]}>
-                {t(`jobs.paymentMethods.${method.key}`) || method.label}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-
-        {/* Deposit Required Toggle */}
-        <Pressable
-          style={[
-            styles.inputGroup,
-            {
-              backgroundColor: colors.backgroundSecondary,
-              marginTop: DESIGN_TOKENS.spacing.md,
-            },
-          ]}
-          onPress={() => setDepositRequired(!depositRequired)}
-        >
-          <Ionicons
-            name={depositRequired ? "checkbox" : "square-outline"}
-            size={24}
-            color={depositRequired ? colors.primary : colors.textSecondary}
-          />
-          <Text style={[styles.input, { color: colors.text, flex: 1 }]}>
-            {t("jobs.depositRequired") || "Deposit Required"}
-          </Text>
-        </Pressable>
-
-        {/* Deposit Details (shown if deposit required) */}
-        {depositRequired && (
-          <>
-            <View
-              style={[
-                styles.inputGroup,
-                {
-                  backgroundColor: colors.backgroundSecondary,
-                  marginTop: DESIGN_TOKENS.spacing.sm,
-                },
-              ]}
-            >
-              <Ionicons
-                name="pie-chart-outline"
-                size={20}
-                color={colors.textSecondary}
-              />
-              <TextInput
-                style={[styles.input, { color: colors.text, flex: 1 }]}
-                placeholder={
-                  t("jobs.depositPercentage") || "Deposit % (e.g. 50)"
-                }
-                placeholderTextColor={colors.textSecondary}
-                value={depositPercentage}
-                onChangeText={setDepositPercentage}
-                keyboardType="number-pad"
-              />
-              <Text style={{ color: colors.textSecondary }}>%</Text>
-            </View>
-
-            {/* Calculated deposit amount */}
-            {amountTotal && depositPercentage && (
-              <View
-                style={{
-                  paddingHorizontal: DESIGN_TOKENS.spacing.md,
-                  paddingVertical: DESIGN_TOKENS.spacing.sm,
-                }}
-              >
-                <Text style={{ color: colors.textSecondary, fontSize: 14 }}>
-                  {t("jobs.depositAmount") || "Deposit amount"}: $
-                  {(
-                    (parseFloat(amountTotal) * parseFloat(depositPercentage)) /
-                    100
-                  ).toFixed(2)}
-                </Text>
-              </View>
-            )}
-
-            {/* Deposit Paid Toggle */}
-            <Pressable
-              style={[
-                styles.inputGroup,
-                {
-                  backgroundColor: colors.backgroundSecondary,
-                  marginTop: DESIGN_TOKENS.spacing.sm,
-                },
-              ]}
-              onPress={() => setDepositPaid(!depositPaid)}
-            >
-              <Ionicons
-                name={depositPaid ? "checkmark-circle" : "ellipse-outline"}
-                size={24}
-                color={depositPaid ? "#22c55e" : colors.textSecondary}
-              />
-              <Text style={[styles.input, { color: colors.text, flex: 1 }]}>
-                {t("jobs.depositPaid") || "Deposit Already Paid"}
-              </Text>
-              {depositPaid && (
-                <Ionicons name="checkmark" size={20} color="#22c55e" />
-              )}
-            </Pressable>
-          </>
-        )}
       </ScrollView>
 
       <View
@@ -1563,10 +1961,11 @@ export default function CreateJobModal({
         </Text>
 
         <ScrollView
+          ref={stepScrollRef}
           testID="pricing-step-scroll"
           style={{ flex: 1 }}
           showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
+          keyboardShouldPersistTaps="always"
         >
           {/* Hourly Rate */}
           <Text style={[styles.sectionLabel, { color: colors.text }]}>
@@ -1629,55 +2028,7 @@ export default function CreateJobModal({
             ))}
           </View>
 
-          {/* Depot to Depot Toggle */}
-          <Text
-            style={[
-              styles.sectionLabel,
-              { color: colors.text, marginTop: DESIGN_TOKENS.spacing.lg },
-            ]}
-          >
-            🚛 {t("jobs.depotToDepot") || "Depot to Depot"}
-          </Text>
-          <Pressable
-            style={[
-              styles.inputGroup,
-              {
-                backgroundColor: depotToDepot
-                  ? colors.primary + "20"
-                  : colors.backgroundSecondary,
-                borderWidth: 1,
-                borderColor: depotToDepot ? colors.primary : colors.border,
-              },
-            ]}
-            onPress={() => setDepotToDepot(!depotToDepot)}
-          >
-            <Ionicons
-              name={depotToDepot ? "checkbox" : "square-outline"}
-              size={24}
-              color={depotToDepot ? colors.primary : colors.textSecondary}
-            />
-            <View style={{ flex: 1, marginLeft: DESIGN_TOKENS.spacing.sm }}>
-              <Text style={[styles.input, { color: colors.text }]}>
-                {t("jobs.depotToDepotLabel") ||
-                  "Bill from depot departure to return"}
-              </Text>
-              <Text
-                style={{
-                  color: colors.textSecondary,
-                  fontSize: 12,
-                  marginTop: 2,
-                }}
-              >
-                {depotToDepot
-                  ? t("jobs.depotToDepotActiveDesc") ||
-                    "All travel time is billable, no call-out fee"
-                  : t("jobs.depotToDepotInactiveDesc") ||
-                    "Fixed call-out fee, travel time not billed separately"}
-              </Text>
-            </View>
-          </Pressable>
-
-          {/* Call Out Fee - Hidden if Depot to Depot is active */}
+          {/* Call Out Fee */}
           {!depotToDepot && (
             <>
               <Text
@@ -1948,10 +2299,9 @@ export default function CreateJobModal({
           </Text>
         </View>
 
-        {/* Addresses */}
-        {addresses.map((address, index) => (
+        {/* Template & Segments */}
+        {selectedTemplate && (
           <View
-            key={index}
             style={[
               styles.confirmationCard,
               { backgroundColor: colors.backgroundSecondary },
@@ -1963,12 +2313,10 @@ export default function CreateJobModal({
                 { color: colors.textSecondary },
               ]}
             >
-              {ADDRESS_TYPES[index]?.emoji}{" "}
-              {t(`jobs.addressTypes.${ADDRESS_TYPES[index]?.key}`) ||
-                ADDRESS_TYPES[index]?.label}
+              🧩 {t("jobs.organization.title") || "Organisation"}
             </Text>
             <Text style={[styles.confirmationValue, { color: colors.text }]}>
-              {address.street}
+              {selectedTemplate.name}
             </Text>
             <Text
               style={[
@@ -1976,10 +2324,47 @@ export default function CreateJobModal({
                 { color: colors.textSecondary },
               ]}
             >
-              {address.city}, {address.state} {address.zip}
+              {jobSegments.length}{" "}
+              {t("jobs.organization.steps") || "steps"} •{" "}
+              {selectedTemplate.billingMode.replace(/_/g, " ")}
             </Text>
           </View>
-        ))}
+        )}
+
+        {/* Addresses from segments */}
+        {jobSegments
+          .filter((s) => s.address && s.address.street)
+          .map((seg, index) => (
+            <View
+              key={`addr-${seg.id}-${index}`}
+              style={[
+                styles.confirmationCard,
+                { backgroundColor: colors.backgroundSecondary },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.confirmationLabel,
+                  { color: colors.textSecondary },
+                ]}
+              >
+                📍 {seg.label}
+              </Text>
+              <Text style={[styles.confirmationValue, { color: colors.text }]}>
+                {seg.address!.street}
+              </Text>
+              <Text
+                style={[
+                  styles.confirmationSubvalue,
+                  { color: colors.textSecondary },
+                ]}
+              >
+                {seg.address!.city}
+                {seg.address!.state ? `, ${seg.address!.state}` : ""}{" "}
+                {seg.address!.zip}
+              </Text>
+            </View>
+          ))}
 
         {/* Schedule */}
         <View
@@ -2362,8 +2747,8 @@ export default function CreateJobModal({
       await refetchClients();
       // Sélectionner automatiquement le nouveau client
       setSelectedClient(newClient);
-      // Passer à l'étape suivante (address)
-      setStep("address");
+      // Passer à l'étape suivante (organization)
+      setStep("organization");
       // Réinitialiser le formulaire
       setNewClientData({
         firstName: "",
@@ -2394,9 +2779,10 @@ export default function CreateJobModal({
       </Text>
 
       <ScrollView
+        ref={stepScrollRef}
         style={styles.clientList}
         showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
+        keyboardShouldPersistTaps="always"
       >
         {/* First Name */}
         <View style={styles.newClientInputGroup}>
@@ -2579,8 +2965,8 @@ export default function CreateJobModal({
         return renderClientStep();
       case "new-client":
         return renderNewClientStep();
-      case "address":
-        return renderAddressStep();
+      case "organization":
+        return renderOrganizationStep();
       case "schedule":
         return renderScheduleStep();
       case "details":
@@ -2974,6 +3360,7 @@ export default function CreateJobModal({
           onPress={() => setShowStatePicker(false)}
         >
           <View
+            onStartShouldSetResponder={() => true}
             style={{
               backgroundColor: colors.background,
               borderTopLeftRadius: DESIGN_TOKENS.radius.xl,
@@ -3010,7 +3397,11 @@ export default function CreateJobModal({
                   key={state.key}
                   testID={`state-option-${state.key}`}
                   onPress={() => {
-                    updateAddress(currentAddressIndex, "state", state.key);
+                    if (step === "organization") {
+                      updateSegmentAddress(currentAddressIndex, "state", state.key);
+                    } else {
+                      updateAddress(currentAddressIndex, "state", state.key);
+                    }
                     setShowStatePicker(false);
                   }}
                   style={({ pressed }) => ({
@@ -3045,7 +3436,9 @@ export default function CreateJobModal({
                       {state.label}
                     </Text>
                   </View>
-                  {addresses[currentAddressIndex]?.state === state.key && (
+                  {(step === "organization"
+                    ? jobSegments[currentAddressIndex]?.address?.state
+                    : addresses[currentAddressIndex]?.state) === state.key && (
                     <Ionicons
                       name="checkmark"
                       size={20}

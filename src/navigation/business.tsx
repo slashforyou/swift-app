@@ -23,6 +23,8 @@ import {
     TrucksScreen,
 } from "../screens/business";
 import BusinessInfoPage from "../screens/business/BusinessInfoPage";
+import ContractsScreen from "../screens/business/ContractsScreen";
+import JobTemplatesPanel from "../screens/business/JobTemplatesPanel";
 import { useAuthCheck } from "../utils/checkAuth";
 
 // Types et interfaces
@@ -103,6 +105,10 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
         return t("business.navigation.trucks");
       case "JobsBilling":
         return t("business.navigation.jobsBilling");
+      case "JobTemplates":
+        return "Modèles de job";
+      case "Contracts":
+        return t("contracts.title");
       default:
         return t("business.navigation.businessInfo");
     }
@@ -170,6 +176,10 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
               />
             )}
             {businessPanel === "Relations" && <RelationsScreen />}
+            {businessPanel === "JobTemplates" && (
+              <JobTemplatesPanel navigation={navigation} />
+            )}
+            {businessPanel === "Contracts" && <ContractsScreen />}
           </>
         )}
       </ScrollView>

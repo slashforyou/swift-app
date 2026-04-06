@@ -1,15 +1,16 @@
 ﻿import { ServerData } from "@/src/constants/ServerData";
 import { useNavigation } from "@react-navigation/native";
+import * as SecureStore from "expo-secure-store";
 import React, { useState } from "react";
 import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
+    Pressable,
+    ScrollView,
+    Text,
+    TextInput,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AlertMessage from "../../components/ui/AlertMessage";
@@ -19,6 +20,7 @@ import RoundLanguageButton from "../../components/ui/RoundLanguageButton";
 import { useCommonThemedStyles } from "../../hooks/useCommonStyles";
 import { useLocalization } from "../../localization/useLocalization";
 import { hasPendingProfile } from "../../services/businessOwnerService";
+import { collectDevicePayload } from "../../utils/device";
 
 const SubscribeMailVerification = ({ route }: any) => {
   const navigation = useNavigation<any>();
@@ -134,6 +136,8 @@ const SubscribeMailVerification = ({ route }: any) => {
         return;
       }
 
+      const device = await collectDevicePayload();
+
       const response = await fetch(`${ServerData.serverUrl}verifyMail`, {
         method: "POST",
         headers: {
@@ -142,36 +146,79 @@ const SubscribeMailVerification = ({ route }: any) => {
         body: JSON.stringify({
           mail: mail,
           code: verificationCode,
+          device,
         }),
       });
 
       if (response.status === 200) {
         const data = await response.json();
         if (data.success) {
-          showAlert(
-            "success",
-            t("auth.emailVerification.verificationSuccess"),
-            t("auth.emailVerification.title"),
-          );
-
-          // Check for pending business owner profile
-          setTimeout(async () => {
-            const hasPending = await hasPendingProfile();
-            if (hasPending) {
-              Alert.alert(
-                t("auth.emailVerification.completeProfileTitle"),
-                t("auth.emailVerification.completeProfileMessage"),
-                [
-                  {
-                    text: t("common.ok"),
-                    onPress: () => navigation.navigate("Login"),
-                  },
-                ],
-              );
+          // Auto-login: store session tokens and navigate to Home
+          if (data.autoLogin && data.sessionToken) {
+            await SecureStore.setItemAsync("session_token", data.sessionToken);
+            if (data.sessionExpiry) {
+              await SecureStore.setItemAsync("session_expiry", data.sessionExpiry);
             } else {
-              navigation.navigate("Login");
+              const expiry = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+              await SecureStore.setItemAsync("session_expiry", expiry);
             }
-          }, 1500);
+            if (data.refreshToken) {
+              await SecureStore.setItemAsync("refresh_token", data.refreshToken);
+            }
+            if (data.user) {
+              await SecureStore.setItemAsync(
+                "user_data",
+                JSON.stringify({
+                  id: data.user.id,
+                  email: data.user.email,
+                  first_name: data.user.first_name,
+                  last_name: data.user.last_name,
+                  role: data.user.role,
+                  company_id: data.user.company_id,
+                  company_role: data.user.company_role,
+                  company: data.user.company,
+                }),
+              );
+            }
+
+            showAlert(
+              "success",
+              t("auth.emailVerification.verificationSuccess"),
+              t("auth.emailVerification.title"),
+            );
+
+            setTimeout(() => {
+              navigation.reset({
+                index: 0,
+                routes: [{ name: "Home" }],
+              });
+            }, 1500);
+          } else {
+            // Fallback: no auto-login, navigate to Login
+            showAlert(
+              "success",
+              t("auth.emailVerification.verificationSuccess"),
+              t("auth.emailVerification.title"),
+            );
+
+            setTimeout(async () => {
+              const hasPending = await hasPendingProfile();
+              if (hasPending) {
+                Alert.alert(
+                  t("auth.emailVerification.completeProfileTitle"),
+                  t("auth.emailVerification.completeProfileMessage"),
+                  [
+                    {
+                      text: t("common.ok"),
+                      onPress: () => navigation.navigate("Login"),
+                    },
+                  ],
+                );
+              } else {
+                navigation.navigate("Login");
+              }
+            }, 1500);
+          }
         } else {
           let errorMessage = t("auth.emailVerification.verificationFailed");
           let errorTitle = t("auth.emailVerification.codeIncorrect");

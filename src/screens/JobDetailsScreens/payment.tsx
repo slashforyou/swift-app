@@ -16,6 +16,7 @@ import {
     TextInput,
     View,
 } from "react-native";
+import ReportPaymentIssueModal from "../../components/modals/ReportPaymentIssueModal";
 import SigningBloc from "../../components/signingBloc";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useJobTimerContext } from "../../context/JobTimerProvider";
@@ -73,6 +74,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
   const [newItemDescription, setNewItemDescription] = useState("");
   const [newItemAmount, setNewItemAmount] = useState("");
   const [passFeesToClient, setPassFeesToClient] = useState(false);
+  const [isReportIssueVisible, setIsReportIssueVisible] = useState(false);
 
   useEffect(() => {
     AsyncStorage.getItem("stripe_pass_fees_to_client").then((val) => {
@@ -363,12 +365,12 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
     // ✅ Guard Stripe : bloquer si le compte Stripe n'est pas actif
     if (stripeAccountStatus === "inactive") {
       Alert.alert(
-        "Compte Stripe incomplet",
-        "Vous devez compléter la configuration de votre compte Stripe avant de pouvoir recevoir des paiements.",
+        t("stripeGate.title"),
+        t("stripeGate.message"),
         [
-          { text: "Plus tard", style: "cancel" },
+          { text: t("common.cancel"), style: "cancel" },
           {
-            text: "Activer Stripe",
+            text: t("stripeGate.cta"),
             onPress: () =>
               navigation.navigate("Business", { initialTab: "JobsBilling" }),
           },
@@ -1159,6 +1161,36 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
           </View>
         </View>
 
+        {/* ===== BOUTON SIGNALER UN PROBLÈME ===== */}
+        <Pressable
+          onPress={() => setIsReportIssueVisible(true)}
+          style={({ pressed }) => ({
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: DESIGN_TOKENS.spacing.sm,
+            backgroundColor: pressed
+              ? colors.warning + "30"
+              : colors.warning + "15",
+            borderWidth: 1,
+            borderColor: colors.warning + "40",
+            borderRadius: DESIGN_TOKENS.radius.lg,
+            padding: DESIGN_TOKENS.spacing.md,
+            marginBottom: DESIGN_TOKENS.spacing.lg,
+          })}
+        >
+          <Ionicons name="alert-circle-outline" size={20} color={colors.warning} />
+          <Text
+            style={{
+              fontSize: 14,
+              fontWeight: "600",
+              color: colors.warning,
+            }}
+          >
+            {t("jobDetails.payment.reportIssue.button")}
+          </Text>
+        </Pressable>
+
         {/* ===== 2. RÉSUMÉ FINANCIER ===== */}
         <View
           style={{
@@ -1672,6 +1704,13 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
           </Pressable>
         </Pressable>
       </Modal>
+
+      {/* ===== MODAL SIGNALER UN PROBLÈME DE PAIEMENT ===== */}
+      <ReportPaymentIssueModal
+        visible={isReportIssueVisible}
+        onClose={() => setIsReportIssueVisible(false)}
+        jobId={job?.id || job?.job?.id || 0}
+      />
     </>
   );
 };

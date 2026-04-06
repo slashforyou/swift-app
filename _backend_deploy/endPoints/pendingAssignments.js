@@ -49,6 +49,7 @@ const pendingAssignmentsEndpoint = async (req, res) => {
          LEFT JOIN clients cl ON cl.id = j.client_id
          WHERE j.contractor_company_id = ?
            AND j.assignment_status = 'pending'
+           AND j.start_window_start >= CURDATE()
          ORDER BY j.start_window_start ASC
          LIMIT 50`,
         [companyId],
@@ -81,6 +82,7 @@ const pendingAssignmentsEndpoint = async (req, res) => {
           AND jtransfers.status IN ('pending', 'accepted', 'negotiating')
          LEFT JOIN clients cl ON cl.id = j.client_id
          WHERE j.assignment_status = 'pending'
+           AND j.start_window_start >= CURDATE()
          ORDER BY j.start_window_start ASC
          LIMIT 50`,
         [userId],

@@ -909,6 +909,12 @@ export async function getJobSignatures(jobId: number | string): Promise<{
   }>;
   message?: string;
 }> {
+  // Guard: reject non-numeric ids (e.g. job codes like "JOB-XXX")
+  const numericId = typeof jobId === 'number' ? jobId : parseInt(jobId, 10);
+  if (!numericId || isNaN(numericId) || numericId <= 0) {
+    return { success: true, signatures: [] };
+  }
+
   try {
 
     const response = await authenticatedFetch(

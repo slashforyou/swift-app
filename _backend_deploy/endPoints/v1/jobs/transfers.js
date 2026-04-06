@@ -136,6 +136,35 @@ const createTransferEndpoint = async (req, res) => {
       [result.insertId],
     );
 
+    // Auto-insert bidirectional company_relations if not already present
+    if (recipient_company_id) {
+      const recipientId = parseInt(recipient_company_id);
+      // sender → recipient
+      await connection.execute(
+        `INSERT IGNORE INTO company_relations
+           (owner_company_id, related_type, related_company_id, related_company_name)
+         SELECT ?, 'company', ?, COALESCE(trading_name, name)
+         FROM companies WHERE id = ?
+         AND NOT EXISTS (
+           SELECT 1 FROM company_relations
+           WHERE owner_company_id = ? AND related_company_id = ?
+         )`,
+        [senderCompanyId, recipientId, recipientId, senderCompanyId, recipientId],
+      );
+      // recipient → sender
+      await connection.execute(
+        `INSERT IGNORE INTO company_relations
+           (owner_company_id, related_type, related_company_id, related_company_name)
+         SELECT ?, 'company', ?, COALESCE(trading_name, name)
+         FROM companies WHERE id = ?
+         AND NOT EXISTS (
+           SELECT 1 FROM company_relations
+           WHERE owner_company_id = ? AND related_company_id = ?
+         )`,
+        [recipientId, senderCompanyId, senderCompanyId, recipientId, senderCompanyId],
+      );
+    }
+
     return res.status(201).json({ success: true, data: transfer[0] });
   } catch (error) {
     console.error("❌ POST /jobs/:jobId/transfers error:", error);

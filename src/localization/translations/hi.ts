@@ -58,6 +58,9 @@ export const hiTranslations = mergeWithBaseTranslations(enTranslations, {
     noSelection: "कोई स्टाफ नियुक्त नहीं",
     none: "कोई नहीं",
     checkingAuth: "प्रमाणीकरण की जाँच",
+    change: "बदलें",
+    accept: "स्वीकार करें",
+    decline: "अस्वीकार करें",
   },
 
   home: {
@@ -126,6 +129,16 @@ export const hiTranslations = mergeWithBaseTranslations(enTranslations, {
       title: "Stripe सक्रिय नहीं",
       description:
         "Stripe के बिना आप भुगतान प्राप्त नहीं कर सकते या बिल नहीं बना सकते। अभी सक्रिय करें।",
+    },
+    pendingJobs: {
+      button: "{{count}} कार्य प्रतिक्रिया की प्रतीक्षा में",
+      loading: "लोड हो रहा है…",
+      title: "लंबित कार्य",
+      message: "संदेश",
+      accepted: "कार्य स्वीकृत!",
+      declined: "कार्य अस्वीकृत।",
+      declineReason: "अस्वीकार का कारण...",
+      viewJob: "कार्य देखें",
     },
   },
 
@@ -204,6 +217,17 @@ export const hiTranslations = mergeWithBaseTranslations(enTranslations, {
     selectClientDescription: "इस कार्य के लिए ग्राहक चुनें",
     enterAddresses: "पते दर्ज करें",
     enterAddressesDescription: "पिकअप और डिलीवरी स्थान",
+    organization: {
+      title: "कार्य संगठन",
+      subtitle: "कार्य का प्रकार चुनें और इसे चरण दर चरण बनाएं",
+      chooseTemplate: "कार्य प्रकार",
+      steps: "चरण",
+      segmentsTitle: "कार्य चरण",
+      addLocation: "+ स्थान",
+      addTravel: "+ यात्रा",
+      addStorage: "+ भंडारण",
+      addLoading: "+ लोडिंग",
+    },
     schedule: "शेड्यूल",
     scheduleDescription: "इस कार्य के लिए समय विंडो सेट करें",
     selectStaff: "कर्मचारी चुनें...",
@@ -254,6 +278,7 @@ export const hiTranslations = mergeWithBaseTranslations(enTranslations, {
       bank_transfer: "बैंक ट्रांसफर",
       invoice: "बाद में चालान",
     },
+    minimumHours: "न्यूनतम बिल योग्य घंटे",
     hours: "घंटे",
     estimated: "अनुमानित {{hours}} घंटे",
     marginMinutes: "+{{minutes}} मिनट मार्जिन",

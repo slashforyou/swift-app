@@ -11,6 +11,7 @@ import { DESIGN_TOKENS } from "../../../constants/Styles";
 import { useJobTimerContext } from "../../../context/JobTimerProvider";
 import { useTheme } from "../../../context/ThemeProvider";
 import { useLocalization } from "../../../localization/useLocalization";
+import { formatDurationMs, getSegmentColor, getSegmentIcon } from "../../../services/jobSegmentService";
 
 interface JobTimeSectionProps {
   job: any;
@@ -31,7 +32,14 @@ const JobTimeSection: React.FC<JobTimeSectionProps> = ({ job }) => {
     currentStep,
     totalSteps,
     togglePause,
+    // Segments modulaires
+    segments,
+    currentSegment,
+    segmentTimes,
   } = useJobTimerContext();
+
+  const hasSegments = segments.length > 0;
+  const completedSegments = segments.filter((s) => !!s.completedAt);
 
   const toggleExpanded = () => {
     setIsExpanded(!isExpanded);
@@ -226,6 +234,45 @@ const JobTimeSection: React.FC<JobTimeSectionProps> = ({ job }) => {
             color={colors.textSecondary}
           />
         </View>
+
+        {/* Ligne 3 — Segment actuel (mode collapsed, si segments modulaires) */}
+        {hasSegments && currentSegment && (
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              marginTop: DESIGN_TOKENS.spacing.xs,
+              gap: DESIGN_TOKENS.spacing.xs,
+            }}
+          >
+            <Ionicons
+              name={getSegmentIcon(currentSegment.type) as any}
+              size={14}
+              color={getSegmentColor(currentSegment.type)}
+            />
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: "600",
+                color: getSegmentColor(currentSegment.type),
+              }}
+            >
+              {currentSegment.label}
+            </Text>
+            {currentSegment.isBillable && (
+              <View
+                style={{
+                  width: 5,
+                  height: 5,
+                  borderRadius: 2.5,
+                  backgroundColor: colors.success,
+                  marginLeft: 2,
+                }}
+              />
+            )}
+          </View>
+        )}
       </Pressable>
 
       {/* Contenu déplié */}
@@ -370,6 +417,71 @@ const JobTimeSection: React.FC<JobTimeSectionProps> = ({ job }) => {
               </Text>
             </View>
           </View>
+
+          {/* Détail par segments (si disponible) */}
+          {hasSegments && completedSegments.length > 0 && (
+            <View
+              style={{
+                backgroundColor: colors.background,
+                borderRadius: DESIGN_TOKENS.radius.md,
+                padding: DESIGN_TOKENS.spacing.md,
+                marginBottom: DESIGN_TOKENS.spacing.md,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontWeight: "600",
+                  color: colors.textSecondary,
+                  marginBottom: DESIGN_TOKENS.spacing.sm,
+                  textTransform: "uppercase",
+                  letterSpacing: 0.5,
+                }}
+              >
+                {t("segments", "Segments")}
+              </Text>
+              {completedSegments.map((seg) => {
+                const elapsed = segmentTimes[seg.id] ?? seg.durationMs ?? 0;
+                return (
+                  <View
+                    key={seg.id}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      paddingVertical: DESIGN_TOKENS.spacing.xs,
+                      gap: DESIGN_TOKENS.spacing.sm,
+                    }}
+                  >
+                    <Ionicons
+                      name={getSegmentIcon(seg.type) as any}
+                      size={14}
+                      color={getSegmentColor(seg.type)}
+                    />
+                    <Text
+                      style={{
+                        fontSize: 13,
+                        color: colors.text,
+                        flex: 1,
+                      }}
+                      numberOfLines={1}
+                    >
+                      {seg.label}
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        fontWeight: "600",
+                        color: seg.isBillable ? colors.success : colors.textSecondary,
+                        fontFamily: "monospace",
+                      }}
+                    >
+                      {formatDurationMs(elapsed)}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          )}
 
           {/* Détail par étapes */}
           {Array.isArray(timerData.stepTimes) &&

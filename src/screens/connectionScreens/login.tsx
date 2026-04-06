@@ -25,7 +25,7 @@ type RootStackParamList = {
   Home: undefined;
   Subscribe: undefined;
   Connection: undefined;
-  // add other routes if needed
+  ForgotPassword: undefined;
 };
 interface LoginScreenProps {
   navigation: NativeStackNavigationProp<RootStackParamList>;
@@ -100,10 +100,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
     setIsLoading(true);
 
-
     try {
       await login(email, password);
-
 
       // Load user permissions after successful login (with timeout)
       try {
@@ -294,6 +292,23 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                 editable={!isLoading}
               />
             </View>
+
+            <Pressable
+              testID="login-forgot-password-btn"
+              onPress={() => navigation.navigate("ForgotPassword")}
+              disabled={isLoading}
+              style={{
+                alignSelf: "flex-end",
+                marginBottom: 16,
+                marginTop: -10,
+              }}
+            >
+              <Text
+                style={[styles.body, { color: colors.primary, fontSize: 14 }]}
+              >
+                {t("auth.login.forgotPassword")}
+              </Text>
+            </Pressable>
 
             <Pressable
               testID="login-submit-btn"

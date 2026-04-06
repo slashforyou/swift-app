@@ -3,6 +3,7 @@
  * Utilise les endpoints Quote Management pour les templates
  */
 import { ServerData } from '../../constants/ServerData';
+import type { ModularJobTemplate } from '../../types/jobSegment';
 import { fetchWithAuth } from '../../utils/session';
 
 // Mock data pour fallback
@@ -356,3 +357,288 @@ export const duplicateJobTemplate = async (templateId: string, newName?: string)
     throw new Error('Failed to duplicate job template');
   }
 };
+
+// ============================================================================
+// TEMPLATES MODULAIRES — CRUD
+// ============================================================================
+
+interface ModularTemplateListResponse {
+  success: boolean;
+  templates: ModularJobTemplate[];
+}
+
+interface ModularTemplateResponse {
+  success: boolean;
+  template: ModularJobTemplate;
+}
+
+/**
+ * Récupère la liste des templates modulaires de la company
+ */
+export const fetchModularTemplates = async (): Promise<ModularJobTemplate[]> => {
+  try {
+    const response = await fetchWithAuth(
+      `${ServerData.serverUrl}v1/templates/modular`,
+      { method: 'GET' },
+    );
+
+    if (!response.ok) {
+      if (__DEV__) return getDefaultModularTemplates();
+      throw new Error(`Modular templates API error: ${response.status}`);
+    }
+
+    const data: ModularTemplateListResponse = await response.json();
+    if (!data.success) {
+      if (__DEV__) return getDefaultModularTemplates();
+      throw new Error('Modular templates API returned unsuccessful response');
+    }
+
+    return data.templates.length > 0
+      ? data.templates
+      : __DEV__
+        ? getDefaultModularTemplates()
+        : [];
+  } catch (error) {
+    console.error('❌ Error fetching modular templates:', error);
+    if (__DEV__) return getDefaultModularTemplates();
+    throw new Error('Failed to fetch modular templates from API');
+  }
+};
+
+/**
+ * Crée un nouveau template modulaire
+ */
+export const createModularTemplate = async (
+  data: Omit<ModularJobTemplate, 'id' | 'createdAt' | 'updatedAt'>,
+): Promise<ModularJobTemplate> => {
+  try {
+    const response = await fetchWithAuth(
+      `${ServerData.serverUrl}v1/templates/modular`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result: ModularTemplateResponse = await response.json();
+    if (!result.success || !result.template) {
+      throw new Error('API returned invalid modular template data');
+    }
+    return result.template;
+  } catch (error) {
+    console.error('Error creating modular template:', error);
+    throw new Error('Failed to create modular template');
+  }
+};
+
+/**
+ * Met à jour un template modulaire existant
+ */
+export const updateModularTemplate = async (
+  id: string,
+  updates: Partial<ModularJobTemplate>,
+): Promise<ModularJobTemplate> => {
+  try {
+    const response = await fetchWithAuth(
+      `${ServerData.serverUrl}v1/templates/modular/${id}`,
+      {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result: ModularTemplateResponse = await response.json();
+    if (!result.success || !result.template) {
+      throw new Error('API returned invalid modular template data');
+    }
+    return result.template;
+  } catch (error) {
+    console.error('Error updating modular template:', error);
+    throw new Error('Failed to update modular template');
+  }
+};
+
+/**
+ * Supprime un template modulaire
+ */
+export const deleteModularTemplate = async (id: string): Promise<void> => {
+  try {
+    const response = await fetchWithAuth(
+      `${ServerData.serverUrl}v1/templates/modular/${id}`,
+      { method: 'DELETE' },
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error('API returned success: false');
+    }
+  } catch (error) {
+    console.error('Error deleting modular template:', error);
+    throw new Error('Failed to delete modular template');
+  }
+};
+
+// ============================================================================
+// TEMPLATES MODULAIRES PAR DÉFAUT
+// ============================================================================
+
+const now = new Date().toISOString();
+
+/**
+ * 8 templates par défaut : 5 convertis de l'existant + 3 nouveaux
+ */
+export function getDefaultModularTemplates(): ModularJobTemplate[] {
+  return [
+    // 1. Simple Move
+    {
+      id: 'default-simple-move',
+      name: 'Simple Move',
+      description: 'Direct move from one address to another',
+      category: 'residential',
+      billingMode: 'location_to_location',
+      segments: [
+        { id: 'seg-1', order: 1, type: 'travel', label: 'Travel to Location #1', isBillable: false },
+        { id: 'seg-2', order: 2, type: 'location', label: 'Location #1', locationType: 'house', isBillable: true, estimatedDurationMinutes: 60, requiredRoles: ['driver', 'offsider'] },
+        { id: 'seg-3', order: 3, type: 'travel', label: 'Travel to Location #2', isBillable: true, estimatedDurationMinutes: 30, requiredRoles: ['driver'] },
+        { id: 'seg-4', order: 4, type: 'location', label: 'Location #2', locationType: 'apartment', isBillable: true, estimatedDurationMinutes: 60, requiredRoles: ['driver', 'offsider'] },
+        { id: 'seg-5', order: 5, type: 'travel', label: 'Return trip', isBillable: false },
+      ],
+      defaultHourlyRate: 120,
+      minimumHours: 2,
+      timeRoundingMinutes: 15,
+      isDefault: true,
+      createdAt: now,
+      updatedAt: now,
+    },
+
+    // 2. Multiple Addresses
+    {
+      id: 'default-multi-stop',
+      name: 'Multiple Addresses',
+      description: 'Move with multiple pickup/dropoff points',
+      category: 'residential',
+      billingMode: 'location_to_location',
+      segments: [
+        { id: 'seg-1', order: 1, type: 'travel', label: 'Travel to Location #1', isBillable: false },
+        { id: 'seg-2', order: 2, type: 'location', label: 'Location #1', locationType: 'house', isBillable: true, estimatedDurationMinutes: 60, requiredRoles: ['driver', 'offsider'] },
+        { id: 'seg-3', order: 3, type: 'travel', label: 'Travel to Location #2', isBillable: true, estimatedDurationMinutes: 20 },
+        { id: 'seg-4', order: 4, type: 'location', label: 'Location #2', locationType: 'apartment', isBillable: true, estimatedDurationMinutes: 45, requiredRoles: ['driver', 'offsider'] },
+        { id: 'seg-5', order: 5, type: 'travel', label: 'Travel to Location #3', isBillable: true, estimatedDurationMinutes: 20 },
+        { id: 'seg-6', order: 6, type: 'location', label: 'Location #3', locationType: 'house', isBillable: true, estimatedDurationMinutes: 45, requiredRoles: ['driver', 'offsider'] },
+        { id: 'seg-7', order: 7, type: 'travel', label: 'Return trip', isBillable: false },
+      ],
+      defaultHourlyRate: 120,
+      minimumHours: 2,
+      timeRoundingMinutes: 15,
+      isDefault: true,
+      createdAt: now,
+      updatedAt: now,
+    },
+
+    // 3. With Storage
+    {
+      id: 'default-with-storage',
+      name: 'With Storage',
+      description: 'Move with storage at depot',
+      category: 'storage',
+      billingMode: 'location_to_location',
+      segments: [
+        { id: 'seg-1', order: 1, type: 'travel', label: 'Travel to Location #1', isBillable: false },
+        { id: 'seg-2', order: 2, type: 'location', label: 'Location #1', locationType: 'house', isBillable: true, estimatedDurationMinutes: 60, requiredRoles: ['driver', 'offsider'] },
+        { id: 'seg-3', order: 3, type: 'travel', label: 'Travel to Location #2', isBillable: true, estimatedDurationMinutes: 30 },
+        { id: 'seg-4', order: 4, type: 'location', label: 'Location #2', locationType: 'apartment', isBillable: true, estimatedDurationMinutes: 60, requiredRoles: ['driver', 'offsider'] },
+        { id: 'seg-5', order: 5, type: 'travel', label: 'Return to depot', isBillable: false },
+        { id: 'seg-6', order: 6, type: 'storage', label: 'Storage drop-off', locationType: 'depot', isBillable: true, estimatedDurationMinutes: 45, requiredRoles: ['driver', 'offsider'] },
+      ],
+      defaultHourlyRate: 120,
+      minimumHours: 2,
+      timeRoundingMinutes: 15,
+      isDefault: true,
+      createdAt: now,
+      updatedAt: now,
+    },
+
+    // 4. Simple Delivery
+    {
+      id: 'default-delivery-only',
+      name: 'Simple Delivery',
+      description: 'Delivery from depot',
+      category: 'commercial',
+      billingMode: 'depot_to_depot',
+      segments: [
+        { id: 'seg-1', order: 1, type: 'loading', label: 'Loading at depot', locationType: 'depot', isBillable: true, estimatedDurationMinutes: 20, requiredRoles: ['driver'] },
+        { id: 'seg-2', order: 2, type: 'travel', label: 'Travel to location', isBillable: true, estimatedDurationMinutes: 30, requiredRoles: ['driver'] },
+        { id: 'seg-3', order: 3, type: 'location', label: 'Delivery address', locationType: 'house', isBillable: true, estimatedDurationMinutes: 30, requiredRoles: ['driver'] },
+        { id: 'seg-4', order: 4, type: 'travel', label: 'Return to depot', isBillable: true, isReturnTrip: true } as any,
+      ],
+      defaultHourlyRate: 120,
+      minimumHours: 2,
+      timeRoundingMinutes: 15,
+      returnTripDefaultMinutes: 30,
+      isDefault: true,
+      createdAt: now,
+      updatedAt: now,
+    },
+
+    // 5. Packing/Unpacking
+    {
+      id: 'default-packing-only',
+      name: 'Packing/Unpacking',
+      description: 'On-site packing and unpacking service',
+      category: 'packing',
+      billingMode: 'packing_only',
+      segments: [
+        { id: 'seg-1', order: 1, type: 'travel', label: 'Travel to location', isBillable: false },
+        { id: 'seg-2', order: 2, type: 'location', label: 'Location (packing)', locationType: 'house', isBillable: true, estimatedDurationMinutes: 120, requiredRoles: ['packer'] },
+        { id: 'seg-3', order: 3, type: 'travel', label: 'Return trip', isBillable: false },
+      ],
+      defaultHourlyRate: 80,
+      minimumHours: 2,
+      timeRoundingMinutes: 15,
+      isDefault: true,
+      createdAt: now,
+      updatedAt: now,
+    },
+
+    // 6. Standard Flat Rate
+    {
+      id: 'default-flat-rate',
+      name: 'Standard Flat Rate',
+      description: 'Complete move at a fixed price',
+      category: 'residential',
+      billingMode: 'flat_rate',
+      segments: [
+        { id: 'seg-1', order: 1, type: 'travel', label: 'Travel to Location #1', isBillable: false },
+        { id: 'seg-2', order: 2, type: 'location', label: 'Location #1', locationType: 'house', isBillable: false, estimatedDurationMinutes: 120, requiredRoles: ['driver', 'offsider'] },
+        { id: 'seg-3', order: 3, type: 'travel', label: 'Travel to Location #2', isBillable: false, estimatedDurationMinutes: 30 },
+        { id: 'seg-4', order: 4, type: 'location', label: 'Location #2', locationType: 'apartment', isBillable: false, estimatedDurationMinutes: 90, requiredRoles: ['driver', 'offsider'] },
+        { id: 'seg-5', order: 5, type: 'travel', label: 'Return trip', isBillable: false },
+      ],
+      flatRateAmount: 2500,
+      flatRateMaxHours: 8,
+      flatRateOverageRate: 150,
+      flatRateOptions: [
+        { id: 'opt-1', label: 'Piano', price: 200 },
+        { id: 'opt-2', label: 'Bed disassembly', price: 80 },
+        { id: 'opt-3', label: 'Fragile wrapping', price: 120 },
+      ],
+      isDefault: true,
+      createdAt: now,
+      updatedAt: now,
+    },
+  ];
+}

@@ -14,19 +14,20 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React from "react";
 import {
-  ActivityIndicator,
-  Modal,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
+    ActivityIndicator,
+    Modal,
+    Pressable,
+    ScrollView,
+    Text,
+    TextInput,
+    View,
 } from "react-native";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useJobTimerContext } from "../../context/JobTimerProvider";
 import { useTheme } from "../../context/ThemeProvider";
 import { useTranslation } from "../../localization";
 import { checkJobSignatureExists } from "../../services/jobDetails";
+import { formatDurationMs, getSegmentColor, getSegmentIcon } from "../../services/jobSegmentService";
 import type { JobSummaryData } from "../../types/jobSummary";
 
 interface JobTimerDisplayProps {
@@ -55,7 +56,14 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({
     togglePause,
     nextStep,
     stopTimer,
+    // Segments modulaires
+    segments,
+    currentSegment,
+    segmentTimes,
+    completeSegment,
   } = useJobTimerContext();
+
+  const hasSegments = segments.length > 0;
 
   // Refs pour callbacks stables
   const nextStepRef = React.useRef(nextStep);
@@ -562,6 +570,197 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({
           </View>
         </View>
       </View>
+
+      {/* SEGMENT TIMELINE — Affiché si le job a des segments modulaires */}
+      {hasSegments && (
+        <View style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
+          <Text
+            style={{
+              fontSize: 13,
+              fontWeight: "600",
+              color: colors.textSecondary,
+              marginBottom: DESIGN_TOKENS.spacing.sm,
+              marginLeft: DESIGN_TOKENS.spacing.md,
+              textTransform: "uppercase",
+              letterSpacing: 0.5,
+            }}
+          >
+            {t("segments", "Segments")}
+          </Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{
+              paddingHorizontal: DESIGN_TOKENS.spacing.md,
+              paddingVertical: DESIGN_TOKENS.spacing.sm,
+              gap: DESIGN_TOKENS.spacing.sm,
+              alignItems: "center",
+            }}
+          >
+            {segments.map((seg, index) => {
+              const isActive = currentSegment?.id === seg.id;
+              const isDone = !!seg.completedAt;
+              const elapsed = segmentTimes[seg.id] ?? 0;
+              const segColor = getSegmentColor(seg.type);
+              const segIcon = getSegmentIcon(seg.type);
+
+              return (
+                <React.Fragment key={seg.id}>
+                  {index > 0 && (
+                    <View
+                      style={{
+                        width: 16,
+                        height: 2,
+                        backgroundColor: isDone ? segColor : colors.border,
+                        alignSelf: "center",
+                      }}
+                    />
+                  )}
+                  <View
+                    style={{
+                      alignItems: "center",
+                      backgroundColor: isActive
+                        ? segColor + "15"
+                        : isDone
+                          ? segColor + "10"
+                          : colors.backgroundSecondary,
+                      borderRadius: DESIGN_TOKENS.radius.lg,
+                      borderWidth: isActive ? 2 : 1,
+                      borderColor: isActive
+                        ? segColor
+                        : isDone
+                          ? segColor + "50"
+                          : colors.border,
+                      paddingHorizontal: DESIGN_TOKENS.spacing.md,
+                      paddingVertical: DESIGN_TOKENS.spacing.sm,
+                      minWidth: 80,
+                    }}
+                  >
+                    <Ionicons
+                      name={segIcon as any}
+                      size={18}
+                      color={isDone || isActive ? segColor : colors.textSecondary}
+                    />
+                    <Text
+                      style={{
+                        fontSize: 11,
+                        fontWeight: isActive ? "700" : "500",
+                        color: isDone || isActive ? segColor : colors.textSecondary,
+                        marginTop: 2,
+                        textAlign: "center",
+                      }}
+                      numberOfLines={1}
+                    >
+                      {seg.label}
+                    </Text>
+                    {(isActive || isDone) && elapsed > 0 && (
+                      <Text
+                        style={{
+                          fontSize: 10,
+                          fontWeight: "600",
+                          color: isActive ? segColor : colors.textSecondary,
+                          marginTop: 2,
+                        }}
+                      >
+                        {formatDurationMs(elapsed)}
+                      </Text>
+                    )}
+                    {isDone && (
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={12}
+                        color={segColor}
+                        style={{ marginTop: 2 }}
+                      />
+                    )}
+                  </View>
+                </React.Fragment>
+              );
+            })}
+          </ScrollView>
+
+          {/* Current segment info */}
+          {currentSegment && (
+            <View
+              style={{
+                alignItems: "center",
+                marginTop: DESIGN_TOKENS.spacing.sm,
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: DESIGN_TOKENS.spacing.sm,
+                  backgroundColor: getSegmentColor(currentSegment.type) + "15",
+                  borderRadius: DESIGN_TOKENS.radius.md,
+                  paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+                  paddingVertical: DESIGN_TOKENS.spacing.sm,
+                }}
+              >
+                <Ionicons
+                  name={getSegmentIcon(currentSegment.type) as any}
+                  size={16}
+                  color={getSegmentColor(currentSegment.type)}
+                />
+                <Text
+                  style={{
+                    fontSize: 13,
+                    fontWeight: "600",
+                    color: getSegmentColor(currentSegment.type),
+                  }}
+                >
+                  {currentSegment.label}
+                  {currentSegment.isBillable ? " • facturable" : " • non facturable"}
+                </Text>
+              </View>
+
+              {/* Employés actifs sur ce segment */}
+              {currentSegment.assignedEmployees.length > 0 && (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    flexWrap: "wrap",
+                    gap: DESIGN_TOKENS.spacing.xs,
+                    marginTop: DESIGN_TOKENS.spacing.xs,
+                    justifyContent: "center",
+                  }}
+                >
+                  {currentSegment.assignedEmployees.map((emp) => (
+                    <View
+                      key={emp.employeeId}
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        backgroundColor: colors.backgroundSecondary,
+                        borderRadius: DESIGN_TOKENS.radius.sm,
+                        paddingHorizontal: DESIGN_TOKENS.spacing.sm,
+                        paddingVertical: 2,
+                        gap: 4,
+                      }}
+                    >
+                      <Ionicons
+                        name="person-outline"
+                        size={10}
+                        color={colors.textSecondary}
+                      />
+                      <Text
+                        style={{
+                          fontSize: 10,
+                          color: colors.textSecondary,
+                          fontWeight: "500",
+                        }}
+                      >
+                        {emp.employeeName} ({emp.role})
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+          )}
+        </View>
+      )}
 
       {/* ROW 3: Action buttons - depends on state */}
       <View

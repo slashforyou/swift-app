@@ -58,6 +58,9 @@ export const zhTranslations = mergeWithBaseTranslations(enTranslations, {
     noSelection: "未分配员工",
     none: "无",
     checkingAuth: "正在验证身份",
+    change: "更改",
+    accept: "接受",
+    decline: "拒绝",
   },
 
   home: {
@@ -125,6 +128,16 @@ export const zhTranslations = mergeWithBaseTranslations(enTranslations, {
     stripeAlert: {
       title: "Stripe 未激活",
       description: "没有 Stripe 您无法接收付款或开具发票。立即激活。",
+    },
+    pendingJobs: {
+      button: "{{count}} 个工作等待回复",
+      loading: "加载中…",
+      title: "待处理的工作",
+      message: "消息",
+      accepted: "工作已接受！",
+      declined: "工作已拒绝。",
+      declineReason: "拒绝原因...",
+      viewJob: "查看工作",
     },
   },
 
@@ -203,6 +216,17 @@ export const zhTranslations = mergeWithBaseTranslations(enTranslations, {
     selectClientDescription: "为此工作选择客户",
     enterAddresses: "输入地址",
     enterAddressesDescription: "取货和送货地点",
+    organization: {
+      title: "工作组织",
+      subtitle: "选择工作类型，然后逐步构建",
+      chooseTemplate: "工作类型",
+      steps: "步骤",
+      segmentsTitle: "工作阶段",
+      addLocation: "+ 地点",
+      addTravel: "+ 行程",
+      addStorage: "+ 仓储",
+      addLoading: "+ 装载",
+    },
     schedule: "时间表",
     scheduleDescription: "设置此工作的时间窗口",
     selectStaff: "选择员工...",
@@ -259,6 +283,7 @@ export const zhTranslations = mergeWithBaseTranslations(enTranslations, {
       invoice: "稍后开票",
     },
     // Inline strings for wizard
+    minimumHours: "最低计费小时数",
     hours: "小时",
     estimated: "预计{{hours}}小时",
     marginMinutes: "+{{minutes}}分钟余量",

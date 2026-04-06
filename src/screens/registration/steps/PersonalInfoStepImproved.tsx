@@ -1,14 +1,14 @@
 import DateTimePicker, {
-  DateTimePickerEvent,
+    DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import React, { useRef, useState } from "react";
 import {
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
+    Platform,
+    Pressable,
+    StyleSheet,
+    Text,
+    TextInput,
+    View,
 } from "react-native";
 import AlertMessage from "../../../components/ui/AlertMessage";
 import { TEST_DATA } from "../../../config/testData";
@@ -16,9 +16,10 @@ import { useCommonThemedStyles } from "../../../hooks/useCommonStyles";
 import { useTranslation } from "../../../localization";
 import { BusinessOwnerRegistrationData } from "../../../types/registration";
 import {
-  formatAustralianPhone,
-  validateAustralianPhone,
+    formatAustralianPhone,
+    validateAustralianPhone,
 } from "../../../utils/validators/australianValidators";
+import { validatePassword } from "../../../utils/validators/passwordValidator";
 
 interface PersonalInfoStepProps {
   data: BusinessOwnerRegistrationData;
@@ -247,18 +248,9 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
       return;
     }
 
-    if (password.length < 8) {
-      showAlert("error", "Password must be at least 8 characters");
-      return;
-    }
-
-    if (!/[A-Z]/.test(password)) {
-      showAlert("error", "Password must contain at least one uppercase letter");
-      return;
-    }
-
-    if (!/[0-9]/.test(password)) {
-      showAlert("error", "Password must contain at least one number");
+    const pwResult = validatePassword(password);
+    if (!pwResult.valid) {
+      showAlert("error", t(pwResult.errorKey!) || "Invalid password");
       return;
     }
 

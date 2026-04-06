@@ -213,6 +213,9 @@ const AssignResourceModal: React.FC<AssignResourceModalProps> = ({
     useState<AvailableVehicle | null>(null);
   const [offsiderCount, setOffsiderCount] = useState(0);
 
+  // ── Recherche ──
+  const [searchQuery, setSearchQuery] = useState("");
+
   // ── Demande de personnel ──
   const [showStaffRequest, setShowStaffRequest] = useState(false);
   const [staffNote, setStaffNote] = useState("");
@@ -253,6 +256,7 @@ const AssignResourceModal: React.FC<AssignResourceModalProps> = ({
       setShowStaffRequest(false);
       setStaffNote("");
       setStaffOffsiderCount(1);
+      setSearchQuery("");
       loadAvailability();
     }
   }, [visible, loadAvailability]);
@@ -523,11 +527,54 @@ const AssignResourceModal: React.FC<AssignResourceModalProps> = ({
   // Étape 1 — Liste des véhicules
   // ─────────────────────────────────────────────────────────────
 
-  const renderList = () => {
-    const paged = vehicles.slice(0, visibleCount);
-    const hasMore = visibleCount < vehicles.length;
+  // ── Filtrage et groupement par entreprise ──
+  const filteredVehicles = React.useMemo(() => {
+    if (!searchQuery.trim()) return vehicles;
+    const q = searchQuery.toLowerCase().trim();
+    return vehicles.filter((v) => {
+      const companyName = v.company_name ?? "";
+      return (
+        v.name.toLowerCase().includes(q) ||
+        companyName.toLowerCase().includes(q) ||
+        (v.capacity ?? "").toLowerCase().includes(q) ||
+        (v.license_plate ?? "").toLowerCase().includes(q)
+      );
+    });
+  }, [vehicles, searchQuery]);
 
-    const availableCount = vehicles.filter((v) => v.is_available).length;
+  const groupedByCompany = React.useMemo(() => {
+    const groups: { companyId: number; companyName: string; isPartner: boolean; vehicles: AvailableVehicle[] }[] = [];
+    const map = new Map<number, typeof groups[number]>();
+    for (const v of filteredVehicles) {
+      const cId = v.company_id ?? -1;
+      let group = map.get(cId);
+      if (!group) {
+        const isPartner = cId !== companyId;
+        group = {
+          companyId: cId,
+          companyName: v.company_name ?? (isPartner ? "Partenaire" : "Votre flotte"),
+          isPartner,
+          vehicles: [],
+        };
+        map.set(cId, group);
+        groups.push(group);
+      }
+      group.vehicles.push(v);
+    }
+    // Own company first, then partners sorted by name
+    groups.sort((a, b) => {
+      if (!a.isPartner && b.isPartner) return -1;
+      if (a.isPartner && !b.isPartner) return 1;
+      return a.companyName.localeCompare(b.companyName);
+    });
+    return groups;
+  }, [filteredVehicles, companyId]);
+
+  const renderList = () => {
+    const paged = filteredVehicles.slice(0, visibleCount);
+    const hasMore = visibleCount < filteredVehicles.length;
+
+    const availableCount = filteredVehicles.filter((v) => v.is_available).length;
 
     return (
       <View style={{ flex: 1 }}>
@@ -555,6 +602,46 @@ const AssignResourceModal: React.FC<AssignResourceModalProps> = ({
             <Ionicons name="close" size={24} color={colors.textSecondary} />
           </Pressable>
         </View>
+
+        {/* Search bar */}
+        {!loading && !loadError && vehicles.length > 0 && (
+          <View style={{ paddingHorizontal: DESIGN_TOKENS.spacing.lg, paddingTop: DESIGN_TOKENS.spacing.sm }}>
+            <View style={{
+              flexDirection: "row",
+              alignItems: "center",
+              backgroundColor: colors.backgroundSecondary,
+              borderRadius: DESIGN_TOKENS.radius.md,
+              borderWidth: 1,
+              borderColor: colors.border,
+              paddingHorizontal: 12,
+              gap: 8,
+            }}>
+              <Ionicons name="search" size={18} color={colors.textSecondary} />
+              <TextInput
+                value={searchQuery}
+                onChangeText={(text) => {
+                  setSearchQuery(text);
+                  setVisibleCount(PAGE_SIZE);
+                }}
+                placeholder="Rechercher véhicule, entreprise…"
+                placeholderTextColor={colors.textSecondary}
+                style={{
+                  flex: 1,
+                  fontSize: 14,
+                  color: colors.text,
+                  paddingVertical: 10,
+                }}
+                autoCorrect={false}
+                clearButtonMode="while-editing"
+              />
+              {searchQuery.length > 0 && (
+                <Pressable onPress={() => setSearchQuery("")} hitSlop={8}>
+                  <Ionicons name="close-circle" size={18} color={colors.textSecondary} />
+                </Pressable>
+              )}
+            </View>
+          </View>
+        )}
 
         {/* Contenu */}
         {loading ? (
@@ -634,7 +721,7 @@ const AssignResourceModal: React.FC<AssignResourceModalProps> = ({
               </Text>
             </Pressable>
           </View>
-        ) : vehicles.length === 0 ? (
+        ) : filteredVehicles.length === 0 && vehicles.length === 0 ? (
           <View style={styles.centered}>
             <View
               style={{
@@ -674,41 +761,144 @@ const AssignResourceModal: React.FC<AssignResourceModalProps> = ({
               {"Aucun camion n'est disponible sur ce créneau."}
             </Text>
           </View>
+        ) : filteredVehicles.length === 0 && searchQuery.length > 0 ? (
+          <View style={styles.centered}>
+            <View
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: 28,
+                backgroundColor: colors.backgroundTertiary,
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: 12,
+              }}
+            >
+              <Ionicons name="search" size={28} color={colors.textSecondary + "80"} />
+            </View>
+            <Text
+              style={{
+                fontSize: 15,
+                fontWeight: "700",
+                color: colors.text,
+                marginBottom: 6,
+              }}
+            >
+              Aucun résultat
+            </Text>
+            <Text
+              style={{
+                fontSize: 13,
+                color: colors.textSecondary,
+                textAlign: "center",
+              }}
+            >
+              Aucun véhicule ne correspond à "{searchQuery}"
+            </Text>
+          </View>
         ) : (
           <ScrollView
             contentContainerStyle={styles.list}
             showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="always"
           >
-            {/* Section : disponibles */}
-            {paged.filter((v) => v.is_available).length > 0 && (
-              <>
-                <Text
-                  style={[styles.sectionLabel, { color: colors.textSecondary }]}
-                >
-                  DISPONIBLES — {availableCount} véhicule
-                  {availableCount > 1 ? "s" : ""}
-                </Text>
-                {paged.filter((v) => v.is_available).map(renderVehicleCard)}
-              </>
-            )}
+            {/* Grouped by company */}
+            {groupedByCompany.map((group) => {
+              const groupVehicles = group.vehicles.filter((v) =>
+                paged.some((p) => p.id === v.id)
+              );
+              if (groupVehicles.length === 0) return null;
 
-            {/* Section : conflits */}
-            {paged.filter((v) => !v.is_available && v.conflicts.length > 0)
-              .length > 0 && (
-              <>
-                <Text
-                  style={[
-                    styles.sectionLabel,
-                    { color: colors.warning, marginTop: 16 },
-                  ]}
+              const groupColor = group.isPartner ? "#6366f1" : colors.primary;
+              const groupAvailable = groupVehicles.filter((v) => v.is_available);
+              const groupConflicts = groupVehicles.filter(
+                (v) => !v.is_available && v.conflicts.length > 0
+              );
+
+              return (
+                <View
+                  key={group.companyId}
+                  style={{
+                    marginBottom: DESIGN_TOKENS.spacing.lg,
+                    borderWidth: 1.5,
+                    borderColor: groupColor + "35",
+                    borderRadius: DESIGN_TOKENS.radius.lg,
+                    overflow: "hidden",
+                  }}
                 >
-                  CONFLITS DÉTECTÉS
-                </Text>
-                {paged
-                  .filter((v) => !v.is_available && v.conflicts.length > 0)
-                  .map(renderVehicleCard)}
-              </>
-            )}
+                  {/* Company header */}
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 8,
+                      paddingHorizontal: DESIGN_TOKENS.spacing.md,
+                      paddingVertical: 10,
+                      backgroundColor: groupColor + "0C",
+                      borderBottomWidth: 1,
+                      borderBottomColor: groupColor + "20",
+                    }}
+                  >
+                    <View
+                      style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: 14,
+                        backgroundColor: groupColor + "18",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Ionicons
+                        name={group.isPartner ? "business-outline" : "home-outline"}
+                        size={14}
+                        color={groupColor}
+                      />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={{
+                          fontSize: 14,
+                          fontWeight: "700",
+                          color: groupColor,
+                        }}
+                      >
+                        {group.companyName}
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: 11,
+                          color: colors.textSecondary,
+                        }}
+                      >
+                        {groupVehicles.length} véhicule{groupVehicles.length > 1 ? "s" : ""}
+                        {groupAvailable.length > 0
+                          ? ` · ${groupAvailable.length} disponible${groupAvailable.length > 1 ? "s" : ""}`
+                          : ""}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Vehicles in this company */}
+                  <View style={{ padding: DESIGN_TOKENS.spacing.sm }}>
+                    {groupAvailable.length > 0 && groupAvailable.map(renderVehicleCard)}
+                    {groupConflicts.length > 0 && (
+                      <>
+                        <Text
+                          style={[
+                            styles.sectionLabel,
+                            { color: colors.warning, marginTop: groupAvailable.length > 0 ? 8 : 0 },
+                          ]}
+                        >
+                          CONFLITS
+                        </Text>
+                        {groupConflicts.map(renderVehicleCard)}
+                      </>
+                    )}
+                  </View>
+                </View>
+              );
+            })}
 
             {/* Voir plus */}
             {hasMore && (
@@ -736,7 +926,7 @@ const AssignResourceModal: React.FC<AssignResourceModalProps> = ({
                     color: colors.primary,
                   }}
                 >
-                  Voir {Math.min(PAGE_SIZE, vehicles.length - visibleCount)} de
+                  Voir {Math.min(PAGE_SIZE, filteredVehicles.length - visibleCount)} de
                   plus
                 </Text>
                 <Ionicons

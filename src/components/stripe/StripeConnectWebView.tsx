@@ -1,14 +1,14 @@
 ﻿import { Ionicons } from "@expo/vector-icons";
 import React, { useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Modal,
-    SafeAreaView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Modal,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { WebView } from "react-native-webview";
 import { DESIGN_TOKENS } from "../../constants/Styles";
@@ -120,8 +120,7 @@ export const StripeConnectWebView: React.FC<StripeConnectWebViewProps> = ({
   });
 
   const handleNavigationStateChange = (navState: any) => {
-
-    // Détection des URLs de succès (backend configure: https://cobbr.altivo.fr/settings/stripe/success)
+    // Détection des URLs de succès (backend configure: https://cobbr-app.com/settings/stripe/success)
     if (
       navState.url.includes("/settings/stripe/success") ||
       navState.url.includes("cobbr://stripe/success")
@@ -131,7 +130,7 @@ export const StripeConnectWebView: React.FC<StripeConnectWebViewProps> = ({
       return;
     }
 
-    // Détection des URLs de refresh/retry (backend configure: https://cobbr.altivo.fr/settings/stripe/refresh)
+    // Détection des URLs de refresh/retry (backend configure: https://cobbr-app.com/settings/stripe/refresh)
     if (
       navState.url.includes("/settings/stripe/refresh") ||
       navState.url.includes("cobbr://stripe/refresh")

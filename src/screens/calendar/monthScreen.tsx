@@ -65,7 +65,9 @@ const normalizeJob = (rawJob: any): JobAPI => {
     estimatedDuration: rawJob.estimated_duration || rawJob.estimatedDuration,
     client: rawJob.client,
     contact: rawJob.contact,
-    truck: rawJob.truck,
+    truck: rawJob.truck ?? (Array.isArray(rawJob.trucks) && rawJob.trucks.length > 0
+      ? { name: rawJob.trucks[0].name || "", licensePlate: rawJob.trucks[0].license_plate || "" }
+      : undefined),
     assignment_status: rawJob.assignment_status,
     contractee,
     contractor,

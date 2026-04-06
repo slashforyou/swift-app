@@ -2,27 +2,28 @@
 import { useNavigation } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
 import {
-  Alert,
-  Image,
-  LayoutAnimation,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  UIManager,
-  View,
+    Alert,
+    Image,
+    LayoutAnimation,
+    Modal,
+    Platform,
+    Pressable,
+    ScrollView,
+    Text,
+    TextInput,
+    UIManager,
+    View,
 } from "react-native";
 import {
-  SafeAreaView,
-  useSafeAreaInsets,
+    SafeAreaView,
+    useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import { validatePassword } from "../utils/validators/passwordValidator";
 
 // Utiliser le système unifié au lieu du design system avancé
 import LanguageButton from "../components/calendar/LanguageButton";
 import AvatarPickerModal, {
-  getAvatarSource,
+    getAvatarSource,
 } from "../components/ui/AvatarPickerModal";
 import MascotLoading from "../components/ui/MascotLoading";
 import { DESIGN_TOKENS } from "../constants/Styles";
@@ -401,8 +402,9 @@ const ProfileScreen: React.FC = () => {
       Alert.alert(t("common.error"), t("profile.security.passwordMismatch"));
       return;
     }
-    if (passwordData.newPassword.length < 8) {
-      Alert.alert(t("common.error"), t("profile.security.passwordTooShort"));
+    const pwResult = validatePassword(passwordData.newPassword);
+    if (!pwResult.valid) {
+      Alert.alert(t("common.error"), t(pwResult.errorKey!) || t("profile.security.passwordTooShort"));
       return;
     }
     try {

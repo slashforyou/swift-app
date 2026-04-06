@@ -3,6 +3,8 @@
  * Système flexible pour gérer différents types de jobs avec steps dynamiques
  */
 
+import { SegmentType } from '../types/jobSegment';
+
 // ============================================================================
 // TYPES D'ÉTAPES
 // ============================================================================
@@ -271,6 +273,23 @@ export const JOB_TEMPLATES: Record<JobTemplate, JobStepTemplate> = {
             StepType.COMPLETION,
         ],
     },
+};
+
+// ============================================================================
+// MAPPING STEPTYPE → SEGMENTTYPE
+// ============================================================================
+
+export const STEP_TO_SEGMENT_MAP: Record<StepType, SegmentType> = {
+    [StepType.DEPARTURE]: 'travel',
+    [StepType.FIRST_ADDRESS]: 'location',
+    [StepType.LAST_ADDRESS]: 'location',
+    [StepType.INTERMEDIATE_ADDRESS]: 'location',
+    [StepType.TRANSIT]: 'travel',
+    [StepType.LOADING]: 'loading',
+    [StepType.UNLOADING]: 'loading',
+    [StepType.STORAGE]: 'storage',
+    [StepType.RETURN_TO_DEPOT]: 'travel',
+    [StepType.COMPLETION]: 'location',
 };
 
 // ============================================================================

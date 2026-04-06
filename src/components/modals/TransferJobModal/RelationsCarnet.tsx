@@ -128,7 +128,19 @@ const RelationRow: React.FC<{
 
       {/* Info */}
       <View style={styles.info}>
-        <Text style={styles.name}>{displayName}</Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <Text style={styles.name}>{displayName}</Text>
+          {relation.source === "transfer" && (
+            <View style={{
+              backgroundColor: colors.info + "22",
+              borderRadius: 4,
+              paddingHorizontal: 6,
+              paddingVertical: 1,
+            }}>
+              <Text style={{ color: colors.info, fontSize: 10, fontWeight: "600" }}>Auto</Text>
+            </View>
+          )}
+        </View>
         {relation.nickname &&
           (relation.related_company_name ||
             relation.related_contractor_name) && (
@@ -153,8 +165,8 @@ const RelationRow: React.FC<{
         />
       )}
 
-      {/* Mode gestion → kebab */}
-      {mode === "manage" && (onRename || onDelete) && (
+      {/* Mode gestion → kebab (only for manual relations) */}
+      {mode === "manage" && relation.source !== "transfer" && (onRename || onDelete) && (
         <Pressable
           hitSlop={8}
           onPress={() => {
@@ -233,7 +245,7 @@ const RelationsCarnet: React.FC<RelationsCarnetProps> = ({
   return (
     <FlatList
       data={relations}
-      keyExtractor={(item) => String(item.id)}
+      keyExtractor={(item) => item.id ? String(item.id) : `transfer-${item.related_company_id}`}
       scrollEnabled={false}
       renderItem={({ item }) => (
         <RelationRow
