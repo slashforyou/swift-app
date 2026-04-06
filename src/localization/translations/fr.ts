@@ -4079,6 +4079,21 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
     // ==========================================================================
     // CONTRACTS — Clauses de contrat modulaires
     // ==========================================================================
+    signature: {
+      title: "Signature",
+      signed: "Signé",
+      signedOn: "Signé le {{date}} à {{time}}",
+      viewContract: "Voir le contrat complet",
+      contractTitle: "Contrat",
+      noClausesConfigured: "Aucune clause de contrat configurée.",
+      bySigningPrefix: "En signant, vous acceptez le ",
+      contractLink: "contrat",
+      bySigningSuffix: ".",
+      signButton: "Signer",
+      loadingContract: "Chargement du contrat...",
+      scrollToRead: "Faites défiler pour lire le contrat complet",
+    },
+
     contracts: {
       title: "Contrats",
       subtitle: "Gérez vos clauses de contrat modulaires",

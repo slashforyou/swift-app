@@ -8,6 +8,7 @@ import Signature, { SignatureViewRef } from 'react-native-signature-canvas';
 import { useThemeColors } from '../../hooks/useThemeColor';
 import { DESIGN_TOKENS } from '../constants/Styles';
 import { useLocalization } from '../localization/useLocalization';
+import { fetchJobContract, generateJobContract, JobContract } from '../services/contractsService';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -43,7 +44,49 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
   const [ready, setReady] = useState(false);
   const [isSigning, setIsSigning] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  
+  const [contract, setContract] = useState<JobContract | null>(null);
+  const [contractLoading, setContractLoading] = useState(false);
+  const [hasReadContract, setHasReadContract] = useState(false);
+
+  // Fetch contract clauses when modal opens
+  useEffect(() => {
+    if (!isVisible) return;
+    let cancelled = false;
+    const loadContract = async () => {
+      const jobId = typeof job.id === 'number' ? job.id : parseInt(job.id, 10);
+      if (!jobId || isNaN(jobId) || jobId <= 0) return;
+      setContractLoading(true);
+      try {
+        const existing = await fetchJobContract(jobId);
+        if (!cancelled && existing) {
+          setContract(existing);
+        } else if (!cancelled) {
+          const generated = await generateJobContract(jobId);
+          if (!cancelled) setContract(generated);
+        }
+      } catch {
+        // No contract available — keep null
+      }
+      if (!cancelled) setContractLoading(false);
+    };
+    loadContract();
+    return () => { cancelled = true; };
+  }, [isVisible, job.id]);
+
+  // Auto-set hasReadContract if no real clauses to read (fallback text only)
+  useEffect(() => {
+    if (!contractLoading && (!contract || contract.clauses.length === 0)) {
+      setHasReadContract(true);
+    }
+  }, [contractLoading, contract]);
+
+  // Reset hasReadContract when modal opens with new contract
+  useEffect(() => {
+    if (isVisible) {
+      setHasReadContract(false);
+    }
+  }, [isVisible]);
+
   // Animations
   const slideAnimation = useRef(new Animated.Value(screenHeight)).current;
   const backdropAnimation = useRef(new Animated.Value(0)).current;
@@ -595,24 +638,96 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
             style={{ flex: 1 }}
             contentContainerStyle={{ flexGrow: 1 }}
             scrollEnabled={!isSigning}
-            showsVerticalScrollIndicator={false}
+            showsVerticalScrollIndicator={true}
+            onScroll={({ nativeEvent }) => {
+              if (hasReadContract) return;
+              const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
+              const isNearBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 60;
+              if (isNearBottom) setHasReadContract(true);
+            }}
+            scrollEventThrottle={100}
+            onContentSizeChange={(contentWidth, contentHeight) => {
+              // If content fits without scrolling, auto-mark as read
+              if (!hasReadContract && contentHeight <= screenHeight * 0.7) {
+                setHasReadContract(true);
+              }
+            }}
           >
-            {/* Contract Section moderne */}
+            {/* Contract Section — real clauses from backend */}
             <View style={styles.contractBloc}>
               <View style={styles.contractHeader}>
                 <Ionicons name="shield-checkmark" size={20} color={colors.success} />
                 <Text style={styles.contractTitle}>{t('jobDetails.components.signature.contractTitle')}</Text>
               </View>
-              <Text style={styles.contractBlocContent}>
-                {t('jobDetails.components.signature.contractContent')}
-              </Text>
-              <Text style={styles.lastLine}>
+
+              {contractLoading ? (
+                <View style={{ alignItems: 'center', paddingVertical: 20 }}>
+                  <ActivityIndicator size="small" color={colors.primary} />
+                  <Text style={{ fontSize: 13, color: colors.textSecondary, marginTop: 8 }}>
+                    {t('signature.loadingContract')}
+                  </Text>
+                </View>
+              ) : contract && contract.clauses.length > 0 ? (
+                <>
+                  {contract.clauses
+                    .sort((a, b) => a.clause_order - b.clause_order)
+                    .map((clause, index) => (
+                      <View key={clause.id} style={{
+                        marginBottom: index < contract.clauses.length - 1 ? 16 : 0,
+                      }}>
+                        <Text style={{
+                          color: colors.text,
+                          fontSize: 14,
+                          fontWeight: '700',
+                          marginBottom: 4,
+                        }}>
+                          {index + 1}. {clause.clause_title}
+                        </Text>
+                        <Text style={{
+                          color: colors.text,
+                          fontSize: 13,
+                          lineHeight: 20,
+                          textAlign: 'justify',
+                        }}>
+                          {clause.clause_content}
+                        </Text>
+                      </View>
+                    ))
+                  }
+                </>
+              ) : (
+                <Text style={styles.contractBlocContent}>
+                  {t('jobDetails.components.signature.contractContent')}
+                </Text>
+              )}
+
+              <Text style={[styles.lastLine, { marginTop: 16 }]}>
                 {t('jobDetails.components.signature.contractAcknowledge')}
               </Text>
             </View>
 
+            {/* Scroll indicator when contract not yet read */}
+            {!hasReadContract && contract && contract.clauses.length > 0 && (
+              <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                paddingVertical: 12,
+                marginHorizontal: DESIGN_TOKENS.spacing.lg,
+                backgroundColor: colors.warning + '15',
+                borderRadius: DESIGN_TOKENS.radius.md,
+                marginBottom: DESIGN_TOKENS.spacing.sm,
+              }}>
+                <Ionicons name="arrow-down-circle" size={20} color={colors.warning} />
+                <Text style={{ color: colors.warning, fontSize: 13, fontWeight: '600' }}>
+                  {t('signature.scrollToRead')}
+                </Text>
+              </View>
+            )}
+
             {/* Signature Section avec animations */}
-            <View style={styles.signingBloc}>
+            <View style={[styles.signingBloc, !hasReadContract && { opacity: 0.4 }]} pointerEvents={hasReadContract ? 'auto' : 'none'}>
               <View style={styles.signingHeader}>
                 <Ionicons name="create" size={22} color={colors.primary} />
                 <Text style={styles.signingTitle}>{t('jobDetails.components.signature.digitalSignature')}</Text>
@@ -712,8 +827,8 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
 
             <Pressable 
               onPress={handleSave} 
-              style={[styles.btn, styles.btnPrimary, isSaving && styles.btnDisabled]} 
-              disabled={isSaving}
+              style={[styles.btn, styles.btnPrimary, (isSaving || !hasReadContract) && styles.btnDisabled]} 
+              disabled={isSaving || !hasReadContract}
             >
               {isSaving ? (
                 <ActivityIndicator size="small" color="white" style={{ marginRight: 8 }} />

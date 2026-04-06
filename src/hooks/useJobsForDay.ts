@@ -194,11 +194,17 @@ function convertAPIJobToLocal(apiJob: any): Job {
         apiJob.end_window_start || apiJob.start_window_start || "",
       endWindowEnd: apiJob.end_window_end || apiJob.start_window_end || "",
     },
-    truck: {
-      id: apiJob.preferred_truck_id ?? undefined,
-      licensePlate: apiJob.truck_license_plate || "",
-      name: apiJob.truck_name || "",
-    },
+    truck: apiJob.truck ?? (Array.isArray(apiJob.trucks) && apiJob.trucks.length > 0
+      ? {
+          id: apiJob.trucks[0].id ?? apiJob.preferred_truck_id ?? undefined,
+          licensePlate: apiJob.trucks[0].license_plate || "",
+          name: apiJob.trucks[0].name || "",
+        }
+      : {
+          id: apiJob.preferred_truck_id ?? undefined,
+          licensePlate: "",
+          name: "",
+        }),
     estimatedDuration:
       apiJob.estimated_duration ||
       calculateDuration(apiJob.start_window_start, apiJob.start_window_end),

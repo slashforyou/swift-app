@@ -3334,6 +3334,19 @@ export interface TranslationKeys {
   };
 
   // Contracts — Modular contract clauses
+  signature?: {
+    title?: string;
+    signed?: string;
+    signedOn?: string;
+    viewContract?: string;
+    contractTitle?: string;
+    noClausesConfigured?: string;
+    bySigningPrefix?: string;
+    contractLink?: string;
+    bySigningSuffix?: string;
+    signButton?: string;
+  };
+
   contracts?: {
     title?: string;
     subtitle?: string;

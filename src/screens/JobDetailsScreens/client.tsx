@@ -5,7 +5,7 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
-import JobContractSection from "../../components/jobDetails/JobContractSection";
+import SignatureSection from "../../components/jobDetails/sections/SignatureSection";
 import { HStack, VStack } from "../../components/primitives/Stack";
 import SigningBloc from "../../components/signingBloc";
 import { Card } from "../../components/ui/Card";
@@ -433,13 +433,8 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
           </Card>
         )}
 
-        {/* Contract section — auto-generated, clauses visible, sign button */}
-        {job?.id && (
-          <JobContractSection
-            jobId={typeof job.id === 'number' ? job.id : parseInt(job.id, 10)}
-            onSignPress={handleSignContract}
-          />
-        )}
+        {/* Signature + Contract section — unified component */}
+        <SignatureSection job={job} onSignContract={handleSignContract} />
       </VStack>
 
       {/* Modal de signature */}

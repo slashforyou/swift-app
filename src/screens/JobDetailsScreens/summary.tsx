@@ -14,12 +14,12 @@ import ClientDetailsSection from "../../components/jobDetails/sections/ClientDet
 import CompanyDetailsSection from "../../components/jobDetails/sections/CompanyDetailsSection";
 import FinancialSummarySection from "../../components/jobDetails/sections/FinancialSummarySection";
 import JobStatusBanner from "../../components/jobDetails/sections/JobStatusBanner";
+import PrepareJobSection from "../../components/jobDetails/sections/PrepareJobSection";
 import QuickActionsSection from "../../components/jobDetails/sections/QuickActionsSection";
 import SignaturePreviewSection from "../../components/jobDetails/sections/SignaturePreviewSection";
 import StaffingBannerSection from "../../components/jobDetails/sections/StaffingBannerSection";
 import TimeWindowsSection from "../../components/jobDetails/sections/TimeWindowsSection";
 import TransferBannerSection from "../../components/jobDetails/sections/TransferBannerSection";
-import PrepareJobSection from "../../components/jobDetails/sections/PrepareJobSection";
 
 import SigningBloc from "../../components/signingBloc";
 import { useTheme } from "../../context/ThemeProvider";
@@ -268,23 +268,23 @@ const JobSummary = ({
               onShowPhotoModal={() => setIsPhotoModalVisible(true)}
             />
 
+            {/* Adresses */}
+            <AddressesSection job={job} />
+
+            {/* Informations client */}
+            <ClientDetailsSection job={job} />
+
+            {/* Créneaux horaires */}
+            <TimeWindowsSection job={job} />
+
+            {/* Informations entreprise (Contractee/Contractor) */}
+            <CompanyDetailsSection job={job} />
+
             {/* Résumé financier (si données dispo) */}
             <FinancialSummarySection job={job} />
 
             {/* Aperçu signature (si job signé) */}
             <SignaturePreviewSection job={job} />
-
-            {/* Informations entreprise (Contractee/Contractor) */}
-            <CompanyDetailsSection job={job} />
-
-            {/* Informations client */}
-            <ClientDetailsSection job={job} />
-
-            {/* Adresses */}
-            <AddressesSection job={job} />
-
-            {/* Créneaux horaires */}
-            <TimeWindowsSection job={job} />
           </>
         )}
       </View>

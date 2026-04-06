@@ -10,33 +10,33 @@ import Ionicons from "@react-native-vector-icons/ionicons";
 import * as Clipboard from "expo-clipboard";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  ActionSheetIOS,
-  Alert,
-  Modal,
-  Platform,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
+    ActionSheetIOS,
+    Alert,
+    Modal,
+    Platform,
+    Pressable,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    View,
 } from "react-native";
 import CompanyCodeInput from "../../components/modals/TransferJobModal/CompanyCodeInput";
 import RelationsCarnet from "../../components/modals/TransferJobModal/RelationsCarnet";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
-import { useTranslation } from "../../localization";
 import { useCompanyProfile } from "../../hooks/useCompanyProfile";
+import { useTranslation } from "../../localization";
 import {
-  deleteRelation,
-  listRelations,
-  saveRelation,
-  updateRelationNickname,
+    deleteRelation,
+    listRelations,
+    saveRelation,
+    updateRelationNickname,
 } from "../../services/companyRelations";
 import type {
-  CompanyLookupResult,
-  CompanyRelation,
+    CompanyLookupResult,
+    CompanyRelation,
 } from "../../types/jobTransfer";
 
 // ─────────────────────────────────────────────────────────────

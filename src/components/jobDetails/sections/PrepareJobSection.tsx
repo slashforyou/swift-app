@@ -160,6 +160,11 @@ const PrepareJobSection: React.FC<PrepareJobSectionProps> = ({
     </Pressable>
   );
 
+  // Masquer entièrement si ressources assignées ou job délégué
+  if (!loading && (hasVehicle || hasWorkers || isFullyDelegated)) {
+    return null;
+  }
+
   if (loading) {
     return (
       <View
@@ -220,8 +225,8 @@ const PrepareJobSection: React.FC<PrepareJobSectionProps> = ({
           paddingBottom: DESIGN_TOKENS.spacing.md,
         }}
       >
-        {/* 1. Véhicule / Travailleurs */}
-        {renderStep(
+        {/* 1. Véhicule / Travailleurs — masqué si délégation active */}
+        {!delegationActive && renderStep(
           "people-outline",
           t("prepareJob.addVehicleWorker") || "Add vehicle / worker",
           vehicleDone && workersDone
@@ -277,8 +282,8 @@ const PrepareJobSection: React.FC<PrepareJobSectionProps> = ({
           ) : undefined,
         )}
 
-        {/* Divider "ou" */}
-        {!isFullyDelegated && (
+        {/* Divider "ou" — visible uniquement si aucun des deux n'est choisi */}
+        {!isFullyDelegated && !hasVehicle && !hasWorkers && (
           <View
             style={{
               flexDirection: "row",
@@ -314,8 +319,8 @@ const PrepareJobSection: React.FC<PrepareJobSectionProps> = ({
           </View>
         )}
 
-        {/* 3. Déléguer le job entier */}
-        {renderStep(
+        {/* 3. Déléguer le job entier — masqué si des ressources sont assignées */}
+        {!hasVehicle && !hasWorkers && renderStep(
           "business-outline",
           t("prepareJob.delegateFull") || "Déléguer le job entier",
           delegationActive

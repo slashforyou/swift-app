@@ -3,7 +3,7 @@
  * Auto-generates contract on load and shows clauses for reading before signing
  */
 import Ionicons from "@react-native-vector-icons/ionicons";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     ActivityIndicator,
     Pressable,
@@ -34,32 +34,39 @@ const JobContractSection: React.FC<JobContractSectionProps> = ({
   const [contract, setContract] = useState<JobContract | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Auto-fetch or auto-generate contract on mount
-  const loadOrGenerateContract = useCallback(async () => {
-    try {
-      // Try to fetch existing contract first
-      const existing = await fetchJobContract(jobId);
-      if (existing) {
-        setContract(existing);
-        return;
-      }
-    } catch {
-      // No contract yet — auto-generate
-    }
-
-    try {
-      const generated = await generateJobContract(jobId);
-      setContract(generated);
-    } catch {
-      // No clauses configured or generation failed — hide section
-    } finally {
-      setLoading(false);
-    }
-  }, [jobId]);
-
+  // Auto-fetch or auto-generate contract on mount / when jobId changes
   useEffect(() => {
-    loadOrGenerateContract();
-  }, [loadOrGenerateContract]);
+    // Guard: skip if jobId is invalid (NaN or <= 0)
+    if (!jobId || isNaN(jobId) || jobId <= 0) return;
+
+    let cancelled = false;
+    setLoading(true);
+    setContract(null);
+
+    (async () => {
+      try {
+        const existing = await fetchJobContract(jobId);
+        if (!cancelled && existing) {
+          setContract(existing);
+          setLoading(false);
+          return;
+        }
+      } catch {
+        // No contract yet — auto-generate
+      }
+
+      try {
+        const generated = await generateJobContract(jobId);
+        if (!cancelled) setContract(generated);
+      } catch {
+        // No clauses configured or generation failed — hide section
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [jobId]);
 
   if (loading && !contract) {
     return (

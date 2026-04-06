@@ -4269,6 +4269,21 @@ export const enTranslations: TranslationKeys = {
   // ============================================================================
   // CONTRACTS — Modular contract clauses
   // ============================================================================
+  signature: {
+    title: "Signature",
+    signed: "Signed",
+    signedOn: "Signed on {{date}} at {{time}}",
+    viewContract: "View full contract",
+    contractTitle: "Contract",
+    noClausesConfigured: "No contract clauses configured yet.",
+    bySigningPrefix: "By signing, you accept the ",
+    contractLink: "contract",
+    bySigningSuffix: ".",
+    signButton: "Sign",
+    loadingContract: "Loading contract...",
+    scrollToRead: "Scroll down to read the full contract",
+  },
+
   contracts: {
     title: "Contracts",
     subtitle: "Manage your modular contract clauses",
