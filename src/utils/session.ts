@@ -3,8 +3,12 @@ import * as SecureStore from "expo-secure-store";
 import { ServerData } from "../constants/ServerData";
 import { clearStripeCache } from "../services/stripeCache";
 import { getAuthHeaders, refreshToken as refreshAuthToken } from "./auth";
+import { ENV } from "../config/environment";
 
 const API = ServerData.serverUrl;
+
+// Stripe mode: 'test' in dev/staging, 'live' in production
+const STRIPE_MODE = ENV.name === "production" ? "live" : "test";
 
 // Session cache — évite de refaire ensureSession à chaque remontage du Home screen
 // Valide 5 minutes ; invalidé par clearLocalSession() (logout)
@@ -232,7 +236,11 @@ export async function fetchWithAuth(
     input instanceof URL ? input.toString() : input;
 
   // Merge headers and ensure all values are strings and defined
-  const rawHeaders = { ...(init.headers || {}), ...(await getAuthHeaders()) };
+  const rawHeaders = {
+    ...(init.headers || {}),
+    ...(await getAuthHeaders()),
+    "X-Stripe-Mode": STRIPE_MODE,
+  };
   const headers: Record<string, string> = {};
   Object.entries(rawHeaders).forEach(([key, value]) => {
     if (typeof value === "string") {

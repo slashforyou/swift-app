@@ -56,29 +56,9 @@ export async function validateJobConsistency(
   const timerTotalHours = parseFloat(jobData.timer_total_hours || '0');
   const timerIsRunning = jobData.timer_is_running === 1 || jobData.timer_is_running === true;
 
-
-  // ============================================
-  // INCOHÉRENCE 1: Étape > 1 mais timer jamais démarré
-  // ⚠️ TEMP DISABLED: Désactivé car backend ne crée pas vraiment le timer
-  // Cela créait une boucle infinie: détection → correction → reload → re-détection
-  // ============================================
-  /*
-  if (currentStep > 1 && !timerStartedAt) {
-    const inconsistency: JobInconsistency = {
-      type: 'timer_not_started',
-      severity: 'critical',
-      description: `Job à l'étape ${currentStep}/5 mais timer jamais démarré (timer_started_at = null)`,
-      detectedAt: new Date().toISOString(),
-      jobId,
-      currentState: { currentStep, timerStartedAt, timerTotalHours },
-      suggestedFix: 'Créer un timer rétroactif avec estimation basée sur l\'étape actuelle',
-      serverCorrectable: true,
-      correctionType: 'reset_status'
-    };
-    inconsistencies.push(inconsistency);
-  }
-  */
-  // ============================================
+  // TODO: INCOHÉRENCE 1 (timer_not_started) désactivée — nécessite endpoint backend
+  // dédié pour créer un timer rétroactif sans boucle infinie.
+  // Voir: step > 1 && !timerStartedAt
 
   // ============================================
   // INCOHÉRENCE 2: Job complété mais pas à l'étape finale
@@ -323,60 +303,6 @@ export async function validateJobConsistency(
     autoCorrected,
     corrections: corrections.length > 0 ? corrections : undefined
   };
-}
-
-/**
- * Auto-correction: Timer non démarré mais job à étape > 1
- */
-async function autoCorrectTimerNotStarted(
-  jobCode: string,
-  currentStep: number,
-  localTimerData?: any
-): Promise<void> {
-
-  // ✅ MODIFIÉ: Toujours tenter l'appel API même si timer local existe
-  // Le timer local n'est qu'un fallback, l'API est la source de vérité
-  
-  // Créer un timer rétroactif estimé
-  const now = Date.now();
-  const estimatedStartTime = now - (24 * 60 * 60 * 1000); // 24h ago
-
-
-  // Tenter de synchroniser avec l'API
-  try {
-    const result = await startTimerAPI(jobCode);
-    
-    // ✅ Vérifier si l'API a vraiment réussi
-    if (result && result.success) {
-    } else {
-        const errorMsg = result?.error || result?.data?.error || 'Unknown error';
-      
-      // Stocker localement pour sync ultérieure
-      await savePendingCorrection({
-        jobId: jobCode, // Utiliser jobCode comme ID
-        timestamp: Date.now(),
-        correction: {
-          type: 'start_timer',
-          data: { estimatedStartTime }
-        }
-      });
-      
-    }
-  } catch (error: any) {
-
-    console.error('❌ [JobValidation] Échec sync API (exception):', error.message);
-
-    // Hors-ligne : stocker la correction localement
-    await savePendingCorrection({
-      jobId: jobCode, // Utiliser jobCode comme ID
-      timestamp: Date.now(),
-      correction: {
-        type: 'start_timer',
-        data: { estimatedStartTime }
-      }
-    });
-
-  }
 }
 
 /**

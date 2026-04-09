@@ -32,12 +32,12 @@ const CONDITION_ICONS: Record<string, string> = {
   state: "flag-outline",
 };
 
-const CONDITION_LABELS: Record<string, string> = {
-  always: "Always",
-  segment_type: "Segment",
-  postcode: "Postcode",
-  city: "City",
-  state: "State",
+const CONDITION_LABEL_KEYS: Record<string, string> = {
+  always: "businessHub.contracts.conditionAlways",
+  segment_type: "businessHub.contracts.conditionSegment",
+  postcode: "businessHub.contracts.conditionPostcode",
+  city: "businessHub.contracts.conditionCity",
+  state: "businessHub.contracts.conditionState",
 };
 
 const ContractsScreen: React.FC = () => {
@@ -86,7 +86,7 @@ const ContractsScreen: React.FC = () => {
           ),
         );
       } catch {
-        Alert.alert("Error", "Failed to update clause");
+        Alert.alert(t("businessHub.billing.error"), t("businessHub.contracts.errorUpdateClause"));
       }
     },
     [],
@@ -107,7 +107,7 @@ const ContractsScreen: React.FC = () => {
                 await deleteClause(clause.id);
                 setClauses((prev) => prev.filter((c) => c.id !== clause.id));
               } catch {
-                Alert.alert("Error", "Failed to delete clause");
+                Alert.alert(t("businessHub.billing.error"), t("businessHub.contracts.errorDeleteClause"));
               }
             },
           },
@@ -306,7 +306,7 @@ const ContractsScreen: React.FC = () => {
                   <Text
                     style={{ fontSize: 11, color: colors.text, fontWeight: "500" }}
                   >
-                    {CONDITION_LABELS[cond.condition_type] || cond.condition_type}
+                    {CONDITION_LABEL_KEYS[cond.condition_type] ? t(CONDITION_LABEL_KEYS[cond.condition_type]) : cond.condition_type}
                     {cond.condition_value ? `: ${cond.condition_value}` : ""}
                   </Text>
                 </View>

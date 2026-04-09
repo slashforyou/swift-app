@@ -1,12 +1,15 @@
 /**
  * Business - Écran principal de gestion business
- * Architecture identique à JobDetails avec système de tabs internes
+ * Architecture 4 onglets : Hub · Ressources · Config · Finances
  */
-import React, { useState } from "react";
-import { ScrollView, View } from "react-native";
+import Ionicons from "@react-native-vector-icons/ionicons";
+import React, { useCallback, useState } from "react";
+import { ScrollView, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BusinessTabMenu } from "../components/business";
+import type { BusinessTab } from "../components/business/BusinessTabMenu";
 import BusinessHeader from "../components/business/BusinessHeader";
+import BusinessSubTabMenu from "../components/business/BusinessSubTabMenu";
 import LanguageButton from "../components/calendar/LanguageButton";
 import HeaderLogo from "../components/ui/HeaderLogo";
 import Toast from "../components/ui/toastNotification";
@@ -18,14 +21,32 @@ import {
     PayoutsScreen,
     RelationsScreen,
     StaffCrewScreen,
-    StripeHub,
     StripeSettingsScreen,
     TrucksScreen,
 } from "../screens/business";
+import AgreementsScreen from "../screens/business/AgreementsScreen";
+import BusinessHubOverview from "../screens/business/BusinessHubOverview";
 import BusinessInfoPage from "../screens/business/BusinessInfoPage";
 import ContractsScreen from "../screens/business/ContractsScreen";
+import InterContractorBillingScreen from "../screens/business/InterContractorBillingScreen";
+import MonthlyInvoicesScreen from "../screens/business/MonthlyInvoicesScreen";
 import JobTemplatesPanel from "../screens/business/JobTemplatesPanel";
+import StripePaymentsTab from "../screens/business/StripePaymentsTab";
 import { useAuthCheck } from "../utils/checkAuth";
+
+// ── Mapping ancien → nouveau pour la rétro-compatibilité ──
+const TAB_MAPPING: Record<string, { tab: BusinessTab; subTab?: string; drillDown?: string }> = {
+  BusinessInfo: { tab: "Hub", drillDown: "BusinessInfo" },
+  StaffCrew: { tab: "Resources", subTab: "staff" },
+  Trucks: { tab: "Resources", subTab: "vehicles" },
+  JobsBilling: { tab: "Finances", subTab: "payments" },
+  Relations: { tab: "Resources", subTab: "partners" },
+  JobTemplates: { tab: "Config", subTab: "templates" },
+  Contracts: { tab: "Config", subTab: "clauses" },
+  Billing: { tab: "Finances", subTab: "billing" },
+  Payments: { tab: "Finances", subTab: "payments" },
+  Invoices: { tab: "Finances", subTab: "invoices" },
+};
 
 // Types et interfaces
 interface BusinessProps {
@@ -57,67 +78,207 @@ const useToast = () => {
   return { toastDetails, showToast };
 };
 
+// ── Sous-tab configs ──
 const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
   const insets = useSafeAreaInsets();
   const { toastDetails, showToast } = useToast();
   const { colors } = useTheme();
   const { t } = useLocalization();
+
+  const RESOURCES_TABS = React.useMemo(() => [
+    { id: "staff", label: t("businessHub.subTabs.staff") },
+    { id: "vehicles", label: t("businessHub.subTabs.vehicles") },
+    { id: "partners", label: t("businessHub.subTabs.partners") },
+  ], [t]);
+  const CONFIG_TABS = React.useMemo(() => [
+    { id: "templates", label: t("businessHub.subTabs.templates") },
+    { id: "clauses", label: t("businessHub.subTabs.clauses") },
+  ], [t]);
+  const FINANCES_TABS = React.useMemo(() => [
+    { id: "payments", label: t("businessHub.subTabs.payments") },
+    { id: "billing", label: t("businessHub.subTabs.billing") },
+    { id: "invoices", label: t("businessHub.subTabs.invoicesTab") },
+  ], [t]);
+
   const { isLoading: authLoading, LoadingComponent } = useAuthCheck(
     navigation,
     t("common.checkingAuth"),
   );
 
-  // Support navigation with initialTab or initialStripeScreen params
-  const initialTab = route?.params?.initialTab || "BusinessInfo";
-  const initialStripeScreen = route?.params?.initialStripeScreen || null;
+  // ── Résolution initialTab (rétro-compatibilité) ──
+  const rawInitialTab = route?.params?.initialTab;
+  const mapped = rawInitialTab ? TAB_MAPPING[rawInitialTab] : undefined;
 
-  const [businessPanel, setBusinessPanel] = useState(initialTab);
-  const [stripeScreen, setStripeScreen] = useState<string | null>(
-    initialStripeScreen,
-  );
-  // businessPanel: 'BusinessInfo', 'StaffCrew', 'Trucks', 'JobsBilling'
-  // stripeScreen: null, 'PaymentsList', 'Payouts', 'StripeSettings'
+  const [activeTab, setActiveTab] = useState<BusinessTab>(mapped?.tab || "Hub");
+  const [resourcesSubTab, setResourcesSubTab] = useState(mapped?.tab === "Resources" ? (mapped?.subTab || "staff") : "staff");
+  const [configSubTab, setConfigSubTab] = useState(mapped?.tab === "Config" ? (mapped?.subTab || "templates") : "templates");
+  const [financesSubTab, setFinancesSubTab] = useState(mapped?.tab === "Finances" ? (mapped?.subTab || "payments") : "payments");
+  const [drillDownScreen, setDrillDownScreen] = useState<string | null>(mapped?.drillDown || null);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // Handler pour TabMenu
-  const handleTabPress = (tabId: string) => {
-    setBusinessPanel(tabId);
-    setStripeScreen(null); // Reset Stripe screen when changing main tabs
-  };
+  // ── Handlers ──
+  const handleTabPress = useCallback((tabId: BusinessTab) => {
+    setActiveTab(tabId);
+    setDrillDownScreen(null);
+    setSearchQuery("");
+  }, []);
 
-  // Navigation object pour les écrans Stripe
+  const handleNavigateTab = useCallback((tab: BusinessTab, subTab?: string) => {
+    setActiveTab(tab);
+    setDrillDownScreen(null);
+    setSearchQuery("");
+    if (subTab) {
+      if (tab === "Resources") setResourcesSubTab(subTab);
+      if (tab === "Config") setConfigSubTab(subTab);
+      if (tab === "Finances") setFinancesSubTab(subTab);
+    }
+  }, []);
+
+  const handleDrillDown = useCallback((screen: string) => {
+    setDrillDownScreen(screen);
+  }, []);
+
+  const handleDrillBack = useCallback(() => {
+    setDrillDownScreen(null);
+  }, []);
+
+  // Navigation object pour les écrans Stripe drill-down
   const stripeNavigation = {
-    navigate: (screenName: string) => {
-      setStripeScreen(screenName);
-    },
-    goBack: () => {
-      setStripeScreen(null);
-    },
+    navigate: (screenName: string) => setDrillDownScreen(screenName),
+    goBack: handleDrillBack,
   };
 
-  // Titres des panneaux
-  const getPanelTitle = () => {
-    switch (businessPanel) {
-      case "BusinessInfo":
-        return t("business.navigation.businessInfo");
-      case "StaffCrew":
-        return t("business.navigation.staffCrew");
-      case "Trucks":
-        return t("business.navigation.trucks");
-      case "JobsBilling":
-        return t("business.navigation.jobsBilling");
-      case "JobTemplates":
-        return "Modèles de job";
-      case "Contracts":
-        return t("contracts.title");
-      default:
-        return t("business.navigation.businessInfo");
+  // ── Titre ──
+  const getPanelTitle = (): string => {
+    if (drillDownScreen) {
+      switch (drillDownScreen) {
+        case "BusinessInfo": return t("businessHub.drillDown.companyProfile");
+        case "JobTemplates": return t("businessHub.drillDown.jobTemplates");
+        case "Contracts": return t("businessHub.drillDown.contracts");
+        case "Reports": return t("businessHub.drillDown.reports");
+        case "PaymentsList": return t("businessHub.drillDown.paymentsReceived");
+        case "Payouts": return t("businessHub.drillDown.payouts");
+        case "StripeSettings": return t("businessHub.drillDown.stripeSettings");
+        default: return "Business";
+      }
+    }
+    switch (activeTab) {
+      case "Hub": return t("businessHub.tabs.hub");
+      case "Resources": return t("businessHub.tabs.resources");
+      case "Config": return t("businessHub.tabs.config");
+      case "Finances": return t("businessHub.tabs.finances");
+      default: return "Business";
     }
   };
 
-  // Gestion des états de chargement
   if (authLoading) {
     return LoadingComponent;
   }
+
+  // ── Sub-tab menu rendu (collé en haut, hors du ScrollView) ──
+  const renderSubTabMenu = () => {
+    if (drillDownScreen) return null;
+    switch (activeTab) {
+      case "Resources":
+        return (
+          <BusinessSubTabMenu
+            tabs={RESOURCES_TABS}
+            activeTab={resourcesSubTab}
+            onTabPress={(id) => { setResourcesSubTab(id); setSearchQuery(""); }}
+          />
+        );
+      case "Config":
+        return (
+          <BusinessSubTabMenu
+            tabs={CONFIG_TABS}
+            activeTab={configSubTab}
+            onTabPress={setConfigSubTab}
+          />
+        );
+      case "Finances":
+        return (
+          <BusinessSubTabMenu
+            tabs={FINANCES_TABS}
+            activeTab={financesSubTab}
+            onTabPress={setFinancesSubTab}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
+  // ── Barre de recherche (Resources uniquement) ──
+  const showSearch = !drillDownScreen && activeTab === "Resources";
+
+  // ── Rendu du contenu principal (scroll) ──
+  const renderContent = () => {
+    // Drill-down screens (push/modal depuis le Hub ou Finances)
+    if (drillDownScreen) {
+      switch (drillDownScreen) {
+        case "BusinessInfo":
+          return <BusinessInfoPage />;
+        case "JobTemplates":
+          return <JobTemplatesPanel navigation={navigation} />;
+        case "Contracts":
+          return <ContractsScreen />;
+        case "PaymentsList":
+          return <PaymentsListScreen navigation={stripeNavigation} />;
+        case "Payouts":
+          return <PayoutsScreen navigation={stripeNavigation} />;
+        case "StripeSettings":
+          return <StripeSettingsScreen navigation={stripeNavigation} />;
+        default:
+          return null;
+      }
+    }
+
+    switch (activeTab) {
+      case "Hub":
+        return (
+          <BusinessHubOverview
+            onNavigateTab={handleNavigateTab}
+            onDrillDown={handleDrillDown}
+          />
+        );
+
+      case "Resources":
+        return (
+          <>
+            {resourcesSubTab === "staff" && <StaffCrewScreen />}
+            {resourcesSubTab === "vehicles" && <TrucksScreen />}
+            {resourcesSubTab === "partners" && <RelationsScreen />}
+          </>
+        );
+
+      case "Config":
+        return (
+          <>
+            {configSubTab === "templates" && (
+              <JobTemplatesPanel navigation={navigation} />
+            )}
+            {configSubTab === "clauses" && <ContractsScreen />}
+          </>
+        );
+
+      case "Finances":
+        return (
+          <>
+            {financesSubTab === "payments" && (
+              <StripePaymentsTab
+                onNavigateStripeScreen={handleDrillDown}
+                mainNavigation={navigation}
+              />
+            )}
+            {financesSubTab === "billing" && <InterContractorBillingScreen />}
+            {financesSubTab === "invoices" && <MonthlyInvoicesScreen />}
+          </>
+        );
+
+      default:
+        return null;
+    }
+  };
 
   return (
     <View
@@ -129,63 +290,82 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
         flex: 1,
       }}
     >
-      {/* Logo */}
-      <View style={{ alignItems: "center", paddingTop: insets.top }}>
-        <HeaderLogo preset="sm" variant="rectangle" marginVertical={4} />
-      </View>
-      {/* Header Business avec navigation et langue */}
-      <BusinessHeader
-        title={getPanelTitle()}
-        rightComponent={<LanguageButton />}
-        navigation={navigation}
-      />
+      {/* Logo + Header masqués en drill-down (les écrans drill-down ont leur propre header) */}
+      {!drillDownScreen && (
+        <>
+          <View style={{ alignItems: "center", paddingTop: insets.top }}>
+            <HeaderLogo preset="sm" variant="rectangle" marginVertical={4} />
+          </View>
+          <BusinessHeader
+            title={getPanelTitle()}
+            rightComponent={<LanguageButton />}
+            navigation={navigation}
+            showBackButton={false}
+          />
+        </>
+      )}
 
-      {/* ScrollView principal */}
+      {/* Sub-tab menu collé en haut (hors du ScrollView) */}
+      {renderSubTabMenu()}
+
+      {/* Barre de recherche (Resources) */}
+      {showSearch && (
+        <View style={{
+          paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+          paddingTop: DESIGN_TOKENS.spacing.sm,
+          paddingBottom: DESIGN_TOKENS.spacing.sm,
+          backgroundColor: colors.background,
+        }}>
+          <View style={{
+            flexDirection: "row",
+            alignItems: "center",
+            backgroundColor: colors.backgroundSecondary,
+            borderRadius: DESIGN_TOKENS.radius.md,
+            borderWidth: 1,
+            borderColor: colors.border,
+            paddingHorizontal: DESIGN_TOKENS.spacing.sm,
+            height: 40,
+          }}>
+            <Ionicons name="search" size={18} color={colors.textSecondary} style={{ marginRight: 8 }} />
+            <TextInput
+              placeholder={t("common.search") + "..."}
+              placeholderTextColor={colors.textSecondary}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              style={{
+                flex: 1,
+                fontSize: 14,
+                color: colors.text,
+                paddingVertical: 0,
+              }}
+            />
+          </View>
+        </View>
+      )}
+
+      {/* Drill-down screens rendus en pleine page (hors ScrollView) */}
+      {drillDownScreen ? (
+        <View style={{ flex: 1 }}>
+          {renderContent()}
+        </View>
+      ) : (
+      /* ScrollView principal */
       <ScrollView
         testID="business-content-scroll"
         style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingTop: DESIGN_TOKENS.spacing.lg,
-          paddingBottom: 60 + insets.bottom + DESIGN_TOKENS.spacing.lg, // BusinessTabMenu + Safe area + espacement
+          paddingTop: DESIGN_TOKENS.spacing.md,
+          paddingBottom: 60 + insets.bottom + DESIGN_TOKENS.spacing.lg,
           paddingHorizontal: DESIGN_TOKENS.spacing.lg,
         }}
       >
-        {/* Écrans Stripe ou écrans business normaux */}
-        {stripeScreen ? (
-          <>
-            {stripeScreen === "PaymentsList" && (
-              <PaymentsListScreen navigation={stripeNavigation} />
-            )}
-            {stripeScreen === "Payouts" && (
-              <PayoutsScreen navigation={stripeNavigation} />
-            )}
-            {stripeScreen === "StripeSettings" && (
-              <StripeSettingsScreen navigation={stripeNavigation} />
-            )}
-          </>
-        ) : (
-          <>
-            {businessPanel === "BusinessInfo" && <BusinessInfoPage />}
-            {businessPanel === "StaffCrew" && <StaffCrewScreen />}
-            {businessPanel === "Trucks" && <TrucksScreen />}
-            {businessPanel === "JobsBilling" && (
-              <StripeHub
-                navigation={stripeNavigation}
-                mainNavigation={navigation}
-              />
-            )}
-            {businessPanel === "Relations" && <RelationsScreen />}
-            {businessPanel === "JobTemplates" && (
-              <JobTemplatesPanel navigation={navigation} />
-            )}
-            {businessPanel === "Contracts" && <ContractsScreen />}
-          </>
-        )}
+        {renderContent()}
       </ScrollView>
+      )}
 
-      {/* Business Tab Menu fixé en bas - masqué dans les écrans Stripe */}
-      {!stripeScreen && (
+      {/* Business Tab Menu fixé en bas — masqué en drill-down */}
+      {!drillDownScreen && (
         <View
           style={{
             position: "absolute",
@@ -199,7 +379,7 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
           }}
         >
           <BusinessTabMenu
-            activeTab={businessPanel}
+            activeTab={activeTab}
             onTabPress={handleTabPress}
           />
         </View>
@@ -209,7 +389,7 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
       <View
         style={{
           position: "absolute",
-          top: 100, // Position fixe sous le header
+          top: 100,
           left: DESIGN_TOKENS.spacing.lg,
           right: DESIGN_TOKENS.spacing.lg,
           zIndex: 20,

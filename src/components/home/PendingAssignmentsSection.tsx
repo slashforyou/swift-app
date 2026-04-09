@@ -91,7 +91,7 @@ interface DetailCardProps {
   isSubmitting: boolean;
 }
 
-const DetailCard: React.FC<DetailCardProps> = ({
+const DetailCard: React.FC<DetailCardProps> = React.memo(({
   assignment,
   colors,
   t,
@@ -271,7 +271,7 @@ const DetailCard: React.FC<DetailCardProps> = ({
       </View>
     </View>
   </View>
-);
+));
 
 // ─────────────────────────────────────────────
 // Info row helper

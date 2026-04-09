@@ -1280,6 +1280,80 @@ export interface TranslationKeys {
     };
   };
 
+  // Business Hub (redesigned)
+  businessHub: {
+    tabs: {
+      hub: string;
+      resources: string;
+      config: string;
+      finances: string;
+    };
+    stats: {
+      activeStaff: string;
+      vehicles: string;
+      partners: string;
+      stripeActive: string;
+      stripeIncomplete: string;
+      stripeNotConfigured: string;
+    };
+    actions: {
+      configureStripe: string;
+      completeProfile: string;
+      addVehicle: string;
+      inviteTeam: string;
+      addPartner: string;
+    };
+    shortcuts: {
+      companyProfile: string;
+      jobTemplates: string;
+      contracts: string;
+      reports: string;
+    };
+    drillDown: {
+      companyProfile: string;
+      jobTemplates: string;
+      contracts: string;
+      reports: string;
+      paymentsReceived: string;
+      payouts: string;
+      stripeSettings: string;
+      employees: string;
+      ext: string;
+      available: string;
+      inUse: string;
+    };
+    company: {
+      default: string;
+      incomplete: string;
+    };
+    tools: string;
+    actionsRequired: string;
+    search: {
+      resources: string;
+    };
+    stripe: {
+      setupTitle: string;
+      setupDesc: string;
+      setupCta: string;
+      totalRevenue: string;
+      currentMonth: string;
+      pendingBalance: string;
+      status: string;
+      quickActions: string;
+      paymentsReceived: string;
+      payouts: string;
+      settings: string;
+    };
+    billing: {
+      loading: string;
+      incoming: string;
+      outgoing: string;
+      emptyReceivable: string;
+      emptyPayable: string;
+      emptyHint: string;
+    };
+  };
+
   // Payment
   payment: {
     missingInfo: {
@@ -2929,6 +3003,8 @@ export interface TranslationKeys {
     declineJobTitle?: string;
     declineJobDesc?: string;
     confirmBtn?: string;
+    noAssignments?: string;
+    noAssignmentsDesc?: string;
   };
 
   // Invoice Edit (InvoiceCreateEditModal)

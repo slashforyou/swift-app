@@ -3,46 +3,11 @@
  *
  * Permet au créateur du job (contractee) d'accepter une contre-proposition.
  * Met assignment_status → "accepted".
- * Notifie le contractor.
+ * Notifie le contractor (push + DB).
  */
 
 const { connect } = require("../../../swiftDb");
-
-async function sendPushToCompany(
-  connection,
-  companyId,
-  title,
-  body,
-  data = {},
-) {
-  try {
-    const [tokenRows] = await connection.execute(
-      `SELECT ut.push_token
-       FROM user_push_tokens ut
-       JOIN users u ON u.id = ut.user_id
-       WHERE u.company_id = ? AND ut.push_token IS NOT NULL AND ut.is_active = 1`,
-      [companyId],
-    );
-    if (!tokenRows.length) return;
-    const messages = tokenRows.map((r) => ({
-      to: r.push_token,
-      title,
-      body,
-      data: { ...data, screen: "Calendar" },
-      sound: "default",
-    }));
-    await fetch("https://exp.host/--/api/v2/push/send", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(messages),
-    });
-  } catch (err) {
-    console.warn(
-      "[acceptCounterProposal] Push non-blocking error:",
-      err.message,
-    );
-  }
-}
+const { notifyCompany } = require("../../../utils/pushHelper");
 
 async function resolveJobId(connection, jobParam) {
   const numId = parseInt(jobParam);
@@ -124,27 +89,36 @@ const acceptCounterProposalEndpoint = async (req, res) => {
       // Table peut ne pas exister — non bloquant
     }
 
-    // Notifier le contractor
+    // ── Push + DB notification au contractor ──
     if (job.contractor_company_id) {
-      const [contracteeRows] = await connection.execute(
-        "SELECT name FROM companies WHERE id = ?",
-        [companyId],
-      );
-      const contracteeName = contracteeRows[0]?.name || "Le donneur d'ordre";
-      const jobCode = job.code || jobId;
+      try {
+        const [contracteeRows] = await connection.execute(
+          "SELECT name FROM companies WHERE id = ?",
+          [companyId],
+        );
+        const contracteeName = contracteeRows[0]?.name || "Le donneur d'ordre";
+        const jobCode = job.code || jobId;
 
-      await sendPushToCompany(
-        connection,
-        job.contractor_company_id,
-        "✅ Proposition acceptée",
-        `${contracteeName} a accepté votre proposition pour le job #${jobCode}`,
-        {
-          screen: "JobDetails",
-          job_id: String(jobId),
-          job_code: String(jobCode),
-          type: "counter_proposal_accepted",
-        },
-      );
+        await notifyCompany(
+          connection,
+          job.contractor_company_id,
+          'job_update',
+          '✅ Proposition acceptée',
+          `${contracteeName} a accepté votre proposition pour le job #${jobCode}`,
+          {
+            jobId: job.id,
+            priority: 'high',
+            pushData: {
+              type: 'counter_proposal_accepted',
+              job_id: String(jobId),
+              job_code: String(jobCode),
+              screen: 'Calendar',
+            },
+          }
+        );
+      } catch (pushErr) {
+        console.warn('[acceptCounterProposal] Push failed (non-blocking):', pushErr.message);
+      }
     }
 
     return res.json({

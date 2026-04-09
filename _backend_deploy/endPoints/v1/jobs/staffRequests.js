@@ -2,45 +2,13 @@
  * POST /v1/jobs/:jobId/staff-requests
  *
  * Enregistre une demande de personnel (offsiders sans véhicule) pour un job.
- * Stocke la demande dans la table staff_requests et notifie les gestionnaires.
+ * Stocke la demande dans la table staff_requests et notifie les gestionnaires (push + DB).
  *
  * Body: { offsider_count: number, note?: string }
  */
 
 const { connect } = require("../../../swiftDb");
-
-async function sendPushToCompany(
-  connection,
-  companyId,
-  title,
-  body,
-  data = {},
-) {
-  try {
-    const [tokenRows] = await connection.execute(
-      `SELECT ut.push_token
-       FROM user_push_tokens ut
-       JOIN users u ON u.id = ut.user_id
-       WHERE u.company_id = ? AND ut.push_token IS NOT NULL AND ut.is_active = 1`,
-      [companyId],
-    );
-    if (!tokenRows.length) return;
-    const messages = tokenRows.map((r) => ({
-      to: r.push_token,
-      title,
-      body,
-      data: { ...data, screen: "Calendar" },
-      sound: "default",
-    }));
-    await fetch("https://exp.host/--/api/v2/push/send", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(messages),
-    });
-  } catch (err) {
-    console.warn("[staffRequests] Push non-blocking error:", err.message);
-  }
-}
+const { notifyCompany } = require("../../../utils/pushHelper");
 
 async function resolveJobId(connection, jobParam) {
   const numId = parseInt(jobParam);
@@ -113,13 +81,17 @@ const staffRequestsEndpoint = async (req, res) => {
 
     const requestId = insertResult.insertId;
 
-    // Notifier les gestionnaires de la company
-    await sendPushToCompany(
+    // ── Push + DB notification ──
+    await notifyCompany(
       connection,
       companyId,
-      "Demande de personnel",
+      'job_update',
+      'Demande de personnel',
       `${offsider_count} offsider${offsider_count > 1 ? "s" : ""} demandé${offsider_count > 1 ? "s" : ""} pour le job ${job.code}`,
-      { job_id: jobId, job_code: job.code, request_id: requestId },
+      {
+        jobId: jobId,
+        pushData: { job_id: jobId, job_code: job.code, request_id: requestId, screen: 'Calendar' },
+      }
     );
 
     console.log(

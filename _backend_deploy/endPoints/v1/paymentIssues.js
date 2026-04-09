@@ -7,6 +7,7 @@
  */
 
 const { connect } = require("../../swiftDb");
+const { notifyCompany } = require("../../utils/pushHelper");
 
 const VALID_TYPES = [
   "wrong_amount",
@@ -16,42 +17,6 @@ const VALID_TYPES = [
   "client_dispute",
   "other",
 ];
-
-// ── Inline push helper (same pattern as counterProposal.js) ──────────────
-async function sendPushToCompany(
-  connection,
-  companyId,
-  title,
-  body,
-  data = {},
-) {
-  try {
-    const [tokenRows] = await connection.execute(
-      `SELECT ut.push_token
-       FROM user_push_tokens ut
-       JOIN users u ON u.id = ut.user_id
-       WHERE u.company_id = ? AND ut.push_token IS NOT NULL AND ut.is_active = 1`,
-      [companyId],
-    );
-    if (!tokenRows.length) return;
-
-    const messages = tokenRows.map((r) => ({
-      to: r.push_token,
-      title,
-      body,
-      data: { ...data, screen: "JobsBilling" },
-      sound: "default",
-    }));
-
-    await fetch("https://exp.host/--/api/v2/push/send", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(messages),
-    });
-  } catch (err) {
-    console.warn("[sendPushToCompany] Non-blocking error:", err.message);
-  }
-}
 
 // ── POST /v1/jobs/:jobId/payment-issues ──────────────────────────────────
 const reportPaymentIssue = async (req, res) => {
@@ -113,13 +78,18 @@ const reportPaymentIssue = async (req, res) => {
       ? `${userRows[0].first_name} ${userRows[0].last_name}`.trim()
       : "An employee";
 
-    // Notify boss (contractee company)
-    sendPushToCompany(
+    // ── Push + DB notification au boss ──
+    notifyCompany(
       connection,
       job.contractee_company_id,
-      "⚠️ Payment Issue Reported",
+      'payment',
+      '⚠️ Payment Issue Reported',
       `${reporterName} reported a payment issue on job ${job.code || jobId}`,
-      { type: "payment_issue", job_id: jobId },
+      {
+        jobId: jobId,
+        priority: 'high',
+        pushData: { type: 'payment_issue', job_id: jobId, screen: 'JobsBilling' },
+      }
     ).catch(() => {});
 
     return res.json({

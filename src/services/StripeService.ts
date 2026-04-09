@@ -454,7 +454,11 @@ export const fetchStripePayments = async () => {
 
     throw new Error("Unable to fetch payments from API");
   } catch (error: any) {
-    safeLogError("❌ [FETCH PAYMENTS] Error:", error);
+    // Only log if it's not a "no account" type error
+    const msg = error?.message?.toLowerCase() || "";
+    if (!msg.includes("no stripe account") && !msg.includes("unable to fetch payments")) {
+      safeLogError("❌ [FETCH PAYMENTS] Error:", error);
+    }
     return [];
   }
 };
@@ -499,7 +503,10 @@ export const fetchStripePayouts = async () => {
 
     throw new Error("Unable to fetch payouts from API");
   } catch (error: any) {
-    safeLogError("❌ [FETCH PAYOUTS] Error fetching real payouts:", error);
+    const msg = error?.message?.toLowerCase() || "";
+    if (!msg.includes("no stripe account") && !msg.includes("unable to fetch payouts")) {
+      safeLogError("❌ [FETCH PAYOUTS] Error fetching real payouts:", error);
+    }
     // Retourner des données vides en cas d'erreur
     return [];
   }
@@ -669,7 +676,10 @@ export const fetchStripeBalance = async () => {
 
     throw new Error("Unable to fetch balance from any endpoint");
   } catch (error) {
-    console.error("❌ [FETCH BALANCE] Error fetching real balance:", error);
+    const msg = (error as any)?.message?.toLowerCase() || "";
+    if (!msg.includes("no stripe account") && !msg.includes("unable to fetch balance")) {
+      console.error("❌ [FETCH BALANCE] Error fetching real balance:", error);
+    }
     // Fallback vers données mock avec valeurs réalistes
     const fallbackBalance = { available: 0, pending: 0 };
     return fallbackBalance;
@@ -1081,7 +1091,11 @@ export const getStripeAccountSettings =
 
       return data.data.settings;
     } catch (error) {
-      safeLogError("GET_ACCOUNT_SETTINGS", error);
+      // Silently return null for expected errors (no account)
+      const msg = (error as any)?.message?.toLowerCase() || "";
+      if (!msg.includes("no stripe account") && !msg.includes("failed to get account settings") && !msg.includes("http error")) {
+        safeLogError("GET_ACCOUNT_SETTINGS", error);
+      }
       throw error;
     }
   };

@@ -4,7 +4,7 @@
  * Permet au prestataire (contractor) de proposer un créneau alternatif,
  * un type de prix (horaire/forfait), un véhicule et des employés.
  * Met assignment_status → "negotiating".
- * Notifie le contractee (Entreprise A).
+ * Notifie le contractee (Entreprise A) — push + DB.
  *
  * Body: {
  *   proposed_start: ISO,
@@ -18,42 +18,7 @@
  */
 
 const { connect } = require("../../../swiftDb");
-
-// Inline push helper
-async function sendPushToCompany(
-  connection,
-  companyId,
-  title,
-  body,
-  data = {},
-) {
-  try {
-    const [tokenRows] = await connection.execute(
-      `SELECT ut.push_token
-       FROM user_push_tokens ut
-       JOIN users u ON u.id = ut.user_id
-       WHERE u.company_id = ? AND ut.push_token IS NOT NULL AND ut.is_active = 1`,
-      [companyId],
-    );
-    if (!tokenRows.length) return;
-
-    const messages = tokenRows.map((r) => ({
-      to: r.push_token,
-      title,
-      body,
-      data: { ...data, screen: "Calendar" },
-      sound: "default",
-    }));
-
-    await fetch("https://exp.host/--/api/v2/push/send", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(messages),
-    });
-  } catch (err) {
-    console.warn("[sendPushToCompany] Non-blocking error:", err.message);
-  }
-}
+const { notifyCompany } = require("../../../utils/pushHelper");
 
 async function resolveJobId(connection, jobParam) {
   const numId = parseInt(jobParam);
@@ -194,27 +159,36 @@ const counterProposalEndpoint = async (req, res) => {
       [proposed_start, proposed_end, note || null, userId, jobId],
     );
 
-    // Notifier le contractee (Entreprise A)
+    // ── Push + DB notification au contractee ──
     if (job.contractee_company_id) {
-      const [contractorRows] = await connection.execute(
-        "SELECT name FROM companies WHERE id = ?",
-        [companyId],
-      );
-      const contractorName = contractorRows[0]?.name || "Le prestataire";
-      const jobCode = job.code || jobId;
+      try {
+        const [contractorRows] = await connection.execute(
+          "SELECT name FROM companies WHERE id = ?",
+          [companyId],
+        );
+        const contractorName = contractorRows[0]?.name || "Le prestataire";
+        const jobCode = job.code || jobId;
 
-      await sendPushToCompany(
-        connection,
-        job.contractee_company_id,
-        "🔄 Contre-proposition reçue",
-        `${contractorName} propose un autre créneau pour le job #${jobCode}`,
-        {
-          screen: "JobDetails",
-          job_id: String(jobId),
-          job_code: jobCode,
-          type: "counter_proposal_received",
-        },
-      );
+        await notifyCompany(
+          connection,
+          job.contractee_company_id,
+          'job_update',
+          '🔄 Contre-proposition reçue',
+          `${contractorName} propose un autre créneau pour le job #${jobCode}`,
+          {
+            jobId: job.id,
+            priority: 'high',
+            pushData: {
+              type: 'counter_proposal_received',
+              job_id: String(jobId),
+              job_code: String(jobCode),
+              screen: 'Calendar',
+            },
+          }
+        );
+      } catch (pushErr) {
+        console.warn('[counterProposal] Push failed (non-blocking):', pushErr.message);
+      }
     }
 
     return res.json({

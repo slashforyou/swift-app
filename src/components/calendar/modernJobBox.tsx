@@ -1,5 +1,5 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
-import React, { useState } from "react";
+import React, { useState, memo } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -220,7 +220,7 @@ const PendingAssignmentActions: React.FC<{
   );
 };
 
-const JobBox: React.FC<JobBoxProps> = ({
+const JobBox: React.FC<JobBoxProps> = memo(({
   job,
   onPress,
   onAccept,
@@ -706,8 +706,8 @@ const JobBox: React.FC<JobBoxProps> = ({
             numberOfLines={1}
           >
             {isPendingAssignment
-              ? `Assigné par : ${contracteeName}`
-              : `${contracteeName}`}
+              ? `${t("contractorWizard.assignedBy")} ${contracteeName}`
+              : contracteeName}
           </Text>
           {isPendingAssignment && (
             <View
@@ -723,7 +723,7 @@ const JobBox: React.FC<JobBoxProps> = ({
                   { color: colors.warning },
                 ]}
               >
-                Action requise
+                {t("assignmentActions.actionRequired")}
               </Text>
             </View>
           )}
@@ -745,7 +745,7 @@ const JobBox: React.FC<JobBoxProps> = ({
                   { color: colors.success },
                 ]}
               >
-                Accepté
+                {t("transfer.acceptedStatus")}
               </Text>
             </View>
           )}
@@ -763,7 +763,7 @@ const JobBox: React.FC<JobBoxProps> = ({
                   { color: colors.info },
                 ]}
               >
-                En négociation
+                {t("transfer.negotiating")}
               </Text>
             </View>
           )}
@@ -773,7 +773,7 @@ const JobBox: React.FC<JobBoxProps> = ({
       {/* Header avec référence */}
       <View style={styles.cardHeader}>
         <View style={styles.refBadge}>
-          <Text style={styles.refText}>Ref: {job.code || job.id}</Text>
+          <Text style={styles.refText}>{t("contractorWizard.reference")}: {job.code || job.id}</Text>
         </View>
         <View
           style={[
@@ -948,6 +948,6 @@ const JobBox: React.FC<JobBoxProps> = ({
       </View>
     </Pressable>
   );
-};
+});
 
 export default JobBox;

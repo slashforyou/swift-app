@@ -85,6 +85,8 @@ jest.mock(
         info: "#007AFF",
       },
       isDark: false,
+      companyColor: null,
+      setCompanyColor: jest.fn(),
     }),
   }),
   { virtual: true },

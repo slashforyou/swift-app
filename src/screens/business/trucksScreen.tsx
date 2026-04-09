@@ -15,7 +15,6 @@ import {
 // Components
 import AddVehicleModal from "../../components/modals/AddVehicleModal";
 import { HStack, VStack } from "../../components/primitives/Stack";
-import { Card } from "../../components/ui/Card";
 import VehicleDetailsScreen from "./VehicleDetailsScreen";
 
 // Hooks & Utils
@@ -244,7 +243,12 @@ const VehicleCard: React.FC<{
 
   return (
     <TouchableOpacity testID={`vehicle-card-${vehicle.id}`} onPress={onPress}>
-      <Card style={{ marginBottom: DESIGN_TOKENS.spacing.md }}>
+      <View style={{
+        backgroundColor: colors.backgroundSecondary,
+        borderRadius: DESIGN_TOKENS.radius.md,
+        padding: DESIGN_TOKENS.spacing.md,
+        marginBottom: DESIGN_TOKENS.spacing.md,
+      }}>
         <VStack gap="sm">
           <HStack gap="md" align="center" justify="space-between">
             <HStack gap="md" align="center" style={{ flex: 1 }}>
@@ -424,7 +428,7 @@ const VehicleCard: React.FC<{
             </TouchableOpacity>
           </HStack>
         </VStack>
-      </Card>
+      </View>
     </TouchableOpacity>
   );
 };
@@ -674,88 +678,34 @@ export default function TrucksScreen() {
     >
       {/* Statistiques rapides */}
       <View style={styles.quickStats}>
-        <Card style={styles.statCard}>
+        <View style={[styles.statCard, { backgroundColor: colors.backgroundSecondary, borderRadius: DESIGN_TOKENS.radius.md }]}>
           <Text testID="stat-available-value" style={styles.statNumber}>
             {availableVehicles}
           </Text>
           <Text testID="stat-available-label" style={styles.statLabel}>
             Available
           </Text>
-        </Card>
-        <Card style={styles.statCard}>
+        </View>
+        <View style={[styles.statCard, { backgroundColor: colors.backgroundSecondary, borderRadius: DESIGN_TOKENS.radius.md }]}>
           <Text testID="stat-inuse-value" style={styles.statNumber}>
             {inUseVehicles}
           </Text>
           <Text testID="stat-inuse-label" style={styles.statLabel}>
             In Use
           </Text>
-        </Card>
-        <Card style={styles.statCard}>
+        </View>
+        <View style={[styles.statCard, { backgroundColor: colors.backgroundSecondary, borderRadius: DESIGN_TOKENS.radius.md }]}>
           <Text testID="stat-maintenance-value" style={styles.statNumber}>
             {maintenanceVehicles}
           </Text>
           <Text testID="stat-maintenance-label" style={styles.statLabel}>
             Maintenance
           </Text>
-        </Card>
-      </View>
-
-      {/* Filtres par type */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={{ marginBottom: DESIGN_TOKENS.spacing.md }}
-      >
-        <View style={styles.typeFilterContainer}>
-          {vehicleTypes.map((type) => (
-            <TouchableOpacity
-              key={type}
-              testID={`filter-type-${type}`}
-              style={[
-                styles.typeFilter,
-                {
-                  backgroundColor:
-                    selectedType === type
-                      ? colors.primary + "20"
-                      : "transparent",
-                  borderColor:
-                    selectedType === type ? colors.primary : colors.border,
-                },
-              ]}
-              onPress={() => handleTypeFilter(type)}
-            >
-              <Text
-                style={{
-                  color:
-                    selectedType === type
-                      ? colors.primary
-                      : colors.textSecondary,
-                  fontWeight: selectedType === type ? "600" : "400",
-                  fontSize: 14,
-                }}
-              >
-                {type === "all"
-                  ? `All (${getVehicleCountByType(type)})`
-                  : `${getVehicleEmoji(type as Vehicle["type"])} ${type.charAt(0).toUpperCase() + type.slice(1)}`}
-              </Text>
-            </TouchableOpacity>
-          ))}
         </View>
-      </ScrollView>
+      </View>
 
       {/* Filtres par status */}
       <View style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
-        <Text
-          style={{
-            fontSize: 14,
-            fontWeight: "600",
-            color: colors.text,
-            marginBottom: DESIGN_TOKENS.spacing.sm,
-            paddingHorizontal: DESIGN_TOKENS.spacing.xs,
-          }}
-        >
-          Filter by Status
-        </Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.typeFilterContainer}>
             {vehicleStatuses.map((status) => {
@@ -807,7 +757,7 @@ export default function TrucksScreen() {
       </View>
 
       {/* Liste des véhicules */}
-      <Card style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
+      <View style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
         <VStack gap="sm">
           <SectionHeader
             icon="🚛"
@@ -847,7 +797,7 @@ export default function TrucksScreen() {
             </View>
           )}
         </VStack>
-      </Card>
+      </View>
 
       {/* Modal d'ajout de véhicule */}
       <AddVehicleModal

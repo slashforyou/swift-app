@@ -1,11 +1,5 @@
-/**
+﻿/**
  * ContractorJobWizardModal
- *
- * Wizard multi-étapes pour le prestataire (contractor) :
- *   Étape 1 – Aperçu : détails du job + nom de la compagnie créatrice
- *   Étape 2 – Décision : Accepter ou Refuser
- *   Étape 3A – Assigner les employés (après acceptation)
- *   Étape 3B – Raison de refus (si refusé)
  */
 
 import Ionicons from "@react-native-vector-icons/ionicons";
@@ -16,75 +10,21 @@ import {
   Modal,
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { DESIGN_TOKENS } from "../../constants/Styles";
-import { useTheme } from "../../context/ThemeProvider";
-import { Job } from "../../hooks/useJobsForDay";
-import { useStaff } from "../../hooks/useStaff";
-import { useVehicles } from "../../hooks/useVehicles";
-import { useTranslation } from "../../localization";
-import { assignStaffToJob } from "../../services/crewService";
-import { acceptJob, counterProposalJob, declineJob } from "../../services/jobs";
+import { DESIGN_TOKENS } from "../../../constants/Styles";
+import { useTheme } from "../../../context/ThemeProvider";
+import { useStaff } from "../../../hooks/useStaff";
+import { useVehicles } from "../../../hooks/useVehicles";
+import { useTranslation } from "../../../localization";
+import { assignStaffToJob } from "../../../services/crewService";
+import { acceptJob, counterProposalJob, declineJob } from "../../../services/jobs";
+import { createStyles } from "./styles";
+import { ContractorJobWizardModalProps, formatDate, formatTime, WizardStep } from "./types";
 
-// ─────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────
-
-type WizardStep =
-  | "overview"
-  | "decision"
-  | "assign_staff"
-  | "decline_reason"
-  | "counter_proposal"
-  | "counter_proposed"
-  | "success"
-  | "declined";
-
-interface ContractorJobWizardModalProps {
-  visible: boolean;
-  job: Job | null;
-  onClose: () => void;
-  onJobUpdated: () => void; // Callback pour rafraîchir la liste après action
-}
-
-// ─────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────
-
-const formatTime = (dateString: string) => {
-  if (!dateString) return "—";
-  try {
-    return new Date(dateString).toLocaleTimeString("fr-FR", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
-  } catch {
-    return "—";
-  }
-};
-
-const formatDate = (dateString: string) => {
-  if (!dateString) return "—";
-  try {
-    return new Date(dateString).toLocaleDateString("fr-FR", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-    });
-  } catch {
-    return "—";
-  }
-};
-
-// ─────────────────────────────────────────────
-// Main Component
-// ─────────────────────────────────────────────
 
 export const ContractorJobWizardModal: React.FC<
   ContractorJobWizardModalProps
@@ -113,10 +53,10 @@ export const ContractorJobWizardModal: React.FC<
   const [proposedPackers, setProposedPackers] = useState(0);
   const [counterNote, setCounterNote] = useState("");
 
-  // Réinitialiser l'état à chaque ouverture
+  // RÃ©initialiser l'Ã©tat Ã  chaque ouverture
   useEffect(() => {
     if (visible && job) {
-      // Si le job est en négociation, montrer directement l'écran d'attente
+      // Si le job est en nÃ©gociation, montrer directement l'Ã©cran d'attente
       setStep(
         job.assignment_status === "negotiating"
           ? "counter_proposed"
@@ -126,7 +66,7 @@ export const ContractorJobWizardModal: React.FC<
       setSelectedStaffIds([]);
       setStaffSearchQuery("");
       setIsSubmitting(false);
-      // Pré-remplir les créneaux avec les valeurs du job
+      // PrÃ©-remplir les crÃ©neaux avec les valeurs du job
       setProposedStart(job.time?.startWindowStart?.substring(11, 16) ?? "");
       setProposedEnd(job.time?.startWindowEnd?.substring(11, 16) ?? "");
       setProposedPrice(
@@ -143,16 +83,16 @@ export const ContractorJobWizardModal: React.FC<
     }
   }, [visible, job]);
 
-  // Charger le staff quand on arrive à l'étape d'assignation
+  // Charger le staff quand on arrive Ã  l'Ã©tape d'assignation
   useEffect(() => {
     if (step === "assign_staff") {
       refreshStaff();
     }
   }, [step, refreshStaff]);
 
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Handlers
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   const handleAccept = useCallback(async () => {
     if (!job) return;
@@ -204,7 +144,7 @@ export const ContractorJobWizardModal: React.FC<
     if (!job) return;
     setIsSubmitting(true);
     try {
-      // Assigner chaque employé sélectionné
+      // Assigner chaque employÃ© sÃ©lectionnÃ©
       if (selectedStaffIds.length > 0) {
         await Promise.all(
           selectedStaffIds.map((staffId) =>
@@ -239,7 +179,7 @@ export const ContractorJobWizardModal: React.FC<
       );
       return;
     }
-    // Construire les datetimes ISO à partir de la date du job + créneaux saisis
+    // Construire les datetimes ISO Ã  partir de la date du job + crÃ©neaux saisis
     const jobDate = job.time?.startWindowStart?.substring(0, 10) ?? "";
     const proposed_start = `${jobDate}T${proposedStart}:00.000Z`;
     const proposed_end = `${jobDate}T${proposedEnd}:00.000Z`;
@@ -285,9 +225,9 @@ export const ContractorJobWizardModal: React.FC<
     onJobUpdated,
   ]);
 
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Filtered staff
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   const filteredStaff = staff
     .filter((m) => m.status === "active")
@@ -301,363 +241,15 @@ export const ContractorJobWizardModal: React.FC<
       );
     });
 
-  // ─────────────────────────────────────────────
+
   // Styles
-  // ─────────────────────────────────────────────
-
-  const styles = StyleSheet.create({
-    overlay: {
-      flex: 1,
-      backgroundColor: "rgba(0,0,0,0.55)",
-      justifyContent: "flex-end",
-    },
-    sheet: {
-      backgroundColor: colors.background,
-      borderTopLeftRadius: 24,
-      borderTopRightRadius: 24,
-      maxHeight: "92%",
-      minHeight: "82%",
-    },
-    handle: {
-      width: 40,
-      height: 4,
-      borderRadius: 2,
-      backgroundColor: colors.border,
-      alignSelf: "center",
-      marginTop: 12,
-      marginBottom: 8,
-    },
-    header: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: DESIGN_TOKENS.spacing.lg,
-      paddingVertical: DESIGN_TOKENS.spacing.md,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border,
-    },
-    headerLeft: {
-      flex: 1,
-    },
-    stepLabel: {
-      fontSize: 12,
-      fontWeight: "600",
-      color: colors.primary,
-      textTransform: "uppercase",
-      letterSpacing: 0.8,
-      marginBottom: 2,
-    },
-    headerTitle: {
-      fontSize: 18,
-      fontWeight: "700",
-      color: colors.text,
-    },
-    closeButton: {
-      padding: 8,
-    },
-    scrollContent: {
-      paddingHorizontal: DESIGN_TOKENS.spacing.lg,
-      paddingTop: DESIGN_TOKENS.spacing.lg,
-      paddingBottom: DESIGN_TOKENS.spacing.xl,
-    },
-
-    // Company badge
-    companyBadge: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: colors.info + "18",
-      borderRadius: DESIGN_TOKENS.radius.md,
-      padding: DESIGN_TOKENS.spacing.md,
-      marginBottom: DESIGN_TOKENS.spacing.lg,
-      borderLeftWidth: 3,
-      borderLeftColor: colors.info,
-    },
-    companyBadgeText: {
-      marginLeft: DESIGN_TOKENS.spacing.sm,
-      flex: 1,
-    },
-    companyLabel: {
-      fontSize: 11,
-      color: colors.info,
-      fontWeight: "600",
-      textTransform: "uppercase",
-    },
-    companyName: {
-      fontSize: 16,
-      fontWeight: "700",
-      color: colors.text,
-    },
-
-    // Info rows
-    infoCard: {
-      backgroundColor: colors.backgroundSecondary,
-      borderRadius: DESIGN_TOKENS.radius.md,
-      padding: DESIGN_TOKENS.spacing.md,
-      marginBottom: DESIGN_TOKENS.spacing.md,
-    },
-    infoRow: {
-      flexDirection: "row",
-      alignItems: "flex-start",
-      marginBottom: DESIGN_TOKENS.spacing.sm,
-    },
-    infoIcon: {
-      marginRight: DESIGN_TOKENS.spacing.sm,
-      marginTop: 1,
-    },
-    infoLabel: {
-      fontSize: 12,
-      color: colors.textSecondary,
-      marginBottom: 2,
-    },
-    infoValue: {
-      fontSize: 14,
-      fontWeight: "600",
-      color: colors.text,
-    },
-
-    // Status badge
-    statusRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginBottom: DESIGN_TOKENS.spacing.lg,
-    },
-    statusBadge: {
-      paddingHorizontal: DESIGN_TOKENS.spacing.md,
-      paddingVertical: DESIGN_TOKENS.spacing.xs,
-      borderRadius: DESIGN_TOKENS.radius.full,
-      marginRight: DESIGN_TOKENS.spacing.sm,
-    },
-    statusText: {
-      fontSize: 12,
-      fontWeight: "700",
-    },
-
-    // Decision buttons
-    decisionContainer: {
-      marginTop: DESIGN_TOKENS.spacing.lg,
-    },
-    decisionTitle: {
-      fontSize: 16,
-      fontWeight: "600",
-      color: colors.text,
-      marginBottom: DESIGN_TOKENS.spacing.md,
-      textAlign: "center",
-    },
-    decisionRow: {
-      flexDirection: "row",
-      gap: DESIGN_TOKENS.spacing.md,
-    },
-    acceptBtn: {
-      flex: 1,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: colors.success + "20",
-      borderWidth: 1.5,
-      borderColor: colors.success,
-      borderRadius: DESIGN_TOKENS.radius.lg,
-      paddingVertical: DESIGN_TOKENS.spacing.md,
-      gap: 8,
-    },
-    declineBtn: {
-      flex: 1,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: colors.error + "12",
-      borderWidth: 1.5,
-      borderColor: colors.error + "80",
-      borderRadius: DESIGN_TOKENS.radius.lg,
-      paddingVertical: DESIGN_TOKENS.spacing.md,
-      gap: 8,
-    },
-    acceptBtnText: {
-      color: colors.success,
-      fontSize: 15,
-      fontWeight: "700",
-    },
-    declineBtnText: {
-      color: colors.error,
-      fontSize: 15,
-      fontWeight: "700",
-    },
-
-    // Staff picker
-    searchInput: {
-      backgroundColor: colors.backgroundSecondary,
-      borderRadius: DESIGN_TOKENS.radius.md,
-      paddingHorizontal: DESIGN_TOKENS.spacing.md,
-      paddingVertical: 10,
-      fontSize: 14,
-      color: colors.text,
-      marginBottom: DESIGN_TOKENS.spacing.md,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    staffItem: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: colors.backgroundSecondary,
-      borderRadius: DESIGN_TOKENS.radius.md,
-      padding: DESIGN_TOKENS.spacing.md,
-      marginBottom: DESIGN_TOKENS.spacing.sm,
-      borderWidth: 1.5,
-    },
-    staffAvatar: {
-      width: 42,
-      height: 42,
-      borderRadius: 21,
-      backgroundColor: colors.primary + "20",
-      alignItems: "center",
-      justifyContent: "center",
-      marginRight: DESIGN_TOKENS.spacing.md,
-    },
-    staffAvatarText: {
-      fontSize: 15,
-      fontWeight: "700",
-      color: colors.primary,
-    },
-    staffInfo: {
-      flex: 1,
-    },
-    staffName: {
-      fontSize: 14,
-      fontWeight: "600",
-      color: colors.text,
-    },
-    staffRole: {
-      fontSize: 12,
-      color: colors.textSecondary,
-      marginTop: 2,
-    },
-    staffCheck: {
-      width: 24,
-      height: 24,
-      borderRadius: 12,
-      borderWidth: 2,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    emptyStaff: {
-      alignItems: "center",
-      paddingVertical: DESIGN_TOKENS.spacing.xl,
-    },
-    emptyStaffText: {
-      color: colors.textSecondary,
-      marginTop: DESIGN_TOKENS.spacing.sm,
-      fontSize: 14,
-    },
-
-    // Text input for decline reason
-    reasonInput: {
-      backgroundColor: colors.backgroundSecondary,
-      borderRadius: DESIGN_TOKENS.radius.md,
-      padding: DESIGN_TOKENS.spacing.md,
-      fontSize: 14,
-      color: colors.text,
-      minHeight: 120,
-      textAlignVertical: "top",
-      borderWidth: 1,
-      borderColor: colors.border,
-      marginBottom: DESIGN_TOKENS.spacing.lg,
-    },
-
-    // Bottom action bar
-    actionBar: {
-      flexDirection: "row",
-      paddingHorizontal: DESIGN_TOKENS.spacing.lg,
-      paddingTop: DESIGN_TOKENS.spacing.md,
-      paddingBottom: DESIGN_TOKENS.spacing.lg,
-      borderTopWidth: 1,
-      borderTopColor: colors.border,
-      gap: DESIGN_TOKENS.spacing.md,
-    },
-    primaryActionBtn: {
-      flex: 1,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: colors.primary,
-      borderRadius: DESIGN_TOKENS.radius.lg,
-      paddingVertical: DESIGN_TOKENS.spacing.md,
-      gap: 8,
-    },
-    primaryActionBtnText: {
-      color: colors.buttonPrimaryText,
-      fontSize: 15,
-      fontWeight: "700",
-    },
-    secondaryActionBtn: {
-      paddingHorizontal: DESIGN_TOKENS.spacing.lg,
-      paddingVertical: DESIGN_TOKENS.spacing.md,
-      borderRadius: DESIGN_TOKENS.radius.lg,
-      borderWidth: 1,
-      borderColor: colors.border,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    secondaryActionBtnText: {
-      color: colors.textSecondary,
-      fontSize: 14,
-      fontWeight: "600",
-    },
-    dangerActionBtn: {
-      flex: 1,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: colors.error,
-      borderRadius: DESIGN_TOKENS.radius.lg,
-      paddingVertical: DESIGN_TOKENS.spacing.md,
-      gap: 8,
-    },
-    dangerActionBtnText: {
-      color: "#fff",
-      fontSize: 15,
-      fontWeight: "700",
-    },
-
-    // Success/Declined screens
-    resultContainer: {
-      alignItems: "center",
-      paddingVertical: DESIGN_TOKENS.spacing.xl * 2,
-      paddingHorizontal: DESIGN_TOKENS.spacing.xl,
-    },
-    resultIcon: {
-      width: 80,
-      height: 80,
-      borderRadius: 40,
-      alignItems: "center",
-      justifyContent: "center",
-      marginBottom: DESIGN_TOKENS.spacing.lg,
-    },
-    resultTitle: {
-      fontSize: 22,
-      fontWeight: "700",
-      color: colors.text,
-      textAlign: "center",
-      marginBottom: DESIGN_TOKENS.spacing.sm,
-    },
-    resultSubtitle: {
-      fontSize: 14,
-      color: colors.textSecondary,
-      textAlign: "center",
-      lineHeight: 20,
-    },
-    sectionTitle: {
-      fontSize: 14,
-      fontWeight: "600",
-      color: colors.textSecondary,
-      marginBottom: DESIGN_TOKENS.spacing.sm,
-      textTransform: "uppercase",
-      letterSpacing: 0.6,
-    },
-  });
+  const styles = createStyles(colors);
 
   if (!job) return null;
 
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Step helpers
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   const isExternalJob =
     job.contractee &&
@@ -693,9 +285,9 @@ export const ContractorJobWizardModal: React.FC<
     }
   };
 
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Step renderers
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   const renderOverview = () => (
     <>
@@ -783,14 +375,14 @@ export const ContractorJobWizardModal: React.FC<
           </View>
         </View>
 
-        {/* Transfer details – Ce qui est demandé */}
+        {/* Transfer details â€“ Ce qui est demandÃ© */}
         {isExternalJob && job.assignment_status === "pending" && (
           <>
             <Text style={styles.sectionTitle}>
               {t("contractorWizard.whatIsRequested")}
             </Text>
             <View style={styles.infoCard}>
-              {/* Proposition – description du rôle */}
+              {/* Proposition â€“ description du rÃ´le */}
               {job.transfer?.delegated_role ? (
                 <View
                   style={[
@@ -816,14 +408,14 @@ export const ContractorJobWizardModal: React.FC<
                     <Text style={[styles.infoValue, { fontWeight: "600" }]}>
                       {job.transfer.delegated_role === "driver"
                         ? job.transfer.vehicle_label
-                          ? `Être chauffeur du camion ${job.transfer.vehicle_label}`
-                          : "Être chauffeur"
+                          ? `ÃŠtre chauffeur du camion ${job.transfer.vehicle_label}`
+                          : "ÃŠtre chauffeur"
                         : job.transfer.delegated_role === "offsider"
-                          ? "Être offsider"
+                          ? "ÃŠtre offsider"
                           : job.transfer.delegated_role === "full_job"
-                            ? "Job entier délégué"
+                            ? "Job entier dÃ©lÃ©guÃ©"
                             : job.transfer.delegated_role_label ||
-                              "Rôle personnalisé"}
+                              "RÃ´le personnalisÃ©"}
                     </Text>
                   </View>
                 </View>
@@ -869,7 +461,7 @@ export const ContractorJobWizardModal: React.FC<
                 </View>
               </View>
 
-              {/* Camion préféré */}
+              {/* Camion prÃ©fÃ©rÃ© */}
               {job.transfer?.preferred_truck_id != null && (
                 <View style={styles.infoRow}>
                   <Ionicons
@@ -949,7 +541,7 @@ export const ContractorJobWizardModal: React.FC<
                     </Text>
                     <Text style={styles.infoValue}>
                       {job.transfer.hour_counting_type === "depot_to_depot"
-                        ? "Dépôt à dépôt"
+                        ? "DÃ©pÃ´t Ã  dÃ©pÃ´t"
                         : "Sur site uniquement"}
                     </Text>
                   </View>
@@ -1018,7 +610,7 @@ export const ContractorJobWizardModal: React.FC<
               <Text style={styles.infoValue}>
                 {job.client?.name ||
                   `${job.client?.firstName || ""} ${job.client?.lastName || ""}`.trim() ||
-                  "—"}
+                  "â€”"}
               </Text>
             </View>
           </View>
@@ -1073,7 +665,7 @@ export const ContractorJobWizardModal: React.FC<
                 {t("contractorWizard.slotLabel")}
               </Text>
               <Text style={styles.infoValue}>
-                {formatTime(job.time?.startWindowStart)} –{" "}
+                {formatTime(job.time?.startWindowStart)} â€“{" "}
                 {formatTime(job.time?.startWindowEnd)}
               </Text>
             </View>
@@ -1204,7 +796,7 @@ export const ContractorJobWizardModal: React.FC<
             Date
           </Text>
           <Text style={styles.infoValue}>
-            {formatDate(job.time?.startWindowStart)} •{" "}
+            {formatDate(job.time?.startWindowStart)} â€¢{" "}
             {formatTime(job.time?.startWindowStart)}
           </Text>
         </View>
@@ -1581,7 +1173,7 @@ export const ContractorJobWizardModal: React.FC<
                 color: value > 0 ? colors.warning : colors.border,
               }}
             >
-              −
+              âˆ’
             </Text>
           </Pressable>
           <Text
@@ -1660,7 +1252,7 @@ export const ContractorJobWizardModal: React.FC<
             </View>
           </View>
 
-          {/* Résumé de la proposition originale */}
+          {/* RÃ©sumÃ© de la proposition originale */}
           <Text style={styles.sectionTitle}>
             {t("contractorWizard.originalProposal")}
           </Text>
@@ -1676,12 +1268,12 @@ export const ContractorJobWizardModal: React.FC<
             ]}
           >
             <Text style={{ fontSize: 12, color: colors.textSecondary }}>
-              📅 {formatDate(job.time?.startWindowStart)} · {origStart} –{" "}
+              ðŸ“… {formatDate(job.time?.startWindowStart)} Â· {origStart} â€“{" "}
               {origEnd}
             </Text>
             {origPrice != null && (
               <Text style={{ fontSize: 12, color: colors.textSecondary }}>
-                💰{" "}
+                ðŸ’°{" "}
                 {origPriceType === "hourly"
                   ? `${origPrice} A$/h`
                   : `${origPrice} A$ (forfait)`}
@@ -1689,17 +1281,17 @@ export const ContractorJobWizardModal: React.FC<
             )}
             {origDrivers != null && (
               <Text style={{ fontSize: 12, color: colors.textSecondary }}>
-                🚗 Chauffeurs : {origDrivers} · Offsiders : {origOffsiders ?? 0}
+                ðŸš— Chauffeurs : {origDrivers} Â· Offsiders : {origOffsiders ?? 0}
               </Text>
             )}
             {hasVehicleRequest && (
               <Text style={{ fontSize: 12, color: colors.textSecondary }}>
-                🚛 Camion demandé : #{job.transfer?.preferred_truck_id}
+                ðŸš› Camion demandÃ© : #{job.transfer?.preferred_truck_id}
               </Text>
             )}
           </View>
 
-          {/* Créneau */}
+          {/* CrÃ©neau */}
           <Text style={styles.sectionTitle}>
             {t("contractorWizard.newSlot")}
           </Text>
@@ -1800,7 +1392,7 @@ export const ContractorJobWizardModal: React.FC<
             maxLength={10}
           />
 
-          {/* Véhicule — seulement si le commanditaire a demandé un véhicule */}
+          {/* VÃ©hicule â€” seulement si le commanditaire a demandÃ© un vÃ©hicule */}
           {hasVehicleRequest && vehicles.length > 0 && (
             <>
               <Text style={styles.sectionTitle}>
@@ -2083,9 +1675,9 @@ export const ContractorJobWizardModal: React.FC<
     </>
   );
 
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Step config
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   const stepConfig: Record<WizardStep, { label: string; title: string }> = {
     overview: {
@@ -2124,9 +1716,9 @@ export const ContractorJobWizardModal: React.FC<
 
   const { label: stepLabel, title: stepTitle } = stepConfig[step];
 
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Render
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   return (
     <Modal

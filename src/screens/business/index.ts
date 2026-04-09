@@ -1,6 +1,7 @@
 // Business screens exports
 export { default as BusinessInfoPage } from "./BusinessInfoPage";
 export { default as ContractsScreen } from "./ContractsScreen";
+export { default as InterContractorBillingScreen } from "./InterContractorBillingScreen";
 export { default as JobTemplateEditor } from "./JobTemplateEditor";
 export { default as PaymentsListScreen } from "./PaymentsListScreen";
 export { default as PayoutsScreen } from "./PayoutsScreen";

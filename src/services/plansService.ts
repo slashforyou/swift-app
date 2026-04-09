@@ -138,3 +138,27 @@ export async function changePlan(planId: string): Promise<void> {
   if (!json.success)
     throw new Error(json.error || "Failed to change plan");
 }
+
+export interface SelectPlanResponse {
+  plan_id: string;
+  plan_label: string;
+  price_monthly: number;
+  platform_fee_percentage: number;
+  commission_rate: number;
+  requires_subscription: boolean;
+}
+
+export async function selectPlan(planId: string): Promise<SelectPlanResponse> {
+  const res = await authenticatedFetch(
+    `${API}v1/company/select-plan`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plan_id: planId }),
+    },
+  );
+  const json = await res.json();
+  if (!json.success)
+    throw new Error(json.error || "Failed to select plan");
+  return json.data;
+}

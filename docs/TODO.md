@@ -1,6 +1,6 @@
 # COBBR — Roadmap Consolidée
 
-> **Dernière mise à jour :** 6 avril 2026
+> **Dernière mise à jour :** 8 avril 2026
 > **Version actuelle :** 1.1.0 (MVP live sur iOS + Android)
 > **Statut :** MVP fonctionnel — En route vers monétisation (juin 2026)
 
@@ -11,13 +11,13 @@
 | Scope | Fait | Reste | Progression |
 |-------|------|-------|-------------|
 | 🔴 **P0** — Bloquant production | 3 | 2 | 60% |
-| 🟠 **P1** — Monétisation (juin 2026) | 32 | 11 | **74%** |
-| 🟡 **P2** — Améliorations UX | 0 | 42 | 0% |
+| 🟠 **P1** — Monétisation (juin 2026) | 41 | 3 | **93%** |
+| 🟡 **P2** — Améliorations UX | 5 | 37 | 12% |
 | 🟢 **P3** — Nice-to-have | 0 | 15 | 0% |
 | ⚪ **P4** — Long terme / IA | 0 | 17 | 0% |
 | 🎮 **Gamification v2** | spec | 5 phases | spec prête |
-| **TOTAL** | **35** | **86** | **29%** |
-| **Chemin critique (P0+P1)** | **35** | **12** | **74%** |
+| **TOTAL** | **49** | **73** | **40%** |
+| **Chemin critique (P0+P1)** | **44** | **5** | **90%** |
 
 ---
 
@@ -39,6 +39,7 @@
 ## ✅ Tout ce qui a été fait
 
 ### Infrastructure & Sécurité
+
 - [x] Externalisation clés Stripe/API via variables d'environnement EAS
 - [x] Guard `__DEV__` sur testData / stripeTestData
 - [x] Handler global ErrorUtils + unhandledrejection
@@ -54,6 +55,7 @@
 - [x] Labels d'accessibilité (3 écrans Support)
 
 ### Onboarding v2 (complet)
+
 - [x] **Auto-login après vérification email** — verifyMail.js retourne session tokens, subscribeMailVerification.tsx stocke et navigue vers Home
 - [x] **Inscription allégée (5 champs)** — subscribe.js crée company + subscribe.tsx avec champ companyName
 - [x] **CompleteProfileScreen** — 5 sections accordion (Business Details, Contact, Address, Banking, Insurance) + PATCH /v1/company/:id (27 champs)
@@ -64,6 +66,7 @@
 - [x] **Préremplissage Stripe** — connect.js prefill depuis company data (name, email, phone, address, ABN)
 
 ### Modèles de job modulaires (complet)
+
 - [x] Types de segments (location, travel, storage, loading) + types de lieux
 - [x] 8 templates par défaut + CRUD complet (modularTemplates.js + jobSegments.js)
 - [x] Modes de facturation (lieu-à-lieu, dépôt-à-dépôt, forfait, packing only, unpacking only)
@@ -74,6 +77,7 @@
 - [x] Tables backend: job_segments, job_templates, segment_employee_assignments (migrations 013+014)
 
 ### Contrats modulaires (complet)
+
 - [x] CRUD clauses dans Business tab (ContractsScreen)
 - [x] Conditions configurables: always, segment_type, postcode, city, state
 - [x] Génération contrat par job (contractsService.ts → backend)
@@ -82,6 +86,7 @@
 - [x] Backend: contractClauses.js + jobContracts.js + migration 025
 
 ### Stripe & Paiements
+
 - [x] Bug détection activation Stripe (fallback + anti-flickering + condition erreur)
 - [x] Stripe Subscriptions via PaymentSheet natif
 - [x] 4 plans backend (free/pro/expert/unlimited) + limites par plan
@@ -89,6 +94,7 @@
 - [x] Bouton signaler problème de paiement (ReportPaymentIssueModal + push notification)
 
 ### UI/UX & Jobs
+
 - [x] Système de messages support (3 écrans + 4 endpoints REST + FAB home)
 - [x] Flow mot de passe oublié (client + server)
 - [x] Company relations fix (UNION collation utf8mb4 + auto-détection via job_transfers)
@@ -114,6 +120,8 @@
 - [x] i18n dates localisées SupportConversation
 - [x] Plans tarifaires définis en DB 👤
 - [x] Clés Stripe live configurées sur le serveur (sk_live_, pk_live_, whsec_) 👤
+- [x] **Thème/couleurs par entreprise** — primary_color en DB, ThemeProvider dynamique, color picker (12 couleurs) dans CompleteProfileScreen, sync au login via /companies/me
+- [x] **Suivi facturation inter-prestataires** — billing_status + invoiced_at + paid_at + payment_due_date sur job_transfers, endpoints GET/PATCH /v1/billing/inter-contractor, onglet Facturation dans Business avec stats, filtres, cards par transfert
 
 ---
 
@@ -130,131 +138,139 @@
 
 | # | Tâche | Scope | Notes |
 |---|-------|-------|-------|
-| 3 | Stocker planType + commissionRate au choix du plan | [S] | Endpoint plan_selection_tardif |
+| ~~3~~ | ~~Stocker planType + commissionRate au choix du plan~~ | ~~[S]~~ | ✅ POST /v1/company/select-plan — met à jour plan_type + stripe_platform_fee_percentage |
 | 4 | Décider modèle paiement plan (Stripe activé OU free trial) | 👤 | Option A: paiement quand Stripe activé. Option B: free trial 7-14j |
-| 5 | Persistence draft profile backend | [S] | PUT /v1/company/draft-profile — actuellement local only, risque perte |
-| 6 | Personnaliser thème/couleurs par entreprise | [C][S] | Couleur primaire customisable |
-| 7 | Branding sur factures et liens de paiement | [C][S] | Logo + couleurs sur les factures/invoices |
-| 8 | Suivi facturation inter-prestataires | [C][S] | Statut: envoyée, payée, en retard |
-| 9 | Facture mensuelle auto pour le contractor | [S] | Récapitulatif des jobs réalisés |
-| 10 | Revoir les mails de facturation | [S] | Contenu, format, envoi |
+| ~~5~~ | ~~Persistence draft profile backend~~ | ~~[S]~~ | ✅ Auto-save debounced (2s) dans CompleteProfileScreen via PATCH existant, icône cloud-done dans le header |
+| ~~6~~ | ~~Personnaliser thème/couleurs par entreprise~~ | ~~[C][S]~~ | ✅ primary_color en DB + ThemeProvider override + color picker dans CompleteProfileScreen (12 couleurs) + sync au login |
+| ~~7~~ | ~~Branding sur factures et liens de paiement~~ | ~~[C][S]~~ | ✅ Logo + primary_color sur MonthlyInvoicesScreen (detail view) + email HTML brandé avec logo GCS signé |
+| ~~8~~ | ~~Suivi facturation inter-prestataires~~ | ~~[C][S]~~ | ✅ billing_status/invoiced_at/paid_at/payment_due_date sur job_transfers + endpoint GET/PATCH /v1/billing/inter-contractor + InterContractorBillingScreen (onglet Facturation dans Business) |
+| ~~9~~ | ~~Facture mensuelle auto pour le contractor~~ | ~~[S]~~ | ✅ monthly_invoices + monthly_invoice_items tables, CRUD endpoints (generate/list/detail/update/send), cron job (1er du mois 02:00), email HTML brandé, MonthlyInvoicesScreen dans Finances > Factures |
+| ~~10~~ | ~~Revoir les mails de facturation~~ | ~~[S]~~ | ✅ Rebranding SwiftApp→Cobbr dans mailSender.js, centralisation emails (forgotPassword, monthlyInvoices, cron), ajout invoiceNotificationMail brandé (logo+couleurs) + invoiceDetailMail avec tableau détaillé, plain text fallback, redirection test emails |
 | 11 | Valider commission (application_fee_amount) en production | 👤 | Test réel nécessaire |
 | 12 | Tester Apple Pay / Google Pay via PaymentSheet | 👤 | Devices réels iOS + Android |
 | 13 | Valider flow complet PaymentSheet sur iOS et Android | 👤 | End-to-end test |
+| ~~14~~ | ~~Auto-complétion ABN via API gouvernement australien~~ | ~~[C][S]~~ | ✅ ABN Lookup API (abr.business.gov.au) → remplissage auto dans CompleteProfileScreen (nom, adresse, type, GST). Déclenchement à 11 chiffres, debounce 500ms. |
 
 ### 🟡 P2 — Améliorations UX
 
 #### Notifications [S]
+
 | # | Tâche | Notes |
 |---|-------|-------|
-| 14 | Notification quand job assigné à un employé | Push notification |
-| 15 | Notification quand job accepté/refusé par partenaire | Push notification |
-| 16 | Notification pour contre-propositions B2B | Push notification |
-| 17 | Récapitulatif quotidien des jobs du jour | Notification matinale optionnelle |
-| 18 | Améliorer wizard demande de notifications | Meilleur design |
-| 19 | Popup/notification avant chaque étape du job | Rappel proactif au staff |
-| 20 | Tester device token iOS physique | 👤 |
-| 21 | Tester device token Android physique | 👤 |
-| 22 | Valider routing notifications (foreground/background/fermée) | 👤 |
+| 15 | ~~Notification quand job assigné à un employé~~ | ✅ pushHelper.js + DB persist |
+| 16 | ~~Notification quand job accepté/refusé par partenaire~~ | ✅ acceptJob + declineJob patched |
+| 17 | ~~Notification pour contre-propositions B2B~~ | ✅ accept/reject/counterProposal patched |
+| 18 | ~~Récapitulatif quotidien des jobs du jour~~ | ✅ dailyRecapCron.js (07h00) |
+| 19 | Améliorer wizard demande de notifications | 🔜 Frontend UX — P2 restant |
+| 20 | ~~Popup/notification avant chaque étape du job~~ | ✅ start/pause/resume notifyJobStatusChange |
+| 21 | Tester device token iOS physique | 👤 |
+| 22 | Tester device token Android physique | 👤 |
+| 23 | Valider routing notifications (foreground/background/fermée) | 👤 |
 
 #### Calendrier [C]
+
 | # | Tâche | Notes |
 |---|-------|-------|
-| 23 | Vue semaine (en plus de jour/mois/année) | Nouvelle vue calendrier |
-| 24 | Drag & drop pour réassigner un job à une autre date | UX avancée |
-| 25 | Filtres par statut, par équipe, par véhicule | Sidebar filtres |
-| 26 | Code couleur par type de job ou par équipe | Personnalisation visuelle |
+| 24 | Vue semaine (en plus de jour/mois/année) | Nouvelle vue calendrier |
+| 25 | Drag & drop pour réassigner un job à une autre date | UX avancée |
+| 26 | Filtres par statut, par équipe, par véhicule | Sidebar filtres |
+| 27 | Code couleur par type de job ou par équipe | Personnalisation visuelle |
 
 #### Profil & Compte [C][S]
+
 | # | Tâche | Notes |
 |---|-------|-------|
-| 27 | Changement photo de profil (galerie + caméra) | ImagePicker |
-| 28 | Historique jobs réalisés par employé | Dashboard employé |
-| 29 | Statistiques personnelles (jobs, heures, XP) | Dashboard stats |
-| 30 | Écran employé — dashboard heures/semaine + plage de dates | Accessible depuis profil |
+| 28 | Changement photo de profil (galerie + caméra) | ImagePicker |
+| 29 | Historique jobs réalisés par employé | Dashboard employé |
+| 30 | Statistiques personnelles (jobs, heures, XP) | Dashboard stats |
+| 31 | Écran employé — dashboard heures/semaine + plage de dates | Accessible depuis profil |
 
 #### Job Details [C][S]
+
 | # | Tâche | Notes |
 |---|-------|-------|
-| 31 | Carousel photos plein écran (swipe) | React Native Carousel |
-| 32 | Notes/commentaires internes sur un job | Communication équipe |
-| 33 | Historique modifications job (audit trail) | Log des changements |
-| 34 | Pièces jointes (documents, devis, contrats) | Upload fichiers |
-| 35 | Classifier jobs par niveau de difficulté | Tags/badges |
-| 36 | Lier 2 jobs entre eux (interstate) | Relations jobs |
-| 37 | Support multi-camions par job | Code trucksCount existe mais désactivé |
-| 38 | Page "Logs" historique d'actions sur un job | Pour contractors |
+| 32 | Carousel photos plein écran (swipe) | React Native Carousel |
+| 33 | Notes/commentaires internes sur un job | Communication équipe |
+| 34 | Historique modifications job (audit trail) | Log des changements |
+| 35 | Pièces jointes (documents, devis, contrats) | Upload fichiers |
+| 36 | Classifier jobs par niveau de difficulté | Tags/badges |
+| 37 | Lier 2 jobs entre eux (interstate) | Relations jobs |
+| 38 | Support multi-camions par job | Code trucksCount existe mais désactivé |
+| 39 | Page "Logs" historique d'actions sur un job | Pour contractors |
 
 #### Gestion du personnel [C][S]
+
 | # | Tâche | Notes |
 |---|-------|-------|
-| 39 | Vue planning par employé (timeline) | Calendrier individuel |
-| 40 | Gestion disponibilités/indisponibilités | Plages horaires |
-| 41 | Système de compétences/qualifications | Tags/badges par employé |
-| 42 | Affectation auto suggérée (dispo + proximité) | Algorithme suggestion |
-| 43 | Quota d'heures max/semaine par travailleur | Tracking cumulé |
-| 44 | Page clients — liste des clients (patron only) | CRM basique |
-| 45 | Parrainage récompensé (code invite / lien) | Invite → reward |
+| 40 | Vue planning par employé (timeline) | Calendrier individuel |
+| 41 | Gestion disponibilités/indisponibilités | Plages horaires |
+| 42 | Système de compétences/qualifications | Tags/badges par employé |
+| 43 | Affectation auto suggérée (dispo + proximité) | Algorithme suggestion |
+| 44 | Quota d'heures max/semaine par travailleur | Tracking cumulé |
+| 45 | Page clients — liste des clients (patron only) | CRM basique |
+| 46 | Parrainage récompensé (code invite / lien) | Invite → reward |
 
 #### Véhicules [C][S]
+
 | # | Tâche | Notes |
 |---|-------|-------|
-| 46 | Suivi kilométrique par véhicule | Odometer tracking |
-| 47 | Alertes maintenance (vidange, contrôle technique) | Rappels automatiques |
-| 48 | Disponibilité véhicule sur calendrier | Planning véhicules |
+| 47 | Suivi kilométrique par véhicule | Odometer tracking |
+| 48 | Alertes maintenance (vidange, contrôle technique) | Rappels automatiques |
+| 49 | Disponibilité véhicule sur calendrier | Planning véhicules |
 
 #### Autres [C][S]
+
 | # | Tâche | Notes |
 |---|-------|-------|
-| 49 | Chat interne (support messaging fait, chat interne reste) | Messagerie équipe |
-| 50 | Appel d'urgence pour contractors/contractee | Bouton rapide |
-| 51 | MapView pour contractee (trajet + temps estimé) | React Native Maps |
-| 52 | Mini tutoriel 1ère utilisation (tooltips/coach marks) | Onboarding in-app |
-| 53 | Audit i18n complet (toutes langues, tous éléments) | Incluant modernJobBox.tsx hardcodé FR |
-| 54 | Demande d'avis automatique (happy customer → review) | Post-job |
-| 55 | Réponse par mail messages support | Backend email |
+| 50 | Chat interne (support messaging fait, chat interne reste) | Messagerie équipe |
+| 51 | Appel d'urgence pour contractors/contractee | Bouton rapide |
+| 52 | MapView pour contractee (trajet + temps estimé) | React Native Maps |
+| 53 | Mini tutoriel 1ère utilisation (tooltips/coach marks) | Onboarding in-app |
+| 54 | Audit i18n complet (toutes langues, tous éléments) | Incluant modernJobBox.tsx hardcodé FR |
+| 55 | Demande d'avis automatique (happy customer → review) | Post-job |
+| 56 | Réponse par mail messages support | Backend email |
 
 ### 🟢 P3 — Nice-to-have
 
 | # | Tâche | Scope | Notes |
 |---|-------|-------|-------|
-| 56 | Générateur de devis (prestations + calcul auto) | [C][S] | |
-| 57 | Conversion devis → job en 1 clic | [C][S] | |
-| 58 | Factures PDF avec branding | [S] | |
-| 59 | Chat interne équipe (temps réel) | [C][S] | |
-| 60 | Chat avec client final (lié au job) | [C][S] | |
-| 61 | Partage position temps réel (ETA) | [C][S] | |
-| 62 | Notation job par client (étoiles + commentaire) | [C][S] | |
-| 63 | Notation interne employé par patron | [C][S] | |
-| 64 | Calcul itinéraire optimisé entre jobs | [C] | |
-| 65 | Tracking GPS flotte temps réel (opt-in) | [C][S] | |
-| 66 | Numérotation cartons (packing) | [C][S] | |
-| 67 | Page stockage (inventaire, logs entrée/sortie) | [C][S] | |
-| 68 | Suivi paiements + relance auto impayés | [S] | |
-| 69 | Dashboard revenus (jour/semaine/mois) | [C][S] | |
-| 70 | Export CSV/PDF rapports | [S] | |
+| 57 | Générateur de devis (prestations + calcul auto) | [C][S] | |
+| 58 | Conversion devis → job en 1 clic | [C][S] | |
+| 59 | Factures PDF avec branding | [S] | |
+| 60 | Chat interne équipe (temps réel) | [C][S] | |
+| 61 | Chat avec client final (lié au job) | [C][S] | |
+| 62 | Partage position temps réel (ETA) | [C][S] | |
+| 63 | Notation job par client (étoiles + commentaire) | [C][S] | |
+| 64 | Notation interne employé par patron | [C][S] | |
+| 65 | Calcul itinéraire optimisé entre jobs | [C] | |
+| 66 | Tracking GPS flotte temps réel (opt-in) | [C][S] | |
+| 67 | Numérotation cartons (packing) | [C][S] | |
+| 68 | Page stockage (inventaire, logs entrée/sortie) | [C][S] | |
+| 69 | Suivi paiements + relance auto impayés | [S] | |
+| 70 | Dashboard revenus (jour/semaine/mois) | [C][S] | |
+| 71 | Export CSV/PDF rapports | [S] | |
 
 ### ⚪ P4 — Long terme / IA
 
 | # | Tâche | Notes |
 |---|-------|-------|
-| 71 | Annuaire entreprises partenaires par zone géographique | Marketplace |
-| 72 | Système d'appels d'offres entre entreprises | B2B bidding |
-| 73 | Synchronisation calendrier Google/iCal | CalDAV |
-| 74 | Matching auto contractee/contractor (distance + dispo) | IA |
-| 75 | Prédiction durée job basée sur historique | IA / ML |
-| 76 | Optimisation auto du planning | IA |
-| 77 | Détection d'anomalies (job trop long, facturation anormale) | IA |
-| 78 | Assistant IA pour création de devis | LLM |
-| 79 | IA conversationnelle messages entrants | LLM |
-| 80 | Intégration comptabilité (QuickBooks, Sage) | API |
-| 81 | API publique pour intégrations tierces | REST / GraphQL |
-| 82 | Webhook événements (job créé/complété/payé) | Event system |
-| 83 | Réglementations locales facturation (TVA, n° facture) | Compliance |
-| 84 | Support devises multiples | i18n monétaire |
-| 85 | Conformité RGPD complète (export/suppression données) | Legal |
-| 86 | Recommandation au client (guide/tips déménagement) | Content |
-| 87 | Domaine personnalisé pour liens de paiement | DNS + Stripe |
+| 72 | Annuaire entreprises partenaires par zone géographique | Marketplace |
+| 73 | Système d'appels d'offres entre entreprises | B2B bidding |
+| 74 | Synchronisation calendrier Google/iCal | CalDAV |
+| 75 | Matching auto contractee/contractor (distance + dispo) | IA |
+| 76 | Prédiction durée job basée sur historique | IA / ML |
+| 77 | Optimisation auto du planning | IA |
+| 78 | Détection d'anomalies (job trop long, facturation anormale) | IA |
+| 79 | Assistant IA pour création de devis | LLM |
+| 80 | IA conversationnelle messages entrants | LLM |
+| 81 | Intégration comptabilité (QuickBooks, Sage) | API |
+| 82 | API publique pour intégrations tierces | REST / GraphQL |
+| 83 | Webhook événements (job créé/complété/payé) | Event system |
+| 84 | Réglementations locales facturation (TVA, n° facture) | Compliance |
+| 85 | Support devises multiples | i18n monétaire |
+| 86 | Conformité RGPD complète (export/suppression données) | Legal |
+| 87 | Recommandation au client (guide/tips déménagement) | Content |
+| 88 | Domaine personnalisé pour liens de paiement | DNS + Stripe |
 
 ### 🎮 Gamification v2 — Spec prête, implémentation en attente
 
@@ -274,14 +290,14 @@ Le système gamification v2 est spécifié mais pas encore implémenté. Il comp
 
 ## 🔧 Dette technique
 
-| Élément | Fichier(s) | Priorité |
-|---------|-----------|----------|
-| DelegateJobWizard trop gros (~1800 lignes) | `DelegateJobWizard/index.tsx` | 🟡 |
-| ContractorJobWizardModal trop gros (~2000 lignes) | `ContractorJobWizardModal.tsx` | 🟡 |
-| Timer sync désactivé côté backend | `jobValidation.ts` | 🟠 |
-| Mock data fallback dans useBusinessStats | `useBusinessStats.ts` | 🟡 |
-| Manque de React.memo sur composants de liste | Multiples | 🟢 |
-| Textes français hardcodés dans modernJobBox.tsx | `modernJobBox.tsx` | 🟡 |
+| Élément | Fichier(s) | Statut |
+|---------|-----------|--------|
+| DelegateJobWizard trop gros (~1800 lignes) | `DelegateJobWizard/index.tsx` → split en `types.ts` + `components.tsx` (1540 lignes) | ✅ |
+| ContractorJobWizardModal trop gros (~2000 lignes) | `ContractorJobWizardModal/index.tsx` → split en `types.ts` + `styles.ts` (1767 lignes) | ✅ |
+| Timer sync désactivé côté backend | `jobValidation.ts` — dead code supprimé, TODO ajouté | ✅ |
+| Mock data fallback dans useBusinessStats | `useBusinessStats.ts` — mocks supprimés (~200 lignes) | ✅ |
+| Manque de React.memo sur composants de liste | `JobBox`, `AssignmentCard`, `DetailCard` — memo ajouté | ✅ |
+| Textes français hardcodés dans modernJobBox.tsx | `modernJobBox.tsx` + `assignments/index.tsx` — 8 strings i18n | ✅ |
 
 ---
 
@@ -318,6 +334,6 @@ Le système gamification v2 est spécifié mais pas encore implémenté. Il comp
 
 5. **🟠 P1 — Facture mensuelle contractor** → Récapitulatif auto des jobs réalisés. Nécessaire pour la relation B2B.
 
-6. **🟡 P2 — Notifications push** → Assignation job, acceptation/refus, rappels. Impact immédiat sur l'expérience terrain.
+6. **✅ P2 — Notifications push** → pushHelper.js centralisé, 8 endpoints patchés (push+DB), dailyRecapCron, notifyJobStatusChange (start/pause/resume). Reste: wizard UX (item 19).
 
 7. **🎮 Gamification v2 Phase 1** → Fondation du nouveau système (tables, events). Prépare le terrain pour les phases suivantes.

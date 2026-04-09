@@ -7,7 +7,13 @@ import {
 } from "@expo-google-fonts/space-grotesk";
 import { StripeProvider } from "@stripe/stripe-react-native";
 import React, { useEffect } from "react";
-import { Alert as NativeAlert, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert as NativeAlert,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ENV, STRIPE_PUBLISHABLE_KEY } from "./config/environment";
@@ -17,6 +23,7 @@ import { ThemeProvider } from "./context/ThemeProvider";
 import { ToastProvider } from "./context/ToastProvider";
 import { VehiclesProvider } from "./context/VehiclesProvider";
 import { PermissionsProvider } from "./contexts/PermissionsContext";
+import { useForceUpdate } from "./hooks/useForceUpdate";
 import { LocalizationProvider } from "./localization";
 import Navigation from "./navigation/index";
 import { appAlert } from "./services/appAlert";
@@ -38,6 +45,8 @@ export default function App() {
     SpaceGrotesk_600SemiBold,
     SpaceGrotesk_700Bold,
   });
+
+  const { status: updateStatus } = useForceUpdate();
 
   useEffect(() => {
     // Marquer le premier rendu
@@ -79,6 +88,25 @@ export default function App() {
     return null;
   }
 
+  // Block the app while an OTA update is being downloaded/applied
+  if (updateStatus === "checking" || updateStatus === "downloading" || updateStatus === "ready") {
+    return (
+      <View style={updateStyles.container}>
+        <ActivityIndicator size="large" color="#4F46E5" />
+        <Text style={updateStyles.title}>
+          {updateStatus === "checking"
+            ? "Checking for updates..."
+            : updateStatus === "downloading"
+              ? "Downloading update..."
+              : "Restarting..."}
+        </Text>
+        <Text style={updateStyles.subtitle}>
+          Please wait, this will only take a moment.
+        </Text>
+      </View>
+    );
+  }
+
   return (
     <SafeAreaProvider>
       <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
@@ -105,3 +133,27 @@ export default function App() {
     </SafeAreaProvider>
   );
 }
+
+const updateStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F6F8FC",
+    padding: 32,
+  },
+  title: {
+    fontSize: 18,
+    fontFamily: "SpaceGrotesk_600SemiBold",
+    color: "#1E293B",
+    marginTop: 20,
+    textAlign: "center",
+  },
+  subtitle: {
+    fontSize: 14,
+    fontFamily: "SpaceGrotesk_400Regular",
+    color: "#64748B",
+    marginTop: 8,
+    textAlign: "center",
+  },
+});

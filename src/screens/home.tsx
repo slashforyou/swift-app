@@ -4,7 +4,7 @@
  */
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Alert, Modal, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import DevMenu from "../components/dev/DevMenu";
@@ -18,6 +18,7 @@ import { HStack, VStack } from "../components/primitives/Stack";
 import { HeaderLogo } from "../components/ui/HeaderLogo";
 import RoundLanguageButton from "../components/ui/RoundLanguageButton";
 import { DESIGN_TOKENS } from "../constants/Styles";
+import { ServerData } from "../constants/ServerData";
 import { useNotifications } from "../context/NotificationsProvider";
 import { useTheme } from "../context/ThemeProvider";
 import { useStripeConnection } from "../hooks/useStripeConnection";
@@ -35,7 +36,7 @@ interface HomeScreenProps {
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
-  const { colors } = useTheme();
+  const { colors, setCompanyColor } = useTheme();
   const { t } = useTranslation();
   const { status: stripeStatus, loading: stripeLoading, error: stripeError } =
     useStripeConnection();
@@ -49,6 +50,20 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const { profile, refreshProfile } = useUserProfile();
   const { unreadTotal: supportUnread } = useConversations();
+
+  // Sync company brand color on first load
+  useEffect(() => {
+    (async () => {
+      try {
+        const headers = await (await import("../utils/auth")).getAuthHeaders();
+        const res = await fetch(`${ServerData.serverUrl}v1/companies/me`, { headers });
+        const json = await res.json();
+        if (json.success && json.data?.primary_color) {
+          setCompanyColor(json.data.primary_color);
+        }
+      } catch {}
+    })();
+  }, []);
 
   // Rafraîchir le profil quand l'écran revient au focus (ex: après changement d'avatar)
   useFocusEffect(

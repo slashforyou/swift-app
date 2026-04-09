@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
@@ -17,7 +17,23 @@ import { ServerData } from "../constants/ServerData";
 import { DESIGN_TOKENS } from "../constants/Styles";
 import { useTheme } from "../context/ThemeProvider";
 import { useTranslation } from "../localization";
+import { lookupAbn } from "../services/abnLookupService";
 import { fetchWithAuth } from "../utils/session";
+
+const BRAND_COLORS = [
+  null,       // default (Cobbr orange)
+  "#3B82F6", // blue
+  "#8B5CF6", // purple
+  "#EC4899", // pink
+  "#EF4444", // red
+  "#F59E0B", // amber
+  "#22C55E", // green
+  "#14B8A6", // teal
+  "#06B6D4", // cyan
+  "#6366F1", // indigo
+  "#A855F7", // violet
+  "#F97316", // orange
+];
 
 interface CompanyProfile {
   id: number;
@@ -42,6 +58,7 @@ interface CompanyProfile {
   bsb: string;
   bank_account_number: string;
   bank_account_name: string;
+  primary_color: string;
 }
 
 const AUSTRALIAN_STATES = ["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"];
@@ -69,10 +86,11 @@ const EMPTY_PROFILE: CompanyProfile = {
   bsb: "",
   bank_account_number: "",
   bank_account_name: "",
+  primary_color: "",
 };
 
 export default function CompleteProfileScreen() {
-  const { colors } = useTheme();
+  const { colors, companyColor, setCompanyColor } = useTheme();
   const { t } = useTranslation();
   const navigation = useNavigation();
 
@@ -80,6 +98,12 @@ export default function CompleteProfileScreen() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [expandedSection, setExpandedSection] = useState<string | null>("business");
+  const [draftStatus, setDraftStatus] = useState<"idle" | "saving" | "saved">("idle");
+
+  const draftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const initialLoadDone = useRef(false);
+  const profileRef = useRef(profile);
+  profileRef.current = profile;
 
   // Load company data
   useEffect(() => {
@@ -131,7 +155,11 @@ export default function CompleteProfileScreen() {
         bsb: d.bsb || "",
         bank_account_number: d.bank_account_number || "",
         bank_account_name: d.bank_account_name || "",
+        primary_color: d.primary_color || "",
       });
+      // Sync company color to theme
+      if (d.primary_color) setCompanyColor(d.primary_color);
+      initialLoadDone.current = true;
     } catch (err) {
       console.error("[CompleteProfile] Load error:", err);
     } finally {
@@ -147,6 +175,9 @@ export default function CompleteProfileScreen() {
       );
       return;
     }
+
+    // Cancel pending draft save
+    if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
 
     setSaving(true);
     try {
@@ -202,9 +233,116 @@ export default function CompleteProfileScreen() {
     }
   }, [profile, navigation, t]);
 
+  // Auto-save draft (debounced 2s after last change)
+  const saveDraft = useCallback(async () => {
+    const p = profileRef.current;
+    if (!p.id) return;
+    try {
+      setDraftStatus("saving");
+      const { id, ...updates } = p;
+      const cleaned: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(updates)) {
+        if (typeof value === "string" && value.trim() === "") {
+          cleaned[key] = null;
+        } else if (typeof value === "boolean") {
+          cleaned[key] = value ? 1 : 0;
+        } else {
+          cleaned[key] = value;
+        }
+      }
+      // No profile_completed flag — draft only
+      await fetchWithAuth(
+        `${ServerData.serverUrl}v1/company/${id}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(cleaned),
+        },
+      );
+      setDraftStatus("saved");
+    } catch {
+      setDraftStatus("idle");
+    }
+  }, []);
+
+  const scheduleDraftSave = useCallback(() => {
+    if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    draftTimerRef.current = setTimeout(() => {
+      saveDraft();
+    }, 2000);
+  }, [saveDraft]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    };
+  }, []);
+
   const updateField = (field: keyof CompanyProfile, value: string | boolean) => {
     setProfile((prev) => ({ ...prev, [field]: value }));
+    if (initialLoadDone.current) {
+      setDraftStatus("idle");
+      scheduleDraftSave();
+    }
   };
+
+  // ABN Lookup — auto-fill from ABR (triggered automatically)
+  const [abnStatus, setAbnStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const lastLookedUpAbn = useRef<string>("");
+  const abnLookupTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const cleaned = profile.abn.replace(/\s/g, "");
+    // Reset status if ABN changed away from a successful lookup
+    if (cleaned !== lastLookedUpAbn.current && abnStatus === "success") {
+      setAbnStatus("idle");
+    }
+    // Only trigger when exactly 11 digits and not already looked up
+    if (!/^\d{11}$/.test(cleaned) || cleaned === lastLookedUpAbn.current) return;
+
+    if (abnLookupTimer.current) clearTimeout(abnLookupTimer.current);
+    abnLookupTimer.current = setTimeout(async () => {
+      setAbnStatus("loading");
+      try {
+        const result = await lookupAbn(cleaned);
+        lastLookedUpAbn.current = cleaned;
+        if (result.abn_status !== "Active") {
+          Alert.alert(
+            t("completeProfile.abnInactive") || "ABN Inactive",
+            `${t("completeProfile.abnStatusIs") || "This ABN status is"}: ${result.abn_status}`,
+          );
+        }
+        // Build update batch
+        const updates: Partial<CompanyProfile> = {};
+        if (result.entity_name) updates.legal_name = result.entity_name;
+        if (result.business_names?.length > 0) updates.trading_name = result.business_names[0];
+        if (result.acn) updates.acn = result.acn;
+        if (result.entity_type_name) updates.business_type = result.entity_type_name;
+        if (result.address_state) updates.state = result.address_state;
+        if (result.address_postcode) updates.postcode = result.address_postcode;
+        // Only fill empty fields (don't overwrite user edits)
+        setProfile((prev) => {
+          const merged = { ...prev };
+          for (const [key, value] of Object.entries(updates)) {
+            const k = key as keyof CompanyProfile;
+            if (!prev[k] || String(prev[k]).trim() === "") {
+              (merged as Record<string, unknown>)[k] = value;
+            }
+          }
+          return merged;
+        });
+        scheduleDraftSave();
+        setAbnStatus("success");
+      } catch {
+        setAbnStatus("error");
+      }
+    }, 500);
+
+    return () => {
+      if (abnLookupTimer.current) clearTimeout(abnLookupTimer.current);
+    };
+  }, [profile.abn]);
 
   const toggleSection = (section: string) => {
     setExpandedSection((prev) => (prev === section ? null : section));
@@ -381,7 +519,14 @@ export default function CompleteProfileScreen() {
         <Text style={[styles.headerTitle, { color: colors.text }]}>
           {t("completeProfile.title") || "Complete Profile"}
         </Text>
-        <View style={{ width: 40 }} />
+        <View style={{ width: 40, alignItems: "center", justifyContent: "center" }}>
+          {draftStatus === "saving" && (
+            <ActivityIndicator size="small" color={colors.textSecondary} />
+          )}
+          {draftStatus === "saved" && (
+            <Ionicons name="cloud-done-outline" size={18} color={colors.success || "#22c55e"} />
+          )}
+        </View>
       </View>
 
       <ScrollView
@@ -412,9 +557,47 @@ export default function CompleteProfileScreen() {
             {renderInput(t("completeProfile.companyName") || "Company Name", "name")}
             {renderInput(t("completeProfile.tradingName") || "Trading Name", "trading_name")}
             {renderInput(t("completeProfile.legalName") || "Legal Name", "legal_name")}
-            {renderInput(t("completeProfile.abn") || "ABN", "abn", {
-              keyboardType: "numeric",
-            })}
+            {/* ABN with auto-lookup */}
+            <View style={styles.inputGroup}>
+              <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>
+                {t("completeProfile.abn") || "ABN"}
+              </Text>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                <TextInput
+                  style={[
+                    styles.input,
+                    {
+                      flex: 1,
+                      backgroundColor: colors.backgroundSecondary,
+                      color: colors.text,
+                      borderColor: abnStatus === "success" ? "#22C55E" : abnStatus === "error" ? "#EF4444" : colors.border,
+                    },
+                  ]}
+                  value={String(profile.abn || "")}
+                  onChangeText={(text) => updateField("abn", text)}
+                  placeholder="e.g. 51 824 753 556"
+                  placeholderTextColor={colors.textSecondary + "80"}
+                  keyboardType="numeric"
+                  maxLength={14}
+                />
+                {abnStatus === "loading" && (
+                  <ActivityIndicator size="small" color={colors.primary} style={{ position: "absolute", right: 12 }} />
+                )}
+                {abnStatus === "success" && (
+                  <Ionicons name="checkmark-circle" size={20} color="#22C55E" style={{ position: "absolute", right: 12 }} />
+                )}
+                {abnStatus === "error" && (
+                  <Ionicons name="alert-circle" size={20} color="#EF4444" style={{ position: "absolute", right: 12 }} />
+                )}
+              </View>
+              <Text style={{ fontSize: 11, color: abnStatus === "success" ? "#22C55E" : colors.textSecondary, marginTop: 4 }}>
+                {abnStatus === "success"
+                  ? t("completeProfile.abnFound") || "Business details auto-filled from ABN."
+                  : abnStatus === "error"
+                    ? t("completeProfile.abnNotFound") || "ABN not found. Please check and try again."
+                    : t("completeProfile.abnHintAuto") || "Enter your 11-digit ABN to auto-fill business details."}
+              </Text>
+            </View>
             {renderInput(t("completeProfile.acn") || "ACN", "acn", {
               keyboardType: "numeric",
             })}
@@ -535,6 +718,66 @@ export default function CompleteProfileScreen() {
                 )}
               </>
             )}
+          </>,
+        )}
+
+        {/* Branding */}
+        {renderSection(
+          "branding",
+          "🎨",
+          t("completeProfile.branding") || "Branding",
+          <>
+            <Text style={[styles.inputLabel, { color: colors.textSecondary, marginBottom: 8 }]}>
+              {t("completeProfile.brandColor") || "Brand Color"}
+            </Text>
+            <Text style={{ fontSize: DESIGN_TOKENS.typography.caption.fontSize, color: colors.textSecondary, marginBottom: 12 }}>
+              {t("completeProfile.brandColorHint") || "Choose a color that represents your brand. It will be applied across the app."}
+            </Text>
+            <View style={styles.colorGrid}>
+              {BRAND_COLORS.map((c, i) => {
+                const isDefault = c === null;
+                const colorVal = isDefault ? "#FF6A4A" : c;
+                const isSelected = isDefault
+                  ? !profile.primary_color || profile.primary_color === ""
+                  : profile.primary_color === c;
+                return (
+                  <Pressable
+                    key={i}
+                    onPress={() => {
+                      const newColor = isDefault ? "" : c;
+                      updateField("primary_color", newColor);
+                      setCompanyColor(newColor || null);
+                    }}
+                    style={[
+                      styles.colorSwatch,
+                      { backgroundColor: colorVal },
+                      isSelected && { borderWidth: 3, borderColor: colors.text },
+                    ]}
+                  >
+                    {isSelected && <Ionicons name="checkmark" size={18} color="#fff" />}
+                    {isDefault && !isSelected && (
+                      <Text style={{ color: "#fff", fontSize: 9, fontWeight: "600" }}>DEF</Text>
+                    )}
+                  </Pressable>
+                );
+              })}
+            </View>
+            {/* Preview */}
+            <View style={[
+              styles.colorPreview,
+              { backgroundColor: colors.primary + "15", borderColor: colors.primary + "30" },
+            ]}>
+              <View style={[styles.previewBtn, { backgroundColor: colors.primary }]}>
+                <Text style={{ color: "#fff", fontWeight: "600", fontSize: 13 }}>
+                  {t("completeProfile.previewButton") || "Preview Button"}
+                </Text>
+              </View>
+              <View style={[styles.previewBadge, { backgroundColor: colors.primary + "20" }]}>
+                <Text style={{ color: colors.primary, fontWeight: "600", fontSize: 12 }}>
+                  {t("completeProfile.previewBadge") || "Status Badge"}
+                </Text>
+              </View>
+            </View>
           </>,
         )}
 
@@ -709,5 +952,39 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
     fontWeight: "600",
+  },
+  colorGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginBottom: DESIGN_TOKENS.spacing.md,
+  },
+  colorSwatch: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.1)",
+  },
+  colorPreview: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    padding: DESIGN_TOKENS.spacing.md,
+    borderRadius: DESIGN_TOKENS.radius.lg,
+    borderWidth: 1,
+    marginTop: 4,
+  },
+  previewBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: DESIGN_TOKENS.radius.md,
+  },
+  previewBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: DESIGN_TOKENS.radius.full,
   },
 });

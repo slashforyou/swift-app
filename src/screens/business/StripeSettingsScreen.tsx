@@ -22,6 +22,7 @@ import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
 import { useStripeAccount, useStripeSettings } from "../../hooks/useStripe";
 import { useTranslation } from "../../localization/useLocalization";
+import { ENV } from "../../config/environment";
 
 // Types
 interface StripeConfig {
@@ -450,9 +451,10 @@ export default function StripeSettingsScreen({
   });
 
   const hubBusy = isProcessing || saving || isLoading || settingsLoading;
+  const isTestMode = ENV.name !== "production";
 
-  // Loading ou erreur - affichage d'un écran simple
-  if (isLoading || settingsLoading || !account || !settings) {
+  // Loading state
+  if (isLoading || settingsLoading) {
     return (
       <View
         style={[
@@ -463,21 +465,91 @@ export default function StripeSettingsScreen({
         <MascotLoading
           text={t("stripe.settings.loading", { defaultValue: "Chargement" })}
         />
-        {(error || settingsError) && (
-          <Text
-            style={[
-              styles.settingSubtitle,
-              {
-                textAlign: "center",
-                marginTop: DESIGN_TOKENS.spacing.sm,
-                color: colors.error,
-              },
-            ]}
-          >
-            {(error || settingsError) as any}
-          </Text>
-        )}
       </View>
+    );
+  }
+
+  // Error or no account — show error with retry
+  if (error || !account) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation?.goBack()}
+          >
+            <Ionicons name="arrow-back" size={24} color={colors.text} />
+          </TouchableOpacity>
+          <Text style={styles.title}>
+            {t("stripe.settings.title", { defaultValue: "Paramètres Stripe" })}
+          </Text>
+        </View>
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: DESIGN_TOKENS.spacing.xl }}>
+          <View style={{
+            backgroundColor: colors.warning + "15",
+            width: 64, height: 64, borderRadius: 32,
+            alignItems: "center", justifyContent: "center",
+            marginBottom: DESIGN_TOKENS.spacing.lg,
+          }}>
+            <Ionicons name="alert-circle-outline" size={32} color={colors.warning} />
+          </View>
+          <Text style={{
+            fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
+            fontWeight: DESIGN_TOKENS.typography.subtitle.fontWeight,
+            color: colors.text,
+            textAlign: "center",
+            marginBottom: DESIGN_TOKENS.spacing.sm,
+          }}>
+            {t("stripe.settings.loadError", { defaultValue: "Impossible de charger les paramètres" })}
+          </Text>
+          <Text style={{
+            fontSize: DESIGN_TOKENS.typography.body.fontSize,
+            color: colors.textSecondary,
+            textAlign: "center",
+            lineHeight: 22,
+            marginBottom: DESIGN_TOKENS.spacing.xl,
+          }}>
+            {error || t("stripe.settings.noAccount", { defaultValue: "Aucun compte Stripe connecté." })}
+          </Text>
+          <View style={{ flexDirection: "row", gap: DESIGN_TOKENS.spacing.md }}>
+            <TouchableOpacity
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: DESIGN_TOKENS.spacing.sm,
+                backgroundColor: colors.primary,
+                paddingHorizontal: DESIGN_TOKENS.spacing.xl,
+                paddingVertical: DESIGN_TOKENS.spacing.md,
+                borderRadius: DESIGN_TOKENS.radius.md,
+              }}
+              onPress={() => { refresh(); refreshStripeSettings(); }}
+            >
+              <Ionicons name="refresh" size={18} color={colors.background} />
+              <Text style={{ color: colors.background, fontWeight: "700", fontSize: DESIGN_TOKENS.typography.body.fontSize }}>
+                {t("common.retry", { defaultValue: "Réessayer" })}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: DESIGN_TOKENS.spacing.sm,
+                borderWidth: 1,
+                borderColor: colors.border,
+                paddingHorizontal: DESIGN_TOKENS.spacing.xl,
+                paddingVertical: DESIGN_TOKENS.spacing.md,
+                borderRadius: DESIGN_TOKENS.radius.md,
+              }}
+              onPress={() => navigation?.goBack()}
+            >
+              <Ionicons name="arrow-back" size={18} color={colors.text} />
+              <Text style={{ color: colors.text, fontWeight: "700", fontSize: DESIGN_TOKENS.typography.body.fontSize }}>
+                {t("common.goBack")}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </SafeAreaView>
     );
   }
 
@@ -495,6 +567,23 @@ export default function StripeSettingsScreen({
           {t("stripe.settings.title", { defaultValue: "Paramètres Stripe" })}
         </Text>
       </View>
+
+      {isTestMode && (
+        <View style={{
+          backgroundColor: "#FFF3CD",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+          paddingVertical: DESIGN_TOKENS.spacing.sm,
+          paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+          gap: DESIGN_TOKENS.spacing.sm,
+        }}>
+          <Ionicons name="flask" size={16} color="#856404" />
+          <Text style={{ color: "#856404", fontWeight: "700", fontSize: DESIGN_TOKENS.typography.caption.fontSize }}>
+            {t("businessHub.stripeSettings.testMode")}
+          </Text>
+        </View>
+      )}
 
       <ScrollView style={styles.content}>
         {/* Account Overview */}
@@ -647,10 +736,10 @@ export default function StripeSettingsScreen({
           <View style={styles.segmented}>
             {(
               [
-                { key: "manual", label: "Manual" },
-                { key: "daily", label: "Daily" },
-                { key: "weekly", label: "Weekly" },
-                { key: "monthly", label: "Monthly" },
+                { key: "manual", labelKey: "businessHub.stripeSettings.payoutManual" },
+                { key: "daily", labelKey: "businessHub.stripeSettings.payoutDaily" },
+                { key: "weekly", labelKey: "businessHub.stripeSettings.payoutWeekly" },
+                { key: "monthly", labelKey: "businessHub.stripeSettings.payoutMonthly" },
               ] as const
             ).map((option) => {
               const isActive = draftPayoutInterval === option.key;
@@ -674,7 +763,7 @@ export default function StripeSettingsScreen({
                       isActive && styles.segmentTextActive,
                     ]}
                   >
-                    {option.label}
+                    {t(option.labelKey)}
                   </Text>
                 </TouchableOpacity>
               );

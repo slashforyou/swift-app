@@ -296,7 +296,16 @@ export default function StaffCrewScreen() {
                 filterType === "all" && { color: colors.buttonPrimaryText },
               ]}
             >
-              {t("staff.filters.all")} ({staff.length})
+              {t("staff.filters.all")}
+            </Text>
+            <Text
+              style={[
+                styles.filterCountText,
+                { color: colors.textSecondary },
+                filterType === "all" && { color: colors.buttonPrimaryText },
+              ]}
+            >
+              {staff.length}
             </Text>
           </Pressable>
           <Pressable
@@ -317,7 +326,16 @@ export default function StaffCrewScreen() {
                 },
               ]}
             >
-              {t("staff.filters.employees")} ({totalEmployees})
+              {t("staff.filters.employees")}
+            </Text>
+            <Text
+              style={[
+                styles.filterCountText,
+                { color: colors.textSecondary },
+                filterType === "employee" && { color: colors.buttonPrimaryText },
+              ]}
+            >
+              {totalEmployees}
             </Text>
           </Pressable>
           <Pressable
@@ -340,7 +358,16 @@ export default function StaffCrewScreen() {
                 },
               ]}
             >
-              {t("staff.filters.contractors")} ({totalContractors})
+              {t("staff.filters.contractors")}
+            </Text>
+            <Text
+              style={[
+                styles.filterCountText,
+                { color: colors.textSecondary },
+                filterType === "contractor" && { color: colors.buttonPrimaryText },
+              ]}
+            >
+              {totalContractors}
             </Text>
           </Pressable>
         </View>
@@ -741,10 +768,15 @@ const styles = StyleSheet.create({
     padding: DESIGN_TOKENS.spacing.sm,
     borderRadius: DESIGN_TOKENS.radius.md,
     alignItems: "center",
+    gap: 2,
   },
   filterButtonText: {
-    fontSize: 14,
-    fontWeight: "500",
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  filterCountText: {
+    fontSize: 18,
+    fontWeight: "700",
   },
   errorContainer: {
     flexDirection: "row",

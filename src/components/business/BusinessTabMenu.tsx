@@ -1,82 +1,52 @@
 /**
- * BusinessTabMenu - Navigation dédiée à la section Business
- * RÈGLE 3 : Composant SRP (Single Responsibility) pour le TabMenu business
- * RÈGLE 1 : Adaptation du TabMenu existant de JobDetails
+ * BusinessTabMenu - Navigation 4 onglets du Business Hub
+ * Hub · Ressources · Réseau · Finances
  */
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
-import { useLocalization } from "../../localization/useLocalization";
+
+export type BusinessTab = "Hub" | "Resources" | "Config" | "Finances";
 
 export interface BusinessTabItem {
-  id: string;
+  id: BusinessTab;
   label: string;
   icon: string;
-  routeName: string; // Nom de la route Navigation
   accessibilityLabel: string;
 }
 
 interface BusinessTabMenuProps {
-  activeTab: string; // Route name actuelle
-  onTabPress: (tabId: string) => void;
+  activeTab: BusinessTab;
+  onTabPress: (tabId: BusinessTab) => void;
   style?: any;
 }
 
-/**
- * Configuration des onglets Business
- * RÈGLE 1 : Réutilise le pattern du TabMenu JobDetails
- */
-const getBusinessTabsConfig = (t: any): BusinessTabItem[] => [
+const TABS_CONFIG: BusinessTabItem[] = [
   {
-    id: "BusinessInfo",
-    label: t("business.navigation.businessInfo"),
-    icon: "business",
-    routeName: "BusinessInfo",
-    accessibilityLabel: "Business Information Tab",
+    id: "Hub",
+    label: "Hub",
+    icon: "home-outline",
+    accessibilityLabel: "Business Hub Overview Tab",
   },
   {
-    id: "StaffCrew",
-    label: t("business.navigation.staffCrew"),
+    id: "Resources",
+    label: "Ressources",
     icon: "people",
-    routeName: "StaffCrew",
-    accessibilityLabel: "Staff and Crew Management Tab",
+    accessibilityLabel: "Resources Management Tab",
   },
   {
-    id: "Trucks",
-    label: t("business.navigation.trucks"),
-    icon: "car-sport",
-    routeName: "Trucks",
-    accessibilityLabel: "Trucks Management Tab",
+    id: "Config",
+    label: "Config",
+    icon: "construct-outline",
+    accessibilityLabel: "Job Configuration Tab",
   },
   {
-    id: "JobsBilling",
-    label: "Stripe",
-    icon: "card",
-    routeName: "JobsBilling",
-    accessibilityLabel: "Stripe Payments Hub Tab",
-  },
-  {
-    id: "Relations",
-    label: "Partenaires",
-    icon: "people-outline",
-    routeName: "Relations",
-    accessibilityLabel: "Partners Relations Book Tab",
-  },
-  {
-    id: "JobTemplates",
-    label: "Modèles",
-    icon: "documents-outline",
-    routeName: "JobTemplates",
-    accessibilityLabel: "Modular Job Templates Tab",
-  },
-  {
-    id: "Contracts",
-    label: "Contrats",
-    icon: "document-text-outline",
-    routeName: "Contracts",
-    accessibilityLabel: "Contract Clauses Management Tab",
+    id: "Finances",
+    label: "Finances",
+    icon: "wallet-outline",
+    accessibilityLabel: "Finances and Payments Tab",
   },
 ];
 
@@ -86,9 +56,8 @@ const BusinessTabMenu: React.FC<BusinessTabMenuProps> = ({
   style,
 }) => {
   const { colors } = useTheme();
-  const { t } = useLocalization();
 
-  const tabsConfig = getBusinessTabsConfig(t);
+  const tabsConfig = TABS_CONFIG;
 
   const styles = StyleSheet.create({
     container: {
@@ -142,7 +111,7 @@ const BusinessTabMenu: React.FC<BusinessTabMenuProps> = ({
   return (
     <View testID="business-tab-menu" style={styles.container}>
       {tabsConfig.map((tab) => {
-        const isActive = activeTab === tab.routeName;
+        const isActive = activeTab === tab.id;
 
         return (
           <TouchableOpacity
@@ -153,9 +122,8 @@ const BusinessTabMenu: React.FC<BusinessTabMenuProps> = ({
               isActive ? styles.tabButtonActive : styles.tabButtonInactive,
             ]}
             onPress={() => {
-              // RÈGLE 2 : Seulement naviguer si ce n'est pas l'onglet actif
               if (!isActive) {
-                onTabPress(tab.routeName);
+                onTabPress(tab.id);
               }
             }}
             activeOpacity={0.7}

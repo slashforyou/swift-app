@@ -23,6 +23,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
+import { useLocalization } from "../../localization";
 import {
   fetchMyAssignments,
   respondToAssignment,
@@ -76,7 +77,7 @@ interface AssignmentCardProps {
   loading: boolean;
 }
 
-const AssignmentCard: React.FC<AssignmentCardProps> = ({
+const AssignmentCard: React.FC<AssignmentCardProps> = React.memo(({
   assignment,
   onAction,
   loading,
@@ -206,7 +207,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
               <>
                 <Ionicons name="checkmark" size={16} color="#fff" />
                 <Text style={[styles.actionBtnText, { color: "#fff" }]}>
-                  Confirmer
+                  {t("assignmentActions.confirmBtn")}
                 </Text>
               </>
             )}
@@ -215,7 +216,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
       )}
     </View>
   );
-};
+});
 
 // ─────────────────────────────────────────────────────────────
 // Screen principal
@@ -229,6 +230,7 @@ const AssignmentsScreen: React.FC<AssignmentsScreenProps> = ({
   navigation,
 }) => {
   const { colors } = useTheme();
+  const { t } = useLocalization();
   const insets = useSafeAreaInsets();
 
   const [assignments, setAssignments] = useState<JobAssignment[]>([]);
@@ -375,13 +377,12 @@ const AssignmentsScreen: React.FC<AssignmentsScreenProps> = ({
                 color={colors.textSecondary + "50"}
               />
               <Text style={[styles.emptyTitle, { color: colors.text }]}>
-                Aucune affectation
+                {t("assignmentActions.noAssignments")}
               </Text>
               <Text
                 style={[styles.emptySubtitle, { color: colors.textSecondary }]}
               >
-                Quand une entreprise vous affecte à un job,{"\n"}vous verrez la
-                demande ici.
+                {t("assignmentActions.noAssignmentsDesc")}
               </Text>
             </View>
           }

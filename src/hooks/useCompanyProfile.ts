@@ -6,6 +6,7 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import { ServerData } from "../constants/ServerData";
+import { useTheme } from "../context/ThemeProvider";
 import { logger } from "../services/logger";
 import { authenticatedFetch } from "../utils/auth";
 
@@ -20,6 +21,7 @@ export interface CompanyProfile {
   phone?: string;
   address?: string;
   logo_url?: string;
+  primary_color?: string | null;
 }
 
 interface UseCompanyProfileResult {
@@ -34,6 +36,7 @@ export function useCompanyProfile(): UseCompanyProfileResult {
   const [profile, setProfile] = useState<CompanyProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { setCompanyColor } = useTheme();
 
   const load = useCallback(async () => {
     setIsLoading(true);
@@ -51,7 +54,12 @@ export function useCompanyProfile(): UseCompanyProfileResult {
         );
       }
 
-      setProfile(json.data as CompanyProfile);
+      const data = json.data as CompanyProfile;
+      setProfile(data);
+      // Sync company brand color to theme
+      if (data.primary_color) {
+        setCompanyColor(data.primary_color);
+      }
     } catch (e: any) {
       logger.warn("[useCompanyProfile] failed", e?.message);
       setError(e?.message ?? "Failed to load company profile");

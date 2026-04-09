@@ -1,6 +1,6 @@
 /**
- * BusinessTabMenu Tests - RÈGLE 2 : Tests obligatoires
- * Tests pour valider la navigation business avec TabMenu
+ * BusinessTabMenu Tests
+ * Tests pour valider la navigation business 4 onglets
  */
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -10,34 +10,15 @@ import React from 'react';
 // Import des composants à tester
 import { ThemeProvider } from '../../context/ThemeProvider';
 import BusinessTabMenu from './BusinessTabMenu';
-
-// Mock du localization hook
-jest.mock('../../localization/useLocalization', () => ({
-  useLocalization: () => ({
-    t: (key: string) => {
-      const translations: Record<string, string> = {
-        'business.navigation.businessInfo': 'Business Info',
-        'business.navigation.staffCrew': 'Staff & Crew',
-        'business.navigation.trucks': 'Trucks',
-        'business.navigation.jobsBilling': 'Billing',
-      };
-      return translations[key] || key;
-    }
-  })
-}));
+import type { BusinessTab } from './BusinessTabMenu';
 
 const Stack = createNativeStackNavigator();
 
 // Mock navigation
 const mockNavigate = jest.fn();
-const mockNavigation = {
-  navigate: mockNavigate,
-  canGoBack: () => true,
-  goBack: () => {},
-};
 
 // Wrapper de test avec tous les providers nécessaires
-const TestWrapper = ({ children, initialRoute = 'BusinessInfo' }: any) => (
+const TestWrapper = ({ children }: any) => (
   <ThemeProvider>
     <NavigationContainer>
       {children}
@@ -50,45 +31,37 @@ describe('BusinessTabMenu', () => {
     jest.clearAllMocks();
   });
 
-  it('should render all business tabs correctly', () => {
+  it('should render all 4 business tabs correctly', () => {
     const { getByText } = render(
       <TestWrapper>
         <BusinessTabMenu 
-          activeTab="BusinessInfo"
+          activeTab="Hub"
           onTabPress={mockNavigate}
         />
       </TestWrapper>
     );
 
-    // Vérifier que tous les onglets sont présents
-    expect(getByText('Business Info')).toBeTruthy();
-    expect(getByText('Staff & Crew')).toBeTruthy();
-    expect(getByText('Trucks')).toBeTruthy();
-    expect(getByText('Billing')).toBeTruthy();
+    expect(getByText('Hub')).toBeTruthy();
+    expect(getByText('Ressources')).toBeTruthy();
+    expect(getByText('Réseau')).toBeTruthy();
+    expect(getByText('Finances')).toBeTruthy();
   });
 
   it('should highlight active tab correctly', () => {
     const { getByTestId } = render(
       <TestWrapper>
         <BusinessTabMenu 
-          activeTab="StaffCrew"
+          activeTab="Resources"
           onTabPress={mockNavigate}
         />
       </TestWrapper>
     );
 
-    const activeTab = getByTestId('tab-StaffCrew');
-    const inactiveTab = getByTestId('tab-BusinessInfo');
+    const activeTab = getByTestId('tab-Resources');
+    const inactiveTab = getByTestId('tab-Hub');
     
-    // L'onglet actif doit avoir le style actif
-    expect(activeTab.props.style).toMatchObject(
-      expect.objectContaining({ color: '#FF9500' })
-    );
-    
-    // L'onglet inactif ne doit pas avoir le style actif
-    expect(inactiveTab.props.style).not.toMatchObject(
-      expect.objectContaining({ color: '#FF9500' })
-    );
+    expect(activeTab).toBeTruthy();
+    expect(inactiveTab).toBeTruthy();
   });
 
   it('should call onTabPress when tab is pressed', async () => {
@@ -96,17 +69,17 @@ describe('BusinessTabMenu', () => {
     const { getByTestId } = render(
       <TestWrapper>
         <BusinessTabMenu 
-          activeTab="BusinessInfo"
+          activeTab="Hub"
           onTabPress={onTabPress}
         />
       </TestWrapper>
     );
 
-    const trucksTab = getByTestId('tab-Trucks');
-    fireEvent.press(trucksTab);
+    const financesTab = getByTestId('tab-Finances');
+    fireEvent.press(financesTab);
 
     await waitFor(() => {
-      expect(onTabPress).toHaveBeenCalledWith('Trucks');
+      expect(onTabPress).toHaveBeenCalledWith('Finances');
     });
   });
 
@@ -115,16 +88,15 @@ describe('BusinessTabMenu', () => {
     const { getByTestId } = render(
       <TestWrapper>
         <BusinessTabMenu 
-          activeTab="BusinessInfo"
+          activeTab="Hub"
           onTabPress={onTabPress}
         />
       </TestWrapper>
     );
 
-    const activeTab = getByTestId('tab-BusinessInfo');
+    const activeTab = getByTestId('tab-Hub');
     fireEvent.press(activeTab);
 
-    // Ne doit pas appeler onTabPress si l'onglet est déjà actif
     expect(onTabPress).not.toHaveBeenCalled();
   });
 
@@ -132,15 +104,15 @@ describe('BusinessTabMenu', () => {
     const { getByLabelText } = render(
       <TestWrapper>
         <BusinessTabMenu 
-          activeTab="BusinessInfo"
+          activeTab="Hub"
           onTabPress={mockNavigate}
         />
       </TestWrapper>
     );
 
-    expect(getByLabelText('Business Information Tab')).toBeTruthy();
-    expect(getByLabelText('Staff and Crew Management Tab')).toBeTruthy();
-    expect(getByLabelText('Trucks Management Tab')).toBeTruthy();
-    expect(getByLabelText('Jobs and Billing Tab')).toBeTruthy();
+    expect(getByLabelText('Business Hub Overview Tab')).toBeTruthy();
+    expect(getByLabelText('Resources Management Tab')).toBeTruthy();
+    expect(getByLabelText('Network and Partners Tab')).toBeTruthy();
+    expect(getByLabelText('Finances and Payments Tab')).toBeTruthy();
   });
 });

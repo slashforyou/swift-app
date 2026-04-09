@@ -509,7 +509,11 @@ export const useStripeSettings = () => {
           ? err.message
           : "Erreur lors du chargement des paramètres";
       setError(errorMessage);
-      console.error("Error loading settings:", err);
+      // Only log unexpected errors
+      const msg = errorMessage.toLowerCase();
+      if (!msg.includes("no stripe account") && !msg.includes("failed to get account") && !msg.includes("http error")) {
+        console.error("Error loading settings:", err);
+      }
     } finally {
       setLoading(false);
     }

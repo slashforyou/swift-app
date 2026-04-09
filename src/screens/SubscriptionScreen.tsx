@@ -57,6 +57,7 @@ const SubscriptionScreen: React.FC<Props> = ({ navigation }) => {
     cancel,
     resume,
     upgrade,
+    selectPlan,
   } = useSubscription();
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const [processingPlanId, setProcessingPlanId] = useState<string | null>(null);
@@ -78,42 +79,61 @@ const SubscriptionScreen: React.FC<Props> = ({ navigation }) => {
   const handleSubscribe = async (planId: string) => {
     setProcessingPlanId(planId);
     try {
-      const data = await subscribe(planId);
+      // First, record the plan selection in DB
+      const selection = await selectPlan(planId);
 
-      const { error: initError } = await initPaymentSheet({
-        paymentIntentClientSecret: data.clientSecret,
-        customerEphemeralKeySecret: data.ephemeralKey,
-        customerId: data.customerId,
-        merchantDisplayName: "Swift App",
-        appearance: {
-          colors: {
-            primary: colors.primary,
-            background: colors.background,
-            componentBackground: colors.backgroundSecondary,
-            componentBorder: colors.border,
-            componentDivider: colors.border,
-            primaryText: colors.text,
-            secondaryText: colors.textSecondary,
-            componentText: colors.text,
-            placeholderText: colors.textSecondary,
+      // If the plan requires a Stripe subscription, initiate payment
+      if (selection.requires_subscription) {
+        const data = await subscribe(planId);
+
+        const { error: initError } = await initPaymentSheet({
+          paymentIntentClientSecret: data.clientSecret,
+          customerEphemeralKeySecret: data.ephemeralKey,
+          customerId: data.customerId,
+          merchantDisplayName: "Cobbr",
+          appearance: {
+            colors: {
+              primary: colors.primary,
+              background: colors.background,
+              componentBackground: colors.backgroundSecondary,
+              componentBorder: colors.border,
+              componentDivider: colors.border,
+              primaryText: colors.text,
+              secondaryText: colors.textSecondary,
+              componentText: colors.text,
+              placeholderText: colors.textSecondary,
+            },
           },
-        },
-      });
+        });
 
-      if (initError) {
-        Alert.alert("Error", initError.message);
-        return;
-      }
+        if (initError) {
+          Alert.alert("Error", initError.message);
+          return;
+        }
 
-      const { error: presentError } = await presentPaymentSheet();
+        const { error: presentError } = await presentPaymentSheet();
 
-      if (presentError) {
-        if (presentError.code === "Canceled") return;
-        Alert.alert("Error", presentError.message);
-        return;
+        if (presentError) {
+          if (presentError.code === "Canceled") return;
+          Alert.alert("Error", presentError.message);
+          return;
+        }
       }
 
       Alert.alert("✓", t("subscription.subscribeSuccess"));
+      await refresh();
+    } catch (e: any) {
+      Alert.alert("Error", e.message || t("subscription.error"));
+    } finally {
+      setProcessingPlanId(null);
+    }
+  };
+
+  const handleSelectFreePlan = async () => {
+    setProcessingPlanId("free");
+    try {
+      await selectPlan("free");
+      Alert.alert("✓", t("subscription.planChanged"));
       await refresh();
     } catch (e: any) {
       Alert.alert("Error", e.message || t("subscription.error"));
@@ -171,7 +191,15 @@ const SubscriptionScreen: React.FC<Props> = ({ navigation }) => {
     const hasActiveSub = isActive || isCanceling;
 
     if (isCurrent) return null; // No action on current plan
-    if (!isPaid) return null; // No action on free plan (use cancel instead)
+
+    // Free plan: show "Select" to downgrade (only if no active sub)
+    if (!isPaid) {
+      if (hasActiveSub) return null; // Must cancel sub first
+      return {
+        label: t("subscription.selectPlan"),
+        action: () => handleSelectFreePlan(),
+      };
+    }
 
     if (!hasActiveSub) {
       // No active subscription → subscribe

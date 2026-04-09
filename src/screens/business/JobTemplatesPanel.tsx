@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
+import { useTranslation } from "../../localization/useLocalization";
 import {
     deleteModularTemplate,
     fetchModularTemplates,
@@ -21,12 +22,12 @@ import {
 } from "../../services/business/templatesService";
 import type { ModularJobTemplate } from "../../types/jobSegment";
 
-const BILLING_MODE_LABELS: Record<string, string> = {
-  location_to_location: "Lieu à lieu",
-  depot_to_depot: "Dépôt à dépôt",
-  flat_rate: "Forfait",
-  packing_only: "Packing",
-  unpacking_only: "Unpacking",
+const BILLING_MODE_LABEL_KEYS: Record<string, string> = {
+  location_to_location: "businessHub.templates.billingModes.locationToLocation",
+  depot_to_depot: "businessHub.templates.billingModes.depotToDepot",
+  flat_rate: "businessHub.templates.billingModes.flatRate",
+  packing_only: "businessHub.templates.billingModes.packingOnly",
+  unpacking_only: "businessHub.templates.billingModes.unpackingOnly",
 };
 
 const BILLING_MODE_ICONS: Record<string, string> = {
@@ -43,6 +44,7 @@ interface JobTemplatesPanelProps {
 
 const JobTemplatesPanel: React.FC<JobTemplatesPanelProps> = ({ navigation }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const [templates, setTemplates] = useState<ModularJobTemplate[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -82,23 +84,23 @@ const JobTemplatesPanel: React.FC<JobTemplatesPanelProps> = ({ navigation }) => 
   const handleDelete = useCallback(
     (template: ModularJobTemplate) => {
       if (template.isDefault) {
-        Alert.alert("Info", "Les modèles par défaut ne peuvent pas être supprimés.");
+        Alert.alert("Info", t("businessHub.templates.deleteDefaultError"));
         return;
       }
       Alert.alert(
-        "Supprimer le modèle",
-        `Voulez-vous vraiment supprimer "${template.name}" ?`,
+        t("businessHub.templates.deleteTitle"),
+        t("businessHub.templates.deleteMessage", { name: template.name }),
         [
-          { text: "Annuler", style: "cancel" },
+          { text: t("common.cancel"), style: "cancel" },
           {
-            text: "Supprimer",
+            text: t("common.delete"),
             style: "destructive",
             onPress: async () => {
               try {
                 await deleteModularTemplate(template.id);
-                setTemplates((prev) => prev.filter((t) => t.id !== template.id));
+                setTemplates((prev) => prev.filter((tp) => tp.id !== template.id));
               } catch {
-                Alert.alert("Erreur", "Impossible de supprimer le modèle.");
+                Alert.alert(t("businessHub.billing.error"), t("businessHub.templates.deleteError"));
               }
             },
           },
@@ -129,10 +131,12 @@ const JobTemplatesPanel: React.FC<JobTemplatesPanelProps> = ({ navigation }) => 
       >
         <View>
           <Text style={{ fontSize: 18, fontWeight: "700", color: colors.text }}>
-            Modèles de job
+            {t("businessHub.templates.title")}
           </Text>
           <Text style={{ fontSize: 13, color: colors.textSecondary, marginTop: 2 }}>
-            {templates.length} modèle{templates.length !== 1 ? "s" : ""}
+            {templates.length === 1
+              ? t("businessHub.templates.count", { count: templates.length })
+              : t("businessHub.templates.countPlural", { count: templates.length })}
           </Text>
         </View>
         <Pressable
@@ -149,7 +153,7 @@ const JobTemplatesPanel: React.FC<JobTemplatesPanelProps> = ({ navigation }) => 
         >
           <Ionicons name="add" size={18} color="#fff" />
           <Text style={{ fontSize: 14, fontWeight: "600", color: "#fff" }}>
-            Nouveau
+            {t("businessHub.templates.new")}
           </Text>
         </Pressable>
       </View>
@@ -158,7 +162,9 @@ const JobTemplatesPanel: React.FC<JobTemplatesPanelProps> = ({ navigation }) => 
       <View style={{ gap: DESIGN_TOKENS.spacing.sm }}>
         {templates.map((template) => {
           const modeIcon = BILLING_MODE_ICONS[template.billingMode] ?? "ellipse-outline";
-          const modeLabel = BILLING_MODE_LABELS[template.billingMode] ?? template.billingMode;
+          const modeLabel = BILLING_MODE_LABEL_KEYS[template.billingMode]
+            ? t(BILLING_MODE_LABEL_KEYS[template.billingMode])
+            : template.billingMode;
 
           return (
             <Pressable
@@ -241,7 +247,9 @@ const JobTemplatesPanel: React.FC<JobTemplatesPanelProps> = ({ navigation }) => 
                 >
                   <Ionicons name="layers-outline" size={14} color={colors.textSecondary} />
                   <Text style={{ fontSize: 12, color: colors.textSecondary }}>
-                    {template.segments.length} segment{template.segments.length !== 1 ? "s" : ""}
+                    {template.segments.length === 1
+                      ? t("businessHub.templates.segmentCount", { count: template.segments.length })
+                      : t("businessHub.templates.segmentCountPlural", { count: template.segments.length })}
                   </Text>
                 </View>
 
@@ -283,7 +291,7 @@ const JobTemplatesPanel: React.FC<JobTemplatesPanelProps> = ({ navigation }) => 
                         color: colors.textSecondary,
                       }}
                     >
-                      par défaut
+                      {t("businessHub.templates.default")}
                     </Text>
                   </View>
                 )}

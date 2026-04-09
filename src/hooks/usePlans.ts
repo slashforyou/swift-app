@@ -5,12 +5,14 @@ import { useCallback, useEffect, useState } from "react";
 import {
     CompanyPlan,
     Plan,
+    SelectPlanResponse,
     SubscriptionStatus,
     cancelSubscription as apiCancelSubscription,
     changePlan as apiChangePlan,
     createSubscription as apiCreateSubscription,
     getSubscriptionStatus as apiGetSubscriptionStatus,
     resumeSubscription as apiResumeSubscription,
+    selectPlan as apiSelectPlan,
     getCompanyPlan,
     getPlans,
 } from "../services/plansService";
@@ -93,6 +95,20 @@ export function useSubscription() {
     [refresh],
   );
 
+  const selectPlan = useCallback(
+    async (planId: string): Promise<SelectPlanResponse> => {
+      setActionLoading(true);
+      try {
+        const result = await apiSelectPlan(planId);
+        await refresh();
+        return result;
+      } finally {
+        setActionLoading(false);
+      }
+    },
+    [refresh],
+  );
+
   return {
     plans,
     companyPlan,
@@ -104,5 +120,6 @@ export function useSubscription() {
     cancel,
     resume,
     upgrade,
+    selectPlan,
   };
 }
