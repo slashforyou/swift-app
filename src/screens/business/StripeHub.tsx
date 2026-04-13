@@ -40,10 +40,7 @@ import {
     deleteStripeAccount,
     startStripeOnboarding,
 } from "../../services/StripeService";
-import {
-    getStartOnboardingStep,
-    resolveBusinessType,
-} from "../Stripe/OnboardingFlow/onboardingSteps";
+
 // Components
 import CreatePaymentLinkModal from "../../components/modals/CreatePaymentLinkModal";
 
@@ -227,20 +224,9 @@ export default function StripeHub({
     }
 
     try {
-
-      const businessType = resolveBusinessType(
-        stripeAccount.account?.business_type ||
-          stripeAccount.account?.businessType,
-        stripeAccount.account?.requirements,
-      );
-      const startStep = getStartOnboardingStep(
-        stripeAccount.account?.requirements,
-        businessType,
-      );
-
-      // Navigation vers le stack d'onboarding
+      // Always start at the Welcome screen (page 1)
       mainNavigation.navigate("StripeOnboarding", {
-        screen: startStep,
+        screen: "Welcome",
       });
     } catch (error) {
       console.error("❌ [StripeHub] Error:", error);
@@ -290,17 +276,8 @@ export default function StripeHub({
     try {
       // Si un compte existe déjà, naviguer directement sans créer de compte
       if (accountId) {
-        const businessType = resolveBusinessType(
-          stripeAccount.account?.business_type ||
-            stripeAccount.account?.businessType,
-          stripeAccount.account?.requirements,
-        );
-        const startStep = getStartOnboardingStep(
-          stripeAccount.account?.requirements,
-          businessType,
-        );
         mainNavigation.navigate("StripeOnboarding", {
-          screen: startStep,
+          screen: "Welcome",
         });
         return;
       }

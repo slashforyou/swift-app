@@ -6,19 +6,19 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useMemo } from "react";
 import {
-  ActivityIndicator,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Image,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
 import {
-  useStripeAccount,
-  useStripePayments,
-  useStripePayouts,
+    useStripeAccount,
+    useStripePayments,
+    useStripePayouts,
 } from "../../hooks/useStripe";
 import { useStripeConnection } from "../../hooks/useStripeConnection";
 import { useTranslation } from "../../localization/useLocalization";
@@ -66,7 +66,7 @@ export default function StripePaymentsTab({
   const stripePayouts = useStripePayouts({ autoLoad: false });
 
   const isConnected = stripeConnection.isConnected;
-  const isActive = stripeConnection.status === "active";
+  const isActive = stripeConnection.status === "active" || stripeConnection.status === "pending";
   const isConnectionLoading = stripeConnection.loading;
 
   const accountId =
@@ -150,10 +150,92 @@ export default function StripePaymentsTab({
   }
 
   const isStatsLoading = stripePayments.loading || stripeAccount.loading;
+  const connectionStatus = stripeConnection.status;
 
   // ── ÉTAT B : Configuré ──
   return (
     <View>
+      {/* Banner: Onboarding incomplet → reprendre (seulement si wizard pas terminé) */}
+      {connectionStatus === "incomplete" && (
+        <View style={[s.resumeBanner, { backgroundColor: colors.warningBackground ?? "#FEF3C7", borderColor: colors.warning ?? "#F59E0B" }]}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 }}>
+            <Ionicons name="alert-circle" size={22} color={STATUS_COLORS.warning} />
+            <Text style={[s.resumeTitle, { color: "#92400E" }]}>
+              {t("businessHub.stripe.resumeTitle")}
+            </Text>
+          </View>
+          <Text style={[s.resumeDesc, { color: "#78350F" }]}>
+            {t("businessHub.stripe.resumeDesc")}
+          </Text>
+          <TouchableOpacity
+            style={[s.resumeBtn, { backgroundColor: colors.primary }]}
+            onPress={() => {
+              if (mainNavigation) {
+                mainNavigation.navigate("StripeOnboarding", { screen: "Welcome" });
+              }
+            }}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="arrow-forward-circle-outline" size={18} color="#fff" />
+            <Text style={s.resumeBtnText}>{t("businessHub.stripe.resumeCta")}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Banner: Vérification en cours par Stripe */}
+      {connectionStatus === "pending" && (
+        <View style={[s.resumeBanner, { backgroundColor: "#EFF6FF", borderColor: "#3B82F6" }]}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 }}>
+            <Ionicons name="time-outline" size={22} color="#3B82F6" />
+            <Text style={[s.resumeTitle, { color: "#1E40AF" }]}>
+              {t("businessHub.stripe.pendingVerificationTitle")}
+            </Text>
+          </View>
+          <Text style={[s.resumeDesc, { color: "#1E3A5F" }]}>
+            {t("businessHub.stripe.pendingVerificationDesc")}
+          </Text>
+        </View>
+      )}
+
+      {/* Banner: Compte restreint */}
+      {connectionStatus === "restricted" && (
+        <View style={[s.resumeBanner, { backgroundColor: "#FEF2F2", borderColor: "#EF4444" }]}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 }}>
+            <Ionicons name="warning-outline" size={22} color="#EF4444" />
+            <Text style={[s.resumeTitle, { color: "#991B1B" }]}>
+              {t("businessHub.stripe.restrictedTitle")}
+            </Text>
+          </View>
+          <Text style={[s.resumeDesc, { color: "#7F1D1D" }]}>
+            {t("businessHub.stripe.restrictedDesc")}
+          </Text>
+          <TouchableOpacity
+            style={[s.resumeBtn, { backgroundColor: "#EF4444" }]}
+            onPress={() => {
+              if (mainNavigation) {
+                mainNavigation.navigate("StripeOnboarding", { screen: "Documents" });
+              }
+            }}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="document-text-outline" size={18} color="#fff" />
+            <Text style={s.resumeBtnText}>{t("businessHub.stripe.restrictedFixDocs")}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[s.resumeBtn, { backgroundColor: "#991B1B", marginTop: 8 }]}
+            onPress={() => {
+              if (mainNavigation) {
+                mainNavigation.navigate("SupportNewConversation");
+              }
+            }}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="chatbubble-ellipses-outline" size={18} color="#fff" />
+            <Text style={s.resumeBtnText}>{t("businessHub.stripe.restrictedCta")}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       {/* Stats dashboard - with skeleton loading */}
       <View style={s.statsGrid}>
         {isStatsLoading ? (
@@ -303,5 +385,35 @@ const getStyles = (colors: any) =>
       fontSize: 12,
       fontWeight: "500",
       textAlign: "center",
+    },
+    // Resume onboarding banner
+    resumeBanner: {
+      borderWidth: 1,
+      borderRadius: DESIGN_TOKENS.radius.lg,
+      padding: DESIGN_TOKENS.spacing.md,
+      marginBottom: DESIGN_TOKENS.spacing.lg,
+    },
+    resumeTitle: {
+      fontSize: 15,
+      fontWeight: "700",
+    },
+    resumeDesc: {
+      fontSize: 13,
+      lineHeight: 18,
+      marginBottom: 12,
+    },
+    resumeBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      paddingVertical: 12,
+      paddingHorizontal: 20,
+      borderRadius: DESIGN_TOKENS.radius.md,
+    },
+    resumeBtnText: {
+      color: "#fff",
+      fontSize: 15,
+      fontWeight: "600",
     },
   });

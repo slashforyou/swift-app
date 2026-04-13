@@ -7,6 +7,10 @@ import { ServerData } from "../constants/ServerData";
 import { safeLogError } from "../utils/logUtils";
 import { fetchWithAuth } from "../utils/session";
 import {
+    createAccountToken,
+    createPersonToken,
+} from "../utils/stripeTokens";
+import {
     clearStripeCache as clearStripeCacheInternal,
     getCachedCompanyId,
     getInFlightCompanyIdPromise,
@@ -151,6 +155,10 @@ export const checkStripeConnectionStatus = async (): Promise<{
 
           if (chargesEnabled && detailsSubmitted) {
             return { isConnected: true, status: "active", account: data, details: "Charges enabled" };
+          }
+
+          if (detailsSubmitted) {
+            return { isConnected: true, status: "pending", account: data, details: "Account pending verification" };
           }
 
           return { isConnected: true, status: "incomplete", account: data, details: "Onboarding not completed" };
@@ -354,6 +362,9 @@ const analyzeStripeConnectionResponse = (
     data.account?.payouts_enabled ??
     false;
 
+  // Use backend status if available
+  const backendStatus = data.data?.status;
+
   // Vérifier les blocages - aussi dans data.data
   const requirements =
     data.data?.requirements ??
@@ -362,10 +373,44 @@ const analyzeStripeConnectionResponse = (
     {};
   const currentlyDue = requirements.currently_due ?? [];
   const pastDue = requirements.past_due ?? [];
+  const pendingVerification = requirements.pending_verification ?? [];
   const disabledReason = requirements.disabled_reason;
 
-  // Déterminer le statut
+  // If disabled_reason is set but currently_due and past_due are empty,
+  // documents have been re-submitted and Stripe is reviewing them → pending, not restricted
+  const isActuallyPendingReview = disabledReason && currentlyDue.length === 0 && pastDue.length === 0;
+
+  // If backend provides a status, use it as primary signal (but override restricted → pending when appropriate)
+  if (backendStatus) {
+    if (backendStatus === "active") {
+      return { isConnected: true, status: "active", account: data, details: "Account is fully operational" };
+    }
+    if (backendStatus === "pending_verification") {
+      return { isConnected: true, status: "pending", account: data, details: "Account pending verification" };
+    }
+    if (backendStatus === "restricted") {
+      if (isActuallyPendingReview) {
+        return { isConnected: true, status: "pending", account: data, details: "Documents submitted, verification in progress" };
+      }
+      return { isConnected: true, status: "restricted", account: data, details: `Account restricted: ${disabledReason}` };
+    }
+    if (backendStatus === "incomplete") {
+      return { isConnected: true, status: "incomplete", account: data, details: "Onboarding not completed" };
+    }
+  }
+
+  // Fallback: determine status from account fields
+  // Key insight: if details_submitted = true, the user has completed the onboarding wizard
+  // Even with past_due items, they don't need to re-do the wizard
   if (disabledReason) {
+    if (isActuallyPendingReview) {
+      return {
+        isConnected: true,
+        status: "pending",
+        account: data,
+        details: "Documents submitted, verification in progress",
+      };
+    }
     return {
       isConnected: true,
       status: "restricted",
@@ -374,41 +419,30 @@ const analyzeStripeConnectionResponse = (
     };
   }
 
-  if (pastDue.length > 0) {
-    return {
-      isConnected: true,
-      status: "restricted",
-      account: data,
-      details: `Past due requirements: ${pastDue.join(", ")}`,
-    };
-  }
-
-  if (!detailsSubmitted || !chargesEnabled) {
-    // Only require charges_enabled and details_submitted for "active"
-    // payouts_enabled is not required — account can still accept payments
-    return {
-      isConnected: true,
-      status: "incomplete",
-      account: data,
-      details: "Onboarding not completed",
-    };
-  }
-
-  if (currentlyDue.length > 0) {
+  // details_submitted means the onboarding wizard is done
+  if (detailsSubmitted) {
+    if (chargesEnabled && payoutsEnabled) {
+      return { isConnected: true, status: "active", account: data, details: "Account is fully operational" };
+    }
+    // Account is connected but Stripe is still verifying (past_due or currently_due are verification items)
     return {
       isConnected: true,
       status: "pending",
       account: data,
-      details: `Pending requirements: ${currentlyDue.join(", ")}`,
+      details: pastDue.length > 0
+        ? `Pending verification: ${pastDue.join(", ")}`
+        : currentlyDue.length > 0
+          ? `Pending requirements: ${currentlyDue.join(", ")}`
+          : "Account pending activation",
     };
   }
 
-  // Tout semble bon !
+  // Not submitted yet — user needs to complete onboarding
   return {
     isConnected: true,
-    status: "active",
+    status: "incomplete",
     account: data,
-    details: "Account is fully operational",
+    details: "Onboarding not completed",
   };
 };
 
@@ -609,6 +643,13 @@ export const fetchStripeAccount = async () => {
           card_payments: chargesEnabled ? "active" : "pending",
           transfers: payoutsEnabled ? "active" : "pending",
         },
+      // Pass through raw Stripe data so onboarding screens can pre-fill from it
+      business_type: data.stripe.business_type,
+      businessType: data.stripe.business_type,
+      company: data.stripe.company || null,
+      individual: data.stripe.individual || null,
+      business_profile: data.stripe.business_profile || null,
+      external_accounts: data.stripe.external_accounts || null,
     };
 
     return accountData;
@@ -2698,8 +2739,18 @@ export const startOnboarding = async (
   next_step: string;
 }> => {
   try {
-    // Build payload according to backend expected format
-    const payload: any = { business_type: businessType };
+    // FR-based platforms require account tokens for Custom accounts.
+    // Token must be created CLIENT-SIDE with the publishable key.
+    const accountToken = await createAccountToken({
+      business_type: businessType,
+      tos_shown_and_accepted: true,
+    });
+
+    // Build payload with the account token
+    const payload: any = {
+      business_type: businessType,
+      account_token: accountToken,
+    };
 
     // Add business_profile if provided
     if (businessProfile) {
@@ -2761,30 +2812,56 @@ export const submitPersonalInfo = async (
   next_step?: string;
 }> => {
   try {
-    // Build payload based on business type
-    let payload: any;
+    const dob = `${info.dob_year}-${String(info.dob_month).padStart(2, "0")}-${String(info.dob_day).padStart(2, "0")}`;
 
-    if (businessType === "company" && info.company_name) {
-      // Company: send company info
-      payload = {
-        company: {
+    const personData = {
+      first_name: info.first_name,
+      last_name: info.last_name,
+      email: info.email,
+      phone: info.phone,
+      dob: {
+        day: info.dob_day,
+        month: info.dob_month,
+        year: info.dob_year,
+      },
+    };
+
+    const payload: any = {
+      first_name: info.first_name,
+      last_name: info.last_name,
+      email: info.email,
+      phone: info.phone,
+      dob,
+    };
+
+    if (businessType === "company") {
+      // Company: personal info goes to representative (person token)
+      const personToken = await createPersonToken({
+        ...personData,
+        relationship: { representative: true },
+      });
+      payload.person_token = personToken;
+
+      // Optionally include company data via account token
+      if (info.company_name) {
+        const accountToken = await createAccountToken({
+          company: {
+            name: info.company_name,
+            tax_id: info.tax_id || undefined,
+          },
+        });
+        payload.account_token = accountToken;
+        payload.company = {
           name: info.company_name,
           tax_id: info.tax_id || "",
-        },
-      };
+        };
+      }
     } else {
-      // Individual: send personal info with dob as object
-      payload = {
-        first_name: info.first_name,
-        last_name: info.last_name,
-        email: info.email,
-        phone: info.phone,
-        dob: {
-          day: info.dob_day,
-          month: info.dob_month,
-          year: info.dob_year,
-        },
-      };
+      // Individual: personal info goes to account.individual (account token)
+      const accountToken = await createAccountToken({
+        individual: personData,
+      });
+      payload.account_token = accountToken;
     }
 
     const response = await fetchWithAuth(
@@ -2868,17 +2945,44 @@ export const submitAddress = async (address: {
   state: string;
   postal_code: string;
   country?: string;
-}): Promise<{
+}, businessType: "individual" | "company" = "individual"): Promise<{
   progress: number;
   onboarding_progress?: number;
   next_step?: string;
 }> => {
   try {
-    // Ensure country is included (default to AU for Australia)
-    const payload = {
-      ...address,
-      country: address.country || "AU",
+    const country = address.country || "AU";
+
+    const addressData = {
+      line1: address.line1,
+      line2: address.line2 || undefined,
+      city: address.city,
+      state: address.state,
+      postal_code: address.postal_code,
+      country,
     };
+
+    const payload: any = {
+      ...address,
+      country,
+    };
+
+    if (businessType === "company") {
+      // Company: address goes to representative via person token
+      const personToken = await createPersonToken({
+        address: addressData,
+        relationship: { representative: true },
+      });
+      payload.person_token = personToken;
+    } else {
+      // Individual: address goes to account.individual via account token
+      const accountToken = await createAccountToken({
+        individual: {
+          address: addressData,
+        },
+      });
+      payload.account_token = accountToken;
+    }
 
     const response = await fetchWithAuth(
       `${ServerData.serverUrl}v1/stripe/onboarding/address`,
@@ -2932,91 +3036,66 @@ export const submitCompanyDetails = async (company: {
   };
 }): Promise<{ progress: number }> => {
   try {
-    const personalInfoPayload = {
+    // registration_number: ACN if available, otherwise ABN (sole traders have no ACN)
+    const registrationNumber = company.company_number || company.tax_id;
+
+    // Create account token with company data (required for FR platforms)
+    const accountToken = await createAccountToken({
       company: {
         name: company.name,
         tax_id: company.tax_id,
+        registration_number: registrationNumber,
         phone: company.phone,
-        // Backend v3: expects registration_number (keep compatibility with existing name)
-        registration_number: company.company_number,
+        address: {
+          line1: company.address.line1,
+          line2: company.address.line2 || undefined,
+          city: company.address.city,
+          state: company.address.state,
+          postal_code: company.address.postal_code,
+          country: "AU",
+        },
       },
+    });
+
+    const payload = {
+      name: company.name,
+      tax_id: company.tax_id,
+      registration_number: registrationNumber,
+      phone: company.phone,
+      address: {
+        line1: company.address.line1,
+        line2: company.address.line2 || undefined,
+        city: company.address.city,
+        state: company.address.state,
+        postal_code: company.address.postal_code,
+      },
+      account_token: accountToken,
     };
 
-    const personalInfoResponse = await fetchWithAuth(
-      `${ServerData.serverUrl}v1/stripe/onboarding/personal-info`,
+    const response = await fetchWithAuth(
+      `${ServerData.serverUrl}v1/stripe/onboarding/company-details`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(personalInfoPayload),
+        body: JSON.stringify(payload),
       },
     );
 
-    if (!personalInfoResponse.ok) {
-      const errorData = await personalInfoResponse
+    if (!response.ok) {
+      const errorData = await response
         .json()
         .catch(() => ({ error: "Unknown error" }));
-      const requiredFields = Array.isArray(errorData?.required)
-        ? errorData.required
-        : [];
-      const requiresIndividualPayload =
-        personalInfoResponse.status === 400 &&
-        requiredFields.includes("first_name") &&
-        requiredFields.includes("last_name") &&
-        requiredFields.includes("dob") &&
-        requiredFields.includes("email") &&
-        requiredFields.includes("phone");
-
-      if (requiresIndividualPayload) {
-      } else {
-        console.error(
-          `❌ [ONBOARDING] Error response (/personal-info company):`,
-          errorData,
-        );
-        throw new Error(
-          errorData.error ||
-            errorData.message ||
-            "Failed to submit company info",
-        );
-      }
-    }
-
-    const addressPayload = {
-      line1: company.address.line1,
-      line2: company.address.line2,
-      city: company.address.city,
-      state: company.address.state,
-      postal_code: company.address.postal_code,
-      country: "AU",
-    };
-
-    const addressResponse = await fetchWithAuth(
-      `${ServerData.serverUrl}v1/stripe/onboarding/address`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(addressPayload),
-      },
-    );
-
-    if (!addressResponse.ok) {
-      const errorData = await addressResponse
-        .json()
-        .catch(() => ({ error: "Unknown error" }));
-      console.error(`❌ [ONBOARDING] Error response (/address):`, errorData);
       throw new Error(
         errorData.error ||
           errorData.message ||
-          "Failed to submit company address",
+          "Failed to submit company details",
       );
     }
 
-    const addressData = await addressResponse.json();
-    const progress =
-      addressData.onboarding_progress || addressData.progress || 0;
+    const data = await response.json();
+    const progress = data.progress || 0;
     return { progress };
   } catch (error) {
     console.error("❌ [ONBOARDING] Error submitting company details:", error);
@@ -3052,6 +3131,35 @@ export const submitRepresentativeDetails = async (representative: {
   };
 }): Promise<{ progress: number }> => {
   try {
+    // Create person token for representative (required for FR platforms)
+    const personToken = await createPersonToken({
+      first_name: representative.first_name,
+      last_name: representative.last_name,
+      email: representative.email,
+      phone: representative.phone,
+      dob: {
+        day: representative.dob_day,
+        month: representative.dob_month,
+        year: representative.dob_year,
+      },
+      address: {
+        line1: representative.address.line1,
+        line2: representative.address.line2 || undefined,
+        city: representative.address.city,
+        state: representative.address.state,
+        postal_code: representative.address.postal_code,
+        country: "AU",
+      },
+      relationship: {
+        title: representative.relationship.title,
+        owner: representative.relationship.owner,
+        director: representative.relationship.director,
+        executive: representative.relationship.executive,
+        percent_ownership: representative.relationship.percent_ownership,
+        representative: true,
+      },
+    });
+
     const payload = {
       first_name: representative.first_name,
       last_name: representative.last_name,
@@ -3077,6 +3185,7 @@ export const submitRepresentativeDetails = async (representative: {
         executive: representative.relationship.executive,
         percent_ownership: representative.relationship.percent_ownership,
       },
+      person_token: personToken,
     };
 
     const response = await fetchWithAuth(
@@ -3210,6 +3319,49 @@ export const submitCompanyPersons = async (payload: {
     past_due?: string[];
   };
 }> => {
+  // Create a person_token for the representative (required by Stripe when the
+  // person was originally created with a token — FR-platform constraint).
+  const rep = payload.representative;
+  const [year, month, day] = (rep.dob || "").split("-").map(Number);
+
+  const combinedRelationship: Record<string, unknown> = {
+    representative: true,
+    owner: true,
+    director: true,
+    executive: true,
+    percent_ownership: rep.percent_ownership ?? 100,
+    title: rep.title || "Director",
+  };
+
+  const personToken = await createPersonToken({
+    first_name: rep.first_name,
+    last_name: rep.last_name,
+    email: rep.email,
+    phone: rep.phone || undefined,
+    dob: { day, month, year },
+    address: rep.address
+      ? {
+          line1: rep.address.line1,
+          line2: rep.address.line2 || undefined,
+          city: rep.address.city,
+          state: rep.address.state,
+          postal_code: rep.address.postal_code,
+          country: "AU",
+        }
+      : undefined,
+    relationship: combinedRelationship,
+  });
+
+  // FR-platform accounts require an account_token for ALL company.* updates,
+  // including the boolean flags directors_provided / executives_provided / owners_provided.
+  const accountToken = await createAccountToken({
+    company: {
+      directors_provided: true,
+      executives_provided: true,
+      owners_provided: true,
+    },
+  });
+
   const response = await fetchWithAuth(
     `${ServerData.serverUrl}v1/stripe/onboarding/persons`,
     {
@@ -3217,7 +3369,7 @@ export const submitCompanyPersons = async (payload: {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ ...payload, person_token: personToken, account_token: accountToken }),
     },
   );
 
@@ -3451,13 +3603,27 @@ export const uploadDocument = async (
     };
 
     const postFormData = async (formData: FormData) => {
-      const uploadResponse = await fetchWithAuth(
-        `${ServerData.serverUrl}v1/stripe/onboarding/document`,
-        {
-          method: "POST",
-          body: formData,
-        },
-      );
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 55_000);
+
+      let uploadResponse: Response;
+      try {
+        uploadResponse = await fetchWithAuth(
+          `${ServerData.serverUrl}v1/stripe/onboarding/document`,
+          {
+            method: "POST",
+            body: formData,
+            signal: controller.signal,
+          },
+        );
+      } catch (err: any) {
+        clearTimeout(timeoutId);
+        if (err?.name === "AbortError") {
+          throw new Error("Document upload timed out. Please try again.");
+        }
+        throw err;
+      }
+      clearTimeout(timeoutId);
 
       const contentType = uploadResponse.headers.get("content-type") || "";
       const rawText = await uploadResponse.text().catch(() => "");
@@ -3507,13 +3673,14 @@ export const uploadDocument = async (
       const result = await postFormData(formData);
 
       if (!result.ok) {
-        console.error("❌ [ONBOARDING] Error response (/document):", {
+        const errorDetail = JSON.stringify({
           side,
           status: result.status,
           statusText: result.statusText,
           contentType: result.contentType,
           errorData: result.body,
         });
+        console.error("❌ [ONBOARDING] Error response (/document):", errorDetail);
         throw new Error(
           `Upload failed (${result.status}): ${summarizeBackendError(result.body)}`,
         );
@@ -3522,24 +3689,159 @@ export const uploadDocument = async (
       return result.body;
     };
 
-    const frontBody = await uploadOneSide("front", frontImageUri);
-    let lastBody: any = frontBody;
+    // Helper: execute Phase 2 (create client token + attach) for a single side
+    const attachSideToken = async (sideData: any): Promise<any> => {
+      if (!sideData || typeof sideData !== "object" || !sideData.needs_client_token) {
+        return sideData;
+      }
 
+      const { target_type, person_id, merged_document, business_type } = sideData;
+
+      let attachBody: Record<string, any>;
+
+      if (target_type === "person" && person_id && merged_document) {
+        const personTokenId = await createPersonToken({
+          verification: { document: merged_document },
+        });
+        attachBody = { person_token: personTokenId, person_id };
+      } else {
+        const accountData: Record<string, any> = {};
+        if (business_type === "company") {
+          accountData.company = {
+            verification: { document: merged_document },
+          };
+        } else {
+          accountData.individual = {
+            verification: { document: merged_document },
+          };
+        }
+        const accountTokenId = await createAccountToken(accountData);
+        attachBody = { account_token: accountTokenId };
+      }
+
+      const attachResponse = await fetchWithAuth(
+        `${ServerData.serverUrl}v1/stripe/onboarding/document-attach`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(attachBody),
+        },
+      );
+
+      if (!attachResponse.ok) {
+        const errText = await attachResponse.text().catch(() => "");
+        let errMsg = "Document attach failed";
+        try {
+          const errJson = JSON.parse(errText);
+          errMsg = errJson.message || errJson.error || errMsg;
+        } catch {
+          errMsg = errText || errMsg;
+        }
+        throw new Error(`Attach failed (${attachResponse.status}): ${errMsg}`);
+      }
+
+      return attachResponse.json().catch(() => ({}));
+    };
+
+    // Upload front and attach immediately (Phase 1 + Phase 2 for front)
+    const frontBody = await uploadOneSide("front", frontImageUri);
+    let lastAttachResult = await attachSideToken(frontBody);
+
+    // Upload back and attach (Phase 1 + Phase 2 for back)
+    // Backend will see front is already attached and merge both sides
     if (documentType !== "passport") {
       if (!backImageUri) {
         throw new Error("Back image is required for this document type");
       }
-      lastBody = await uploadOneSide("back", backImageUri);
+      const backBody = await uploadOneSide("back", backImageUri);
+      lastAttachResult = await attachSideToken(backBody);
     }
 
-    const data = lastBody && typeof lastBody === "object" ? lastBody : {};
     return {
-      progress: (data as any).onboarding_progress || (data as any).progress,
-      onboarding_progress: (data as any).onboarding_progress,
-      next_step: (data as any).next_step,
+      progress:
+        (lastAttachResult as any)?.progress ||
+        (lastAttachResult as any)?.onboarding_progress,
+      onboarding_progress: (lastAttachResult as any)?.onboarding_progress,
+      next_step: (lastAttachResult as any)?.next_step,
     };
   } catch (error) {
     console.error("❌ [ONBOARDING] Error uploading document:", error);
+    throw error;
+  }
+};
+
+/**
+ * Upload a company verification document (e.g. business registration certificate).
+ * Uses target=company to skip person lookup on backend.
+ * Phase 1: upload file → Phase 2: create account_token with company.verification.document → attach
+ */
+export const uploadCompanyDocument = async (
+  imageUri: string,
+): Promise<{ progress: number }> => {
+  try {
+    const formData = new FormData();
+    formData.append(
+      "file",
+      { uri: imageUri, type: "image/jpeg", name: "company_doc.jpg" } as any,
+    );
+    formData.append("side", "front");
+    formData.append("target", "company");
+
+    // Phase 1: upload file to Stripe via backend
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 55_000);
+
+    let uploadResponse: Response;
+    try {
+      uploadResponse = await fetchWithAuth(
+        `${ServerData.serverUrl}v1/stripe/onboarding/document`,
+        { method: "POST", body: formData, signal: controller.signal },
+      );
+    } catch (err: any) {
+      clearTimeout(timeoutId);
+      if (err?.name === "AbortError") {
+        throw new Error("Company document upload timed out. Please try again.");
+      }
+      throw err;
+    }
+    clearTimeout(timeoutId);
+
+    if (!uploadResponse.ok) {
+      const errText = await uploadResponse.text().catch(() => "");
+      throw new Error(`Upload failed (${uploadResponse.status}): ${errText}`);
+    }
+
+    const data = await uploadResponse.json();
+
+    // Phase 2: create account_token with company.verification.document
+    if (data.needs_client_token && data.merged_document) {
+      const accountTokenId = await createAccountToken({
+        company: {
+          verification: { document: data.merged_document },
+        },
+      });
+
+      const attachResponse = await fetchWithAuth(
+        `${ServerData.serverUrl}v1/stripe/onboarding/document-attach`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ account_token: accountTokenId }),
+        },
+      );
+
+      if (!attachResponse.ok) {
+        const errText = await attachResponse.text().catch(() => "");
+        throw new Error(`Attach failed (${attachResponse.status}): ${errText}`);
+      }
+
+      const attachData = await attachResponse.json().catch(() => ({}));
+      return { progress: (attachData as any).progress || 0 };
+    }
+
+    return { progress: (data as any).progress || 0 };
+  } catch (error) {
+    console.error("❌ [ONBOARDING] Error uploading company document:", error);
     throw error;
   }
 };
@@ -3824,5 +4126,46 @@ export const getOnboardingStatus = async (): Promise<{
   } catch (error) {
     console.error("❌ [ONBOARDING] Error getting onboarding status:", error);
     throw error;
+  }
+};
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Draft Auto-Save
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+export const saveDraft = async (
+  step: string,
+  data: Record<string, unknown>,
+): Promise<void> => {
+  try {
+    await fetchWithAuth(
+      `${ServerData.serverUrl}v1/stripe/onboarding/save-draft`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ step, data }),
+      },
+    );
+  } catch (error) {
+    // Silent fail — draft save should never block user
+    console.warn("[Draft] Save failed:", error);
+  }
+};
+
+export const loadDraft = async (
+  step: string,
+): Promise<Record<string, unknown>> => {
+  try {
+    const response = await fetchWithAuth(
+      `${ServerData.serverUrl}v1/stripe/onboarding/get-draft?step=${encodeURIComponent(step)}`,
+      { method: "GET" },
+    );
+    if (!response.ok) {
+      return {};
+    }
+    const json = await response.json();
+    return json.draft || {};
+  } catch {
+    return {};
   }
 };

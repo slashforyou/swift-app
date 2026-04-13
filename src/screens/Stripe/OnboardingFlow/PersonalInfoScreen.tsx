@@ -6,35 +6,39 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Keyboard,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import {
-  SafeAreaView,
-  useSafeAreaInsets,
+    SafeAreaView,
+    useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import { getStripeTestData } from "../../../config/stripeTestData";
+import { ServerData } from "../../../constants/ServerData";
 import { DESIGN_TOKENS } from "../../../constants/Styles";
 import { useTheme } from "../../../context/ThemeProvider";
-import { useStripeAccount } from "../../../hooks/useStripe";
+import { useOnboardingDraft } from "../../../hooks/useOnboardingDraft";
 import { useTranslation } from "../../../localization";
 import {
-  fetchStripeAccount,
-  submitPersonalInfo,
+    fetchStripeAccount,
+    loadDraft,
+    submitPersonalInfo,
 } from "../../../services/StripeService";
+import { authenticatedFetch } from "../../../utils/auth";
+import { pickFirst, stripeDobToDate } from "../../../utils/autoFill";
 import {
-  getMissingOnboardingSteps,
-  getNextOnboardingStep,
-  getOnboardingStepMeta,
-  resolveBusinessType,
+    getFixedNextStep,
+    getOnboardingStepMeta,
+    resolveBusinessType,
+    type StripeOnboardingBusinessType,
 } from "./onboardingSteps";
 
 interface PersonalInfoScreenProps {
@@ -63,56 +67,69 @@ export default function PersonalInfoScreen({
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
-  const stripeAccount = useStripeAccount();
 
-  const businessType = resolveBusinessType(
-    stripeAccount.account?.business_type || stripeAccount.account?.businessType,
-    stripeAccount.account?.requirements,
-  );
+  const [businessType, setBusinessType] = React.useState<StripeOnboardingBusinessType>("company");
   const stepMeta = getOnboardingStepMeta("PersonalInfo", businessType);
   const stepLabel = t("stripe.onboarding.stepLabel", {
     current: stepMeta.index + 1,
     total: stepMeta.total,
   });
 
-  const testData = __DEV__ ? getStripeTestData() : null;
-
   const [formData, setFormData] = React.useState<FormData>({
-    firstName: testData?.personalInfo.firstName || "",
-    lastName: testData?.personalInfo.lastName || "",
-    dob: testData?.personalInfo.dob || null,
-    email: testData?.personalInfo.email || "",
-    phone: testData?.personalInfo.phone || "",
+    firstName: "",
+    lastName: "",
+    dob: null,
+    email: "",
+    phone: "",
   });
+
+  const { saveDraftNow } = useOnboardingDraft("PersonalInfo");
+  const formDataRef = React.useRef(formData);
+  React.useEffect(() => { formDataRef.current = formData; }, [formData]);
+  const handleFieldBlur = React.useCallback(() => {
+    const d = formDataRef.current;
+    saveDraftNow({ ...d, dob: d.dob?.toISOString() ?? null });
+  }, [saveDraftNow]);
 
   const [errors, setErrors] = React.useState<FormErrors>({});
   const [showDatePicker, setShowDatePicker] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [hasAutoSkipped, setHasAutoSkipped] = React.useState(false);
 
+  // Load draft on mount + pre-fill: draft > Stripe individual > user profile
+  const preFillDone = React.useRef(false);
   React.useEffect(() => {
-    if (hasAutoSkipped || stripeAccount.loading) return;
+    if (preFillDone.current) return;
+    preFillDone.current = true;
+    (async () => {
+      try {
+        // Fetch all data sources in parallel
+        const [draft, stripeData, profileRes] = await Promise.all([
+          loadDraft("PersonalInfo").catch(() => null) as Promise<Record<string, unknown> | null>,
+          fetchStripeAccount().catch(() => null) as Promise<any>,
+          authenticatedFetch(`${ServerData.serverUrl}v1/user/profile`, { method: "GET" }).then(r => r.ok ? r.json() : null).catch(() => null),
+        ]);
 
-    const requirements = stripeAccount.account?.requirements;
-    if (!requirements) return;
+        const si = stripeData?.individual || {};
+        const prof = profileRes?.data || profileRes || {};
 
-    const missing = getMissingOnboardingSteps(requirements, businessType).steps;
-    if (missing.length > 0 && !missing.includes("PersonalInfo")) {
-      const nextStep = getNextOnboardingStep(
-        "PersonalInfo",
-        requirements,
-        businessType,
-      );
-      setHasAutoSkipped(true);
-      navigation.replace(nextStep);
-    }
-  }, [
-    businessType,
-    hasAutoSkipped,
-    navigation,
-    stripeAccount.account?.requirements,
-    stripeAccount.loading,
-  ]);
+        // Resolve business type from Stripe data
+        const bt = resolveBusinessType(
+          stripeData?.business_type || stripeData?.businessType,
+          stripeData?.requirements,
+        );
+        setBusinessType(bt);
+
+        setFormData(prev => ({
+          ...prev,
+          firstName: pickFirst(prev.firstName, draft?.firstName as string, si.first_name, prof?.firstName),
+          lastName: pickFirst(prev.lastName, draft?.lastName as string, si.last_name, prof?.lastName),
+          email: pickFirst(prev.email, draft?.email as string, si.email, prof?.email),
+          phone: pickFirst(prev.phone, draft?.phone as string, si.phone, prof?.phone),
+          dob: pickFirst(prev.dob, draft?.dob ? new Date(draft.dob as string) : null, stripeDobToDate(si.dob)),
+        }));
+      } catch { /* non-critical */ }
+    })();
+  }, []);
 
   // Validation email
   const validateEmail = (email: string): boolean => {
@@ -211,57 +228,18 @@ export default function PersonalInfoScreen({
       };
 
 
-      const currentBusinessType = resolveBusinessType(
-        stripeAccount.account?.business_type ||
-          stripeAccount.account?.businessType,
-        stripeAccount.account?.requirements,
-      );
+      const currentBusinessType = businessType;
 
       // Appel API
       const response = await submitPersonalInfo(payload, currentBusinessType);
 
+      // Refresh account to update requirements context
+      await fetchStripeAccount();
 
-      const updatedAccount = await fetchStripeAccount();
-      if (!updatedAccount) {
-        navigation.navigate("Review", { personalInfo: formData });
-        return;
-      }
-      const acct = updatedAccount as any;
-      const nextBusinessType = resolveBusinessType(
-        acct.business_type,
-        acct.requirements,
-      );
-      const nextStep = getNextOnboardingStep(
-        "PersonalInfo",
-        acct.requirements,
-        nextBusinessType,
-      );
-      const nextParams = { personalInfo: formData };
-
-      switch (nextStep) {
-        case "BusinessProfile":
-          navigation.navigate("BusinessProfile");
-          break;
-        case "Address":
-          navigation.navigate("Address", nextParams);
-          break;
-        case "CompanyDetails":
-          navigation.navigate("CompanyDetails");
-          break;
-        case "Representative":
-          navigation.navigate("Representative");
-          break;
-        case "BankAccount":
-          navigation.navigate("BankAccount", nextParams);
-          break;
-        case "Documents":
-          navigation.navigate("Documents", nextParams);
-          break;
-        case "Review":
-        default:
-          navigation.navigate("Review", nextParams);
-          break;
-      }
+      // Always go to next sequential step
+      const nextStep = getFixedNextStep("PersonalInfo", currentBusinessType);
+      Keyboard.dismiss();
+      navigation.navigate(nextStep, { personalInfo: { ...formData, dob: formData.dob?.toISOString() ?? null } });
     } catch (error: any) {
       const errorMessage =
         error instanceof Error ? error.message : String(error || "");
@@ -272,7 +250,7 @@ export default function PersonalInfoScreen({
         errorMessage.includes("required permissions") ||
         error.status === 403;
 
-      console.error("❌ [PersonalInfo] Error:", {
+      console.error("[PersonalInfo] Error:", {
         message: errorMessage,
         raw: error,
       });
@@ -298,8 +276,8 @@ export default function PersonalInfoScreen({
   const handleDateChange = (event: any, selectedDate?: Date) => {
     setShowDatePicker(Platform.OS === "ios");
     if (selectedDate) {
-      setFormData({ ...formData, dob: selectedDate });
-      setErrors({ ...errors, dob: undefined });
+      setFormData(prev => ({ ...prev, dob: selectedDate }));
+      setErrors(prev => ({ ...prev, dob: undefined }));
     }
   };
 
@@ -308,7 +286,7 @@ export default function PersonalInfoScreen({
     return date.toLocaleDateString("fr-FR");
   };
 
-  const styles = StyleSheet.create({
+  const styles = React.useMemo(() => StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: colors.background,
@@ -489,7 +467,7 @@ export default function PersonalInfoScreen({
       fontWeight: "600",
       marginRight: DESIGN_TOKENS.spacing.xs,
     },
-  });
+  }), [colors, insets]);
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]} testID="stripe-personalinfo-screen">
@@ -540,10 +518,10 @@ export default function PersonalInfoScreen({
               </Text>
               <TextInput
                 style={[styles.input, errors.firstName && styles.inputError]}
-                value={formData.firstName}
+                value={String(formData.firstName ?? "")}
                 onChangeText={(text) => {
-                  setFormData({ ...formData, firstName: text });
-                  setErrors({ ...errors, firstName: undefined });
+                  setFormData(prev => ({ ...prev, firstName: text }));
+                  setErrors(prev => ({ ...prev, firstName: undefined }));
                 }}
                 placeholder={t(
                   "stripe.onboarding.personalInfo.firstNamePlaceholder",
@@ -551,6 +529,7 @@ export default function PersonalInfoScreen({
                 placeholderTextColor={colors.textSecondary}
                 autoCapitalize="words"
                 testID="stripe-personalinfo-firstname"
+                onBlur={handleFieldBlur}
               />
               {errors.firstName && (
                 <Text style={styles.errorText}>{errors.firstName}</Text>
@@ -565,10 +544,10 @@ export default function PersonalInfoScreen({
               </Text>
               <TextInput
                 style={[styles.input, errors.lastName && styles.inputError]}
-                value={formData.lastName}
+                value={String(formData.lastName ?? "")}
                 onChangeText={(text) => {
-                  setFormData({ ...formData, lastName: text });
-                  setErrors({ ...errors, lastName: undefined });
+                  setFormData(prev => ({ ...prev, lastName: text }));
+                  setErrors(prev => ({ ...prev, lastName: undefined }));
                 }}
                 placeholder={t(
                   "stripe.onboarding.personalInfo.lastNamePlaceholder",
@@ -576,6 +555,7 @@ export default function PersonalInfoScreen({
                 placeholderTextColor={colors.textSecondary}
                 autoCapitalize="words"
                 testID="stripe-personalinfo-lastname"
+                onBlur={handleFieldBlur}
               />
               {errors.lastName && (
                 <Text style={styles.errorText}>{errors.lastName}</Text>
@@ -636,10 +616,10 @@ export default function PersonalInfoScreen({
               </Text>
               <TextInput
                 style={[styles.input, errors.email && styles.inputError]}
-                value={formData.email}
+                value={String(formData.email ?? "")}
                 onChangeText={(text) => {
-                  setFormData({ ...formData, email: text });
-                  setErrors({ ...errors, email: undefined });
+                  setFormData(prev => ({ ...prev, email: text }));
+                  setErrors(prev => ({ ...prev, email: undefined }));
                 }}
                 placeholder={t(
                   "stripe.onboarding.personalInfo.emailPlaceholder",
@@ -648,6 +628,7 @@ export default function PersonalInfoScreen({
                 keyboardType="email-address"
                 autoCapitalize="none"
                 testID="stripe-personalinfo-email"
+                onBlur={handleFieldBlur}
               />
               {errors.email && (
                 <Text style={styles.errorText}>{errors.email}</Text>
@@ -666,11 +647,11 @@ export default function PersonalInfoScreen({
                 </View>
                 <TextInput
                   style={[styles.phoneInput, errors.phone && styles.inputError]}
-                  value={formData.phone}
+                  value={String(formData.phone ?? "")}
                   onChangeText={(text) => {
                     const cleaned = text.replace(/[^0-9]/g, "");
-                    setFormData({ ...formData, phone: cleaned });
-                    setErrors({ ...errors, phone: undefined });
+                    setFormData(prev => ({ ...prev, phone: cleaned }));
+                    setErrors(prev => ({ ...prev, phone: undefined }));
                   }}
                   placeholder={t(
                     "stripe.onboarding.personalInfo.phonePlaceholder",
@@ -679,6 +660,7 @@ export default function PersonalInfoScreen({
                   keyboardType="phone-pad"
                   maxLength={10}
                   testID="stripe-personalinfo-phone"
+                  onBlur={handleFieldBlur}
                 />
               </View>
               {errors.phone && (

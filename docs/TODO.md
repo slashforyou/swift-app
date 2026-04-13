@@ -1,6 +1,6 @@
 # COBBR — Roadmap Consolidée
 
-> **Dernière mise à jour :** 8 avril 2026
+> **Dernière mise à jour :** 10 avril 2026
 > **Version actuelle :** 1.1.0 (MVP live sur iOS + Android)
 > **Statut :** MVP fonctionnel — En route vers monétisation (juin 2026)
 
@@ -18,6 +18,8 @@
 | 🎮 **Gamification v2** | spec | 5 phases | spec prête |
 | **TOTAL** | **49** | **73** | **40%** |
 | **Chemin critique (P0+P1)** | **44** | **5** | **90%** |
+
+> **Accomplissements récents (8-10 avril) :** Inscription simplifiée 8→1 écran, Business Hub redesign 8→4 onglets, Stripe dual-mode (test/live), Factures hebdo/bimensuelles avec wizard 4 étapes + sélection client, i18n complète 7 langues, Rebranding emails SwiftApp→Cobbr, SMTP fix
 
 ---
 
@@ -53,6 +55,27 @@
 - [x] Élimination des `any` types (4 écrans)
 - [x] Navigation typée NativeStackNavigationProp (Support + Subscription)
 - [x] Labels d'accessibilité (3 écrans Support)
+
+### Inscription simplifiée (complet)
+
+- [x] **Suppression wizard 8 étapes** — Supprimé `src/screens/registration/` (8 écrans), `ProgressStepper.tsx`, `registration.ts`
+- [x] **Inscription 1 écran unique** — subscribe.tsx : email, password, companyName (conditionnel business_owner), accountType
+- [x] **Barre de force mot de passe** — 5 critères visuels (longueur, majuscule, minuscule, chiffre, spécial)
+- [x] **Bannière concordance mots de passe** — Feedback temps réel vert/rouge
+- [x] **Animation pluie d'émojis** — AnimatedBackground avec 18 émojis déco
+- [x] **Alerte email dupliqué** — Détection serveur + redirection login
+- [x] **SMTP IONOS fix** — Correction credentials `contact@cobbr-app.com`
+
+### Business Hub Redesign (complet)
+
+- [x] **Réduction 8→4 onglets** — Hub / Ressources / Config / Finances
+- [x] **BusinessHubOverview** — Dashboard command center (stats, raccourcis, cartes d'action)
+- [x] **BusinessSubTabMenu** — Sous-onglets par section avec TAB_MAPPING rétrocompatible
+- [x] **Stripe dual-mode** — AsyncLocalStorage + Proxy, `stripe_mode` en DB, header `X-Stripe-Mode`
+- [x] **Factures hebdo/bimensuelles** — Migration 029 (period_type), wizard 4 étapes
+- [x] **Sélection client dans wizard** — Migration 030 (client_id), endpoint GET /clients
+- [x] **i18n complète 7 langues** — en, fr, es, it, pt, hi, zh pour tous les écrans Business Hub
+- [x] **Rebranding emails** — SwiftApp→Cobbr dans mailSender.js, templates HTML brandés
 
 ### Onboarding v2 (complet)
 
@@ -167,14 +190,14 @@
 | 22 | Tester device token Android physique | 👤 |
 | 23 | Valider routing notifications (foreground/background/fermée) | 👤 |
 
-#### Calendrier [C]
+#### Calendrier [C] ✅ DONE
 
 | # | Tâche | Notes |
 |---|-------|-------|
-| 24 | Vue semaine (en plus de jour/mois/année) | Nouvelle vue calendrier |
-| 25 | Drag & drop pour réassigner un job à une autre date | UX avancée |
-| 26 | Filtres par statut, par équipe, par véhicule | Sidebar filtres |
-| 27 | Code couleur par type de job ou par équipe | Personnalisation visuelle |
+| ~~24~~ | ~~Vue semaine (en plus de jour/mois/année)~~ | ✅ weekScreen.tsx + useJobsForWeek hook + nav + tab |
+| ~~25~~ | ~~Drag & drop pour réassigner un job à une autre date~~ | ✅ DraggableJobCard + handleJobDrop + API updateJob |
+| ~~26~~ | ~~Filtres par statut, par équipe, par véhicule~~ | ✅ CalendarFilters component (status/vehicle/staff pills) |
+| ~~27~~ | ~~Code couleur par type de job ou par équipe~~ | ✅ calendarColors.ts (4 modes: status/priority/vehicle/team) |
 
 #### Profil & Compte [C][S]
 
@@ -226,7 +249,7 @@
 | 51 | Appel d'urgence pour contractors/contractee | Bouton rapide |
 | 52 | MapView pour contractee (trajet + temps estimé) | React Native Maps |
 | 53 | Mini tutoriel 1ère utilisation (tooltips/coach marks) | Onboarding in-app |
-| 54 | Audit i18n complet (toutes langues, tous éléments) | Incluant modernJobBox.tsx hardcodé FR |
+| 54 | ~~Audit i18n complet (toutes langues, tous éléments)~~ | ✅ 7 langues (en/fr/es/it/pt/hi/zh) — Business Hub, modernJobBox, assignments, MonthlyInvoices, templates |
 | 55 | Demande d'avis automatique (happy customer → review) | Post-job |
 | 56 | Réponse par mail messages support | Backend email |
 

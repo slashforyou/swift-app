@@ -506,6 +506,22 @@ export const enTranslations: TranslationKeys = {
       pending: "Pending",
       active: "Active",
       done: "Done",
+      allVehicles: "All vehicles",
+      allStaff: "All staff",
+      reset: "Reset",
+    },
+    colorBy: {
+      label: "Color:",
+      status: "Status",
+      priority: "Priority",
+      vehicle: "Vehicle",
+      team: "Team",
+    },
+    dragDrop: {
+      confirmTitle: "Reschedule job?",
+      confirmMessage: "Move this job to {date}?",
+      errorTitle: "Error",
+      errorMessage: "Failed to reschedule job. Please try again.",
     },
     sorting: {
       time: "Time",
@@ -550,6 +566,7 @@ export const enTranslations: TranslationKeys = {
     // Navigation
     navigation: {
       monthlyView: "Monthly View",
+      weeklyView: "Weekly View",
       yearlyView: "Yearly View",
       multiYearView: "Multi-Year View",
       dailyView: "Daily View",
@@ -560,6 +577,7 @@ export const enTranslations: TranslationKeys = {
     },
     // Day Screen specific
     dayScreen: {
+      today: "Today",
       stats: {
         total: "Total",
         pending: "Pending",
@@ -1549,6 +1567,15 @@ export const enTranslations: TranslationKeys = {
       setupTitle: "Set up your payments",
       setupDesc: "Accept card payments and receive funds directly to your bank account.",
       setupCta: "Start setup",
+      resumeTitle: "Setup incomplete",
+      resumeDesc: "Your Stripe account setup was not completed. Resume to start accepting payments.",
+      resumeCta: "Resume setup",
+      pendingVerificationTitle: "Verification in progress",
+      pendingVerificationDesc: "Your account is being verified by Stripe. This usually takes 1-2 business days. You can already accept card payments.",
+      restrictedTitle: "Account restricted",
+      restrictedDesc: "Your Stripe account has been restricted due to missing or invalid documents. Please re-submit the required documents.",
+      restrictedFixDocs: "Re-submit documents",
+      restrictedCta: "Contact support",
       totalRevenue: "Total Revenue",
       currentMonth: "This Month",
       pendingBalance: "Pending Balance",
@@ -2026,6 +2053,7 @@ export const enTranslations: TranslationKeys = {
     register: {
       title: "Sign Up",
       subtitle: "Create your Cobbr account",
+      businessSubtitle: "Create your business account — you'll complete your company profile after signing in",
       firstName: "First name",
       firstNamePlaceholder: "Your first name",
       lastName: "Last name",
@@ -2045,6 +2073,22 @@ export const enTranslations: TranslationKeys = {
       alreadyHaveAccount: "Already have an account?",
       termsAgree: "By continuing, you agree to our",
       termsLink: "Terms of Service",
+      passwordsMatch: "Passwords match",
+      passwordStrength: {
+        veryWeak: "Very weak",
+        weak: "Weak",
+        fair: "Fair",
+        strong: "Strong",
+        veryStrong: "Very strong",
+      },
+      passwordCriteria: {
+        title: "Password requirements:",
+        minLength: "At least 8 characters",
+        uppercase: "One uppercase letter",
+        lowercase: "One lowercase letter",
+        number: "One number",
+        special: "One special character (!@#$...)",
+      },
     },
     validation: {
       emailRequired: "Please enter your email address.",
@@ -2059,6 +2103,8 @@ export const enTranslations: TranslationKeys = {
     errors: {
       invalidCredentials:
         "Invalid email or password. Please check your credentials.",
+      emailAlreadyUsed: "Account already exists",
+      emailAlreadyUsedMessage: "An account with this email already exists. Would you like to log in instead?",
       deviceInfoUnavailable: "Unable to retrieve device information.",
       serverError: "The server is experiencing issues. Please try again later.",
       invalidResponse: "Invalid server response. Please contact support.",
@@ -2648,6 +2694,11 @@ export const enTranslations: TranslationKeys = {
         subtitle:
           "Complete your account in 5 simple steps and start receiving payments.",
         timeEstimate: "5 minutes of your time",
+        businessTypeTitle: "What type of business are you?",
+        individualLabel: "Individual / Sole Trader",
+        individualDescription: "You operate under your own name (ABN as sole trader)",
+        companyLabel: "Company (Pty Ltd, LLC...)",
+        companyDescription: "You have a registered company with an ACN",
         benefit1: "Receive payments from your clients",
         benefit2: "Create payment links in 2 clicks",
         benefit3: "Track your revenue in real-time",
@@ -2657,6 +2708,7 @@ export const enTranslations: TranslationKeys = {
         requirement2: "Your bank details (BSB + account)",
         requirement3: "5 minutes of your time",
         startButton: "Get Started",
+        startingButton: "Creating account...",
         cancelButton: "Back to Dashboard",
       },
       personalInfo: {
@@ -2888,6 +2940,18 @@ export const enTranslations: TranslationKeys = {
         backPlaceholder: "Take a photo of the back",
         takePhotoButton: "Take a photo",
         retakeButton: "Retake photo",
+        uploading: "Uploading documents...",
+        companyDocTitle: "Business Registration Document",
+        companyDocSubtitle: "A photo of your ABN registration, business certificate, or equivalent document.",
+        companyDocPlaceholder: "Take a photo of your business registration",
+        companyDocRequired: "Please take a photo of your business registration document.",
+        companyDocChoose: "How would you like to add the document?",
+        idDocChoose: "Identity photo",
+        idDocChooseMessage: "How would you like to add your photo?",
+        pickFromGallery: "Pick from gallery",
+        addDocument: "Add document",
+        reuploadSuccessTitle: "Documents submitted",
+        reuploadSuccessMessage: "Your documents have been re-submitted. Stripe will review them shortly.",
         nextButton: "Next",
         errors: {
           permissionTitle: "Permission Required",
@@ -2928,6 +2992,9 @@ export const enTranslations: TranslationKeys = {
         disclaimer:
           "By activating your account, Stripe will validate your documents within 24-48h. You will be notified by email once your account is operational.",
         activateButton: "Activate my Stripe account",
+        checkingRequirements: "Checking requirements…",
+        pendingRequirementsTitle: "{{count}} item(s) still required",
+        pendingRequirementsHint: "Tap an item to go back and fix it.",
         successTitle: "Account Created!",
         successMessage:
           "Your Stripe account has been created. Stripe will validate your documents within 24-48h.",

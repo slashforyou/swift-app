@@ -509,6 +509,22 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
         pending: "En attente",
         active: "En cours",
         done: "Terminé",
+        allVehicles: "Tous les véhicules",
+        allStaff: "Tout le personnel",
+        reset: "Réinitialiser",
+      },
+      colorBy: {
+        label: "Couleur :",
+        status: "Statut",
+        priority: "Priorité",
+        vehicle: "Véhicule",
+        team: "Équipe",
+      },
+      dragDrop: {
+        confirmTitle: "Replanifier le job ?",
+        confirmMessage: "Déplacer ce job au {date} ?",
+        errorTitle: "Erreur",
+        errorMessage: "Impossible de replanifier le job. Veuillez réessayer.",
       },
       sorting: {
         time: "Heure",
@@ -553,6 +569,7 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
       // Navigation
       navigation: {
         monthlyView: "Vue Mensuelle",
+        weeklyView: "Vue Semaine",
         yearlyView: "Vue Annuelle",
         multiYearView: "Vue Multi-Années",
         dailyView: "Vue Quotidienne",
@@ -563,6 +580,7 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
       },
       // Day Screen specific
       dayScreen: {
+        today: "Aujourd'hui",
         stats: {
           total: "Total",
           pending: "En attente",
@@ -1577,6 +1595,15 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
         setupTitle: "Configurez vos paiements",
         setupDesc: "Acceptez les paiements par carte et recevez vos fonds directement sur votre compte bancaire.",
         setupCta: "Commencer la configuration",
+        resumeTitle: "Configuration incomplète",
+        resumeDesc: "La configuration de votre compte Stripe n'a pas été finalisée. Reprenez pour commencer à accepter les paiements.",
+        resumeCta: "Reprendre la configuration",
+        pendingVerificationTitle: "Vérification en cours",
+        pendingVerificationDesc: "Votre compte est en cours de vérification par Stripe. Cela prend généralement 1 à 2 jours ouvrés. Vous pouvez déjà accepter les paiements par carte.",
+        restrictedTitle: "Compte restreint",
+        restrictedDesc: "Votre compte Stripe a été restreint en raison de documents manquants ou invalides. Veuillez re-soumettre les documents requis.",
+        restrictedFixDocs: "Re-soumettre les documents",
+        restrictedCta: "Contacter le support",
         totalRevenue: "Revenu total",
         currentMonth: "Mois en cours",
         pendingBalance: "Solde en attente",
@@ -2057,6 +2084,7 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
       register: {
         title: "Inscription",
         subtitle: "Créez votre compte Cobbr",
+        businessSubtitle: "Créez votre compte entreprise — vous compléterez votre profil après connexion",
         firstName: "Prénom",
         firstNamePlaceholder: "Votre prénom",
         lastName: "Nom",
@@ -2076,6 +2104,22 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
         alreadyHaveAccount: "Déjà un compte ?",
         termsAgree: "En continuant, vous acceptez nos",
         termsLink: "Conditions d'utilisation",
+        passwordsMatch: "Les mots de passe correspondent",
+        passwordStrength: {
+          veryWeak: "Très faible",
+          weak: "Faible",
+          fair: "Moyen",
+          strong: "Fort",
+          veryStrong: "Très fort",
+        },
+        passwordCriteria: {
+          title: "Critères du mot de passe :",
+          minLength: "Au moins 8 caractères",
+          uppercase: "Une lettre majuscule",
+          lowercase: "Une lettre minuscule",
+          number: "Un chiffre",
+          special: "Un caractère spécial (!@#$...)",
+        },
       },
       validation: {
         emailRequired: "Veuillez saisir votre adresse email.",
@@ -2091,6 +2135,8 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
       errors: {
         invalidCredentials:
           "Email ou mot de passe incorrect. Veuillez vérifier vos identifiants.",
+        emailAlreadyUsed: "Compte déjà existant",
+        emailAlreadyUsedMessage: "Un compte avec cet email existe déjà. Voulez-vous vous connecter ?",
         deviceInfoUnavailable:
           "Impossible de récupérer les informations de votre appareil.",
         serverError:
@@ -2593,6 +2639,11 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
           subtitle:
             "Complétez votre compte en 5 étapes simples et commencez à recevoir des paiements.",
           timeEstimate: "5 minutes de votre temps",
+          businessTypeTitle: "Quel type de business êtes-vous ?",
+          individualLabel: "Individuel / Auto-entrepreneur",
+          individualDescription: "Vous opérez sous votre propre nom (ABN sole trader)",
+          companyLabel: "Société (Pty Ltd, SARL...)",
+          companyDescription: "Vous avez une société enregistrée avec un ACN",
           benefit1: "Recevez des paiements de vos clients",
           benefit2: "Créez des liens de paiement en 2 clics",
           benefit3: "Suivez vos revenus en temps réel",
@@ -2602,6 +2653,7 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
           requirement2: "Vos coordonnées bancaires (BSB + compte)",
           requirement3: "5 minutes de votre temps",
           startButton: "Commencer",
+          startingButton: "Création en cours...",
           cancelButton: "Retour au tableau de bord",
         },
         personalInfo: {
@@ -2843,6 +2895,18 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
           backPlaceholder: "Prenez une photo du verso",
           takePhotoButton: "Prendre une photo",
           retakeButton: "Reprendre la photo",
+          uploading: "Envoi des documents en cours...",
+          companyDocTitle: "Document d'enregistrement de l'entreprise",
+          companyDocSubtitle: "Une photo de votre enregistrement ABN, certificat d'entreprise ou document équivalent.",
+          companyDocPlaceholder: "Prenez une photo de votre document d'enregistrement",
+          companyDocRequired: "Veuillez prendre une photo de votre document d'enregistrement d'entreprise.",
+          companyDocChoose: "Comment souhaitez-vous ajouter le document ?",
+          idDocChoose: "Photo d'identité",
+          idDocChooseMessage: "Comment souhaitez-vous ajouter votre photo ?",
+          pickFromGallery: "Choisir depuis la galerie",
+          addDocument: "Ajouter un document",
+          reuploadSuccessTitle: "Documents envoyés",
+          reuploadSuccessMessage: "Vos documents ont été renvoyés avec succès. Stripe les examinera sous peu.",
           nextButton: "Suivant",
           errors: {
             permissionTitle: "Permission requise",
@@ -2887,6 +2951,9 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
           disclaimer:
             "En activant votre compte, Stripe validera vos documents sous 24-48h. Vous serez notifié par email dès que votre compte sera opérationnel.",
           activateButton: "Activer mon compte Stripe",
+          checkingRequirements: "Vérification des pré-requis…",
+          pendingRequirementsTitle: "{{count}} élément(s) encore requis",
+          pendingRequirementsHint: "Appuyez sur un élément pour le corriger.",
           successTitle: "Compte créé !",
           successMessage:
             "Votre compte Stripe a été créé. Stripe validera vos documents sous 24-48h.",

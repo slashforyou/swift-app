@@ -36,6 +36,13 @@ const getCalendarTabsConfig = (t: any): CalendarTabItem[] => [
     accessibilityLabel: 'Daily View Tab'
   },
   { 
+    id: 'Week', 
+    label: t('calendar.navigation.weeklyView'),
+    icon: 'calendar-number',
+    routeName: 'Week',
+    accessibilityLabel: 'Weekly View Tab'
+  },
+  { 
     id: 'Month', 
     label: t('calendar.navigation.monthlyView'),
     icon: 'calendar',

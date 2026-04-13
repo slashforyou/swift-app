@@ -5,31 +5,31 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  Modal,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  Text,
-  View,
+    ActivityIndicator,
+    Alert,
+    Image,
+    Modal,
+    Pressable,
+    RefreshControl,
+    ScrollView,
+    Text,
+    View,
 } from "react-native";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
 import { useLocalization, useTranslation } from "../../localization/useLocalization";
 import {
-  fetchInvoiceClients,
-  fetchMonthlyInvoiceDetail,
-  fetchMonthlyInvoices,
-  generateMonthlyInvoice,
-  InvoiceClient,
-  InvoicePeriodType,
-  InvoiceStatus,
-  MonthlyInvoice,
-  MonthlyInvoiceDetail,
-  sendMonthlyInvoice,
-  updateMonthlyInvoice,
+    fetchInvoiceClients,
+    fetchMonthlyInvoiceDetail,
+    fetchMonthlyInvoices,
+    generateMonthlyInvoice,
+    InvoiceClient,
+    InvoicePeriodType,
+    InvoiceStatus,
+    MonthlyInvoice,
+    MonthlyInvoiceDetail,
+    sendMonthlyInvoice,
+    updateMonthlyInvoice,
 } from "../../services/monthlyInvoiceService";
 
 // ─────────────────────────────────────────────────────────

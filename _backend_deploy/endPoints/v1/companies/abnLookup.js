@@ -133,4 +133,48 @@ const abnSearchEndpoint = async (req, res) => {
   }
 };
 
-module.exports = { abnLookupEndpoint, abnSearchEndpoint };
+// ──────────────────────────────────────────────
+// GET /companies/postcode-lookup?postcode=XXXX
+// ──────────────────────────────────────────────
+const postcodeLookupEndpoint = async (req, res) => {
+  const postcode = (req.query.postcode || "").trim();
+  console.log("[ GET /companies/postcode-lookup ]", { postcode });
+
+  if (!postcode || !/^\d{4}$/.test(postcode)) {
+    return res.status(400).json({
+      success: false,
+      error: "Invalid postcode. Must be exactly 4 digits.",
+    });
+  }
+
+  try {
+    const url = `https://v0.postcodeapi.com.au/suburbs.json?postcode=${encodeURIComponent(postcode)}`;
+    const response = await fetch(url);
+    const suburbs = await response.json();
+
+    if (!Array.isArray(suburbs) || suburbs.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: "No suburb found for this postcode.",
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: {
+        suburb: suburbs[0].name || "",
+        state: suburbs[0].state?.abbreviation || "",
+        postcode: String(suburbs[0].postcode || postcode),
+        all_suburbs: suburbs.map((s) => s.name),
+      },
+    });
+  } catch (error) {
+    console.error("❌ Postcode lookup error:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Failed to query postcode API.",
+    });
+  }
+};
+
+module.exports = { abnLookupEndpoint, abnSearchEndpoint, postcodeLookupEndpoint };

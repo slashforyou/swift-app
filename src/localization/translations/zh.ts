@@ -424,6 +424,22 @@ export const zhTranslations = mergeWithBaseTranslations(enTranslations, {
       pending: "待处理",
       active: "进行中",
       done: "已完成",
+      allVehicles: "所有车辆",
+      allStaff: "所有人员",
+      reset: "重置",
+    },
+    colorBy: {
+      label: "颜色：",
+      status: "状态",
+      priority: "优先级",
+      vehicle: "车辆",
+      team: "团队",
+    },
+    dragDrop: {
+      confirmTitle: "重新安排工作？",
+      confirmMessage: "将此工作移至 {date}？",
+      errorTitle: "错误",
+      errorMessage: "重新安排工作失败，请重试。",
     },
     sorting: {
       time: "时间",
@@ -464,6 +480,7 @@ export const zhTranslations = mergeWithBaseTranslations(enTranslations, {
     // Navigation
     navigation: {
       monthlyView: "月视图",
+      weeklyView: "周视图",
       yearlyView: "年视图",
       multiYearView: "多年视图",
       dailyView: "日视图",
@@ -474,6 +491,7 @@ export const zhTranslations = mergeWithBaseTranslations(enTranslations, {
     },
     // Day Screen specific
     dayScreen: {
+      today: "今天",
       stats: {
         total: "总计",
         pending: "待处理",
@@ -1263,6 +1281,7 @@ export const zhTranslations = mergeWithBaseTranslations(enTranslations, {
     register: {
       title: "注册",
       subtitle: "创建您的 Cobbr 账户",
+      businessSubtitle: "创建您的企业账户 — 登录后完善公司资料",
       firstName: "名",
       firstNamePlaceholder: "您的名字",
       lastName: "姓",
@@ -1280,6 +1299,22 @@ export const zhTranslations = mergeWithBaseTranslations(enTranslations, {
       alreadyHaveAccount: "已有账户？",
       termsAgree: "继续即表示您同意我们的",
       termsLink: "服务条款",
+      passwordsMatch: "密码匹配",
+      passwordStrength: {
+        veryWeak: "非常弱",
+        weak: "弱",
+        fair: "一般",
+        strong: "强",
+        veryStrong: "非常强",
+      },
+      passwordCriteria: {
+        title: "密码要求：",
+        minLength: "至少8个字符",
+        uppercase: "一个大写字母",
+        lowercase: "一个小写字母",
+        number: "一个数字",
+        special: "一个特殊字符 (!@#$...)",
+      },
     },
     registration: {
       selectAccountType: {
@@ -1315,6 +1350,8 @@ export const zhTranslations = mergeWithBaseTranslations(enTranslations, {
     },
     errors: {
       invalidCredentials: "电子邮件或密码错误。请检查您的凭据。",
+      emailAlreadyUsed: "账户已存在",
+      emailAlreadyUsedMessage: "此邮箱已注册账户。是否要登录？",
       deviceInfoUnavailable: "无法获取设备信息。",
       serverError: "服务器出现问题。请稍后再试。",
       invalidResponse: "服务器响应无效。请联系支持。",
@@ -1641,6 +1678,11 @@ export const zhTranslations = mergeWithBaseTranslations(enTranslations, {
         title: "激活 Stripe 支付",
         subtitle: "通过5个简单步骤完成您的账户设置，开始接收付款。",
         timeEstimate: "需要5分钟",
+        businessTypeTitle: "您的业务类型是什么？",
+        individualLabel: "个人 / 个体经营者",
+        individualDescription: "您以个人名义经营（ABN个体经营者）",
+        companyLabel: "公司（Pty Ltd, LLC...）",
+        companyDescription: "您有注册公司（带有ACN）",
         benefit1: "从客户处接收付款",
         benefit2: "两次点击即可创建付款链接",
         benefit3: "实时跟踪您的收入",
@@ -1650,6 +1692,7 @@ export const zhTranslations = mergeWithBaseTranslations(enTranslations, {
         requirement2: "您的银行信息（BSB + 账号）",
         requirement3: "5分钟时间",
         startButton: "开始",
+        startingButton: "正在创建账户...",
         cancelButton: "返回仪表板",
       },
       personalInfo: {
@@ -1870,6 +1913,18 @@ export const zhTranslations = mergeWithBaseTranslations(enTranslations, {
         backPlaceholder: "拍摄背面照片",
         takePhotoButton: "拍照",
         retakeButton: "重新拍照",
+        uploading: "正在上传文件...",
+        companyDocTitle: "企业注册文件",
+        companyDocSubtitle: "您的ABN注册、营业执照或等效文件的照片。",
+        companyDocPlaceholder: "拍摄您的企业注册文件",
+        companyDocRequired: "请拍摄您的企业注册文件照片。",
+        companyDocChoose: "您想如何添加文件？",
+        idDocChoose: "身份证照片",
+        idDocChooseMessage: "您想如何添加照片？",
+        pickFromGallery: "从相册选择",
+        addDocument: "添加文件",
+        reuploadSuccessTitle: "文件已提交",
+        reuploadSuccessMessage: "您的文件已重新提交。Stripe 将很快审核。",
         nextButton: "下一步",
         errors: {
           permissionTitle: "需要权限",
@@ -1908,6 +1963,9 @@ export const zhTranslations = mergeWithBaseTranslations(enTranslations, {
         disclaimer:
           "激活您的账户后，Stripe 将在24-48小时内验证您的文件。账户运行后，您将通过电子邮件收到通知。",
         activateButton: "激活我的 Stripe 账户",
+        checkingRequirements: "正在检查要求…",
+        pendingRequirementsTitle: "还需要 {{count}} 项",
+        pendingRequirementsHint: "点击项目以返回修复。",
         successTitle: "账户已创建！",
         successMessage:
           "您的 Stripe 账户已创建。Stripe 将在24-48小时内验证您的文件。",

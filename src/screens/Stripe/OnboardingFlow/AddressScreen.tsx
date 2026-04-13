@@ -1,40 +1,48 @@
 /**
- * AddressScreen - Étape 2/5 de l'onboarding Stripe
+ * AddressScreen - Étape 3 de l'onboarding Stripe
  * Collecte: Adresse ligne 1, ligne 2 (optionnel), Ville, État, Code postal
+ *
+ * Radical rewrite: no native Picker, no useStripeAccount/useUserProfile hooks,
+ * postcode lookup onBlur only, StyleSheet in useMemo.
  */
-import { Picker } from "@react-native-picker/picker";
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Keyboard,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import {
-    SafeAreaView,
-    useSafeAreaInsets,
+  SafeAreaView,
+  useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import { getStripeTestData } from "../../../config/stripeTestData";
+import { ServerData } from "../../../constants/ServerData";
 import { DESIGN_TOKENS } from "../../../constants/Styles";
 import { useTheme } from "../../../context/ThemeProvider";
-import { useStripeAccount } from "../../../hooks/useStripe";
+import { useOnboardingDraft } from "../../../hooks/useOnboardingDraft";
 import { useTranslation } from "../../../localization";
+import { lookupPostcode } from "../../../services/abnLookupService";
 import {
-    fetchStripeAccount,
-    submitAddress,
+  fetchStripeAccount,
+  loadDraft,
+  submitAddress,
 } from "../../../services/StripeService";
+import { authenticatedFetch } from "../../../utils/auth";
+import { pickFirst } from "../../../utils/autoFill";
 import {
-    getMissingOnboardingSteps,
-    getNextOnboardingStep,
-    getOnboardingStepMeta,
-    resolveBusinessType,
+  getFixedNextStep,
+  getOnboardingStepMeta,
+  resolveBusinessType,
 } from "./onboardingSteps";
 
 interface AddressScreenProps {
@@ -75,56 +83,97 @@ export default function AddressScreen({
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
-  const stripeAccount = useStripeAccount();
 
-  const businessType = resolveBusinessType(
-    stripeAccount.account?.business_type || stripeAccount.account?.businessType,
-    stripeAccount.account?.requirements,
-  );
+  // Business type: fetched inline during pre-fill, default "company"
+  const [businessType, setBusinessType] = React.useState<"individual" | "company">("company");
   const stepMeta = getOnboardingStepMeta("Address", businessType);
   const stepLabel = t("stripe.onboarding.stepLabel", {
     current: stepMeta.index + 1,
     total: stepMeta.total,
   });
 
-  const testData = __DEV__ ? getStripeTestData() : null;
-
   const [formData, setFormData] = React.useState<FormData>({
-    line1: testData?.address.line1 || "",
-    line2: testData?.address.line2 || "",
-    city: testData?.address.city || "",
-    state: testData?.address.state || "",
-    postalCode: testData?.address.postalCode || "",
+    line1: "",
+    line2: "",
+    city: "",
+    state: "",
+    postalCode: "",
   });
+
+  const { saveDraftNow } = useOnboardingDraft("Address");
+  const formDataRef = React.useRef(formData);
+  React.useEffect(() => { formDataRef.current = formData; }, [formData]);
+  const handleFieldBlur = React.useCallback(() => {
+    saveDraftNow(formDataRef.current as unknown as Record<string, unknown>);
+  }, [saveDraftNow]);
 
   const [errors, setErrors] = React.useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [hasAutoSkipped, setHasAutoSkipped] = React.useState(false);
+  const [showStatePicker, setShowStatePicker] = React.useState(false);
+  const lastLookedUpPostcode = React.useRef<string>("");
 
+  // Pre-fill from draft > Stripe account > company profile (all fetched inline)
   React.useEffect(() => {
-    if (hasAutoSkipped || stripeAccount.loading) return;
+    (async () => {
+      try {
+        const draft = await loadDraft("Address") as Partial<FormData>;
 
-    const requirements = stripeAccount.account?.requirements;
-    if (!requirements) return;
+        const response = await authenticatedFetch(
+          `${ServerData.serverUrl}v1/companies/me`,
+          { method: "GET" },
+        );
+        let d: any = {};
+        if (response.ok) {
+          const json = await response.json();
+          if (json.success && json.data) d = json.data;
+        }
 
-    const missing = getMissingOnboardingSteps(requirements, businessType).steps;
-    if (missing.length > 0 && !missing.includes("Address")) {
-      const nextStep = getNextOnboardingStep(
-        "Address",
-        requirements,
-        businessType,
-      );
-      setHasAutoSkipped(true);
-      navigation.replace(nextStep, route.params);
-    }
-  }, [
-    businessType,
-    hasAutoSkipped,
-    navigation,
-    route.params,
-    stripeAccount.account?.requirements,
-    stripeAccount.loading,
-  ]);
+        let sa: any = {};
+        let bt: "individual" | "company" = "company";
+        try {
+          const raw = await fetchStripeAccount();
+          const rawAny = raw as any;
+          bt = resolveBusinessType(rawAny?.business_type, rawAny?.requirements);
+          sa = rawAny?.individual?.address || rawAny?.company?.address || {};
+        } catch { /* ignore */ }
+        setBusinessType(bt);
+
+        const filled: FormData = {
+          line1: pickFirst("", draft?.line1 as string, sa.line1, d.address?.street, d.street_address),
+          line2: pickFirst("", draft?.line2 as string, sa.line2),
+          city: pickFirst("", draft?.city as string, sa.city, d.address?.suburb, d.suburb),
+          state: pickFirst("", draft?.state as string, sa.state, d.address?.state, d.state),
+          postalCode: pickFirst("", draft?.postalCode as string, sa.postal_code, d.address?.postcode, d.postcode),
+        };
+
+        // Mark postcode as already looked up if pre-filled (avoid auto-lookup on blur)
+        if (filled.postalCode) lastLookedUpPostcode.current = filled.postalCode;
+
+        setFormData(filled);
+      } catch { /* non-critical */ }
+    })();
+  }, []);
+
+  // Postcode lookup — onBlur only, no reactive useEffect
+  const handlePostcodeBlur = React.useCallback(async () => {
+    handleFieldBlur();
+    const pc = formDataRef.current.postalCode.trim();
+    if (!/^\d{4}$/.test(pc) || pc === lastLookedUpPostcode.current) return;
+    // Only auto-fill city/state if they're empty
+    if (formDataRef.current.city.trim() && formDataRef.current.state.trim()) return;
+    try {
+      const result = await lookupPostcode(pc);
+      lastLookedUpPostcode.current = pc;
+      if (result.suburb) {
+        setFormData((prev) => ({
+          ...prev,
+          city: prev.city || String(result.suburb || ""),
+          state: prev.state || String(result.state || ""),
+        }));
+      }
+    } catch { /* ignore */ }
+  }, [handleFieldBlur]);
+
   // Validation code postal australien (4 chiffres)
   const validatePostalCode = (postalCode: string): boolean => {
     const postalCodeRegex = /^[0-9]{4}$/;
@@ -182,42 +231,23 @@ export default function AddressScreen({
         postal_code: formData.postalCode.trim(),
       };
 
-      const response = await submitAddress(payload);
+      await submitAddress(payload, businessType);
 
+      // Refresh account to update requirements context
       const updatedAccount = await fetchStripeAccount();
       const acct = updatedAccount as any;
       const nextBusinessType = resolveBusinessType(
         acct?.business_type,
         acct?.requirements,
       );
-      const nextStep = getNextOnboardingStep(
-        "Address",
-        acct?.requirements,
-        nextBusinessType,
-      );
-      const nextParams = {
+
+      // Always go to next sequential step
+      const nextStep = getFixedNextStep("Address", nextBusinessType);
+      Keyboard.dismiss();
+      navigation.navigate(nextStep, {
         personalInfo: route.params?.personalInfo,
         address: formData,
-      };
-
-      switch (nextStep) {
-        case "CompanyDetails":
-          navigation.navigate("CompanyDetails");
-          break;
-        case "Representative":
-          navigation.navigate("Representative");
-          break;
-        case "BankAccount":
-          navigation.navigate("BankAccount", nextParams);
-          break;
-        case "Documents":
-          navigation.navigate("Documents", nextParams);
-          break;
-        case "Review":
-        default:
-          navigation.navigate("Review", nextParams);
-          break;
-      }
+      });
     } catch (error: any) {
       console.error("❌ [Address] Error:", error);
 
@@ -245,7 +275,7 @@ export default function AddressScreen({
     }
   };
 
-  const styles = StyleSheet.create({
+  const styles = React.useMemo(() => StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: colors.background,
@@ -354,12 +384,56 @@ export default function AddressScreen({
       borderRadius: 8,
       backgroundColor: colors.backgroundSecondary,
       overflow: "hidden",
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: DESIGN_TOKENS.spacing.md,
+      paddingVertical: DESIGN_TOKENS.spacing.sm + 4,
     },
     pickerContainerError: {
       borderColor: "#EF4444",
     },
-    picker: {
+    pickerText: {
+      fontSize: DESIGN_TOKENS.typography.body.fontSize,
       color: colors.text,
+      flex: 1,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.5)",
+      justifyContent: "center",
+      paddingHorizontal: 24,
+    },
+    modalContent: {
+      borderRadius: 16,
+      maxHeight: 420,
+      overflow: "hidden",
+    },
+    modalHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+      paddingVertical: DESIGN_TOKENS.spacing.md,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    modalTitle: {
+      fontSize: DESIGN_TOKENS.typography.body.fontSize,
+      fontWeight: "700",
+    },
+    modalItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+      paddingVertical: 14,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
+    },
+    modalItemText: {
+      fontSize: DESIGN_TOKENS.typography.body.fontSize,
+      flex: 1,
     },
     twoColumnRow: {
       flexDirection: "row",
@@ -407,7 +481,7 @@ export default function AddressScreen({
       fontWeight: "600",
       marginRight: DESIGN_TOKENS.spacing.xs,
     },
-  });
+  }), [colors, insets.bottom]);
 
   return (
     <SafeAreaView
@@ -462,15 +536,16 @@ export default function AddressScreen({
               </Text>
               <TextInput
                 style={[styles.input, errors.line1 && styles.inputError]}
-                value={formData.line1}
+                value={String(formData.line1 ?? "")}
                 onChangeText={(text) => {
-                  setFormData({ ...formData, line1: text });
-                  setErrors({ ...errors, line1: undefined });
+                  setFormData(prev => ({ ...prev, line1: text }));
+                  setErrors(prev => ({ ...prev, line1: undefined }));
                 }}
                 placeholder={t("stripe.onboarding.address.line1Placeholder")}
                 placeholderTextColor={colors.textSecondary}
                 autoCapitalize="words"
                 testID="stripe-address-line1"
+                onBlur={handleFieldBlur}
               />
               {errors.line1 && (
                 <Text style={styles.errorText}>{errors.line1}</Text>
@@ -485,14 +560,15 @@ export default function AddressScreen({
               </Text>
               <TextInput
                 style={styles.input}
-                value={formData.line2}
+                value={String(formData.line2 ?? "")}
                 onChangeText={(text) =>
-                  setFormData({ ...formData, line2: text })
+                  setFormData(prev => ({ ...prev, line2: text }))
                 }
                 placeholder={t("stripe.onboarding.address.line2Placeholder")}
                 placeholderTextColor={colors.textSecondary}
                 autoCapitalize="words"
                 testID="stripe-address-line2"
+                onBlur={handleFieldBlur}
               />
               <Text style={styles.helperText}>
                 {t("stripe.onboarding.address.line2Helper")}
@@ -507,15 +583,16 @@ export default function AddressScreen({
               </Text>
               <TextInput
                 style={[styles.input, errors.city && styles.inputError]}
-                value={formData.city}
+                value={String(formData.city ?? "")}
                 onChangeText={(text) => {
-                  setFormData({ ...formData, city: text });
-                  setErrors({ ...errors, city: undefined });
+                  setFormData(prev => ({ ...prev, city: text }));
+                  setErrors(prev => ({ ...prev, city: undefined }));
                 }}
                 placeholder={t("stripe.onboarding.address.cityPlaceholder")}
                 placeholderTextColor={colors.textSecondary}
                 autoCapitalize="words"
                 testID="stripe-address-city"
+                onBlur={handleFieldBlur}
               />
               {errors.city && (
                 <Text style={styles.errorText}>{errors.city}</Text>
@@ -530,33 +607,20 @@ export default function AddressScreen({
                   {t("stripe.onboarding.address.state")}{" "}
                   <Text style={styles.required}>*</Text>
                 </Text>
-                <View
+                <TouchableOpacity
                   style={[
                     styles.pickerContainer,
                     errors.state && styles.pickerContainerError,
                   ]}
+                  onPress={() => setShowStatePicker(true)}
                 >
-                  <Picker
-                    selectedValue={formData.state}
-                    onValueChange={(value) => {
-                      setFormData({ ...formData, state: value });
-                      setErrors({ ...errors, state: undefined });
-                    }}
-                    style={styles.picker}
-                  >
-                    <Picker.Item
-                      label={t("stripe.onboarding.address.statePlaceholder")}
-                      value=""
-                    />
-                    {AUSTRALIAN_STATES.map((state) => (
-                      <Picker.Item
-                        key={state.value}
-                        label={state.label}
-                        value={state.value}
-                      />
-                    ))}
-                  </Picker>
-                </View>
+                  <Text style={[styles.pickerText, !formData.state && { color: colors.textSecondary }]}>
+                    {formData.state
+                      ? AUSTRALIAN_STATES.find((s) => s.value === formData.state)?.label || formData.state
+                      : t("stripe.onboarding.address.statePlaceholder")}
+                  </Text>
+                  <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
+                </TouchableOpacity>
                 {errors.state && (
                   <Text style={styles.errorText}>{errors.state}</Text>
                 )}
@@ -570,11 +634,11 @@ export default function AddressScreen({
                 </Text>
                 <TextInput
                   style={[styles.input, errors.postalCode && styles.inputError]}
-                  value={formData.postalCode}
+                  value={String(formData.postalCode ?? "")}
                   onChangeText={(text) => {
                     const cleaned = text.replace(/[^0-9]/g, "");
-                    setFormData({ ...formData, postalCode: cleaned });
-                    setErrors({ ...errors, postalCode: undefined });
+                    setFormData(prev => ({ ...prev, postalCode: cleaned }));
+                    setErrors(prev => ({ ...prev, postalCode: undefined }));
                   }}
                   placeholder={t(
                     "stripe.onboarding.address.postalCodePlaceholder",
@@ -583,6 +647,7 @@ export default function AddressScreen({
                   keyboardType="number-pad"
                   maxLength={4}
                   testID="stripe-address-postalcode"
+                  onBlur={handlePostcodeBlur}
                 />
                 {errors.postalCode && (
                   <Text style={styles.errorText}>{errors.postalCode}</Text>
@@ -621,6 +686,62 @@ export default function AddressScreen({
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* State Picker Modal */}
+      <Modal
+        visible={showStatePicker}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowStatePicker(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowStatePicker(false)}
+        >
+          <View style={[styles.modalContent, { backgroundColor: colors.background }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>
+                {t("stripe.onboarding.address.state")}
+              </Text>
+              <TouchableOpacity onPress={() => setShowStatePicker(false)}>
+                <Ionicons name="close" size={24} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={AUSTRALIAN_STATES}
+              keyExtractor={(item) => item.value}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[
+                    styles.modalItem,
+                    formData.state === item.value && { backgroundColor: colors.primary + "20" },
+                  ]}
+                  onPress={() => {
+                    setFormData((prev) => ({ ...prev, state: item.value }));
+                    setErrors((prev) => ({ ...prev, state: undefined }));
+                    setTimeout(() => saveDraftNow({ ...formDataRef.current, state: item.value }), 100);
+                    setShowStatePicker(false);
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.modalItemText,
+                      { color: colors.text },
+                      formData.state === item.value && { color: colors.primary, fontWeight: "700" },
+                    ]}
+                  >
+                    {item.label}
+                  </Text>
+                  {formData.state === item.value && (
+                    <Ionicons name="checkmark" size={20} color={colors.primary} />
+                  )}
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }

@@ -4,23 +4,23 @@
 import * as SecureStore from "expo-secure-store";
 import { useCallback, useEffect, useState } from "react";
 import {
-  createInstantPayout,
-  createStripePaymentLink,
-  deactivateStripePaymentLink,
-  fetchStripeAccount,
-  fetchStripeBalance,
-  fetchStripePaymentLinks,
-  fetchStripePayments,
-  fetchStripePayouts,
-  getStripeAccountSettings,
-  getStripePaymentLink,
-  getStripeSettingsHistory,
-  updateStripeAccountSettings,
-  updateStripePaymentLink,
-  type CreatePaymentLinkRequest,
-  type PaymentLink,
-  type SettingsHistoryEntry,
-  type StripeAccountSettings,
+    createInstantPayout,
+    createStripePaymentLink,
+    deactivateStripePaymentLink,
+    fetchStripeAccount,
+    fetchStripeBalance,
+    fetchStripePaymentLinks,
+    fetchStripePayments,
+    fetchStripePayouts,
+    getStripeAccountSettings,
+    getStripePaymentLink,
+    getStripeSettingsHistory,
+    updateStripeAccountSettings,
+    updateStripePaymentLink,
+    type CreatePaymentLinkRequest,
+    type PaymentLink,
+    type SettingsHistoryEntry,
+    type StripeAccountSettings,
 } from "../services/StripeService";
 import { type PaymentStatus, type PayoutStatus } from "../types/stripeTypes";
 
@@ -289,7 +289,6 @@ export const useStripeAccount = () => {
             ? err.message
             : "Erreur lors du chargement du compte";
         setError(errorMessage);
-        console.error("Error loading account:", err);
         // ✅ FIX: En cas d'erreur, réinitialiser le compte à null
         setAccount(null);
       } finally {

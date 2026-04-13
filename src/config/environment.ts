@@ -40,7 +40,7 @@ const developmentConfig: EnvironmentConfig = {
   apiUrl: process.env.EXPO_PUBLIC_API_URL || "https://cobbr-app.com/swift-app/",
   stripePublishableKey:
     process.env.EXPO_PUBLIC_STRIPE_KEY ||
-    "pk_test_51SMZIJInA65k4AVU4pfHe2XYbwfiqZqYNmCSCfgrIP7iyI2rQ4sw5Po5KbZC5nt1NVMOXiWzZXaxnD1wiDnPNd2m00BwhyWbwP",
+    "pk_live_51SMZIJInA65k4AVUCFcgBFYZYeRefTIecjdp30GeqaLMyQ8PZv2HLlO5Ofxm3a5oZCrVlxlSeCIdFnI0NyChqa6800peiyPmyf",
   enableDebugLogs: true,
   enableAnalytics: false,
 };

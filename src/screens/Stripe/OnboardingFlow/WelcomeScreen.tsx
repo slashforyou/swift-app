@@ -19,10 +19,8 @@ import {
 } from "react-native-safe-area-context";
 import { DESIGN_TOKENS } from "../../../constants/Styles";
 import { useTheme } from "../../../context/ThemeProvider";
-import { useStripeAccount } from "../../../hooks/useStripe";
 import { useTranslation } from "../../../localization";
 import { startOnboarding } from "../../../services/StripeService";
-import { getStartOnboardingStep, resolveBusinessType } from "./onboardingSteps";
 
 interface WelcomeScreenProps {
   navigation: any;
@@ -32,37 +30,19 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
-  const stripeAccount = useStripeAccount();
   const [isStarting, setIsStarting] = React.useState(false);
+  const [selectedType, setSelectedType] = React.useState<"individual" | "company">("individual");
 
   const handleStart = async () => {
-
     setIsStarting(true);
 
     try {
-      // Check if user already has a Stripe account
-      const hasStripeAccount = stripeAccount.account?.stripe_account_id;
+      // Always call start — endpoint is idempotent (returns existing account if one exists)
+      await startOnboarding(selectedType);
 
-      if (!hasStripeAccount) {
-        // Create Stripe Custom account first
-        const result = await startOnboarding("company");
-
-        // Refresh the stripe account in context
-        await stripeAccount.refresh?.();
-      }
-
-      const businessType = resolveBusinessType(
-        stripeAccount.account?.business_type ||
-          stripeAccount.account?.businessType,
-        stripeAccount.account?.requirements,
-      );
-      const startStep = getStartOnboardingStep(
-        stripeAccount.account?.requirements,
-        businessType,
-      );
-      navigation.navigate(startStep);
+      // Always start at the first step — no skipping
+      navigation.navigate("PersonalInfo");
     } catch (error: any) {
-      console.error("❌ [Onboarding] Error starting:", error);
       Alert.alert(
         t("stripe.onboarding.errors.startTitle"),
         error.message || t("stripe.onboarding.errors.startMessage"),
@@ -76,7 +56,7 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
     navigation.goBack();
   };
 
-  const styles = StyleSheet.create({
+  const styles = React.useMemo(() => StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: colors.background,
@@ -220,7 +200,61 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
       color: colors.textSecondary,
       marginLeft: DESIGN_TOKENS.spacing.xs,
     },
-  });
+    businessTypeSection: {
+      marginBottom: DESIGN_TOKENS.spacing.xl,
+    },
+    businessTypeSectionTitle: {
+      fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
+      fontWeight: "600",
+      color: colors.text,
+      marginBottom: DESIGN_TOKENS.spacing.md,
+    },
+    businessTypeOption: {
+      flexDirection: "row",
+      alignItems: "center",
+      padding: DESIGN_TOKENS.spacing.md,
+      borderRadius: DESIGN_TOKENS.radius.md,
+      borderWidth: 2,
+      borderColor: colors.border,
+      marginBottom: DESIGN_TOKENS.spacing.sm,
+    },
+    businessTypeOptionSelected: {
+      borderColor: "#635BFF",
+      backgroundColor: colors.backgroundSecondary,
+    },
+    businessTypeRadio: {
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      borderWidth: 2,
+      borderColor: colors.border,
+      marginRight: DESIGN_TOKENS.spacing.md,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    businessTypeRadioSelected: {
+      borderColor: "#635BFF",
+    },
+    businessTypeRadioInner: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+      backgroundColor: "#635BFF",
+    },
+    businessTypeTextContainer: {
+      flex: 1,
+    },
+    businessTypeLabel: {
+      fontSize: DESIGN_TOKENS.typography.body.fontSize,
+      fontWeight: "600",
+      color: colors.text,
+    },
+    businessTypeDescription: {
+      fontSize: DESIGN_TOKENS.typography.caption.fontSize,
+      color: colors.textSecondary,
+      marginTop: 2,
+    },
+  }), [colors, insets]);
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]} testID="stripe-welcome-screen">
@@ -248,6 +282,49 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
           <Text style={styles.timeEstimateText}>
             {t("stripe.onboarding.welcome.timeEstimate")}
           </Text>
+        </View>
+
+        {/* Business type selector */}
+        <View style={styles.businessTypeSection}>
+          <Text style={styles.businessTypeSectionTitle}>
+            {t("stripe.onboarding.welcome.businessTypeTitle")}
+          </Text>
+
+          <TouchableOpacity
+            style={[styles.businessTypeOption, selectedType === "individual" && styles.businessTypeOptionSelected]}
+            onPress={() => setSelectedType("individual")}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.businessTypeRadio, selectedType === "individual" && styles.businessTypeRadioSelected]}>
+              {selectedType === "individual" && <View style={styles.businessTypeRadioInner} />}
+            </View>
+            <View style={styles.businessTypeTextContainer}>
+              <Text style={styles.businessTypeLabel}>
+                {t("stripe.onboarding.welcome.individualLabel")}
+              </Text>
+              <Text style={styles.businessTypeDescription}>
+                {t("stripe.onboarding.welcome.individualDescription")}
+              </Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.businessTypeOption, selectedType === "company" && styles.businessTypeOptionSelected]}
+            onPress={() => setSelectedType("company")}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.businessTypeRadio, selectedType === "company" && styles.businessTypeRadioSelected]}>
+              {selectedType === "company" && <View style={styles.businessTypeRadioInner} />}
+            </View>
+            <View style={styles.businessTypeTextContainer}>
+              <Text style={styles.businessTypeLabel}>
+                {t("stripe.onboarding.welcome.companyLabel")}
+              </Text>
+              <Text style={styles.businessTypeDescription}>
+                {t("stripe.onboarding.welcome.companyDescription")}
+              </Text>
+            </View>
+          </TouchableOpacity>
         </View>
 
         {/* Liste des bénéfices */}

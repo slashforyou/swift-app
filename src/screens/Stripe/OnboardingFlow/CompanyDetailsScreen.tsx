@@ -1,14 +1,15 @@
 /**
  * CompanyDetailsScreen - Company details for Stripe
  */
-import { Picker } from "@react-native-picker/picker";
 import Ionicons from "@react-native-vector-icons/ionicons";
-import * as SecureStore from "expo-secure-store";
 import React from "react";
 import {
     ActivityIndicator,
     Alert,
+    FlatList,
+    Keyboard,
     KeyboardAvoidingView,
+    Modal,
     Platform,
     ScrollView,
     StyleSheet,
@@ -21,20 +22,22 @@ import {
     SafeAreaView,
     useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import { getStripeTestData } from "../../../config/stripeTestData";
+import { ServerData } from "../../../constants/ServerData";
 import { DESIGN_TOKENS } from "../../../constants/Styles";
 import { useTheme } from "../../../context/ThemeProvider";
-import { useStripeAccount } from "../../../hooks/useStripe";
+import { useOnboardingDraft } from "../../../hooks/useOnboardingDraft";
 import { useTranslation } from "../../../localization";
+import { lookupAbn, lookupPostcode } from "../../../services/abnLookupService";
 import {
     fetchStripeAccount,
+    loadDraft,
     submitCompanyDetails,
 } from "../../../services/StripeService";
+import { authenticatedFetch } from "../../../utils/auth";
+import { pickFirst } from "../../../utils/autoFill";
 import {
-    getMissingOnboardingSteps,
-    getNextOnboardingStep,
+    getFixedNextStep,
     getOnboardingStepMeta,
-    resolveBusinessType,
 } from "./onboardingSteps";
 
 interface CompanyDetailsScreenProps {
@@ -80,151 +83,186 @@ export default function CompanyDetailsScreen({
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
-  const stripeAccount = useStripeAccount();
-  const stripeAccountRaw = stripeAccount.account as any;
 
-  const businessType = resolveBusinessType(
-    stripeAccountRaw?.business_type || stripeAccountRaw?.businessType,
-    stripeAccount.account?.requirements,
-  );
+  // This screen is company-only — hardcode businessType
+  const businessType = "company" as const;
   const stepMeta = getOnboardingStepMeta("CompanyDetails", businessType);
   const stepLabel = t("stripe.onboarding.stepLabel", {
     current: stepMeta.index + 1,
     total: stepMeta.total,
   });
 
-  const testData = __DEV__ ? getStripeTestData() : null;
+  const [abnStatus, setAbnStatus] = React.useState<"idle" | "loading" | "success" | "error">("idle");
+  const [gstInfo, setGstInfo] = React.useState<{ registered: boolean; effectiveFrom: string | null } | null>(null);
+  const lastLookedUpAbn = React.useRef("");
+  const lastLookedUpPostcode = React.useRef("");
+  const prefillDone = React.useRef(false);
+
+  const { saveDraftNow } = useOnboardingDraft("CompanyDetails");
 
   const [formData, setFormData] = React.useState<FormData>({
-    name: testData?.company.name || "",
-    taxId: testData?.company.taxId || "",
-    companyNumber: testData?.company.companyNumber || "",
-    phone: testData?.company.phone || "",
-    line1: testData?.company.address.line1 || "",
-    line2: testData?.company.address.line2 || "",
-    city: testData?.company.address.city || "",
-    state: testData?.company.address.state || "",
-    postalCode: testData?.company.address.postalCode || "",
+    name: "",
+    taxId: "",
+    companyNumber: "",
+    phone: "",
+    line1: "",
+    line2: "",
+    city: "",
+    state: "",
+    postalCode: "",
   });
+
+  // Auto-save ref (always tracks latest formData for blur handler)
+  const formDataRef = React.useRef<FormData>(formData);
+  React.useEffect(() => { formDataRef.current = formData; }, [formData]);
 
   const [errors, setErrors] = React.useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [hasAutoSkipped, setHasAutoSkipped] = React.useState(false);
+  const [showStatePicker, setShowStatePicker] = React.useState(false);
 
-  const companyDetailsCacheKey = "stripe_onboarding_company_details";
+  // ── ABN lookup (called manually on blur, NOT on formData change) ──
+  const doAbnLookup = React.useCallback(async () => {
+    const cleaned = formDataRef.current.taxId.replace(/\s/g, "");
+    if (!/^\d{11}$/.test(cleaned) || cleaned === lastLookedUpAbn.current) return;
 
-  const dueFields = React.useMemo(() => {
-    const req = stripeAccount.account?.requirements;
-    const due = [...(req?.past_due ?? []), ...(req?.currently_due ?? [])];
-    return new Set(due);
-  }, [stripeAccount.account?.requirements]);
+    setAbnStatus("loading");
+    try {
+      const result = await lookupAbn(cleaned);
+      lastLookedUpAbn.current = cleaned;
 
-  const isDue = React.useCallback(
-    (key: string) => dueFields.has(key),
-    [dueFields],
-  );
+      if (result.abn_status !== "Active") {
+        Alert.alert("ABN Inactive", `This ABN status is: ${result.abn_status}`);
+      }
 
-  const lockIfNotDue = React.useCallback((key: string) => !isDue(key), [isDue]);
+      // Look up city from postcode
+      let cityFromPostcode = "";
+      const pc = result.address_postcode;
+      if (pc && /^\d{4}$/.test(pc)) {
+        try {
+          const pcResult = await lookupPostcode(pc);
+          cityFromPostcode = pcResult.suburb || "";
+          lastLookedUpPostcode.current = pc;
+        } catch { /* ignore */ }
+      }
 
+      setFormData((prev) => ({
+        ...prev,
+        name: prev.name || result.entity_name || "",
+        companyNumber: prev.companyNumber || result.acn || "",
+        state: prev.state || result.address_state || "",
+        postalCode: prev.postalCode || result.address_postcode || "",
+        city: prev.city || cityFromPostcode || "",
+      }));
+      setGstInfo({ registered: result.gst_registered, effectiveFrom: result.gst_effective_from });
+      setAbnStatus("success");
+    } catch {
+      setAbnStatus("error");
+    }
+  }, []);
+
+  // ── Postcode lookup (called manually on blur) ──
+  const doPostcodeLookup = React.useCallback(async () => {
+    const pc = formDataRef.current.postalCode.trim();
+    if (!/^\d{4}$/.test(pc) || pc === lastLookedUpPostcode.current) return;
+    if (formDataRef.current.city.trim()) return;
+
+    try {
+      const result = await lookupPostcode(pc);
+      lastLookedUpPostcode.current = pc;
+      if (result.suburb) {
+        setFormData((prev) => ({
+          ...prev,
+          city: prev.city || String(result.suburb || ""),
+          state: prev.state || String(result.state || ""),
+        }));
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  // ── Field blur handler — save draft + trigger lookups ──
+  const handleFieldBlur = React.useCallback((field?: string) => {
+    saveDraftNow(formDataRef.current);
+    if (field === "taxId") doAbnLookup();
+    if (field === "postalCode") doPostcodeLookup();
+  }, [saveDraftNow, doAbnLookup, doPostcodeLookup]);
+
+  // ── Pre-fill from draft > company profile (runs ONCE) ──
   React.useEffect(() => {
+    if (prefillDone.current) return;
+    prefillDone.current = true;
+
     (async () => {
       try {
-        const raw = await SecureStore.getItemAsync(companyDetailsCacheKey);
-        if (!raw) return;
-        const cached = JSON.parse(raw) as Partial<FormData>;
-        setFormData((prev) => ({ ...prev, ...cached }));
-      } catch {
-        // ignore cache errors
-      }
+        const draft = await loadDraft("CompanyDetails") as Partial<FormData>;
+
+        let d: any = {};
+        try {
+          const response = await authenticatedFetch(
+            `${ServerData.serverUrl}v1/companies/me`,
+            { method: "GET" },
+          );
+          if (response.ok) {
+            const json = await response.json();
+            if (json.success && json.data) d = json.data;
+          }
+        } catch { /* ignore */ }
+
+        const newTaxId = pickFirst("", draft?.taxId, d.abn);
+        const newPostalCode = pickFirst("", draft?.postalCode, d.address?.postcode, d.postcode);
+
+        // Mark as already looked up so blur won't re-trigger
+        const cleanedTaxId = (newTaxId || "").replace(/\s/g, "");
+        if (/^\d{11}$/.test(cleanedTaxId)) lastLookedUpAbn.current = cleanedTaxId;
+        const cleanedPostcode = (newPostalCode || "").trim();
+        if (/^\d{4}$/.test(cleanedPostcode)) lastLookedUpPostcode.current = cleanedPostcode;
+
+        setFormData({
+          name: pickFirst("", draft?.name, d.name),
+          taxId: newTaxId,
+          companyNumber: pickFirst("", draft?.companyNumber, d.acn),
+          phone: pickFirst("", draft?.phone, d.phone ? d.phone.replace(/^0/, "") : ""),
+          line1: pickFirst("", draft?.line1, d.address?.street, d.street_address),
+          line2: pickFirst("", draft?.line2),
+          city: pickFirst("", draft?.city, d.address?.suburb, d.suburb),
+          state: pickFirst("", draft?.state, d.address?.state, d.state),
+          postalCode: newPostalCode,
+        });
+      } catch { /* ignore pre-fill errors */ }
     })();
   }, []);
 
+  // ── Reset ABN status when taxId changes (typing) ──
+  const prevTaxId = React.useRef("");
   React.useEffect(() => {
-    if (hasAutoSkipped || stripeAccount.loading) return;
-
-    const requirements = stripeAccount.account?.requirements;
-    if (!requirements) return;
-
-    const missing = getMissingOnboardingSteps(requirements, businessType).steps;
-    if (missing.length > 0 && !missing.includes("CompanyDetails")) {
-      const nextStep = getNextOnboardingStep(
-        "CompanyDetails",
-        requirements,
-        businessType,
-      );
-      setHasAutoSkipped(true);
-      navigation.replace(nextStep);
+    const cleaned = formData.taxId.replace(/\s/g, "");
+    if (cleaned !== prevTaxId.current && abnStatus === "success" && cleaned !== lastLookedUpAbn.current) {
+      setAbnStatus("idle");
+      setGstInfo(null);
     }
-  }, [
-    businessType,
-    hasAutoSkipped,
-    navigation,
-    stripeAccount.account?.requirements,
-    stripeAccount.loading,
-  ]);
+    prevTaxId.current = cleaned;
+  }, [formData.taxId, abnStatus]);
 
   const validatePhone = (phone: string): boolean => {
-    const phoneRegex = /^[0-9]{9,10}$/;
-    return phoneRegex.test(phone.replace(/\s/g, ""));
-  };
-
-  const validatePostalCode = (postalCode: string): boolean => {
-    return /^[0-9]{4}$/.test(postalCode);
+    return /^[0-9]{9,10}$/.test(phone.replace(/\s/g, ""));
   };
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
-
-    if (isDue("company.name") && !formData.name.trim()) {
-      newErrors.name = t(
-        "stripe.onboarding.companyDetails.errors.nameRequired",
-      );
-    }
-
-    if (isDue("company.tax_id") && !formData.taxId.trim()) {
-      newErrors.taxId = t(
-        "stripe.onboarding.companyDetails.errors.taxIdRequired",
-      );
-    }
-
-    if (isDue("company.phone") && !formData.phone.trim()) {
-      newErrors.phone = t(
-        "stripe.onboarding.companyDetails.errors.phoneRequired",
-      );
+    if (!formData.name.trim()) newErrors.name = t("stripe.onboarding.companyDetails.errors.nameRequired");
+    if (!formData.taxId.trim()) newErrors.taxId = t("stripe.onboarding.companyDetails.errors.taxIdRequired");
+    if (!formData.phone.trim()) {
+      newErrors.phone = t("stripe.onboarding.companyDetails.errors.phoneRequired");
     } else if (!validatePhone(formData.phone)) {
-      newErrors.phone = t(
-        "stripe.onboarding.companyDetails.errors.phoneInvalid",
-      );
+      newErrors.phone = t("stripe.onboarding.companyDetails.errors.phoneInvalid");
     }
-
-    if (!formData.line1.trim()) {
-      newErrors.line1 = t(
-        "stripe.onboarding.companyDetails.errors.line1Required",
-      );
-    }
-
-    if (!formData.city.trim()) {
-      newErrors.city = t(
-        "stripe.onboarding.companyDetails.errors.cityRequired",
-      );
-    }
-
-    if (!formData.state) {
-      newErrors.state = t(
-        "stripe.onboarding.companyDetails.errors.stateRequired",
-      );
-    }
-
+    if (!formData.line1.trim()) newErrors.line1 = t("stripe.onboarding.companyDetails.errors.line1Required");
+    if (!formData.city.trim()) newErrors.city = t("stripe.onboarding.companyDetails.errors.cityRequired");
+    if (!formData.state) newErrors.state = t("stripe.onboarding.companyDetails.errors.stateRequired");
     if (!formData.postalCode.trim()) {
-      newErrors.postalCode = t(
-        "stripe.onboarding.companyDetails.errors.postalCodeRequired",
-      );
-    } else if (!validatePostalCode(formData.postalCode)) {
-      newErrors.postalCode = t(
-        "stripe.onboarding.companyDetails.errors.postalCodeInvalid",
-      );
+      newErrors.postalCode = t("stripe.onboarding.companyDetails.errors.postalCodeRequired");
+    } else if (!/^[0-9]{4}$/.test(formData.postalCode)) {
+      newErrors.postalCode = t("stripe.onboarding.companyDetails.errors.postalCodeInvalid");
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -239,18 +277,12 @@ export default function CompanyDetailsScreen({
     }
 
     setIsSubmitting(true);
-
     try {
-      await SecureStore.setItemAsync(
-        companyDetailsCacheKey,
-        JSON.stringify(formData),
-      );
-
-      const payload = {
+      await submitCompanyDetails({
         name: formData.name.trim(),
         tax_id: formData.taxId.trim(),
         company_number: formData.companyNumber.trim() || undefined,
-        phone: `+61${formData.phone.replace(/\s/g, "")}`,
+        phone: `+61${formData.phone.replace(/\s/g, "").replace(/^0/, "")}`,
         address: {
           line1: formData.line1.trim(),
           line2: formData.line2.trim() || undefined,
@@ -258,29 +290,13 @@ export default function CompanyDetailsScreen({
           state: formData.state,
           postal_code: formData.postalCode.trim(),
         },
-      };
+      });
+      await fetchStripeAccount();
 
-      await submitCompanyDetails(payload);
-      const updatedAccount = await fetchStripeAccount();
-      const updatedAccountRaw = updatedAccount as any;
-      if (!updatedAccount) {
-        navigation.navigate("Review");
-        return;
-      }
-      const nextBusinessType = resolveBusinessType(
-        updatedAccountRaw?.business_type || updatedAccountRaw?.businessType,
-        updatedAccount.requirements,
-      );
-      const nextStep = getNextOnboardingStep(
-        "CompanyDetails",
-        updatedAccount.requirements,
-        nextBusinessType,
-      );
+      const nextStep = getFixedNextStep("CompanyDetails", businessType);
+      Keyboard.dismiss();
       navigation.navigate(nextStep);
     } catch (error: any) {
-      console.error("❌ [CompanyDetails] Error:", error);
-
-      // Detect Stripe permission error (Express account trying to use Custom-only features)
       const isPermissionError =
         error.code === "STRIPE_PERMISSION_DENIED" ||
         error.message?.includes("required permissions") ||
@@ -296,8 +312,7 @@ export default function CompanyDetailsScreen({
       } else {
         Alert.alert(
           t("stripe.onboarding.companyDetails.errors.submissionTitle"),
-          error.message ||
-            t("stripe.onboarding.companyDetails.errors.submissionMessage"),
+          error.message || t("stripe.onboarding.companyDetails.errors.submissionMessage"),
         );
       }
     } finally {
@@ -305,7 +320,7 @@ export default function CompanyDetailsScreen({
     }
   };
 
-  const styles = StyleSheet.create({
+  const styles = React.useMemo(() => StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: colors.background,
@@ -396,9 +411,6 @@ export default function CompanyDetailsScreen({
     inputError: {
       borderColor: "#EF4444",
     },
-    inputDisabled: {
-      opacity: 0.6,
-    },
     errorText: {
       marginTop: DESIGN_TOKENS.spacing.xs,
       fontSize: DESIGN_TOKENS.typography.caption.fontSize,
@@ -413,6 +425,55 @@ export default function CompanyDetailsScreen({
     },
     pickerContainerError: {
       borderColor: "#EF4444",
+    },
+    pickerTouchable: {
+      flexDirection: "row" as const,
+      alignItems: "center" as const,
+      justifyContent: "space-between" as const,
+      paddingHorizontal: DESIGN_TOKENS.spacing.md,
+      paddingVertical: DESIGN_TOKENS.spacing.sm + 4,
+    },
+    pickerText: {
+      fontSize: DESIGN_TOKENS.typography.body.fontSize,
+      color: colors.text,
+      flex: 1,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.5)",
+      justifyContent: "center" as const,
+      paddingHorizontal: 24,
+    },
+    modalContent: {
+      borderRadius: 16,
+      maxHeight: 420,
+      overflow: "hidden" as const,
+    },
+    modalHeader: {
+      flexDirection: "row" as const,
+      alignItems: "center" as const,
+      justifyContent: "space-between" as const,
+      paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+      paddingVertical: DESIGN_TOKENS.spacing.md,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    modalTitle: {
+      fontSize: DESIGN_TOKENS.typography.body.fontSize,
+      fontWeight: "700" as const,
+    },
+    modalItem: {
+      flexDirection: "row" as const,
+      alignItems: "center" as const,
+      justifyContent: "space-between" as const,
+      paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+      paddingVertical: 14,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
+    },
+    modalItemText: {
+      fontSize: DESIGN_TOKENS.typography.body.fontSize,
+      flex: 1,
     },
     buttonContainer: {
       padding: DESIGN_TOKENS.spacing.lg,
@@ -435,7 +496,7 @@ export default function CompanyDetailsScreen({
       fontWeight: "600",
       marginLeft: DESIGN_TOKENS.spacing.sm,
     },
-  });
+  }), [colors, insets.bottom]);
 
   return (
     <SafeAreaView
@@ -480,24 +541,78 @@ export default function CompanyDetailsScreen({
           <View style={styles.formSection}>
             <View style={styles.inputGroup}>
               <Text style={styles.label}>
+                {t("stripe.onboarding.companyDetails.taxId")}{" "}
+                <Text style={styles.required}>*</Text>
+              </Text>
+              <View style={{ position: "relative" }}>
+                <TextInput
+                  style={[
+                    styles.input,
+                    errors.taxId && styles.inputError,
+                    abnStatus === "success" && { borderColor: "#22C55E" },
+                    abnStatus === "error" && { borderColor: "#EF4444" },
+                  ]}
+                  value={formData.taxId}
+                  onChangeText={(text) => {
+                    setFormData(prev => ({ ...prev, taxId: text }));
+                    setErrors(prev => ({ ...prev, taxId: undefined }));
+                  }}
+                  placeholder={t("stripe.onboarding.companyDetails.taxIdPlaceholder")}
+                  placeholderTextColor={colors.inputPlaceholder}
+                  keyboardType="numeric"
+                  maxLength={14}
+                  onBlur={() => handleFieldBlur("taxId")}
+                />
+                {abnStatus === "loading" && (
+                  <ActivityIndicator size="small" color={colors.primary} style={{ position: "absolute", right: 12, top: 12 }} />
+                )}
+                {abnStatus === "success" && (
+                  <Ionicons name="checkmark-circle" size={20} color="#22C55E" style={{ position: "absolute", right: 12, top: 12 }} />
+                )}
+                {abnStatus === "error" && (
+                  <Ionicons name="alert-circle" size={20} color="#EF4444" style={{ position: "absolute", right: 12, top: 12 }} />
+                )}
+              </View>
+              <Text style={{ fontSize: 11, color: abnStatus === "success" ? "#22C55E" : abnStatus === "error" ? "#EF4444" : colors.textSecondary, marginTop: 4 }}>
+                {abnStatus === "success"
+                  ? "✓ Business details auto-filled from ABN."
+                  : abnStatus === "error"
+                    ? "ABN not found. Please check and try again."
+                    : "Enter your 11-digit ABN to auto-fill business details."}
+              </Text>
+              {abnStatus === "success" && gstInfo && (
+                <View style={{ flexDirection: "row", alignItems: "center", marginTop: 6, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6, backgroundColor: gstInfo.registered ? "#F0FDF4" : "#FFF7ED" }}>
+                  <Ionicons name={gstInfo.registered ? "checkmark-circle" : "information-circle"} size={16} color={gstInfo.registered ? "#16A34A" : "#EA580C"} style={{ marginRight: 6 }} />
+                  <Text style={{ fontSize: 12, color: gstInfo.registered ? "#16A34A" : "#EA580C", fontWeight: "500" }}>
+                    {gstInfo.registered
+                      ? `GST Registered${gstInfo.effectiveFrom ? ` since ${gstInfo.effectiveFrom}` : ""}`
+                      : "Not registered for GST"}
+                  </Text>
+                </View>
+              )}
+              {errors.taxId && (
+                <Text style={styles.errorText}>{errors.taxId}</Text>
+              )}
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>
                 {t("stripe.onboarding.companyDetails.name")}{" "}
                 <Text style={styles.required}>*</Text>
               </Text>
               <TextInput
                 style={[
                   styles.input,
-                  lockIfNotDue("company.name") && styles.inputDisabled,
                   errors.name && styles.inputError,
                 ]}
                 value={formData.name}
-                editable={!lockIfNotDue("company.name")}
                 onChangeText={(text) => {
-                  setFormData({ ...formData, name: text });
-                  setErrors({ ...errors, name: undefined });
+                  setFormData(prev => ({ ...prev, name: text }));
+                  setErrors(prev => ({ ...prev, name: undefined }));
                 }}
-                placeholder={t(
-                  "stripe.onboarding.companyDetails.namePlaceholder",
-                )}
+                placeholder={t("stripe.onboarding.companyDetails.namePlaceholder")}
+                placeholderTextColor={colors.inputPlaceholder}
+                onBlur={() => handleFieldBlur()}
               />
               {errors.name && (
                 <Text style={styles.errorText}>{errors.name}</Text>
@@ -506,48 +621,15 @@ export default function CompanyDetailsScreen({
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>
-                {t("stripe.onboarding.companyDetails.taxId")}{" "}
-                <Text style={styles.required}>*</Text>
-              </Text>
-              <TextInput
-                style={[
-                  styles.input,
-                  lockIfNotDue("company.tax_id") && styles.inputDisabled,
-                  errors.taxId && styles.inputError,
-                ]}
-                value={formData.taxId}
-                editable={!lockIfNotDue("company.tax_id")}
-                onChangeText={(text) => {
-                  setFormData({ ...formData, taxId: text });
-                  setErrors({ ...errors, taxId: undefined });
-                }}
-                placeholder={t(
-                  "stripe.onboarding.companyDetails.taxIdPlaceholder",
-                )}
-              />
-              {errors.taxId && (
-                <Text style={styles.errorText}>{errors.taxId}</Text>
-              )}
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>
                 {t("stripe.onboarding.companyDetails.companyNumber")}
               </Text>
               <TextInput
-                style={[
-                  styles.input,
-                  lockIfNotDue("company.registration_number") &&
-                    styles.inputDisabled,
-                ]}
+                style={[styles.input]}
                 value={formData.companyNumber}
-                editable={!lockIfNotDue("company.registration_number")}
-                onChangeText={(text) =>
-                  setFormData({ ...formData, companyNumber: text })
-                }
-                placeholder={t(
-                  "stripe.onboarding.companyDetails.companyNumberPlaceholder",
-                )}
+                onChangeText={(text) => setFormData(prev => ({ ...prev, companyNumber: text }))}
+                placeholder={t("stripe.onboarding.companyDetails.companyNumberPlaceholder")}
+                placeholderTextColor={colors.inputPlaceholder}
+                onBlur={() => handleFieldBlur()}
               />
             </View>
 
@@ -559,19 +641,17 @@ export default function CompanyDetailsScreen({
               <TextInput
                 style={[
                   styles.input,
-                  lockIfNotDue("company.phone") && styles.inputDisabled,
                   errors.phone && styles.inputError,
                 ]}
                 value={formData.phone}
-                editable={!lockIfNotDue("company.phone")}
                 onChangeText={(text) => {
-                  setFormData({ ...formData, phone: text });
-                  setErrors({ ...errors, phone: undefined });
+                  setFormData(prev => ({ ...prev, phone: text }));
+                  setErrors(prev => ({ ...prev, phone: undefined }));
                 }}
-                placeholder={t(
-                  "stripe.onboarding.companyDetails.phonePlaceholder",
-                )}
+                placeholder={t("stripe.onboarding.companyDetails.phonePlaceholder")}
+                placeholderTextColor={colors.inputPlaceholder}
                 keyboardType="phone-pad"
+                onBlur={() => handleFieldBlur()}
               />
               {errors.phone && (
                 <Text style={styles.errorText}>{errors.phone}</Text>
@@ -587,12 +667,12 @@ export default function CompanyDetailsScreen({
                 style={[styles.input, errors.line1 && styles.inputError]}
                 value={formData.line1}
                 onChangeText={(text) => {
-                  setFormData({ ...formData, line1: text });
-                  setErrors({ ...errors, line1: undefined });
+                  setFormData(prev => ({ ...prev, line1: text }));
+                  setErrors(prev => ({ ...prev, line1: undefined }));
                 }}
-                placeholder={t(
-                  "stripe.onboarding.companyDetails.line1Placeholder",
-                )}
+                placeholder={t("stripe.onboarding.companyDetails.line1Placeholder")}
+                placeholderTextColor={colors.inputPlaceholder}
+                onBlur={() => handleFieldBlur()}
               />
               {errors.line1 && (
                 <Text style={styles.errorText}>{errors.line1}</Text>
@@ -606,12 +686,10 @@ export default function CompanyDetailsScreen({
               <TextInput
                 style={styles.input}
                 value={formData.line2}
-                onChangeText={(text) =>
-                  setFormData({ ...formData, line2: text })
-                }
-                placeholder={t(
-                  "stripe.onboarding.companyDetails.line2Placeholder",
-                )}
+                onChangeText={(text) => setFormData(prev => ({ ...prev, line2: text }))}
+                placeholder={t("stripe.onboarding.companyDetails.line2Placeholder")}
+                placeholderTextColor={colors.inputPlaceholder}
+                onBlur={() => handleFieldBlur()}
               />
             </View>
 
@@ -624,12 +702,12 @@ export default function CompanyDetailsScreen({
                 style={[styles.input, errors.city && styles.inputError]}
                 value={formData.city}
                 onChangeText={(text) => {
-                  setFormData({ ...formData, city: text });
-                  setErrors({ ...errors, city: undefined });
+                  setFormData(prev => ({ ...prev, city: text }));
+                  setErrors(prev => ({ ...prev, city: undefined }));
                 }}
-                placeholder={t(
-                  "stripe.onboarding.companyDetails.cityPlaceholder",
-                )}
+                placeholder={t("stripe.onboarding.companyDetails.cityPlaceholder")}
+                placeholderTextColor={colors.inputPlaceholder}
+                onBlur={() => handleFieldBlur()}
               />
               {errors.city && (
                 <Text style={styles.errorText}>{errors.city}</Text>
@@ -647,28 +725,78 @@ export default function CompanyDetailsScreen({
                   errors.state && styles.pickerContainerError,
                 ]}
               >
-                <Picker
-                  selectedValue={formData.state}
-                  onValueChange={(value) => {
-                    setFormData({ ...formData, state: value });
-                    setErrors({ ...errors, state: undefined });
-                  }}
+                <TouchableOpacity
+                  style={styles.pickerTouchable}
+                  onPress={() => setShowStatePicker(true)}
+                  activeOpacity={0.7}
                 >
-                  <Picker.Item
-                    label={t(
-                      "stripe.onboarding.companyDetails.statePlaceholder",
-                    )}
-                    value=""
-                  />
-                  {AUSTRALIAN_STATES.map((item) => (
-                    <Picker.Item
-                      key={item.value}
-                      label={item.label}
-                      value={item.value}
-                    />
-                  ))}
-                </Picker>
+                  <Text
+                    style={[
+                      styles.pickerText,
+                      !formData.state && { color: colors.textSecondary },
+                    ]}
+                  >
+                    {formData.state
+                      ? AUSTRALIAN_STATES.find((s) => s.value === formData.state)?.label || formData.state
+                      : t("stripe.onboarding.companyDetails.statePlaceholder")}
+                  </Text>
+                  <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
+                </TouchableOpacity>
               </View>
+              <Modal
+                visible={showStatePicker}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setShowStatePicker(false)}
+              >
+                <TouchableOpacity
+                  style={styles.modalOverlay}
+                  activeOpacity={1}
+                  onPress={() => setShowStatePicker(false)}
+                >
+                  <View style={[styles.modalContent, { backgroundColor: colors.background }]}>
+                    <View style={styles.modalHeader}>
+                      <Text style={[styles.modalTitle, { color: colors.text }]}>
+                        {t("stripe.onboarding.companyDetails.state")}
+                      </Text>
+                      <TouchableOpacity onPress={() => setShowStatePicker(false)}>
+                        <Ionicons name="close" size={24} color={colors.text} />
+                      </TouchableOpacity>
+                    </View>
+                    <FlatList
+                      data={AUSTRALIAN_STATES}
+                      keyExtractor={(item) => item.value}
+                      renderItem={({ item }) => (
+                        <TouchableOpacity
+                          style={[
+                            styles.modalItem,
+                            formData.state === item.value && { backgroundColor: colors.primary + "20" },
+                          ]}
+                          onPress={() => {
+                            setFormData((prev) => ({ ...prev, state: item.value }));
+                            setErrors((prev) => ({ ...prev, state: undefined }));
+                            setTimeout(() => saveDraftNow({ ...formDataRef.current, state: item.value }), 100);
+                            setShowStatePicker(false);
+                          }}
+                        >
+                          <Text
+                            style={[
+                              styles.modalItemText,
+                              { color: colors.text },
+                              formData.state === item.value && { color: colors.primary, fontWeight: "700" },
+                            ]}
+                          >
+                            {item.label}
+                          </Text>
+                          {formData.state === item.value && (
+                            <Ionicons name="checkmark" size={20} color={colors.primary} />
+                          )}
+                        </TouchableOpacity>
+                      )}
+                    />
+                  </View>
+                </TouchableOpacity>
+              </Modal>
               {errors.state && (
                 <Text style={styles.errorText}>{errors.state}</Text>
               )}
@@ -683,13 +811,13 @@ export default function CompanyDetailsScreen({
                 style={[styles.input, errors.postalCode && styles.inputError]}
                 value={formData.postalCode}
                 onChangeText={(text) => {
-                  setFormData({ ...formData, postalCode: text });
-                  setErrors({ ...errors, postalCode: undefined });
+                  setFormData(prev => ({ ...prev, postalCode: text }));
+                  setErrors(prev => ({ ...prev, postalCode: undefined }));
                 }}
-                placeholder={t(
-                  "stripe.onboarding.companyDetails.postalCodePlaceholder",
-                )}
+                placeholder={t("stripe.onboarding.companyDetails.postalCodePlaceholder")}
+                placeholderTextColor={colors.inputPlaceholder}
                 keyboardType="number-pad"
+                onBlur={() => handleFieldBlur("postalCode")}
               />
               {errors.postalCode && (
                 <Text style={styles.errorText}>{errors.postalCode}</Text>

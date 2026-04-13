@@ -419,6 +419,22 @@ export const itTranslations = mergeWithBaseTranslations(enTranslations, {
       pending: "In attesa",
       active: "In corso",
       done: "Completato",
+      allVehicles: "Tutti i veicoli",
+      allStaff: "Tutto il personale",
+      reset: "Reimposta",
+    },
+    colorBy: {
+      label: "Colore:",
+      status: "Stato",
+      priority: "Priorità",
+      vehicle: "Veicolo",
+      team: "Squadra",
+    },
+    dragDrop: {
+      confirmTitle: "Riprogrammare il lavoro?",
+      confirmMessage: "Spostare questo lavoro al {date}?",
+      errorTitle: "Errore",
+      errorMessage: "Impossibile riprogrammare il lavoro. Riprova.",
     },
     sorting: {
       time: "Ora",
@@ -459,6 +475,7 @@ export const itTranslations = mergeWithBaseTranslations(enTranslations, {
     // Navigation
     navigation: {
       monthlyView: "Vista Mensile",
+      weeklyView: "Vista Settimanale",
       yearlyView: "Vista Annuale",
       multiYearView: "Vista Multi-Anno",
       dailyView: "Vista Giornaliera",
@@ -469,6 +486,7 @@ export const itTranslations = mergeWithBaseTranslations(enTranslations, {
     },
     // Day Screen specific
     dayScreen: {
+      today: "Oggi",
       stats: {
         total: "Totale",
         pending: "In attesa",
@@ -1317,6 +1335,7 @@ export const itTranslations = mergeWithBaseTranslations(enTranslations, {
     register: {
       title: "Registrati",
       subtitle: "Crea il tuo account Cobbr",
+      businessSubtitle: "Crea il tuo account aziendale — completerai il profilo dopo l'accesso",
       firstName: "Nome",
       firstNamePlaceholder: "Il tuo nome",
       lastName: "Cognome",
@@ -1334,6 +1353,22 @@ export const itTranslations = mergeWithBaseTranslations(enTranslations, {
       alreadyHaveAccount: "Hai già un account?",
       termsAgree: "Continuando, accetti i nostri",
       termsLink: "Termini di Servizio",
+      passwordsMatch: "Le password corrispondono",
+      passwordStrength: {
+        veryWeak: "Molto debole",
+        weak: "Debole",
+        fair: "Discreto",
+        strong: "Forte",
+        veryStrong: "Molto forte",
+      },
+      passwordCriteria: {
+        title: "Requisiti della password:",
+        minLength: "Almeno 8 caratteri",
+        uppercase: "Una lettera maiuscola",
+        lowercase: "Una lettera minuscola",
+        number: "Un numero",
+        special: "Un carattere speciale (!@#$...)",
+      },
     },
     registration: {
       selectAccountType: {
@@ -1370,6 +1405,8 @@ export const itTranslations = mergeWithBaseTranslations(enTranslations, {
     },
     errors: {
       invalidCredentials: "Email o password errati. Verifica le credenziali.",
+      emailAlreadyUsed: "Account già esistente",
+      emailAlreadyUsedMessage: "Esiste già un account con questa email. Vuoi accedere?",
       deviceInfoUnavailable:
         "Impossibile ottenere informazioni sul dispositivo.",
       serverError: "Il server ha problemi. Riprova più tardi.",
@@ -1711,6 +1748,11 @@ export const itTranslations = mergeWithBaseTranslations(enTranslations, {
         subtitle:
           "Completa il tuo account in 5 semplici passaggi e inizia a ricevere pagamenti.",
         timeEstimate: "5 minuti del tuo tempo",
+        businessTypeTitle: "Che tipo di attività hai?",
+        individualLabel: "Individuale / Lavoratore autonomo",
+        individualDescription: "Operi a tuo nome (ABN come lavoratore autonomo)",
+        companyLabel: "Società (Pty Ltd, SRL...)",
+        companyDescription: "Hai una società registrata con un ACN",
         benefit1: "Ricevi pagamenti dai tuoi clienti",
         benefit2: "Crea link di pagamento in 2 clic",
         benefit3: "Monitora i tuoi ricavi in tempo reale",
@@ -1720,6 +1762,7 @@ export const itTranslations = mergeWithBaseTranslations(enTranslations, {
         requirement2: "I tuoi dati bancari (BSB + conto)",
         requirement3: "5 minuti del tuo tempo",
         startButton: "Inizia",
+        startingButton: "Creazione in corso...",
         cancelButton: "Torna alla dashboard",
       },
       personalInfo: {
@@ -1955,6 +1998,18 @@ export const itTranslations = mergeWithBaseTranslations(enTranslations, {
         backPlaceholder: "Scatta una foto del retro",
         takePhotoButton: "Scatta una foto",
         retakeButton: "Scatta di nuovo",
+        uploading: "Caricamento documenti...",
+        companyDocTitle: "Documento di registrazione aziendale",
+        companyDocSubtitle: "Una foto della registrazione ABN, certificato aziendale o documento equivalente.",
+        companyDocPlaceholder: "Scatta una foto del documento di registrazione",
+        companyDocRequired: "Si prega di scattare una foto del documento di registrazione aziendale.",
+        companyDocChoose: "Come vuoi aggiungere il documento?",
+        idDocChoose: "Foto d'identità",
+        idDocChooseMessage: "Come vuoi aggiungere la tua foto?",
+        pickFromGallery: "Scegli dalla galleria",
+        addDocument: "Aggiungi documento",
+        reuploadSuccessTitle: "Documenti inviati",
+        reuploadSuccessMessage: "I tuoi documenti sono stati reinviati. Stripe li esaminerà a breve.",
         nextButton: "Avanti",
         errors: {
           permissionTitle: "Permesso richiesto",
@@ -1996,6 +2051,9 @@ export const itTranslations = mergeWithBaseTranslations(enTranslations, {
         disclaimer:
           "Attivando il tuo account, Stripe validerà i tuoi documenti entro 24-48 ore. Sarai notificato via email quando il tuo account sarà operativo.",
         activateButton: "Attiva il mio account Stripe",
+        checkingRequirements: "Verifica dei requisiti…",
+        pendingRequirementsTitle: "{{count}} elemento/i ancora richiesto/i",
+        pendingRequirementsHint: "Tocca un elemento per correggerlo.",
         successTitle: "Account creato!",
         successMessage:
           "Il tuo account Stripe è stato creato. Stripe validerà i tuoi documenti entro 24-48 ore.",

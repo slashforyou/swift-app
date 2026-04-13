@@ -418,6 +418,22 @@ export const hiTranslations = mergeWithBaseTranslations(enTranslations, {
       pending: "लंबित",
       active: "सक्रिय",
       done: "पूर्ण",
+      allVehicles: "सभी वाहन",
+      allStaff: "सभी कर्मचारी",
+      reset: "रीसेट",
+    },
+    colorBy: {
+      label: "रंग:",
+      status: "स्थिति",
+      priority: "प्राथमिकता",
+      vehicle: "वाहन",
+      team: "टीम",
+    },
+    dragDrop: {
+      confirmTitle: "कार्य पुनर्निर्धारित करें?",
+      confirmMessage: "इस कार्य को {date} पर ले जाएं?",
+      errorTitle: "त्रुटि",
+      errorMessage: "कार्य पुनर्निर्धारित करने में विफल। कृपया पुनः प्रयास करें।",
     },
     sorting: {
       time: "समय",
@@ -458,6 +474,7 @@ export const hiTranslations = mergeWithBaseTranslations(enTranslations, {
     // Navigation
     navigation: {
       monthlyView: "मासिक दृश्य",
+      weeklyView: "साप्ताहिक दृश्य",
       yearlyView: "वार्षिक दृश्य",
       multiYearView: "बहु-वर्ष दृश्य",
       dailyView: "दैनिक दृश्य",
@@ -468,6 +485,7 @@ export const hiTranslations = mergeWithBaseTranslations(enTranslations, {
     },
     // Day Screen specific
     dayScreen: {
+      today: "आज",
       stats: {
         total: "कुल",
         pending: "लंबित",
@@ -1275,6 +1293,7 @@ export const hiTranslations = mergeWithBaseTranslations(enTranslations, {
     register: {
       title: "साइन अप",
       subtitle: "अपना Cobbr खाता बनाएं",
+      businessSubtitle: "अपना व्यवसाय खाता बनाएं — साइन इन के बाद प्रोफ़ाइल पूरी करें",
       firstName: "पहला नाम",
       firstNamePlaceholder: "आपका पहला नाम",
       lastName: "उपनाम",
@@ -1292,6 +1311,22 @@ export const hiTranslations = mergeWithBaseTranslations(enTranslations, {
       alreadyHaveAccount: "पहले से खाता है?",
       termsAgree: "जारी रखकर, आप हमारी सहमति देते हैं",
       termsLink: "सेवा की शर्तें",
+      passwordsMatch: "पासवर्ड मेल खाते हैं",
+      passwordStrength: {
+        veryWeak: "बहुत कमजोर",
+        weak: "कमजोर",
+        fair: "ठीक",
+        strong: "मजबूत",
+        veryStrong: "बहुत मजबूत",
+      },
+      passwordCriteria: {
+        title: "पासवर्ड आवश्यकताएँ:",
+        minLength: "कम से कम 8 अक्षर",
+        uppercase: "एक बड़ा अक्षर",
+        lowercase: "एक छोटा अक्षर",
+        number: "एक अंक",
+        special: "एक विशेष अक्षर (!@#$...)",
+      },
     },
     registration: {
       selectAccountType: {
@@ -1328,6 +1363,8 @@ export const hiTranslations = mergeWithBaseTranslations(enTranslations, {
     },
     errors: {
       invalidCredentials: "ईमेल या पासवर्ड गलत है। कृपया अपनी जानकारी जांचें।",
+      emailAlreadyUsed: "खाता पहले से मौजूद है",
+      emailAlreadyUsedMessage: "इस ईमेल से एक खाता पहले से मौजूद है। क्या आप लॉगिन करना चाहेंगे?",
       deviceInfoUnavailable: "डिवाइस जानकारी प्राप्त करने में असमर्थ।",
       serverError: "सर्वर में समस्या है। कृपया बाद में पुनः प्रयास करें।",
       invalidResponse:
@@ -1660,6 +1697,11 @@ export const hiTranslations = mergeWithBaseTranslations(enTranslations, {
         subtitle:
           "5 सरल चरणों में अपना खाता पूरा करें और भुगतान प्राप्त करना शुरू करें।",
         timeEstimate: "आपके समय के 5 मिनट",
+        businessTypeTitle: "आपका व्यवसाय किस प्रकार का है?",
+        individualLabel: "व्यक्तिगत / एकमात्र व्यापारी",
+        individualDescription: "आप अपने नाम पर संचालन करते हैं (ABN एकमात्र व्यापारी)",
+        companyLabel: "कंपनी (Pty Ltd, LLC...)",
+        companyDescription: "आपकी ACN के साथ पंजीकृत कंपनी है",
         benefit1: "अपने ग्राहकों से भुगतान प्राप्त करें",
         benefit2: "2 क्लिक में भुगतान लिंक बनाएं",
         benefit3: "अपनी आय को रीयल-टाइम में ट्रैक करें",
@@ -1669,6 +1711,7 @@ export const hiTranslations = mergeWithBaseTranslations(enTranslations, {
         requirement2: "आपके बैंक विवरण (BSB + खाता)",
         requirement3: "आपके समय के 5 मिनट",
         startButton: "शुरू करें",
+        startingButton: "खाता बनाया जा रहा है...",
         cancelButton: "डैशबोर्ड पर वापस",
       },
       personalInfo: {
@@ -1900,6 +1943,18 @@ export const hiTranslations = mergeWithBaseTranslations(enTranslations, {
         backPlaceholder: "पीछे की फ़ोटो लें",
         takePhotoButton: "फ़ोटो लें",
         retakeButton: "फिर से फ़ोटो लें",
+        uploading: "दस्तावेज़ अपलोड हो रहे हैं...",
+        companyDocTitle: "व्यापार पंजीकरण दस्तावेज़",
+        companyDocSubtitle: "आपके ABN पंजीकरण, व्यापार प्रमाणपत्र या समकक्ष दस्तावेज़ की फ़ोटो।",
+        companyDocPlaceholder: "अपने व्यापार पंजीकरण की फ़ोटो लें",
+        companyDocRequired: "कृपया अपने व्यापार पंजीकरण दस्तावेज़ की फ़ोटो लें।",
+        companyDocChoose: "आप दस्तावेज़ कैसे जोड़ना चाहेंगे?",
+        idDocChoose: "पहचान पत्र फोटो",
+        idDocChooseMessage: "आप अपनी फोटो कैसे जोड़ना चाहेंगे?",
+        pickFromGallery: "गैलरी से चुनें",
+        addDocument: "दस्तावेज़ जोड़ें",
+        reuploadSuccessTitle: "दस्तावेज़ जमा किए गए",
+        reuploadSuccessMessage: "आपके दस्तावेज़ पुनः जमा कर दिए गए हैं। Stripe जल्द ही उनकी समीक्षा करेगा।",
         nextButton: "अगला",
         errors: {
           permissionTitle: "अनुमति आवश्यक",
@@ -1942,6 +1997,9 @@ export const hiTranslations = mergeWithBaseTranslations(enTranslations, {
         disclaimer:
           "अपना खाता सक्रिय करके, Stripe 24-48 घंटे के भीतर आपके दस्तावेज़ों को मान्य करेगा। आपका खाता चालू होने पर आपको ईमेल द्वारा सूचित किया जाएगा।",
         activateButton: "मेरा Stripe खाता सक्रिय करें",
+        checkingRequirements: "आवश्यकताएँ जाँच रही हैं…",
+        pendingRequirementsTitle: "{{count}} आइटम अभी भी आवश्यक",
+        pendingRequirementsHint: "ठीक करने के लिए किसी आइटम पर टैप करें।",
         successTitle: "खाता बनाया गया!",
         successMessage:
           "आपका Stripe खाता बनाया गया है। Stripe 24-48 घंटे के भीतर आपके दस्तावेज़ों को मान्य करेगा।",

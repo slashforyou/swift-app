@@ -25,6 +25,7 @@ interface BusinessHeaderProps {
   rightComponent?: React.ReactNode;
   showLanguageButton?: boolean;
   navigation?: any; // Prop navigation optionnelle pour cohérence avec JobDetails
+  skipSafeAreaTop?: boolean; // Skip top safe area padding when logo already handles it
 }
 
 const BusinessHeader: React.FC<BusinessHeaderProps> = ({
@@ -34,6 +35,7 @@ const BusinessHeader: React.FC<BusinessHeaderProps> = ({
   rightComponent,
   showLanguageButton = true,
   navigation: propNavigation,
+  skipSafeAreaTop = false,
 }) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
@@ -62,12 +64,14 @@ const BusinessHeader: React.FC<BusinessHeaderProps> = ({
       alignItems: "center",
       justifyContent: "space-between",
       paddingHorizontal: DESIGN_TOKENS.spacing.lg,
-      paddingTop: insets.top + DESIGN_TOKENS.spacing.md, // Safe area + espacement
-      paddingBottom: DESIGN_TOKENS.spacing.lg, // Plus d'espacement en bas
+      paddingTop: skipSafeAreaTop
+        ? DESIGN_TOKENS.spacing.sm
+        : insets.top + DESIGN_TOKENS.spacing.md,
+      paddingBottom: DESIGN_TOKENS.spacing.md,
       backgroundColor: colors.background,
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
-      minHeight: 76 + insets.top, // Header plus grand
+      minHeight: skipSafeAreaTop ? 56 : 76 + insets.top,
     },
     leftSection: {
       flexDirection: "row",

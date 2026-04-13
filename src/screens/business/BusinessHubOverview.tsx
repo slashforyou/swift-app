@@ -5,12 +5,14 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
+import type { BusinessTab } from "../../components/business/BusinessTabMenu";
+import { ServerData } from "../../constants/ServerData";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
 import { useCompanyProfile } from "../../hooks/useCompanyProfile";
@@ -19,8 +21,6 @@ import { useStripeConnection } from "../../hooks/useStripeConnection";
 import { useVehicles } from "../../hooks/useVehicles";
 import { useTranslation } from "../../localization/useLocalization";
 import { authenticatedFetch } from "../../utils/auth";
-import { ServerData } from "../../constants/ServerData";
-import type { BusinessTab } from "../../components/business/BusinessTabMenu";
 
 // Palettes de couleurs pour les cards (mode clair)
 const CARD_COLORS = {
@@ -66,7 +66,7 @@ export default function BusinessHubOverview({
 
   useEffect(() => { loadPartners(); }, [loadPartners]);
 
-  const stripeActive = stripeConnection.status === "active";
+  const stripeActive = stripeConnection.status === "active" || stripeConnection.status === "pending";
   const stripeConnected = stripeConnection.isConnected;
 
   // Card background with dark-mode support

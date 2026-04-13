@@ -6,6 +6,7 @@ import React from "react";
 import {
     ActivityIndicator,
     Alert,
+    Keyboard,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
@@ -19,20 +20,23 @@ import {
     SafeAreaView,
     useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import { getStripeTestData } from "../../../config/stripeTestData";
+import { ServerData } from "../../../constants/ServerData";
 import { DESIGN_TOKENS } from "../../../constants/Styles";
 import { useTheme } from "../../../context/ThemeProvider";
-import { useStripeAccount } from "../../../hooks/useStripe";
+import { useOnboardingDraft } from "../../../hooks/useOnboardingDraft";
 import { useTranslation } from "../../../localization";
 import {
     fetchStripeAccount,
+    loadDraft,
     submitBusinessProfile,
 } from "../../../services/StripeService";
+import { authenticatedFetch } from "../../../utils/auth";
+import { pickFirst } from "../../../utils/autoFill";
 import {
-    getMissingOnboardingSteps,
-    getNextOnboardingStep,
+    getFixedNextStep,
     getOnboardingStepMeta,
     resolveBusinessType,
+    type StripeOnboardingBusinessType,
 } from "./onboardingSteps";
 
 interface BusinessProfileScreenProps {
@@ -57,54 +61,64 @@ export default function BusinessProfileScreen({
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
-  const stripeAccount = useStripeAccount();
-  const stripeAccountRaw = stripeAccount.account as any;
 
-  const businessType = resolveBusinessType(
-    stripeAccountRaw?.business_type || stripeAccountRaw?.businessType,
-    stripeAccount.account?.requirements,
-  );
+  const [businessType, setBusinessType] = React.useState<StripeOnboardingBusinessType>("company");
   const stepMeta = getOnboardingStepMeta("BusinessProfile", businessType);
   const stepLabel = t("stripe.onboarding.stepLabel", {
     current: stepMeta.index + 1,
     total: stepMeta.total,
   });
 
-  const testData = __DEV__ ? getStripeTestData() : null;
-
   const [formData, setFormData] = React.useState<FormData>({
-    mcc: testData?.businessProfile.mcc || "",
-    url: testData?.businessProfile.url || "",
-    productDescription: testData?.businessProfile.productDescription || "",
+    mcc: "",
+    url: "",
+    productDescription: "",
   });
+
+  const { saveDraftNow } = useOnboardingDraft("BusinessProfile");
+  const formDataRef = React.useRef(formData);
+  React.useEffect(() => { formDataRef.current = formData; }, [formData]);
+  const handleFieldBlur = React.useCallback(() => {
+    saveDraftNow(formDataRef.current);
+  }, [saveDraftNow]);
 
   const [errors, setErrors] = React.useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [hasAutoSkipped, setHasAutoSkipped] = React.useState(false);
 
+  // Pre-fill from draft > Stripe account > company profile
   React.useEffect(() => {
-    if (hasAutoSkipped || stripeAccount.loading) return;
+    (async () => {
+      try {
+        const [draft, stripeData, companyRes] = await Promise.all([
+          loadDraft("BusinessProfile").catch(() => null) as Promise<Partial<FormData> | null>,
+          fetchStripeAccount().catch(() => null) as Promise<any>,
+          authenticatedFetch(
+            `${ServerData.serverUrl}v1/companies/me`,
+            { method: "GET" },
+          ).then(r => r.ok ? r.json() : null).catch(() => null),
+        ]);
 
-    const requirements = stripeAccount.account?.requirements;
-    if (!requirements) return;
+        let d: any = {};
+        if (companyRes?.success && companyRes?.data) d = companyRes.data;
 
-    const missing = getMissingOnboardingSteps(requirements, businessType).steps;
-    if (missing.length > 0 && !missing.includes("BusinessProfile")) {
-      const nextStep = getNextOnboardingStep(
-        "BusinessProfile",
-        requirements,
-        businessType,
-      );
-      setHasAutoSkipped(true);
-      navigation.replace(nextStep);
-    }
-  }, [
-    businessType,
-    hasAutoSkipped,
-    navigation,
-    stripeAccount.account?.requirements,
-    stripeAccount.loading,
-  ]);
+        // Resolve business type
+        const bt = resolveBusinessType(
+          stripeData?.business_type || stripeData?.businessType,
+          stripeData?.requirements,
+        );
+        setBusinessType(bt);
+
+        // Stripe account business_profile data
+        const bp = stripeData?.business_profile || {};
+        setFormData((prev) => ({
+          ...prev,
+          mcc: pickFirst("", draft?.mcc as string, bp.mcc ? String(bp.mcc) : ""),
+          url: pickFirst("", draft?.url as string, bp.url, d.website),
+          productDescription: pickFirst("", draft?.productDescription as string, bp.product_description, "Professional moving and relocation services including packing, loading, transportation, and unloading of household and commercial goods."),
+        }));
+      } catch { /* non-critical */ }
+    })();
+  }, []);
 
   const validateUrl = (url: string): boolean => {
     return url.trim().length > 0;
@@ -158,25 +172,13 @@ export default function BusinessProfileScreen({
       };
 
       await submitBusinessProfile(payload);
-      const updatedAccount = await fetchStripeAccount();
-      const updatedAccountRaw = updatedAccount as any;
-      if (!updatedAccount) {
-        navigation.navigate("Review");
-        return;
-      }
-      const nextBusinessType = resolveBusinessType(
-        updatedAccountRaw?.business_type || updatedAccountRaw?.businessType,
-        updatedAccount.requirements,
-      );
-      const nextStep = getNextOnboardingStep(
-        "BusinessProfile",
-        updatedAccount.requirements,
-        nextBusinessType,
-      );
+      await fetchStripeAccount();
+
+      // Always go to next sequential step
+      const nextStep = getFixedNextStep("BusinessProfile", businessType);
+      Keyboard.dismiss();
       navigation.navigate(nextStep);
     } catch (error: any) {
-      console.error("❌ [BusinessProfile] Error:", error);
-
       // Detect Stripe permission error (Express account trying to use Custom-only features)
       const isPermissionError =
         error.code === "STRIPE_PERMISSION_DENIED" ||
@@ -202,7 +204,7 @@ export default function BusinessProfileScreen({
     }
   };
 
-  const styles = StyleSheet.create({
+  const styles = React.useMemo(() => StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: colors.background,
@@ -323,7 +325,7 @@ export default function BusinessProfileScreen({
       fontWeight: "600",
       marginLeft: DESIGN_TOKENS.spacing.sm,
     },
-  });
+  }), [colors, insets]);
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]} testID="stripe-businessprofile-screen">
@@ -369,17 +371,19 @@ export default function BusinessProfileScreen({
               </Text>
               <TextInput
                 style={[styles.input, errors.mcc && styles.inputError]}
-                value={formData.mcc}
+                value={String(formData.mcc ?? "")}
                 onChangeText={(text) => {
-                  setFormData({ ...formData, mcc: text });
-                  setErrors({ ...errors, mcc: undefined });
+                  setFormData(prev => ({ ...prev, mcc: text }));
+                  setErrors(prev => ({ ...prev, mcc: undefined }));
                 }}
                 placeholder={t(
                   "stripe.onboarding.businessProfile.mccPlaceholder",
                 )}
+                placeholderTextColor={colors.inputPlaceholder}
                 keyboardType="number-pad"
                 maxLength={4}
                 testID="stripe-businessprofile-mcc"
+                onBlur={handleFieldBlur}
               />
               {errors.mcc && <Text style={styles.errorText}>{errors.mcc}</Text>}
             </View>
@@ -391,17 +395,19 @@ export default function BusinessProfileScreen({
               </Text>
               <TextInput
                 style={[styles.input, errors.url && styles.inputError]}
-                value={formData.url}
+                value={String(formData.url ?? "")}
                 onChangeText={(text) => {
-                  setFormData({ ...formData, url: text });
-                  setErrors({ ...errors, url: undefined });
+                  setFormData(prev => ({ ...prev, url: text }));
+                  setErrors(prev => ({ ...prev, url: undefined }));
                 }}
                 placeholder={t(
                   "stripe.onboarding.businessProfile.urlPlaceholder",
                 )}
+                placeholderTextColor={colors.inputPlaceholder}
                 autoCapitalize="none"
                 keyboardType="url"
                 testID="stripe-businessprofile-url"
+                onBlur={handleFieldBlur}
               />
               {errors.url && <Text style={styles.errorText}>{errors.url}</Text>}
             </View>
@@ -417,16 +423,18 @@ export default function BusinessProfileScreen({
                   styles.textArea,
                   errors.productDescription && styles.inputError,
                 ]}
-                value={formData.productDescription}
+                value={String(formData.productDescription ?? "")}
                 onChangeText={(text) => {
-                  setFormData({ ...formData, productDescription: text });
-                  setErrors({ ...errors, productDescription: undefined });
+                  setFormData(prev => ({ ...prev, productDescription: text }));
+                  setErrors(prev => ({ ...prev, productDescription: undefined }));
                 }}
                 placeholder={t(
                   "stripe.onboarding.businessProfile.descriptionPlaceholder",
                 )}
+                placeholderTextColor={colors.inputPlaceholder}
                 multiline
                 testID="stripe-businessprofile-description"
+                onBlur={handleFieldBlur}
               />
               {errors.productDescription && (
                 <Text style={styles.errorText}>

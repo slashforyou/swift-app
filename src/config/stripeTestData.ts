@@ -140,7 +140,11 @@ export const generateStripeTestData = () => {
 // Singleton pour garder les mêmes données pendant la session
 let _testData: ReturnType<typeof generateStripeTestData> | null = null;
 
+// Set to false to disable pre-fill in dev mode
+const ENABLE_STRIPE_PREFILL = false;
+
 export const getStripeTestData = () => {
+  if (!ENABLE_STRIPE_PREFILL) return null;
   if (!_testData) {
     _testData = generateStripeTestData();
     console.log(

@@ -7,6 +7,7 @@ import React from "react";
 import {
     ActivityIndicator,
     Alert,
+    Keyboard,
     ScrollView,
     StyleSheet,
     Text,
@@ -19,16 +20,16 @@ import {
 } from "react-native-safe-area-context";
 import { DESIGN_TOKENS } from "../../../constants/Styles";
 import { useTheme } from "../../../context/ThemeProvider";
-import { useStripeAccount } from "../../../hooks/useStripe";
 import { useTranslation } from "../../../localization";
 import {
     completeOnboarding,
+    fetchStripeAccount,
     verifyOnboarding,
 } from "../../../services/StripeService";
 import {
     getOnboardingStepMeta,
-    getStartOnboardingStep,
     resolveBusinessType,
+    type StripeOnboardingBusinessType,
 } from "./onboardingSteps";
 
 interface ReviewScreenProps {
@@ -40,12 +41,8 @@ export default function ReviewScreen({ navigation, route }: ReviewScreenProps) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
-  const stripeAccount = useStripeAccount();
 
-  const businessType = resolveBusinessType(
-    stripeAccount.account?.business_type || stripeAccount.account?.businessType,
-    stripeAccount.account?.requirements,
-  );
+  const [businessType, setBusinessType] = React.useState<StripeOnboardingBusinessType>("company");
   const stepMeta = getOnboardingStepMeta("Review", businessType);
   const stepLabel = t("stripe.onboarding.stepLabel", {
     current: stepMeta.index + 1,
@@ -55,13 +52,51 @@ export default function ReviewScreen({ navigation, route }: ReviewScreenProps) {
 
   const [tosAccepted, setTosAccepted] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [pendingRequirements, setPendingRequirements] = React.useState<string[]>([]);
+  const [checkingRequirements, setCheckingRequirements] = React.useState(true);
 
   const { personalInfo, address, bankAccount, documents } = route.params || {};
 
-  // Formater la date de naissance
-  const formatDate = (date: Date): string => {
+  // Map a Stripe requirement key to a navigation screen name
+  const getScreenForRequirement = (req: string): string | null => {
+    if (req.includes("verification.document")) return "Documents";
+    if (req.includes("person.") && (req.includes("first_name") || req.includes("last_name") || req.includes("dob") || req.includes("email") || req.includes("phone"))) return "PersonalInfo";
+    if (req.includes("address") || req.includes("postal_code") || req.includes("city") || req.includes("state") || req.includes("line1")) return "Address";
+    if (req.includes("external_account") || req.includes("bank_account")) return "BankAccount";
+    if (req.includes("company.") && (req.includes("name") || req.includes("tax_id") || req.includes("phone") || req.includes("registration_number"))) return "CompanyDetails";
+    if (req.includes("business_profile") || req.includes("business_type") || req.includes("url") || req.includes("mcc")) return "BusinessProfile";
+    if (req.includes("representative") || req.includes("relationship")) return "Representative";
+    return null;
+  };
+
+  // Fetch business type + check pending requirements on mount
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const stripeData = await fetchStripeAccount() as any;
+        if (stripeData) {
+          const bt = resolveBusinessType(
+            stripeData.business_type || stripeData.businessType,
+            stripeData.requirements,
+          );
+          setBusinessType(bt);
+
+          const currentlyDue: string[] = stripeData.requirements?.currently_due || [];
+          // Filter out tos_acceptance — that's handled by the checkbox
+          const pending = currentlyDue.filter((r: string) => !r.includes("tos_acceptance"));
+          setPendingRequirements(pending);
+        }
+      } catch { /* non-critical */ }
+      setCheckingRequirements(false);
+    })();
+  }, []);
+
+  // Formater la date de naissance (handles both Date objects and ISO strings)
+  const formatDate = (date: Date | string): string => {
     if (!date) return "";
-    return new Date(date).toLocaleDateString("fr-FR");
+    const d = typeof date === "string" ? new Date(date) : date;
+    if (isNaN(d.getTime())) return "";
+    return d.toLocaleDateString("fr-FR");
   };
 
   // Masquer les derniers chiffres du compte bancaire
@@ -80,6 +115,7 @@ export default function ReviewScreen({ navigation, route }: ReviewScreenProps) {
       return;
     }
 
+    Keyboard.dismiss();
     setIsSubmitting(true);
 
     try {
@@ -120,53 +156,6 @@ export default function ReviewScreen({ navigation, route }: ReviewScreenProps) {
           t("stripe.onboarding.review.errors.incompleteTitle"),
           fallbackMessage,
         );
-
-        // Redirect to the first missing step so the user can continue onboarding.
-        // This keeps the UX consistent with other screens that auto-skip/auto-advance.
-        if (response.requirements) {
-          const due = response.requirements.currently_due || [];
-          const needsCompanyDetails = due.some((f) =>
-            [
-              "company.phone",
-              "company.registration_number",
-              "company.name",
-              "company.tax_id",
-            ].includes(f),
-          );
-          const needsDocuments = due.some(
-            (f) =>
-              f.startsWith("individual.verification.") ||
-              f.includes(".verification."),
-          );
-          const needsPersons = due.some(
-            (f) =>
-              f === "company.directors_provided" ||
-              f === "company.executives_provided" ||
-              f === "company.owners_provided" ||
-              f.startsWith("person_") ||
-              f.startsWith("representative.") ||
-              f.startsWith("directors.") ||
-              f.startsWith("executives.") ||
-              f.startsWith("owners."),
-          );
-
-          const nextStep = needsCompanyDetails
-            ? "CompanyDetails"
-            : needsDocuments
-              ? "Documents"
-              : needsPersons
-                ? "Representative"
-                : getStartOnboardingStep(response.requirements, businessType);
-
-          if (nextStep && nextStep !== "Review") {
-            navigation.navigate(nextStep, {
-              personalInfo,
-              address,
-              bankAccount,
-              documents,
-            });
-          }
-        }
       }
     } catch (error: any) {
       const errorMessage =
@@ -178,7 +167,7 @@ export default function ReviewScreen({ navigation, route }: ReviewScreenProps) {
         errorMessage.includes("required permissions") ||
         error.status === 403;
 
-      console.error("❌ [Review] Error completing onboarding:", {
+      console.error("[Review] Error completing onboarding:", {
         message: errorMessage,
         raw: error,
       });
@@ -200,7 +189,7 @@ export default function ReviewScreen({ navigation, route }: ReviewScreenProps) {
     }
   };
 
-  const styles = StyleSheet.create({
+  const styles = React.useMemo(() => StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: colors.background,
@@ -411,7 +400,45 @@ export default function ReviewScreen({ navigation, route }: ReviewScreenProps) {
     activateButtonTextDisabled: {
       color: colors.textSecondary,
     },
-  });
+    requirementsBanner: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      backgroundColor: "#FEF3C7",
+      borderWidth: 1,
+      borderColor: "#F59E0B",
+      borderRadius: 12,
+      padding: DESIGN_TOKENS.spacing.md,
+      marginBottom: DESIGN_TOKENS.spacing.lg,
+    },
+    requirementsBannerTitle: {
+      fontSize: DESIGN_TOKENS.typography.body.fontSize,
+      fontWeight: "700",
+      color: "#92400E",
+      marginBottom: 4,
+    },
+    requirementsBannerText: {
+      fontSize: DESIGN_TOKENS.typography.body.fontSize,
+      color: "#92400E",
+      marginLeft: 8,
+    },
+    requirementRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingVertical: 3,
+    },
+    requirementText: {
+      fontSize: DESIGN_TOKENS.typography.caption.fontSize,
+      color: "#92400E",
+      flex: 1,
+    },
+    requirementsBannerHint: {
+      fontSize: DESIGN_TOKENS.typography.caption.fontSize,
+      color: "#B45309",
+      marginTop: 6,
+      fontStyle: "italic",
+    },
+  }), [colors, insets]);
 
   return (
     <SafeAreaView
@@ -451,6 +478,47 @@ export default function ReviewScreen({ navigation, route }: ReviewScreenProps) {
             {t("stripe.onboarding.review.subtitle")}
           </Text>
         </View>
+
+        {/* Warning banner if requirements are still pending */}
+        {checkingRequirements ? (
+          <View style={styles.requirementsBanner}>
+            <ActivityIndicator size="small" color="#92400E" />
+            <Text style={styles.requirementsBannerText}>
+              {t("stripe.onboarding.review.checkingRequirements")}
+            </Text>
+          </View>
+        ) : pendingRequirements.length > 0 ? (
+          <View style={styles.requirementsBanner}>
+            <Ionicons name="warning" size={22} color="#92400E" style={{ marginRight: 8 }} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.requirementsBannerTitle}>
+                {t("stripe.onboarding.review.pendingRequirementsTitle", { count: pendingRequirements.length })}
+              </Text>
+              {pendingRequirements.map((req, idx) => {
+                const screen = getScreenForRequirement(req);
+                const label = req.replace(/^person_[^.]+\./, "person.").replace(/^company\./, "company.");
+                return (
+                  <TouchableOpacity
+                    key={idx}
+                    disabled={!screen}
+                    onPress={() => screen && navigation.navigate(screen)}
+                    style={styles.requirementRow}
+                  >
+                    <Text style={styles.requirementText}>
+                      • {label}
+                    </Text>
+                    {screen && (
+                      <Ionicons name="arrow-forward" size={14} color="#92400E" />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+              <Text style={styles.requirementsBannerHint}>
+                {t("stripe.onboarding.review.pendingRequirementsHint")}
+              </Text>
+            </View>
+          </View>
+        ) : null}
 
         {/* Récapitulatif */}
         <View style={styles.summarySection}>
@@ -708,10 +776,10 @@ export default function ReviewScreen({ navigation, route }: ReviewScreenProps) {
         <TouchableOpacity
           style={[
             styles.activateButton,
-            (!tosAccepted || isSubmitting) && styles.activateButtonDisabled,
+            (!tosAccepted || isSubmitting || checkingRequirements || pendingRequirements.length > 0) && styles.activateButtonDisabled,
           ]}
           onPress={handleActivate}
-          disabled={!tosAccepted || isSubmitting}
+          disabled={!tosAccepted || isSubmitting || checkingRequirements || pendingRequirements.length > 0}
           testID="stripe-review-activate-btn"
         >
           {isSubmitting ? (
@@ -721,7 +789,7 @@ export default function ReviewScreen({ navigation, route }: ReviewScreenProps) {
               <Text
                 style={[
                   styles.activateButtonText,
-                  !tosAccepted && styles.activateButtonTextDisabled,
+                  (!tosAccepted || pendingRequirements.length > 0) && styles.activateButtonTextDisabled,
                 ]}
               >
                 {t("stripe.onboarding.review.activateButton")}

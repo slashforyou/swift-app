@@ -10,8 +10,7 @@ import { useTranslation } from "../../localization";
 
 type RootStackParamList = {
   Connection: undefined;
-  Subscribe: undefined;
-  BusinessOwnerRegistration: undefined;
+  Subscribe: { accountType?: 'business_owner' | 'employee' } | undefined;
 };
 
 interface RegisterTypeSelectionProps {
@@ -35,7 +34,8 @@ const RegisterTypeSelection: React.FC<RegisterTypeSelectionProps> = ({
         t("auth.registration.businessOwner.feature2"),
         t("auth.registration.businessOwner.feature3"),
       ],
-      route: "BusinessOwnerRegistration" as const,
+      route: "Subscribe" as const,
+      routeParams: { accountType: 'business_owner' as const },
       recommended: true,
     },
     {
@@ -49,6 +49,7 @@ const RegisterTypeSelection: React.FC<RegisterTypeSelectionProps> = ({
         t("auth.registration.employee.feature3"),
       ],
       route: "Subscribe" as const,
+      routeParams: { accountType: 'employee' as const },
       recommended: false,
     },
   ];
@@ -138,7 +139,7 @@ const RegisterTypeSelection: React.FC<RegisterTypeSelectionProps> = ({
               shadowRadius: 8,
               elevation: 4,
             }}
-            onPress={() => navigation.navigate(type.route)}
+            onPress={() => navigation.navigate(type.route, type.routeParams)}
           >
             {type.recommended && (
               <View

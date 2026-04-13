@@ -5,26 +5,26 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  Text,
-  View,
+    ActivityIndicator,
+    Alert,
+    Pressable,
+    RefreshControl,
+    ScrollView,
+    Text,
+    View,
 } from "react-native";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
-import {
-  BillingDirection,
-  BillingStats,
-  BillingStatus,
-  BillingTransfer,
-  fetchBillingStats,
-  fetchBillingTransfers,
-  updateBillingTransfer,
-} from "../../services/interContractorBillingService";
 import { useTranslation } from "../../localization/useLocalization";
+import {
+    BillingDirection,
+    BillingStats,
+    BillingStatus,
+    BillingTransfer,
+    fetchBillingStats,
+    fetchBillingTransfers,
+    updateBillingTransfer,
+} from "../../services/interContractorBillingService";
 
 // ─────────────────────────────────────────────────────────
 // Constants

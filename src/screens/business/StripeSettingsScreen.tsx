@@ -5,24 +5,24 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MascotLoading from "../../components/ui/MascotLoading";
 
 // Context
+import { ENV } from "../../config/environment";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
 import { useStripeAccount, useStripeSettings } from "../../hooks/useStripe";
 import { useTranslation } from "../../localization/useLocalization";
-import { ENV } from "../../config/environment";
 
 // Types
 interface StripeConfig {

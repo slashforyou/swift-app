@@ -2,14 +2,15 @@
  * RepresentativeScreen - Legal representative details for Stripe
  */
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { Picker } from "@react-native-picker/picker";
 import Ionicons from "@react-native-vector-icons/ionicons";
-import * as SecureStore from "expo-secure-store";
 import React from "react";
 import {
     ActivityIndicator,
     Alert,
+    FlatList,
+    Keyboard,
     KeyboardAvoidingView,
+    Modal,
     Platform,
     ScrollView,
     StyleSheet,
@@ -23,21 +24,23 @@ import {
     SafeAreaView,
     useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import { getStripeTestData } from "../../../config/stripeTestData";
+import { ServerData } from "../../../constants/ServerData";
 import { DESIGN_TOKENS } from "../../../constants/Styles";
 import { useTheme } from "../../../context/ThemeProvider";
-import { useStripeAccount } from "../../../hooks/useStripe";
+import { useOnboardingDraft } from "../../../hooks/useOnboardingDraft";
 import { useTranslation } from "../../../localization";
+import { lookupPostcode } from "../../../services/abnLookupService";
 import {
     fetchStripeAccount,
+    loadDraft,
     submitCompanyPersons,
     submitRepresentativeDetails,
 } from "../../../services/StripeService";
+import { authenticatedFetch } from "../../../utils/auth";
+import { pickFirst, stripeDobToDate } from "../../../utils/autoFill";
 import {
-    getMissingOnboardingSteps,
-    getNextOnboardingStep,
+    getFixedNextStep,
     getOnboardingStepMeta,
-    resolveBusinessType,
 } from "./onboardingSteps";
 
 interface RepresentativeScreenProps {
@@ -94,45 +97,106 @@ export default function RepresentativeScreen({
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
-  const stripeAccount = useStripeAccount();
-  const stripeAccountRaw = stripeAccount.account as any;
 
-  const businessType = resolveBusinessType(
-    stripeAccountRaw?.business_type || stripeAccountRaw?.businessType,
-    stripeAccount.account?.requirements,
-  );
+  // This screen is company-only — hardcode businessType
+  const businessType = "company" as const;
   const stepMeta = getOnboardingStepMeta("Representative", businessType);
   const stepLabel = t("stripe.onboarding.stepLabel", {
     current: stepMeta.index + 1,
     total: stepMeta.total,
   });
 
-  const testData = __DEV__ ? getStripeTestData() : null;
-
   const [formData, setFormData] = React.useState<FormData>({
-    firstName: testData?.representative.firstName || "",
-    lastName: testData?.representative.lastName || "",
-    dob: testData?.representative.dob || null,
-    email: testData?.representative.email || "",
-    phone: testData?.representative.phone || "",
-    line1: testData?.representative.address.line1 || "",
-    line2: testData?.representative.address.line2 || "",
-    city: testData?.representative.address.city || "",
-    state: testData?.representative.address.state || "",
-    postalCode: testData?.representative.address.postalCode || "",
-    title: testData?.representative.title || "",
-    owner: testData?.representative.owner ?? false,
-    director: testData?.representative.director ?? false,
-    executive: testData?.representative.executive ?? false,
-    percentOwnership: testData?.representative.percentOwnership || "",
+    firstName: "",
+    lastName: "",
+    dob: null,
+    email: "",
+    phone: "",
+    line1: "",
+    line2: "",
+    city: "",
+    state: "",
+    postalCode: "",
+    title: "",
+    owner: false,
+    director: false,
+    executive: false,
+    percentOwnership: "",
   });
+
+  const { saveDraftNow } = useOnboardingDraft("Representative");
+  const formDataRef = React.useRef(formData);
+  React.useEffect(() => { formDataRef.current = formData; }, [formData]);
+  const lastLookedUpPostcode = React.useRef("");
+  const handleFieldBlur = React.useCallback(() => {
+    const d = formDataRef.current;
+    saveDraftNow({ ...d, dob: d.dob?.toISOString() ?? null });
+  }, [saveDraftNow]);
+
+  // Pre-fill from draft > Stripe account > company profile (runs ONCE)
+  const hasPreFilled = React.useRef(false);
+  React.useEffect(() => {
+    if (hasPreFilled.current) return;
+    hasPreFilled.current = true;
+
+    (async () => {
+      try {
+        const draft = await loadDraft("Representative") as Record<string, unknown>;
+
+        // Fetch Stripe data directly (no hook re-renders)
+        let si: any = {};
+        let siAddr: any = {};
+        let siRel: any = {};
+        try {
+          const stripeData = await fetchStripeAccount() as any;
+          si = stripeData?.individual || {};
+          siAddr = si.address || {};
+          siRel = si.relationship || {};
+        } catch { /* ignore */ }
+
+        // Company profile as fallback source
+        let cp: any = {};
+        try {
+          const response = await authenticatedFetch(
+            `${ServerData.serverUrl}v1/companies/me`,
+            { method: "GET" },
+          );
+          if (response.ok) {
+            const json = await response.json();
+            if (json.success && json.data) cp = json.data;
+          }
+        } catch { /* non-critical */ }
+
+        const newPostalCode = pickFirst("", draft.postalCode as string, siAddr.postal_code, cp.address?.postcode);
+        const cleanedPc = (newPostalCode || "").trim();
+        if (/^\d{4}$/.test(cleanedPc)) lastLookedUpPostcode.current = cleanedPc;
+
+        setFormData((prev) => ({
+          ...prev,
+          firstName: pickFirst("", draft.firstName as string, si.first_name, cp.contact_first_name),
+          lastName: pickFirst("", draft.lastName as string, si.last_name, cp.contact_last_name),
+          email: pickFirst("", draft.email as string, si.email, cp.email),
+          phone: pickFirst("", draft.phone as string, si.phone, cp.phone),
+          line1: pickFirst("", draft.line1 as string, siAddr.line1, cp.address?.street),
+          line2: pickFirst("", draft.line2 as string, siAddr.line2),
+          city: pickFirst("", draft.city as string, siAddr.city, cp.address?.suburb),
+          state: pickFirst("", draft.state as string, siAddr.state, cp.address?.state),
+          postalCode: newPostalCode,
+          title: pickFirst("", draft.title as string, siRel.title),
+          owner: (draft.owner as boolean) ?? siRel.owner ?? prev.owner,
+          director: (draft.director as boolean) ?? siRel.director ?? prev.director,
+          executive: (draft.executive as boolean) ?? siRel.executive ?? prev.executive,
+          percentOwnership: pickFirst("", draft.percentOwnership as string, siRel.percent_ownership ? String(siRel.percent_ownership) : ""),
+          dob: pickFirst(null as Date | null, draft.dob ? new Date(draft.dob as string) : null, stripeDobToDate(si.dob)),
+        }));
+      } catch { /* ignore pre-fill errors */ }
+    })();
+  }, []);
 
   const [errors, setErrors] = React.useState<FormErrors>({});
   const [showDatePicker, setShowDatePicker] = React.useState(false);
+  const [showStatePicker, setShowStatePicker] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [hasAutoSkipped, setHasAutoSkipped] = React.useState(false);
-
-  const representativeCacheKey = "stripe_onboarding_representative";
 
   const parseDate = (value: unknown): Date | null => {
     if (!value) return null;
@@ -145,60 +209,31 @@ export default function RepresentativeScreen({
     return null;
   };
 
-  const dueFields = React.useMemo(() => {
-    const req = stripeAccount.account?.requirements;
-    const due = [...(req?.past_due ?? []), ...(req?.currently_due ?? [])];
-    return new Set(due);
-  }, [stripeAccount.account?.requirements]);
+  // ── Postcode lookup (called manually on blur, NOT on formData change) ──
+  const doPostcodeLookup = React.useCallback(async () => {
+    const pc = formDataRef.current.postalCode.trim();
+    if (!/^\d{4}$/.test(pc) || pc === lastLookedUpPostcode.current) return;
+    if (formDataRef.current.city.trim()) return;
 
-  const isDue = React.useCallback(
-    (key: string) => dueFields.has(key),
-    [dueFields],
-  );
-
-  const lockIfNotDue = React.useCallback((key: string) => !isDue(key), [isDue]);
-
-  React.useEffect(() => {
-    (async () => {
-      try {
-        const raw = await SecureStore.getItemAsync(representativeCacheKey);
-        if (!raw) return;
-        const cached = JSON.parse(raw) as Partial<FormData>;
-        const cachedDob = parseDate((cached as any).dob);
+    try {
+      const result = await lookupPostcode(pc);
+      lastLookedUpPostcode.current = pc;
+      if (result.suburb) {
         setFormData((prev) => ({
           ...prev,
-          ...cached,
-          dob: cachedDob ?? prev.dob,
+          city: prev.city || String(result.suburb || ""),
+          state: prev.state || String(result.state || ""),
         }));
-      } catch {
-        // ignore
       }
-    })();
+    } catch { /* ignore */ }
   }, []);
 
-  React.useEffect(() => {
-    if (hasAutoSkipped || stripeAccount.loading) return;
-
-    const requirements = stripeAccount.account?.requirements;
-    if (!requirements) return;
-
-    const missing = getMissingOnboardingSteps(requirements, businessType).steps;
-    if (missing.length > 0 && !missing.includes("Representative")) {
-      const nextStep = getNextOnboardingStep(
-        "Representative",
-        requirements,
-        businessType,
-      );
-      setHasAutoSkipped(true);
-      navigation.replace(nextStep);
-    }
-  }, [
-    businessType,
-    hasAutoSkipped,
-    navigation,
-    stripeAccount.account?.requirements,
-    stripeAccount.loading,
-  ]);
+  // ── Field blur handler — save draft + trigger postcode lookup ──
+  const handleFieldBlurWithField = React.useCallback((field?: string) => {
+    const d = formDataRef.current;
+    saveDraftNow({ ...d, dob: d.dob?.toISOString() ?? null });
+    if (field === "postalCode") doPostcodeLookup();
+  }, [saveDraftNow, doPostcodeLookup]);
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -233,44 +268,36 @@ export default function RepresentativeScreen({
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
-    if (isDue("representative.first_name") && !formData.firstName.trim()) {
+    if (!formData.firstName.trim()) {
       newErrors.firstName = t(
         "stripe.onboarding.representative.errors.firstNameRequired",
       );
     }
 
-    if (isDue("representative.last_name") && !formData.lastName.trim()) {
+    if (!formData.lastName.trim()) {
       newErrors.lastName = t(
         "stripe.onboarding.representative.errors.lastNameRequired",
       );
     }
 
-    if (
-      (isDue("representative.dob.day") ||
-        isDue("representative.dob.month") ||
-        isDue("representative.dob.year")) &&
-      !formData.dob
-    ) {
+    const dobDate = parseDate(formData.dob);
+    if (!dobDate) {
       newErrors.dob = t("stripe.onboarding.representative.errors.dobRequired");
-    } else if (!validateAge(formData.dob!)) {
+    } else if (!validateAge(dobDate)) {
       newErrors.dob = t("stripe.onboarding.representative.errors.dobMinAge");
-      !parseDate(formData.dob);
+    }
 
-      if (isDue("representative.email") && !formData.email.trim()) {
-      } else {
-        const dobDate = parseDate(formData.dob);
-        if (dobDate && !validateAge(dobDate)) {
-          newErrors.dob = t(
-            "stripe.onboarding.representative.errors.dobMinAge",
-          );
-        }
-      }
+    if (!formData.email.trim()) {
+      newErrors.email = t(
+        "stripe.onboarding.representative.errors.emailRequired",
+      );
+    } else if (!validateEmail(formData.email)) {
       newErrors.email = t(
         "stripe.onboarding.representative.errors.emailInvalid",
       );
     }
 
-    if (isDue("representative.phone") && !formData.phone.trim()) {
+    if (!formData.phone.trim()) {
       newErrors.phone = t(
         "stripe.onboarding.representative.errors.phoneRequired",
       );
@@ -280,28 +307,25 @@ export default function RepresentativeScreen({
       );
     }
 
-    if (isDue("representative.address.line1") && !formData.line1.trim()) {
+    if (!formData.line1.trim()) {
       newErrors.line1 = t(
         "stripe.onboarding.representative.errors.line1Required",
       );
     }
 
-    if (isDue("representative.address.city") && !formData.city.trim()) {
+    if (!formData.city.trim()) {
       newErrors.city = t(
         "stripe.onboarding.representative.errors.cityRequired",
       );
     }
 
-    if (isDue("representative.address.state") && !formData.state) {
+    if (!formData.state) {
       newErrors.state = t(
         "stripe.onboarding.representative.errors.stateRequired",
       );
     }
 
-    if (
-      isDue("representative.address.postal_code") &&
-      !formData.postalCode.trim()
-    ) {
+    if (!formData.postalCode.trim()) {
       newErrors.postalCode = t(
         "stripe.onboarding.representative.errors.postalCodeRequired",
       );
@@ -311,7 +335,7 @@ export default function RepresentativeScreen({
       );
     }
 
-    if (isDue("representative.relationship.title") && !formData.title.trim()) {
+    if (!formData.title.trim()) {
       newErrors.title = t(
         "stripe.onboarding.representative.errors.titleRequired",
       );
@@ -348,11 +372,6 @@ export default function RepresentativeScreen({
     setIsSubmitting(true);
 
     try {
-      await SecureStore.setItemAsync(
-        representativeCacheKey,
-        JSON.stringify(formData),
-      );
-
       const dobDate = parseDate(formData.dob);
       if (!dobDate) {
         throw new Error(
@@ -385,10 +404,7 @@ export default function RepresentativeScreen({
         },
       };
 
-      const due = [
-        ...(stripeAccount.account?.requirements?.past_due ?? []),
-        ...(stripeAccount.account?.requirements?.currently_due ?? []),
-      ];
+      const due: string[] = [];
 
       if (businessType === "company") {
         const dobStr = `${dobDate.getFullYear()}-${String(dobDate.getMonth() + 1).padStart(2, "0")}-${String(dobDate.getDate()).padStart(2, "0")}`;
@@ -418,20 +434,14 @@ export default function RepresentativeScreen({
         await submitRepresentativeDetails(payload);
       }
       const updatedAccount = await fetchStripeAccount();
-      const updatedAccountRaw = updatedAccount as any;
       if (!updatedAccount) {
         navigation.navigate("Review");
         return;
       }
-      const nextBusinessType = resolveBusinessType(
-        updatedAccountRaw?.business_type || updatedAccountRaw?.businessType,
-        updatedAccount.requirements,
-      );
-      const nextStep = getNextOnboardingStep(
-        "Representative",
-        updatedAccount.requirements,
-        nextBusinessType,
-      );
+
+      // Always go to next sequential step
+      const nextStep = getFixedNextStep("Representative", businessType);
+      Keyboard.dismiss();
       navigation.navigate(nextStep);
     } catch (error: any) {
       console.error("❌ [Representative] Error:", error);
@@ -463,8 +473,8 @@ export default function RepresentativeScreen({
   const handleDateChange = (event: any, selectedDate?: Date) => {
     setShowDatePicker(Platform.OS === "ios");
     if (selectedDate) {
-      setFormData({ ...formData, dob: selectedDate });
-      setErrors({ ...errors, dob: undefined });
+      setFormData(prev => ({ ...prev, dob: selectedDate }));
+      setErrors(prev => ({ ...prev, dob: undefined }));
     }
   };
 
@@ -474,7 +484,7 @@ export default function RepresentativeScreen({
     return parsed.toLocaleDateString("fr-FR");
   };
 
-  const styles = StyleSheet.create({
+  const styles = React.useMemo(() => StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: colors.background,
@@ -586,9 +596,6 @@ export default function RepresentativeScreen({
     inputError: {
       borderColor: "#EF4444",
     },
-    inputDisabled: {
-      opacity: 0.6,
-    },
     errorText: {
       marginTop: DESIGN_TOKENS.spacing.xs,
       fontSize: DESIGN_TOKENS.typography.caption.fontSize,
@@ -637,7 +644,7 @@ export default function RepresentativeScreen({
       fontWeight: "600",
       marginLeft: DESIGN_TOKENS.spacing.sm,
     },
-  });
+  }), [colors, insets]);
 
   return (
     <SafeAreaView
@@ -688,19 +695,18 @@ export default function RepresentativeScreen({
               <TextInput
                 style={[
                   styles.input,
-                  lockIfNotDue("representative.first_name") &&
-                    styles.inputDisabled,
                   errors.firstName && styles.inputError,
                 ]}
-                value={formData.firstName}
-                editable={!lockIfNotDue("representative.first_name")}
+                value={String(formData.firstName ?? "")}
                 onChangeText={(text) => {
-                  setFormData({ ...formData, firstName: text });
-                  setErrors({ ...errors, firstName: undefined });
+                  setFormData(prev => ({ ...prev, firstName: text }));
+                  setErrors(prev => ({ ...prev, firstName: undefined }));
                 }}
                 placeholder={t(
                   "stripe.onboarding.representative.firstNamePlaceholder",
                 )}
+                placeholderTextColor={colors.inputPlaceholder}
+                onBlur={handleFieldBlur}
               />
               {errors.firstName && (
                 <Text style={styles.errorText}>{errors.firstName}</Text>
@@ -715,19 +721,18 @@ export default function RepresentativeScreen({
               <TextInput
                 style={[
                   styles.input,
-                  lockIfNotDue("representative.last_name") &&
-                    styles.inputDisabled,
                   errors.lastName && styles.inputError,
                 ]}
-                value={formData.lastName}
-                editable={!lockIfNotDue("representative.last_name")}
+                value={String(formData.lastName ?? "")}
                 onChangeText={(text) => {
-                  setFormData({ ...formData, lastName: text });
-                  setErrors({ ...errors, lastName: undefined });
+                  setFormData(prev => ({ ...prev, lastName: text }));
+                  setErrors(prev => ({ ...prev, lastName: undefined }));
                 }}
                 placeholder={t(
                   "stripe.onboarding.representative.lastNamePlaceholder",
                 )}
+                placeholderTextColor={colors.inputPlaceholder}
+                onBlur={handleFieldBlur}
               />
               {errors.lastName && (
                 <Text style={styles.errorText}>{errors.lastName}</Text>
@@ -743,17 +748,9 @@ export default function RepresentativeScreen({
                 style={[
                   styles.dateButton,
                   errors.dob && styles.dateButtonError,
-                  lockIfNotDue("representative.dob.day") &&
-                    lockIfNotDue("representative.dob.month") &&
-                    lockIfNotDue("representative.dob.year") &&
-                    styles.inputDisabled,
                 ]}
                 onPress={() => {
-                  const locked =
-                    lockIfNotDue("representative.dob.day") &&
-                    lockIfNotDue("representative.dob.month") &&
-                    lockIfNotDue("representative.dob.year");
-                  if (!locked) setShowDatePicker(true);
+                  setShowDatePicker(true);
                 }}
               >
                 <Text
@@ -792,20 +789,20 @@ export default function RepresentativeScreen({
               <TextInput
                 style={[
                   styles.input,
-                  lockIfNotDue("representative.email") && styles.inputDisabled,
                   errors.email && styles.inputError,
                 ]}
-                value={formData.email}
-                editable={!lockIfNotDue("representative.email")}
+                value={String(formData.email ?? "")}
                 onChangeText={(text) => {
-                  setFormData({ ...formData, email: text });
-                  setErrors({ ...errors, email: undefined });
+                  setFormData(prev => ({ ...prev, email: text }));
+                  setErrors(prev => ({ ...prev, email: undefined }));
                 }}
                 placeholder={t(
                   "stripe.onboarding.representative.emailPlaceholder",
                 )}
+                placeholderTextColor={colors.inputPlaceholder}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                onBlur={handleFieldBlur}
               />
               {errors.email && (
                 <Text style={styles.errorText}>{errors.email}</Text>
@@ -820,19 +817,19 @@ export default function RepresentativeScreen({
               <TextInput
                 style={[
                   styles.input,
-                  lockIfNotDue("representative.phone") && styles.inputDisabled,
                   errors.phone && styles.inputError,
                 ]}
-                value={formData.phone}
-                editable={!lockIfNotDue("representative.phone")}
+                value={String(formData.phone ?? "")}
                 onChangeText={(text) => {
-                  setFormData({ ...formData, phone: text });
-                  setErrors({ ...errors, phone: undefined });
+                  setFormData(prev => ({ ...prev, phone: text }));
+                  setErrors(prev => ({ ...prev, phone: undefined }));
                 }}
                 placeholder={t(
                   "stripe.onboarding.representative.phonePlaceholder",
                 )}
+                placeholderTextColor={colors.inputPlaceholder}
                 keyboardType="phone-pad"
+                onBlur={handleFieldBlur}
               />
               {errors.phone && (
                 <Text style={styles.errorText}>{errors.phone}</Text>
@@ -847,19 +844,18 @@ export default function RepresentativeScreen({
               <TextInput
                 style={[
                   styles.input,
-                  lockIfNotDue("representative.address.line1") &&
-                    styles.inputDisabled,
                   errors.line1 && styles.inputError,
                 ]}
-                value={formData.line1}
-                editable={!lockIfNotDue("representative.address.line1")}
+                value={String(formData.line1 ?? "")}
                 onChangeText={(text) => {
-                  setFormData({ ...formData, line1: text });
-                  setErrors({ ...errors, line1: undefined });
+                  setFormData(prev => ({ ...prev, line1: text }));
+                  setErrors(prev => ({ ...prev, line1: undefined }));
                 }}
                 placeholder={t(
                   "stripe.onboarding.representative.line1Placeholder",
                 )}
+                placeholderTextColor={colors.inputPlaceholder}
+                onBlur={handleFieldBlur}
               />
               {errors.line1 && (
                 <Text style={styles.errorText}>{errors.line1}</Text>
@@ -872,13 +868,15 @@ export default function RepresentativeScreen({
               </Text>
               <TextInput
                 style={styles.input}
-                value={formData.line2}
+                value={String(formData.line2 ?? "")}
                 onChangeText={(text) =>
-                  setFormData({ ...formData, line2: text })
+                  setFormData(prev => ({ ...prev, line2: text }))
                 }
                 placeholder={t(
                   "stripe.onboarding.representative.line2Placeholder",
                 )}
+                placeholderTextColor={colors.inputPlaceholder}
+                onBlur={handleFieldBlur}
               />
             </View>
 
@@ -890,19 +888,18 @@ export default function RepresentativeScreen({
               <TextInput
                 style={[
                   styles.input,
-                  lockIfNotDue("representative.address.city") &&
-                    styles.inputDisabled,
                   errors.city && styles.inputError,
                 ]}
-                value={formData.city}
-                editable={!lockIfNotDue("representative.address.city")}
+                value={String(formData.city ?? "")}
                 onChangeText={(text) => {
-                  setFormData({ ...formData, city: text });
-                  setErrors({ ...errors, city: undefined });
+                  setFormData(prev => ({ ...prev, city: text }));
+                  setErrors(prev => ({ ...prev, city: undefined }));
                 }}
                 placeholder={t(
                   "stripe.onboarding.representative.cityPlaceholder",
                 )}
+                placeholderTextColor={colors.inputPlaceholder}
+                onBlur={handleFieldBlur}
               />
               {errors.city && (
                 <Text style={styles.errorText}>{errors.city}</Text>
@@ -914,35 +911,58 @@ export default function RepresentativeScreen({
                 {t("stripe.onboarding.representative.state")}{" "}
                 <Text style={styles.required}>*</Text>
               </Text>
-              <View
+              <TouchableOpacity
                 style={[
                   styles.pickerContainer,
                   errors.state && styles.pickerContainerError,
+                  { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: DESIGN_TOKENS.spacing.md, paddingVertical: DESIGN_TOKENS.spacing.sm },
                 ]}
+                onPress={() => setShowStatePicker(true)}
               >
-                <Picker
-                  selectedValue={formData.state}
-                  enabled={!lockIfNotDue("representative.address.state")}
-                  onValueChange={(value) => {
-                    setFormData({ ...formData, state: value });
-                    setErrors({ ...errors, state: undefined });
-                  }}
+                <Text style={{ color: formData.state ? colors.text : colors.textSecondary, fontSize: DESIGN_TOKENS.typography.body.fontSize }}>
+                  {formData.state
+                    ? AUSTRALIAN_STATES.find((s) => s.value === formData.state)?.label || formData.state
+                    : t("stripe.onboarding.representative.statePlaceholder")}
+                </Text>
+                <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
+              </TouchableOpacity>
+
+              <Modal visible={showStatePicker} transparent animationType="slide">
+                <TouchableOpacity
+                  style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}
+                  activeOpacity={1}
+                  onPress={() => setShowStatePicker(false)}
                 >
-                  <Picker.Item
-                    label={t(
-                      "stripe.onboarding.representative.statePlaceholder",
-                    )}
-                    value=""
-                  />
-                  {AUSTRALIAN_STATES.map((item) => (
-                    <Picker.Item
-                      key={item.value}
-                      label={item.label}
-                      value={item.value}
+                  <View style={{ backgroundColor: colors.background, borderTopLeftRadius: 16, borderTopRightRadius: 16, maxHeight: 400 }}>
+                    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: DESIGN_TOKENS.spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+                      <Text style={{ fontSize: 16, fontWeight: "600", color: colors.text }}>
+                        {t("stripe.onboarding.representative.state")}
+                      </Text>
+                      <TouchableOpacity onPress={() => setShowStatePicker(false)}>
+                        <Ionicons name="close" size={24} color={colors.text} />
+                      </TouchableOpacity>
+                    </View>
+                    <FlatList
+                      data={AUSTRALIAN_STATES}
+                      keyExtractor={(item) => item.value}
+                      renderItem={({ item }) => (
+                        <TouchableOpacity
+                          style={{ padding: DESIGN_TOKENS.spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}
+                          onPress={() => {
+                            setFormData((prev) => ({ ...prev, state: item.value }));
+                            setErrors((prev) => ({ ...prev, state: undefined }));
+                            setTimeout(() => saveDraftNow({ ...formDataRef.current, state: item.value }), 100);
+                            setShowStatePicker(false);
+                          }}
+                        >
+                          <Text style={{ color: colors.text, fontSize: DESIGN_TOKENS.typography.body.fontSize }}>{item.label}</Text>
+                          {formData.state === item.value && <Ionicons name="checkmark" size={20} color={colors.primary} />}
+                        </TouchableOpacity>
+                      )}
                     />
-                  ))}
-                </Picker>
-              </View>
+                  </View>
+                </TouchableOpacity>
+              </Modal>
               {errors.state && (
                 <Text style={styles.errorText}>{errors.state}</Text>
               )}
@@ -955,15 +975,17 @@ export default function RepresentativeScreen({
               </Text>
               <TextInput
                 style={[styles.input, errors.postalCode && styles.inputError]}
-                value={formData.postalCode}
+                value={String(formData.postalCode ?? "")}
                 onChangeText={(text) => {
-                  setFormData({ ...formData, postalCode: text });
-                  setErrors({ ...errors, postalCode: undefined });
+                  setFormData(prev => ({ ...prev, postalCode: text }));
+                  setErrors(prev => ({ ...prev, postalCode: undefined }));
                 }}
                 placeholder={t(
                   "stripe.onboarding.representative.postalCodePlaceholder",
                 )}
+                placeholderTextColor={colors.inputPlaceholder}
                 keyboardType="number-pad"
+                onBlur={() => handleFieldBlurWithField("postalCode")}
               />
               {errors.postalCode && (
                 <Text style={styles.errorText}>{errors.postalCode}</Text>
@@ -977,14 +999,16 @@ export default function RepresentativeScreen({
               </Text>
               <TextInput
                 style={[styles.input, errors.title && styles.inputError]}
-                value={formData.title}
+                value={String(formData.title ?? "")}
                 onChangeText={(text) => {
-                  setFormData({ ...formData, title: text });
-                  setErrors({ ...errors, title: undefined });
+                  setFormData(prev => ({ ...prev, title: text }));
+                  setErrors(prev => ({ ...prev, title: undefined }));
                 }}
                 placeholder={t(
                   "stripe.onboarding.representative.titlePlaceholder",
                 )}
+                placeholderTextColor={colors.inputPlaceholder}
+                onBlur={handleFieldBlur}
               />
               {errors.title && (
                 <Text style={styles.errorText}>{errors.title}</Text>
@@ -998,36 +1022,36 @@ export default function RepresentativeScreen({
                     {t("stripe.onboarding.representative.relationshipTitle")}
                   </Text>
                   <View style={styles.switchRow}>
-                    <Text>{t("stripe.onboarding.representative.owner")}</Text>
+                    <Text style={{ color: colors.text }}>{t("stripe.onboarding.representative.owner")}</Text>
                     <Switch
                       value={formData.owner}
                       onValueChange={(value) => {
-                        setFormData({ ...formData, owner: value });
-                        setErrors({ ...errors, relationship: undefined });
+                        setFormData(prev => ({ ...prev, owner: value }));
+                        setErrors(prev => ({ ...prev, relationship: undefined }));
                       }}
                     />
                   </View>
                   <View style={styles.switchRow}>
-                    <Text>
+                    <Text style={{ color: colors.text }}>
                       {t("stripe.onboarding.representative.director")}
                     </Text>
                     <Switch
                       value={formData.director}
                       onValueChange={(value) => {
-                        setFormData({ ...formData, director: value });
-                        setErrors({ ...errors, relationship: undefined });
+                        setFormData(prev => ({ ...prev, director: value }));
+                        setErrors(prev => ({ ...prev, relationship: undefined }));
                       }}
                     />
                   </View>
                   <View style={styles.switchRow}>
-                    <Text>
+                    <Text style={{ color: colors.text }}>
                       {t("stripe.onboarding.representative.executive")}
                     </Text>
                     <Switch
                       value={formData.executive}
                       onValueChange={(value) => {
-                        setFormData({ ...formData, executive: value });
-                        setErrors({ ...errors, relationship: undefined });
+                        setFormData(prev => ({ ...prev, executive: value }));
+                        setErrors(prev => ({ ...prev, relationship: undefined }));
                       }}
                     />
                   </View>
@@ -1047,17 +1071,18 @@ export default function RepresentativeScreen({
                         styles.input,
                         errors.percentOwnership && styles.inputError,
                       ]}
-                      value={formData.percentOwnership}
+                      value={String(formData.percentOwnership ?? "")}
                       onChangeText={(text) => {
-                        setFormData({ ...formData, percentOwnership: text });
-                        setErrors({
-                          ...errors,
+                        setFormData(prev => ({ ...prev, percentOwnership: text }));
+                        setErrors(prev => ({
+                          ...prev,
                           percentOwnership: undefined,
-                        });
+                        }));
                       }}
                       placeholder={t(
                         "stripe.onboarding.representative.percentOwnershipPlaceholder",
                       )}
+                      placeholderTextColor={colors.inputPlaceholder}
                       keyboardType="number-pad"
                     />
                     {errors.percentOwnership && (

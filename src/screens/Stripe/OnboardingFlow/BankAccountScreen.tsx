@@ -7,6 +7,7 @@ import React from "react";
 import {
     ActivityIndicator,
     Alert,
+    Keyboard,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
@@ -20,20 +21,23 @@ import {
     SafeAreaView,
     useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import { getStripeTestData } from "../../../config/stripeTestData";
+import { ServerData } from "../../../constants/ServerData";
 import { DESIGN_TOKENS } from "../../../constants/Styles";
 import { useTheme } from "../../../context/ThemeProvider";
-import { useStripeAccount } from "../../../hooks/useStripe";
+import { useOnboardingDraft } from "../../../hooks/useOnboardingDraft";
 import { useTranslation } from "../../../localization";
 import {
     fetchStripeAccount,
+    loadDraft,
     submitBankAccount,
 } from "../../../services/StripeService";
+import { authenticatedFetch } from "../../../utils/auth";
+import { pickFirst } from "../../../utils/autoFill";
 import {
-    getMissingOnboardingSteps,
-    getNextOnboardingStep,
+    getFixedNextStep,
     getOnboardingStepMeta,
     resolveBusinessType,
+    type StripeOnboardingBusinessType,
 } from "./onboardingSteps";
 
 interface BankAccountScreenProps {
@@ -60,54 +64,73 @@ export default function BankAccountScreen({
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
-  const stripeAccount = useStripeAccount();
 
-  const businessType = resolveBusinessType(
-    stripeAccount.account?.business_type || stripeAccount.account?.businessType,
-    stripeAccount.account?.requirements,
-  );
+  const [businessType, setBusinessType] = React.useState<StripeOnboardingBusinessType>("company");
   const stepMeta = getOnboardingStepMeta("BankAccount", businessType);
   const stepLabel = t("stripe.onboarding.stepLabel", {
     current: stepMeta.index + 1,
     total: stepMeta.total,
   });
 
-  const testData = __DEV__ ? getStripeTestData() : null;
-
   const [formData, setFormData] = React.useState<FormData>({
-    accountHolderName: testData?.bankAccount.accountHolderName || "",
-    bsb: testData?.bankAccount.bsb || "",
-    accountNumber: testData?.bankAccount.accountNumber || "",
+    accountHolderName: "",
+    bsb: "",
+    accountNumber: "",
   });
+
+  const { saveDraftNow } = useOnboardingDraft("BankAccount");
+  const formDataRef = React.useRef(formData);
+  React.useEffect(() => { formDataRef.current = formData; }, [formData]);
+  const handleFieldBlur = React.useCallback(() => {
+    saveDraftNow(formDataRef.current);
+  }, [saveDraftNow]);
 
   const [errors, setErrors] = React.useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [hasAutoSkipped, setHasAutoSkipped] = React.useState(false);
 
+  // Pre-fill from draft > Stripe external accounts > company profile
   React.useEffect(() => {
-    if (hasAutoSkipped || stripeAccount.loading) return;
+    (async () => {
+      try {
+        const [draft, stripeData, companyRes, profileRes] = await Promise.all([
+          loadDraft("BankAccount").catch(() => null) as Promise<Partial<FormData> | null>,
+          fetchStripeAccount().catch(() => null) as Promise<any>,
+          authenticatedFetch(
+            `${ServerData.serverUrl}v1/companies/me`,
+            { method: "GET" },
+          ).then(r => r.ok ? r.json() : null).catch(() => null),
+          authenticatedFetch(
+            `${ServerData.serverUrl}v1/user/profile`,
+            { method: "GET" },
+          ).then(r => r.ok ? r.json() : null).catch(() => null),
+        ]);
 
-    const requirements = stripeAccount.account?.requirements;
-    if (!requirements) return;
+        let d: any = {};
+        if (companyRes?.success && companyRes?.data) d = companyRes.data;
+        const prof = profileRes?.data || profileRes || {};
 
-    const missing = getMissingOnboardingSteps(requirements, businessType).steps;
-    if (missing.length > 0 && !missing.includes("BankAccount")) {
-      const nextStep = getNextOnboardingStep(
-        "BankAccount",
-        requirements,
-        businessType,
-      );
-      setHasAutoSkipped(true);
-      navigation.replace(nextStep, route.params);
-    }
-  }, [
-    businessType,
-    hasAutoSkipped,
-    navigation,
-    route.params,
-    stripeAccount.account?.requirements,
-    stripeAccount.loading,
-  ]);
+        // Resolve business type
+        const bt = resolveBusinessType(
+          stripeData?.business_type || stripeData?.businessType,
+          stripeData?.requirements,
+        );
+        setBusinessType(bt);
+
+        // Stripe external account (bank) data
+        const extAccounts = stripeData?.external_accounts?.data || [];
+        const bank = extAccounts.find((a: any) => a.object === "bank_account") || {};
+        // Build full name from profile as fallback for account holder
+        const fullName = [prof?.firstName, prof?.lastName].filter(Boolean).join(" ");
+
+        setFormData((prev) => ({
+          ...prev,
+          accountHolderName: pickFirst("", draft?.accountHolderName as string, bank.account_holder_name, d.name, fullName),
+          bsb: pickFirst("", draft?.bsb as string, bank.routing_number, d.bsb),
+          accountNumber: pickFirst("", draft?.accountNumber as string),
+        }));
+      } catch { /* non-critical */ }
+    })();
+  }, []);
 
   // Formater BSB avec tiret (XXX-XXX)
   const formatBSB = (value: string): string => {
@@ -181,35 +204,23 @@ export default function BankAccountScreen({
 
       const response = await submitBankAccount(payload);
 
+      // Refresh account
       const updatedAccount = await fetchStripeAccount();
       const acct = updatedAccount as any;
       const nextBusinessType = resolveBusinessType(
         acct?.business_type,
         acct?.requirements,
       );
-      const nextStep = getNextOnboardingStep(
-        "BankAccount",
-        acct?.requirements,
-        nextBusinessType,
-      );
-      const nextParams = {
+
+      // Always go to next sequential step
+      const nextStep = getFixedNextStep("BankAccount", nextBusinessType);
+      Keyboard.dismiss();
+      navigation.navigate(nextStep, {
         personalInfo: route.params?.personalInfo,
         address: route.params?.address,
         bankAccount: formData,
-      };
-
-      switch (nextStep) {
-        case "Documents":
-          navigation.navigate("Documents", nextParams);
-          break;
-        case "Review":
-        default:
-          navigation.navigate("Review", nextParams);
-          break;
-      }
+      });
     } catch (error: any) {
-      console.error("❌ [BankAccount] Error:", error);
-
       // Detect Stripe permission error (Express account trying to use Custom-only features)
       const isPermissionError =
         error.code === "STRIPE_PERMISSION_DENIED" ||
@@ -236,11 +247,11 @@ export default function BankAccountScreen({
 
   const handleBSBChange = (text: string) => {
     const formatted = formatBSB(text);
-    setFormData({ ...formData, bsb: formatted });
-    setErrors({ ...errors, bsb: undefined });
+    setFormData(prev => ({ ...prev, bsb: formatted }));
+    setErrors(prev => ({ ...prev, bsb: undefined }));
   };
 
-  const styles = StyleSheet.create({
+  const styles = React.useMemo(() => StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: colors.background,
@@ -406,7 +417,7 @@ export default function BankAccountScreen({
       fontWeight: "600",
       marginRight: DESIGN_TOKENS.spacing.xs,
     },
-  });
+  }), [colors, insets]);
 
   return (
     <SafeAreaView
@@ -464,10 +475,10 @@ export default function BankAccountScreen({
                   styles.input,
                   errors.accountHolderName && styles.inputError,
                 ]}
-                value={formData.accountHolderName}
+                value={String(formData.accountHolderName ?? "")}
                 onChangeText={(text) => {
-                  setFormData({ ...formData, accountHolderName: text });
-                  setErrors({ ...errors, accountHolderName: undefined });
+                  setFormData(prev => ({ ...prev, accountHolderName: text }));
+                  setErrors(prev => ({ ...prev, accountHolderName: undefined }));
                 }}
                 placeholder={t(
                   "stripe.onboarding.bankAccount.holderNamePlaceholder",
@@ -475,6 +486,7 @@ export default function BankAccountScreen({
                 placeholderTextColor={colors.textSecondary}
                 autoCapitalize="words"
                 testID="stripe-bank-holdername"
+                onBlur={handleFieldBlur}
               />
               {errors.accountHolderName && (
                 <Text style={styles.errorText}>{errors.accountHolderName}</Text>
@@ -489,13 +501,14 @@ export default function BankAccountScreen({
               </Text>
               <TextInput
                 style={[styles.input, errors.bsb && styles.inputError]}
-                value={formData.bsb}
+                value={String(formData.bsb ?? "")}
                 onChangeText={handleBSBChange}
                 placeholder={t("stripe.onboarding.bankAccount.bsbPlaceholder")}
                 placeholderTextColor={colors.textSecondary}
                 keyboardType="number-pad"
                 maxLength={7} // XXX-XXX
                 testID="stripe-bank-bsb"
+                onBlur={handleFieldBlur}
               />
               {errors.bsb && <Text style={styles.errorText}>{errors.bsb}</Text>}
               <Text style={styles.helperText}>
@@ -514,11 +527,11 @@ export default function BankAccountScreen({
                   styles.input,
                   errors.accountNumber && styles.inputError,
                 ]}
-                value={formData.accountNumber}
+                value={String(formData.accountNumber ?? "")}
                 onChangeText={(text) => {
                   const cleaned = text.replace(/[^0-9]/g, "");
-                  setFormData({ ...formData, accountNumber: cleaned });
-                  setErrors({ ...errors, accountNumber: undefined });
+                  setFormData(prev => ({ ...prev, accountNumber: cleaned }));
+                  setErrors(prev => ({ ...prev, accountNumber: undefined }));
                 }}
                 placeholder={t(
                   "stripe.onboarding.bankAccount.accountNumberPlaceholder",
@@ -527,6 +540,7 @@ export default function BankAccountScreen({
                 keyboardType="number-pad"
                 maxLength={9}
                 testID="stripe-bank-accountnumber"
+                onBlur={handleFieldBlur}
               />
               {errors.accountNumber && (
                 <Text style={styles.errorText}>{errors.accountNumber}</Text>

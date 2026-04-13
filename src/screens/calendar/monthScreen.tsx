@@ -799,6 +799,13 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
                       year: selectedYear,
                     })
                   }
+                  onLongPress={() =>
+                    navigation.navigate("Week", {
+                      day,
+                      month: selectedMonthIndex + 1,
+                      year: selectedYear,
+                    })
+                  }
                 >
                   <Text
                     testID={`calendar-month-day-${day}-text`}

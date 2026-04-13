@@ -34,7 +34,7 @@ export type StripeOnboardingStackParamList = {
         personalInfo?: {
           firstName: string;
           lastName: string;
-          dob: Date;
+          dob: string | null;
           email: string;
           phone: string;
         };
@@ -47,7 +47,7 @@ export type StripeOnboardingStackParamList = {
         personalInfo?: {
           firstName: string;
           lastName: string;
-          dob: Date;
+          dob: string | null;
           email: string;
           phone: string;
         };
@@ -65,7 +65,7 @@ export type StripeOnboardingStackParamList = {
         personalInfo?: {
           firstName: string;
           lastName: string;
-          dob: Date;
+          dob: string | null;
           email: string;
           phone: string;
         };
@@ -88,7 +88,7 @@ export type StripeOnboardingStackParamList = {
         personalInfo?: {
           firstName: string;
           lastName: string;
-          dob: Date;
+          dob: string | null;
           email: string;
           phone: string;
         };

@@ -16,6 +16,7 @@ import LoadingDots from "../components/ui/LoadingDots";
 import DayScreen from "../screens/calendar/dayScreen";
 import MonthCalendarScreen from "../screens/calendar/monthScreen";
 import MultipleYearsScreen from "../screens/calendar/multipleYearsScreen";
+import WeekScreen from "../screens/calendar/weekScreen";
 import YearCalendarScreen from "../screens/calendar/yearScreen";
 
 // Hooks & Utils
@@ -33,6 +34,7 @@ type RootStackParamList = {
 
 type CalendarStackParamList = {
   Month: undefined;
+  Week: undefined;
   Year: undefined;
   MultipleYears: undefined;
   Day: undefined;
@@ -42,7 +44,7 @@ interface CalendarNavigationProps {
   navigation: NativeStackNavigationProp<RootStackParamList>;
   route?: {
     params?: {
-      screen?: "Month" | "Year" | "MultipleYears" | "Day";
+      screen?: "Month" | "Week" | "Year" | "MultipleYears" | "Day";
       params?: {
         day?: number;
         month?: number;
@@ -223,6 +225,13 @@ export default function CalendarNavigation({
           component={MonthCalendarScreen}
           options={{
             title: t("calendar.navigation.monthlyView"),
+          }}
+        />
+        <CalendarStack.Screen
+          name="Week"
+          component={WeekScreen}
+          options={{
+            title: t("calendar.navigation.weeklyView"),
           }}
         />
         <CalendarStack.Screen

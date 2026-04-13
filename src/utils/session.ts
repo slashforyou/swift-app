@@ -3,12 +3,11 @@ import * as SecureStore from "expo-secure-store";
 import { ServerData } from "../constants/ServerData";
 import { clearStripeCache } from "../services/stripeCache";
 import { getAuthHeaders, refreshToken as refreshAuthToken } from "./auth";
-import { ENV } from "../config/environment";
 
 const API = ServerData.serverUrl;
 
-// Stripe mode: 'test' in dev/staging, 'live' in production
-const STRIPE_MODE = ENV.name === "production" ? "live" : "test";
+// Stripe mode: always 'live' (connected accounts are created in live mode)
+const STRIPE_MODE = "live";
 
 // Session cache — évite de refaire ensureSession à chaque remontage du Home screen
 // Valide 5 minutes ; invalidé par clearLocalSession() (logout)

@@ -224,6 +224,23 @@ export const getNextOnboardingStep = (
   return "Review";
 };
 
+/**
+ * Returns the next step in the fixed sequential order (no skipping).
+ * Always walks through every step one by one.
+ */
+export const getFixedNextStep = (
+  currentStep: StripeOnboardingStep,
+  businessType?: StripeOnboardingBusinessType,
+): StripeOnboardingStep => {
+  const orderedSteps =
+    stepsByType[businessType || "individual"] || stepsByType.individual;
+  const currentIndex = orderedSteps.indexOf(currentStep);
+  if (currentIndex === -1 || currentIndex >= orderedSteps.length - 1) {
+    return "Review";
+  }
+  return orderedSteps[currentIndex + 1];
+};
+
 export const getOnboardingStepMeta = (
   step: StripeOnboardingStep,
   businessType: StripeOnboardingBusinessType,

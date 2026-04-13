@@ -7,9 +7,9 @@ import React, { useCallback, useState } from "react";
 import { ScrollView, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BusinessTabMenu } from "../components/business";
-import type { BusinessTab } from "../components/business/BusinessTabMenu";
 import BusinessHeader from "../components/business/BusinessHeader";
 import BusinessSubTabMenu from "../components/business/BusinessSubTabMenu";
+import type { BusinessTab } from "../components/business/BusinessTabMenu";
 import LanguageButton from "../components/calendar/LanguageButton";
 import HeaderLogo from "../components/ui/HeaderLogo";
 import Toast from "../components/ui/toastNotification";
@@ -24,13 +24,12 @@ import {
     StripeSettingsScreen,
     TrucksScreen,
 } from "../screens/business";
-import AgreementsScreen from "../screens/business/AgreementsScreen";
 import BusinessHubOverview from "../screens/business/BusinessHubOverview";
 import BusinessInfoPage from "../screens/business/BusinessInfoPage";
 import ContractsScreen from "../screens/business/ContractsScreen";
 import InterContractorBillingScreen from "../screens/business/InterContractorBillingScreen";
-import MonthlyInvoicesScreen from "../screens/business/MonthlyInvoicesScreen";
 import JobTemplatesPanel from "../screens/business/JobTemplatesPanel";
+import MonthlyInvoicesScreen from "../screens/business/MonthlyInvoicesScreen";
 import StripePaymentsTab from "../screens/business/StripePaymentsTab";
 import { useAuthCheck } from "../utils/checkAuth";
 
@@ -294,13 +293,14 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
       {!drillDownScreen && (
         <>
           <View style={{ alignItems: "center", paddingTop: insets.top }}>
-            <HeaderLogo preset="sm" variant="rectangle" marginVertical={4} />
+            <HeaderLogo preset="sm" variant="rectangle" marginVertical={2} />
           </View>
           <BusinessHeader
             title={getPanelTitle()}
             rightComponent={<LanguageButton />}
             navigation={navigation}
-            showBackButton={false}
+            showBackButton={true}
+            skipSafeAreaTop={true}
           />
         </>
       )}

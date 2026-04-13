@@ -39,9 +39,6 @@ const RegisterTypeSelection = lazyScreen(
 const SubscribeScreen = lazyScreen(
   () => import("../screens/connectionScreens/subscribe"),
 );
-const BusinessOwnerRegistration = lazyScreen(
-  () => import("../screens/registration/BusinessOwnerRegistration"),
-);
 const SubscribeMailVerification = lazyScreen(
   () => import("../screens/connectionScreens/subscribeMailVerification"),
 );
@@ -138,11 +135,6 @@ export default function Navigation() {
           component={RegisterTypeSelection}
         />
         <Stack.Screen name="Subscribe" component={SubscribeScreen} />
-        <Stack.Screen
-          name="BusinessOwnerRegistration"
-          component={BusinessOwnerRegistration}
-          options={{ gestureEnabled: false }}
-        />
         <Stack.Screen
           name="SubscribeMailVerification"
           component={SubscribeMailVerification}

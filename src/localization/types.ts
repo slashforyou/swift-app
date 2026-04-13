@@ -1335,6 +1335,15 @@ export interface TranslationKeys {
       setupTitle: string;
       setupDesc: string;
       setupCta: string;
+      resumeTitle: string;
+      resumeDesc: string;
+      resumeCta: string;
+      pendingVerificationTitle: string;
+      pendingVerificationDesc: string;
+      restrictedTitle: string;
+      restrictedDesc: string;
+      restrictedFixDocs: string;
+      restrictedCta: string;
       totalRevenue: string;
       currentMonth: string;
       pendingBalance: string;

@@ -68,3 +68,27 @@ export async function searchAbn(
   }
   return json.data;
 }
+
+export interface PostcodeLookupResult {
+  suburb: string;
+  state: string;
+  postcode: string;
+  all_suburbs: string[];
+}
+
+/**
+ * Look up suburb/city from a 4-digit Australian postcode.
+ */
+export async function lookupPostcode(postcode: string): Promise<PostcodeLookupResult> {
+  const cleaned = postcode.replace(/\s/g, "");
+  const response = await fetchWithAuth(
+    `${API}v1/companies/postcode-lookup?postcode=${encodeURIComponent(cleaned)}`,
+    { method: "GET" },
+  );
+
+  const json = await response.json();
+  if (!json.success) {
+    throw new Error(json.error || "Postcode lookup failed");
+  }
+  return json.data;
+}

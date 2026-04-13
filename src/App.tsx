@@ -1,18 +1,17 @@
 // src/App.tsx
 import {
-  SpaceGrotesk_400Regular,
-  SpaceGrotesk_600SemiBold,
-  SpaceGrotesk_700Bold,
-  useFonts,
+    SpaceGrotesk_400Regular,
+    SpaceGrotesk_600SemiBold,
+    SpaceGrotesk_700Bold,
+    useFonts,
 } from "@expo-google-fonts/space-grotesk";
-import { StripeProvider } from "@stripe/stripe-react-native";
 import React, { useEffect } from "react";
 import {
-  ActivityIndicator,
-  Alert as NativeAlert,
-  StyleSheet,
-  Text,
-  View,
+    ActivityIndicator,
+    Alert as NativeAlert,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -27,12 +26,20 @@ import { useForceUpdate } from "./hooks/useForceUpdate";
 import { LocalizationProvider } from "./localization";
 import Navigation from "./navigation/index";
 import { appAlert } from "./services/appAlert";
+import "./services/logger"; // Initialize global error handlers early
 import { initializePushNotifications } from "./services/pushNotifications";
 import { logInfo, simpleSessionLogger } from "./services/simpleSessionLogger";
-import "./services/logger"; // Initialize global error handlers early
 import "./services/testCommunication"; // Initialize test communication
 import "./services/testReporter"; // Initialize test reporter
 import { performanceMonitor } from "./utils/performanceMonitoring";
+
+// StripeProvider: load conditionally to support Expo Go (no native Stripe module)
+let StripeProvider: React.ComponentType<{ publishableKey: string; children: React.ReactNode }> | null = null;
+try {
+  StripeProvider = require("@stripe/stripe-react-native").StripeProvider;
+} catch {
+  // Native Stripe module unavailable (Expo Go) — skip
+}
 
 // Marquer le début du démarrage de l'app
 performanceMonitor.markAppStart();
@@ -107,29 +114,37 @@ export default function App() {
     );
   }
 
+  const content = (
+    <LocalizationProvider>
+      <ThemeProvider>
+        <NotificationsProvider>
+          <PermissionsProvider autoLoad={false}>
+            <VehiclesProvider>
+              <ToastProvider>
+                <AppAlertProvider>
+                  <ErrorBoundary>
+                    <View style={{ flex: 1 }}>
+                      <Navigation />
+                    </View>
+                  </ErrorBoundary>
+                </AppAlertProvider>
+              </ToastProvider>
+            </VehiclesProvider>
+          </PermissionsProvider>
+        </NotificationsProvider>
+      </ThemeProvider>
+    </LocalizationProvider>
+  );
+
   return (
     <SafeAreaProvider>
-      <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
-        <LocalizationProvider>
-          <ThemeProvider>
-            <NotificationsProvider>
-              <PermissionsProvider autoLoad={false}>
-                <VehiclesProvider>
-                  <ToastProvider>
-                    <AppAlertProvider>
-                      <ErrorBoundary>
-                        <View style={{ flex: 1 }}>
-                          <Navigation />
-                        </View>
-                      </ErrorBoundary>
-                    </AppAlertProvider>
-                  </ToastProvider>
-                </VehiclesProvider>
-              </PermissionsProvider>
-            </NotificationsProvider>
-          </ThemeProvider>
-        </LocalizationProvider>
-      </StripeProvider>
+      {StripeProvider ? (
+        <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
+          {content}
+        </StripeProvider>
+      ) : (
+        content
+      )}
     </SafeAreaProvider>
   );
 }

@@ -48,9 +48,18 @@ export const useStripeConnect = (): UseStripeConnectResult => {
       const data = await response.json();
 
       const statusData = data.data || data;
+      
+      // Use backend status if available, otherwise derive from onboarding_completed
+      const backendStatus = statusData.status;
+      const isCompleted = statusData.onboarding_completed === true || statusData.details_submitted === true;
+      
       setStatus({
-        isConnected: statusData.status === 'active' || statusData.onboarding_completed === true,
-        status: statusData.status || (statusData.onboarding_completed ? 'active' : 'pending'),
+        isConnected: backendStatus === 'active' || backendStatus === 'pending_verification' || isCompleted,
+        status: backendStatus === 'pending_verification' ? 'pending' 
+          : backendStatus === 'active' ? 'active'
+          : backendStatus === 'incomplete' ? 'pending'
+          : isCompleted ? 'active' 
+          : 'pending',
         capabilities: {
           charges_enabled: statusData.charges_enabled || false,
           payouts_enabled: statusData.payouts_enabled || false,
