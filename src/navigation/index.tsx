@@ -77,6 +77,12 @@ const SupportConversation = lazyScreen(
 const SupportNewConversation = lazyScreen(
   () => import("../screens/support/SupportNewConversation"),
 );
+const SupportFAQ = lazyScreen(
+  () => import("../screens/support/SupportFAQ"),
+);
+const FeedbackForm = lazyScreen(
+  () => import("../screens/support/FeedbackForm"),
+);
 
 // Subscription screen
 const SubscriptionScreen = lazyScreen(
@@ -168,6 +174,8 @@ export default function Navigation() {
           name="SupportNewConversation"
           component={SupportNewConversation}
         />
+        <Stack.Screen name="SupportFAQ" component={SupportFAQ} />
+        <Stack.Screen name="FeedbackForm" component={FeedbackForm} />
         <Stack.Screen name="Subscription" component={SubscriptionScreen} />
         <Stack.Screen
           name="JobTemplateEditor"

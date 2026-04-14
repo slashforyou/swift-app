@@ -10,7 +10,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
 import { getUserCompanyData } from "../../hooks/useCompanyPermissions";
-import LanguageButton from "./LanguageButton";
+import HelpButton from "../ui/HelpButton";
 
 interface CalendarHeaderProps {
   title: string;
@@ -150,7 +150,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
         </View>
 
         <View testID="calendar-header-right" style={styles.rightSection}>
-          {rightComponent || <LanguageButton />}
+          {rightComponent || <HelpButton size={40} />}
         </View>
       </View>
     </View>

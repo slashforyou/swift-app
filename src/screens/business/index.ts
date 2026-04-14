@@ -8,6 +8,8 @@ export { default as PayoutsScreen } from "./PayoutsScreen";
 export { default as RelationsScreen } from "./RelationsScreen";
 export { default as ReportsScreen } from "./ReportsScreen";
 export { default as StaffCrewScreen } from "./staffCrewScreen";
+export { default as StorageLotDetailScreen } from "./StorageLotDetail";
+export { default as StorageScreen } from "./StorageScreen";
 export { default as StripeHub } from "./StripeHub";
 export { default as StripeSettingsScreen } from "./StripeSettingsScreen";
 export { default as TrucksScreen } from "./trucksScreen";

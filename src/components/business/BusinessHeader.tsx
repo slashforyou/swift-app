@@ -4,9 +4,8 @@
  */
 import Ionicons from "@react-native-vector-icons/ionicons";
 import { useNavigation } from "@react-navigation/native";
-import React, { useState } from "react";
+import React from "react";
 import {
-  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -15,15 +14,14 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
-import { useLocalization } from "../../localization/useLocalization";
-import LanguageSelector from "../ui/LanguageSelector";
+import HelpButton from "../ui/HelpButton";
 
 interface BusinessHeaderProps {
   title: string;
   showBackButton?: boolean;
   onBackPress?: () => void;
   rightComponent?: React.ReactNode;
-  showLanguageButton?: boolean;
+  showHelpButton?: boolean;
   navigation?: any; // Prop navigation optionnelle pour cohérence avec JobDetails
   skipSafeAreaTop?: boolean; // Skip top safe area padding when logo already handles it
 }
@@ -33,21 +31,15 @@ const BusinessHeader: React.FC<BusinessHeaderProps> = ({
   showBackButton = true,
   onBackPress,
   rightComponent,
-  showLanguageButton = true,
+  showHelpButton = true,
   navigation: propNavigation,
   skipSafeAreaTop = false,
 }) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const { currentLanguage, getSupportedLanguages } = useLocalization();
-  const [showLanguageSelector, setShowLanguageSelector] = useState(false);
-
   // Utiliser la navigation passée en prop ou celle du hook
   const navToUse = propNavigation || navigation;
-
-  const supportedLanguages = getSupportedLanguages();
-  const currentLangInfo = supportedLanguages[currentLanguage];
 
   const handleBackPress = () => {
     if (onBackPress) {
@@ -108,16 +100,7 @@ const BusinessHeader: React.FC<BusinessHeaderProps> = ({
       alignItems: "center",
       gap: DESIGN_TOKENS.spacing.sm,
     },
-    languageButton: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      backgroundColor: colors.backgroundSecondary,
-      justifyContent: "center",
-      alignItems: "center",
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
+
   });
 
   return (
@@ -143,26 +126,9 @@ const BusinessHeader: React.FC<BusinessHeaderProps> = ({
         </View>
 
         <View style={styles.rightSection}>
-          {showLanguageButton && (
-            <Pressable
-              onPress={() => setShowLanguageSelector(true)}
-              style={({ pressed }) => [
-                styles.languageButton,
-                { transform: [{ scale: pressed ? 0.95 : 1 }] },
-              ]}
-              hitSlop={DESIGN_TOKENS.touch.hitSlop}
-            >
-              <Text style={{ fontSize: 18 }}>{currentLangInfo.flag}</Text>
-            </Pressable>
-          )}
+          {showHelpButton && <HelpButton size={40} />}
         </View>
       </View>
-
-      {/* Sélecteur de langue modal */}
-      <LanguageSelector
-        visible={showLanguageSelector}
-        onClose={() => setShowLanguageSelector(false)}
-      />
     </>
   );
 };

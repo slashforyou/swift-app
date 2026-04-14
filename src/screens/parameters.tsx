@@ -17,10 +17,11 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Screen } from "../components/primitives/Screen";
 import { HStack, VStack } from "../components/primitives/Stack";
+import LanguageSelector from "../components/ui/LanguageSelector";
 import { DESIGN_TOKENS } from "../constants/Styles";
 import { useTheme } from "../context/ThemeProvider";
 import { useSubscription } from "../hooks/usePlans";
-import { useTranslation } from "../localization/useLocalization";
+import { useLocalization, useTranslation } from "../localization/useLocalization";
 import { deleteUserAccount } from "../services/user";
 import { clearSession } from "../utils/auth";
 import { useAuthCheck } from "../utils/checkAuth";
@@ -188,6 +189,8 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const { colors, isDark, toggleTheme } = useTheme();
   const { t } = useTranslation();
+  const { currentLanguage, getSupportedLanguages } = useLocalization();
+  const [showLanguageSelector, setShowLanguageSelector] = useState(false);
   const { isLoading, LoadingComponent } = useAuthCheck(
     navigation,
     t("common.checkingAuth"),
@@ -476,6 +479,69 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
               }
               color={colors.textSecondary}
             />
+          </SettingSection>
+
+          {/* Language Section */}
+          <SettingSection
+            colors={colors}
+            title={t("settings.sections.language") || "Language"}
+            icon="language-outline"
+          >
+            <Pressable
+              testID="parameters-language-btn"
+              onPress={() => setShowLanguageSelector(true)}
+              style={({ pressed }) => ({
+                backgroundColor: pressed
+                  ? colors.backgroundTertiary
+                  : colors.background,
+                borderRadius: DESIGN_TOKENS.radius.md,
+                padding: DESIGN_TOKENS.spacing.md,
+                borderWidth: 1,
+                borderColor: colors.border,
+                minHeight: DESIGN_TOKENS.touch.minSize + 10,
+              })}
+            >
+              <HStack gap="md" align="center">
+                <View
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 20,
+                    backgroundColor: colors.primary + "15",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <Text style={{ fontSize: 20 }}>
+                    {getSupportedLanguages()[currentLanguage]?.flag}
+                  </Text>
+                </View>
+                <VStack gap={2} style={{ flex: 1 }}>
+                  <Text
+                    style={{
+                      fontSize: DESIGN_TOKENS.typography.body.fontSize,
+                      fontWeight: "600",
+                      color: colors.text,
+                    }}
+                  >
+                    {getSupportedLanguages()[currentLanguage]?.nativeName}
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: DESIGN_TOKENS.typography.caption.fontSize,
+                      color: colors.textSecondary,
+                    }}
+                  >
+                    {t("settings.items.changeLanguage") || "Change language"}
+                  </Text>
+                </VStack>
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color={colors.textSecondary}
+                />
+              </HStack>
+            </Pressable>
           </SettingSection>
 
           {/* Privacy Section */}
@@ -804,6 +870,11 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
           </SettingSection>
         </VStack>
       </ScrollView>
+
+      <LanguageSelector
+        visible={showLanguageSelector}
+        onClose={() => setShowLanguageSelector(false)}
+      />
     </Screen>
   );
 };

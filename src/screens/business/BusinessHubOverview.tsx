@@ -121,6 +121,7 @@ export default function BusinessHubOverview({
 
   // ── Raccourcis ──
   const shortcuts = [
+    { label: t("businessHub.shortcuts.storage"), icon: "filing-outline", color: "#EF4444", onPress: () => onNavigateTab("Resources", "storage") },
     { label: t("businessHub.shortcuts.jobTemplates"), icon: "documents-outline", color: "#EA580C", onPress: () => onNavigateTab("Config") },
     { label: t("businessHub.shortcuts.contracts"), icon: "document-text-outline", color: "#16A34A", onPress: () => onNavigateTab("Config", "clauses") },
     { label: t("businessHub.shortcuts.reports"), icon: "bar-chart-outline", color: "#9333EA", onPress: () => onDrillDown("Reports") },

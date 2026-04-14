@@ -173,6 +173,14 @@ export interface TranslationKeys {
       title: string;
       description: string;
     };
+    feedback: {
+      cta: string;
+      title: string;
+      description: string;
+      placeholder: string;
+      thankYouTitle: string;
+      thankYouMessage: string;
+    };
     contact: {
       title: string;
       yourMessage: string;
@@ -1161,6 +1169,7 @@ export interface TranslationKeys {
       appearance: string;
       data: string;
       account: string;
+      language: string;
     };
     items: {
       pushNotifications: string;
@@ -1187,6 +1196,7 @@ export interface TranslationKeys {
       analyticsDescription: string;
       logout: string;
       logoutDescription: string;
+      changeLanguage: string;
       businessInfo: string;
       businessInfoDescription: string;
       paymentSettings: string;
@@ -3468,6 +3478,32 @@ export interface TranslationKeys {
       needsLowercase?: string;
       needsNumber?: string;
       needsSpecial?: string;
+    };
+  };
+
+  // Support FAQ
+  supportFAQ: {
+    headerTitle: string;
+    title: string;
+    subtitle: string;
+    stillNeedHelp: string;
+    stillNeedHelpDesc: string;
+    contactSupport: string;
+    categories: {
+      [key: string]: {
+        title: string;
+        subtitle: string;
+        q1?: string;
+        a1?: string;
+        q2?: string;
+        a2?: string;
+        q3?: string;
+        a3?: string;
+        q4?: string;
+        a4?: string;
+        q5?: string;
+        a5?: string;
+      };
     };
   };
 }

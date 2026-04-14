@@ -10,7 +10,7 @@ import { BusinessTabMenu } from "../components/business";
 import BusinessHeader from "../components/business/BusinessHeader";
 import BusinessSubTabMenu from "../components/business/BusinessSubTabMenu";
 import type { BusinessTab } from "../components/business/BusinessTabMenu";
-import LanguageButton from "../components/calendar/LanguageButton";
+import HelpButton from "../components/ui/HelpButton";
 import HeaderLogo from "../components/ui/HeaderLogo";
 import Toast from "../components/ui/toastNotification";
 import { DESIGN_TOKENS } from "../constants/Styles";
@@ -30,6 +30,8 @@ import ContractsScreen from "../screens/business/ContractsScreen";
 import InterContractorBillingScreen from "../screens/business/InterContractorBillingScreen";
 import JobTemplatesPanel from "../screens/business/JobTemplatesPanel";
 import MonthlyInvoicesScreen from "../screens/business/MonthlyInvoicesScreen";
+import StorageLotDetailScreen from "../screens/business/StorageLotDetail";
+import StorageScreen from "../screens/business/StorageScreen";
 import StripePaymentsTab from "../screens/business/StripePaymentsTab";
 import { useAuthCheck } from "../utils/checkAuth";
 
@@ -88,6 +90,7 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
     { id: "staff", label: t("businessHub.subTabs.staff") },
     { id: "vehicles", label: t("businessHub.subTabs.vehicles") },
     { id: "partners", label: t("businessHub.subTabs.partners") },
+    { id: "storage", label: t("businessHub.subTabs.storage") },
   ], [t]);
   const CONFIG_TABS = React.useMemo(() => [
     { id: "templates", label: t("businessHub.subTabs.templates") },
@@ -114,6 +117,7 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
   const [financesSubTab, setFinancesSubTab] = useState(mapped?.tab === "Finances" ? (mapped?.subTab || "payments") : "payments");
   const [drillDownScreen, setDrillDownScreen] = useState<string | null>(mapped?.drillDown || null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [storageLotId, setStorageLotId] = useState<number | null>(null);
 
   // ── Handlers ──
   const handleTabPress = useCallback((tabId: BusinessTab) => {
@@ -242,11 +246,22 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
         );
 
       case "Resources":
+        if (resourcesSubTab === "storage" && storageLotId) {
+          return (
+            <StorageLotDetailScreen
+              lotId={storageLotId}
+              onBack={() => setStorageLotId(null)}
+            />
+          );
+        }
         return (
           <>
             {resourcesSubTab === "staff" && <StaffCrewScreen />}
             {resourcesSubTab === "vehicles" && <TrucksScreen />}
             {resourcesSubTab === "partners" && <RelationsScreen />}
+            {resourcesSubTab === "storage" && (
+              <StorageScreen onOpenLot={(id) => setStorageLotId(id)} />
+            )}
           </>
         );
 
@@ -297,7 +312,7 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
           </View>
           <BusinessHeader
             title={getPanelTitle()}
-            rightComponent={<LanguageButton />}
+            rightComponent={<HelpButton size={40} />}
             navigation={navigation}
             showBackButton={true}
             skipSafeAreaTop={true}

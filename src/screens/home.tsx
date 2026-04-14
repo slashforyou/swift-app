@@ -16,13 +16,13 @@ import TodaySection from "../components/home/TodaySection";
 import { Screen } from "../components/primitives/Screen";
 import { HStack, VStack } from "../components/primitives/Stack";
 import { HeaderLogo } from "../components/ui/HeaderLogo";
-import RoundLanguageButton from "../components/ui/RoundLanguageButton";
+import HelpButton from "../components/ui/HelpButton";
 import { DESIGN_TOKENS } from "../constants/Styles";
 import { ServerData } from "../constants/ServerData";
 import { useNotifications } from "../context/NotificationsProvider";
 import { useTheme } from "../context/ThemeProvider";
 import { useStripeConnection } from "../hooks/useStripeConnection";
-import { useConversations } from "../hooks/useSupport";
+
 import { useUserProfile } from "../hooks/useUserProfile";
 import { useTranslation } from "../localization";
 import { clearSession } from "../utils/auth";
@@ -49,7 +49,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const { unreadCount } = useNotifications();
   const [showNotifications, setShowNotifications] = useState(false);
   const { profile, refreshProfile } = useUserProfile();
-  const { unreadTotal: supportUnread } = useConversations();
+
 
   // Sync company brand color on first load
   useEffect(() => {
@@ -244,7 +244,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
           <HeaderLogo preset="sm" marginVertical={0} />
 
-          <RoundLanguageButton />
+          <HelpButton />
         </View>
 
         {/* Profile Header */}
@@ -477,55 +477,58 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                 />
               </Pressable>
             </View>
+
+            {/* Feedback CTA — Share your ideas */}
+            <Pressable
+              testID="home-feedback-btn"
+              onPress={() => navigation.navigate("FeedbackForm")}
+              style={({ pressed }) => ({
+                backgroundColor: pressed
+                  ? colors.primary + "20"
+                  : colors.primary + "10",
+                borderRadius: DESIGN_TOKENS.radius.md,
+                paddingVertical: DESIGN_TOKENS.spacing.sm,
+                paddingHorizontal: DESIGN_TOKENS.spacing.md,
+                borderWidth: 1,
+                borderColor: colors.primary + "30",
+                flexDirection: "row",
+                alignItems: "center",
+                gap: DESIGN_TOKENS.spacing.sm,
+              })}
+            >
+              <View
+                style={{
+                  width: 28,
+                  height: 28,
+                  backgroundColor: colors.primary + "20",
+                  borderRadius: DESIGN_TOKENS.radius.sm,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Ionicons name="bulb-outline" size={15} color={colors.primary} />
+              </View>
+              <Text
+                style={{
+                  color: colors.primary,
+                  fontSize: DESIGN_TOKENS.typography.caption.fontSize,
+                  fontWeight: "700",
+                  flex: 1,
+                }}
+              >
+                {t("home.feedback.cta")}
+              </Text>
+              <Ionicons
+                name="chevron-forward"
+                size={16}
+                color={colors.primary}
+              />
+            </Pressable>
           </VStack>
         </View>
       </VStack>
 
-      {/* Bouton contact / support — FAB en bas à gauche */}
-      <Pressable
-        testID="home-contact-btn"
-        onPress={() => navigation.navigate("SupportInbox")}
-        style={({ pressed }) => ({
-          position: "absolute",
-          bottom: insets.bottom + DESIGN_TOKENS.spacing.lg,
-          left: DESIGN_TOKENS.spacing.lg,
-          width: 56,
-          height: 56,
-          borderRadius: 28,
-          backgroundColor: pressed ? colors.primary + "DD" : colors.primary,
-          justifyContent: "center",
-          alignItems: "center",
-          shadowColor: colors.primary,
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.3,
-          shadowRadius: 8,
-          elevation: 8,
-          transform: [{ scale: pressed ? 0.95 : 1 }],
-        })}
-        hitSlop={DESIGN_TOKENS.touch.hitSlop}
-      >
-        <Ionicons name="chatbubbles" size={26} color="white" />
-        {supportUnread > 0 && (
-          <View
-            style={{
-              position: "absolute",
-              top: -4,
-              right: -4,
-              backgroundColor: colors.error,
-              borderRadius: 10,
-              minWidth: 20,
-              height: 20,
-              justifyContent: "center",
-              alignItems: "center",
-              paddingHorizontal: 4,
-            }}
-          >
-            <Text style={{ color: "white", fontSize: 10, fontWeight: "700" }}>
-              {supportUnread > 9 ? "9+" : supportUnread}
-            </Text>
-          </View>
-        )}
-      </Pressable>
+
 
       {__DEV__ && (
         <Pressable

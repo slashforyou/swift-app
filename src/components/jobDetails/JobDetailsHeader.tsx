@@ -8,8 +8,7 @@ import { Pressable, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
-import { useLocalization } from "../../localization/useLocalization";
-import LanguageSelector from "../ui/LanguageSelector";
+import HelpButton from "../ui/HelpButton";
 import RefBookMark from "../ui/refBookMark";
 
 interface JobDetailsHeaderProps {
@@ -17,7 +16,7 @@ interface JobDetailsHeaderProps {
   jobRef: string;
   title: string;
   onToast: (message: string, type: "info" | "success" | "error") => void;
-  showLanguageButton?: boolean;
+  showHelpButton?: boolean;
   onEdit?: () => void;
   onDelete?: () => void;
   onAssignStaff?: () => void;
@@ -29,7 +28,7 @@ const JobDetailsHeader: React.FC<JobDetailsHeaderProps> = ({
   jobRef,
   title,
   onToast,
-  showLanguageButton = true,
+  showHelpButton = true,
   onEdit,
   onDelete,
   onAssignStaff,
@@ -37,12 +36,7 @@ const JobDetailsHeader: React.FC<JobDetailsHeaderProps> = ({
 }) => {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const { currentLanguage, getSupportedLanguages } = useLocalization();
-  const [showLanguageSelector, setShowLanguageSelector] = useState(false);
   const [showActionsMenu, setShowActionsMenu] = useState(false);
-
-  const supportedLanguages = getSupportedLanguages();
-  const currentLangInfo = supportedLanguages[currentLanguage];
 
   const handleBackPress = () => {
     if (navigation.canGoBack()) {
@@ -136,27 +130,8 @@ const JobDetailsHeader: React.FC<JobDetailsHeaderProps> = ({
             </Pressable>
           )}
 
-          {/* Bouton langue circulaire (style Business) */}
-          {showLanguageButton && (
-            <Pressable
-              testID="job-details-language-btn"
-              onPress={() => setShowLanguageSelector(true)}
-              style={({ pressed }) => ({
-                width: 44,
-                height: 44,
-                borderRadius: 22,
-                backgroundColor: colors.backgroundSecondary,
-                justifyContent: "center",
-                alignItems: "center",
-                borderWidth: 1,
-                borderColor: colors.border,
-                transform: [{ scale: pressed ? 0.95 : 1 }],
-              })}
-              hitSlop={DESIGN_TOKENS.touch.hitSlop}
-            >
-              <Text style={{ fontSize: 18 }}>{currentLangInfo.flag}</Text>
-            </Pressable>
-          )}
+          {/* Bouton aide circulaire */}
+          {showHelpButton && <HelpButton size={40} />}
         </View>
       </View>
 
@@ -297,12 +272,6 @@ const JobDetailsHeader: React.FC<JobDetailsHeaderProps> = ({
           <RefBookMark jobRef={jobRef} toastIt={onToast} isHeaderMode={true} />
         </View>
       </View>
-
-      {/* Sélecteur de langue modal */}
-      <LanguageSelector
-        visible={showLanguageSelector}
-        onClose={() => setShowLanguageSelector(false)}
-      />
     </>
   );
 };
