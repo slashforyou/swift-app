@@ -323,4 +323,6 @@ const CompanyDetailsSection: React.FC<CompanyDetailsSectionProps> = React.memo(
   },
 );
 
+CompanyDetailsSection.displayName = 'CompanyDetailsSection';
+
 export default CompanyDetailsSection;

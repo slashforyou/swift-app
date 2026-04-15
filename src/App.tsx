@@ -36,7 +36,7 @@ import { performanceMonitor } from "./utils/performanceMonitoring";
 // StripeProvider: load conditionally to support Expo Go (no native Stripe module)
 let StripeProvider: React.ComponentType<{ publishableKey: string; children: React.ReactNode }> | null = null;
 try {
-  StripeProvider = require("@stripe/stripe-react-native").StripeProvider;
+  StripeProvider = require("@stripe/stripe-react-native").StripeProvider; // eslint-disable-line @typescript-eslint/no-require-imports
 } catch {
   // Native Stripe module unavailable (Expo Go) — skip
 }

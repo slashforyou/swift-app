@@ -793,7 +793,7 @@ const AssignResourceModal: React.FC<AssignResourceModalProps> = ({
                 textAlign: "center",
               }}
             >
-              Aucun véhicule ne correspond à "{searchQuery}"
+              Aucun véhicule ne correspond à &quot;{searchQuery}&quot;
             </Text>
           </View>
         ) : (

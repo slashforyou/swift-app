@@ -1034,7 +1034,7 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({
                 lineHeight: 22,
               }}
             >
-              Passer à "{nextStepInfo.name}" ({nextStepInfo.number}/{totalSteps}
+              Passer à &quot;{nextStepInfo.name}&quot; ({nextStepInfo.number}/{totalSteps}
               ) ?
             </Text>
             <View style={{ flexDirection: "row", gap: 12 }}>

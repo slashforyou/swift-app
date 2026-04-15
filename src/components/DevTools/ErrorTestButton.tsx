@@ -45,8 +45,9 @@ export const ErrorTestButton: React.FC = () => {
     try {
       // Erreur volontaire
       const obj: any = null;
-      obj.nonExistentProperty.value; // TypeError
-    } catch (error) {
+      void obj.nonExistentProperty.value; // TypeError
+    } catch (error) {
+
       logError('Test JavaScript Error - Exception attrapée', error, 'error-test');
     }
   };
@@ -65,7 +66,8 @@ export const ErrorTestButton: React.FC = () => {
       // Simulation d'une erreur réseau
       const response = await fetch('https://nonexistent-url-test-error.com/api/test');
       await response.json();
-    } catch (error) {
+    } catch (error) {
+
       logError('Test Network Error - Erreur de connectivité simulée', {
         message: 'Network request failed',
         url: 'https://nonexistent-url-test-error.com/api/test',

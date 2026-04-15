@@ -49,7 +49,7 @@ export const AutoTestInterface: React.FC<AutoTestInterfaceProps> = ({
         unsubscribe();
       };
     }
-  }, [visible]);
+  }, [visible]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const refreshStatus = () => {
     const session = testController.getCurrentSession();

@@ -26,15 +26,6 @@ const JobTimeLine = ({ job, onAdvanceStep }: JobTimeLineProps) => {
     // ✅ Utiliser le timer context pour les steps (source unique de vérité)
     const { currentStep, totalSteps, stepTimes } = useJobTimerContext();
 
-    // Protection contre les données manquantes
-    if (!job) {
-        return (
-            <View style={{ padding: 16, alignItems: 'center' }}>
-                <Text style={{ color: colors.textSecondary }}>{t('jobDetails.components.jobTimeline.noJobData')}</Text>
-            </View>
-        );
-    }
-
     // ✅ Récupérer les steps depuis job.steps (configuration)
     const steps = job?.steps || [];
 
@@ -49,8 +40,6 @@ const JobTimeLine = ({ job, onAdvanceStep }: JobTimeLineProps) => {
         if (totalSteps === 0) return 0;
         return Math.round((currentStep / totalSteps) * 100);
     }, [currentStep, totalSteps]);
-    
-
 
     useEffect(() => {
         // Animate progress bar
@@ -89,7 +78,18 @@ const JobTimeLine = ({ job, onAdvanceStep }: JobTimeLineProps) => {
     const stepsRotateInterpolate = stepsRotateAnim.interpolate({
         inputRange: [0, 1],
         outputRange: ['0deg', '180deg'],
-    });// Fonctions utilitaires pour les statuts
+    });
+
+    // Protection contre les données manquantes
+    if (!job) {
+        return (
+            <View style={{ padding: 16, alignItems: 'center' }}>
+                <Text style={{ color: colors.textSecondary }}>{t('jobDetails.components.jobTimeline.noJobData')}</Text>
+            </View>
+        );
+    }
+
+    // Fonctions utilitaires pour les statuts
     const getStatusLabel = (status: string) => {
         switch (status) {
             case 'pending': return t('jobDetails.components.jobTimeline.status.pending');

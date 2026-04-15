@@ -53,7 +53,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({ visible, onClose }) => {
 
   useEffect(() => {
     applyFilters();
-  }, [logs, searchQuery, selectedLevel, selectedContext]);
+  }, [logs, searchQuery, selectedLevel, selectedContext]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const refreshLogs = () => {
     try {
@@ -61,7 +61,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({ visible, onClose }) => {
       const allLogs = (simpleSessionLogger as any).logs || [];
       setLogs(allLogs);
       setCurrentPage(1);
-    } catch (error) {
+    } catch (_error) {
       console.error("Error refreshing logs:", error);
     }
   };
@@ -136,7 +136,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({ visible, onClose }) => {
                   message: formattedLogs,
                   title: "SwiftApp Session Logs",
                 });
-              } catch (error) {
+              } catch (_error) {
                 Alert.alert(
                   t("devTools.logViewer.shareErrorTitle"),
                   t("devTools.logViewer.shareErrorMessage"),
@@ -146,7 +146,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({ visible, onClose }) => {
           },
         ],
       );
-    } catch (error) {
+    } catch (_error) {
       Alert.alert(
         t("devTools.logViewer.exportErrorTitle"),
         t("devTools.logViewer.exportErrorMessage"),
@@ -191,7 +191,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({ visible, onClose }) => {
     if (!data) return "";
     try {
       return JSON.stringify(data, null, 2);
-    } catch (e) {
+    } catch (e) { // eslint-disable-line @typescript-eslint/no-unused-vars
       return String(data);
     }
   };

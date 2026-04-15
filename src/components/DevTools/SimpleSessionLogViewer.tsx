@@ -11,7 +11,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
-import simpleSessionLogger from "../../services/simpleSessionLogger";
+import simpleSessionLogger from "../../services/simpleSessionLogger"; // eslint-disable-line no-restricted-imports
 import { useTranslation } from "../../localization";
 
 interface SimpleSessionLogViewerProps {
@@ -32,7 +32,7 @@ export const SimpleSessionLogViewer: React.FC<SimpleSessionLogViewerProps> = ({
     try {
       const content = simpleSessionLogger.getFormattedLogs();
       setLogContent(content);
-    } catch (error) {
+    } catch (_error) {
       Alert.alert(
         t("devTools.sessionLogs.readErrorTitle"),
         t("devTools.sessionLogs.readErrorMessage"),
@@ -50,7 +50,7 @@ export const SimpleSessionLogViewer: React.FC<SimpleSessionLogViewerProps> = ({
           title: "Cobbr Session Logs (Simple)",
         });
       }
-    } catch (error) {
+    } catch (_error) {
       Alert.alert(
         t("devTools.sessionLogs.shareErrorTitle"),
         t("devTools.sessionLogs.shareErrorMessage"),

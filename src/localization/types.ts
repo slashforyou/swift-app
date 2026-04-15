@@ -913,6 +913,20 @@ export interface TranslationKeys {
         notDefined: string;
         hours: string;
       };
+      // Report issue
+      reportIssue?: {
+        button?: string;
+        title?: string;
+        subtitle?: string;
+        selectType?: string;
+        types?: { [key: string]: string };
+        descriptionLabel?: string;
+        descriptionPlaceholder?: string;
+        submit?: string;
+        successTitle?: string;
+        successMessage?: string;
+        errorMessage?: string;
+      };
     };
     // JobDetails components
     components: {
@@ -1227,7 +1241,9 @@ export interface TranslationKeys {
       data: string;
       account: string;
       language: string;
+      rateUs?: string;
     };
+    rateUsGoogle?: string;
     items: {
       pushNotifications: string;
       pushDescription: string;
@@ -1332,6 +1348,17 @@ export interface TranslationKeys {
       city: string;
       state: string;
       postcode: string;
+      // Logo
+      companyLogo?: string;
+      addLogo?: string;
+      changeLogo?: string;
+      logoUpdated?: string;
+      logoError?: string;
+      takePhoto?: string;
+      chooseFromGallery?: string;
+      permissionRequired?: string;
+      cameraPermissionMessage?: string;
+      galleryPermissionMessage?: string;
     };
     staff: {
       title: string;
@@ -1375,6 +1402,7 @@ export interface TranslationKeys {
       jobTemplates: string;
       contracts: string;
       reports: string;
+      storage?: string;
     };
     drillDown: {
       companyProfile: string;
@@ -1427,6 +1455,31 @@ export interface TranslationKeys {
       emptyReceivable: string;
       emptyPayable: string;
       emptyHint: string;
+      statusNotBilled?: string;
+      statusInvoiced?: string;
+      statusPaid?: string;
+      statusOverdue?: string;
+      roleFullJob?: string;
+      roleDriver?: string;
+      roleOffsider?: string;
+      roleCustom?: string;
+      pricingFlat?: string;
+      pricingHourly?: string;
+      pricingDaily?: string;
+      error?: string;
+      errorStatusUpdate?: string;
+      markInvoiced?: string;
+      markPaid?: string;
+      markOverdue?: string;
+      markNotBilled?: string;
+      paymentRef?: string;
+      paymentRefPrompt?: string;
+      save?: string;
+      filterAll?: string;
+      jobCount?: string;
+      jobCountPlural?: string;
+      from?: string;
+      to?: string;
     };
   };
 
@@ -1771,6 +1824,11 @@ export interface TranslationKeys {
       alreadyHaveAccount: string;
       termsAgree: string;
       termsLink: string;
+      businessSubtitle?: string;
+      companyName?: string;
+      companyNamePlaceholder?: string;
+      passwordsMatch?: string;
+      passwordStrength?: { [key: string]: string | { [key: string]: string } };
     };
     validation: {
       emailRequired: string;
@@ -1780,6 +1838,7 @@ export interface TranslationKeys {
       passwordMismatch: string;
       firstNameRequired: string;
       lastNameRequired: string;
+      companyNameRequired?: string;
     };
     errors: {
       invalidCredentials: string;
@@ -1795,6 +1854,8 @@ export interface TranslationKeys {
       deviceError: string;
       serverConnectionError: string;
       connectionError: string;
+      emailAlreadyUsed?: string;
+      emailAlreadyUsedMessage?: string;
     };
     success: {
       loginSuccess: string;
@@ -1939,6 +2000,12 @@ export interface TranslationKeys {
         requirement3: string;
         startButton: string;
         cancelButton: string;
+        businessTypeTitle?: string;
+        individualLabel?: string;
+        individualDescription?: string;
+        companyLabel?: string;
+        companyDescription?: string;
+        startingButton?: string;
       };
       personalInfo: {
         step: string;
@@ -2158,6 +2225,18 @@ export interface TranslationKeys {
         takePhotoButton: string;
         retakeButton: string;
         nextButton: string;
+        uploading?: string;
+        companyDocTitle?: string;
+        companyDocSubtitle?: string;
+        companyDocPlaceholder?: string;
+        companyDocRequired?: string;
+        companyDocChoose?: string;
+        idDocChoose?: string;
+        idDocChooseMessage?: string;
+        pickFromGallery?: string;
+        addDocument?: string;
+        reuploadSuccessTitle?: string;
+        reuploadSuccessMessage?: string;
         errors: {
           permissionTitle: string;
           permissionMessage: string;
