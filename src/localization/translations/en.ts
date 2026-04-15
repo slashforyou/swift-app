@@ -4718,6 +4718,7 @@ export const enTranslations: TranslationKeys = {
       active: "Active",
       completed: "Completed",
       overdue: "Overdue",
+      pending_pickup: "Pending Pickup",
     },
     unitType: {
       container: "Container",
@@ -4883,6 +4884,19 @@ export const enTranslations: TranslationKeys = {
       delete: "Delete Unit",
       created: "Created",
       updated: "Last updated",
+    },
+    // Job ↔ Storage integration
+    sendToStorage: "Send to Storage",
+    lotCreatedFromJob: "Storage lot created successfully",
+    scheduleDelivery: "Schedule Delivery",
+    deliveryNotePrefix: "Storage pickup",
+    jobCompleted: {
+      title: "Send to Storage?",
+      message: "Would you like to create a storage lot for this client's items?",
+    },
+    deliveryCreated: {
+      title: "Delivery Scheduled",
+      message: "A delivery job has been created for this lot.",
     },
   },
 };

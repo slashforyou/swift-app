@@ -20,9 +20,11 @@ import {
     View,
 } from "react-native";
 import MascotLoading from "../../components/ui/MascotLoading";
+import CreateJobModal from "../../components/modals/CreateJobModal";
 
 import { useTheme } from "../../context/ThemeProvider";
 import { useTranslation } from "../../localization/useLocalization";
+import { createJob } from "../../services/jobs";
 import * as StorageService from "../../services/storageService";
 import type {
     ItemCondition,
@@ -59,6 +61,7 @@ export default function StorageLotDetailScreen({ lotId, onBack, onOpenLayout, on
   // Modals
   const [showAddItem, setShowAddItem] = useState(false);
   const [showAssignUnit, setShowAssignUnit] = useState(false);
+  const [showCreateJob, setShowCreateJob] = useState(false);
   const [availableUnits, setAvailableUnits] = useState<StorageUnit[]>([]);
 
   const loadLot = useCallback(async () => {
@@ -723,6 +726,19 @@ export default function StorageLotDetailScreen({ lotId, onBack, onOpenLayout, on
                 <Text style={[{ color: colors.text, fontSize: 14, lineHeight: 20 }]}>{lot.notes}</Text>
               </View>
             ) : null}
+
+            {/* Schedule Delivery Job */}
+            {lot.status === "active" && (
+              <TouchableOpacity
+                style={[styles.completeLotBtn, { borderColor: colors.primary, marginTop: 16 }]}
+                onPress={() => setShowCreateJob(true)}
+              >
+                <Ionicons name="car-outline" size={18} color={colors.primary} />
+                <Text style={{ color: colors.primary, fontWeight: "600" }}>
+                  {t("storage.scheduleDelivery") || "Schedule Delivery"}
+                </Text>
+              </TouchableOpacity>
+            )}
           </>
         )}
       </ScrollView>
@@ -775,6 +791,36 @@ export default function StorageLotDetailScreen({ lotId, onBack, onOpenLayout, on
           </View>
         </View>
       </Modal>
+
+      {/* Create Delivery Job Modal */}
+      {lot && (
+        <CreateJobModal
+          visible={showCreateJob}
+          onClose={() => setShowCreateJob(false)}
+          onCreateJob={async (data) => {
+            await createJob(data);
+            setShowCreateJob(false);
+            // Update lot status to pending_pickup
+            try {
+              await StorageService.updateLot(lotId, { status: "pending_pickup" });
+              loadLot();
+            } catch { /* lot update is best-effort */ }
+            Alert.alert(
+              t("storage.deliveryCreated.title") || "Delivery Scheduled",
+              t("storage.deliveryCreated.message") || "A delivery job has been created for this lot.",
+            );
+          }}
+          prefillClientName={lot.client_name}
+          prefillClientEmail={lot.client_email || undefined}
+          prefillClientPhone={lot.client_phone || undefined}
+          prefillNotes={
+            `${t("storage.deliveryNotePrefix") || "Storage pickup"} — Lot #${lot.identifier_tag || lot.id}` +
+            (lot.items && lot.items.length > 0
+              ? `\n${t("storage.items") || "Items"}: ${lot.items.filter((i: any) => i.status === "stored").map((i: any) => i.name).join(", ")}`
+              : "")
+          }
+        />
+      )}
     </View>
   );
 }

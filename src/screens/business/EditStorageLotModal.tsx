@@ -29,12 +29,13 @@ interface Props {
 }
 
 const BILLING_TYPES: BillingType[] = ["fixed", "weekly", "monthly"];
-const LOT_STATUSES: LotStatus[] = ["active", "completed", "overdue"];
+const LOT_STATUSES: LotStatus[] = ["active", "completed", "overdue", "pending_pickup"];
 
 const STATUS_COLORS: Record<LotStatus, string> = {
   active: "#10B981",
   completed: "#6B7280",
   overdue: "#EF4444",
+  pending_pickup: "#F59E0B",
 };
 
 export default function EditStorageLotModal({ visible, lot, onClose, onUpdated }: Props) {

@@ -49,6 +49,11 @@ interface CreateJobModalProps {
   onClose: () => void;
   onCreateJob: (data: CreateJobRequest) => Promise<void>;
   selectedDate?: Date;
+  /** Pre-fill from storage lot */
+  prefillClientName?: string;
+  prefillClientEmail?: string;
+  prefillClientPhone?: string;
+  prefillNotes?: string;
 }
 
 type Step =
@@ -148,6 +153,10 @@ export default function CreateJobModal({
   onClose,
   onCreateJob,
   selectedDate,
+  prefillClientName,
+  prefillClientEmail,
+  prefillClientPhone,
+  prefillNotes,
 }: CreateJobModalProps) {
   const { colors } = useTheme();
   const { t, currentLanguage } = useLocalization();
@@ -327,6 +336,29 @@ export default function CreateJobModal({
   useEffect(() => {
     if (!visible) {
       resetModal();
+    } else if (prefillClientName) {
+      // Pre-fill from storage lot: create a virtual client and skip to schedule step
+      const nameParts = prefillClientName.trim().split(" ");
+      const firstName = nameParts[0] || "";
+      const lastName = nameParts.slice(1).join(" ") || "";
+      setNewClientData({
+        firstName,
+        lastName,
+        email: prefillClientEmail || "",
+        phone: prefillClientPhone || "",
+        company: "",
+      });
+      setNotes(prefillNotes || "");
+      // We create a virtual selectedClient so the flow can proceed
+      setSelectedClient({
+        id: "prefill-storage",
+        firstName,
+        lastName,
+        email: prefillClientEmail || "",
+        phone: prefillClientPhone || "",
+        fullName: prefillClientName,
+      } as any);
+      setStep("organization");
     }
   }, [visible]);
 

@@ -4523,6 +4523,7 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
         active: "Actif",
         completed: "Terminé",
         overdue: "En retard",
+        pending_pickup: "En attente de retrait",
       },
       unitType: {
         container: "Conteneur",
@@ -4688,6 +4689,19 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
         delete: "Supprimer l'unité",
         created: "Créé le",
         updated: "Dernière mise à jour",
+      },
+      // Job ↔ Storage integration
+      sendToStorage: "Envoyer au stockage",
+      lotCreatedFromJob: "Lot de stockage créé avec succès",
+      scheduleDelivery: "Planifier la livraison",
+      deliveryNotePrefix: "Retrait stockage",
+      jobCompleted: {
+        title: "Envoyer au stockage ?",
+        message: "Souhaitez-vous créer un lot de stockage pour les affaires de ce client ?",
+      },
+      deliveryCreated: {
+        title: "Livraison planifiée",
+        message: "Un job de livraison a été créé pour ce lot.",
       },
     },
   }

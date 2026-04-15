@@ -3541,7 +3541,7 @@ export interface TranslationKeys {
   storage?: {
     tabs?: { lots?: string; units?: string };
     stats?: { units?: string; activeLots?: string; itemsStored?: string; overdue?: string };
-    status?: { active?: string; completed?: string; overdue?: string };
+    status?: { active?: string; completed?: string; overdue?: string; pending_pickup?: string };
     unitType?: { container?: string; box?: string; room?: string; shelf?: string };
     unitStatus?: { available?: string; in_use?: string; full?: string; maintenance?: string };
     billing?: { fixed?: string; weekly?: string; monthly?: string };
@@ -3598,6 +3598,13 @@ export interface TranslationKeys {
       editTitle?: string; changeStatus?: string; deleteTitle?: string;
       deleteConfirm?: string; delete?: string; created?: string; updated?: string;
     };
+    // Job ↔ Storage integration
+    sendToStorage?: string;
+    lotCreatedFromJob?: string;
+    scheduleDelivery?: string;
+    deliveryNotePrefix?: string;
+    jobCompleted?: { title?: string; message?: string };
+    deliveryCreated?: { title?: string; message?: string };
   };
 
   // Support FAQ

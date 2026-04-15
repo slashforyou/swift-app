@@ -38,6 +38,7 @@ const STATUS_COLORS = {
   active: "#10B981",
   completed: "#6B7280",
   overdue: "#EF4444",
+  pending_pickup: "#F59E0B",
   available: "#10B981",
   in_use: "#3B82F6",
   full: "#F59E0B",

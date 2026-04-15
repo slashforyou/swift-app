@@ -23,7 +23,7 @@ export interface StorageUnit {
 
 // ── Storage Lot ──
 export type BillingType = 'fixed' | 'weekly' | 'monthly';
-export type LotStatus = 'active' | 'completed' | 'overdue';
+export type LotStatus = 'active' | 'completed' | 'overdue' | 'pending_pickup';
 
 export interface StorageLot {
   id: number;
@@ -37,6 +37,7 @@ export interface StorageLot {
   billing_start_date: string | null;
   billing_next_due: string | null;
   status: LotStatus;
+  identifier_tag: string | null;
   notes: string | null;
   unit_count?: number;
   item_count?: number;

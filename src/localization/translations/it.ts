@@ -2814,5 +2814,17 @@ export const itTranslations = mergeWithBaseTranslations(enTranslations, {
       nextDue: "Prossima scadenza",
       notes: "Note",
     },
+    sendToStorage: "Invia al magazzino",
+    lotCreatedFromJob: "Lotto di stoccaggio creato con successo",
+    scheduleDelivery: "Programma consegna",
+    deliveryNotePrefix: "Ritiro magazzino",
+    jobCompleted: {
+      title: "Inviare al magazzino?",
+      message: "Vuoi creare un lotto di stoccaggio per gli oggetti di questo cliente?",
+    },
+    deliveryCreated: {
+      title: "Consegna programmata",
+      message: "È stato creato un lavoro di consegna per questo lotto.",
+    },
   },
 }) as unknown as TranslationKeys;

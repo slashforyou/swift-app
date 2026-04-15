@@ -215,7 +215,7 @@ const listLots = async (req, res) => {
 
     let where = "sl.company_id = ? AND sl.deleted_at IS NULL";
     const params = [companyId];
-    if (status && ["active", "completed", "overdue"].includes(status)) {
+    if (status && ["active", "completed", "overdue", "pending_pickup"].includes(status)) {
       where += " AND sl.status = ?";
       params.push(status);
     }

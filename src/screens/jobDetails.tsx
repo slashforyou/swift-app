@@ -50,6 +50,7 @@ import {
     formatValidationReport,
     validateJobConsistency,
 } from "../utils/jobValidation";
+import CreateStorageLotModal from "./business/CreateStorageLotModal";
 import JobClient from "./JobDetailsScreens/client";
 import JobPage from "./JobDetailsScreens/job";
 import JobNote from "./JobDetailsScreens/note";
@@ -299,6 +300,9 @@ const JobDetails: React.FC<JobDetailsProps> = ({
   // State for Contractee Negotiation Modal (réponse à une contre-proposition)
   const [isNegotiationModalVisible, setIsNegotiationModalVisible] =
     useState(false);
+
+  // Storage lot creation from job
+  const [showStorageLotModal, setShowStorageLotModal] = useState(false);
 
   // ✅ FIX BOUCLE INFINIE: Ref pour tracker si validation déjà effectuée
   const hasValidatedRef = useRef(false);
@@ -736,6 +740,21 @@ const JobDetails: React.FC<JobDetailsProps> = ({
       `Job terminé ! Montant: $${finalCost.toFixed(2)} AUD (${billableHours.toFixed(2)}h facturables)`,
       "success",
     );
+
+    // Proposer la création d'un lot de stockage
+    setTimeout(() => {
+      Alert.alert(
+        t("storage.jobCompleted.title") || "Send to Storage?",
+        t("storage.jobCompleted.message") || "Would you like to create a storage lot for this client's items?",
+        [
+          { text: t("common.no") || "No", style: "cancel" },
+          {
+            text: t("common.yes") || "Yes",
+            onPress: () => setShowStorageLotModal(true),
+          },
+        ],
+      );
+    }, 1500);
   };
 
   // Handler pour TabMenu
@@ -981,6 +1000,33 @@ const JobDetails: React.FC<JobDetailsProps> = ({
 
         {/* Déléguer ce job — SUPPRIMÉ : remplacé par PrepareJobSection dans summary */}
 
+        {/* 📦 Send to Storage — visible when job is completed */}
+        {jobStatus === "completed" && (
+          <Pressable
+            testID="job-details-send-to-storage"
+            onPress={() => setShowStorageLotModal(true)}
+            style={({ pressed }) => ({
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 8,
+              marginHorizontal: DESIGN_TOKENS.spacing.lg,
+              marginBottom: DESIGN_TOKENS.spacing.sm,
+              paddingVertical: DESIGN_TOKENS.spacing.sm,
+              paddingHorizontal: DESIGN_TOKENS.spacing.md,
+              backgroundColor: pressed ? colors.primary + "30" : colors.primary + "15",
+              borderRadius: DESIGN_TOKENS.radius.md,
+              borderWidth: 1,
+              borderColor: colors.primary + "40",
+            })}
+          >
+            <Ionicons name="cube-outline" size={20} color={colors.primary} />
+            <Text style={{ color: colors.primary, fontWeight: "600", fontSize: 14, flex: 1 }}>
+              {t("storage.sendToStorage") || "Send to Storage"}
+            </Text>
+            <Ionicons name="chevron-forward" size={16} color={colors.primary} />
+          </Pressable>
+        )}
+
         {/* ScrollView principal */}
         <ScrollView
           testID="job-details-scroll"
@@ -1108,7 +1154,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({
           }}
         />
 
-        {/* � Contractee Negotiation Modal — réponse à une contre-proposition */}
+        {/* 📦 Contractee Negotiation Modal — réponse à une contre-proposition */}
         <ContracteeNegotiationModal
           visible={isNegotiationModalVisible}
           info={{
@@ -1280,6 +1326,27 @@ const JobDetails: React.FC<JobDetailsProps> = ({
             </View>
           </View>
         </Modal>
+
+        {/* 📦 Create Storage Lot Modal — pre-filled from job data */}
+        <CreateStorageLotModal
+          visible={showStorageLotModal}
+          onClose={() => setShowStorageLotModal(false)}
+          onCreated={(lot) => {
+            setShowStorageLotModal(false);
+            showToast(
+              t("storage.lotCreatedFromJob") || `Storage lot created: ${lot.identifier_tag || lot.id}`,
+              "success",
+            );
+          }}
+          prefillJobId={jobDetails?.job?.id}
+          prefillClientName={
+            job.client?.name ||
+            [job.client?.firstName, job.client?.lastName].filter(Boolean).join(" ") ||
+            undefined
+          }
+          prefillClientEmail={job.client?.email !== "N/A" ? job.client?.email : undefined}
+          prefillClientPhone={job.client?.phone !== "N/A" ? job.client?.phone : undefined}
+        />
       </View>
     </JobTimerProvider>
   );

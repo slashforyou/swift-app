@@ -2707,5 +2707,17 @@ export const zhTranslations = mergeWithBaseTranslations(enTranslations, {
       nextDue: "下次到期",
       notes: "备注",
     },
+    sendToStorage: "发送至仓库",
+    lotCreatedFromJob: "仓储批次创建成功",
+    scheduleDelivery: "安排配送",
+    deliveryNotePrefix: "仓库取件",
+    jobCompleted: {
+      title: "发送至仓库？",
+      message: "是否为此客户的物品创建仓储批次？",
+    },
+    deliveryCreated: {
+      title: "配送已安排",
+      message: "已为此批次创建配送工作。",
+    },
   },
 }) as unknown as TranslationKeys;

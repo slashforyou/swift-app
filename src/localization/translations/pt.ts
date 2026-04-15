@@ -2780,5 +2780,17 @@ export const ptTranslations = mergeWithBaseTranslations(enTranslations, {
       nextDue: "Próximo pagamento",
       notes: "Notas",
     },
+    sendToStorage: "Enviar para armazenamento",
+    lotCreatedFromJob: "Lote de armazenamento criado com sucesso",
+    scheduleDelivery: "Agendar entrega",
+    deliveryNotePrefix: "Recolha armazenamento",
+    jobCompleted: {
+      title: "Enviar para armazenamento?",
+      message: "Deseja criar um lote de armazenamento para os objetos deste cliente?",
+    },
+    deliveryCreated: {
+      title: "Entrega agendada",
+      message: "Um trabalho de entrega foi criado para este lote.",
+    },
   },
 }) as unknown as TranslationKeys;

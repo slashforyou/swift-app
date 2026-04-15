@@ -2752,5 +2752,17 @@ export const hiTranslations = mergeWithBaseTranslations(enTranslations, {
       nextDue: "अगला भुगतान",
       notes: "नोट्स",
     },
+    sendToStorage: "भंडारण में भेजें",
+    lotCreatedFromJob: "भंडारण लॉट सफलतापूर्वक बनाया गया",
+    scheduleDelivery: "डिलीवरी शेड्यूल करें",
+    deliveryNotePrefix: "भंडारण पिकअप",
+    jobCompleted: {
+      title: "भंडारण में भेजें?",
+      message: "क्या आप इस ग्राहक की वस्तुओं के लिए भंडारण लॉट बनाना चाहते हैं?",
+    },
+    deliveryCreated: {
+      title: "डिलीवरी शेड्यूल हो गई",
+      message: "इस लॉट के लिए एक डिलीवरी कार्य बनाया गया है।",
+    },
   },
 }) as unknown as TranslationKeys;
