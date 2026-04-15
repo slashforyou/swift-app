@@ -12,6 +12,10 @@ on:
         required: false
         default: "001-launch-login-calendar.yaml"
 
+env:
+  # Opt into Node.js 24 for all actions (Node 20 deprecated June 2026)
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   e2e-android:
     name: E2E — Android (Maestro)
@@ -48,6 +52,10 @@ jobs:
           curl -Ls "https://get.maestro.mobile.dev" | bash
           echo "$HOME/.maestro/bin" >> $GITHUB_PATH
 
+      # ── Prepare results directory ──────────────────────────────────────────
+      - name: Create results directory
+        run: mkdir -p $HOME/.maestro/tests
+
       # ── Download Expo Go APK ───────────────────────────────────────────────
       - name: Download Expo Go APK
         run: |
@@ -55,6 +63,7 @@ jobs:
             | python3 -c "import sys,json; print(json.load(sys.stdin)['androidUrl'])")
           echo "Downloading Expo Go from: $EXPO_GO_URL"
           curl -L "$EXPO_GO_URL" -o expo-go.apk
+          ls -la expo-go.apk
 
       # ── Android Emulator ───────────────────────────────────────────────────
       - name: Enable KVM
@@ -71,39 +80,93 @@ jobs:
           PASSWORD: ${{ secrets.E2E_TEST_PASSWORD }}
           EXPO_NO_DOTENV: "1"
         with:
-          api-level: 33
+          api-level: 34
           arch: x86_64
           profile: pixel_6
           avd-name: maestro-avd
           emulator-options: "-no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none"
           disable-animations: true
           script: |
-            # Install Expo Go on emulator
-            adb install -r expo-go.apk
+            set -e
 
-            # Start Metro bundler in background
-            npx expo start --android --non-interactive &
+            echo "=== Emulator status ==="
+            adb devices
+            adb shell getprop ro.build.version.sdk
+
+            # Install Expo Go on emulator
+            echo "=== Installing Expo Go ==="
+            adb install -r expo-go.apk
+            echo "Expo Go installed"
+
+            # Start Metro bundler in background (without --android to avoid auto-open)
+            echo "=== Starting Metro bundler ==="
+            npx expo start --non-interactive 2>&1 | tee metro.log &
             METRO_PID=$!
 
-            # Wait for Metro to be ready (up to 2 min)
-            for i in $(seq 1 24); do
-              if curl -s http://localhost:8081/status | grep -q packager-status:running; then
-                echo "✅ Metro is ready"
+            # Wait for Metro to be ready (up to 3 min)
+            echo "=== Waiting for Metro ==="
+            METRO_READY=false
+            for i in $(seq 1 36); do
+              if curl -s http://localhost:8081/status 2>/dev/null | grep -q packager-status:running; then
+                echo "Metro is ready after $((i * 5))s"
+                METRO_READY=true
                 break
               fi
-              echo "Waiting for Metro... ($i/24)"
+              echo "Waiting for Metro... ($i/36)"
               sleep 5
             done
 
-            # Give app time to load on emulator
-            sleep 10
+            if [ "$METRO_READY" != "true" ]; then
+              echo "ERROR: Metro did not start in time"
+              cat metro.log || true
+              exit 1
+            fi
+
+            # Open the app in Expo Go via deep link
+            echo "=== Launching app in Expo Go ==="
+            adb shell am start -a android.intent.action.VIEW \
+              -d "exp://127.0.0.1:8081" \
+              host.exp.exponent
+
+            # Wait for the JS bundle to load (emulator is slow on CI)
+            echo "=== Waiting for app to load ==="
+            sleep 30
+
+            # Take a diagnostic screenshot before running tests
+            adb shell screencap -p /sdcard/pre-test-screenshot.png
+            adb pull /sdcard/pre-test-screenshot.png $HOME/.maestro/tests/pre-test-screenshot.png || true
+
+            # Verify env vars are set
+            if [ -z "$EMAIL" ] || [ -z "$PASSWORD" ]; then
+              echo "WARNING: E2E_TEST_EMAIL or E2E_TEST_PASSWORD secrets are not set"
+            fi
 
             # Run Maestro flow
-            maestro test e2e/flows/${{ github.event.inputs.flow || '001-launch-login-calendar.yaml' }} \
-              --env EMAIL="$EMAIL" \
-              --env PASSWORD="$PASSWORD" \
+            echo "=== Running Maestro tests ==="
+            FLOW_FILE="${{ github.event.inputs.flow || '001-launch-login-calendar.yaml' }}"
+            maestro test "e2e/flows/${FLOW_FILE}" \
+              --env EMAIL="${EMAIL}" \
+              --env PASSWORD="${PASSWORD}" \
               --format junit \
-              --output e2e-results.xml
+              --output e2e-results.xml \
+              --debug-output $HOME/.maestro/tests/ \
+              || TEST_EXIT=$?
+
+            # Capture post-test screenshot on failure
+            if [ "${TEST_EXIT:-0}" != "0" ]; then
+              echo "=== Test failed (exit $TEST_EXIT), capturing diagnostics ==="
+              adb shell screencap -p /sdcard/post-test-screenshot.png
+              adb pull /sdcard/post-test-screenshot.png $HOME/.maestro/tests/post-test-screenshot.png || true
+              adb logcat -d -t 200 > $HOME/.maestro/tests/logcat.txt || true
+              cat metro.log > $HOME/.maestro/tests/metro.log || true
+            fi
+
+            # Copy all results to workspace for artifact upload (~ doesn't expand in YAML)
+            mkdir -p e2e-artifacts
+            cp -r $HOME/.maestro/tests/* e2e-artifacts/ 2>/dev/null || true
+            cp metro.log e2e-artifacts/ 2>/dev/null || true
+
+            exit ${TEST_EXIT:-0}
 
       # ── Upload results ─────────────────────────────────────────────────────
       - name: Upload test results
@@ -113,7 +176,8 @@ jobs:
           name: maestro-results
           path: |
             e2e-results.xml
-            ~/.maestro/tests/
+            e2e-artifacts/
+          if-no-files-found: warn
           retention-days: 7
 
       - name: Upload Maestro screenshots
@@ -121,5 +185,6 @@ jobs:
         if: failure()
         with:
           name: maestro-screenshots-${{ github.run_number }}
-          path: ~/.maestro/tests/
+          path: e2e-artifacts/
+          if-no-files-found: warn
           retention-days: 7
