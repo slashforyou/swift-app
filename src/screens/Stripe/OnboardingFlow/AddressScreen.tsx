@@ -8,23 +8,23 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Keyboard,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    Keyboard,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import {
-  SafeAreaView,
-  useSafeAreaInsets,
+    SafeAreaView,
+    useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import { ServerData } from "../../../constants/ServerData";
 import { DESIGN_TOKENS } from "../../../constants/Styles";
@@ -33,16 +33,16 @@ import { useOnboardingDraft } from "../../../hooks/useOnboardingDraft";
 import { useTranslation } from "../../../localization";
 import { lookupPostcode } from "../../../services/abnLookupService";
 import {
-  fetchStripeAccount,
-  loadDraft,
-  submitAddress,
+    fetchStripeAccount,
+    loadDraft,
+    submitAddress,
 } from "../../../services/StripeService";
 import { authenticatedFetch } from "../../../utils/auth";
 import { pickFirst } from "../../../utils/autoFill";
 import {
-  getFixedNextStep,
-  getOnboardingStepMeta,
-  resolveBusinessType,
+    getFixedNextStep,
+    getOnboardingStepMeta,
+    resolveBusinessType,
 } from "./onboardingSteps";
 
 interface AddressScreenProps {

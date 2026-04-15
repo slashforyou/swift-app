@@ -3,39 +3,41 @@
  * Shows units (reorderable), items (add/checkout), photos, billing
  */
 import Ionicons from "@react-native-vector-icons/ionicons";
+import * as ImagePicker from "expo-image-picker";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  Alert,
-  FlatList,
-  Image,
-  Modal,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    FlatList,
+    Image,
+    Modal,
+    Pressable,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
-import * as ImagePicker from "expo-image-picker";
 import MascotLoading from "../../components/ui/MascotLoading";
 
 import { useTheme } from "../../context/ThemeProvider";
 import { useTranslation } from "../../localization/useLocalization";
 import * as StorageService from "../../services/storageService";
 import type {
-  ItemCondition,
-  StorageItem,
-  StorageLotDetail as LotDetailType,
-  StorageUnit,
+    ItemCondition,
+    StorageLotDetail as LotDetailType,
+    StorageItem,
+    StorageUnit,
 } from "../../types/storage";
 
-type DetailTab = "items" | "units" | "photos" | "billing";
+type DetailTab = "items" | "units" | "photos" | "billing" | "info";
 
 interface StorageLotDetailProps {
   lotId: number;
   onBack: () => void;
+  onOpenLayout?: () => void;
+  onEditLot?: () => void;
 }
 
 const CONDITION_COLORS: Record<ItemCondition, string> = {
@@ -45,7 +47,7 @@ const CONDITION_COLORS: Record<ItemCondition, string> = {
   damaged: "#EF4444",
 };
 
-export default function StorageLotDetailScreen({ lotId, onBack }: StorageLotDetailProps) {
+export default function StorageLotDetailScreen({ lotId, onBack, onOpenLayout, onEditLot }: StorageLotDetailProps) {
   const { colors, isDark } = useTheme();
   const { t } = useTranslation();
 
@@ -150,6 +152,114 @@ export default function StorageLotDetailScreen({ lotId, onBack }: StorageLotDeta
       { text: t("storage.photos.gallery"), onPress: () => handleUploadPhoto("gallery") },
       { text: t("common.cancel"), style: "cancel" },
     ]);
+  };
+
+  // ── Delete photo ──
+  const handleDeletePhoto = (photoId: number) => {
+    Alert.alert(
+      t("common.delete"),
+      t("storage.photos.deleteConfirm"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("common.delete"),
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await StorageService.deleteStoragePhoto(photoId);
+              loadLot();
+            } catch (e: any) {
+              Alert.alert("Error", e.message);
+            }
+          },
+        },
+      ],
+    );
+  };
+
+  // ── Mark billing as paid ──
+  const handleMarkPaid = (recordId: number) => {
+    Alert.alert(
+      t("storage.billingActions.markPaid"),
+      t("storage.billingActions.markPaidConfirm"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("storage.billingActions.markPaid"),
+          onPress: async () => {
+            try {
+              await StorageService.updateBillingRecord(recordId, { status: "paid" });
+              loadLot();
+            } catch (e: any) {
+              Alert.alert("Error", e.message);
+            }
+          },
+        },
+      ],
+    );
+  };
+
+  // ── Waive billing ──
+  const handleWaiveBilling = (recordId: number) => {
+    Alert.alert(
+      t("storage.billingActions.waive"),
+      t("storage.billingActions.waiveConfirm"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("storage.billingActions.waive"),
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await StorageService.updateBillingRecord(recordId, { status: "waived" });
+              loadLot();
+            } catch (e: any) {
+              Alert.alert("Error", e.message);
+            }
+          },
+        },
+      ],
+    );
+  };
+
+  // ── Generate billing ──
+  const handleGenerateBilling = async () => {
+    try {
+      const result = await StorageService.generateBilling();
+      loadLot();
+      if (result.generated > 0) {
+        Alert.alert(t("storage.billingActions.generated"), t("storage.billingActions.generatedCount", { count: String(result.generated) }));
+      } else {
+        Alert.alert(t("storage.billingActions.generated"), t("storage.billingActions.nothingToGenerate"));
+      }
+    } catch (e: any) {
+      Alert.alert("Error", e.message);
+    }
+  };
+
+  // ── Complete lot ──
+  const handleCompleteLot = () => {
+    const activeItemCount = lot?.items.filter((i) => !i.checked_out_at).length || 0;
+    Alert.alert(
+      t("storage.completeLot.title"),
+      activeItemCount > 0
+        ? t("storage.completeLot.confirmWithItems", { count: String(activeItemCount) })
+        : t("storage.completeLot.confirm"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("storage.completeLot.action"),
+          onPress: async () => {
+            try {
+              await StorageService.updateLot(lotId, { status: "completed" });
+              loadLot();
+            } catch (e: any) {
+              Alert.alert("Error", e.message);
+            }
+          },
+        },
+      ],
+    );
   };
 
   // ── Assign unit ──
@@ -313,16 +423,28 @@ export default function StorageLotDetailScreen({ lotId, onBack }: StorageLotDeta
             {lot.billing_next_due ? ` · ${t("storage.nextDue")}: ${lot.billing_next_due}` : ""}
           </Text>
         </View>
-        <View style={[styles.statusBadge, { backgroundColor: (lot.status === "active" ? "#10B981" : lot.status === "overdue" ? "#EF4444" : "#6B7280") + "20" }]}>
-          <Text style={{ color: lot.status === "active" ? "#10B981" : lot.status === "overdue" ? "#EF4444" : "#6B7280", fontSize: 12, fontWeight: "600" }}>
-            {t(`storage.status.${lot.status}`)}
-          </Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          {onOpenLayout && (
+            <TouchableOpacity onPress={onOpenLayout} style={styles.headerAction}>
+              <Ionicons name="grid-outline" size={18} color={colors.primary} />
+            </TouchableOpacity>
+          )}
+          {onEditLot && (
+            <TouchableOpacity onPress={onEditLot} style={styles.headerAction}>
+              <Ionicons name="pencil" size={18} color={colors.primary} />
+            </TouchableOpacity>
+          )}
+          <View style={[styles.statusBadge, { backgroundColor: (lot.status === "active" ? "#10B981" : lot.status === "overdue" ? "#EF4444" : "#6B7280") + "20" }]}>
+            <Text style={{ color: lot.status === "active" ? "#10B981" : lot.status === "overdue" ? "#EF4444" : "#6B7280", fontSize: 12, fontWeight: "600" }}>
+              {t(`storage.status.${lot.status}`)}
+            </Text>
+          </View>
         </View>
       </View>
 
       {/* Tabs */}
       <View style={[styles.tabRow, { borderBottomColor: colors.border }]}>
-        {(["items", "units", "photos", "billing"] as DetailTab[]).map((tab) => (
+        {(["items", "units", "photos", "billing", "info"] as DetailTab[]).map((tab) => (
           <Pressable
             key={tab}
             style={[styles.tab, activeTab === tab && { borderBottomColor: colors.primary, borderBottomWidth: 2 }]}
@@ -448,9 +570,14 @@ export default function StorageLotDetailScreen({ lotId, onBack }: StorageLotDeta
                         <Ionicons name="image-outline" size={24} color={colors.textSecondary} />
                       </View>
                     )}
-                    <Text style={[styles.photoLabel, { color: colors.textSecondary }]} numberOfLines={1}>
-                      {photo.description || photo.photo_type}
-                    </Text>
+                    <View style={styles.photoFooter}>
+                      <Text style={[styles.photoLabel, { color: colors.textSecondary, flex: 1 }]} numberOfLines={1}>
+                        {photo.description || photo.photo_type}
+                      </Text>
+                      <Pressable onPress={() => handleDeletePhoto(photo.id)} hitSlop={8}>
+                        <Ionicons name="trash-outline" size={14} color="#EF4444" />
+                      </Pressable>
+                    </View>
                   </View>
                 ))}
               </View>
@@ -473,33 +600,129 @@ export default function StorageLotDetailScreen({ lotId, onBack }: StorageLotDeta
                 / {t(`storage.billing.${lot.billing_type}`)}
               </Text>
             </View>
+
+            {/* Generate billing button */}
+            <TouchableOpacity
+              style={[styles.generateBillingBtn, { backgroundColor: colors.primary + "15", borderColor: colors.primary }]}
+              onPress={handleGenerateBilling}
+            >
+              <Ionicons name="refresh-outline" size={16} color={colors.primary} />
+              <Text style={{ color: colors.primary, fontWeight: "600", fontSize: 13 }}>{t("storage.billingActions.generate")}</Text>
+            </TouchableOpacity>
+
             {lot.billing.length === 0 ? (
               <View style={styles.emptyState}>
                 <Ionicons name="receipt-outline" size={40} color={colors.textSecondary} />
                 <Text style={[styles.emptyText, { color: colors.textSecondary }]}>{t("storage.emptyBilling")}</Text>
               </View>
             ) : (
-              lot.billing.map((record) => (
-                <View key={record.id} style={[styles.billingRow, { borderColor: colors.border }]}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.billingRowAmount, { color: colors.text }]}>${Number(record.amount).toFixed(2)}</Text>
-                    <Text style={[{ color: colors.textSecondary, fontSize: 12 }]}>
-                      {record.period_start} → {record.period_end}
-                    </Text>
+              lot.billing.map((record) => {
+                const isPending = record.status === "pending";
+                const isOverdue = record.status === "overdue";
+                const statusColor = record.status === "paid" ? "#10B981" : isOverdue ? "#EF4444" : record.status === "waived" ? "#6B7280" : "#F59E0B";
+                return (
+                  <View key={record.id} style={[styles.billingRow, { borderColor: colors.border }]}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.billingRowAmount, { color: colors.text }]}>${Number(record.amount).toFixed(2)}</Text>
+                      <Text style={[{ color: colors.textSecondary, fontSize: 12 }]}>
+                        {record.period_start} → {record.period_end}
+                      </Text>
+                      {record.paid_at && (
+                        <Text style={{ color: "#10B981", fontSize: 11, marginTop: 2 }}>
+                          {t("storage.billingActions.paidOn")} {record.paid_at.split("T")[0]}
+                        </Text>
+                      )}
+                    </View>
+                    <View style={{ alignItems: "flex-end", gap: 6 }}>
+                      <View style={[styles.billingStatusBadge, { backgroundColor: statusColor + "20" }]}>
+                        <Text style={{ color: statusColor, fontSize: 11, fontWeight: "600" }}>
+                          {t(`storage.billingStatus.${record.status}`)}
+                        </Text>
+                      </View>
+                      {(isPending || isOverdue) && (
+                        <View style={{ flexDirection: "row", gap: 8 }}>
+                          <Pressable onPress={() => handleMarkPaid(record.id)} hitSlop={6}>
+                            <Ionicons name="checkmark-circle-outline" size={20} color="#10B981" />
+                          </Pressable>
+                          <Pressable onPress={() => handleWaiveBilling(record.id)} hitSlop={6}>
+                            <Ionicons name="close-circle-outline" size={20} color="#6B7280" />
+                          </Pressable>
+                        </View>
+                      )}
+                    </View>
                   </View>
-                  <View style={[styles.billingStatusBadge, {
-                    backgroundColor: (record.status === "paid" ? "#10B981" : record.status === "overdue" ? "#EF4444" : "#F59E0B") + "20"
-                  }]}>
-                    <Text style={{
-                      color: record.status === "paid" ? "#10B981" : record.status === "overdue" ? "#EF4444" : "#F59E0B",
-                      fontSize: 11, fontWeight: "600"
-                    }}>
-                      {t(`storage.billingStatus.${record.status}`)}
-                    </Text>
-                  </View>
-                </View>
-              ))
+                );
+              })
             )}
+
+            {/* Complete lot action */}
+            {lot.status === "active" && (
+              <TouchableOpacity
+                style={[styles.completeLotBtn, { borderColor: "#6B7280" }]}
+                onPress={handleCompleteLot}
+              >
+                <Ionicons name="checkmark-done-outline" size={18} color="#6B7280" />
+                <Text style={{ color: "#6B7280", fontWeight: "600" }}>{t("storage.completeLot.action")}</Text>
+              </TouchableOpacity>
+            )}
+          </>
+        )}
+
+        {/* ── INFO TAB ── */}
+        {activeTab === "info" && (
+          <>
+            <View style={[styles.infoSection, { backgroundColor: isDark ? colors.backgroundSecondary : "#FFF", borderColor: colors.border }]}>
+              <View style={styles.infoRow}>
+                <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>{t("storage.info.client")}</Text>
+                <Text style={[styles.infoValue, { color: colors.text }]}>{lot.client_name}</Text>
+              </View>
+              {lot.client_email && (
+                <View style={styles.infoRow}>
+                  <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>{t("storage.info.email")}</Text>
+                  <Text style={[styles.infoValue, { color: colors.text }]}>{lot.client_email}</Text>
+                </View>
+              )}
+              {lot.client_phone && (
+                <View style={styles.infoRow}>
+                  <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>{t("storage.info.phone")}</Text>
+                  <Text style={[styles.infoValue, { color: colors.text }]}>{lot.client_phone}</Text>
+                </View>
+              )}
+              {lot.job_id && (
+                <View style={styles.infoRow}>
+                  <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>{t("storage.info.linkedJob")}</Text>
+                  <Text style={[styles.infoValue, { color: colors.primary }]}>#{lot.job_id}</Text>
+                </View>
+              )}
+              <View style={styles.infoRow}>
+                <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>{t("storage.info.status")}</Text>
+                <Text style={[styles.infoValue, { color: lot.status === "active" ? "#10B981" : lot.status === "overdue" ? "#EF4444" : "#6B7280" }]}>
+                  {t(`storage.status.${lot.status}`)}
+                </Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>{t("storage.info.created")}</Text>
+                <Text style={[styles.infoValue, { color: colors.text }]}>{lot.created_at?.split("T")[0]}</Text>
+              </View>
+              {lot.billing_start_date && (
+                <View style={styles.infoRow}>
+                  <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>{t("storage.info.billingStart")}</Text>
+                  <Text style={[styles.infoValue, { color: colors.text }]}>{lot.billing_start_date}</Text>
+                </View>
+              )}
+              {lot.billing_next_due && (
+                <View style={styles.infoRow}>
+                  <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>{t("storage.info.nextDue")}</Text>
+                  <Text style={[styles.infoValue, { color: colors.text }]}>{lot.billing_next_due}</Text>
+                </View>
+              )}
+            </View>
+            {lot.notes ? (
+              <View style={[styles.infoSection, { backgroundColor: isDark ? colors.backgroundSecondary : "#FFF", borderColor: colors.border, marginTop: 12 }]}>
+                <Text style={[styles.infoLabel, { color: colors.textSecondary, marginBottom: 6 }]}>{t("storage.info.notes")}</Text>
+                <Text style={[{ color: colors.text, fontSize: 14, lineHeight: 20 }]}>{lot.notes}</Text>
+              </View>
+            ) : null}
           </>
         )}
       </ScrollView>
@@ -567,6 +790,13 @@ const styles = StyleSheet.create({
   detailTitle: { fontSize: 18, fontWeight: "700" },
   detailSub: { fontSize: 13, marginTop: 2 },
   statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  headerAction: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
+  },
 
   tabRow: {
     flexDirection: "row",
@@ -632,6 +862,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   photoLabel: { fontSize: 10, marginTop: 2, textAlign: "center" },
+  photoFooter: { flexDirection: "row", alignItems: "center", marginTop: 2, gap: 4 },
 
   // Billing
   billingSummary: {
@@ -651,6 +882,47 @@ const styles = StyleSheet.create({
   },
   billingRowAmount: { fontSize: 16, fontWeight: "600" },
   billingStatusBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
+
+  generateBillingBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderWidth: 1,
+    borderRadius: 10,
+    justifyContent: "center",
+    marginBottom: 16,
+  },
+
+  completeLotBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderWidth: 1.5,
+    borderRadius: 10,
+    borderStyle: "dashed",
+    justifyContent: "center",
+    marginTop: 24,
+  },
+
+  infoSection: {
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 16,
+  },
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 8,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "rgba(0,0,0,0.06)",
+  },
+  infoLabel: { fontSize: 13, fontWeight: "500" },
+  infoValue: { fontSize: 14, fontWeight: "600" },
 
   emptyState: { alignItems: "center", paddingTop: 40, gap: 8 },
   emptyText: { fontSize: 14, fontWeight: "500" },

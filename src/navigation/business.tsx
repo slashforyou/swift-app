@@ -10,8 +10,8 @@ import { BusinessTabMenu } from "../components/business";
 import BusinessHeader from "../components/business/BusinessHeader";
 import BusinessSubTabMenu from "../components/business/BusinessSubTabMenu";
 import type { BusinessTab } from "../components/business/BusinessTabMenu";
-import HelpButton from "../components/ui/HelpButton";
 import HeaderLogo from "../components/ui/HeaderLogo";
+import HelpButton from "../components/ui/HelpButton";
 import Toast from "../components/ui/toastNotification";
 import { DESIGN_TOKENS } from "../constants/Styles";
 import { useTheme } from "../context/ThemeProvider";
@@ -26,12 +26,15 @@ import {
 } from "../screens/business";
 import BusinessHubOverview from "../screens/business/BusinessHubOverview";
 import BusinessInfoPage from "../screens/business/BusinessInfoPage";
+import ContainerLayoutScreen from "../screens/business/ContainerLayoutScreen";
 import ContractsScreen from "../screens/business/ContractsScreen";
+import EditStorageLotModal from "../screens/business/EditStorageLotModal";
 import InterContractorBillingScreen from "../screens/business/InterContractorBillingScreen";
 import JobTemplatesPanel from "../screens/business/JobTemplatesPanel";
 import MonthlyInvoicesScreen from "../screens/business/MonthlyInvoicesScreen";
 import StorageLotDetailScreen from "../screens/business/StorageLotDetail";
 import StorageScreen from "../screens/business/StorageScreen";
+import StorageUnitDetailScreen from "../screens/business/StorageUnitDetailScreen";
 import StripePaymentsTab from "../screens/business/StripePaymentsTab";
 import { useAuthCheck } from "../utils/checkAuth";
 
@@ -118,6 +121,10 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
   const [drillDownScreen, setDrillDownScreen] = useState<string | null>(mapped?.drillDown || null);
   const [searchQuery, setSearchQuery] = useState("");
   const [storageLotId, setStorageLotId] = useState<number | null>(null);
+  const [storageUnitId, setStorageUnitId] = useState<number | null>(null);
+  const [storageView, setStorageView] = useState<"list" | "lotDetail" | "unitDetail" | "layout">("list");
+  const [showEditLot, setShowEditLot] = useState(false);
+  const [editLotData, setEditLotData] = useState<any>(null);
 
   // ── Handlers ──
   const handleTabPress = useCallback((tabId: BusinessTab) => {
@@ -246,13 +253,56 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
         );
 
       case "Resources":
-        if (resourcesSubTab === "storage" && storageLotId) {
-          return (
-            <StorageLotDetailScreen
-              lotId={storageLotId}
-              onBack={() => setStorageLotId(null)}
-            />
-          );
+        if (resourcesSubTab === "storage") {
+          if (storageView === "layout" && storageLotId) {
+            // Need to fetch lot data for layout — use a placeholder approach
+            return (
+              <ContainerLayoutScreen
+                lotId={storageLotId}
+                initialUnits={[]}
+                onBack={() => setStorageView("lotDetail")}
+                onChanged={() => {}}
+              />
+            );
+          }
+          if (storageView === "unitDetail" && storageUnitId) {
+            return (
+              <StorageUnitDetailScreen
+                unitId={storageUnitId}
+                onBack={() => {
+                  setStorageUnitId(null);
+                  setStorageView("list");
+                }}
+                onOpenLot={(id) => {
+                  setStorageLotId(id);
+                  setStorageView("lotDetail");
+                }}
+              />
+            );
+          }
+          if (storageView === "lotDetail" && storageLotId) {
+            return (
+              <>
+                <StorageLotDetailScreen
+                  lotId={storageLotId}
+                  onBack={() => {
+                    setStorageLotId(null);
+                    setStorageView("list");
+                  }}
+                  onOpenLayout={() => setStorageView("layout")}
+                  onEditLot={() => setShowEditLot(true)}
+                />
+                <EditStorageLotModal
+                  visible={showEditLot}
+                  lot={editLotData}
+                  onClose={() => setShowEditLot(false)}
+                  onUpdated={() => {
+                    setShowEditLot(false);
+                  }}
+                />
+              </>
+            );
+          }
         }
         return (
           <>
@@ -260,7 +310,16 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
             {resourcesSubTab === "vehicles" && <TrucksScreen />}
             {resourcesSubTab === "partners" && <RelationsScreen />}
             {resourcesSubTab === "storage" && (
-              <StorageScreen onOpenLot={(id) => setStorageLotId(id)} />
+              <StorageScreen
+                onOpenLot={(id) => {
+                  setStorageLotId(id);
+                  setStorageView("lotDetail");
+                }}
+                onOpenUnit={(id) => {
+                  setStorageUnitId(id);
+                  setStorageView("unitDetail");
+                }}
+              />
             )}
           </>
         );

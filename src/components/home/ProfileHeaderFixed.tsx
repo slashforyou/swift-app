@@ -35,6 +35,19 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
         totalXpForNextLevel: 500
     };
 
+    // Animation de la barre de progression
+    React.useEffect(() => {
+        if (isLoading) return;
+        const progressPercentage = user.xpToNextLevel ? 
+            ((user.totalXpForNextLevel || 500) - (user.xpToNextLevel || 0)) / (user.totalXpForNextLevel || 500) : 0;
+        
+        Animated.timing(progressAnimation, {
+            toValue: progressPercentage,
+            duration: 2000,
+            useNativeDriver: false,
+        }).start();
+    }, [user.xp, isLoading]);
+
     // Si en cours de chargement, afficher un placeholder
     if (isLoading) {
         return (
@@ -55,18 +68,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             </View>
         );
     }
-
-    // Animation de la barre de progression
-    React.useEffect(() => {
-        const progressPercentage = user.xpToNextLevel ? 
-            ((user.totalXpForNextLevel || 500) - (user.xpToNextLevel || 0)) / (user.totalXpForNextLevel || 500) : 0;
-        
-        Animated.timing(progressAnimation, {
-            toValue: progressPercentage,
-            duration: 2000,
-            useNativeDriver: false,
-        }).start();
-    }, [user.xp]);
 
     // Fonction pour obtenir le rang basé sur le niveau
     const getRankInfo = (level: number = 1) => {

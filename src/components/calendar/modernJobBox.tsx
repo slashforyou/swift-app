@@ -1,13 +1,13 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
-import React, { useState, memo } from "react";
+import React, { memo, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
+    ActivityIndicator,
+    Alert,
+    Pressable,
+    StyleSheet,
+    Text,
+    TextInput,
+    View,
 } from "react-native";
 import { useThemeColors } from "../../../hooks/useThemeColor";
 import { DESIGN_TOKENS } from "../../constants/Styles";
@@ -220,7 +220,7 @@ const PendingAssignmentActions: React.FC<{
   );
 };
 
-const JobBox: React.FC<JobBoxProps> = memo(({
+const JobBox: React.FC<JobBoxProps> = memo(function JobBox({
   job,
   onPress,
   onAccept,
@@ -229,7 +229,7 @@ const JobBox: React.FC<JobBoxProps> = memo(({
   day,
   month,
   year,
-}) => {
+}) {
   const colors = useThemeColors();
   const { t, currentLanguage } = useLocalization();
 

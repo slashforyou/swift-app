@@ -4,20 +4,20 @@
  */
 import { ServerData } from "../constants/ServerData";
 import type {
-  BillingType,
-  ItemCondition,
-  LotStatus,
-  PhotoType,
-  StorageBillingRecord,
-  StorageBillingSummary,
-  StorageItem,
-  StorageLot,
-  StorageLotDetail,
-  StoragePhoto,
-  StorageStats,
-  StorageUnit,
-  UnitStatus,
-  UnitType,
+    BillingType,
+    ItemCondition,
+    LotStatus,
+    PhotoType,
+    StorageBillingRecord,
+    StorageBillingSummary,
+    StorageItem,
+    StorageLot,
+    StorageLotDetail,
+    StoragePhoto,
+    StorageStats,
+    StorageUnit,
+    UnitStatus,
+    UnitType,
 } from "../types/storage";
 import { authenticatedFetch } from "../utils/auth";
 
@@ -76,6 +76,25 @@ export async function updateUnit(
 
 export async function deleteUnit(id: number): Promise<void> {
   await jsonRequest(`${API}/units/${id}`, { method: "DELETE" });
+}
+
+// ════════════════════════════════════════════════════════════
+// CLIENT SEARCH
+// ════════════════════════════════════════════════════════════
+
+export interface ClientSuggestion {
+  name: string;
+  email: string | null;
+  phone: string | null;
+  source: "storage" | "job";
+}
+
+export async function searchClients(query: string): Promise<ClientSuggestion[]> {
+  if (query.trim().length < 2) return [];
+  const data = await jsonRequest<{ success: true; clients: ClientSuggestion[] }>(
+    `${API}/clients/search?q=${encodeURIComponent(query.trim())}`,
+  );
+  return data.clients;
 }
 
 // ════════════════════════════════════════════════════════════
@@ -286,6 +305,34 @@ export async function recordBillingPayment(
     },
   );
   return data.record;
+}
+
+export async function updateBillingRecord(
+  recordId: number,
+  params: { status?: string; notes?: string },
+): Promise<StorageBillingRecord> {
+  const data = await jsonRequest<{ success: true; record: StorageBillingRecord }>(
+    `${API}/billing/${recordId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(params),
+    },
+  );
+  return data.record;
+}
+
+export async function generateBilling(): Promise<{
+  generated: number;
+  records: Array<{ lot_id: number; billing_id: number; amount: number; period_start: string; period_end: string }>;
+  overdue_updated: number;
+}> {
+  const data = await jsonRequest<{
+    success: true;
+    generated: number;
+    records: Array<{ lot_id: number; billing_id: number; amount: number; period_start: string; period_end: string }>;
+    overdue_updated: number;
+  }>(`${API}/billing/generate`, { method: "POST" });
+  return data;
 }
 
 export async function getBillingSummary(): Promise<StorageBillingSummary> {

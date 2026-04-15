@@ -6,28 +6,28 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  Alert,
-  FlatList,
-  Modal,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    FlatList,
+    Modal,
+    Pressable,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import MascotLoading from "../../components/ui/MascotLoading";
 import { useTheme } from "../../context/ThemeProvider";
 import { useTranslation } from "../../localization/useLocalization";
 import * as StorageService from "../../services/storageService";
 import type {
-  BillingType,
-  StorageLot,
-  StorageStats,
-  StorageUnit,
-  UnitType,
+    BillingType,
+    StorageLot,
+    StorageStats,
+    StorageUnit,
+    UnitType,
 } from "../../types/storage";
 
 // ── Sub-tabs ──
@@ -53,9 +53,10 @@ const UNIT_TYPE_ICONS: Record<UnitType, string> = {
 
 interface StorageScreenProps {
   onOpenLot?: (lotId: number) => void;
+  onOpenUnit?: (unitId: number) => void;
 }
 
-export default function StorageScreen({ onOpenLot }: StorageScreenProps) {
+export default function StorageScreen({ onOpenLot, onOpenUnit }: StorageScreenProps) {
   const { colors, isDark } = useTheme();
   const { t } = useTranslation();
 
@@ -180,7 +181,10 @@ export default function StorageScreen({ onOpenLot }: StorageScreenProps) {
     const statusColor = STATUS_COLORS[unit.status] || "#6B7280";
     const icon = UNIT_TYPE_ICONS[unit.unit_type] || "cube-outline";
     return (
-      <View style={[styles.card, { backgroundColor: isDark ? colors.backgroundSecondary : "#FFFFFF", borderColor: colors.border }]}>
+      <Pressable
+        style={[styles.card, { backgroundColor: isDark ? colors.backgroundSecondary : "#FFFFFF", borderColor: colors.border }]}
+        onPress={() => onOpenUnit?.(unit.id)}
+      >
         <View style={styles.cardHeader}>
           <View style={[styles.unitIcon, { backgroundColor: statusColor + "15" }]}>
             <Ionicons name={icon as any} size={22} color={statusColor} />
@@ -208,7 +212,7 @@ export default function StorageScreen({ onOpenLot }: StorageScreenProps) {
             {unit.active_lots} {t("storage.activeLots")}
           </Text>
         )}
-      </View>
+      </Pressable>
     );
   };
 

@@ -67,6 +67,36 @@ const ProfileHeaderComplete: React.FC<ProfileHeaderProps> = ({
     experienceToNextLevel: Math.max(user.experienceToNextLevel || 1000, 1),
   };
 
+  // Calcul du progrès XP avec protection contre les erreurs
+  const getProgressData = () => {
+    try {
+      const currentXP = safeUser.experience;
+      const targetXP = safeUser.experienceToNextLevel;
+      const percentage = Math.min(currentXP / targetXP, 1); // Max 100%
+      return {
+        progressPercentage: percentage,
+        xpRemaining: Math.max(targetXP - currentXP, 0),
+      };
+    } catch (error) {
+      return {
+        progressPercentage: 0,
+        xpRemaining: 1000,
+      };
+    }
+  };
+
+  const { progressPercentage, xpRemaining } = getProgressData();
+
+  // Animation de la barre de progression
+  React.useEffect(() => {
+    if (isLoading) return;
+    Animated.timing(progressAnimation, {
+      toValue: progressPercentage,
+      duration: 2000,
+      useNativeDriver: false,
+    }).start();
+  }, [safeUser.experience, progressPercentage, isLoading]);
+
   // Si en cours de chargement, afficher un placeholder
   if (isLoading) {
     return (
@@ -95,35 +125,6 @@ const ProfileHeaderComplete: React.FC<ProfileHeaderProps> = ({
       </View>
     );
   }
-
-  // Calcul du progrès XP avec protection contre les erreurs
-  const getProgressData = () => {
-    try {
-      const currentXP = safeUser.experience;
-      const targetXP = safeUser.experienceToNextLevel;
-      const percentage = Math.min(currentXP / targetXP, 1); // Max 100%
-      return {
-        progressPercentage: percentage,
-        xpRemaining: Math.max(targetXP - currentXP, 0),
-      };
-    } catch (error) {
-      return {
-        progressPercentage: 0,
-        xpRemaining: 1000,
-      };
-    }
-  };
-
-  const { progressPercentage, xpRemaining } = getProgressData();
-
-  // Animation de la barre de progression
-  React.useEffect(() => {
-    Animated.timing(progressAnimation, {
-      toValue: progressPercentage,
-      duration: 2000,
-      useNativeDriver: false,
-    }).start();
-  }, [safeUser.experience, progressPercentage]);
 
   // Fonction pour obtenir le rang basé sur le niveau
   const getRankInfo = (level: number = 1) => {

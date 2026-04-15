@@ -123,6 +123,10 @@ export interface TranslationKeys {
     later?: string;
     today?: string;
     yesterday?: string;
+    change?: string;
+    accept?: string;
+    decline?: string;
+    goBack?: string;
   };
 
   // Home Screen
@@ -211,6 +215,16 @@ export interface TranslationKeys {
       title: string;
       description: string;
       cta?: string;
+    };
+    pendingJobs?: {
+      button: string;
+      loading: string;
+      title: string;
+      message: string;
+      accepted: string;
+      declined: string;
+      declineReason: string;
+      viewJob: string;
     };
   };
 
@@ -325,6 +339,20 @@ export interface TranslationKeys {
     roundingSummary?: string;
     paid?: string;
     pendingDeposit?: string;
+    organization?: {
+      title: string;
+      subtitle: string;
+      chooseTemplate: string;
+      steps: string;
+      segmentsTitle: string;
+      addLocation: string;
+      addTravel: string;
+      addStorage: string;
+      addLoading: string;
+    };
+    awaitingContractorResponse?: string;
+    awaitingContractorMessage?: string;
+    minimumHours?: string;
     status: {
       pending: string;
       inProgress: string;
@@ -346,6 +374,13 @@ export interface TranslationKeys {
       previousStep: string;
       completeStep: string;
       finish: string;
+      pauseDuration?: string;
+      noDuration?: string;
+      minutes?: string;
+      custom?: string;
+      customMinutes?: string;
+      confirm?: string;
+      resumesIn?: string;
     };
     details: {
       information: string;
@@ -420,6 +455,22 @@ export interface TranslationKeys {
       pending: string;
       active: string;
       done: string;
+      allVehicles?: string;
+      allStaff?: string;
+      reset?: string;
+    };
+    colorBy?: {
+      label: string;
+      status: string;
+      priority: string;
+      vehicle: string;
+      team: string;
+    };
+    dragDrop?: {
+      confirmTitle: string;
+      confirmMessage: string;
+      errorTitle: string;
+      errorMessage: string;
     };
     sorting: {
       time: string;
@@ -443,9 +494,13 @@ export interface TranslationKeys {
     // Job status and priority
     jobStatus: {
       pending: string;
+      assigned?: string;
+      accepted?: string;
+      declined?: string;
       inProgress: string;
       completed: string;
       cancelled: string;
+      overdue?: string;
       unknown: string;
     };
     priority: {
@@ -460,6 +515,7 @@ export interface TranslationKeys {
     // Navigation
     navigation: {
       monthlyView: string;
+      weeklyView?: string;
       yearlyView: string;
       multiYearView: string;
       dailyView: string;
@@ -470,6 +526,7 @@ export interface TranslationKeys {
     };
     // Day Screen specific
     dayScreen: {
+      today?: string;
       stats: {
         total: string;
         pending: string;
@@ -3478,6 +3535,68 @@ export interface TranslationKeys {
       needsLowercase?: string;
       needsNumber?: string;
       needsSpecial?: string;
+    };
+  };
+
+  storage?: {
+    tabs?: { lots?: string; units?: string };
+    stats?: { units?: string; activeLots?: string; itemsStored?: string; overdue?: string };
+    status?: { active?: string; completed?: string; overdue?: string };
+    unitType?: { container?: string; box?: string; room?: string; shelf?: string };
+    unitStatus?: { available?: string; in_use?: string; full?: string; maintenance?: string };
+    billing?: { fixed?: string; weekly?: string; monthly?: string };
+    billingStatus?: { pending?: string; paid?: string; overdue?: string; waived?: string };
+    condition?: { excellent?: string; good?: string; fair?: string; damaged?: string };
+    detailTabs?: { items?: string; units?: string; photos?: string; billing?: string; info?: string };
+    fields?: {
+      clientName?: string; clientNamePlaceholder?: string; clientEmail?: string;
+      clientPhone?: string; billingType?: string; billingAmount?: string;
+      notes?: string; notesPlaceholder?: string; unitName?: string;
+      unitNamePlaceholder?: string; unitType?: string; capacity?: string;
+      location?: string; locationPlaceholder?: string; itemName?: string;
+      itemNamePlaceholder?: string; description?: string; quantity?: string;
+      condition?: string;
+    };
+    addLot?: string; createLot?: string; addUnit?: string; createUnit?: string;
+    addItem?: string; assignUnit?: string;
+    removeUnit?: { title?: string; confirm?: string };
+    checkout?: { title?: string; confirm?: string; action?: string };
+    deleteItem?: { confirm?: string };
+    photos?: { add?: string; chooseSource?: string; camera?: string; gallery?: string; deleteConfirm?: string };
+    loading?: string; nextDue?: string; units?: string; items?: string;
+    activeLots?: string; checkedOut?: string; noAvailableUnits?: string;
+    emptyLots?: string; emptyLotsHint?: string; emptyUnits?: string;
+    emptyUnitsHint?: string; emptyItems?: string; emptyUnitsInLot?: string;
+    emptyPhotos?: string; emptyBilling?: string;
+    billingActions?: {
+      markPaid?: string; markPaidConfirm?: string; waive?: string;
+      waiveConfirm?: string; generate?: string; generated?: string;
+      generatedCount?: string; nothingToGenerate?: string; paidOn?: string;
+    };
+    completeLot?: {
+      title?: string; confirm?: string; confirmWithItems?: string; action?: string;
+    };
+    info?: {
+      client?: string; email?: string; phone?: string; linkedJob?: string;
+      status?: string; created?: string; billingStart?: string;
+      nextDue?: string; notes?: string;
+    };
+    create?: {
+      title?: string; clientInfo?: string; billingSetup?: string;
+      linkedJob?: string; linkedJobPlaceholder?: string; startDate?: string;
+      next?: string; assignUnits?: string; assignUnitsHint?: string;
+      unitsSelected?: string; skipUnits?: string; createLot?: string;
+      clientNameRequired?: string;
+    };
+    clientSearch?: {
+      placeholder?: string; searching?: string; noResults?: string;
+      createNew?: string; selected?: string;
+    };
+    editLot?: { title?: string; status?: string };
+    layout?: { title?: string; hint?: string; addHint?: string };
+    unitDetail?: {
+      editTitle?: string; changeStatus?: string; deleteTitle?: string;
+      deleteConfirm?: string; delete?: string; created?: string; updated?: string;
     };
   };
 

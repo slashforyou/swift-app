@@ -22,7 +22,7 @@ export type PayoutStatus =
   | 'failed';
 
 // Connect account status
-export type StripeConnectStatus = 'not_connected' | 'incomplete' | 'active';
+export type StripeConnectStatus = 'not_connected' | 'incomplete' | 'pending' | 'pending_verification' | 'active';
 
 // Requirement status
 export type RequirementStatus = 'currently_due' | 'past_due' | 'eventually_due';

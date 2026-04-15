@@ -91,7 +91,7 @@ interface DetailCardProps {
   isSubmitting: boolean;
 }
 
-const DetailCard: React.FC<DetailCardProps> = React.memo(({
+const DetailCard: React.FC<DetailCardProps> = React.memo(function DetailCard({
   assignment,
   colors,
   t,
@@ -99,7 +99,7 @@ const DetailCard: React.FC<DetailCardProps> = React.memo(({
   onDecline,
   onView,
   isSubmitting,
-}) => (
+}) { return (
   <View
     style={{
       width: SCREEN_WIDTH,
@@ -271,7 +271,7 @@ const DetailCard: React.FC<DetailCardProps> = React.memo(({
       </View>
     </View>
   </View>
-));
+); });
 
 // ─────────────────────────────────────────────
 // Info row helper

@@ -34,6 +34,8 @@
  * Billing:
  *   GET    /v1/storage/lots/:id/billing         — billing history for lot
  *   POST   /v1/storage/lots/:id/billing         — record payment
+ *   PATCH  /v1/storage/billing/:id              — update billing record status
+ *   POST   /v1/storage/billing/generate         — generate due billing records (cron)
  *   GET    /v1/storage/billing/summary          — company billing summary
  *
  * Stats:
@@ -298,6 +300,85 @@ const getLot = async (req, res) => {
     });
   } catch (err) {
     console.error("[Storage] getLot error:", err);
+    return res.status(500).json({ success: false, error: "Internal server error" });
+  } finally {
+    if (conn) conn.release();
+  }
+};
+
+// ════════════════════════════════════════════════════════════
+// CLIENT SEARCH (across storage lots + jobs.clients)
+// ════════════════════════════════════════════════════════════
+const searchClients = async (req, res) => {
+  let conn;
+  try {
+    const companyId = getCompanyId(req);
+    if (!companyId) return res.status(403).json({ success: false, error: "Unauthorized" });
+
+    const q = (req.query.q || "").trim();
+    if (q.length < 2) return res.json({ success: true, clients: [] });
+
+    const like = `%${q}%`;
+    conn = await connect();
+
+    // 1) From storage_lots (unique client names for this company)
+    const [lotClients] = await conn.execute(
+      `SELECT DISTINCT client_name, client_email, client_phone
+       FROM storage_lots
+       WHERE company_id = ? AND deleted_at IS NULL
+         AND (client_name LIKE ? OR client_email LIKE ? OR client_phone LIKE ?)
+       ORDER BY client_name
+       LIMIT 10`,
+      [companyId, like, like, like]
+    );
+
+    // 2) From clients table (linked to company jobs)
+    const [jobClients] = await conn.execute(
+      `SELECT DISTINCT cl.id as client_id, cl.first_name, cl.last_name, cl.email, cl.phone
+       FROM clients cl
+       JOIN jobs j ON j.client_id = cl.id
+       WHERE j.contractor_company_id = ?
+         AND (cl.first_name LIKE ? OR cl.last_name LIKE ? OR cl.email LIKE ? OR cl.phone LIKE ?
+              OR CONCAT(cl.first_name, ' ', cl.last_name) LIKE ?)
+       ORDER BY cl.first_name, cl.last_name
+       LIMIT 10`,
+      [companyId, like, like, like, like, like]
+    );
+
+    // Merge and deduplicate by name
+    const seen = new Set();
+    const clients = [];
+
+    for (const c of lotClients) {
+      const key = c.client_name.toLowerCase();
+      if (!seen.has(key)) {
+        seen.add(key);
+        clients.push({
+          name: c.client_name,
+          email: c.client_email || null,
+          phone: c.client_phone || null,
+          source: "storage",
+        });
+      }
+    }
+
+    for (const c of jobClients) {
+      const name = `${c.first_name || ""} ${c.last_name || ""}`.trim();
+      const key = name.toLowerCase();
+      if (!seen.has(key) && name) {
+        seen.add(key);
+        clients.push({
+          name,
+          email: c.email || null,
+          phone: c.phone || null,
+          source: "job",
+        });
+      }
+    }
+
+    return res.json({ success: true, clients: clients.slice(0, 15) });
+  } catch (err) {
+    console.error("[Storage] searchClients error:", err);
     return res.status(500).json({ success: false, error: "Internal server error" });
   } finally {
     if (conn) conn.release();
@@ -900,6 +981,154 @@ const recordPayment = async (req, res) => {
   }
 };
 
+const updateBillingRecord = async (req, res) => {
+  let conn;
+  try {
+    const companyId = getCompanyId(req);
+    if (!companyId) return res.status(403).json({ success: false, error: "Unauthorized" });
+
+    const { id } = req.params;
+    const { status, notes } = req.body || {};
+
+    conn = await connect();
+
+    const [existing] = await conn.execute(
+      "SELECT * FROM storage_billing_history WHERE id = ? AND company_id = ?",
+      [id, companyId]
+    );
+    if (!existing.length) return res.status(404).json({ success: false, error: "Billing record not found" });
+
+    const validStatuses = ["pending", "paid", "overdue", "waived"];
+    const sets = [];
+    const params = [];
+
+    if (status !== undefined && validStatuses.includes(status)) {
+      sets.push("status = ?");
+      params.push(status);
+      if (status === "paid") {
+        sets.push("paid_at = NOW()");
+      }
+    }
+    if (notes !== undefined) {
+      sets.push("notes = ?");
+      params.push(notes);
+    }
+
+    if (sets.length === 0) return res.status(400).json({ success: false, error: "Nothing to update" });
+    params.push(id, companyId);
+
+    await conn.execute(
+      `UPDATE storage_billing_history SET ${sets.join(", ")} WHERE id = ? AND company_id = ?`,
+      params
+    );
+
+    const [updated] = await conn.execute("SELECT * FROM storage_billing_history WHERE id = ?", [id]);
+    return res.json({ success: true, record: updated[0] });
+  } catch (err) {
+    console.error("[Storage] updateBillingRecord error:", err);
+    return res.status(500).json({ success: false, error: "Internal server error" });
+  } finally {
+    if (conn) conn.release();
+  }
+};
+
+const generateBilling = async (req, res) => {
+  let conn;
+  try {
+    const companyId = getCompanyId(req);
+    if (!companyId) return res.status(403).json({ success: false, error: "Unauthorized" });
+
+    conn = await connect();
+    const today = new Date().toISOString().split("T")[0];
+
+    // Find active lots where billing_next_due <= today
+    const [dueLots] = await conn.execute(
+      `SELECT * FROM storage_lots
+       WHERE company_id = ? AND status = 'active' AND deleted_at IS NULL
+         AND billing_next_due IS NOT NULL AND billing_next_due <= ?
+         AND billing_amount > 0`,
+      [companyId, today]
+    );
+
+    const generated = [];
+    for (const lot of dueLots) {
+      const periodStart = lot.billing_next_due;
+      let periodEnd;
+      let nextDue;
+
+      if (lot.billing_type === "weekly") {
+        const d = new Date(periodStart);
+        d.setDate(d.getDate() + 7);
+        periodEnd = d.toISOString().split("T")[0];
+        nextDue = periodEnd;
+      } else if (lot.billing_type === "monthly") {
+        const d = new Date(periodStart);
+        d.setMonth(d.getMonth() + 1);
+        periodEnd = d.toISOString().split("T")[0];
+        nextDue = periodEnd;
+      } else {
+        // fixed — one-time, don't recur
+        periodEnd = periodStart;
+        nextDue = null;
+      }
+
+      // Create billing record
+      const [result] = await conn.execute(
+        `INSERT INTO storage_billing_history (lot_id, company_id, amount, period_start, period_end, status)
+         VALUES (?, ?, ?, ?, ?, 'pending')`,
+        [lot.id, companyId, lot.billing_amount, periodStart, periodEnd]
+      );
+
+      // Advance next_due
+      if (nextDue) {
+        await conn.execute(
+          "UPDATE storage_lots SET billing_next_due = ? WHERE id = ?",
+          [nextDue, lot.id]
+        );
+      } else {
+        await conn.execute(
+          "UPDATE storage_lots SET billing_next_due = NULL WHERE id = ?",
+          [lot.id]
+        );
+      }
+
+      generated.push({ lot_id: lot.id, billing_id: result.insertId, amount: lot.billing_amount, period_start: periodStart, period_end: periodEnd });
+    }
+
+    // Mark overdue: billing records that are pending and period_end < today
+    const [overdueResult] = await conn.execute(
+      `UPDATE storage_billing_history
+       SET status = 'overdue'
+       WHERE company_id = ? AND status = 'pending' AND period_end < ?`,
+      [companyId, today]
+    );
+
+    // Mark lots with overdue billing as overdue
+    await conn.execute(
+      `UPDATE storage_lots sl
+       SET sl.status = 'overdue'
+       WHERE sl.company_id = ? AND sl.status = 'active' AND sl.deleted_at IS NULL
+         AND EXISTS (
+           SELECT 1 FROM storage_billing_history sbh
+           WHERE sbh.lot_id = sl.id AND sbh.status = 'overdue'
+         )`,
+      [companyId]
+    );
+
+    return res.json({
+      success: true,
+      generated: generated.length,
+      records: generated,
+      overdue_updated: overdueResult.affectedRows || 0,
+    });
+  } catch (err) {
+    console.error("[Storage] generateBilling error:", err);
+    return res.status(500).json({ success: false, error: "Internal server error" });
+  } finally {
+    if (conn) conn.release();
+  }
+};
+
 const getBillingSummary = async (req, res) => {
   let conn;
   try {
@@ -1008,6 +1237,7 @@ module.exports = {
   createUnit,
   updateUnit,
   deleteUnit,
+  searchClients,
   listLots,
   getLot,
   createLot,
@@ -1025,6 +1255,8 @@ module.exports = {
   deletePhoto,
   getBillingHistory,
   recordPayment,
+  updateBillingRecord,
+  generateBilling,
   getBillingSummary,
   getStorageStats,
   upload, // multer middleware

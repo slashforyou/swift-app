@@ -438,7 +438,7 @@ const JobTimeSection: React.FC<JobTimeSectionProps> = ({ job }) => {
                   letterSpacing: 0.5,
                 }}
               >
-                {t("segments", "Segments")}
+                {t("segments")}
               </Text>
               {completedSegments.map((seg) => {
                 const elapsed = segmentTimes[seg.id] ?? seg.durationMs ?? 0;

@@ -1,61 +1,61 @@
 /**
- * JobSteps - Configuration centralisée des étapes de job
- * Système flexible pour gérer différents types de jobs avec steps dynamiques
+ * JobSteps - Centralised configuration for job steps
+ * Flexible system to manage different job types with dynamic steps
  */
 
 import { SegmentType } from '../types/jobSegment';
 
 // ============================================================================
-// TYPES D'ÉTAPES
+// STEP TYPES
 // ============================================================================
 
 export enum StepType {
-    // Étapes obligatoires (tous les jobs)
-    DEPARTURE = 'DEPARTURE',              // Départ du dépôt
-    FIRST_ADDRESS = 'FIRST_ADDRESS',      // Première adresse
-    LAST_ADDRESS = 'LAST_ADDRESS',        // Dernière adresse
-    COMPLETION = 'COMPLETION',            // Fin du job
+    // Mandatory steps (all jobs)
+    DEPARTURE = 'DEPARTURE',              // Depart from depot
+    FIRST_ADDRESS = 'FIRST_ADDRESS',      // First address
+    LAST_ADDRESS = 'LAST_ADDRESS',        // Last address
+    COMPLETION = 'COMPLETION',            // Job completion
     
-    // Étapes optionnelles (selon type de job)
-    LOADING = 'LOADING',                  // Chargement initial (container, boxes...)
-    TRANSIT = 'TRANSIT',                  // Trajet entre deux adresses
-    INTERMEDIATE_ADDRESS = 'INTERMEDIATE_ADDRESS', // Adresse intermédiaire
-    RETURN_TO_DEPOT = 'RETURN_TO_DEPOT',  // Retour au dépôt
-    STORAGE = 'STORAGE',                  // Mise en storage au dépôt
-    UNLOADING = 'UNLOADING',              // Déchargement
+    // Optional steps (depending on job type)
+    LOADING = 'LOADING',                  // Initial loading (container, boxes...)
+    TRANSIT = 'TRANSIT',                  // Transit between two addresses
+    INTERMEDIATE_ADDRESS = 'INTERMEDIATE_ADDRESS', // Intermediate address
+    RETURN_TO_DEPOT = 'RETURN_TO_DEPOT',  // Return to depot
+    STORAGE = 'STORAGE',                  // Storage at depot
+    UNLOADING = 'UNLOADING',              // Unloading
 }
 
 // ============================================================================
-// CONFIGURATION DES ÉTAPES
+// STEP CONFIGURATION
 // ============================================================================
 
 export interface JobStepConfig {
     id: string;
     type: StepType;
-    name: string;                         // Nom affiché
-    shortName?: string;                   // Nom court pour UI compacte
-    description: string;                  // Description détaillée
-    icon: string;                         // Icône Ionicons
-    color: string;                        // Couleur de l'étape
-    isOptional: boolean;                  // Peut être ignorée
-    allowMultiple: boolean;               // Peut avoir plusieurs instances (ex: transit)
-    requiresSignature: boolean;           // Nécessite signature pour passer à la suivante
-    estimatedDuration?: number;           // Durée estimée en minutes
+    name: string;                         // Display name
+    shortName?: string;                   // Short name for compact UI
+    description: string;                  // Detailed description
+    icon: string;                         // Ionicons icon
+    color: string;                        // Step color
+    isOptional: boolean;                  // Can be skipped
+    allowMultiple: boolean;               // Can have multiple instances (e.g. transit)
+    requiresSignature: boolean;           // Requires signature to proceed to next
+    estimatedDuration?: number;           // Estimated duration in minutes
 }
 
 // ============================================================================
-// DÉFINITIONS DES ÉTAPES
+// STEP DEFINITIONS
 // ============================================================================
 
 export const STEP_DEFINITIONS: Record<StepType, JobStepConfig> = {
     [StepType.DEPARTURE]: {
         id: 'departure',
         type: StepType.DEPARTURE,
-        name: 'Départ',
-        shortName: 'Départ',
-        description: 'Départ du dépôt ou point de départ',
+        name: 'Departure',
+        shortName: 'Departure',
+        description: 'Departure from depot or starting point',
         icon: 'rocket-outline',
-        color: '#10B981', // Vert
+        color: '#10B981', // Green
         isOptional: false,
         allowMultiple: false,
         requiresSignature: false,
@@ -65,9 +65,9 @@ export const STEP_DEFINITIONS: Record<StepType, JobStepConfig> = {
     [StepType.LOADING]: {
         id: 'loading',
         type: StepType.LOADING,
-        name: 'Chargement',
-        shortName: 'Chargement',
-        description: 'Chargement des meubles, boxes ou container au dépôt',
+        name: 'Loading',
+        shortName: 'Loading',
+        description: 'Loading furniture, boxes or container at depot',
         icon: 'cube-outline',
         color: '#F59E0B', // Orange
         isOptional: true,
@@ -79,11 +79,11 @@ export const STEP_DEFINITIONS: Record<StepType, JobStepConfig> = {
     [StepType.FIRST_ADDRESS]: {
         id: 'first_address',
         type: StepType.FIRST_ADDRESS,
-        name: 'Première adresse',
-        shortName: '1ère adresse',
-        description: 'Arrivée à la première adresse - chargement ou déchargement selon le job',
+        name: 'First address',
+        shortName: '1st address',
+        description: 'Arrival at first address - loading or unloading depending on job',
         icon: 'location-outline',
-        color: '#3B82F6', // Bleu
+        color: '#3B82F6', // Blue
         isOptional: false,
         allowMultiple: false,
         requiresSignature: false,
@@ -93,13 +93,13 @@ export const STEP_DEFINITIONS: Record<StepType, JobStepConfig> = {
     [StepType.TRANSIT]: {
         id: 'transit',
         type: StepType.TRANSIT,
-        name: 'Trajet',
-        shortName: 'Trajet',
-        description: 'Trajet entre deux adresses (peut être ajouté plusieurs fois)',
+        name: 'Transit',
+        shortName: 'Transit',
+        description: 'Transit between two addresses (can be added multiple times)',
         icon: 'car-outline',
         color: '#8B5CF6', // Violet
         isOptional: true,
-        allowMultiple: true, // ✅ Peut avoir plusieurs trajets
+        allowMultiple: true,
         requiresSignature: false,
         estimatedDuration: 20,
     },
@@ -107,13 +107,13 @@ export const STEP_DEFINITIONS: Record<StepType, JobStepConfig> = {
     [StepType.INTERMEDIATE_ADDRESS]: {
         id: 'intermediate_address',
         type: StepType.INTERMEDIATE_ADDRESS,
-        name: 'Adresse intermédiaire',
-        shortName: 'Adresse',
-        description: 'Adresse supplémentaire entre la première et la dernière',
+        name: 'Intermediate address',
+        shortName: 'Address',
+        description: 'Additional address between first and last',
         icon: 'location-outline',
         color: '#06B6D4', // Cyan
         isOptional: true,
-        allowMultiple: true, // ✅ Peut avoir plusieurs adresses intermédiaires
+        allowMultiple: true,
         requiresSignature: false,
         estimatedDuration: 60,
     },
@@ -121,11 +121,11 @@ export const STEP_DEFINITIONS: Record<StepType, JobStepConfig> = {
     [StepType.LAST_ADDRESS]: {
         id: 'last_address',
         type: StepType.LAST_ADDRESS,
-        name: 'Dernière adresse',
-        shortName: 'Dernière',
-        description: 'Arrivée à la dernière adresse - finalisation du déménagement',
+        name: 'Last address',
+        shortName: 'Last',
+        description: 'Arrival at last address - finalising the move',
         icon: 'checkmark-circle-outline',
-        color: '#EC4899', // Rose
+        color: '#EC4899', // Pink
         isOptional: false,
         allowMultiple: false,
         requiresSignature: false,
@@ -135,9 +135,9 @@ export const STEP_DEFINITIONS: Record<StepType, JobStepConfig> = {
     [StepType.RETURN_TO_DEPOT]: {
         id: 'return_to_depot',
         type: StepType.RETURN_TO_DEPOT,
-        name: 'Retour au dépôt',
-        shortName: 'Retour',
-        description: 'Trajet de retour entre la dernière adresse et le dépôt',
+        name: 'Return to depot',
+        shortName: 'Return',
+        description: 'Return trip from last address to depot',
         icon: 'arrow-undo-outline',
         color: '#6366F1', // Indigo
         isOptional: true,
@@ -149,11 +149,11 @@ export const STEP_DEFINITIONS: Record<StepType, JobStepConfig> = {
     [StepType.STORAGE]: {
         id: 'storage',
         type: StepType.STORAGE,
-        name: 'Mise en storage',
+        name: 'Storage',
         shortName: 'Storage',
-        description: 'Mise en box/storage des meubles au dépôt',
+        description: 'Storing furniture in boxes/storage at depot',
         icon: 'filing-outline',
-        color: '#EF4444', // Rouge
+        color: '#EF4444', // Red
         isOptional: true,
         allowMultiple: false,
         requiresSignature: false,
@@ -163,9 +163,9 @@ export const STEP_DEFINITIONS: Record<StepType, JobStepConfig> = {
     [StepType.UNLOADING]: {
         id: 'unloading',
         type: StepType.UNLOADING,
-        name: 'Déchargement',
-        shortName: 'Déchargement',
-        description: 'Déchargement des meubles à une adresse',
+        name: 'Unloading',
+        shortName: 'Unloading',
+        description: 'Unloading furniture at an address',
         icon: 'download-outline',
         color: '#14B8A6', // Teal
         isOptional: true,
@@ -177,28 +177,28 @@ export const STEP_DEFINITIONS: Record<StepType, JobStepConfig> = {
     [StepType.COMPLETION]: {
         id: 'completion',
         type: StepType.COMPLETION,
-        name: 'Fin du job',
-        shortName: 'Fin',
-        description: 'Job terminé - déclenchement de la facturation',
+        name: 'Job complete',
+        shortName: 'Done',
+        description: 'Job completed - billing triggered',
         icon: 'flag-outline',
-        color: '#10B981', // Vert
+        color: '#10B981', // Green
         isOptional: false,
         allowMultiple: false,
-        requiresSignature: true, // ✅ Nécessite signature avant paiement
+        requiresSignature: true,
         estimatedDuration: 0,
     },
 };
 
 // ============================================================================
-// TEMPLATES DE JOBS
+// JOB TEMPLATES
 // ============================================================================
 
 export enum JobTemplate {
-    SIMPLE_MOVE = 'SIMPLE_MOVE',           // Déménagement simple A → B
-    MULTI_STOP = 'MULTI_STOP',             // Plusieurs adresses
-    WITH_STORAGE = 'WITH_STORAGE',         // Avec mise en storage
-    CONTAINER_MOVE = 'CONTAINER_MOVE',     // Déménagement container
-    DELIVERY_ONLY = 'DELIVERY_ONLY',       // Livraison simple
+    SIMPLE_MOVE = 'SIMPLE_MOVE',           // Simple move A → B
+    MULTI_STOP = 'MULTI_STOP',             // Multiple addresses
+    WITH_STORAGE = 'WITH_STORAGE',         // With storage
+    CONTAINER_MOVE = 'CONTAINER_MOVE',     // Container move
+    DELIVERY_ONLY = 'DELIVERY_ONLY',       // Simple delivery
 }
 
 export interface JobStepTemplate {
@@ -209,8 +209,8 @@ export interface JobStepTemplate {
 
 export const JOB_TEMPLATES: Record<JobTemplate, JobStepTemplate> = {
     [JobTemplate.SIMPLE_MOVE]: {
-        name: 'Déménagement simple',
-        description: 'Déménagement direct d\'une adresse à une autre',
+        name: 'Simple move',
+        description: 'Direct move from one address to another',
         steps: [
             StepType.DEPARTURE,
             StepType.FIRST_ADDRESS,
@@ -221,8 +221,8 @@ export const JOB_TEMPLATES: Record<JobTemplate, JobStepTemplate> = {
     },
     
     [JobTemplate.MULTI_STOP]: {
-        name: 'Plusieurs adresses',
-        description: 'Déménagement avec plusieurs points de chargement/déchargement',
+        name: 'Multiple addresses',
+        description: 'Move with multiple loading/unloading points',
         steps: [
             StepType.DEPARTURE,
             StepType.FIRST_ADDRESS,
@@ -235,8 +235,8 @@ export const JOB_TEMPLATES: Record<JobTemplate, JobStepTemplate> = {
     },
     
     [JobTemplate.WITH_STORAGE]: {
-        name: 'Avec storage',
-        description: 'Déménagement avec mise en box au dépôt',
+        name: 'With storage',
+        description: 'Move with storage at depot',
         steps: [
             StepType.DEPARTURE,
             StepType.FIRST_ADDRESS,
@@ -249,8 +249,8 @@ export const JOB_TEMPLATES: Record<JobTemplate, JobStepTemplate> = {
     },
     
     [JobTemplate.CONTAINER_MOVE]: {
-        name: 'Déménagement container',
-        description: 'Chargement container au dépôt puis livraison',
+        name: 'Container move',
+        description: 'Container loading at depot then delivery',
         steps: [
             StepType.DEPARTURE,
             StepType.LOADING,
@@ -263,8 +263,8 @@ export const JOB_TEMPLATES: Record<JobTemplate, JobStepTemplate> = {
     },
     
     [JobTemplate.DELIVERY_ONLY]: {
-        name: 'Livraison simple',
-        description: 'Livraison depuis le dépôt',
+        name: 'Simple delivery',
+        description: 'Delivery from depot',
         steps: [
             StepType.DEPARTURE,
             StepType.LOADING,
@@ -276,7 +276,7 @@ export const JOB_TEMPLATES: Record<JobTemplate, JobStepTemplate> = {
 };
 
 // ============================================================================
-// MAPPING STEPTYPE → SEGMENTTYPE
+// STEPTYPE → SEGMENTTYPE MAPPING
 // ============================================================================
 
 export const STEP_TO_SEGMENT_MAP: Record<StepType, SegmentType> = {
@@ -293,77 +293,50 @@ export const STEP_TO_SEGMENT_MAP: Record<StepType, SegmentType> = {
 };
 
 // ============================================================================
-// UTILITAIRES
+// UTILITIES
 // ============================================================================
 
-/**
- * Obtenir la configuration complète d'une étape
- */
 export const getStepConfig = (type: StepType): JobStepConfig => {
     return STEP_DEFINITIONS[type];
 };
 
-/**
- * Obtenir toutes les étapes d'un template
- */
 export const getTemplateSteps = (template: JobTemplate): JobStepConfig[] => {
     const templateConfig = JOB_TEMPLATES[template];
     return templateConfig.steps.map(stepType => STEP_DEFINITIONS[stepType]);
 };
 
-/**
- * Créer des steps depuis un tableau de types
- */
 export const createStepsFromTypes = (stepTypes: StepType[]): JobStepConfig[] => {
     return stepTypes.map(type => STEP_DEFINITIONS[type]);
 };
 
-/**
- * Vérifier si un job a une étape spécifique
- */
 export const hasStepType = (steps: JobStepConfig[], type: StepType): boolean => {
     return steps.some(step => step.type === type);
 };
 
 /**
- * Obtenir l'index d'une étape par son type
+ * Get the index of a step by its type
  */
 export const getStepIndexByType = (steps: JobStepConfig[], type: StepType): number => {
     return steps.findIndex(step => step.type === type);
 };
 
-/**
- * Vérifier si une signature est requise pour l'étape actuelle
- */
 export const isSignatureRequired = (steps: JobStepConfig[], currentStepIndex: number): boolean => {
     if (currentStepIndex >= steps.length) return false;
     return steps[currentStepIndex].requiresSignature;
 };
 
-/**
- * Calculer la durée totale estimée d'un job
- */
 export const calculateTotalEstimatedDuration = (steps: JobStepConfig[]): number => {
     return steps.reduce((total, step) => total + (step.estimatedDuration || 0), 0);
 };
 
-/**
- * Formater le nom d'une étape avec son numéro
- */
 export const formatStepName = (step: JobStepConfig, index: number, total: number): string => {
     return `${index + 1}/${total} - ${step.shortName || step.name}`;
 };
 
-/**
- * Obtenir la couleur d'une étape
- */
 export const getStepColor = (step: JobStepConfig): string => {
     return step.color;
 };
 
-/**
- * Obtenir l'icône d'une étape
- */
 export const getStepIcon = (step: JobStepConfig): string => {
     return step.icon;
 };

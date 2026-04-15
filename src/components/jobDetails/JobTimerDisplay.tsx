@@ -585,7 +585,7 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({
               letterSpacing: 0.5,
             }}
           >
-            {t("segments", "Segments")}
+            {t("segments")}
           </Text>
           <ScrollView
             horizontal

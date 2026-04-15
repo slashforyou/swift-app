@@ -5,14 +5,14 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Modal,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
+    ActivityIndicator,
+    Alert,
+    Modal,
+    Pressable,
+    ScrollView,
+    Text,
+    TextInput,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { DESIGN_TOKENS } from "../../../constants/Styles";
@@ -389,7 +389,7 @@ export const ContractorJobWizardModal: React.FC<
                     styles.infoRow,
                     {
                       backgroundColor: colors.primaryLight || "#EEF2FF",
-                      borderRadius: DESIGN_TOKENS.borderRadius.md,
+                      borderRadius: DESIGN_TOKENS.radius.md,
                       padding: 10,
                       marginBottom: 8,
                     },

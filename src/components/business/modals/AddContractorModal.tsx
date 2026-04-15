@@ -4,14 +4,14 @@
  */
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Modal,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Modal,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { DESIGN_TOKENS } from "../../../constants/Styles";
 import { useTheme } from "../../../context/ThemeProvider";
@@ -170,9 +170,7 @@ export default function AddContractorModal({
             lineHeight: 20,
           }}
         >
-          Recherchez un prestataire par son nom complet ou son ABN. ⚠️ Les ABN
-          ne sont pas affichés, la recherche ne fonctionne qu'avec un ABN
-          complet.
+          {`Recherchez un prestataire par son nom complet ou son ABN. ⚠️ Les ABN ne sont pas affichés, la recherche ne fonctionne qu'avec un ABN complet.`}
         </Text>
 
         <VStack gap="xs">
@@ -228,8 +226,7 @@ export default function AddContractorModal({
               lineHeight: 16,
             }}
           >
-            • Pour le nom : "John Smith" ou "Smith"{"\n"}• Pour l'ABN : saisir
-            les 11 chiffres complets{"\n"}• La recherche est sensible à la casse
+            {`• Pour le nom : "John Smith" ou "Smith"\n• Pour l'ABN : saisir les 11 chiffres complets\n• La recherche est sensible à la casse`}
           </Text>
         </View>
       </VStack>
