@@ -64,6 +64,17 @@ export const itTranslations = mergeWithBaseTranslations(enTranslations, {
     goBack: "Indietro",
   },
 
+  subscription: {
+    currentBadge: "attuale",
+    quickCompareTitle: "Confronto rapido",
+    featureColumn: "Funzionalità",
+    planAccessTitle: "Accesso per piano",
+    availableFromPlan: "è disponibile dal piano {{plan}}.",
+    fromPlanShort: "Da {{plan}}",
+    unlockCta: "Sblocca questa funzione",
+    includedBadge: "Incluso",
+  },
+
   home: {
     title: "Pagina Iniziale",
     welcome: "Bentornato!",
@@ -133,6 +144,16 @@ export const itTranslations = mergeWithBaseTranslations(enTranslations, {
       thankYou: "Grazie!",
       thankYouMessage: "Il tuo messaggio è stato inviato con successo.",
       errorSending: "Impossibile inviare il messaggio. Riprova.",
+    },
+    onboarding: {
+      title: "Inizia",
+      completed: "completato",
+      doneLabel: "fatti",
+      leftLabel: "rimanenti",
+      completeProfile: "Completa il profilo aziendale",
+      createFirstJob: "Crea il tuo primo lavoro",
+      inviteTeam: "Invita il tuo team",
+      setupPayments: "Configura i pagamenti",
     },
     stripeAlert: {
       title: "Stripe non attivato",
@@ -236,6 +257,53 @@ export const itTranslations = mergeWithBaseTranslations(enTranslations, {
       addTravel: "+ Tragitto",
       addStorage: "+ Deposito",
       addLoading: "+ Carico",
+      templates: {
+        "default-simple-move": {
+          name: "Trasloco semplice",
+          description: "Trasloco diretto da un indirizzo all'altro",
+        },
+        "default-multi-stop": {
+          name: "Indirizzi multipli",
+          description: "Trasloco con più punti di ritiro/consegna",
+        },
+        "default-with-storage": {
+          name: "Con deposito",
+          description: "Trasloco con deposito al magazzino",
+        },
+        "default-delivery-only": {
+          name: "Consegna semplice",
+          description: "Consegna dal magazzino",
+        },
+        "default-packing-only": {
+          name: "Imballaggio/Disimballaggio",
+          description: "Servizio di imballaggio e disimballaggio sul posto",
+        },
+        "default-flat-rate": {
+          name: "Forfait standard",
+          description: "Trasloco completo a prezzo fisso",
+        },
+      },
+      billingModes: {
+        location_to_location: "Da luogo a luogo",
+        depot_to_depot: "Da deposito a deposito",
+        packing_only: "Solo imballaggio",
+        flat_rate: "Forfait",
+      },
+      segmentLabels: {
+        travelToLocation1: "Tragitto verso il luogo n°1",
+        travelToLocation2: "Tragitto verso il luogo n°2",
+        travelToLocation3: "Tragitto verso il luogo n°3",
+        travelToLocation: "Tragitto verso il luogo",
+        returnTrip: "Viaggio di ritorno",
+        returnToDepot: "Ritorno al magazzino",
+        location1: "Luogo n°1",
+        location2: "Luogo n°2",
+        location3: "Luogo n°3",
+        locationPacking: "Luogo (imballaggio)",
+        deliveryAddress: "Indirizzo di consegna",
+        loadingAtDepot: "Carico al magazzino",
+        storageDropoff: "Consegna al deposito",
+      },
     },
     schedule: "Programmazione",
     scheduleDescription: "Imposta la finestra oraria per questo lavoro",

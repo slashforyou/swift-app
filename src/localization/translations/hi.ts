@@ -64,6 +64,17 @@ export const hiTranslations = mergeWithBaseTranslations(enTranslations, {
     goBack: "वापस जाएं",
   },
 
+  subscription: {
+    currentBadge: "वर्तमान",
+    quickCompareTitle: "त्वरित तुलना",
+    featureColumn: "सुविधा",
+    planAccessTitle: "प्लान-आधारित एक्सेस",
+    availableFromPlan: "{{plan}} प्लान से उपलब्ध है।",
+    fromPlanShort: "{{plan}} से",
+    unlockCta: "यह सुविधा अनलॉक करें",
+    includedBadge: "शामिल",
+  },
+
   home: {
     title: "होम",
     welcome: "आपका स्वागत है!",
@@ -133,6 +144,16 @@ export const hiTranslations = mergeWithBaseTranslations(enTranslations, {
       thankYou: "धन्यवाद!",
       thankYouMessage: "आपका संदेश सफलतापूर्वक भेज दिया गया है।",
       errorSending: "संदेश भेजने में असमर्थ। कृपया पुनः प्रयास करें।",
+    },
+    onboarding: {
+      title: "शुरुआत करें",
+      completed: "पूर्ण",
+      doneLabel: "किए गए",
+      leftLabel: "शेष",
+      completeProfile: "व्यवसाय प्रोफ़ाइल पूरा करें",
+      createFirstJob: "अपना पहला कार्य बनाएं",
+      inviteTeam: "अपनी टीम को आमंत्रित करें",
+      setupPayments: "भुगतान सेट करें",
     },
     stripeAlert: {
       title: "Stripe सक्रिय नहीं",
@@ -236,6 +257,53 @@ export const hiTranslations = mergeWithBaseTranslations(enTranslations, {
       addTravel: "+ यात्रा",
       addStorage: "+ भंडारण",
       addLoading: "+ लोडिंग",
+      templates: {
+        "default-simple-move": {
+          name: "सरल स्थानांतरण",
+          description: "एक पते से दूसरे पते तक सीधा स्थानांतरण",
+        },
+        "default-multi-stop": {
+          name: "कई पते",
+          description: "कई पिकअप/ड्रॉपऑफ़ बिंदुओं के साथ स्थानांतरण",
+        },
+        "default-with-storage": {
+          name: "भंडारण के साथ",
+          description: "डिपो में भंडारण के साथ स्थानांतरण",
+        },
+        "default-delivery-only": {
+          name: "सरल वितरण",
+          description: "डिपो से वितरण",
+        },
+        "default-packing-only": {
+          name: "पैकिंग/अनपैकिंग",
+          description: "ऑन-साइट पैकिंग और अनपैकिंग सेवा",
+        },
+        "default-flat-rate": {
+          name: "मानक फिक्स्ड रेट",
+          description: "निश्चित मूल्य पर पूर्ण स्थानांतरण",
+        },
+      },
+      billingModes: {
+        location_to_location: "स्थान से स्थान",
+        depot_to_depot: "डिपो से डिपो",
+        packing_only: "केवल पैकिंग",
+        flat_rate: "फिक्स्ड रेट",
+      },
+      segmentLabels: {
+        travelToLocation1: "स्थान #1 की यात्रा",
+        travelToLocation2: "स्थान #2 की यात्रा",
+        travelToLocation3: "स्थान #3 की यात्रा",
+        travelToLocation: "स्थान की यात्रा",
+        returnTrip: "वापसी यात्रा",
+        returnToDepot: "डिपो वापसी",
+        location1: "स्थान #1",
+        location2: "स्थान #2",
+        location3: "स्थान #3",
+        locationPacking: "स्थान (पैकिंग)",
+        deliveryAddress: "वितरण पता",
+        loadingAtDepot: "डिपो पर लोडिंग",
+        storageDropoff: "भंडारण ड्रॉप-ऑफ",
+      },
     },
     schedule: "शेड्यूल",
     scheduleDescription: "इस कार्य के लिए समय विंडो सेट करें",

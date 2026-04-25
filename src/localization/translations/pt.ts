@@ -64,6 +64,17 @@ export const ptTranslations = mergeWithBaseTranslations(enTranslations, {
     goBack: "Voltar",
   },
 
+  subscription: {
+    currentBadge: "atual",
+    quickCompareTitle: "Comparativo rápido",
+    featureColumn: "Funcionalidade",
+    planAccessTitle: "Acesso por plano",
+    availableFromPlan: "está disponível a partir do plano {{plan}}.",
+    fromPlanShort: "Desde {{plan}}",
+    unlockCta: "Desbloquear este recurso",
+    includedBadge: "Incluído",
+  },
+
   home: {
     title: "Início",
     welcome: "Bem-vindo de volta!",
@@ -133,6 +144,16 @@ export const ptTranslations = mergeWithBaseTranslations(enTranslations, {
       thankYou: "Obrigado!",
       thankYouMessage: "Sua mensagem foi enviada com sucesso.",
       errorSending: "Não foi possível enviar a mensagem. Tente novamente.",
+    },
+    onboarding: {
+      title: "Começar",
+      completed: "concluído",
+      doneLabel: "feitos",
+      leftLabel: "restantes",
+      completeProfile: "Completar perfil da empresa",
+      createFirstJob: "Crie seu primeiro trabalho",
+      inviteTeam: "Convide sua equipe",
+      setupPayments: "Configurar pagamentos",
     },
     stripeAlert: {
       title: "Stripe não ativado",
@@ -236,6 +257,53 @@ export const ptTranslations = mergeWithBaseTranslations(enTranslations, {
       addTravel: "+ Percurso",
       addStorage: "+ Armazenamento",
       addLoading: "+ Carregamento",
+      templates: {
+        "default-simple-move": {
+          name: "Mudança simples",
+          description: "Mudança direta de um endereço para outro",
+        },
+        "default-multi-stop": {
+          name: "Múltiplos endereços",
+          description: "Mudança com vários pontos de coleta/entrega",
+        },
+        "default-with-storage": {
+          name: "Com armazenamento",
+          description: "Mudança com armazenamento no depósito",
+        },
+        "default-delivery-only": {
+          name: "Entrega simples",
+          description: "Entrega a partir do depósito",
+        },
+        "default-packing-only": {
+          name: "Embalagem/Desembalagem",
+          description: "Serviço de embalagem e desembalagem no local",
+        },
+        "default-flat-rate": {
+          name: "Tarifa fixa padrão",
+          description: "Mudança completa com preço fixo",
+        },
+      },
+      billingModes: {
+        location_to_location: "De local a local",
+        depot_to_depot: "De depósito a depósito",
+        packing_only: "Só embalagem",
+        flat_rate: "Tarifa fixa",
+      },
+      segmentLabels: {
+        travelToLocation1: "Percurso até o local #1",
+        travelToLocation2: "Percurso até o local #2",
+        travelToLocation3: "Percurso até o local #3",
+        travelToLocation: "Percurso até o local",
+        returnTrip: "Viagem de regresso",
+        returnToDepot: "Regresso ao depósito",
+        location1: "Local #1",
+        location2: "Local #2",
+        location3: "Local #3",
+        locationPacking: "Local (embalagem)",
+        deliveryAddress: "Endereço de entrega",
+        loadingAtDepot: "Carregamento no depósito",
+        storageDropoff: "Entrega ao armazém",
+      },
     },
     schedule: "Horário",
     scheduleDescription: "Definir janela horária para este trabalho",

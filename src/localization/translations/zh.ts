@@ -64,6 +64,17 @@ export const zhTranslations = mergeWithBaseTranslations(enTranslations, {
     goBack: "返回",
   },
 
+  subscription: {
+    currentBadge: "当前",
+    quickCompareTitle: "快速对比",
+    featureColumn: "功能",
+    planAccessTitle: "按套餐访问",
+    availableFromPlan: "从 {{plan}} 套餐开始可用。",
+    fromPlanShort: "{{plan}}起",
+    unlockCta: "解锁此功能",
+    includedBadge: "已包含",
+  },
+
   home: {
     title: "主页",
     welcome: "欢迎回来！",
@@ -133,6 +144,16 @@ export const zhTranslations = mergeWithBaseTranslations(enTranslations, {
       thankYou: "谢谢！",
       thankYouMessage: "您的消息已成功发送。",
       errorSending: "无法发送消息。请重试。",
+    },
+    onboarding: {
+      title: "开始使用",
+      completed: "已完成",
+      doneLabel: "已完成",
+      leftLabel: "剩余",
+      completeProfile: "完善企业资料",
+      createFirstJob: "创建您的第一个工作",
+      inviteTeam: "邀请您的团队",
+      setupPayments: "设置付款",
     },
     stripeAlert: {
       title: "Stripe 未激活",
@@ -235,6 +256,53 @@ export const zhTranslations = mergeWithBaseTranslations(enTranslations, {
       addTravel: "+ 行程",
       addStorage: "+ 仓储",
       addLoading: "+ 装载",
+      templates: {
+        "default-simple-move": {
+          name: "简单搬家",
+          description: "从一个地址直接搬到另一个地址",
+        },
+        "default-multi-stop": {
+          name: "多个地址",
+          description: "带多个取货/送货点的搬家",
+        },
+        "default-with-storage": {
+          name: "含仓储",
+          description: "搬家并在仓库暂存",
+        },
+        "default-delivery-only": {
+          name: "简单送货",
+          description: "从仓库送货",
+        },
+        "default-packing-only": {
+          name: "打包/拆包",
+          description: "现场打包和拆包服务",
+        },
+        "default-flat-rate": {
+          name: "标准固定价",
+          description: "固定价格的完整搬家",
+        },
+      },
+      billingModes: {
+        location_to_location: "地点到地点",
+        depot_to_depot: "仓库到仓库",
+        packing_only: "仅打包",
+        flat_rate: "固定价",
+      },
+      segmentLabels: {
+        travelToLocation1: "前往地点 #1",
+        travelToLocation2: "前往地点 #2",
+        travelToLocation3: "前往地点 #3",
+        travelToLocation: "前往地点",
+        returnTrip: "返程",
+        returnToDepot: "返回仓库",
+        location1: "地点 #1",
+        location2: "地点 #2",
+        location3: "地点 #3",
+        locationPacking: "地点（打包）",
+        deliveryAddress: "送货地址",
+        loadingAtDepot: "仓库装载",
+        storageDropoff: "仓储卸货",
+      },
     },
     schedule: "时间表",
     scheduleDescription: "设置此工作的时间窗口",
