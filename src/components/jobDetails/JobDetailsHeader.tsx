@@ -9,7 +9,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
 import HelpButton from "../ui/HelpButton";
-import RefBookMark from "../ui/refBookMark";
 
 interface JobDetailsHeaderProps {
   navigation: any;
@@ -21,6 +20,13 @@ interface JobDetailsHeaderProps {
   onDelete?: () => void;
   onAssignStaff?: () => void;
   assignedStaffName?: string;
+  /**
+   * Fallback route to navigate to when there's no entry in the navigation
+   * stack (e.g. JobDetails was opened via a deep link or push notification).
+   * If absent, falls back to "Home".
+   * Can be a string ("Calendar") or a tuple [name, params] for nested screens.
+   */
+  fromRoute?: string | [string, Record<string, any> | undefined];
 }
 
 const JobDetailsHeader: React.FC<JobDetailsHeaderProps> = ({
@@ -33,6 +39,7 @@ const JobDetailsHeader: React.FC<JobDetailsHeaderProps> = ({
   onDelete,
   onAssignStaff,
   assignedStaffName,
+  fromRoute,
 }) => {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
@@ -41,9 +48,17 @@ const JobDetailsHeader: React.FC<JobDetailsHeaderProps> = ({
   const handleBackPress = () => {
     if (navigation.canGoBack()) {
       navigation.goBack();
-    } else {
-      navigation.navigate("Home");
+      return;
     }
+    if (fromRoute) {
+      if (Array.isArray(fromRoute)) {
+        navigation.navigate(fromRoute[0], fromRoute[1]);
+      } else {
+        navigation.navigate(fromRoute);
+      }
+      return;
+    }
+    navigation.navigate("Home");
   };
 
   return (
@@ -54,13 +69,13 @@ const JobDetailsHeader: React.FC<JobDetailsHeaderProps> = ({
         style={{
           flexDirection: "row",
           alignItems: "center",
-          paddingTop: insets.top + DESIGN_TOKENS.spacing.md,
+          paddingTop: DESIGN_TOKENS.spacing.sm,
           paddingBottom: DESIGN_TOKENS.spacing.md,
           paddingHorizontal: DESIGN_TOKENS.spacing.lg,
           backgroundColor: colors.background,
           borderBottomWidth: 1,
           borderBottomColor: colors.border,
-          minHeight: 60 + insets.top,
+          minHeight: 60,
         }}
       >
         {/* Bouton retour circulaire (style Business) */}
@@ -89,18 +104,20 @@ const JobDetailsHeader: React.FC<JobDetailsHeaderProps> = ({
         </TouchableOpacity>
 
         {/* Titre centré */}
-        <Text
-          style={{
-            fontSize: DESIGN_TOKENS.typography.title.fontSize,
-            fontWeight: "600",
-            color: colors.text,
-            textAlign: "center",
-            flex: 1,
-          }}
-          numberOfLines={1}
-        >
-          Job Details
-        </Text>
+        <View style={{ flex: 1, alignItems: "center" }}>
+          <Text
+            style={{
+              fontSize: DESIGN_TOKENS.typography.title.fontSize,
+              fontWeight: "600",
+              color: colors.text,
+              textAlign: "center",
+            }}
+            numberOfLines={1}
+          >
+            {title}
+          </Text>
+
+        </View>
 
         {/* Actions buttons */}
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
@@ -253,25 +270,6 @@ const JobDetailsHeader: React.FC<JobDetailsHeaderProps> = ({
         </View>
       )}
 
-      {/* RefBookMark exactement en dessous du menu, centré */}
-      <View
-        style={{
-          alignItems: "center",
-          paddingTop: 0, // Au pixel près sous le menu
-        }}
-      >
-        <View
-          style={{
-            backgroundColor: colors.border, // Même couleur que le border bottom du menu
-            borderTopLeftRadius: 0, // Coins du haut à 0px
-            borderTopRightRadius: 0, // Coins du haut à 0px
-            borderBottomLeftRadius: DESIGN_TOKENS.radius.md,
-            borderBottomRightRadius: DESIGN_TOKENS.radius.md,
-          }}
-        >
-          <RefBookMark jobRef={jobRef} toastIt={onToast} isHeaderMode={true} />
-        </View>
-      </View>
     </>
   );
 };

@@ -24,6 +24,8 @@ import {
 import { DESIGN_TOKENS } from "../constants/Styles";
 import { JobStateProvider } from "../context/JobStateProvider";
 import { JobTimerProvider } from "../context/JobTimerProvider";
+import { useOnboardingTarget } from "../context/OnboardingSpotlightContext";
+import { useOnboardingTour } from "../context/OnboardingTourContext";
 import { useTheme } from "../context/ThemeProvider";
 import { useJobDetails } from "../hooks/useJobDetails";
 import { useJobNotes } from "../hooks/useJobNotes";
@@ -177,6 +179,12 @@ const JobDetails: React.FC<JobDetailsProps> = ({
   // Récupération de l'ID du job depuis les paramètres de route ou props
   const actualJobId = route?.params?.jobId || jobId || route?.params?.id;
   const initialTab = route?.params?.initialTab;
+  // Origine de la navigation (pour le bouton retour quand la pile est vide,
+  // ex: ouverture via deep-link ou notification push).
+  const fromRoute = route?.params?.from as
+    | string
+    | [string, Record<string, any> | undefined]
+    | undefined;
 
   // Hook principal pour les données du job
   const {
@@ -678,7 +686,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({
     }
   }, [
     job.assignment_status,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
     job.active_transfer?.status,
     job.permissions?.can_accept,
     job.permissions?.can_decline,
@@ -687,6 +695,22 @@ const JobDetails: React.FC<JobDetailsProps> = ({
 
   const [jobPanel, setJobPanel] = useState(initialTab || "summary");
   // jobPanel: 'summary', 'job', 'client', 'notes', 'payment'
+
+  // Onboarding: when the user lands on job details at step 12, advance to
+  // step 13 so the "intro tour" bubble appears on the TabMenu summary tab.
+  const { currentStep: onboardingStep, advanceToStep } = useOnboardingTour();
+
+  // Onboarding targets for the tab menu intro tour (steps 13–19)
+  const tabSummaryTarget = useOnboardingTarget(13);
+  const tabJobTarget = useOnboardingTarget(17);
+  const tabNotesTarget = useOnboardingTarget(18);
+  const tabPaymentTarget = useOnboardingTarget(19);
+
+  React.useEffect(() => {
+    if (onboardingStep === 12) {
+      advanceToStep(13);
+    }
+  }, [onboardingStep, advanceToStep]);
 
   // 🔔 Calcul des compteurs de notifications pour les onglets
   const notificationCounts = React.useMemo(() => {
@@ -765,7 +789,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({
     if (tabId === "notes" && unreadCount > 0) {
       markAllAsRead();
     }
-  };
+  };;
 
   // Titres des panneaux
   const getPanelTitle = () => {
@@ -884,7 +908,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({
       >
         {/* Logo */}
         <View style={{ alignItems: "center", paddingTop: insets.top }}>
-          <HeaderLogo preset="sm" variant="rectangle" marginVertical={4} />
+          <HeaderLogo preset="sm" variant="rectangle" marginVertical={0} />
         </View>
 
         {/* Header moderne avec navigation et RefBookMark */}
@@ -897,6 +921,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({
           onEdit={job.permissions?.can_edit ? handleEditJob : undefined}
           onDelete={job.permissions?.can_delete ? handleDeleteJob : undefined}
           onAssignStaff={handleOpenAssignStaff}
+          fromRoute={fromRoute}
         />
 
         {/* Job Ownership Banner - Show if job is assigned from another company */}
@@ -1096,6 +1121,12 @@ const JobDetails: React.FC<JobDetailsProps> = ({
             onTabPress={handleTabPress}
             page="jobDetails"
             notificationCounts={notificationCounts}
+            onboardingTargets={{
+              summary: tabSummaryTarget,
+              job:     tabJobTarget,
+              notes:   tabNotesTarget,
+              payment: tabPaymentTarget,
+            }}
           />
         </View>
 

@@ -5,12 +5,12 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useMemo } from "react";
 import {
-  Alert,
-  Linking,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
+    Alert,
+    Linking,
+    Pressable,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 import { DESIGN_TOKENS } from "../../../constants/Styles";
 import { useTheme } from "../../../context/ThemeProvider";
@@ -172,14 +172,14 @@ const QuickActionsSection: React.FC<QuickActionsSectionProps> = ({
           flexDirection: "row",
           alignItems: "center",
           padding: DESIGN_TOKENS.spacing.md,
-          borderRadius: DESIGN_TOKENS.radius.md,
-          borderWidth: StyleSheet.hairlineWidth,
-          borderColor: colors.border + "40",
+          borderRadius: DESIGN_TOKENS.radius.lg,
+          borderWidth: 1,
+          borderColor: colors.border + "60",
         },
         iconWrap: {
-          width: 36,
-          height: 36,
-          borderRadius: 10,
+          width: 40,
+          height: 40,
+          borderRadius: 12,
           alignItems: "center",
           justifyContent: "center",
           marginRight: DESIGN_TOKENS.spacing.sm,
@@ -205,14 +205,14 @@ const QuickActionsSection: React.FC<QuickActionsSectionProps> = ({
               s.btn,
               {
                 backgroundColor: pressed
-                  ? action.color + "20"
-                  : action.color + "0A",
+                  ? action.color + "28"
+                  : action.color + "12",
                 transform: [{ scale: pressed ? 0.97 : 1 }],
               },
             ]}
           >
             <View
-              style={[s.iconWrap, { backgroundColor: action.color + "18" }]}
+              style={[s.iconWrap, { backgroundColor: action.color + "22" }]}
             >
               <Ionicons name={action.icon} size={18} color={action.color} />
             </View>

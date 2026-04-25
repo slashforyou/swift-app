@@ -5,16 +5,17 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Modal,
-  Pressable,
-  Text,
-  TextInput,
-  View,
+    ActivityIndicator,
+    Alert,
+    Modal,
+    Pressable,
+    Text,
+    TextInput,
+    View,
 } from "react-native";
 import CompanyDetailsSection from "../../components/jobDetails/sections/CompanyDetailsSection";
 import JobActionsSection from "../../components/jobDetails/sections/JobActionsSection";
+import { JobNotesSection } from "../../components/jobDetails/sections/JobNotesSection";
 import { JobPhotosSection } from "../../components/jobDetails/sections/JobPhotosSection";
 import JobTimeSection from "../../components/jobDetails/sections/JobTimeSection";
 import StaffingSection from "../../components/jobDetails/sections/StaffingSection";
@@ -813,6 +814,9 @@ const JobPage: React.FC<JobPageProps> = ({
 
         {/* ═══ Photos ═══ */}
         <JobPhotosSection jobId={numericJobId} isVisible={isVisible} />
+
+        {/* ═══ Notes internes ═══ */}
+        <JobNotesSection jobId={numericJobId} />
 
         {/* ═══ Ressources ═══ */}
         <StaffingSection
