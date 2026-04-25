@@ -15,9 +15,12 @@ import {
 } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { OnboardingTourOverlay } from "./components/onboarding/OnboardingTourOverlay";
 import { ENV, STRIPE_PUBLISHABLE_KEY } from "./config/environment";
 import { AppAlertProvider } from "./context/AppAlertProvider";
 import { NotificationsProvider } from "./context/NotificationsProvider";
+import { OnboardingSpotlightProvider } from "./context/OnboardingSpotlightContext";
+import { OnboardingTourProvider } from "./context/OnboardingTourContext";
 import { ThemeProvider } from "./context/ThemeProvider";
 import { ToastProvider } from "./context/ToastProvider";
 import { VehiclesProvider } from "./context/VehiclesProvider";
@@ -123,9 +126,14 @@ export default function App() {
               <ToastProvider>
                 <AppAlertProvider>
                   <ErrorBoundary>
-                    <View style={{ flex: 1 }}>
-                      <Navigation />
-                    </View>
+                    <OnboardingTourProvider>
+                      <OnboardingSpotlightProvider>
+                        <View style={{ flex: 1 }}>
+                          <Navigation />
+                          <OnboardingTourOverlay />
+                        </View>
+                      </OnboardingSpotlightProvider>
+                    </OnboardingTourProvider>
                   </ErrorBoundary>
                 </AppAlertProvider>
               </ToastProvider>

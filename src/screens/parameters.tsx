@@ -3,7 +3,7 @@
  * Architecture moderne avec design system, toggles interactifs et persistence
  */
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
@@ -18,10 +18,21 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Screen } from "../components/primitives/Screen";
 import { HStack, VStack } from "../components/primitives/Stack";
 import LanguageSelector from "../components/ui/LanguageSelector";
+import {
+    hasPlanAccess,
+    normalizePlanId,
+    PLAN_FEATURE_RULES,
+    type PlanFeatureKey,
+} from "../constants/planAccess";
 import { DESIGN_TOKENS } from "../constants/Styles";
 import { useTheme } from "../context/ThemeProvider";
 import { useSubscription } from "../hooks/usePlans";
 import { useLocalization, useTranslation } from "../localization/useLocalization";
+import { trackCustomEvent } from "../services/analytics";
+import {
+    getNotificationPreferences,
+    updateNotificationPreferences,
+} from "../services/pushNotifications";
 import { deleteUserAccount } from "../services/user";
 import { clearSession } from "../utils/auth";
 import { useAuthCheck } from "../utils/checkAuth";
@@ -66,6 +77,14 @@ interface SettingItemProps {
   onToggle: (value: boolean) => void;
   color?: string;
   colors: any;
+}
+
+interface PlanFeatureRowProps {
+  featureKey: PlanFeatureKey;
+  canUse: boolean;
+  onLockedPress: (featureKey: PlanFeatureKey) => void;
+  colors: any;
+  t: (key: string) => string;
 }
 
 // Composant SettingSection
@@ -185,6 +204,89 @@ const SettingItem: React.FC<SettingItemProps> = ({
   );
 };
 
+const PlanFeatureRow: React.FC<PlanFeatureRowProps> = ({
+  featureKey,
+  canUse,
+  onLockedPress,
+  colors,
+  t,
+}) => {
+  const feature = PLAN_FEATURE_RULES[featureKey];
+
+  return (
+    <Pressable
+      onPress={() => {
+        if (!canUse) {
+          onLockedPress(featureKey);
+        }
+      }}
+      style={({ pressed }) => ({
+        backgroundColor: pressed
+          ? colors.backgroundTertiary
+          : colors.background,
+        borderRadius: DESIGN_TOKENS.radius.md,
+        padding: DESIGN_TOKENS.spacing.md,
+        borderWidth: 1,
+        borderColor: canUse ? colors.border : colors.warning + "55",
+      })}
+    >
+      <HStack gap="sm" align="center" justify="space-between">
+        <VStack gap="xs" style={{ flex: 1 }}>
+          <Text
+            style={{
+              color: colors.text,
+              fontSize: DESIGN_TOKENS.typography.body.fontSize,
+              fontWeight: "600",
+            }}
+          >
+            {feature.label}
+          </Text>
+          <Text
+            style={{
+              color: colors.textSecondary,
+              fontSize: DESIGN_TOKENS.typography.caption.fontSize,
+              lineHeight: DESIGN_TOKENS.typography.caption.lineHeight,
+            }}
+          >
+            {feature.description}
+          </Text>
+        </VStack>
+
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 6,
+            paddingVertical: 4,
+            paddingHorizontal: 8,
+            borderRadius: DESIGN_TOKENS.radius.sm,
+            backgroundColor: canUse ? colors.success + "20" : colors.warning + "20",
+          }}
+        >
+          <Ionicons
+            name={canUse ? "checkmark-circle" : "lock-closed"}
+            size={14}
+            color={canUse ? colors.success : colors.warning}
+          />
+          <Text
+            style={{
+              color: canUse ? colors.success : colors.warning,
+              fontSize: 11,
+              fontWeight: "700",
+              textTransform: "uppercase",
+            }}
+          >
+            {canUse
+              ? t("subscription.includedBadge") || "Inclus"
+              : (t("subscription.fromPlanShort") || "Dès {{plan}}")
+                  .replace("{{plan}}", feature.minPlan)}
+          </Text>
+        </View>
+      </HStack>
+    </Pressable>
+  );
+};
+
 const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const { colors, isDark, toggleTheme } = useTheme();
@@ -194,7 +296,9 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
   const { isLoading, LoadingComponent } = useAuthCheck(
     navigation,
     t("common.checkingAuth"),
-  );  const { companyPlan, isLoading: planLoading } = useSubscription();  const [settings, setSettings] = useState<AppSettings>({
+  );
+  const { companyPlan, isLoading: planLoading } = useSubscription();
+  const [settings, setSettings] = useState<AppSettings>({
     notifications: {
       pushNotifications: true,
       emailNotifications: false,
@@ -214,6 +318,27 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
     },
   });
 
+  const currentPlanTier = normalizePlanId(companyPlan?.plan?.id);
+
+  useEffect(() => {
+    const loadNotificationSettings = async () => {
+      const prefs = await getNotificationPreferences();
+      if (!prefs) return;
+
+      setSettings((prev) => ({
+        ...prev,
+        notifications: {
+          pushNotifications: Boolean(prefs.push_enabled),
+          emailNotifications: Boolean(prefs.email_enabled),
+          smsNotifications: Boolean(prefs.sms_enabled),
+          taskReminders: Boolean(prefs.job_reminders),
+        },
+      }));
+    };
+
+    loadNotificationSettings();
+  }, []);
+
   if (isLoading) return LoadingComponent;
 
   const updateSetting = (
@@ -221,6 +346,12 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
     key: string,
     value: boolean,
   ) => {
+    const previousNotifications = settings.notifications;
+    const nextNotifications = {
+      ...settings.notifications,
+      ...(category === "notifications" ? { [key]: value } : {}),
+    };
+
     setSettings((prev) => ({
       ...prev,
       [category]: {
@@ -228,6 +359,28 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
         [key]: value,
       },
     }));
+
+    if (category === "notifications") {
+      void (async () => {
+        const updated = await updateNotificationPreferences({
+          push_enabled: nextNotifications.pushNotifications,
+          email_enabled: nextNotifications.emailNotifications,
+          sms_enabled: nextNotifications.smsNotifications,
+          job_reminders: nextNotifications.taskReminders,
+        });
+
+        if (!updated) {
+          setSettings((prev) => ({
+            ...prev,
+            notifications: previousNotifications,
+          }));
+          Alert.alert(
+            t("common.error"),
+            "Impossible de sauvegarder vos préférences de notifications.",
+          );
+        }
+      })();
+    }
 
     // SETTINGS-03: Handle dark mode toggle via ThemeProvider
     if (key === "darkMode") {
@@ -242,6 +395,42 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
         [{ text: t("common.ok") }],
       );
     }
+  };
+
+  const openUpgradePaywall = (featureKey: PlanFeatureKey) => {
+    const feature = PLAN_FEATURE_RULES[featureKey];
+    trackCustomEvent("paywall_lock_clicked", "business", {
+      source: "settings_plan_access",
+      feature_key: featureKey,
+      current_plan: currentPlanTier,
+    });
+
+    Alert.alert(
+      t("subscription.title") || "Abonnement",
+      `${feature.label} ${
+        (t("subscription.availableFromPlan") || "requires {{plan}}").replace(
+          "{{plan}}",
+          feature.minPlan,
+        )
+      }\n\n${t("subscription.currentPlan") || "Current"}: ${currentPlanTier}.`,
+      [
+        { text: t("common.cancel") || "Plus tard", style: "cancel" },
+        {
+          text:
+            t("subscription.unlockCta") ||
+            t("subscription.changePlan") ||
+            "Voir les formules",
+          onPress: () => {
+            trackCustomEvent("paywall_upgrade_cta_clicked", "business", {
+              source: "settings_plan_access_alert",
+              feature_key: featureKey,
+              current_plan: currentPlanTier,
+            });
+            navigation?.navigate("Subscription");
+          },
+        },
+      ],
+    );
   };
 
   const resetSettings = () => {
@@ -451,6 +640,17 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
             />
             <SettingItem
               colors={colors}
+              label={t("settings.items.smsNotifications")}
+              description={t("settings.items.smsDescription")}
+              icon="chatbubble-ellipses-outline"
+              value={settings.notifications.smsNotifications}
+              onToggle={(value) =>
+                updateSetting("notifications", "smsNotifications", value)
+              }
+              color={colors.warning}
+            />
+            <SettingItem
+              colors={colors}
               label={t("settings.items.taskReminders")}
               description={t("settings.items.taskRemindersDescription")}
               icon="alarm-outline"
@@ -542,6 +742,7 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
                 />
               </HStack>
             </Pressable>
+
           </SettingSection>
 
           {/* Privacy Section */}
@@ -669,6 +870,64 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
                 </Text>
               </HStack>
             </Pressable>
+
+            <VStack gap="sm">
+              <Text
+                style={{
+                  color: colors.textSecondary,
+                  fontSize: DESIGN_TOKENS.typography.caption.fontSize,
+                  fontWeight: "600",
+                  textTransform: "uppercase",
+                  letterSpacing: 0.6,
+                }}
+              >
+                {t("subscription.planAccessTitle") || "Accès par formule"}
+              </Text>
+
+              <PlanFeatureRow
+                featureKey="advanced_notifications"
+                canUse={hasPlanAccess(
+                  currentPlanTier,
+                  PLAN_FEATURE_RULES.advanced_notifications.minPlan,
+                )}
+                onLockedPress={openUpgradePaywall}
+                colors={colors}
+                t={t}
+              />
+
+              <PlanFeatureRow
+                featureKey="invoice_branding"
+                canUse={hasPlanAccess(
+                  currentPlanTier,
+                  PLAN_FEATURE_RULES.invoice_branding.minPlan,
+                )}
+                onLockedPress={openUpgradePaywall}
+                colors={colors}
+                t={t}
+              />
+
+              <PlanFeatureRow
+                featureKey="inter_contractor_billing"
+                canUse={hasPlanAccess(
+                  currentPlanTier,
+                  PLAN_FEATURE_RULES.inter_contractor_billing.minPlan,
+                )}
+                onLockedPress={openUpgradePaywall}
+                colors={colors}
+                t={t}
+              />
+
+              <PlanFeatureRow
+                featureKey="priority_support"
+                canUse={hasPlanAccess(
+                  currentPlanTier,
+                  PLAN_FEATURE_RULES.priority_support.minPlan,
+                )}
+                onLockedPress={openUpgradePaywall}
+                colors={colors}
+                t={t}
+              />
+            </VStack>
           </SettingSection>
 
           {/* Subscription / Plan Section */}

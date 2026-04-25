@@ -6,19 +6,19 @@
 
 import React, { useEffect, useState } from "react";
 import {
-  Alert,
-  Clipboard,
-  Modal,
-  ScrollView,
-  Share,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    Clipboard,
+    Modal,
+    ScrollView,
+    Share,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
-import { simpleSessionLogger } from "../../services/simpleSessionLogger";
 import { useTranslation } from "../../localization";
+import { simpleSessionLogger } from "../../services/simpleSessionLogger";
 
 interface LogEntry {
   timestamp: string;

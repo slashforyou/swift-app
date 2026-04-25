@@ -4,7 +4,7 @@ import JobBox from "@/src/components/calendar/modernJobBox";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Ionicons from "@react-native-vector-icons/ionicons";
 import { useFocusEffect } from "@react-navigation/native";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
     Alert,
     Pressable,
@@ -25,6 +25,8 @@ import {
 import CreateJobModal from "../../components/modals/CreateJobModal";
 import HeaderLogo from "../../components/ui/HeaderLogo";
 import { DESIGN_TOKENS } from "../../constants/Styles";
+import { useOnboardingTarget } from "../../context/OnboardingSpotlightContext";
+import { useOnboardingTour } from "../../context/OnboardingTourContext";
 import { useCommonThemedStyles } from "../../hooks/useCommonStyles";
 import { useCompanyPermissions } from "../../hooks/useCompanyPermissions";
 import { Job, useJobsForDay } from "../../hooks/useJobsForDay";
@@ -54,11 +56,58 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
   const selectedMonth = month || new Date().getMonth() + 1;
   const selectedYear = year || new Date().getFullYear();
 
+  // Onboarding triggers
+  const { currentStep, advanceToStep, notifyWizardStep, markStepSeen } = useOnboardingTour();
+  const createJobTarget = useOnboardingTarget(4);
+  const firstJobTarget = useOnboardingTarget(12);
+  // React to currentStep changes so the transition isn't missed if the
+  // context value updates AFTER first render.
+  useEffect(() => {
+    if (currentStep === 3) {
+      advanceToStep(4);
+    } else if (currentStep === 11) {
+      advanceToStep(12);
+    }
+  }, [currentStep, advanceToStep]);
+  // Safety net: arriving on a day view means the user is past steps 2 & 3
+  // (the calendar opening + the today cell selection). Force-mark them so a
+  // lingering home/month bubble can't keep blocking the visibleStep race.
+  useEffect(() => {
+    markStepSeen(2);
+    markStepSeen(3);
+  }, [markStepSeen]);
+
   // States for filtering and sorting
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [sortBy, setSortBy] = useState<"time" | "priority" | "status">("time");
   const [showFilters, setShowFilters] = useState(false);
   const [isCreateJobModalVisible, setIsCreateJobModalVisible] = useState(false);
+
+  // Advance to step 5 when job creation modal becomes visible (user tapped +).
+  useEffect(() => {
+    if (isCreateJobModalVisible && currentStep === 4) {
+      advanceToStep(5);
+    }
+  }, [isCreateJobModalVisible, currentStep, advanceToStep]);
+
+  // Advance to step 12 (tap the new job) when the create-job modal closes
+  // after a successful creation (currentStep === 11 means the wizard reached
+  // its confirmation step). This effect fires whenever the modal visibility
+  // flips, so it also covers re-entering the day screen.
+  useEffect(() => {
+    if (!isCreateJobModalVisible && currentStep === 11) {
+      advanceToStep(12);
+    }
+  }, [isCreateJobModalVisible, currentStep, advanceToStep]);
+
+  // Handler for the "+" FAB: opens the modal AND advances onboarding synchronously
+  // so there is no frame where the bubble still points at the closed FAB.
+  const handleOpenCreateJob = useCallback(() => {
+    setIsCreateJobModalVisible(true);
+    if (currentStep === 4) {
+      advanceToStep(5);
+    }
+  }, [currentStep, advanceToStep]);
 
   // States for contractor wizard
   const [wizardJob, setWizardJob] = useState<Job | null>(null);
@@ -115,6 +164,10 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
   // Handle job press — open wizard for pending contractor jobs, else navigate to details
   const handleJobPress = useCallback(
     (job: Job) => {
+      // Onboarding: tapping the job acknowledges step 12.
+      if (currentStep === 12) {
+        markStepSeen(12);
+      }
       const isExternal =
         job.contractee &&
         job.contractor &&
@@ -141,9 +194,13 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
         day: selectedDay,
         month: selectedMonth,
         year: selectedYear,
+        from: [
+          "Calendar",
+          { day: selectedDay, month: selectedMonth, year: selectedYear },
+        ],
       });
     },
-    [navigation, selectedDay, selectedMonth, selectedYear, currentCompany],
+    [navigation, selectedDay, selectedMonth, selectedYear, currentCompany, currentStep, markStepSeen],
   );
 
   // Refetch jobs when screen regains focus (e.g. returning from JobDetails after vehicle change)
@@ -666,19 +723,24 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
             {isLoading ? (
               <JobsLoadingSkeleton />
             ) : filteredJobs.length > 0 ? (
-              filteredJobs.map((job, index) => (
-                <JobBox
-                  key={job.id}
-                  job={job}
-                  onPress={() => handleJobPress(job)}
-                  onAccept={handleInlineAccept}
-                  onDecline={handleInlineDecline}
-                  navigation={navigation}
-                  day={selectedDay}
-                  month={selectedMonth}
-                  year={selectedYear}
-                />
-              ))
+              <View
+                ref={firstJobTarget.ref}
+                onLayout={firstJobTarget.onLayout}
+              >
+                {filteredJobs.map((job) => (
+                  <JobBox
+                    key={job.id}
+                    job={job}
+                    onPress={() => handleJobPress(job)}
+                    onAccept={handleInlineAccept}
+                    onDecline={handleInlineDecline}
+                    navigation={navigation}
+                    day={selectedDay}
+                    month={selectedMonth}
+                    year={selectedYear}
+                  />
+                ))}
+              </View>
             ) : (
               <EmptyDayState date={formattedDate} onRefresh={handleRefresh} />
             )}
@@ -704,8 +766,10 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
         return (
           <Pressable
             testID="calendar-day-create-job-fab"
+            ref={createJobTarget.ref}
+            onLayout={createJobTarget.onLayout}
             style={[styles.fab, { backgroundColor: colors.primary }]}
-            onPress={() => setIsCreateJobModalVisible(true)}
+            onPress={handleOpenCreateJob}
           >
             <Ionicons name="add" size={28} color={colors.buttonPrimaryText} />
           </Pressable>
@@ -718,6 +782,7 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
         onClose={() => setIsCreateJobModalVisible(false)}
         onCreateJob={handleCreateJob}
         selectedDate={new Date(selectedYear, selectedMonth - 1, selectedDay)}
+        onWizardStep={(wizStep) => notifyWizardStep(wizStep)}
       />
 
       {/* Contractor Job Wizard Modal */}

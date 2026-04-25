@@ -38,7 +38,8 @@ import { changePassword, requestEmailChange } from "../services/user";
 try {
   if (
     Platform.OS === "android" &&
-    UIManager.setLayoutAnimationEnabledExperimental
+    UIManager.setLayoutAnimationEnabledExperimental &&
+    !(global as any).nativeFabricUIManager
   ) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
   }
@@ -274,12 +275,13 @@ const ProfileScreen: React.FC = () => {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { profile, isLoading, updateProfile } = useUserProfile();
+  const { profile, isLoading, updateProfile, refreshProfile } = useUserProfile();
 
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+
 
   // Collapsible sections state - all collapsed by default
   const [expandedSections, setExpandedSections] = useState<{
@@ -829,6 +831,50 @@ const ProfileScreen: React.FC = () => {
                   "Company information is managed by your organization administrator."}
               </Text>
             </View>
+
+            {/* Employee dashboard CTA */}
+            {companyData.company_role === "employee" && (
+              <Pressable
+                onPress={() => (navigation as any).navigate("EmployeeDashboard")}
+                style={({ pressed }) => ({
+                  flexDirection: "row",
+                  alignItems: "center",
+                  padding: DESIGN_TOKENS.spacing.md,
+                  backgroundColor: pressed
+                    ? colors.primary + "30"
+                    : colors.primary + "15",
+                  borderRadius: 12,
+                  marginTop: DESIGN_TOKENS.spacing.md,
+                  borderWidth: 1,
+                  borderColor: colors.primary + "40",
+                })}
+              >
+                <View
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 18,
+                    backgroundColor: colors.primary + "20",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    marginRight: DESIGN_TOKENS.spacing.md,
+                  }}
+                >
+                  <Ionicons name="stats-chart" size={18} color={colors.primary} />
+                </View>
+                <Text
+                  style={{
+                    flex: 1,
+                    fontSize: 15,
+                    fontWeight: "600",
+                    color: colors.primary,
+                  }}
+                >
+                  {t("employeeDashboard.title") || "My Dashboard"}
+                </Text>
+                <Ionicons name="chevron-forward" size={18} color={colors.primary} />
+              </Pressable>
+            )}
           </CollapsibleSection>
         )}
 

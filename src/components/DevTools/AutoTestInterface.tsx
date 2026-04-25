@@ -15,9 +15,9 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+import { useTranslation } from '../../localization';
 import { testController, TestResult, TestSession } from '../../services/testController';
 import { LogViewer } from './LogViewer';
-import { useTranslation } from '../../localization';
 
 interface AutoTestInterfaceProps {
   visible: boolean;

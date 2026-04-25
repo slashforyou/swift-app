@@ -5,8 +5,8 @@
  * - Gérer les préférences utilisateur
  * - Écouter les notifications reçues
  */
-import Constants from "expo-constants";
 import { useNavigation } from "@react-navigation/native";
+import Constants from "expo-constants";
 import * as Notifications from "expo-notifications";
 import { useCallback, useEffect, useState } from "react";
 import { AppState, AppStateStatus } from "react-native";
@@ -199,7 +199,10 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
         case "job_reminder":
         case "job_updated":
           if (job_id && screen === "JobDetails") {
-            navigation.navigate("JobDetails", { jobId: job_id });
+            navigation.navigate("JobDetails", {
+              jobId: job_id,
+              from: "Home",
+            });
           }
           break;
         case "job_assigned":

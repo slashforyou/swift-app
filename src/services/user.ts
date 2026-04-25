@@ -1,8 +1,15 @@
-﻿// services/user.ts
+﻿﻿// services/user.ts
+import * as SecureStore from "expo-secure-store";
 import { ServerData } from "../constants/ServerData";
 import { authenticatedFetch } from "../utils/auth";
+import { fetchWithAuth } from "../utils/session";
 
 const API = ServerData.serverUrl;
+
+let profileRequestInFlight: Promise<UserProfile> | null = null;
+let profileFailureCooldownUntil = 0;
+let lastProfileError: Error | null = null;
+const PROFILE_FAILURE_COOLDOWN_MS = 4000;
 
 export type UserType = "employee" | "worker";
 
@@ -101,66 +108,140 @@ export interface UpdateUserProfile {
  * Récupère les informations du profil utilisateur
  */
 export async function fetchUserProfile(): Promise<UserProfile> {
+  if (profileRequestInFlight) {
+    return profileRequestInFlight;
+  }
 
-  // Utilise authenticatedFetch qui gère le refresh automatique
-  const res = await authenticatedFetch(`${API}v1/user/profile`, {
-    method: "GET",
-  });
+  if (Date.now() < profileFailureCooldownUntil && lastProfileError) {
+    throw lastProfileError;
+  }
+
+  profileRequestInFlight = (async () => {
+
+    // Utilise authenticatedFetch qui gère le refresh automatique
+    const res = await authenticatedFetch(`${API}v1/user/profile`, {
+      method: "GET",
+    });
 
 
-  if (!res.ok) {
-    console.error(`❌ HTTP ${res.status} response for ${API}v1/user/profile`);
-    const error = await res
-      .json()
-      .catch(() => ({ message: "Failed to fetch user profile" }));
-    console.error("❌ Response body:", error);
+    if (!res.ok) {
+      console.error(`❌ HTTP ${res.status} response for ${API}v1/user/profile`);
+      const error = await res
+        .json()
+        .catch(() => ({ message: "Failed to fetch user profile" }));
+      console.error("❌ Response body:", error);
 
-    // Gestion spécifique des erreurs selon la nouvelle API
-    if (res.status === 401) {
+      // Fallback de résilience: si /user/profile est cassé côté serveur,
+      // tenter /auth/me puis les données de session locales.
+      if (res.status >= 500) {
+        const fallbackProfile = await fetchUserProfileFallback();
+        if (fallbackProfile) {
+          return fallbackProfile;
+        }
+      }
+
+      // Gestion spécifique des erreurs selon la nouvelle API
+      if (res.status === 401) {
+        throw new Error(
+          "🔐 Token invalide ou expiré. Veuillez vous reconnecter.",
+        );
+      } else if (res.status === 403) {
+        throw new Error("🚫 Accès refusé. Permissions insuffisantes.");
+      } else if (res.status === 500) {
+        throw new Error("🔧 Erreur serveur. Veuillez réessayer plus tard.");
+      }
+
       throw new Error(
-        "🔐 Token invalide ou expiré. Veuillez vous reconnecter.",
+        error.message || `HTTP ${res.status}: Failed to fetch user profile`,
       );
-    } else if (res.status === 403) {
-      throw new Error("� Accès refusé. Permissions insuffisantes.");
-    } else if (res.status === 500) {
-      throw new Error("🔧 Erreur serveur. Veuillez réessayer plus tard.");
     }
 
-    throw new Error(
-      error.message || `HTTP ${res.status}: Failed to fetch user profile`,
-    );
-  }
+    let data;
+    try {
+      data = await res.json();
+    } catch (parseError) {
+      throw new Error("Failed to parse server response");
+    }
 
-  let data;
+    // L'API peut retourner soit { success: true, user: {...} } soit { user: {...} }
+
+    // console.log("🔍 [API FETCH] Raw user data from API:", { ... });
+
+    // Accepter les deux formats de réponse
+    if (!data.user) {
+      throw new Error("No user data received from server");
+    }
+
+    // Si success existe, il doit être true
+    if (data.success !== undefined && !data.success) {
+      throw new Error("API returned unsuccessful response");
+    }
+
+    // Normaliser les données reçues
+    const normalizedProfile = normalizeUserProfile(data.user);
+    // id: normalizedProfile.id,
+    // firstName: normalizedProfile.firstName,
+    // lastName: normalizedProfile.lastName,
+    // email: normalizedProfile.email
+    // });
+
+    profileFailureCooldownUntil = 0;
+    lastProfileError = null;
+
+    return normalizedProfile;
+  })();
+
   try {
-    data = await res.json();
-  } catch (parseError) {
-    throw new Error("Failed to parse server response");
+    return await profileRequestInFlight;
+  } catch (error) {
+    const normalizedError =
+      error instanceof Error
+        ? error
+        : new Error("Failed to fetch user profile");
+    lastProfileError = normalizedError;
+    profileFailureCooldownUntil = Date.now() + PROFILE_FAILURE_COOLDOWN_MS;
+    throw normalizedError;
+  } finally {
+    profileRequestInFlight = null;
+  }
+}
+
+async function fetchUserProfileFallback(): Promise<UserProfile | null> {
+  try {
+    const meRes = await authenticatedFetch(`${API}auth/me`, {
+      method: "GET",
+      headers: {
+        "x-client": "mobile",
+      },
+    });
+
+    if (meRes.ok) {
+      const meData = await meRes.json().catch(() => null);
+      const meUser = meData?.user || meData?.data || meData;
+      if (meUser && typeof meUser === "object") {
+        return normalizeUserProfile(meUser);
+      }
+    }
+  } catch {
+    // fallback local below
   }
 
-  // L'API peut retourner soit { success: true, user: {...} } soit { user: {...} }
+  try {
+    const userDataStr =
+      (await SecureStore.getItemAsync("user_data")) ||
+      (await SecureStore.getItemAsync("userData"));
 
-  // console.log("🔍 [API FETCH] Raw user data from API:", { ... });
-
-  // Accepter les deux formats de réponse
-  if (!data.user) {
-    throw new Error("No user data received from server");
+    if (userDataStr) {
+      const userData = JSON.parse(userDataStr);
+      if (userData && typeof userData === "object") {
+        return normalizeUserProfile(userData);
+      }
+    }
+  } catch {
+    // no-op
   }
 
-  // Si success existe, il doit être true
-  if (data.success !== undefined && !data.success) {
-    throw new Error("API returned unsuccessful response");
-  }
-
-  // Normaliser les données reçues
-  const normalizedProfile = normalizeUserProfile(data.user);
-  // id: normalizedProfile.id,
-  // firstName: normalizedProfile.firstName,
-  // lastName: normalizedProfile.lastName,
-  // email: normalizedProfile.email
-  // });
-
-  return normalizedProfile;
+  return null;
 }
 
 /**
@@ -378,5 +459,60 @@ export async function deleteUserAccount(): Promise<void> {
     throw new Error(
       error.message || `HTTP ${res.status}: Failed to delete account`,
     );
+  }
+}
+
+/**
+ * Upload a custom profile picture (photo from camera or gallery)
+ */
+export async function uploadUserAvatar(
+  imageUri: string,
+): Promise<{ success: boolean; profile_picture?: string }> {
+  try {
+    const formData = new FormData();
+    const filename = imageUri.split("/").pop() || "avatar.jpg";
+    const match = /\.(\w+)$/.exec(filename);
+    const type = match ? `image/${match[1]}` : "image/jpeg";
+
+    formData.append("avatar", {
+      uri: imageUri,
+      name: filename,
+      type,
+    } as unknown as Blob);
+
+    const response = await fetchWithAuth(`${API}v1/user/avatar`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { success: true, profile_picture: data.profile_picture };
+  } catch (error) {
+    console.error("[UserService] Error uploading avatar:", error);
+    return { success: false };
+  }
+}
+
+/**
+ * Delete the user's custom profile picture
+ */
+export async function deleteUserAvatar(): Promise<boolean> {
+  try {
+    const response = await fetchWithAuth(`${API}v1/user/avatar`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return true;
+  } catch (error) {
+    console.error("[UserService] Error deleting avatar:", error);
+    return false;
   }
 }

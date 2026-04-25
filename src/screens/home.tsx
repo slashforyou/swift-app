@@ -3,9 +3,10 @@
  * Architecture moderne avec Safe Areas, ProfileHeader et navigation cohérente
  */
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
-import React, { useCallback, useEffect, useState } from "react";
-import { Alert, Modal, Pressable, Text, View } from "react-native";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { Alert, Animated, InteractionManager, Modal, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import DevMenu from "../components/dev/DevMenu";
 import NotificationsPanel from "../components/home/NotificationsPanel";
@@ -17,11 +18,14 @@ import { Screen } from "../components/primitives/Screen";
 import { HStack, VStack } from "../components/primitives/Stack";
 import { HeaderLogo } from "../components/ui/HeaderLogo";
 import HelpButton from "../components/ui/HelpButton";
+import { ONBOARDING_CONFIG } from "../constants/onboarding";
 import { ServerData } from "../constants/ServerData";
 import { DESIGN_TOKENS } from "../constants/Styles";
 import { useNotifications } from "../context/NotificationsProvider";
+import { useOnboardingTarget } from "../context/OnboardingSpotlightContext";
+import { useOnboardingTour } from "../context/OnboardingTourContext";
 import { useTheme } from "../context/ThemeProvider";
-import { useStripeConnection } from "../hooks/useStripeConnection";
+import { usePushNotifications } from "../hooks/usePushNotifications";
 
 import { useUserProfile } from "../hooks/useUserProfile";
 import { useTranslation } from "../localization";
@@ -34,21 +38,110 @@ interface HomeScreenProps {
   navigation: any;
 }
 
+const NOTIFICATION_WIZARD_DISMISSED_KEY = "notification_wizard_dismissed_v1";
+
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const { colors, setCompanyColor } = useTheme();
   const { t } = useTranslation();
-  const { status: stripeStatus, loading: stripeLoading, error: stripeError } =
-    useStripeConnection();
+  const {
+    currentStep: onboardingStep,
+    isActive: onboardingActive,
+    setStep1Ready,
+  } = useOnboardingTour();
+  const calendarPulse = useRef(new Animated.Value(1)).current;
+  const step1DelayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const step1FallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const interactionsRef = useRef<{ cancel?: () => void } | null>(null);
+  const [isHomeLaidOut, setIsHomeLaidOut] = useState(false);
+  const calendarTarget = useOnboardingTarget(2);
+
+  const clearStep1GateTimers = useCallback(() => {
+    if (step1DelayTimerRef.current) {
+      clearTimeout(step1DelayTimerRef.current);
+      step1DelayTimerRef.current = null;
+    }
+    if (step1FallbackTimerRef.current) {
+      clearTimeout(step1FallbackTimerRef.current);
+      step1FallbackTimerRef.current = null;
+    }
+    interactionsRef.current?.cancel?.();
+    interactionsRef.current = null;
+  }, []);
+
+  // Pulsing animation on Calendar button during step 2
+  useEffect(() => {
+    if (onboardingActive && onboardingStep === 2) {
+      const anim = Animated.loop(
+        Animated.sequence([
+          Animated.timing(calendarPulse, { toValue: 1.03, duration: 600, useNativeDriver: true }),
+          Animated.timing(calendarPulse, { toValue: 1, duration: 600, useNativeDriver: true }),
+        ])
+      );
+      anim.start();
+      return () => anim.stop();
+    } else {
+      calendarPulse.setValue(1);
+    }
+  }, [onboardingActive, onboardingStep, calendarPulse]);
+
+  // Step 1 modal: wait until Home is laid out, then add a small delay.
+  // Hard fallback kicks in if onLayout never fires (e.g., screen error).
+  useEffect(() => {
+    clearStep1GateTimers();
+
+    if (!onboardingActive || onboardingStep !== 1 || isLoading) {
+      setStep1Ready(false);
+      return;
+    }
+
+    if (!isHomeLaidOut) {
+      // Layout not yet reported — arm the hard fallback so the tour can
+      // still start even if onLayout never fires.
+      step1FallbackTimerRef.current = setTimeout(() => {
+        setStep1Ready(true);
+      }, ONBOARDING_CONFIG.STEP1_LAYOUT_FALLBACK_MS);
+      return () => {
+        clearStep1GateTimers();
+      };
+    }
+
+    interactionsRef.current = InteractionManager.runAfterInteractions(() => {
+      step1DelayTimerRef.current = setTimeout(() => {
+        setStep1Ready(true);
+      }, ONBOARDING_CONFIG.STEP1_REVEAL_DELAY_MS);
+    });
+
+    return () => {
+      clearStep1GateTimers();
+    };
+  }, [
+    onboardingActive,
+    onboardingStep,
+    isLoading,
+    isHomeLaidOut,
+    clearStep1GateTimers,
+    setStep1Ready,
+  ]);
+
+  useEffect(() => {
+    return () => {
+      clearStep1GateTimers();
+      setStep1Ready(false);
+    };
+  }, [clearStep1GateTimers, setStep1Ready]);
   const { isLoading, LoadingComponent } = useAuthCheck(
     navigation,
     t("common.checkingAuth"),
   );
   const [showDevMenu, setShowDevMenu] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showNotificationWizard, setShowNotificationWizard] = useState(false);
   const { unreadCount } = useNotifications();
   const [showNotifications, setShowNotifications] = useState(false);
   const { profile, refreshProfile } = useUserProfile();
+  const { permissionStatus, requestPermission, isLoading: isPushLoading } =
+    usePushNotifications();
 
 
   // Sync company brand color on first load
@@ -71,6 +164,47 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       refreshProfile();
     }, []),
   );
+
+  useEffect(() => {
+    (async () => {
+      try {
+        if (permissionStatus !== "undetermined") {
+          setShowNotificationWizard(false);
+          return;
+        }
+
+        const dismissed = await AsyncStorage.getItem(
+          NOTIFICATION_WIZARD_DISMISSED_KEY,
+        );
+        if (!dismissed) {
+          setShowNotificationWizard(true);
+        }
+      } catch {
+        // Ignore storage errors: wizard is non-critical.
+      }
+    })();
+  }, [permissionStatus]);
+
+  const dismissNotificationWizard = async () => {
+    try {
+      await AsyncStorage.setItem(NOTIFICATION_WIZARD_DISMISSED_KEY, "1");
+    } catch {}
+    setShowNotificationWizard(false);
+  };
+
+  const enableNotificationsFromWizard = async () => {
+    const granted = await requestPermission();
+    await dismissNotificationWizard();
+
+    if (!granted) {
+      Alert.alert(
+        t("home.notificationsPrompt.permissionDeniedTitle") ||
+          "Notifications disabled",
+        t("home.notificationsPrompt.permissionDeniedMessage") ||
+          "You can enable notifications later in Settings.",
+      );
+    }
+  };
 
   const handleLogout = () => {
     setShowLogoutConfirm(true);
@@ -184,6 +318,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   return (
     <Screen testID="home-screen">
       <VStack
+        onLayout={() => {
+          if (!isHomeLaidOut) setIsHomeLaidOut(true);
+        }}
         style={{
           flex: 1,
           paddingTop: insets.top + DESIGN_TOKENS.spacing.xs,
@@ -286,64 +423,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         {/* Onboarding checklist – visible until all steps completed */}
         <OnboardingChecklistCard navigation={navigation} />
 
-        {/* Stripe soft gate – persistent non-blocking banner */}
-        {!stripeLoading && !stripeError && stripeStatus !== "active" && (
-          <Pressable
-            testID="home-stripe-alert"
-            onPress={() =>
-              navigation.navigate("Business", { initialTab: "JobsBilling" })
-            }
-            style={({ pressed }) => ({
-              backgroundColor: pressed
-                ? "#F59E0B30"
-                : "#F59E0B15",
-              borderRadius: DESIGN_TOKENS.radius.md,
-              borderWidth: 1,
-              borderColor: "#F59E0B40",
-              padding: DESIGN_TOKENS.spacing.md,
-              marginBottom: DESIGN_TOKENS.spacing.sm,
-              flexDirection: "row",
-              alignItems: "center",
-              gap: DESIGN_TOKENS.spacing.sm,
-            })}
-          >
-            <View
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 20,
-                backgroundColor: "#F59E0B20",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <Ionicons name="warning-outline" size={22} color="#D97706" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text
-                style={{
-                  fontSize: DESIGN_TOKENS.typography.body.fontSize,
-                  fontWeight: "700",
-                  color: "#D97706",
-                  marginBottom: 2,
-                }}
-              >
-                {t("home.stripeAlert.title")}
-              </Text>
-              <Text
-                style={{
-                  fontSize: DESIGN_TOKENS.typography.caption.fontSize,
-                  color: colors.text,
-                  lineHeight: 18,
-                }}
-              >
-                {t("home.stripeAlert.description")}
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color="#D97706" />
-          </Pressable>
-        )}
-
         {/* Menu Items - prennent l'espace restant */}
         <View
           style={{
@@ -352,14 +431,32 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           }}
         >
           <VStack gap="xs">
-            <MenuItem
-              testID="home-calendar-btn"
-              title={t("home.calendar.title")}
-              icon="calendar"
-              description={t("home.calendar.description")}
-              onPress={() => navigation.navigate("Calendar")}
-              color={colors.primary}
-            />
+            <Animated.View
+              ref={calendarTarget.ref}
+              onLayout={calendarTarget.onLayout}
+              style={[
+                onboardingActive && onboardingStep === 2 && {
+                  borderRadius: DESIGN_TOKENS.radius.lg,
+                  borderWidth: 2,
+                  borderColor: colors.primary,
+                  shadowColor: colors.primary,
+                  shadowOffset: { width: 0, height: 0 },
+                  shadowOpacity: 0.45,
+                  shadowRadius: 10,
+                  elevation: 6,
+                },
+                { transform: [{ scale: calendarPulse }] },
+              ]}
+            >
+              <MenuItem
+                testID="home-calendar-btn"
+                title={t("home.calendar.title")}
+                icon="calendar"
+                description={t("home.calendar.description")}
+                onPress={() => navigation.navigate("Calendar")}
+                color={colors.primary}
+              />
+            </Animated.View>
 
             <MenuItem
               testID="home-business-btn"
@@ -662,6 +759,118 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         isVisible={showNotifications}
         onClose={() => setShowNotifications(false)}
       />
+
+      <Modal
+        testID="notification-wizard-modal"
+        visible={showNotificationWizard}
+        transparent
+        animationType="fade"
+        onRequestClose={dismissNotificationWizard}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            justifyContent: "center",
+            alignItems: "center",
+            paddingHorizontal: 28,
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: colors.background,
+              borderRadius: DESIGN_TOKENS.radius.lg,
+              padding: DESIGN_TOKENS.spacing.xl,
+              width: "100%",
+              gap: DESIGN_TOKENS.spacing.md,
+            }}
+          >
+            <View
+              style={{
+                alignSelf: "center",
+                width: 52,
+                height: 52,
+                borderRadius: 26,
+                backgroundColor: colors.primary + "20",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Ionicons name="notifications" size={24} color={colors.primary} />
+            </View>
+
+            <Text
+              style={{
+                color: colors.text,
+                fontSize: DESIGN_TOKENS.typography.title.fontSize,
+                fontWeight: DESIGN_TOKENS.typography.title.fontWeight,
+                textAlign: "center",
+              }}
+            >
+              {t("home.notificationsPrompt.title") ||
+                "Enable notifications"}
+            </Text>
+
+            <Text
+              style={{
+                color: colors.textSecondary,
+                fontSize: DESIGN_TOKENS.typography.body.fontSize,
+                textAlign: "center",
+                lineHeight: 20,
+              }}
+            >
+              {t("home.notificationsPrompt.message") ||
+                "Get job updates, reminders, and payment alerts in real time."}
+            </Text>
+
+            <View
+              style={{
+                flexDirection: "row",
+                gap: DESIGN_TOKENS.spacing.sm,
+                marginTop: DESIGN_TOKENS.spacing.sm,
+              }}
+            >
+              <Pressable
+                testID="notification-wizard-later-btn"
+                onPress={dismissNotificationWizard}
+                style={({ pressed }) => ({
+                  flex: 1,
+                  backgroundColor: pressed
+                    ? colors.backgroundTertiary
+                    : colors.backgroundSecondary,
+                  borderRadius: DESIGN_TOKENS.radius.md,
+                  paddingVertical: DESIGN_TOKENS.spacing.sm,
+                  alignItems: "center",
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                })}
+              >
+                <Text style={{ color: colors.text, fontWeight: "600" }}>
+                  {t("home.notificationsPrompt.later") || "Later"}
+                </Text>
+              </Pressable>
+
+              <Pressable
+                testID="notification-wizard-enable-btn"
+                onPress={enableNotificationsFromWizard}
+                disabled={isPushLoading}
+                style={({ pressed }) => ({
+                  flex: 1,
+                  backgroundColor: pressed ? colors.primaryDark : colors.primary,
+                  borderRadius: DESIGN_TOKENS.radius.md,
+                  paddingVertical: DESIGN_TOKENS.spacing.sm,
+                  alignItems: "center",
+                  opacity: isPushLoading ? 0.6 : 1,
+                })}
+              >
+                <Text style={{ color: "white", fontWeight: "600" }}>
+                  {t("home.notificationsPrompt.enable") || "Enable"}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </Screen>
   );
 };

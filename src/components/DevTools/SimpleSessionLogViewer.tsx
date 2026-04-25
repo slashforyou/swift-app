@@ -11,8 +11,8 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
-import simpleSessionLogger from "../../services/simpleSessionLogger"; // eslint-disable-line no-restricted-imports
 import { useTranslation } from "../../localization";
+import simpleSessionLogger from "../../services/simpleSessionLogger"; // eslint-disable-line no-restricted-imports
 
 interface SimpleSessionLogViewerProps {
   visible: boolean;

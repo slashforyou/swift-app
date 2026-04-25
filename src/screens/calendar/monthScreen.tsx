@@ -17,6 +17,8 @@ import CalendarHeader from "../../components/calendar/CalendarHeader";
 import HeaderLogo from "../../components/ui/HeaderLogo";
 import MascotLoading from "../../components/ui/MascotLoading";
 import { DESIGN_TOKENS } from "../../constants/Styles";
+import { useOnboardingTarget } from "../../context/OnboardingSpotlightContext";
+import { useOnboardingTour } from "../../context/OnboardingTourContext";
 import { useCommonThemedStyles } from "../../hooks/useCommonStyles";
 import { useJobsForMonth } from "../../hooks/useJobsForMonth";
 import { useTranslation } from "../../localization";
@@ -138,6 +140,25 @@ const getJobsForDay = (
 const MonthCalendarScreen = ({ navigation, route }: any) => {
   const insets = useSafeAreaInsets();
   const { colors, styles: commonStyles } = useCommonThemedStyles();
+
+  // Onboarding: advance to step 3 when calendar opens (from step 2)
+  const { currentStep, advanceToStep, markStepSeen } = useOnboardingTour();
+  const todayTarget = useOnboardingTarget(3);
+  // React to currentStep so we don't miss the transition due to a stale
+  // first-render value (the welcome modal may still be in the process of
+  // being dismissed when monthScreen first mounts).
+  React.useEffect(() => {
+    if (currentStep === 2) {
+      advanceToStep(3);
+    }
+  }, [currentStep, advanceToStep]);
+  // Safety net: any time the calendar is the visible screen, the user has
+  // moved past the home calendar button. Mark step 2 seen so its bubble
+  // (which would now point to an off-screen element) cannot keep winning the
+  // "smallest unseen registered step" selection.
+  React.useEffect(() => {
+    markStepSeen(2);
+  }, [markStepSeen]);
 
   // States for modern UX
   const [animatedValue] = useState(new Animated.Value(1));
@@ -786,6 +807,8 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
                 <Pressable
                   key={day}
                   testID={`calendar-month-day-${day}`}
+                  ref={isToday(day) ? todayTarget.ref : undefined}
+                  onLayout={isToday(day) ? todayTarget.onLayout : undefined}
                   style={({ pressed }) => ({
                     ...(isToday(day)
                       ? customStyles.dayButtonToday
