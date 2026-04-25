@@ -1,6 +1,6 @@
 # COBBR — Roadmap Consolidée
 
-> **Dernière mise à jour :** 10 avril 2026
+> **Dernière mise à jour :** 16 avril 2026
 > **Version actuelle :** 1.1.0 (MVP live sur iOS + Android)
 > **Statut :** MVP fonctionnel — En route vers monétisation (juin 2026)
 
@@ -10,16 +10,21 @@
 
 | Scope | Fait | Reste | Progression |
 |-------|------|-------|-------------|
-| 🔴 **P0** — Bloquant production | 3 | 2 | 60% |
-| 🟠 **P1** — Monétisation (juin 2026) | 41 | 3 | **93%** |
-| 🟡 **P2** — Améliorations UX | 5 | 37 | 12% |
+| 🔴 **P0** — Bloquant production | 5 | 0 | 100% |
+| 🟠 **P1** — Monétisation (juin 2026) | 42 | 2 | **95%** |
+| 🟡 **P2** — Améliorations UX | 11 | 31 | 26% |
 | 🟢 **P3** — Nice-to-have | 0 | 15 | 0% |
 | ⚪ **P4** — Long terme / IA | 0 | 17 | 0% |
 | 🎮 **Gamification v2** | spec | 5 phases | spec prête |
-| **TOTAL** | **49** | **73** | **40%** |
-| **Chemin critique (P0+P1)** | **44** | **5** | **90%** |
+| **TOTAL** | **58** | **64** | **48%** |
+| **Chemin critique (P0+P1)** | **47** | **2** | **96%** |
 
-> **Accomplissements récents (8-10 avril) :** Inscription simplifiée 8→1 écran, Business Hub redesign 8→4 onglets, Stripe dual-mode (test/live), Factures hebdo/bimensuelles avec wizard 4 étapes + sélection client, i18n complète 7 langues, Rebranding emails SwiftApp→Cobbr, SMTP fix
+> **Accomplissements récents (8-16 avril) :** Inscription simplifiée 8→1 écran, Business Hub redesign 8→4 onglets, Stripe dual-mode (test/live), Factures hebdo/bimensuelles avec wizard 4 étapes + sélection client, i18n complète 7 langues, Rebranding emails SwiftApp→Cobbr, SMTP fix, **Module Stockage complet** (6 tables, 22+ endpoints, 6 écrans, billing cron), **Stripe onboarding live FR** (person tokens client-side, document upload 2-phase), **Web dashboard fixes** (API routes, Stripe status gate), CI/CD fixes (TypeScript + lint + E2E), **Employee Dashboard** (#29/30/31: stats+heures+historique), **Carousel photos** (#32: PhotoViewModal déjà en place), **Notes internes job** (#33: JobNotesSection + backend + i18n)
+
+### Essentiels validés (21 avril 2026)
+
+- Notifications push extra personnalisées: priorité produit maintenue (segmentations + préférences fines + validation device réelle).
+- Accès par formule + paywall non intrusif: clarifier ce qui est inclus selon le plan, avec un stop simple et un CTA upgrade propre.
 
 ---
 
@@ -154,8 +159,8 @@
 
 | # | Tâche | Scope | Notes |
 |---|-------|-------|-------|
-| 1 | Créer Products/Prices dans Stripe Dashboard live et renseigner `stripe_price_id` en DB | 👤 | Actuellement NULL pour tous les plans. SQL: `UPDATE plans SET stripe_price_id='price_xxx' WHERE id='pro'` etc. |
-| 2 | Effectuer un paiement réel de test en production | 👤 | Valider le flow complet avant go-live |
+| ~~1~~ | ~~Créer Products/Prices dans Stripe Dashboard live et renseigner `stripe_price_id` en DB~~ | 👤 | ✅ Vérifié en prod: seuls les plans payants nécessitent Stripe (`pro`, `expert`) et ils sont configurés. `free`/`unlimited` restent volontairement sans `stripe_price_id` (non facturés). |
+| ~~2~~ | ~~Effectuer un paiement réel de test en production~~ | 👤 | ✅ Flow paiement réel validé en production |
 
 ### 🟠 P1 — Nécessaire avant monétisation (juin 2026)
 
@@ -169,7 +174,7 @@
 | ~~8~~ | ~~Suivi facturation inter-prestataires~~ | ~~[C][S]~~ | ✅ billing_status/invoiced_at/paid_at/payment_due_date sur job_transfers + endpoint GET/PATCH /v1/billing/inter-contractor + InterContractorBillingScreen (onglet Facturation dans Business) |
 | ~~9~~ | ~~Facture mensuelle auto pour le contractor~~ | ~~[S]~~ | ✅ monthly_invoices + monthly_invoice_items tables, CRUD endpoints (generate/list/detail/update/send), cron job (1er du mois 02:00), email HTML brandé, MonthlyInvoicesScreen dans Finances > Factures |
 | ~~10~~ | ~~Revoir les mails de facturation~~ | ~~[S]~~ | ✅ Rebranding SwiftApp→Cobbr dans mailSender.js, centralisation emails (forgotPassword, monthlyInvoices, cron), ajout invoiceNotificationMail brandé (logo+couleurs) + invoiceDetailMail avec tableau détaillé, plain text fallback, redirection test emails |
-| 11 | Valider commission (application_fee_amount) en production | 👤 | Test réel nécessaire |
+| ~~11~~ | ~~Valider commission (application_fee_amount) en production~~ | 👤 | ✅ Vérifié en prod (stripe_transactions): paiement `succeeded` avec `application_fee_amount > 0` et `net_amount` cohérent |
 | 12 | Tester Apple Pay / Google Pay via PaymentSheet | 👤 | Devices réels iOS + Android |
 | 13 | Valider flow complet PaymentSheet sur iOS et Android | 👤 | End-to-end test |
 | ~~14~~ | ~~Auto-complétion ABN via API gouvernement australien~~ | ~~[C][S]~~ | ✅ ABN Lookup API (abr.business.gov.au) → remplissage auto dans CompleteProfileScreen (nom, adresse, type, GST). Déclenchement à 11 chiffres, debounce 500ms. |
@@ -184,7 +189,7 @@
 | 16 | ~~Notification quand job accepté/refusé par partenaire~~ | ✅ acceptJob + declineJob patched |
 | 17 | ~~Notification pour contre-propositions B2B~~ | ✅ accept/reject/counterProposal patched |
 | 18 | ~~Récapitulatif quotidien des jobs du jour~~ | ✅ dailyRecapCron.js (07h00) |
-| 19 | Améliorer wizard demande de notifications | 🔜 Frontend UX — P2 restant |
+| ~~19~~ | ~~Améliorer wizard demande de notifications~~ | ✅ Home: modal clair au premier lancement (Activer / Plus tard), demande permission native, mémorisation du choix local pour éviter la répétition. |
 | 20 | ~~Popup/notification avant chaque étape du job~~ | ✅ start/pause/resume notifyJobStatusChange |
 | 21 | Tester device token iOS physique | 👤 |
 | 22 | Tester device token Android physique | 👤 |
@@ -203,17 +208,17 @@
 
 | # | Tâche | Notes |
 |---|-------|-------|
-| 28 | Changement photo de profil (galerie + caméra) | ImagePicker |
-| 29 | Historique jobs réalisés par employé | Dashboard employé |
-| 30 | Statistiques personnelles (jobs, heures, XP) | Dashboard stats |
-| 31 | Écran employé — dashboard heures/semaine + plage de dates | Accessible depuis profil |
+| ~~28~~ | ~~Avatar de profil (avatars prédéfinis uniquement)~~ | ✅ Simplification produit: suppression caméra/galerie/photo custom. Sélection d'avatar mascotte uniquement pour réduire la complexité UX et les erreurs upload. |
+| ~~29~~ | ~~Historique jobs réalisés par employé~~ | ✅ EmployeeDashboardScreen + endpoint GET /v1/employee/dashboard |
+| ~~30~~ | ~~Statistiques personnelles (jobs, heures, XP)~~ | ✅ Stats cards (totalJobs/completedJobs/totalHours/totalXp) dans EmployeeDashboardScreen |
+| ~~31~~ | ~~Écran employé — dashboard heures/semaine + plage de dates~~ | ✅ Sélecteur 7/14/30j + barre horizontale par jour + accessible depuis profil (CTA "Mon tableau de bord") |
 
 #### Job Details [C][S]
 
 | # | Tâche | Notes |
 |---|-------|-------|
-| 32 | Carousel photos plein écran (swipe) | React Native Carousel |
-| 33 | Notes/commentaires internes sur un job | Communication équipe |
+| ~~32~~ | ~~Carousel photos plein écran (swipe)~~ | ✅ PhotoViewModal dans JobPhotosSection (ScrollView horizontal + double-tap zoom + nav prev/next + counter) |
+| ~~33~~ | ~~Notes/commentaires internes sur un job~~ | ✅ JobNotesSection (collapsible) + useJobNotes hook + jobNotes backend + i18n |
 | 34 | Historique modifications job (audit trail) | Log des changements |
 | 35 | Pièces jointes (documents, devis, contrats) | Upload fichiers |
 | 36 | Classifier jobs par niveau de difficulté | Tags/badges |
@@ -230,7 +235,7 @@
 | 42 | Système de compétences/qualifications | Tags/badges par employé |
 | 43 | Affectation auto suggérée (dispo + proximité) | Algorithme suggestion |
 | 44 | Quota d'heures max/semaine par travailleur | Tracking cumulé |
-| 45 | Page clients — liste des clients (patron only) | CRM basique |
+| ~~45~~ | ~~Page clients — liste des clients (patron only)~~ | ✅ ClientsScreen (sub-tab Resources) + backend CRUD + i18n |
 | 46 | Parrainage récompensé (code invite / lien) | Invite → reward |
 
 #### Véhicules [C][S]
@@ -268,7 +273,7 @@
 | 65 | Calcul itinéraire optimisé entre jobs | [C] | |
 | 66 | Tracking GPS flotte temps réel (opt-in) | [C][S] | |
 | 67 | Numérotation cartons (packing) | [C][S] | |
-| 68 | Page stockage (inventaire, logs entrée/sortie) | [C][S] | |
+| 68 | ~~Page stockage (inventaire, logs entrée/sortie)~~ | ~~[C][S]~~ | ✅ Module complet: 6 tables SQL, 22+ endpoints, 6 écrans, billing cron quotidien, intégration Job↔Storage bidirectionnelle |
 | 69 | Suivi paiements + relance auto impayés | [S] | |
 | 70 | Dashboard revenus (jour/semaine/mois) | [C][S] | |
 | 71 | Export CSV/PDF rapports | [S] | |
@@ -347,16 +352,8 @@ Le système gamification v2 est spécifié mais pas encore implémenté. Il comp
 
 **Par quoi commencer (dans l'ordre) :**
 
-1. **🔴 P0 — Clés Stripe live + test paiement réel** → Romain doit configurer les clés live dans le dashboard Stripe et tester un paiement réel. C'est le seul bloqueur pour la production.
+1. **🟠 P1 — Décider le modèle plan (paiement après Stripe activé vs free trial)** → Décision produit pour verrouiller le funnel monétisation.
 
-2. **🟠 P1 — Plan selection backend** → Endpoint pour stocker planType + commissionRate quand l'utilisateur choisit son plan. Petit effort, gros impact (monétisation).
+2. **🟠 P1 — Tester Apple Pay / Google Pay + flow PaymentSheet complet (iOS/Android)** → Validation device réelle finale avant scale.
 
-3. **🟠 P1 — Personnalisation thème/couleurs** → Couleur primaire par entreprise. Donne un sentiment "pro" important pour les clients B2B payants.
-
-4. **🟠 P1 — Branding factures** → Logo + couleurs sur les invoices/liens de paiement. Différenciateur Pro vs Free.
-
-5. **🟠 P1 — Facture mensuelle contractor** → Récapitulatif auto des jobs réalisés. Nécessaire pour la relation B2B.
-
-6. **✅ P2 — Notifications push** → pushHelper.js centralisé, 8 endpoints patchés (push+DB), dailyRecapCron, notifyJobStatusChange (start/pause/resume). Reste: wizard UX (item 19).
-
-7. **🎮 Gamification v2 Phase 1** → Fondation du nouveau système (tables, events). Prépare le terrain pour les phases suivantes.
+3. **🟡 P2 — Valider les notifications sur devices physiques (token + routing fg/bg/fermée)** → Clore la partie fiabilité notifications.

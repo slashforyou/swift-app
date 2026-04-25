@@ -80,7 +80,14 @@
           "photosPermission": "L'app accède à vos photos pour les joindre aux jobs.",
           "cameraPermission": "L'app utilise la caméra pour prendre des photos de jobs."
         }
-      ]
+      ],
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "L'app accède à vos contacts pour vous aider à ajouter votre équipe plus rapidement."
+        }
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "owner": "slash4u",
     "updates": {
