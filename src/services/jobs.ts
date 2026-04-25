@@ -165,6 +165,16 @@ export interface UpdateJobRequest {
   payment_details?: string;
   transaction_id?: string;
   currency?: string;
+  // Deposit / acompte
+  deposit_required?: boolean;
+  deposit_percentage?: number;
+  deposit_amount?: number;
+  deposit_paid?: boolean;
+  deposit_status?: "none" | "link_sent" | "pending" | "paid";
+  deposit_payment_link_url?: string;
+  deposit_payment_link_id?: string;
+  // Additional billing items (JSON array serialized)
+  additional_items?: string;
 }
 
 // Fonction helper pour faire des appels API avec retry automatique

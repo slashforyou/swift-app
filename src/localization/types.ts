@@ -203,6 +203,8 @@ export interface TranslationKeys {
     onboarding: {
       title: string;
       completed: string;
+      doneLabel?: string;
+      leftLabel?: string;
       completeProfile: string;
       createFirstJob: string;
       inviteTeam: string;
@@ -210,6 +212,14 @@ export interface TranslationKeys {
       planSuggestionTitle?: string;
       planSuggestionMessage?: string;
       planSuggestionCta?: string;
+    };
+    notificationsPrompt?: {
+      title?: string;
+      message?: string;
+      enable?: string;
+      later?: string;
+      permissionDeniedTitle?: string;
+      permissionDeniedMessage?: string;
     };
     stripeAlert: {
       title: string;
@@ -349,6 +359,9 @@ export interface TranslationKeys {
       addTravel: string;
       addStorage: string;
       addLoading: string;
+      templates?: Record<string, { name: string; description: string }>;
+      billingModes?: Record<string, string>;
+      segmentLabels?: Record<string, string>;
     };
     awaitingContractorResponse?: string;
     awaitingContractorMessage?: string;
@@ -646,7 +659,13 @@ export interface TranslationKeys {
     };
     photo: {
       title: string;
-      uploadComingSoon: string;
+      takePhoto: string;
+      gallery: string;
+      uploading: string;
+      removePhoto: string;
+      chooseSource: string;
+      uploadSuccess: string;
+      uploadError: string;
     };
     placeholders: {
       firstName: string;
@@ -900,6 +919,32 @@ export interface TranslationKeys {
         descriptionRequired: string;
         validAmountRequired: string;
       };
+      // Deposit / acompte section
+      deposit?: {
+        title?: string;
+        amountLabel?: string;
+        amountPlaceholder?: string;
+        createLink?: string;
+        creating?: string;
+        copyLink?: string;
+        shareLink?: string;
+        deactivateLink?: string;
+        statusNone?: string;
+        statusSent?: string;
+        statusPending?: string;
+        statusPaid?: string;
+        lastChecked?: string;
+        refresh?: string;
+        depositOf?: string;
+        remainingBalance?: string;
+        linkActive?: string;
+        invalidAmount?: string;
+        copied?: string;
+        copiedMessage?: string;
+        deactivateConfirm?: string;
+        deactivateConfirmMessage?: string;
+        deactivateAction?: string;
+      };
       // Job details section
       jobDetailsSection: {
         title: string;
@@ -1088,6 +1133,22 @@ export interface TranslationKeys {
           hoursAgo: string;
           daysAgo: string;
         };
+      };
+      notes: {
+        title: string;
+        placeholder: string;
+        send: string;
+        noNotes: string;
+        noNotesSubtitle: string;
+        deleteTitle: string;
+        deleteConfirm: string;
+        delete: string;
+        cancel: string;
+        error: string;
+        success: string;
+        addError: string;
+        deleteError: string;
+        emptyContent: string;
       };
       jobClock: {
         jobInProgress: string;
@@ -1425,6 +1486,45 @@ export interface TranslationKeys {
     actionsRequired: string;
     search: {
       resources: string;
+    };
+    clients: {
+      title: string;
+      subtitle: string;
+      search: string;
+      add: string;
+      edit: string;
+      delete: string;
+      cancel: string;
+      save: string;
+      noClients: string;
+      noClientsSubtitle: string;
+      noSearchResults: string;
+      tabActive: string;
+      tabInactive: string;
+      noActiveClients: string;
+      noInactiveClients: string;
+      firstName: string;
+      lastName: string;
+      email: string;
+      phone: string;
+      company: string;
+      notes: string;
+      jobs: string;
+      jobsCount: string;
+      lastJob: string;
+      never: string;
+      deleteTitle: string;
+      deleteConfirm: string;
+      addTitle: string;
+      editTitle: string;
+      addError: string;
+      updateError: string;
+      deleteError: string;
+      loadError: string;
+      success: string;
+      added: string;
+      updated: string;
+      deleted: string;
     };
     stripe: {
       setupTitle: string;
@@ -2616,6 +2716,12 @@ export interface TranslationKeys {
           feature3: string;
         };
       };
+      // Import phone contacts shortcut (shown on the type step)
+      importContacts?: {
+        title: string;
+        subtitle: string;
+        comingSoon: string;
+      };
       // Step: Employee form
       employeeForm: {
         title: string;
@@ -2662,6 +2768,16 @@ export interface TranslationKeys {
         infoText: string;
         submit: string;
         submitting: string;
+        shareLink: {
+          title: string;
+          subtitle: string;
+          copy: string;
+          share: string;
+          copiedTitle: string;
+          copiedMessage: string;
+          shareTitle: string;
+          shareMessage: string;
+        };
       };
     };
     editStaff: {
@@ -3483,6 +3599,40 @@ export interface TranslationKeys {
     availability?: string;
     errorRate?: string;
     apiErrors?: string;
+    paywallFunnelTitle?: string;
+    paywallLocksClicked?: string;
+    paywallLocksSubtitle?: string;
+    paywallUpgradeCta?: string;
+    paywallUpgradeSubtitle?: string;
+    paywallConversion?: string;
+    paywallConversionSubtitle?: string;
+    paywallBreakdownTitle?: string;
+  };
+
+  employeeDashboard?: {
+    title?: string;
+    statsTitle?: string;
+    totalJobs?: string;
+    completedJobs?: string;
+    totalHours?: string;
+    totalXp?: string;
+    jobHistoryTitle?: string;
+    noJobs?: string;
+    hoursTitle?: string;
+    hoursRange?: string;
+    hoursEmpty?: string;
+    loadMore?: string;
+    jobStatus?: {
+      completed?: string;
+      in_progress?: string;
+      pending?: string;
+      cancelled?: string;
+    };
+    duration?: string;
+    client?: string;
+    date?: string;
+    loading?: string;
+    error?: string;
   };
 
   // Payments Dashboard
@@ -3548,8 +3698,16 @@ export interface TranslationKeys {
   subscription?: {
     title?: string;
     currentPlan?: string;
+    currentBadge?: string;
     yourUsage?: string;
     allPlans?: string;
+    quickCompareTitle?: string;
+    featureColumn?: string;
+    planAccessTitle?: string;
+    availableFromPlan?: string;
+    fromPlanShort?: string;
+    unlockCta?: string;
+    includedBadge?: string;
     unlimited?: string;
     free?: string;
     users?: string;
@@ -3710,6 +3868,106 @@ export interface TranslationKeys {
         a5?: string;
       };
     };
+  };
+
+  // Onboarding Tour - 15-step guided tour for new patrons
+  onboardingTour: {
+    // Step 1: Welcome modal
+    congratsTitle: string;
+    congratsSubtitle: string;
+    welcomeTitle: string;
+    welcomeSubtitle: string;
+    welcomeDescription: string;
+    welcomeCta: string;
+    welcomeSkip: string;
+    // Step 2: Home – go to Calendar
+    step2Title: string;
+    step2Description: string;
+    // Step 3: Calendar – select a day
+    step3Title: string;
+    step3Description: string;
+    // Step 4: Day view – tap + to create a job
+    step4Title: string;
+    step4Description: string;
+    // Step 5: Wizard – client
+    step5Title: string;
+    step5Description: string;
+    // Step 6: Wizard – job type / organization
+    step6Title: string;
+    step6Description: string;
+    // Step 7: Wizard – addresses (after template selected)
+    step7Title: string;
+    step7Description: string;
+    // Step 8: Wizard – schedule (date/time)
+    step8Title: string;
+    step8Description: string;
+    // Step 9: Wizard – details (priority + notes)
+    step9Title: string;
+    step9Description: string;
+    // Step 10: Wizard – pricing
+    step10Title: string;
+    step10Description: string;
+    // Step 11: Wizard – confirmation / job created
+    step11Title: string;
+    step11Description: string;
+    // Step 12: Day view (2nd visit) – tap the new job
+    step12Title: string;
+    step12Description: string;
+    // Step 13: Job details – overview of the 5 tabs
+    step13Title: string;
+    step13Description: string;
+    // Step 14: Job details – QuickActionsSection
+    step14Title: string;
+    step14Description: string;
+    // Step 15: Job details – JobTimerDisplay
+    step15Title: string;
+    step15Description: string;
+    // Step 16: Job details – StaffingSection
+    step16Title: string;
+    step16Description: string;
+    // Step 17: Job details – "job" tab
+    step17Title: string;
+    step17Description: string;
+    // Step 18: Job details – "notes" tab
+    step18Title: string;
+    step18Description: string;
+    // Step 19: Job details – "payment" tab
+    step19Title: string;
+    step19Description: string;
+    // Step 20 (ex-13): Job details – assign vehicle/staff (pass-through)
+    step20Title: string;
+    step20Description: string;
+    // Step 21 (ex-14): Assign resource modal – Worker tab
+    step21Title: string;
+    step21Description: string;
+    // Step 22 (ex-15): Business > Staff – add partner/employee
+    step22Title: string;
+    step22Description: string;
+    // Step 23 (ex-16): Add staff wizard – choose employee (TFN) vs contractor (ABN)
+    step23Title: string;
+    step23Description: string;
+    // Step 24 (ex-17): Congrats – job fully configured
+    step24Title: string;
+    step24Description: string;
+    // Step 25 (ex-18): Stripe CTA
+    step25Title: string;
+    step25Description: string;
+    step25Cta: string;
+    // Step 26 (ex-19): Resources page – add team member
+    step26Title: string;
+    step26Description: string;
+    // Generic
+    stepOf: string;
+    nextStep: string;
+    understood: string;
+    skipTour: string;
+    skipConfirmTitle: string;
+    skipConfirmMessage: string;
+    skipConfirmYes: string;
+    skipConfirmNo: string;
+    closeBubble: string;
+    bubbleDismissed: string;
+    finishTour: string;
   };
 }
 
