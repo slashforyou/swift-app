@@ -11,20 +11,21 @@ import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Pressable, Text, View } from "react-native";
 import { DESIGN_TOKENS } from "../../../constants/Styles";
+import { useOnboardingTour } from "../../../context/OnboardingTourContext";
 import { useTheme } from "../../../context/ThemeProvider";
 import { useLocalization } from "../../../localization/useLocalization";
 import {
-  deleteAssignment,
-  listAssignments,
+    deleteAssignment,
+    listAssignments,
 } from "../../../services/jobAssignments";
 import { cancelTransfer } from "../../../services/jobTransfer";
 import type {
-  AssignmentStatus,
-  JobAssignment,
-  ListAssignmentsResponse,
-  StaffingStatus,
-  StaffResource,
-  VehicleResource,
+    AssignmentStatus,
+    JobAssignment,
+    ListAssignmentsResponse,
+    StaffingStatus,
+    StaffResource,
+    VehicleResource,
 } from "../../../types/jobAssignment";
 import type { JobTransfer } from "../../../types/jobTransfer";
 import AssignResourceModal from "../../modals/AssignResourceModal";
@@ -143,6 +144,7 @@ const StaffingSection: React.FC<StaffingSectionProps> = ({
 }) => {
   const { colors } = useTheme();
   const { t } = useLocalization();
+  const { currentStep: onboardingStep, advanceToStep } = useOnboardingTour();
 
   // Shortcut for the staffing namespace
   const ts = (key: string, params?: Record<string, string>) =>
@@ -151,6 +153,13 @@ const StaffingSection: React.FC<StaffingSectionProps> = ({
   const [data, setData] = useState<ListAssignmentsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+
+  const handleOpenAssignModal = useCallback(() => {
+    setShowModal(true);
+    if (onboardingStep === 20) {
+      advanceToStep(21 as any);
+    }
+  }, [onboardingStep, advanceToStep]);
 
   // The contractor is responsible for providing resources (staff + vehicle).
   // Their company name is shown on empty slots so both parties know who must fill them.
@@ -731,31 +740,7 @@ const StaffingSection: React.FC<StaffingSectionProps> = ({
             </Text>
           </View>
 
-          {/* Status badge */}
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              paddingHorizontal: 8,
-              paddingVertical: 4,
-              borderRadius: DESIGN_TOKENS.radius.full,
-              backgroundColor: statusColor + "18",
-              borderWidth: 1,
-              borderColor: statusColor + "40",
-            }}
-          >
-            <Ionicons name={statusIcon as any} size={12} color={statusColor} />
-            <Text
-              style={{
-                fontSize: 11,
-                fontWeight: "700",
-                color: statusColor,
-                marginLeft: 4,
-              }}
-            >
-              {statusLabel}
-            </Text>
-          </View>
+
         </View>
 
         {/* ── Contenu ── */}
@@ -838,31 +823,36 @@ const StaffingSection: React.FC<StaffingSectionProps> = ({
                 {canAssign && (
                   <Pressable
                     testID="job-staffing-assign-btn"
-                    onPress={() => setShowModal(true)}
+                    onPress={handleOpenAssignModal}
                     style={({ pressed }) => ({
                       flexDirection: "row",
                       alignItems: "center",
-                      paddingHorizontal: DESIGN_TOKENS.spacing.lg,
-                      paddingVertical: DESIGN_TOKENS.spacing.sm,
-                      borderRadius: DESIGN_TOKENS.radius.md,
+                      justifyContent: "center",
+                      paddingHorizontal: DESIGN_TOKENS.spacing.xl,
+                      paddingVertical: 14,
+                      borderRadius: DESIGN_TOKENS.radius.lg,
                       backgroundColor: pressed
-                        ? colors.primary + "30"
-                        : colors.primary + "18",
-                      borderWidth: 1,
-                      borderColor: colors.primary + "50",
+                        ? colors.primary + "CC"
+                        : colors.primary,
+                      shadowColor: colors.primary,
+                      shadowOffset: { width: 0, height: 4 },
+                      shadowOpacity: 0.35,
+                      shadowRadius: 8,
+                      elevation: 6,
+                      gap: 8,
                     })}
                   >
                     <Ionicons
-                      name="add-circle-outline"
-                      size={18}
-                      color={colors.primary}
+                      name="person-add-outline"
+                      size={20}
+                      color="#fff"
                     />
                     <Text
                       style={{
-                        fontSize: 14,
-                        fontWeight: "600",
-                        color: colors.primary,
-                        marginLeft: 6,
+                        fontSize: 15,
+                        fontWeight: "700",
+                        color: "#fff",
+                        letterSpacing: 0.2,
                       }}
                     >
                       {ts("assignResources")}
@@ -999,32 +989,36 @@ const StaffingSection: React.FC<StaffingSectionProps> = ({
               {canAssign && (
                 <Pressable
                   testID="job-staffing-manage-btn"
-                  onPress={() => setShowModal(true)}
+                  onPress={handleOpenAssignModal}
                   style={({ pressed }) => ({
                     flexDirection: "row",
                     alignItems: "center",
                     justifyContent: "center",
-                    marginTop: DESIGN_TOKENS.spacing.sm,
-                    paddingVertical: DESIGN_TOKENS.spacing.sm,
-                    borderRadius: DESIGN_TOKENS.radius.md,
+                    marginTop: DESIGN_TOKENS.spacing.md,
+                    paddingVertical: 13,
+                    borderRadius: DESIGN_TOKENS.radius.lg,
                     backgroundColor: pressed
-                      ? colors.primary + "20"
-                      : colors.primary + "10",
-                    borderWidth: 1,
-                    borderColor: colors.primary + "30",
+                      ? colors.primary + "CC"
+                      : colors.primary,
+                    shadowColor: colors.primary,
+                    shadowOffset: { width: 0, height: 3 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 6,
+                    elevation: 5,
+                    gap: 8,
                   })}
                 >
                   <Ionicons
-                    name="add-outline"
-                    size={16}
-                    color={colors.primary}
+                    name="person-add-outline"
+                    size={18}
+                    color="#fff"
                   />
                   <Text
                     style={{
-                      fontSize: 13,
-                      fontWeight: "600",
-                      color: colors.primary,
-                      marginLeft: 5,
+                      fontSize: 14,
+                      fontWeight: "700",
+                      color: "#fff",
+                      letterSpacing: 0.2,
                     }}
                   >
                     {ts("addResource")}

@@ -3,7 +3,9 @@
  * Permet d'ajouter un employé (TFN) ou un prestataire (ABN)
  */
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import * as Clipboard from "expo-clipboard";
+import * as Contacts from "expo-contacts";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
@@ -12,15 +14,23 @@ import {
     Platform,
     Pressable,
     ScrollView,
+    Share,
     StyleSheet,
     Text,
     TextInput,
     View,
 } from "react-native";
 import { DESIGN_TOKENS } from "../../constants/Styles";
+import { useOnboardingTarget } from "../../context/OnboardingSpotlightContext";
+import { useOnboardingTour } from "../../context/OnboardingTourContext";
 import { useTheme } from "../../context/ThemeProvider";
 import { useLocalization } from "../../localization/useLocalization";
+import {
+    CobbrUserMatch,
+    lookupUsersByPhones,
+} from "../../services/usersLookup";
 import { Contractor, InviteEmployeeData } from "../../types/staff";
+import { OnboardingTourOverlay } from "../onboarding/OnboardingTourOverlay";
 
 interface AddStaffModalProps {
   visible: boolean;
@@ -41,10 +51,19 @@ interface AddStaffModalProps {
 type StaffType = "employee" | "contractor";
 type Step =
   | "type"
+  | "contacts-import"
   | "employee-form"
   | "contractor-search"
   | "contractor-results"
   | "contractor-invite";
+
+interface ContactEntry {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+}
 
 export default function AddStaffModal({
   visible,
@@ -59,6 +78,27 @@ export default function AddStaffModal({
   const [step, setStep] = useState<Step>("type");
   const [staffType, setStaffType] = useState<StaffType>("employee");
   const [isLoading, setIsLoading] = useState(false);
+
+  // Onboarding: anchor the step-16 bubble on the employee-vs-contractor choice.
+  const typeChoiceTarget = useOnboardingTarget(23);
+  const {
+    currentStep: onboardingStep,
+    advanceToStep,
+    markStepSeen,
+  } = useOnboardingTour();
+
+  // When the modal opens while the user is on step 22 (from the assign-resource
+  // flow) OR step 26 (from the resources page), advance to step 23 so the
+  // "Employee or contractor?" bubble shows on the first screen.
+  useEffect(() => {
+    if (!visible) return;
+    if (onboardingStep === 22) {
+      advanceToStep(23);
+    } else if (onboardingStep === 26) {
+      markStepSeen(26);
+      advanceToStep(23);
+    }
+  }, [visible, onboardingStep, advanceToStep, markStepSeen]);
 
   // Formulaire employé
   const [employeeData, setEmployeeData] = useState<InviteEmployeeData>({
@@ -81,6 +121,126 @@ export default function AddStaffModal({
     firstName: "",
     lastName: "",
   });
+
+  // ── Import depuis les contacts du téléphone ──
+  const [contactsPermission, setContactsPermission] =
+    useState<Contacts.PermissionStatus | null>(null);
+  const [contactsList, setContactsList] = useState<ContactEntry[]>([]);
+  const [contactsSearch, setContactsSearch] = useState("");
+  const [contactsLoading, setContactsLoading] = useState(false);
+  // Map of normalized phone (last 9 digits) -> Cobbr user info
+  const [cobbrUsersByPhone, setCobbrUsersByPhone] = useState<
+    Record<string, CobbrUserMatch["user"]>
+  >({});
+
+  const loadContacts = useCallback(async () => {
+    setContactsLoading(true);
+    try {
+      const { data } = await Contacts.getContactsAsync({
+        fields: [
+          Contacts.Fields.FirstName,
+          Contacts.Fields.LastName,
+          Contacts.Fields.Emails,
+          Contacts.Fields.PhoneNumbers,
+        ],
+        sort: Contacts.SortTypes.FirstName,
+      });
+      const normalized: ContactEntry[] = data
+        .map((c) => ({
+          id: c.id ?? `${c.firstName ?? ""}-${c.lastName ?? ""}-${Math.random()}`,
+          firstName: c.firstName ?? "",
+          lastName: c.lastName ?? "",
+          email: c.emails?.[0]?.email ?? "",
+          phone: c.phoneNumbers?.[0]?.number ?? "",
+        }))
+        .filter((c) => (c.firstName || c.lastName) && (c.email || c.phone));
+      setContactsList(normalized);
+
+      // Identify which contacts are already Cobbr users (by phone match).
+      const phones = normalized.map((c) => c.phone).filter(Boolean);
+      if (phones.length > 0) {
+        const matches = await lookupUsersByPhones(phones);
+        const map: Record<string, CobbrUserMatch["user"]> = {};
+        for (const m of matches) {
+          const key = (m.phone || "").replace(/\D+/g, "").slice(-9);
+          if (key) map[key] = m.user;
+        }
+        setCobbrUsersByPhone(map);
+      }
+    } catch (e) {
+      Alert.alert(
+        t("staffModals.addStaff.validation.error"),
+        t("staffModals.addStaff.importContacts.loadError" as any),
+      );
+    } finally {
+      setContactsLoading(false);
+    }
+  }, [t]);
+
+  const phoneKey = useCallback((phone: string) => {
+    return (phone || "").replace(/\D+/g, "").slice(-9);
+  }, []);
+
+  const isCobbrUser = useCallback(
+    (c: ContactEntry) => !!cobbrUsersByPhone[phoneKey(c.phone)],
+    [cobbrUsersByPhone, phoneKey],
+  );
+
+  const handleOpenContactsImport = useCallback(async () => {
+    const current = await Contacts.getPermissionsAsync();
+    setContactsPermission(current.status);
+    setStep("contacts-import");
+    if (current.status === Contacts.PermissionStatus.GRANTED) {
+      loadContacts();
+    }
+  }, [loadContacts]);
+
+  const handleRequestContactsPermission = useCallback(async () => {
+    const { status } = await Contacts.requestPermissionsAsync();
+    setContactsPermission(status);
+    if (status === Contacts.PermissionStatus.GRANTED) {
+      loadContacts();
+    }
+  }, [loadContacts]);
+
+  // When the search box is empty, only Cobbr-registered contacts are shown.
+  // As soon as the user types something, we search through ALL device contacts.
+  const cobbrContacts = useMemo(
+    () => contactsList.filter(isCobbrUser),
+    [contactsList, isCobbrUser],
+  );
+
+  const filteredContacts = useMemo(() => {
+    const q = contactsSearch.trim().toLowerCase();
+    if (!q) return cobbrContacts;
+    return contactsList.filter((c) =>
+      `${c.firstName} ${c.lastName} ${c.email} ${c.phone}`
+        .toLowerCase()
+        .includes(q),
+    );
+  }, [cobbrContacts, contactsList, contactsSearch]);
+
+  const handleContactAddAsEmployee = (c: ContactEntry) => {
+    setEmployeeData((prev) => ({
+      ...prev,
+      firstName: c.firstName,
+      lastName: c.lastName,
+      email: c.email,
+      phone: c.phone,
+    }));
+    setStaffType("employee");
+    setStep("employee-form");
+  };
+
+  const handleContactInviteAsContractor = (c: ContactEntry) => {
+    setContractorInviteData({
+      firstName: c.firstName,
+      lastName: c.lastName,
+      email: c.email,
+    });
+    setStaffType("contractor");
+    setStep("contractor-invite");
+  };
 
   const resetModal = () => {
     setStep("type");
@@ -106,6 +266,11 @@ export default function AddStaffModal({
 
   const handleSelectType = (type: StaffType) => {
     setStaffType(type);
+    // Onboarding: the user answered the "Employee or contractor?" question.
+    // Mark step 23 (and beyond) done — the tour ends here.
+    markStepSeen(23);
+    markStepSeen(24);
+    markStepSeen(25);
     if (type === "employee") {
       setStep("employee-form");
     } else {
@@ -214,6 +379,67 @@ export default function AddStaffModal({
     setStep("contractor-invite");
   };
 
+  // ── Invite link (contractor only) ─────────────────────────────────────────
+  // Generates a unique token for the invitation link. The landing page on
+  // cobbr-app.com/invite/contractor/{token} doesn't exist yet — the backend
+  // will eventually accept the token to create the invite. For now we just
+  // produce a stable token per opening of the contractor-invite step so the
+  // user can share it. New token each time the user re-enters this step.
+  const [inviteToken, setInviteToken] = useState<string>("");
+  useEffect(() => {
+    if (step !== "contractor-invite") return;
+    if (inviteToken) return;
+    const ts = Date.now().toString(36);
+    const rand = Array.from({ length: 12 }, () =>
+      Math.floor(Math.random() * 36).toString(36),
+    ).join("");
+    setInviteToken(`${ts}-${rand}`);
+  }, [step, inviteToken]);
+  // Reset the token when leaving the contractor-invite step so the next open
+  // generates a fresh link.
+  useEffect(() => {
+    if (step !== "contractor-invite" && inviteToken) {
+      setInviteToken("");
+    }
+  }, [step, inviteToken]);
+
+  const inviteLink = useMemo(
+    () =>
+      inviteToken
+        ? `https://cobbr-app.com/invite/contractor/${inviteToken}`
+        : "",
+    [inviteToken],
+  );
+
+  const handleCopyInviteLink = async () => {
+    if (!inviteLink) return;
+    try {
+      await Clipboard.setStringAsync(inviteLink);
+      Alert.alert(
+        t("staffModals.addStaff.contractorInvite.shareLink.copiedTitle"),
+        t("staffModals.addStaff.contractorInvite.shareLink.copiedMessage"),
+      );
+    } catch {
+      // ignore — non-critical
+    }
+  };
+
+  const handleShareInviteLink = async () => {
+    if (!inviteLink) return;
+    try {
+      await Share.share({
+        message: t(
+          "staffModals.addStaff.contractorInvite.shareLink.shareMessage",
+          { url: inviteLink } as any,
+        ),
+        url: inviteLink,
+        title: t("staffModals.addStaff.contractorInvite.shareLink.shareTitle"),
+      });
+    } catch {
+      // user cancelled or platform error — silent
+    }
+  };
+
   const handleSendContractorInvite = async () => {
     if (!contractorInviteData.email) {
       Alert.alert(
@@ -271,7 +497,53 @@ export default function AddStaffModal({
         {t("staffModals.addStaff.typeStep.subtitle")}
       </Text>
 
-      <View style={styles.typeOptions}>
+      {/* Import from phone contacts — placed BEFORE the type options so users
+          can skip straight to picking someone from their address book. */}
+      <Pressable
+        testID="add-staff-import-contacts-btn"
+        onPress={handleOpenContactsImport}
+        style={({ pressed }) => [
+          styles.importContactsBtn,
+          {
+            backgroundColor: colors.primary + "10",
+            borderColor: colors.primary + "50",
+            opacity: pressed ? 0.7 : 1,
+            marginBottom: DESIGN_TOKENS.spacing.md,
+          },
+        ]}
+      >
+        <Ionicons
+          name="people-circle-outline"
+          size={22}
+          color={colors.primary}
+        />
+        <View style={{ flex: 1, marginLeft: DESIGN_TOKENS.spacing.sm }}>
+          <Text
+            style={[styles.importContactsTitle, { color: colors.primary }]}
+          >
+            {t("staffModals.addStaff.importContacts.title")}
+          </Text>
+          <Text
+            style={[
+              styles.importContactsSubtitle,
+              { color: colors.textSecondary },
+            ]}
+          >
+            {t("staffModals.addStaff.importContacts.subtitle")}
+          </Text>
+        </View>
+        <Ionicons
+          name="chevron-forward"
+          size={18}
+          color={colors.textSecondary}
+        />
+      </Pressable>
+
+      <View
+        style={styles.typeOptions}
+        ref={typeChoiceTarget.ref}
+        onLayout={typeChoiceTarget.onLayout}
+      >
         <Pressable
           testID="add-staff-type-employee-btn"
           style={[
@@ -394,6 +666,8 @@ export default function AddStaffModal({
           </View>
         </Pressable>
       </View>
+
+      {/* Import from phone contacts — helps detect which contacts are already on Cobbr */}
     </View>
   );
 
@@ -870,6 +1144,97 @@ export default function AddStaffModal({
         </Text>
       </View>
 
+      {/* Share invite link section */}
+      <View
+        style={[
+          styles.shareLinkBox,
+          {
+            backgroundColor: colors.backgroundSecondary,
+            borderColor: colors.border,
+          },
+        ]}
+      >
+        <View style={styles.shareLinkHeader}>
+          <Ionicons name="link" size={20} color={colors.primary} />
+          <Text style={[styles.shareLinkTitle, { color: colors.text }]}>
+            {t("staffModals.addStaff.contractorInvite.shareLink.title")}
+          </Text>
+        </View>
+        <Text
+          style={[
+            styles.shareLinkSubtitle,
+            { color: colors.textSecondary },
+          ]}
+        >
+          {t("staffModals.addStaff.contractorInvite.shareLink.subtitle")}
+        </Text>
+        <View
+          style={[
+            styles.shareLinkPreview,
+            {
+              backgroundColor: colors.background,
+              borderColor: colors.border,
+            },
+          ]}
+        >
+          <Text
+            style={[styles.shareLinkUrl, { color: colors.textSecondary }]}
+            numberOfLines={1}
+            ellipsizeMode="middle"
+          >
+            {inviteLink}
+          </Text>
+        </View>
+        <View style={styles.shareLinkActions}>
+          <Pressable
+            onPress={handleCopyInviteLink}
+            style={[
+              styles.shareLinkBtn,
+              {
+                borderColor: colors.primary + "55",
+                backgroundColor: colors.primary + "10",
+              },
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={t(
+              "staffModals.addStaff.contractorInvite.shareLink.copy",
+            )}
+          >
+            <Ionicons name="copy-outline" size={18} color={colors.primary} />
+            <Text
+              style={[styles.shareLinkBtnText, { color: colors.primary }]}
+            >
+              {t("staffModals.addStaff.contractorInvite.shareLink.copy")}
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={handleShareInviteLink}
+            style={[
+              styles.shareLinkBtn,
+              { backgroundColor: colors.primary },
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={t(
+              "staffModals.addStaff.contractorInvite.shareLink.share",
+            )}
+          >
+            <Ionicons
+              name="share-social-outline"
+              size={18}
+              color={colors.background}
+            />
+            <Text
+              style={[
+                styles.shareLinkBtnText,
+                { color: colors.background },
+              ]}
+            >
+              {t("staffModals.addStaff.contractorInvite.shareLink.share")}
+            </Text>
+          </Pressable>
+        </View>
+      </View>
+
       <Pressable
         style={[
           styles.submitButton,
@@ -894,6 +1259,283 @@ export default function AddStaffModal({
       </Pressable>
     </View>
   );
+
+  const renderContactsImport = () => {
+    const granted =
+      contactsPermission === Contacts.PermissionStatus.GRANTED;
+    const denied = contactsPermission === Contacts.PermissionStatus.DENIED;
+    return (
+      <View style={styles.stepContainer}>
+        <Pressable style={styles.backButton} onPress={() => setStep("type")}>
+          <Ionicons name="arrow-back" size={24} color={colors.text} />
+          <Text style={[styles.backButtonText, { color: colors.text }]}>
+            {t("staffModals.addStaff.back")}
+          </Text>
+        </Pressable>
+
+        <Text style={[styles.stepTitle, { color: colors.text }]}>
+          {t("staffModals.addStaff.importContacts.title")}
+        </Text>
+        <Text style={[styles.stepSubtitle, { color: colors.textSecondary }]}>
+          {t("staffModals.addStaff.importContacts.subtitle")}
+        </Text>
+
+        {!granted && (
+          <View
+            style={{
+              padding: DESIGN_TOKENS.spacing.md,
+              borderRadius: DESIGN_TOKENS.radius.md,
+              backgroundColor: colors.backgroundSecondary,
+              marginTop: DESIGN_TOKENS.spacing.md,
+              alignItems: "center",
+            }}
+          >
+            <Ionicons
+              name="lock-closed-outline"
+              size={32}
+              color={colors.textSecondary}
+            />
+            <Text
+              style={{
+                color: colors.text,
+                marginTop: DESIGN_TOKENS.spacing.sm,
+                textAlign: "center",
+                fontWeight: "600",
+              }}
+            >
+              {t("staffModals.addStaff.importContacts.permissionTitle" as any)}
+            </Text>
+            <Text
+              style={{
+                color: colors.textSecondary,
+                marginTop: 4,
+                textAlign: "center",
+                fontSize: 13,
+              }}
+            >
+              {denied
+                ? t(
+                    "staffModals.addStaff.importContacts.permissionDenied" as any,
+                  )
+                : t(
+                    "staffModals.addStaff.importContacts.permissionExplain" as any,
+                  )}
+            </Text>
+            <Pressable
+              onPress={handleRequestContactsPermission}
+              style={({ pressed }) => ({
+                marginTop: DESIGN_TOKENS.spacing.md,
+                paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+                paddingVertical: DESIGN_TOKENS.spacing.sm,
+                borderRadius: DESIGN_TOKENS.radius.md,
+                backgroundColor: pressed
+                  ? colors.primary + "CC"
+                  : colors.primary,
+              })}
+            >
+              <Text
+                style={{ color: colors.background, fontWeight: "700" }}
+              >
+                {t("staffModals.addStaff.importContacts.allow" as any)}
+              </Text>
+            </Pressable>
+          </View>
+        )}
+
+        {granted && (
+          <>
+            <TextInput
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.backgroundSecondary,
+                  color: colors.text,
+                  borderColor: colors.border,
+                  marginTop: DESIGN_TOKENS.spacing.md,
+                },
+              ]}
+              value={contactsSearch}
+              onChangeText={setContactsSearch}
+              placeholder={t(
+                "staffModals.addStaff.importContacts.searchPlaceholder" as any,
+              )}
+              placeholderTextColor={colors.textSecondary}
+              autoCapitalize="none"
+            />
+
+            <Text
+              style={{
+                color: colors.textSecondary,
+                fontSize: 12,
+                fontWeight: "600",
+                marginTop: DESIGN_TOKENS.spacing.md,
+                textTransform: "uppercase",
+                letterSpacing: 0.5,
+              }}
+            >
+              {contactsSearch
+                ? t(
+                    "staffModals.addStaff.importContacts.searchResultsLabel" as any,
+                  )
+                : t(
+                    "staffModals.addStaff.importContacts.cobbrUsersLabel" as any,
+                  )}
+            </Text>
+
+            {contactsLoading ? (
+              <ActivityIndicator
+                style={{ marginTop: DESIGN_TOKENS.spacing.lg }}
+                color={colors.primary}
+              />
+            ) : filteredContacts.length === 0 ? (
+              <Text
+                style={{
+                  color: colors.textSecondary,
+                  textAlign: "center",
+                  marginTop: DESIGN_TOKENS.spacing.lg,
+                }}
+              >
+                {contactsSearch
+                  ? t(
+                      "staffModals.addStaff.importContacts.noResults" as any,
+                    )
+                  : t(
+                      "staffModals.addStaff.importContacts.noCobbrUsersHint" as any,
+                    )}
+              </Text>
+            ) : (
+              filteredContacts.slice(0, 50).map((c) => (
+                <View
+                  key={c.id}
+                  style={{
+                    padding: DESIGN_TOKENS.spacing.md,
+                    borderRadius: DESIGN_TOKENS.radius.md,
+                    backgroundColor: colors.backgroundSecondary,
+                    marginTop: DESIGN_TOKENS.spacing.sm,
+                  }}
+                >
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      flexWrap: "wrap",
+                      gap: DESIGN_TOKENS.spacing.xs,
+                    }}
+                  >
+                    <Text style={{ color: colors.text, fontWeight: "600" }}>
+                      {`${c.firstName} ${c.lastName}`.trim() ||
+                        c.email ||
+                        c.phone}
+                    </Text>
+                    {isCobbrUser(c) && (
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          paddingHorizontal: 6,
+                          paddingVertical: 2,
+                          borderRadius: 999,
+                          backgroundColor: colors.success + "22",
+                        }}
+                      >
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={12}
+                          color={colors.success}
+                        />
+                        <Text
+                          style={{
+                            color: colors.success,
+                            fontSize: 10,
+                            fontWeight: "700",
+                            marginLeft: 3,
+                          }}
+                        >
+                          {t(
+                            "staffModals.addStaff.importContacts.onCobbrBadge" as any,
+                          )}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                  {!!c.email && (
+                    <Text
+                      style={{ color: colors.textSecondary, fontSize: 12 }}
+                    >
+                      {c.email}
+                    </Text>
+                  )}
+                  {!!c.phone && (
+                    <Text
+                      style={{ color: colors.textSecondary, fontSize: 12 }}
+                    >
+                      {c.phone}
+                    </Text>
+                  )}
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      marginTop: DESIGN_TOKENS.spacing.sm,
+                      gap: DESIGN_TOKENS.spacing.sm,
+                    }}
+                  >
+                    <Pressable
+                      onPress={() => handleContactAddAsEmployee(c)}
+                      style={({ pressed }) => ({
+                        flex: 1,
+                        paddingVertical: DESIGN_TOKENS.spacing.sm,
+                        borderRadius: DESIGN_TOKENS.radius.md,
+                        backgroundColor: pressed
+                          ? colors.success + "CC"
+                          : colors.success,
+                        alignItems: "center",
+                      })}
+                    >
+                      <Text
+                        style={{
+                          color: colors.background,
+                          fontWeight: "600",
+                          fontSize: 12,
+                        }}
+                      >
+                        {t(
+                          "staffModals.addStaff.importContacts.addAsEmployee" as any,
+                        )}
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => handleContactInviteAsContractor(c)}
+                      style={({ pressed }) => ({
+                        flex: 1,
+                        paddingVertical: DESIGN_TOKENS.spacing.sm,
+                        borderRadius: DESIGN_TOKENS.radius.md,
+                        backgroundColor: pressed
+                          ? colors.info + "CC"
+                          : colors.info,
+                        alignItems: "center",
+                      })}
+                    >
+                      <Text
+                        style={{
+                          color: colors.background,
+                          fontWeight: "600",
+                          fontSize: 12,
+                        }}
+                      >
+                        {t(
+                          "staffModals.addStaff.importContacts.inviteAsContractor" as any,
+                        )}
+                      </Text>
+                    </Pressable>
+                  </View>
+                </View>
+              ))
+            )}
+          </>
+        )}
+      </View>
+    );
+  };
 
   return (
     <Modal
@@ -920,11 +1562,14 @@ export default function AddStaffModal({
 
         <ScrollView style={styles.modalContent}>
           {step === "type" && renderStepType()}
+          {step === "contacts-import" && renderContactsImport()}
           {step === "employee-form" && renderEmployeeForm()}
           {step === "contractor-search" && renderContractorSearch()}
           {step === "contractor-results" && renderContractorResults()}
           {step === "contractor-invite" && renderContractorInvite()}
         </ScrollView>
+        {/* Onboarding tour overlay — bubbles need to render above this Modal */}
+        <OnboardingTourOverlay />
       </KeyboardAvoidingView>
     </Modal>
   );
@@ -965,6 +1610,22 @@ const styles = StyleSheet.create({
   },
   typeOptions: {
     gap: DESIGN_TOKENS.spacing.md,
+  },
+  importContactsBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: DESIGN_TOKENS.spacing.md,
+    borderRadius: DESIGN_TOKENS.radius.md,
+    borderWidth: 1,
+    marginTop: DESIGN_TOKENS.spacing.lg,
+  },
+  importContactsTitle: {
+    fontSize: 15,
+    fontWeight: "600",
+    marginBottom: 2,
+  },
+  importContactsSubtitle: {
+    fontSize: 12,
   },
   typeOption: {
     padding: DESIGN_TOKENS.spacing.lg,
@@ -1148,5 +1809,56 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     lineHeight: 20,
+  },
+  shareLinkBox: {
+    padding: DESIGN_TOKENS.spacing.md,
+    borderRadius: DESIGN_TOKENS.radius.md,
+    borderWidth: 1,
+    marginBottom: DESIGN_TOKENS.spacing.lg,
+    gap: DESIGN_TOKENS.spacing.sm,
+  },
+  shareLinkHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: DESIGN_TOKENS.spacing.xs,
+  },
+  shareLinkTitle: {
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  shareLinkSubtitle: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  shareLinkPreview: {
+    paddingVertical: DESIGN_TOKENS.spacing.sm,
+    paddingHorizontal: DESIGN_TOKENS.spacing.md,
+    borderRadius: DESIGN_TOKENS.radius.sm,
+    borderWidth: 1,
+  },
+  shareLinkUrl: {
+    fontSize: 12,
+    fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
+  },
+  shareLinkActions: {
+    flexDirection: "row",
+    gap: DESIGN_TOKENS.spacing.sm,
+    marginTop: DESIGN_TOKENS.spacing.xs,
+  },
+  shareLinkBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: DESIGN_TOKENS.spacing.sm,
+    paddingHorizontal: DESIGN_TOKENS.spacing.md,
+    borderRadius: DESIGN_TOKENS.radius.md,
+    borderWidth: 1,
+    borderColor: "transparent",
+    gap: DESIGN_TOKENS.spacing.xs,
+  },
+  shareLinkBtnText: {
+    fontSize: 14,
+    fontWeight: "600",
   },
 });

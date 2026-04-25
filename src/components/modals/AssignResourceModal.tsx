@@ -25,6 +25,8 @@ import {
     View,
 } from "react-native";
 import { DESIGN_TOKENS } from "../../constants/Styles";
+import { useOnboardingTarget } from "../../context/OnboardingSpotlightContext";
+import { useOnboardingTour } from "../../context/OnboardingTourContext";
 import { useTheme } from "../../context/ThemeProvider";
 import { useLocalization } from "../../localization/useLocalization";
 import {
@@ -37,6 +39,8 @@ import type {
     AvailableStaff,
     AvailableVehicle,
 } from "../../types/jobAssignment";
+import { OnboardingTourOverlay } from "../onboarding/OnboardingTourOverlay";
+import AddStaffModal from "./AddStaffModal";
 
 // ─────────────────────────────────────────────────────────────
 // Types
@@ -81,6 +85,15 @@ export default function AssignResourceModal({
 }: AssignResourceModalProps) {
   const { colors } = useTheme();
   const { t } = useLocalization();
+
+  // Onboarding target on the Staff tab — step 14 tells the user to tap it.
+  const staffTabTarget = useOnboardingTarget(21);
+  // Onboarding target on the footer "Add team" button — step 22.
+  const addTeamTarget = useOnboardingTarget(22);
+  const { currentStep: onboardingStep, advanceToStep, markStepSeen } = useOnboardingTour();
+
+  // AddStaffModal visibility — shown inline instead of navigating away
+  const [showAddStaff, setShowAddStaff] = useState(false);
 
   // Shortcut helpers
   const ts = (key: string, params?: Record<string, string>) =>
@@ -232,6 +245,34 @@ export default function AssignResourceModal({
   // ── Selection state ──
   const hasSelection =
     activeTab === "vehicle" ? !!selectedVehicleId : !!selectedStaffId;
+
+  const handleQuickAdd = useCallback(
+    (target: "staff" | "vehicles") => {
+      if (target === "staff") {
+        if (onboardingStep === 22) {
+          // Mark step 22/26 done so the onboarding flow continues inside AddStaffModal
+          markStepSeen(22);
+          markStepSeen(26);
+        }
+        // Open AddStaffModal directly inside this wizard — no page change
+        setShowAddStaff(true);
+      } else {
+        // Vehicles: keep the old navigate-to-business behaviour
+        onClose();
+      }
+    },
+    [onClose, onboardingStep, markStepSeen],
+  );
+
+  const handleAddStaffClose = useCallback(() => {
+    setShowAddStaff(false);
+    loadAvailability();
+  }, [loadAvailability]);
+
+  const quickAddLabel =
+    activeTab === "vehicle"
+      ? `${t("common.add")} ${t("businessHub.subTabs.vehicles")}`
+      : `${t("common.add")} ${t("businessHub.subTabs.staff")}`;
 
   // ─────────────────────────────────────────────────────────────
   // Render helpers
@@ -445,6 +486,7 @@ export default function AssignResourceModal({
   // ─────────────────────────────────────────────────────────────
 
   return (
+    <>
     <Modal
       visible={visible}
       animationType="slide"
@@ -483,7 +525,14 @@ export default function AssignResourceModal({
                 <Pressable
                   key={tab}
                   testID={`assign-resource-${tab}-tab`}
-                  onPress={() => setActiveTab(tab)}
+                  ref={tab === "staff" ? staffTabTarget.ref : undefined}
+                  onLayout={tab === "staff" ? staffTabTarget.onLayout : undefined}
+                  onPress={() => {
+                    setActiveTab(tab);
+                    if (tab === "staff" && onboardingStep === 21) {
+                      advanceToStep(22 as any);
+                    }
+                  }}
                   style={[
                     styles.tab,
                     isActive && {
@@ -549,11 +598,28 @@ export default function AssignResourceModal({
             >
               {activeTab === "vehicle" ? (
                 filteredVehicles.length === 0 ? (
-                  <Text
-                    style={[styles.emptyText, { color: colors.textSecondary }]}
-                  >
-                    {tm("noVehicles")}
-                  </Text>
+                  <View style={styles.emptyStateWrap}>
+                    <Text
+                      style={[styles.emptyText, { color: colors.textSecondary }]}
+                    >
+                      {tm("noVehicles")}
+                    </Text>
+                    <Pressable
+                      onPress={() => handleQuickAdd("vehicles")}
+                      style={[
+                        styles.emptyActionBtn,
+                        {
+                          backgroundColor: colors.primary + "15",
+                          borderColor: colors.primary + "40",
+                        },
+                      ]}
+                    >
+                      <Ionicons name="add-circle-outline" size={16} color={colors.primary} />
+                      <Text style={[styles.emptyActionText, { color: colors.primary }]}>
+                        {`${t("common.add")} ${t("businessHub.subTabs.vehicles")}`}
+                      </Text>
+                    </Pressable>
+                  </View>
                 ) : (
                   Object.entries(groupedVehicles).map(([companyName, items]) => (
                     <View key={companyName} style={[styles.companyGroup, { borderColor: colors.border }]}>
@@ -568,11 +634,28 @@ export default function AssignResourceModal({
                   ))
                 )
               ) : filteredStaff.length === 0 ? (
-                <Text
-                  style={[styles.emptyText, { color: colors.textSecondary }]}
-                >
-                  {tm("noStaff")}
-                </Text>
+                <View style={styles.emptyStateWrap}>
+                  <Text
+                    style={[styles.emptyText, { color: colors.textSecondary }]}
+                  >
+                    {tm("noStaff")}
+                  </Text>
+                  <Pressable
+                    onPress={() => handleQuickAdd("staff")}
+                    style={[
+                      styles.emptyActionBtn,
+                      {
+                        backgroundColor: colors.primary + "15",
+                        borderColor: colors.primary + "40",
+                      },
+                    ]}
+                  >
+                    <Ionicons name="person-add-outline" size={16} color={colors.primary} />
+                    <Text style={[styles.emptyActionText, { color: colors.primary }]}>
+                      {`${t("common.add")} ${t("businessHub.subTabs.staff")}`}
+                    </Text>
+                  </Pressable>
+                </View>
               ) : (
                 Object.entries(groupedStaff).map(([companyName, items]) => (
                   <View key={companyName} style={[styles.companyGroup, { borderColor: colors.border }]}>
@@ -607,6 +690,26 @@ export default function AssignResourceModal({
             </Pressable>
 
             <Pressable
+              ref={activeTab === "staff" ? addTeamTarget.ref : undefined}
+              onLayout={activeTab === "staff" ? addTeamTarget.onLayout : undefined}
+              onPress={() =>
+                handleQuickAdd(activeTab === "vehicle" ? "vehicles" : "staff")
+              }
+              style={[
+                styles.footerBtn,
+                styles.footerBtnQuick,
+                {
+                  borderColor: colors.primary + "55",
+                  backgroundColor: colors.primary + "10",
+                },
+              ]}
+            >
+              <Text style={[styles.footerBtnText, { color: colors.primary }]}>
+                {quickAddLabel}
+              </Text>
+            </Pressable>
+
+            <Pressable
               testID="staff-assign-confirm-btn"
               onPress={handleAssign}
               disabled={!hasSelection || submitting}
@@ -632,7 +735,19 @@ export default function AssignResourceModal({
           </View>
         </View>
       </View>
+      {/* Onboarding bubble stacked above this native modal */}
+      <OnboardingTourOverlay />
     </Modal>
+    {/* AddStaffModal rendered outside the Modal to avoid nesting issues */}
+    <AddStaffModal
+      visible={showAddStaff}
+      onClose={handleAddStaffClose}
+      onInviteEmployee={async () => {}}
+      onSearchContractor={async () => []}
+      onAddContractor={async () => {}}
+      onInviteContractor={async () => ({ success: true, message: "" })}
+    />
+    </>
   );
 }
 
@@ -700,6 +815,24 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 13,
     paddingVertical: DESIGN_TOKENS.spacing.xl,
+  },
+  emptyStateWrap: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingBottom: DESIGN_TOKENS.spacing.lg,
+  },
+  emptyActionBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: DESIGN_TOKENS.spacing.md,
+    paddingVertical: DESIGN_TOKENS.spacing.sm,
+    borderRadius: DESIGN_TOKENS.radius.full,
+    borderWidth: 1,
+  },
+  emptyActionText: {
+    fontSize: 13,
+    fontWeight: "700",
   },
   resourceItem: {
     flexDirection: "row",
@@ -786,6 +919,9 @@ const styles = StyleSheet.create({
   },
   footerBtnCancel: {
     borderWidth: 1.5,
+  },
+  footerBtnQuick: {
+    borderWidth: 1.2,
   },
   footerBtnConfirm: {},
   footerBtnText: {

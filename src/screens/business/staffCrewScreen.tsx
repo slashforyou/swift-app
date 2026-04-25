@@ -5,18 +5,19 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import {
-  Alert,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
+    Alert,
+    Pressable,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 import AddStaffModal from "../../components/modals/AddStaffModal";
 import EditStaffModal from "../../components/modals/EditStaffModal";
 import MascotLoading from "../../components/ui/MascotLoading";
 import { DESIGN_TOKENS } from "../../constants/Styles";
+import { useOnboardingTarget } from "../../context/OnboardingSpotlightContext";
 import { useTheme } from "../../context/ThemeProvider";
 import { useStaff } from "../../hooks/useStaff";
 import { useTranslation } from "../../localization/useLocalization";
@@ -25,6 +26,7 @@ import { Contractor, Employee, StaffMember } from "../../types/staff";
 export default function StaffCrewScreen() {
   const { colors } = useTheme();
   const { t } = useTranslation();
+  const addStaffTarget = useOnboardingTarget(26);
   const {
     staff,
     employees,
@@ -263,6 +265,8 @@ export default function StaffCrewScreen() {
         {/* Bouton Ajouter un membre */}
         <Pressable
           testID="add-staff-button"
+          ref={addStaffTarget.ref}
+          onLayout={addStaffTarget.onLayout}
           style={[styles.addButton, { backgroundColor: colors.primary }]}
           onPress={handleAddStaff}
         >
