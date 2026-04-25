@@ -13,14 +13,14 @@
  * @lastModified 16/01/2026
  */
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import React from "react";
 import { Image, Pressable, Text, View } from "react-native";
-import { getAvatarSource } from "../ui/AvatarPickerModal";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
 import { useGamification } from "../../hooks/useGamification";
 import { useLocalization } from "../../localization";
 import { HStack } from "../primitives/Stack";
+import { getAvatarSource } from "../ui/AvatarPickerModal";
 
 interface ProfileHeaderProps {
   navigation: any;

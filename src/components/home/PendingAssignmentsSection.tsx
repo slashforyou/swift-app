@@ -442,7 +442,10 @@ const PendingWizardModal: React.FC<PendingWizardModalProps> = ({
               onDecline={handleDecline}
               onView={() => {
                 onClose();
-                navigation.navigate("JobDetails", { jobId: item.code || item.id });
+                navigation.navigate("JobDetails", {
+                  jobId: item.code || item.id,
+                  from: "Home",
+                });
               }}
               isSubmitting={isSubmitting}
             />

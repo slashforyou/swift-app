@@ -19,7 +19,11 @@ import { useStripeConnection } from "../../hooks/useStripeConnection";
 import { useTranslation } from "../../localization";
 
 // Enable LayoutAnimation on Android
-if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+if (
+  Platform.OS === "android" &&
+  UIManager.setLayoutAnimationEnabledExperimental &&
+  !(global as any).nativeFabricUIManager
+) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
@@ -42,11 +46,10 @@ export default function OnboardingChecklistCard({
 }: OnboardingChecklistProps) {
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const { items: rawItems, completedCount: rawCompletedCount, totalCount, allCompleted: rawAllCompleted, loading: checklistLoading } =
+  const { items: rawItems, totalCount, loading: checklistLoading } =
     useOnboardingChecklist();
   const { status: stripeStatus, loading: stripeLoading } = useStripeConnection();
-  const [isExpanded, setIsExpanded] = useState(false);
-
+  const [isExpanded, setIsExpanded] = useState(true);
   // Override payments_setup with real Stripe connection status
   const items = rawItems.map((item) =>
     item.id === "setup_payments" && stripeStatus === "active"
@@ -60,6 +63,10 @@ export default function OnboardingChecklistCard({
   if (checklistLoading || stripeLoading || allCompleted) return null;
 
   const progressPct = totalCount > 0 ? completedCount / totalCount : 0;
+  const progressPercent = Math.round(progressPct * 100);
+  const remainingCount = Math.max(totalCount - completedCount, 0);
+  const doneLabel = t("home.onboarding.doneLabel") || "done";
+  const leftLabel = t("home.onboarding.leftLabel") || "left";
 
   const toggleExpanded = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -121,8 +128,7 @@ export default function OnboardingChecklistCard({
               marginTop: 2,
             }}
           >
-            {completedCount}/{totalCount}{" "}
-            {t("home.onboarding.completed") || "completed"}
+            {completedCount}/{totalCount} {t("home.onboarding.completed") || "completed"} • {progressPercent}%
           </Text>
         </View>
         <Ionicons
@@ -131,6 +137,51 @@ export default function OnboardingChecklistCard({
           color={colors.textMuted}
         />
       </Pressable>
+
+      <View
+        style={{
+          flexDirection: "row",
+          gap: DESIGN_TOKENS.spacing.xs,
+          marginTop: DESIGN_TOKENS.spacing.sm,
+        }}
+      >
+        <View
+          style={{
+            backgroundColor: colors.primary + "18",
+            borderRadius: 999,
+            paddingHorizontal: 10,
+            paddingVertical: 4,
+          }}
+        >
+          <Text style={{ fontSize: 12, fontWeight: "700", color: colors.primary }}>
+            {progressPercent}%
+          </Text>
+        </View>
+        <View
+          style={{
+            backgroundColor: colors.success + "18",
+            borderRadius: 999,
+            paddingHorizontal: 10,
+            paddingVertical: 4,
+          }}
+        >
+          <Text style={{ fontSize: 12, fontWeight: "700", color: colors.success }}>
+            {completedCount} {doneLabel}
+          </Text>
+        </View>
+        <View
+          style={{
+            backgroundColor: colors.warning + "18",
+            borderRadius: 999,
+            paddingHorizontal: 10,
+            paddingVertical: 4,
+          }}
+        >
+          <Text style={{ fontSize: 12, fontWeight: "700", color: colors.warning }}>
+            {remainingCount} {leftLabel}
+          </Text>
+        </View>
+      </View>
 
       {/* Progress bar — always visible */}
       <View

@@ -4,21 +4,21 @@
 
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
+    ActivityIndicator,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
 import { useAnalytics } from "../../hooks/useAnalytics";
 import { useTranslation } from "../../localization";
 import {
-  getBusinessMetrics,
-  getStripeAnalytics,
-  getUsageAnalytics,
+    getBusinessMetrics,
+    getStripeAnalytics,
+    getUsageAnalytics,
 } from "../../services/analytics";
 
 interface DashboardMetrics {
@@ -44,6 +44,12 @@ interface DashboardMetrics {
     error_rate: number;
     uptime: number;
   };
+  paywallFunnel: {
+    locks_clicked: number;
+    upgrade_cta_clicked: number;
+    conversion_rate: number;
+    breakdown: Array<{ source: string; locks: number; cta: number }>;
+  };
 }
 
 const AnalyticsDashboard: React.FC = () => {
@@ -61,6 +67,74 @@ const AnalyticsDashboard: React.FC = () => {
   useEffect(() => {
     loadDashboardData();
   }, [selectedPeriod]);
+
+  const extractEventCount = (usagePayload: any, eventName: string): number => {
+    const candidates = [
+      usagePayload?.events?.by_type,
+      usagePayload?.events?.event_types,
+      usagePayload?.event_types,
+      usagePayload?.custom_events,
+      usagePayload?.summary?.events,
+      usagePayload?.data?.events,
+    ];
+
+    for (const candidate of candidates) {
+      if (candidate && typeof candidate === "object") {
+        const raw = candidate[eventName];
+        if (typeof raw === "number") return raw;
+        if (raw && typeof raw.count === "number") return raw.count;
+        if (raw && typeof raw.total === "number") return raw.total;
+      }
+    }
+
+    return 0;
+  };
+
+  const extractPaywallFunnel = (usagePayload: any) => {
+    const locks = extractEventCount(usagePayload, "paywall_lock_clicked");
+    const cta = extractEventCount(usagePayload, "paywall_upgrade_cta_clicked");
+
+    // Try to extract per-source breakdown from event_data arrays
+    const breakdownMap: Record<string, { locks: number; cta: number }> = {};
+    const KNOWN_SOURCES = [
+      "business_hub_shortcut",
+      "business_finances_billing_lock",
+      "business_finances_invoices_lock",
+      "settings_plan_access",
+      "settings_plan_access_alert",
+    ];
+
+    const tryExtractBreakdown = (candidate: any, eventKey: string, field: "locks" | "cta") => {
+      if (!candidate || typeof candidate !== "object") return;
+      // Some backends return events as arrays: [{event_type, source, count}, ...]
+      const list = Array.isArray(candidate) ? candidate : candidate[eventKey];
+      if (!Array.isArray(list)) return;
+      list.forEach((item: any) => {
+        const src: string = item?.source || item?.event_data?.source || "other";
+        if (!breakdownMap[src]) breakdownMap[src] = { locks: 0, cta: 0 };
+        breakdownMap[src][field] += item?.count || item?.total || 1;
+      });
+    };
+
+    tryExtractBreakdown(usagePayload?.events?.details, "paywall_lock_clicked", "locks");
+    tryExtractBreakdown(usagePayload?.events?.details, "paywall_upgrade_cta_clicked", "cta");
+
+    // If no breakdown returned by API, group total under "total" bucket
+    const breakdown = Object.keys(breakdownMap).length
+      ? Object.entries(breakdownMap)
+          .map(([source, v]) => ({ source, locks: v.locks, cta: v.cta }))
+          .sort((a, b) => b.locks - a.locks)
+      : locks > 0
+        ? [{ source: "total", locks, cta }]
+        : [];
+
+    return {
+      locks_clicked: locks,
+      upgrade_cta_clicked: cta,
+      conversion_rate: locks > 0 ? cta / locks : 0,
+      breakdown,
+    };
+  };
 
   const loadDashboardData = async () => {
     try {
@@ -138,6 +212,15 @@ const AnalyticsDashboard: React.FC = () => {
               ? usageData.value?.performance?.uptime || 0
               : 0,
         },
+        paywallFunnel:
+          usageData.status === "fulfilled"
+            ? extractPaywallFunnel(usageData.value)
+            : {
+                locks_clicked: 0,
+                upgrade_cta_clicked: 0,
+                conversion_rate: 0,
+                breakdown: [],
+              },
       };
 
       setMetrics(aggregatedMetrics);
@@ -431,6 +514,183 @@ const AnalyticsDashboard: React.FC = () => {
               color={colors.secondary}
             />
           </View>
+        </View>
+
+        {/* Paywall Funnel */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>
+            {t("analytics.paywallFunnelTitle") || "Paywall Funnel"}
+          </Text>
+          <View style={styles.metricsRow}>
+            <MetricCard
+              title={t("analytics.paywallLocksClicked") || "Locks hit"}
+              value={metrics?.paywallFunnel?.locks_clicked || 0}
+              subtitle={t("analytics.paywallLocksSubtitle") || "Users who hit a locked feature"}
+              color={colors.warning}
+            />
+            <MetricCard
+              title={t("analytics.paywallUpgradeCta") || "Upgrade CTA"}
+              value={metrics?.paywallFunnel?.upgrade_cta_clicked || 0}
+              subtitle={t("analytics.paywallUpgradeSubtitle") || "Clicks toward subscription"}
+              color={colors.primary}
+            />
+          </View>
+          <View style={styles.metricsRow}>
+            <MetricCard
+              title={t("analytics.paywallConversion") || "Funnel conversion"}
+              value={formatPercentage(metrics?.paywallFunnel?.conversion_rate || 0)}
+              subtitle={t("analytics.paywallConversionSubtitle") || "CTA clicks / lock hits"}
+              color={colors.success}
+            />
+          </View>
+
+          {/* Breakdown par source */}
+          {(metrics?.paywallFunnel?.breakdown ?? []).length > 0 && (
+            <View
+              style={{
+                backgroundColor: colors.backgroundSecondary,
+                borderRadius: DESIGN_TOKENS.radius.md,
+                borderWidth: 1,
+                borderColor: colors.border,
+                padding: DESIGN_TOKENS.spacing.md,
+                marginTop: DESIGN_TOKENS.spacing.sm,
+              }}
+            >
+              <Text
+                style={[
+                  styles.sectionTitle,
+                  { fontSize: 13, marginBottom: DESIGN_TOKENS.spacing.sm },
+                ]}
+              >
+                {t("analytics.paywallBreakdownTitle") || "By entry point"}
+              </Text>
+
+              {/* Header row */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  borderBottomWidth: 1,
+                  borderBottomColor: colors.border,
+                  paddingBottom: 4,
+                  marginBottom: 4,
+                }}
+              >
+                <Text
+                  style={{
+                    flex: 1,
+                    fontSize: 11,
+                    fontWeight: "700",
+                    color: colors.textSecondary,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Source
+                </Text>
+                <Text
+                  style={{
+                    width: 48,
+                    textAlign: "center",
+                    fontSize: 11,
+                    fontWeight: "700",
+                    color: colors.warning,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Locks
+                </Text>
+                <Text
+                  style={{
+                    width: 48,
+                    textAlign: "center",
+                    fontSize: 11,
+                    fontWeight: "700",
+                    color: colors.primary,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  CTA
+                </Text>
+                <Text
+                  style={{
+                    width: 56,
+                    textAlign: "center",
+                    fontSize: 11,
+                    fontWeight: "700",
+                    color: colors.success,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Conv.
+                </Text>
+              </View>
+
+              {(metrics?.paywallFunnel?.breakdown ?? []).map((row) => {
+                const conv = row.locks > 0 ? ((row.cta / row.locks) * 100).toFixed(0) : "–";
+                const labelMap: Record<string, string> = {
+                  business_hub_shortcut: "Hub shortcut",
+                  business_finances_billing_lock: "Billing lock",
+                  business_finances_invoices_lock: "Invoices lock",
+                  settings_plan_access: "Settings",
+                  settings_plan_access_alert: "Settings alert",
+                  total: "Total",
+                };
+                const label = labelMap[row.source] || row.source;
+
+                return (
+                  <View
+                    key={row.source}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      paddingVertical: 5,
+                      borderBottomWidth: StyleSheet.hairlineWidth,
+                      borderBottomColor: colors.border,
+                    }}
+                  >
+                    <Text
+                      style={{ flex: 1, fontSize: 12, color: colors.text }}
+                      numberOfLines={1}
+                    >
+                      {label}
+                    </Text>
+                    <Text
+                      style={{
+                        width: 48,
+                        textAlign: "center",
+                        fontWeight: "600",
+                        fontSize: 13,
+                        color: colors.warning,
+                      }}
+                    >
+                      {row.locks}
+                    </Text>
+                    <Text
+                      style={{
+                        width: 48,
+                        textAlign: "center",
+                        fontWeight: "600",
+                        fontSize: 13,
+                        color: colors.primary,
+                      }}
+                    >
+                      {row.cta}
+                    </Text>
+                    <Text
+                      style={{
+                        width: 56,
+                        textAlign: "center",
+                        fontWeight: "600",
+                        fontSize: 13,
+                        color: colors.success,
+                      }}
+                    >
+                      {conv}{row.locks > 0 ? "%" : ""}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          )}
         </View>
 
         {/* Performance Metrics */}

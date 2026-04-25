@@ -1,15 +1,16 @@
 import React from "react";
 import {
-  Dimensions,
-  Image,
-  ImageSourcePropType,
-  Modal,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
+    Dimensions,
+    Image,
+    ImageSourcePropType,
+    Modal,
+    Pressable,
+    ScrollView,
+    Text,
+    View,
 } from "react-native";
 import { useTheme } from "../../context/ThemeProvider";
+import { useLocalization } from "../../localization";
 
 // Avatar map — require() must be static, so we list them explicitly.
 // To add more avatars, just add entries here.
@@ -55,7 +56,9 @@ const DEFAULT_AVATAR = require("../../../assets/images/mascot/mascotte_profil/0.
  * Returns the image source for a given avatarId.
  * Exported so ProfileHeader and other components can reuse it.
  */
-export function getAvatarSource(avatarId?: string | null): ImageSourcePropType {
+export function getAvatarSource(
+  avatarId?: string | null,
+): ImageSourcePropType {
   if (!avatarId) return DEFAULT_AVATAR;
   const match = AVATARS.find((a) => a.id === avatarId);
   return match ? match.source : DEFAULT_AVATAR;
@@ -88,6 +91,7 @@ export default function AvatarPickerModal({
   onClose,
 }: AvatarPickerModalProps) {
   const { colors } = useTheme();
+  const { t } = useLocalization();
 
   return (
     <Modal
@@ -110,7 +114,7 @@ export default function AvatarPickerModal({
             borderTopLeftRadius: 24,
             borderTopRightRadius: 24,
             padding: MODAL_PADDING,
-            maxHeight: "70%",
+            maxHeight: "80%",
           }}
           onPress={() => {}}
         >
@@ -124,11 +128,26 @@ export default function AvatarPickerModal({
               marginBottom: 20,
             }}
           >
-            Choisis ton avatar
+            {t("profile.avatar.title")}
           </Text>
 
-          {/* Grid */}
           <ScrollView showsVerticalScrollIndicator={false}>
+
+            {/* Preset Avatars Section */}
+            <Text
+              style={{
+                fontSize: 14,
+                fontWeight: "600",
+                color: colors.textSecondary,
+                marginBottom: 10,
+                textTransform: "uppercase",
+                letterSpacing: 0.5,
+              }}
+            >
+              🎭 {t("profile.avatar.selectAvatar")}
+            </Text>
+
+            {/* Grid */}
             <View
               style={{
                 flexDirection: "row",
@@ -206,11 +225,12 @@ export default function AvatarPickerModal({
             }}
           >
             <Text style={{ color: colors.text, fontWeight: "600" }}>
-              Fermer
+              {t("common.close")}
             </Text>
           </Pressable>
         </Pressable>
       </Pressable>
+
     </Modal>
   );
 }

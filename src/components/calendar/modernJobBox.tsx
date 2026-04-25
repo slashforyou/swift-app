@@ -933,6 +933,7 @@ const JobBox: React.FC<JobBoxProps> = memo(function JobBox({
               month,
               year,
               initialTab: "job",
+              from: ["Calendar", { day, month, year }],
             })
           }
         >

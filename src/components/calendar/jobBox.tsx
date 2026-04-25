@@ -1,7 +1,7 @@
 import Ionicons from '@react-native-vector-icons/ionicons';
 import React from 'react';
-import { View, Text, Pressable, StyleSheet, Animated } from 'react-native';
-import { useThemedStyles, useThemeColors } from '../../../hooks/useThemeColor';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useThemeColors } from '../../../hooks/useThemeColor';
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { Job } from '../../hooks/useJobsForDay';
 import { useLocalization } from '../../localization/useLocalization';
@@ -321,7 +321,8 @@ const JobBox: React.FC<JobBoxProps> = ({ job, onPress, navigation, day, month, y
                         jobId: job.id, 
                         day, 
                         month, 
-                        year 
+                        year,
+                        from: ['Calendar', { day, month, year }],
                     })}
                 >
                     <Text style={styles.actionButtonText}>View</Text>

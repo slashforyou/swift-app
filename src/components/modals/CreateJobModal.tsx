@@ -22,6 +22,7 @@ import {
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { DESIGN_TOKENS } from "../../constants/Styles";
+import { useOnboardingSpotlight, useOnboardingTarget } from "../../context/OnboardingSpotlightContext";
 import { useTheme } from "../../context/ThemeProvider";
 import { useBusinessStaff } from "../../hooks/business/useBusinessStaff";
 import { useBusinessVehicles } from "../../hooks/business/useBusinessVehicles";
@@ -43,6 +44,7 @@ import {
     ModularJobTemplate,
     SegmentType,
 } from "../../types/jobSegment";
+import { OnboardingTourOverlay } from "../onboarding/OnboardingTourOverlay";
 
 interface CreateJobModalProps {
   visible: boolean;
@@ -54,6 +56,8 @@ interface CreateJobModalProps {
   prefillClientEmail?: string;
   prefillClientPhone?: string;
   prefillNotes?: string;
+  /** Onboarding: called whenever the wizard's internal step changes */
+  onWizardStep?: (step: string) => void;
 }
 
 type Step =
@@ -157,9 +161,67 @@ export default function CreateJobModal({
   prefillClientEmail,
   prefillClientPhone,
   prefillNotes,
+  onWizardStep,
 }: CreateJobModalProps) {
   const { colors } = useTheme();
   const { t, currentLanguage } = useLocalization();
+
+  // Onboarding targets for the in-wizard contextual bubbles (steps 5→11).
+  const clientStepTarget = useOnboardingTarget(5);
+  const typeStepTarget = useOnboardingTarget(6);
+  const addressesStepTarget = useOnboardingTarget(7);
+  const scheduleStepTarget = useOnboardingTarget(8);
+  const detailsStepTarget = useOnboardingTarget(9);
+  const pricingStepTarget = useOnboardingTarget(10);
+  const confirmStepTarget = useOnboardingTarget(11);
+  const { hideCurrentBubble } = useOnboardingSpotlight();
+
+  // ── i18n helpers for job templates / segments / billing modes ──
+  // Maps English defaults to translation keys under jobs.organization.
+  const SEGMENT_LABEL_KEYS: Record<string, string> = {
+    "Travel to Location #1": "travelToLocation1",
+    "Travel to Location #2": "travelToLocation2",
+    "Travel to Location #3": "travelToLocation3",
+    "Travel to location": "travelToLocation",
+    "Return trip": "returnTrip",
+    "Return to depot": "returnToDepot",
+    "Location #1": "location1",
+    "Location #2": "location2",
+    "Location #3": "location3",
+    "Location (packing)": "locationPacking",
+    "Delivery address": "deliveryAddress",
+    "Loading at depot": "loadingAtDepot",
+    "Storage drop-off": "storageDropoff",
+  };
+
+  const translateTemplateName = (tpl: ModularJobTemplate): string => {
+    const key = `jobs.organization.templates.${tpl.id}.name`;
+    const translated = t(key as any);
+    return translated && translated !== key ? String(translated) : tpl.name;
+  };
+
+  const translateTemplateDescription = (tpl: ModularJobTemplate): string => {
+    const key = `jobs.organization.templates.${tpl.id}.description`;
+    const translated = t(key as any);
+    return translated && translated !== key ? String(translated) : tpl.description;
+  };
+
+  const translateSegmentLabel = (label: string): string => {
+    const slug = SEGMENT_LABEL_KEYS[label];
+    if (!slug) return label;
+    const key = `jobs.organization.segmentLabels.${slug}`;
+    const translated = t(key as any);
+    return translated && translated !== key ? String(translated) : label;
+  };
+
+  const translateBillingMode = (mode: string): string => {
+    const key = `jobs.organization.billingModes.${mode}`;
+    const translated = t(key as any);
+    return translated && translated !== key
+      ? String(translated)
+      : mode.replace(/_/g, " ");
+  };
+
   const {
     clients,
     isLoading: isLoadingClients,
@@ -182,6 +244,11 @@ export default function CreateJobModal({
   const [step, setStep] = useState<Step>("client");
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Notify onboarding tour when wizard step changes
+  useEffect(() => {
+    onWizardStep?.(step);
+  }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Scroll reset when step changes
   const stepScrollRef = useRef<any>(null);
@@ -622,8 +689,13 @@ export default function CreateJobModal({
       {/* Create new client button */}
       <Pressable
         testID="create-job-new-client-btn"
+        ref={clientStepTarget.ref}
+        onLayout={clientStepTarget.onLayout}
         style={[styles.createClientButton, { backgroundColor: colors.primary }]}
-        onPress={() => setStep("new-client")}
+        onPress={() => {
+          hideCurrentBubble();
+          setStep("new-client");
+        }}
       >
         <Ionicons
           name="add-circle"
@@ -972,8 +1044,12 @@ export default function CreateJobModal({
         setTimeRounding(template.timeRoundingMinutes);
       }
       setDepotToDepot(template.billingMode === "depot_to_depot");
+
+      // Onboarding: once a template is picked, addresses become visible.
+      // Notify the tour so the "Complete the address" bubble (step 7) fires.
+      onWizardStep?.("template-selected");
     },
-    [],
+    [onWizardStep],
   );
 
   // Add a new segment to the list
@@ -1067,7 +1143,11 @@ export default function CreateJobModal({
   };
 
   const renderOrganizationStep = () => (
-    <View style={styles.stepContent}>
+    <View
+      style={styles.stepContent}
+      ref={typeStepTarget.ref}
+      onLayout={typeStepTarget.onLayout}
+    >
       <Text style={[styles.stepTitle, { color: colors.text }]}>
         {t("jobs.organization.title") || "Job Organisation"}
       </Text>
@@ -1143,7 +1223,7 @@ export default function CreateJobModal({
                           color: colors.text,
                         }}
                       >
-                        {template.name}
+                        {translateTemplateName(template)}
                       </Text>
                       <Text
                         style={{
@@ -1152,7 +1232,7 @@ export default function CreateJobModal({
                           marginTop: 2,
                         }}
                       >
-                        {template.description}
+                        {translateTemplateDescription(template)}
                       </Text>
                       <Text
                         style={{
@@ -1163,7 +1243,7 @@ export default function CreateJobModal({
                       >
                         {template.segments.length}{" "}
                         {t("jobs.organization.steps") || "steps"} •{" "}
-                        {template.billingMode.replace(/_/g, " ")}
+                        {translateBillingMode(template.billingMode)}
                       </Text>
                     </View>
                     <Ionicons
@@ -1209,7 +1289,7 @@ export default function CreateJobModal({
                   color: colors.primary,
                 }}
               >
-                {selectedTemplate.name}
+                {translateTemplateName(selectedTemplate)}
               </Text>
               <Text
                 style={{
@@ -1227,10 +1307,15 @@ export default function CreateJobModal({
               />
             </Pressable>
 
-            {/* Segments (the lego blocks) */}
-            <Text style={[styles.sectionLabel, { color: colors.text, marginTop: 0 }]}>
-              {t("jobs.organization.segmentsTitle") || "Job steps"}
-            </Text>
+            {/* Segments (the lego blocks) — onboarding anchor for step 7 (addresses) */}
+            <View
+              ref={addressesStepTarget.ref}
+              onLayout={addressesStepTarget.onLayout}
+            >
+              <Text style={[styles.sectionLabel, { color: colors.text, marginTop: 0 }]}>
+                {t("jobs.organization.segmentsTitle") || "Job steps"}
+              </Text>
+            </View>
             {jobSegments.map((seg, index) => (
               <View
                 key={`${seg.id}-${index}`}
@@ -1277,7 +1362,7 @@ export default function CreateJobModal({
                       color: colors.text,
                     }}
                   >
-                    {seg.order}. {seg.label}
+                    {seg.order}. {translateSegmentLabel(seg.label)}
                   </Text>
                   <Pressable
                     onPress={() => handleToggleBillable(index)}
@@ -1590,8 +1675,10 @@ export default function CreateJobModal({
           extraScrollHeight={100}
           keyboardShouldPersistTaps="always"
         >
-          {/* Date Picker - Clickable */}
+          {/* Date Picker - Clickable (onboarding anchor for step 8) */}
           <Pressable
+            ref={scheduleStepTarget.ref}
+            onLayout={scheduleStepTarget.onLayout}
             style={[
               styles.dateDisplay,
               { marginBottom: DESIGN_TOKENS.spacing.lg },
@@ -1883,7 +1970,11 @@ export default function CreateJobModal({
         <Text style={[styles.sectionLabel, { color: colors.text }]}>
           {t("jobs.priority") || "Priority"}
         </Text>
-        <View style={styles.priorityGrid}>
+        <View
+          ref={detailsStepTarget.ref}
+          onLayout={detailsStepTarget.onLayout}
+          style={styles.priorityGrid}
+        >
           {PRIORITY_OPTIONS.map((option) => (
             <Pressable
               key={option.key}
@@ -2004,6 +2095,8 @@ export default function CreateJobModal({
             💵 {t("jobs.hourlyRate") || "Hourly Rate"}
           </Text>
           <View
+            ref={pricingStepTarget.ref}
+            onLayout={pricingStepTarget.onLayout}
             style={[
               styles.inputGroup,
               { backgroundColor: colors.backgroundSecondary },
@@ -2348,7 +2441,7 @@ export default function CreateJobModal({
               🧩 {t("jobs.organization.title") || "Organisation"}
             </Text>
             <Text style={[styles.confirmationValue, { color: colors.text }]}>
-              {selectedTemplate.name}
+              {translateTemplateName(selectedTemplate)}
             </Text>
             <Text
               style={[
@@ -2358,7 +2451,7 @@ export default function CreateJobModal({
             >
               {jobSegments.length}{" "}
               {t("jobs.organization.steps") || "steps"} •{" "}
-              {selectedTemplate.billingMode.replace(/_/g, " ")}
+              {translateBillingMode(selectedTemplate.billingMode)}
             </Text>
           </View>
         )}
@@ -2380,7 +2473,7 @@ export default function CreateJobModal({
                   { color: colors.textSecondary },
                 ]}
               >
-                📍 {seg.label}
+                📍 {translateSegmentLabel(seg.label)}
               </Text>
               <Text style={[styles.confirmationValue, { color: colors.text }]}>
                 {seg.address!.street}
@@ -2671,6 +2764,8 @@ export default function CreateJobModal({
               { backgroundColor: colors.success },
             ]}
             testID="create-job-save-btn"
+            ref={confirmStepTarget.ref}
+            onLayout={confirmStepTarget.onLayout}
             onPress={handleSubmitAndClose}
             disabled={isLoading}
           >
@@ -3375,6 +3470,9 @@ export default function CreateJobModal({
           {renderCurrentStep()}
         </View>
       </KeyboardAvoidingView>
+
+      {/* Onboarding bubble stacked above the native wizard modal */}
+      <OnboardingTourOverlay />
 
       {/* State Picker Modal */}
       <Modal

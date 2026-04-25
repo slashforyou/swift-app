@@ -2,10 +2,10 @@
  * ProfileHeaderComplete - Version simplifiée temporaire pour debug
  */
 import React from 'react';
-import { View, Text, ActivityIndicator } from 'react-native';
-import { useUserProfile } from '../../hooks/useUserProfile';
-import { DESIGN_TOKENS } from '../../constants/Styles';
+import { ActivityIndicator, Text, View } from 'react-native';
 import { Colors } from '../../constants/Colors';
+import { DESIGN_TOKENS } from '../../constants/Styles';
+import { useUserProfile } from '../../hooks/useUserProfile';
 import { useTranslation } from '../../localization';
 
 interface ProfileHeaderProps {

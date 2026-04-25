@@ -19,6 +19,8 @@ interface TabMenuProps {
   style?: any;
   page?: 'business' | 'jobDetails' | 'calendar'; // Type de page pour adapter le comportement
   notificationCounts?: Record<string, number>; // Compteurs de notifications par tabId
+  /** Optional onboarding tour targets keyed by tab id (attaches ref + onLayout). */
+  onboardingTargets?: Record<string, { ref?: any; onLayout?: (e: any) => void }>;
 }
 
 // Configuration des menus selon la page
@@ -57,7 +59,8 @@ const TabMenu: React.FC<TabMenuProps> = ({
   onTabPress, 
   style,
   page,
-  notificationCounts = {}
+  notificationCounts = {},
+  onboardingTargets,
 }) => {
   const { colors } = useTheme();
   const { t } = useLocalization();
@@ -151,10 +154,13 @@ const TabMenu: React.FC<TabMenuProps> = ({
     <View style={styles.container}>
       {menuItemsWithNotifications.map((item) => {
         const isActive = activeTab === item.id;
+        const target = onboardingTargets?.[item.id];
         
         return (
           <TouchableOpacity
             key={item.id}
+            ref={target?.ref}
+            onLayout={target?.onLayout}
             testID={`tab-${item.id}`}
             style={[
               styles.tabButton,
