@@ -3,18 +3,26 @@
  * Architecture 4 onglets : Hub · Ressources · Config · Finances
  */
 import Ionicons from "@react-native-vector-icons/ionicons";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { ScrollView, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BusinessTabMenu } from "../components/business";
 import BusinessHeader from "../components/business/BusinessHeader";
 import BusinessSubTabMenu from "../components/business/BusinessSubTabMenu";
 import type { BusinessTab } from "../components/business/BusinessTabMenu";
+import PremiumLockCard from "../components/business/PremiumLockCard";
 import HeaderLogo from "../components/ui/HeaderLogo";
 import HelpButton from "../components/ui/HelpButton";
 import Toast from "../components/ui/toastNotification";
 import { DESIGN_TOKENS } from "../constants/Styles";
+import {
+    hasPlanAccess,
+    normalizePlanId,
+    PLAN_FEATURE_RULES,
+} from "../constants/planAccess";
+import { useOnboardingTour } from "../context/OnboardingTourContext";
 import { useTheme } from "../context/ThemeProvider";
+import { useSubscription } from "../hooks/usePlans";
 import { useLocalization } from "../localization/useLocalization";
 import {
     PaymentsListScreen,
@@ -26,6 +34,7 @@ import {
 } from "../screens/business";
 import BusinessHubOverview from "../screens/business/BusinessHubOverview";
 import BusinessInfoPage from "../screens/business/BusinessInfoPage";
+import ClientsScreen from "../screens/business/ClientsScreen";
 import ContainerLayoutScreen from "../screens/business/ContainerLayoutScreen";
 import ContractsScreen from "../screens/business/ContractsScreen";
 import EditStorageLotModal from "../screens/business/EditStorageLotModal";
@@ -36,6 +45,7 @@ import StorageLotDetailScreen from "../screens/business/StorageLotDetail";
 import StorageScreen from "../screens/business/StorageScreen";
 import StorageUnitDetailScreen from "../screens/business/StorageUnitDetailScreen";
 import StripePaymentsTab from "../screens/business/StripePaymentsTab";
+import { trackCustomEvent } from "../services/analytics";
 import { useAuthCheck } from "../utils/checkAuth";
 
 // ── Mapping ancien → nouveau pour la rétro-compatibilité ──
@@ -88,11 +98,14 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
   const { toastDetails, showToast } = useToast();
   const { colors } = useTheme();
   const { t } = useLocalization();
+  const { companyPlan } = useSubscription();
+  const currentPlan = normalizePlanId(companyPlan?.plan?.id);
 
   const RESOURCES_TABS = React.useMemo(() => [
     { id: "staff", label: t("businessHub.subTabs.staff") },
     { id: "vehicles", label: t("businessHub.subTabs.vehicles") },
     { id: "partners", label: t("businessHub.subTabs.partners") },
+    { id: "clients", label: t("businessHub.subTabs.clients") },
     { id: "storage", label: t("businessHub.subTabs.storage") },
   ], [t]);
   const CONFIG_TABS = React.useMemo(() => [
@@ -116,6 +129,23 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
 
   const [activeTab, setActiveTab] = useState<BusinessTab>(mapped?.tab || "Hub");
   const [resourcesSubTab, setResourcesSubTab] = useState(mapped?.tab === "Resources" ? (mapped?.subTab || "staff") : "staff");
+
+    // Onboarding triggers
+    const { currentStep, advanceToStep } = useOnboardingTour();
+    useEffect(() => {
+      if (currentStep === 20) {
+        // User landed in Business hub with step 20 (assign resources in job details)
+        // — nudge them forward to the Worker tab hint.
+        advanceToStep(21);
+      }
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Advance step 21→22 when user switches to staff sub-tab while in step 21
+    useEffect(() => {
+      if (currentStep === 21 && resourcesSubTab === "staff") {
+        advanceToStep(22);
+      }
+    }, [resourcesSubTab]); // eslint-disable-line react-hooks/exhaustive-deps
   const [configSubTab, setConfigSubTab] = useState(mapped?.tab === "Config" ? (mapped?.subTab || "templates") : "templates");
   const [financesSubTab, setFinancesSubTab] = useState(mapped?.tab === "Finances" ? (mapped?.subTab || "payments") : "payments");
   const [drillDownScreen, setDrillDownScreen] = useState<string | null>(mapped?.drillDown || null);
@@ -145,8 +175,12 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
   }, []);
 
   const handleDrillDown = useCallback((screen: string) => {
+    if (screen === "Subscription") {
+      navigation?.navigate("Subscription");
+      return;
+    }
     setDrillDownScreen(screen);
-  }, []);
+  }, [navigation]);
 
   const handleDrillBack = useCallback(() => {
     setDrillDownScreen(null);
@@ -169,6 +203,7 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
         case "PaymentsList": return t("businessHub.drillDown.paymentsReceived");
         case "Payouts": return t("businessHub.drillDown.payouts");
         case "StripeSettings": return t("businessHub.drillDown.stripeSettings");
+        case "Subscription": return t("subscription.title") || "Subscription";
         default: return "Business";
       }
     }
@@ -309,6 +344,7 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
             {resourcesSubTab === "staff" && <StaffCrewScreen />}
             {resourcesSubTab === "vehicles" && <TrucksScreen />}
             {resourcesSubTab === "partners" && <RelationsScreen />}
+            {resourcesSubTab === "clients" && <ClientsScreen />}
             {resourcesSubTab === "storage" && (
               <StorageScreen
                 onOpenLot={(id) => {
@@ -343,8 +379,60 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
                 mainNavigation={navigation}
               />
             )}
-            {financesSubTab === "billing" && <InterContractorBillingScreen />}
-            {financesSubTab === "invoices" && <MonthlyInvoicesScreen />}
+            {financesSubTab === "billing" && (
+              hasPlanAccess(
+                currentPlan,
+                PLAN_FEATURE_RULES.inter_contractor_billing.minPlan,
+              ) ? (
+                <InterContractorBillingScreen />
+              ) : (
+                <PremiumLockCard
+                  title={PLAN_FEATURE_RULES.inter_contractor_billing.label}
+                  description={PLAN_FEATURE_RULES.inter_contractor_billing.description}
+                  minPlan={PLAN_FEATURE_RULES.inter_contractor_billing.minPlan}
+                  ctaLabel={t("subscription.unlockCta") || t("subscription.changePlan") || "Voir les formules"}
+                  availabilityLabel={
+                    t("subscription.availableFromPlan") ||
+                    "Disponible a partir du plan {{plan}}."
+                  }
+                  onPressUpgrade={() => {
+                    trackCustomEvent("paywall_upgrade_cta_clicked", "business", {
+                      source: "business_finances_billing_lock",
+                      feature_key: "inter_contractor_billing",
+                      current_plan: currentPlan,
+                    });
+                    navigation?.navigate("Subscription");
+                  }}
+                />
+              )
+            )}
+            {financesSubTab === "invoices" && (
+              hasPlanAccess(
+                currentPlan,
+                PLAN_FEATURE_RULES.invoice_branding.minPlan,
+              ) ? (
+                <MonthlyInvoicesScreen />
+              ) : (
+                <PremiumLockCard
+                  title={PLAN_FEATURE_RULES.invoice_branding.label}
+                  description={PLAN_FEATURE_RULES.invoice_branding.description}
+                  minPlan={PLAN_FEATURE_RULES.invoice_branding.minPlan}
+                  ctaLabel={t("subscription.unlockCta") || t("subscription.changePlan") || "Voir les formules"}
+                  availabilityLabel={
+                    t("subscription.availableFromPlan") ||
+                    "Disponible a partir du plan {{plan}}."
+                  }
+                  onPressUpgrade={() => {
+                    trackCustomEvent("paywall_upgrade_cta_clicked", "business", {
+                      source: "business_finances_invoices_lock",
+                      feature_key: "invoice_branding",
+                      current_plan: currentPlan,
+                    });
+                    navigation?.navigate("Subscription");
+                  }}
+                />
+              )
+            )}
           </>
         );
 

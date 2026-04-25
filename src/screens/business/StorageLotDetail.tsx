@@ -19,8 +19,8 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
-import MascotLoading from "../../components/ui/MascotLoading";
 import CreateJobModal from "../../components/modals/CreateJobModal";
+import MascotLoading from "../../components/ui/MascotLoading";
 
 import { useTheme } from "../../context/ThemeProvider";
 import { useTranslation } from "../../localization/useLocalization";

@@ -66,6 +66,9 @@ const TeamsManagement = lazyScreen(
 const Leaderboard = lazyScreen(() => import("../screens/leaderboard"));
 const Badges = lazyScreen(() => import("../screens/badges"));
 const XpHistory = lazyScreen(() => import("../screens/xpHistory"));
+const EmployeeDashboard = lazyScreen(
+  () => import("../screens/EmployeeDashboardScreen"),
+);
 
 // Support screens
 const SupportInbox = lazyScreen(
@@ -165,6 +168,11 @@ export default function Navigation() {
         <Stack.Screen name="Leaderboard" component={Leaderboard} />
         <Stack.Screen name="Badges" component={Badges} />
         <Stack.Screen name="XpHistory" component={XpHistory} />
+        <Stack.Screen
+          name="EmployeeDashboard"
+          component={EmployeeDashboard}
+          options={{ animation: "slide_from_right" }}
+        />
         <Stack.Screen name="SupportInbox" component={SupportInbox} />
         <Stack.Screen
           name="SupportConversation"

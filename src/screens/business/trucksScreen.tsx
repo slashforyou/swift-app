@@ -46,6 +46,8 @@ interface SectionHeaderProps {
   description?: string;
   onActionPress?: () => void;
   actionText?: string;
+  onActionLayout?: (e: { nativeEvent: { layout: { x: number; y: number; width: number; height: number } } }) => void;
+  actionRef?: React.Ref<React.ComponentRef<typeof TouchableOpacity>>;
 }
 
 // =====================================
@@ -107,6 +109,8 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
   description,
   onActionPress,
   actionText,
+  onActionLayout,
+  actionRef,
 }) => {
   const { colors } = useTheme();
   return (
@@ -140,7 +144,9 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
         {onActionPress && actionText && (
           <TouchableOpacity
             testID="add-vehicle-button"
+            ref={actionRef}
             onPress={onActionPress}
+            onLayout={onActionLayout}
             style={{
               backgroundColor: colors.primary,
               paddingHorizontal: DESIGN_TOKENS.spacing.md,

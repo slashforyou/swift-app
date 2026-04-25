@@ -11,10 +11,16 @@ import {
     Alert,
     Pressable,
     ScrollView,
+    StyleSheet,
     Text,
     View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+    hasPlanAccess,
+    normalizePlanId,
+    PLAN_FEATURE_RULES,
+} from "../constants/planAccess";
 import { DESIGN_TOKENS } from "../constants/Styles";
 import { useTheme } from "../context/ThemeProvider";
 import { useSubscription } from "../hooks/usePlans";
@@ -66,6 +72,78 @@ const SubscriptionScreen: React.FC<Props> = ({ navigation }) => {
   const subStatus = subscriptionStatus?.subscription_status;
   const isCanceling = subStatus === "canceling";
   const isActive = subStatus === "active";
+
+  const comparisonPlans = plans.filter((plan) =>
+    ["free", "pro", "expert", "unlimited", "enterprise"].includes(
+      String(plan.id).toLowerCase(),
+    ),
+  );
+
+  const comparisonRows: Array<{
+    key: string;
+    label: string;
+    valueForPlan: (plan: Plan) => string;
+  }> = [
+    {
+      key: "included_users",
+      label: t("subscription.includedUsers"),
+      valueForPlan: (plan) => formatLimit(plan.included_users),
+    },
+    {
+      key: "jobs_per_month",
+      label: t("subscription.jobsPerMonth"),
+      valueForPlan: (plan) => formatLimit(plan.max_jobs_created),
+    },
+    {
+      key: "commission",
+      label: t("subscription.commission"),
+      valueForPlan: (plan) => `${plan.platform_fee_percentage}%`,
+    },
+    {
+      key: "advanced_notifications",
+      label: PLAN_FEATURE_RULES.advanced_notifications.label,
+      valueForPlan: (plan) =>
+        hasPlanAccess(
+          normalizePlanId(plan.id),
+          PLAN_FEATURE_RULES.advanced_notifications.minPlan,
+        )
+          ? "✓"
+          : "-",
+    },
+    {
+      key: "invoice_branding",
+      label: PLAN_FEATURE_RULES.invoice_branding.label,
+      valueForPlan: (plan) =>
+        hasPlanAccess(
+          normalizePlanId(plan.id),
+          PLAN_FEATURE_RULES.invoice_branding.minPlan,
+        )
+          ? "✓"
+          : "-",
+    },
+    {
+      key: "inter_contractor_billing",
+      label: PLAN_FEATURE_RULES.inter_contractor_billing.label,
+      valueForPlan: (plan) =>
+        hasPlanAccess(
+          normalizePlanId(plan.id),
+          PLAN_FEATURE_RULES.inter_contractor_billing.minPlan,
+        )
+          ? "✓"
+          : "-",
+    },
+    {
+      key: "priority_support",
+      label: PLAN_FEATURE_RULES.priority_support.label,
+      valueForPlan: (plan) =>
+        hasPlanAccess(
+          normalizePlanId(plan.id),
+          PLAN_FEATURE_RULES.priority_support.minPlan,
+        )
+          ? "✓"
+          : "-",
+    },
+  ];
 
   const formatLimit = (value: number): string => {
     if (value === -1) return t("subscription.unlimited");
@@ -679,6 +757,123 @@ const SubscriptionScreen: React.FC<Props> = ({ navigation }) => {
         </Text>
 
         {plans.map(renderPlanCard)}
+
+        {comparisonPlans.length > 0 && (
+          <View
+            style={{
+              marginTop: DESIGN_TOKENS.spacing.xl,
+              backgroundColor: colors.backgroundSecondary,
+              borderRadius: DESIGN_TOKENS.radius.lg,
+              borderWidth: 1,
+              borderColor: colors.border,
+              padding: DESIGN_TOKENS.spacing.md,
+            }}
+          >
+            <Text
+              style={{
+                color: colors.text,
+                fontSize: DESIGN_TOKENS.typography.subtitle.fontSize,
+                fontWeight: "700",
+                marginBottom: DESIGN_TOKENS.spacing.sm,
+              }}
+            >
+              {t("subscription.quickCompareTitle") || "Comparatif rapide"}
+            </Text>
+
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    borderBottomWidth: 1,
+                    borderBottomColor: colors.border,
+                    paddingBottom: DESIGN_TOKENS.spacing.xs,
+                    marginBottom: DESIGN_TOKENS.spacing.xs,
+                  }}
+                >
+                  <Text
+                    style={{
+                      width: 180,
+                      color: colors.textSecondary,
+                      fontWeight: "700",
+                      fontSize: 12,
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {t("subscription.featureColumn") || "Fonctionnalité"}
+                  </Text>
+                  {comparisonPlans.map((plan) => {
+                    const isCurrent = String(plan.id) === String(currentPlanId);
+                    return (
+                      <View
+                        key={`plan-head-${plan.id}`}
+                        style={{
+                          width: 96,
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: isCurrent ? colors.primary : colors.text,
+                            fontWeight: "700",
+                            textTransform: "capitalize",
+                          }}
+                        >
+                          {plan.display_name || plan.id}
+                        </Text>
+                        {isCurrent ? (
+                          <Text style={{ color: colors.primary, fontSize: 11 }}>
+                            {t("subscription.currentBadge") || "actuel"}
+                          </Text>
+                        ) : null}
+                      </View>
+                    );
+                  })}
+                </View>
+
+                {comparisonRows.map((row, index) => (
+                  <View
+                    key={row.key}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      paddingVertical: DESIGN_TOKENS.spacing.xs,
+                      borderBottomWidth:
+                        index < comparisonRows.length - 1
+                          ? StyleSheet.hairlineWidth
+                          : 0,
+                      borderBottomColor: colors.border,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        width: 180,
+                        color: colors.textSecondary,
+                        fontSize: 13,
+                      }}
+                    >
+                      {row.label}
+                    </Text>
+                    {comparisonPlans.map((plan) => (
+                      <Text
+                        key={`${row.key}-${plan.id}`}
+                        style={{
+                          width: 96,
+                          textAlign: "center",
+                          color: colors.text,
+                          fontWeight: "600",
+                        }}
+                      >
+                        {row.valueForPlan(plan)}
+                      </Text>
+                    ))}
+                  </View>
+                ))}
+              </View>
+            </ScrollView>
+          </View>
+        )}
       </ScrollView>
     </View>
   );

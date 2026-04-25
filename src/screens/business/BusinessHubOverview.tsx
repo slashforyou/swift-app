@@ -3,7 +3,7 @@
  * Affiche : actions requises, état de la boîte, raccourcis outils, résumé entreprise
  */
 import Ionicons from "@react-native-vector-icons/ionicons";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
     ScrollView,
     StyleSheet,
@@ -14,12 +14,19 @@ import {
 import type { BusinessTab } from "../../components/business/BusinessTabMenu";
 import { ServerData } from "../../constants/ServerData";
 import { DESIGN_TOKENS } from "../../constants/Styles";
+import {
+    hasPlanAccess,
+    normalizePlanId,
+    PLAN_FEATURE_RULES,
+} from "../../constants/planAccess";
 import { useTheme } from "../../context/ThemeProvider";
 import { useCompanyProfile } from "../../hooks/useCompanyProfile";
+import { useSubscription } from "../../hooks/usePlans";
 import { useStaff } from "../../hooks/useStaff";
 import { useStripeConnection } from "../../hooks/useStripeConnection";
 import { useVehicles } from "../../hooks/useVehicles";
 import { useTranslation } from "../../localization/useLocalization";
+import { trackCustomEvent } from "../../services/analytics";
 import { authenticatedFetch } from "../../utils/auth";
 
 // Palettes de couleurs pour les cards (mode clair)
@@ -43,6 +50,7 @@ export default function BusinessHubOverview({
   const { colors, isDark } = useTheme();
   const { t } = useTranslation();
   const { profile, isLoading: profileLoading } = useCompanyProfile();
+  const { companyPlan } = useSubscription();
   const stripeConnection = useStripeConnection();
   const { totalActive: staffCount, totalEmployees, totalContractors, isLoading: staffLoading } = useStaff();
   const { totalVehicles, isLoading: vehiclesLoading } = useVehicles();
@@ -68,6 +76,7 @@ export default function BusinessHubOverview({
 
   const stripeActive = stripeConnection.status === "active" || stripeConnection.status === "pending";
   const stripeConnected = stripeConnection.isConnected;
+  const currentPlan = normalizePlanId(companyPlan?.plan?.id);
 
   // Card background with dark-mode support
   const cardBg = (lightColor: string) =>
@@ -120,12 +129,62 @@ export default function BusinessHubOverview({
   }
 
   // ── Raccourcis ──
-  const shortcuts = [
-    { label: t("businessHub.shortcuts.storage"), icon: "filing-outline", color: "#EF4444", onPress: () => onNavigateTab("Resources", "storage") },
-    { label: t("businessHub.shortcuts.jobTemplates"), icon: "documents-outline", color: "#EA580C", onPress: () => onNavigateTab("Config") },
-    { label: t("businessHub.shortcuts.contracts"), icon: "document-text-outline", color: "#16A34A", onPress: () => onNavigateTab("Config", "clauses") },
-    { label: t("businessHub.shortcuts.reports"), icon: "bar-chart-outline", color: "#9333EA", onPress: () => onDrillDown("Reports") },
-  ];
+  const openUpgradeFromFeature = useCallback((featureKey: keyof typeof PLAN_FEATURE_RULES) => {
+    trackCustomEvent("paywall_lock_clicked", "business", {
+      source: "business_hub_shortcut",
+      feature_key: featureKey,
+      current_plan: currentPlan,
+    });
+    onDrillDown("Subscription");
+  }, [currentPlan, onDrillDown]);
+
+  const shortcuts = useMemo(() => {
+    const canUseBilling = hasPlanAccess(
+      currentPlan,
+      PLAN_FEATURE_RULES.inter_contractor_billing.minPlan,
+    );
+    const canUseBranding = hasPlanAccess(
+      currentPlan,
+      PLAN_FEATURE_RULES.invoice_branding.minPlan,
+    );
+
+    return [
+      {
+        label: t("businessHub.shortcuts.storage"),
+        icon: "filing-outline",
+        color: "#EF4444",
+        onPress: () => onNavigateTab("Resources", "storage"),
+        locked: false,
+      },
+      {
+        label: t("businessHub.shortcuts.contracts"),
+        icon: "document-text-outline",
+        color: "#16A34A",
+        onPress: () => onNavigateTab("Config", "clauses"),
+        locked: false,
+      },
+      {
+        label: t("businessHub.subTabs.billing"),
+        icon: "swap-horizontal-outline",
+        color: "#0EA5E9",
+        onPress: () =>
+          canUseBilling
+            ? onNavigateTab("Finances", "billing")
+            : openUpgradeFromFeature("inter_contractor_billing"),
+        locked: !canUseBilling,
+      },
+      {
+        label: t("businessHub.subTabs.invoicesTab"),
+        icon: "receipt-outline",
+        color: "#9333EA",
+        onPress: () =>
+          canUseBranding
+            ? onNavigateTab("Finances", "invoices")
+            : openUpgradeFromFeature("invoice_branding"),
+        locked: !canUseBranding,
+      },
+    ];
+  }, [currentPlan, onNavigateTab, openUpgradeFromFeature, t]);
 
   const isLoading = profileLoading || statsLoading || stripeConnection.loading;
 
@@ -251,6 +310,12 @@ export default function BusinessHubOverview({
             <Text style={[s.shortcutLabel, { color: colors.text }]} numberOfLines={2}>
               {shortcut.label}
             </Text>
+            {shortcut.locked ? (
+              <View style={s.lockChip}>
+                <Ionicons name="lock-closed" size={11} color="#B45309" />
+                <Text style={s.lockChipText}>PRO</Text>
+              </View>
+            ) : null}
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -389,6 +454,22 @@ const getStyles = (colors: any) =>
       fontSize: 11,
       fontWeight: "600",
       textAlign: "center",
+    },
+    lockChip: {
+      marginTop: 2,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 3,
+      backgroundColor: "#FDE68A",
+      borderRadius: 999,
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+    },
+    lockChipText: {
+      fontSize: 9,
+      fontWeight: "700",
+      color: "#B45309",
+      textTransform: "uppercase",
     },
     companyCard: {
       flexDirection: "row",
