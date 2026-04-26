@@ -57,14 +57,20 @@ jobs:
         run: mkdir -p $HOME/.maestro/tests
 
       # ── Download Expo Go APK ───────────────────────────────────────────────
-      # Uses the /go redirect endpoint which always resolves to the correct APK
-      # for the specified SDK version (more reliable than the /--/api/v2/versions
-      # endpoint which has become flaky / returns empty responses).
+      # Direct GitHub release URL from expo/expo-go-releases repo.
+      # The expo.dev/go endpoint serves HTML (for browsers), not a raw APK.
       - name: Download Expo Go APK
         run: |
-          EXPO_GO_URL="https://expo.dev/go?sdkVersion=54&platform=android&device=false"
-          echo "Downloading Expo Go (SDK 54) from: $EXPO_GO_URL"
-          curl -L "$EXPO_GO_URL" -o expo-go.apk
+          EXPO_GO_URL="https://github.com/expo/expo-go-releases/releases/download/Expo-Go-54.0.7/Expo-Go-54.0.7.apk"
+          echo "Downloading Expo Go 54.0.7 from: $EXPO_GO_URL"
+          curl -L --fail "$EXPO_GO_URL" -o expo-go.apk
+          # Validate the file is a ZIP/APK (magic bytes PK)
+          if ! file expo-go.apk | grep -q "Zip\|APK\|Java"; then
+            echo "ERROR: Downloaded file is not a valid APK:"
+            file expo-go.apk
+            head -c 200 expo-go.apk
+            exit 1
+          fi
           ls -la expo-go.apk
 
       # ── Android Emulator ───────────────────────────────────────────────────
