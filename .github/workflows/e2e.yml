@@ -57,11 +57,13 @@ jobs:
         run: mkdir -p $HOME/.maestro/tests
 
       # ── Download Expo Go APK ───────────────────────────────────────────────
+      # Uses the /go redirect endpoint which always resolves to the correct APK
+      # for the specified SDK version (more reliable than the /--/api/v2/versions
+      # endpoint which has become flaky / returns empty responses).
       - name: Download Expo Go APK
         run: |
-          EXPO_GO_URL=$(curl -s "https://expo.dev/--/api/v2/versions" \
-            | python3 -c "import sys,json; print(json.load(sys.stdin)['androidUrl'])")
-          echo "Downloading Expo Go from: $EXPO_GO_URL"
+          EXPO_GO_URL="https://expo.dev/go?sdkVersion=54&platform=android&device=false"
+          echo "Downloading Expo Go (SDK 54) from: $EXPO_GO_URL"
           curl -L "$EXPO_GO_URL" -o expo-go.apk
           ls -la expo-go.apk
 
