@@ -236,4 +236,5 @@ export interface JobSummaryData {
   // -- Misc / inherited from JobAPI --
   estimatedDuration?: number;
   priority?: JobAPI["priority"];
+  difficulty?: "easy" | "medium" | "hard" | "expert" | null;
 }

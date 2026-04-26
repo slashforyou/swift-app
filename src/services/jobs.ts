@@ -110,6 +110,7 @@ export interface JobAPI {
   };
   estimatedDuration?: number;
   notes?: string;
+  difficulty?: "easy" | "medium" | "hard" | "expert" | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -156,6 +157,7 @@ export interface UpdateJobRequest {
   truck?: JobAPI["truck"];
   estimatedDuration?: number;
   notes?: string;
+  difficulty?: JobAPI["difficulty"];
   assigned_staff_id?: string; // ID du staff à assigner
   payment_status?: string;
   payment_method?: string;

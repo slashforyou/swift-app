@@ -4,7 +4,7 @@
 
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useState } from "react";
-import { Text, View } from "react-native";
+import { Modal, Pressable, Text, View } from "react-native";
 import { JobStepHistoryCard } from "../../components/jobDetails/JobStepHistoryCard";
 import JobSummarySkeleton from "../../components/jobDetails/JobSummarySkeleton";
 import JobTimerDisplay from "../../components/jobDetails/JobTimerDisplay";
@@ -13,8 +13,10 @@ import PhotoSelectionModal from "../../components/jobDetails/modals/PhotoSelecti
 import AddressesSection from "../../components/jobDetails/sections/AddressesSection";
 
 import FinancialSummarySection from "../../components/jobDetails/sections/FinancialSummarySection";
+import JobHistorySection from "../../components/jobDetails/sections/JobHistorySection";
 import PrepareJobSection from "../../components/jobDetails/sections/PrepareJobSection";
 import QuickActionsSection from "../../components/jobDetails/sections/QuickActionsSection";
+import ScorecardSummarySection from "../../components/jobDetails/sections/ScorecardSummarySection";
 import SignaturePreviewSection from "../../components/jobDetails/sections/SignaturePreviewSection";
 import StaffingSection from "../../components/jobDetails/sections/StaffingSection";
 import TimeWindowsSection from "../../components/jobDetails/sections/TimeWindowsSection";
@@ -30,6 +32,7 @@ import { useJobNotes } from "../../hooks/useJobNotes";
 import { useJobPhotos } from "../../hooks/useJobPhotos";
 import { useLocalization } from "../../localization/useLocalization";
 import { saveJobSignature } from "../../services/jobDetails";
+import { updateJob } from "../../services/jobs";
 import type { JobSummaryData } from "../../types/jobSummary";
 
 const JobSummary = ({
@@ -52,6 +55,7 @@ const JobSummary = ({
   const [isSigningVisible, setIsSigningVisible] = useState(false);
   const [isPhotoModalVisible, setIsPhotoModalVisible] = useState(false);
   const [isNoteModalVisible, setIsNoteModalVisible] = useState(false);
+  const [isDifficultyModalVisible, setIsDifficultyModalVisible] = useState(false);
   const { t } = useLocalization();
   const { colors } = useTheme();
   const { track } = useAnalytics("job_summary", "job_details");
@@ -69,6 +73,18 @@ const JobSummary = ({
   const handleSignContract = () => {
     track.userAction("contract_signing_opened", { jobId: job?.id });
     setIsSigningVisible(true);
+  };
+
+  const handleSetDifficulty = async (
+    difficulty: "easy" | "medium" | "hard" | "expert" | null,
+  ) => {
+    setIsDifficultyModalVisible(false);
+    try {
+      await updateJob(String(job.id), { difficulty });
+      setJob((prev) => ({ ...prev, difficulty }));
+    } catch {
+      showError(t("common.error" as any) ?? "Error", t("common.tryAgain" as any) ?? "Please try again");
+    }
   };
 
   // Gestion des notes avec API - nouvelle structure
@@ -146,6 +162,75 @@ const JobSummary = ({
 
   return (
     <>
+      {/* Modal sélecteur de difficulté */}
+      <Modal
+        visible={isDifficultyModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setIsDifficultyModalVisible(false)}
+      >
+        <Pressable
+          style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" }}
+          onPress={() => setIsDifficultyModalVisible(false)}
+        >
+          <Pressable
+            style={{
+              backgroundColor: colors.background,
+              borderRadius: DESIGN_TOKENS.radius.lg,
+              padding: DESIGN_TOKENS.spacing.lg,
+              width: 260,
+              gap: 8,
+            }}
+            onPress={() => {}}
+          >
+            <Text style={{ fontSize: 15, fontWeight: "700", color: colors.text, marginBottom: 4 }}>
+              {t("jobDetails.difficulty.label" as any) ?? "Difficulty"}
+            </Text>
+            {(["easy", "medium", "hard", "expert"] as const).map((d) => {
+              const color = DIFFICULTY_CFG[d].color;
+              const isSelected = job.difficulty === d;
+              return (
+                <Pressable
+                  key={d}
+                  onPress={() => handleSetDifficulty(d)}
+                  style={({ pressed }) => ({
+                    flexDirection: "row",
+                    alignItems: "center",
+                    paddingVertical: 10,
+                    paddingHorizontal: 14,
+                    borderRadius: DESIGN_TOKENS.radius.md,
+                    backgroundColor: isSelected ? color + "20" : colors.backgroundSecondary,
+                    borderWidth: isSelected ? 1.5 : 1,
+                    borderColor: isSelected ? color : colors.border,
+                    opacity: pressed ? 0.7 : 1,
+                  })}
+                >
+                  <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: color, marginRight: 10 }} />
+                  <Text style={{ fontSize: 14, color: isSelected ? color : colors.text, fontWeight: isSelected ? "700" : "400", flex: 1 }}>
+                    {t(`jobDetails.difficulty.${d}` as any) ?? d}
+                  </Text>
+                  {isSelected && <Ionicons name="checkmark" size={16} color={color} />}
+                </Pressable>
+              );
+            })}
+            {job.difficulty && (
+              <Pressable
+                onPress={() => handleSetDifficulty(null)}
+                style={({ pressed }) => ({
+                  alignItems: "center",
+                  paddingVertical: 8,
+                  opacity: pressed ? 0.7 : 1,
+                })}
+              >
+                <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+                  {t("common.remove" as any) ?? "Remove"}
+                </Text>
+              </Pressable>
+            )}
+          </Pressable>
+        </Pressable>
+      </Modal>
+
       {/* Modal de signature */}
       {isSigningVisible && (
         <SigningBloc
@@ -209,7 +294,11 @@ const JobSummary = ({
         ) : (
           <>
             {/* ── Hero card : identité du job ── */}
-            <JobHeroCard job={job} />
+            <JobHeroCard
+              job={job}
+              canEditDifficulty={job.permissions?.can_edit ?? false}
+              onEditDifficulty={() => setIsDifficultyModalVisible(true)}
+            />
 
             {/* Bandeau de délégation active */}
             {job.active_transfer && (
@@ -312,8 +401,16 @@ const JobSummary = ({
             {/* Résumé financier (si données dispo) */}
             <FinancialSummarySection job={job} />
 
+            {/* Scorecard + bannière avis client (jobs complétés) */}
+            {job.status === "completed" && (
+              <ScorecardSummarySection job={job} />
+            )}
+
             {/* Aperçu signature (si job signé) */}
             <SignaturePreviewSection job={job} />
+
+            {/* Historique des actions du job */}
+            <JobHistorySection jobId={String(job.id)} />
           </>
         )}
       </View>
@@ -338,13 +435,24 @@ const STATUS_CFG: Record<
   declined:    { icon: "ban-outline",             color: "#EF4444", labelKey: "declined" },
 };
 
+const DIFFICULTY_CFG: Record<string, { color: string }> = {
+  easy:   { color: "#22C55E" },
+  medium: { color: "#3B82F6" },
+  hard:   { color: "#F59E0B" },
+  expert: { color: "#EF4444" },
+};
+
 const PAYMENT_CFG: Record<string, { color: string; labelKey: string }> = {
   paid:    { color: "#22C55E", labelKey: "paid" },
   partial: { color: "#F59E0B", labelKey: "partialPayment" },
   pending: { color: "#94A3B8", labelKey: "paymentPending" },
 };
 
-const JobHeroCard: React.FC<{ job: JobSummaryData }> = ({ job }) => {
+const JobHeroCard: React.FC<{
+  job: JobSummaryData;
+  canEditDifficulty?: boolean;
+  onEditDifficulty?: () => void;
+}> = ({ job, canEditDifficulty, onEditDifficulty }) => {
   const { colors } = useTheme();
   const { t } = useLocalization();
 
@@ -493,6 +601,59 @@ const JobHeroCard: React.FC<{ job: JobSummaryData }> = ({ job }) => {
                 )}
               </Text>
             </View>
+          )}
+
+          {/* Difficulty chip (si présent) */}
+          {job.difficulty && (
+            <Pressable
+              onPress={canEditDifficulty ? onEditDifficulty : undefined}
+              style={({ pressed }) => ({
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 4,
+                paddingHorizontal: 8,
+                paddingVertical: 3,
+                borderRadius: DESIGN_TOKENS.radius.full,
+                backgroundColor: DIFFICULTY_CFG[job.difficulty!].color + "18",
+                opacity: pressed ? 0.7 : 1,
+              })}
+            >
+              <View
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: 3,
+                  backgroundColor: DIFFICULTY_CFG[job.difficulty!].color,
+                }}
+              />
+              <Text
+                style={{
+                  fontSize: 10,
+                  fontWeight: "600",
+                  color: DIFFICULTY_CFG[job.difficulty!].color,
+                }}
+              >
+                {t(`jobDetails.difficulty.${job.difficulty}` as any) ?? job.difficulty}
+              </Text>
+            </Pressable>
+          )}
+
+          {/* Bouton d'ajout de difficulté (si aucune difficulté et peut éditer) */}
+          {!job.difficulty && canEditDifficulty && (
+            <Pressable
+              onPress={onEditDifficulty}
+              style={({ pressed }) => ({
+                paddingHorizontal: 8,
+                paddingVertical: 3,
+                borderRadius: DESIGN_TOKENS.radius.full,
+                backgroundColor: colors.border + "30",
+                opacity: pressed ? 0.7 : 1,
+              })}
+            >
+              <Text style={{ fontSize: 10, color: colors.textSecondary }}>
+                + {t("jobDetails.difficulty.label" as any) ?? "Difficulty"}
+              </Text>
+            </Pressable>
           )}
         </View>
       </View>
