@@ -57,6 +57,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const interactionsRef = useRef<{ cancel?: () => void } | null>(null);
   const [isHomeLaidOut, setIsHomeLaidOut] = useState(false);
   const calendarTarget = useOnboardingTarget(2);
+  const { isLoading, LoadingComponent } = useAuthCheck(
+    navigation,
+    t("common.checkingAuth"),
+  );
 
   const clearStep1GateTimers = useCallback(() => {
     if (step1DelayTimerRef.current) {
@@ -132,10 +136,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       setStep1Ready(false);
     };
   }, [clearStep1GateTimers, setStep1Ready]);
-  const { isLoading, LoadingComponent } = useAuthCheck(
-    navigation,
-    t("common.checkingAuth"),
-  );
   const [showDevMenu, setShowDevMenu] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showNotificationWizard, setShowNotificationWizard] = useState(false);
@@ -762,7 +762,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                 style={({ pressed }) => ({
                   flex: 1,
                   backgroundColor: pressed
-                    ? (colors.errorDark ?? colors.error)
+                    ? ((colors as any).errorDark ?? colors.error)
                     : colors.error,
                   borderRadius: DESIGN_TOKENS.radius.md,
                   paddingVertical: DESIGN_TOKENS.spacing.sm,
@@ -879,7 +879,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                 disabled={isPushLoading}
                 style={({ pressed }) => ({
                   flex: 1,
-                  backgroundColor: pressed ? colors.primaryDark : colors.primary,
+                  backgroundColor: pressed ? ((colors as any).primaryDark ?? colors.primary) : colors.primary,
                   borderRadius: DESIGN_TOKENS.radius.md,
                   paddingVertical: DESIGN_TOKENS.spacing.sm,
                   alignItems: "center",

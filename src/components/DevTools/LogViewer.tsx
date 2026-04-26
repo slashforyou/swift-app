@@ -62,7 +62,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({ visible, onClose }) => {
       setLogs(allLogs);
       setCurrentPage(1);
     } catch (_error) {
-      console.error("Error refreshing logs:", error);
+      console.error("Error refreshing logs:", _error);
     }
   };
 

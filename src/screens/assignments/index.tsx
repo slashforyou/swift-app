@@ -83,6 +83,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = React.memo(({
   loading,
 }) => {
   const { colors } = useTheme();
+  const { t } = useLocalization();
   const statusCfg = STATUS_LABELS[assignment.status];
   const isPending = assignment.status === "pending";
 

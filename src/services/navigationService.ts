@@ -61,7 +61,7 @@ export class NavigationService {
         }
 
         // Track la vue du nouvel écran
-        analytics.trackScreenView(screenName, previousScreen);
+        analytics.trackNavigation(screenName, previousScreen);
       }
 
       // Sauvegarder l'événement de navigation
@@ -127,10 +127,7 @@ export class NavigationService {
       }
 
       // Track l'action de retour
-      analytics.trackUserAction('navigation_back', {
-        current_screen: this.currentScreen,
-        time_on_screen_seconds: Math.round(timeOnScreen / 1000)
-      });
+      analytics.trackNavigation('navigation_back', this.currentScreen);
 
       // Retrouver l'écran précédent dans l'historique
       const history = this.getNavigationHistory();

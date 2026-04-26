@@ -1,6 +1,6 @@
 /**
- * Payment Page — Gestion des paiements
- * Structure : Hero CTA ? Acompte ? Items additionnels ? Détail facturation ? Signaler problème
+ * Payment Page ï¿½ Gestion des paiements
+ * Structure : Hero CTA ? Acompte ? Items additionnels ? Dï¿½tail facturation ? Signaler problï¿½me
  */
 import Ionicons from "@react-native-vector-icons/ionicons";
 import { useNavigation } from "@react-navigation/native";
@@ -56,11 +56,11 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
   >(null);
   const [isSigningVisible, setIsSigningVisible] = useState(false);
 
-  // État pour les éléments additionnels de la facture
+  // ï¿½tat pour les ï¿½lï¿½ments additionnels de la facture
   const [additionalItems, setAdditionalItems] = useState<AdditionalItem[]>([]);
   const [isAddItemModalVisible, setIsAddItemModalVisible] = useState(false);
 
-  // ? Guard Stripe : vérifier que le compte Stripe est actif avant autoriser paiement
+  // ? Guard Stripe : vï¿½rifier que le compte Stripe est actif avant autoriser paiement
   const [stripeAccountStatus, setStripeAccountStatus] = useState<
     "loading" | "active" | "inactive"
   >("loading");
@@ -73,7 +73,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
         );
       })
       .catch(() => {
-        // En cas d'erreur réseau, on laisse passer (ne pas bloquer sur erreur transitoire)
+        // En cas d'erreur rï¿½seau, on laisse passer (ne pas bloquer sur erreur transitoire)
         setStripeAccountStatus("active");
       });
   }, []);
@@ -81,7 +81,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
   const [newItemAmount, setNewItemAmount] = useState("");
   const [isReportIssueVisible, setIsReportIssueVisible] = useState(false);
 
-  // États acompte et UI
+  // ï¿½tats acompte et UI
   const [depositInputAmount, setDepositInputAmount] = useState("");
   const [isCreatingDepositLink, setIsCreatingDepositLink] = useState(false);
   const [isBillingExpanded, setIsBillingExpanded] = useState(true);
@@ -90,19 +90,19 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
   // Hook de suivi du statut de paiement avec polling
   const paymentStatusHook = useJobPaymentStatus(job?.id || job?.job?.id);
 
-  // ? État pour la signature vérifiée depuis le serveur
+  // ? ï¿½tat pour la signature vï¿½rifiï¿½e depuis le serveur
   const [signatureFromServer, setSignatureFromServer] = useState<{
     exists: boolean;
     signatureId?: number;
     isLoading: boolean;
   }>({ exists: false, isLoading: true });
 
-  // ? Récupérer jobDetails du context pour avoir les données fraîches
-  // NOTE: L'endpoint /job/:code/full attend un CODE (JOB-XXX), pas un ID numérique
+  // ? Rï¿½cupï¿½rer jobDetails du context pour avoir les donnï¿½es fraï¿½ches
+  // NOTE: L'endpoint /job/:code/full attend un CODE (JOB-XXX), pas un ID numï¿½rique
   const jobCode = job?.code || job?.job?.code;
   const { jobDetails } = useJobDetails(jobCode);
 
-  // ? Vérifier la signature sur le serveur au montage
+  // ? Vï¿½rifier la signature sur le serveur au montage
   useEffect(() => {
     const checkSignatureOnServer = async () => {
       const jobId = job?.id || job?.job?.id;
@@ -134,14 +134,14 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
       //     signatureDate: jobDetails.job.signature_date
       // });
 
-      // Merge pour garder modifications locales + ajouter données backend
+      // Merge pour garder modifications locales + ajouter donnï¿½es backend
       // ?? L'API /full retourne le client dans jobDetails.client (sibling), PAS dans jobDetails.job
       setJob((prev: any) => ({
         ...prev,
         ...jobDetails.job,
-        // Préserver les données client embarquées (non retournées dans jobDetails.job)
+        // Prï¿½server les donnï¿½es client embarquï¿½es (non retournï¿½es dans jobDetails.job)
         client: prev?.client,
-        // Préserver certains champs locaux si nécessaire
+        // Prï¿½server certains champs locaux si nï¿½cessaire
         signatureDataUrl:
           prev.signatureDataUrl || jobDetails.job.signature_blob,
       }));
@@ -166,7 +166,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
     itemsLoadedRef.current = true;
   }, []);
 
-  // Synchroniser le hook de statut de paiement avec les données du job
+  // Synchroniser le hook de statut de paiement avec les donnï¿½es du job
   useEffect(() => {
     paymentStatusHook.syncFromJob(job);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -188,7 +188,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [additionalItems]);
 
-  // ? Utiliser le context du timer pour les calculs en temps réel
+  // ? Utiliser le context du timer pour les calculs en temps rï¿½el
   const {
     totalElapsed,
     billableTime,
@@ -200,12 +200,12 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
     totalSteps: contextTotalSteps,
   } = useJobTimerContext();
 
-  // ? FIX: Forcer au moins 5 étapes car l'étape 5 = paiement (pas une étape de travail)
-  // Si le template n'a que 4 steps, on considère step 4 comme la fin du travail
-  // et le paiement est accessible dès step 4
+  // ? FIX: Forcer au moins 5 ï¿½tapes car l'ï¿½tape 5 = paiement (pas une ï¿½tape de travail)
+  // Si le template n'a que 4 steps, on considï¿½re step 4 comme la fin du travail
+  // et le paiement est accessible dï¿½s step 4
   const totalSteps = Math.max(4, contextTotalSteps);
 
-  // Calculer le coût en temps réel
+  // Calculer le coï¿½t en temps rï¿½el
   const getRealTimePaymentInfo = () => {
     const costData = calculateCost(billableTime);
     const estimatedCost = job?.job?.estimatedCost || job?.estimatedCost || 0;
@@ -235,17 +235,17 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
     estimatedCost: number,
     isPaid: boolean,
   ) => {
-    // Si déjà payé via Stripe, statut = completed (priorité absolue)
+    // Si dï¿½jï¿½ payï¿½ via Stripe, statut = completed (prioritï¿½ absolue)
     if (isPaid) {
       return "completed";
     }
 
-    // Sinon, déterminer selon le coût actuel
+    // Sinon, dï¿½terminer selon le coï¿½t actuel
     if (actualCost === 0) {
       return "pending";
     }
 
-    // Coût calculé mais pas encore payé ? toujours 'pending'
+    // Coï¿½t calculï¿½ mais pas encore payï¿½ ? toujours 'pending'
     // (peu importe si actualCost >= estimatedCost, le statut reste 'pending' tant que isPaid = false)
     return "pending";
   };
@@ -273,7 +273,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
       const link = await createStripePaymentLink({
         amount: Math.round(amount * 100),
         currency: "aud",
-        description: `Acompte — ${job?.code || job?.job?.code || jobId}`,
+        description: `Acompte ï¿½ ${job?.code || job?.job?.code || jobId}`,
         customer_email: job?.client?.email || job?.job?.client?.email,
         metadata: { job_id: String(jobId), type: "deposit" },
       });
@@ -296,7 +296,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
         deposit_payment_link_url: link.url,
       });
     } catch {
-      Alert.alert("Erreur", "Impossible de créer le lien de paiement.");
+      Alert.alert("Erreur", "Impossible de crï¿½er le lien de paiement.");
     } finally {
       setIsCreatingDepositLink(false);
     }
@@ -311,14 +311,14 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
   const handleDeactivateDepositLink = () => {
     Alert.alert(
       t("jobDetails.payment.deposit.deactivateConfirm") ||
-        "Désactiver le lien ?",
+        "Dï¿½sactiver le lien ?",
       t("jobDetails.payment.deposit.deactivateConfirmMessage") ||
-        "Le client ne pourra plus accéder au lien de paiement.",
+        "Le client ne pourra plus accï¿½der au lien de paiement.",
       [
         { text: t("common.cancel"), style: "cancel" },
         {
           text:
-            t("jobDetails.payment.deposit.deactivateAction") || "Désactiver",
+            t("jobDetails.payment.deposit.deactivateAction") || "Dï¿½sactiver",
           style: "destructive",
           onPress: async () => {
             const linkId = paymentStatusHook.depositLinkId;
@@ -339,7 +339,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
     );
   };
 
-  // Fonctions pour gérer les éléments additionnels
+  // Fonctions pour gï¿½rer les ï¿½lï¿½ments additionnels
   const handleAddItem = () => {
     if (!newItemDescription.trim()) {
       Alert.alert(
@@ -406,14 +406,14 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
   const paymentInfo = getRealTimePaymentInfo();
   const statusInfo = getStatusInfo(paymentInfo.status);
 
-  // ? Vérifier si le job est terminé (currentStep = totalSteps) - OPTIMIZED WITH useMemo
+  // ? Vï¿½rifier si le job est terminï¿½ (currentStep = totalSteps) - OPTIMIZED WITH useMemo
   // ? FIX 2: Extract status values BEFORE useMemo to stabilize dependencies
   const jobStatus = job?.status;
   const jobJobStatus = job?.job?.status;
 
   const isJobCompleted = useMemo(() => {
-    // ? FIX: Job complété si on a atteint au moins l'étape 4
-    // (car étape 5 = paiement, pas une étape de travail)
+    // ? FIX: Job complï¿½tï¿½ si on a atteint au moins l'ï¿½tape 4
+    // (car ï¿½tape 5 = paiement, pas une ï¿½tape de travail)
     // OU si le statut du job est 'completed'
     const isStepCompleted = currentStep >= 4; // Au moins step 4
     const isStatusCompleted =
@@ -429,10 +429,10 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
     return isStepCompleted || isStatusCompleted;
   }, [currentStep, totalSteps, jobStatus, jobJobStatus]);
 
-  // ? Vérifier si le client a signé (serveur OU local OU API) - UTILISER useMemo pour éviter boucle infinie
+  // ? Vï¿½rifier si le client a signï¿½ (serveur OU local OU API) - UTILISER useMemo pour ï¿½viter boucle infinie
   const hasSignature = useMemo(() => {
     const result = !!(
-      signatureFromServer.exists || // ? PRIORITÉ: Vérification serveur
+      signatureFromServer.exists || // ? PRIORITï¿½: Vï¿½rification serveur
       job?.signatureDataUrl ||
       job?.signatureFileUri ||
       job?.signature_blob ||
@@ -448,7 +448,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
     job?.job?.signature_blob,
   ]);
 
-  // Log uniquement quand la valeur change (pas à chaque render)
+  // Log uniquement quand la valeur change (pas ï¿½ chaque render)
   useEffect(() => {
     //     signatureFromServer: signatureFromServer.exists,
     //     signatureDataUrl: !!job?.signatureDataUrl,
@@ -515,7 +515,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
     }
   };
 
-  // ? Handler pour envoyer la facture au client (quand déjà payé)
+  // ? Handler pour envoyer la facture au client (quand dï¿½jï¿½ payï¿½)
   const handleSendInvoice = useCallback(async () => {
     try {
       const jobData = {
@@ -748,7 +748,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
             {formatCurrency(paymentInfo.current + additionalItemsTotal)}
           </Text>
 
-          {/* CTA principal — visible uniquement si job terminé */}
+          {/* CTA principal ï¿½ visible uniquement si job terminï¿½ */}
           {isJobCompleted && (
             <>
               {signatureFromServer.isLoading ? (
@@ -920,7 +920,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
               marginBottom: DESIGN_TOKENS.spacing.lg,
             }}
           >
-            {/* En-tête */}
+            {/* En-tï¿½te */}
             <View
               style={{
                 flexDirection: "row",
@@ -958,7 +958,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
 
             {/* Contenu selon statut */}
             {paymentStatusHook.depositStatus === "paid" ? (
-              // Acompte reçu
+              // Acompte reï¿½u
               <View
                 style={{
                   backgroundColor: colors.success + "15",
@@ -987,10 +987,10 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                     }}
                   >
                     {t("jobDetails.payment.deposit.statusPaid") ||
-                      "Acompte reçu ?"}
+                      "Acompte reï¿½u ?"}
                   </Text>
                 </View>
-                {paymentStatusHook.depositAmount > 0 && (
+                {(paymentStatusHook.depositAmount ?? 0) > 0 && (
                   <>
                     <Text
                       style={{
@@ -1001,19 +1001,19 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                     >
                       {t("jobDetails.payment.deposit.depositOf") ||
                         "Acompte de"}{" "}
-                      {formatCurrency(paymentStatusHook.depositAmount)}
+                      {formatCurrency(paymentStatusHook.depositAmount ?? 0)}
                     </Text>
                     <Text
                       style={{ fontSize: 13, color: colors.textSecondary }}
                     >
                       {t("jobDetails.payment.deposit.remainingBalance") ||
-                        "Reste à percevoir"}{" "}
+                        "Reste ï¿½ percevoir"}{" "}
                       {formatCurrency(
                         Math.max(
                           0,
                           paymentInfo.current +
                             additionalItemsTotal -
-                            paymentStatusHook.depositAmount,
+                            (paymentStatusHook.depositAmount ?? 0),
                         ),
                       )}
                     </Text>
@@ -1021,7 +1021,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                 )}
               </View>
             ) : paymentStatusHook.depositLinkUrl ? (
-              // Lien existant — statut envoyé ou pending
+              // Lien existant ï¿½ statut envoyï¿½ ou pending
               <View>
                 <View
                   style={{
@@ -1055,7 +1055,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                         ? t("jobDetails.payment.deposit.statusPending") ||
                           "Paiement en cours..."
                         : t("jobDetails.payment.deposit.statusSent") ||
-                          "Lien envoyé — En attente du client"}
+                          "Lien envoyï¿½ ï¿½ En attente du client"}
                     </Text>
                   </View>
                   {paymentStatusHook.lastChecked && (
@@ -1067,7 +1067,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                       }}
                     >
                       {t("jobDetails.payment.deposit.lastChecked") ||
-                        "Vérifié"}{" "}
+                        "Vï¿½rifiï¿½"}{" "}
                       {paymentStatusHook.lastChecked.toLocaleTimeString()}
                     </Text>
                   )}
@@ -1156,7 +1156,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                 </View>
               </View>
             ) : (
-              // Formulaire de création du lien
+              // Formulaire de crï¿½ation du lien
               <View>
                 <Text
                   style={{
@@ -1220,7 +1220,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                         }}
                       >
                         {t("jobDetails.payment.deposit.createLink") ||
-                          "Créer le lien"}
+                          "Crï¿½er le lien"}
                       </Text>
                     )}
                   </Pressable>
@@ -1278,7 +1278,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                 }}
               >
                 {t("jobDetails.payment.additionalItems.title") ||
-                  "Éléments additionnels"}
+                  "ï¿½lï¿½ments additionnels"}
               </Text>
             </View>
             <Pressable
@@ -1386,12 +1386,12 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
               }}
             >
               {t("jobDetails.payment.additionalItems.noItems") ||
-                "Aucun élément additionnel"}
+                "Aucun ï¿½lï¿½ment additionnel"}
             </Text>
           )}
         </View>
 
-        {/* ===== 4. DÉTAIL DE FACTURATION (collapsible) ===== */}
+        {/* ===== 4. Dï¿½TAIL DE FACTURATION (collapsible) ===== */}
         <View
           style={{
             backgroundColor: colors.backgroundSecondary,
@@ -1449,7 +1449,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                 gap: DESIGN_TOKENS.spacing.md,
               }}
             >
-              {/* Temps de travail réel */}
+              {/* Temps de travail rï¿½el */}
               <View
                 style={{
                   flexDirection: "row",
@@ -1531,7 +1531,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                 </Text>
               </View>
 
-              {/* Arrondi (règle 7min) */}
+              {/* Arrondi (rï¿½gle 7min) */}
               <View
                 style={{
                   flexDirection: "row",
@@ -1667,7 +1667,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
           )}
         </View>
 
-        {/* ===== 5. SIGNALER UN PROBLÈME ===== */}
+        {/* ===== 5. SIGNALER UN PROBLï¿½ME ===== */}
         <Pressable
           onPress={() => setIsReportIssueVisible(true)}
           style={({ pressed }) => ({
@@ -1698,7 +1698,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
         </Pressable>
       </ScrollView>
 
-      {/* Modal ajouter un élément */}
+      {/* Modal ajouter un ï¿½lï¿½ment */}
       <Modal
         visible={isAddItemModalVisible}
         transparent
@@ -1734,7 +1734,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
               }}
             >
               {t("jobDetails.payment.additionalItems.addItemTitle") ||
-                "Ajouter un élément"}
+                "Ajouter un ï¿½lï¿½ment"}
             </Text>
 
             <Text
@@ -1759,7 +1759,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
               placeholder={
                 t(
                   "jobDetails.payment.additionalItems.descriptionPlaceholder",
-                ) || "ex: Matériaux supplémentaires"
+                ) || "ex: Matï¿½riaux supplï¿½mentaires"
               }
               placeholderTextColor={colors.textSecondary}
               value={newItemDescription}
@@ -1845,7 +1845,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
         </Pressable>
       </Modal>
 
-      {/* Modal signaler un problème de paiement */}
+      {/* Modal signaler un problï¿½me de paiement */}
       <ReportPaymentIssueModal
         visible={isReportIssueVisible}
         onClose={() => setIsReportIssueVisible(false)}

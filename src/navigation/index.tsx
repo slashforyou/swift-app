@@ -189,7 +189,7 @@ export default function Navigation() {
         <Stack.Screen name="SupportInbox" component={SupportInbox} />
         <Stack.Screen
           name="SupportConversation"
-          component={SupportConversation}
+          component={SupportConversation as any}
         />
         <Stack.Screen
           name="SupportNewConversation"

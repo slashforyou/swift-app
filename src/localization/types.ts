@@ -1606,6 +1606,8 @@ export interface TranslationKeys {
       jobCountPlural?: string;
       from?: string;
       to?: string;
+      ref?: string;
+      overdueDate?: string;
     };
   };
 
@@ -1959,6 +1961,7 @@ export interface TranslationKeys {
       companyNamePlaceholder?: string;
       passwordsMatch?: string;
       passwordStrength?: { [key: string]: string | { [key: string]: string } };
+      passwordCriteria?: { title?: string; minLength?: string; uppercase?: string; lowercase?: string; number?: string; special?: string; };
     };
     validation: {
       emailRequired: string;
@@ -2403,6 +2406,9 @@ export interface TranslationKeys {
         tosTextEnd: string;
         disclaimer: string;
         activateButton: string;
+        checkingRequirements?: string;
+        pendingRequirementsTitle?: string;
+        pendingRequirementsHint?: string;
         successTitle: string;
         successMessage: string;
         errors: {
@@ -2543,6 +2549,8 @@ export interface TranslationKeys {
         successUpdate: string;
         createTestPayment: string;
       };
+      comingSoon?: string;
+      comingSoonDesc?: string;
     };
     payments: {
       title: string;
@@ -2751,6 +2759,14 @@ export interface TranslationKeys {
         title: string;
         subtitle: string;
         comingSoon: string;
+        permissionTitle?: string;
+        permissionExplain?: string;
+        permissionDenied?: string;
+        allow?: string;
+        searchPlaceholder?: string;
+        cobbrUsersLabel?: string;
+        searchResultsLabel?: string;
+        noCobbrUsersHint?: string;
       };
       // Step: Employee form
       employeeForm: {
@@ -3247,6 +3263,9 @@ export interface TranslationKeys {
     error?: string;
     errorSendDelegation?: string;
     delegationSuccess?: string;
+    alreadyAssigned?: string;
+    alreadyAssignedDesc?: string;
+    allProvidersAssigned?: string;
   };
 
   // Relations (RelationsScreen)
@@ -3526,11 +3545,23 @@ export interface TranslationKeys {
     createBtn?: string;
     // Categories
     residentialMove?: string;
+    residentialDesc?: string;
+    residentialExamples?: string;
     commercialMove?: string;
+    commercialDesc?: string;
+    commercialExamples?: string;
     interstateMove?: string;
+    interstateDesc?: string;
+    interstateExamples?: string;
     storageServices?: string;
+    storageDesc?: string;
+    storageExamples?: string;
     packingServices?: string;
+    packingDesc?: string;
+    packingExamples?: string;
     specialtyItems?: string;
+    specialtyDesc?: string;
+    specialtyExamples?: string;
     // Pricing types
     fixedPrice?: string;
     hourlyRate?: string;
@@ -3767,6 +3798,25 @@ export interface TranslationKeys {
     commission?: string;
     branding?: string;
     prioritySupport?: string;
+    subscribe?: string;
+    selectPlan?: string;
+    upgrade?: string;
+    downgrade?: string;
+    changePlan?: string;
+    planChanged?: string;
+    cancelSubscription?: string;
+    resumeSubscription?: string;
+    cancelConfirmTitle?: string;
+    cancelConfirmMessage?: string;
+    cancelConfirmButton?: string;
+    subscriptionActive?: string;
+    subscriptionCanceling?: string;
+    subscriptionCancelingDetail?: string;
+    subscriptionInactive?: string;
+    subscribeSuccess?: string;
+    cancelSuccess?: string;
+    resumeSuccess?: string;
+    changePlanSuccess?: string;
   };
 
   // Contracts — Modular contract clauses
@@ -3781,6 +3831,8 @@ export interface TranslationKeys {
     contractLink?: string;
     bySigningSuffix?: string;
     signButton?: string;
+    loadingContract?: string;
+    scrollToRead?: string;
   };
 
   contracts?: {
@@ -3810,6 +3862,7 @@ export interface TranslationKeys {
     clausesCount?: string;
     regenerate?: string;
     signButton?: string;
+    signed?: string;
   };
 
   validation?: {

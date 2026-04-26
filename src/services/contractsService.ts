@@ -25,6 +25,7 @@ export interface ContractClause {
   content: string;
   clause_order: number;
   is_active: boolean;
+  condition_type?: string;
   conditions: ClauseCondition[];
   created_at: string;
   updated_at: string;

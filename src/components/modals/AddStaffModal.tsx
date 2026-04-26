@@ -1598,6 +1598,12 @@ const styles = StyleSheet.create({
   },
   backButton: {
     marginBottom: DESIGN_TOKENS.spacing.md,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  backButtonText: {
+    fontSize: 16,
+    marginLeft: DESIGN_TOKENS.spacing.xs,
   },
   stepTitle: {
     fontSize: 24,

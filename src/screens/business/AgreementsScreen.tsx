@@ -89,8 +89,8 @@ export default function AgreementsScreen({
             >
               <View style={s.itemInfo}>
                 <Text style={[s.itemName, { color: colors.text }]}>{tpl.name}</Text>
-                {tpl.billing_mode && (
-                  <Text style={[s.itemMeta, { color: colors.textSecondary }]}>{tpl.billing_mode}</Text>
+                {tpl.billingMode && (
+                  <Text style={[s.itemMeta, { color: colors.textSecondary }]}>{tpl.billingMode}</Text>
                 )}
               </View>
               <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />

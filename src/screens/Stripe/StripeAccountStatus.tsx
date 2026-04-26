@@ -64,7 +64,7 @@ const StripeAccountStatus: React.FC<StripeAccountStatusProps> = ({
 
   return (
     <Card
-      testID="stripe-account-status"
+      {...({ testID: "stripe-account-status" } as any)}
       style={{ padding: DESIGN_TOKENS.spacing.lg }}
     >
       <View style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>

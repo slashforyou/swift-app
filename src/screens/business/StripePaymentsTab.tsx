@@ -157,7 +157,7 @@ export default function StripePaymentsTab({
     <View>
       {/* Banner: Onboarding incomplet → reprendre (seulement si wizard pas terminé) */}
       {connectionStatus === "incomplete" && (
-        <View style={[s.resumeBanner, { backgroundColor: colors.warningBackground ?? "#FEF3C7", borderColor: colors.warning ?? "#F59E0B" }]}>
+        <View style={[s.resumeBanner, { backgroundColor: (colors as any).warningBackground ?? "#FEF3C7", borderColor: colors.warning ?? "#F59E0B" }]}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 }}>
             <Ionicons name="alert-circle" size={22} color={STATUS_COLORS.warning} />
             <Text style={[s.resumeTitle, { color: "#92400E" }]}>
