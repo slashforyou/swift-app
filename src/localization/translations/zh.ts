@@ -1117,6 +1117,19 @@ export const zhTranslations = mergeWithBaseTranslations(enTranslations, {
         updating: "正在更新...",
       },
     },
+    history: {
+      title: "历史记录",
+      actions: "条记录",
+      showAll: "查看全部",
+      showLess: "收起",
+    },
+    difficulty: {
+      label: "难度",
+      easy: "简单",
+      medium: "中等",
+      hard: "困难",
+      expert: "专家",
+    },
   },
 
   settings: {

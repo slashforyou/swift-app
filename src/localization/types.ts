@@ -1269,6 +1269,32 @@ export interface TranslationKeys {
       statusBanner?: { [key: string]: string };
       financial?: { [key: string]: string };
       signaturePreview?: { [key: string]: string };
+      history?: {
+        title?: string;
+        actions?: string;
+        showAll?: string;
+        showLess?: string;
+      };
+      difficulty?: {
+        label?: string;
+        easy?: string;
+        medium?: string;
+        hard?: string;
+        expert?: string;
+      };
+    };
+    history?: {
+      title?: string;
+      actions?: string;
+      showAll?: string;
+      showLess?: string;
+    };
+    difficulty?: {
+      label?: string;
+      easy?: string;
+      medium?: string;
+      hard?: string;
+      expert?: string;
     };
   };
 
@@ -1846,6 +1872,10 @@ export interface TranslationKeys {
     assignSuccess?: string;
     unassignSuccess?: string;
     assignError?: string;
+    weeklyHours?: {
+      title?: string;
+      noData?: string;
+    };
   };
 
   // Errors and Messages
@@ -3635,6 +3665,23 @@ export interface TranslationKeys {
     error?: string;
   };
 
+  // Referral / Parrainage
+  referral?: {
+    title?: string;
+    yourCode?: string;
+    shareText?: string;
+    copy?: string;
+    copied?: string;
+    referrals?: string;
+    rewardsGranted?: string;
+    noReferrals?: string;
+    noReferralsSubtitle?: string;
+    joined?: string;
+    rewardGranted?: string;
+    rewardPending?: string;
+    loadError?: string;
+  };
+
   // Payments Dashboard
   paymentsDashboard?: {
     loadError?: string;
@@ -3968,6 +4015,77 @@ export interface TranslationKeys {
     closeBubble: string;
     bubbleDismissed: string;
     finishTour: string;
+  };
+  gamification: {
+    title: string;
+    myQuests: string;
+    filterAll: string;
+    filterIntro: string;
+    filterDaily: string;
+    filterWeekly: string;
+    filterMonthly: string;
+    filterEvent: string;
+    categoryIntro: string;
+    categoryDaily: string;
+    categoryWeekly: string;
+    categoryMonthly: string;
+    categoryEvent: string;
+    noQuestsInCategory: string;
+    claim: string;
+    claimed: string;
+    expired: string;
+    inProgress: string;
+    notStarted: string;
+    claimSuccessTitle: string;
+    claimSuccessMessage: string;
+    claimSuccessMessageTrophies: string;
+    claimOk: string;
+    error: string;
+    claimError: string;
+    xpBonus: string;
+    time: {
+      ended: string;
+      daysHoursLeft: string;
+      daysLeft: string;
+      hoursMinutesLeft: string;
+      hoursLeft: string;
+      minutesLeft: string;
+      endsOn: string;
+      endsTomorrow: string;
+      daysRemaining: string;
+    };
+    trophy: {
+      sectionTitle: string;
+      currentSeason: string;
+      pastSeasons: string;
+      /** Accepts {{n}} param */
+      trophiesCount: string;
+      /** End of season date, accepts {{date}} */
+      seasonEnds: string;
+      /** Final rank, accepts {{rank}} */
+      rankLabel: string;
+      noArchives: string;
+    };
+    scorecard: {
+      title: string;
+      score: string;
+      /** Accepts {{pct}} */
+      percentage: string;
+      categoryPhotos: string;
+      categoryDocuments: string;
+      categorySteps: string;
+      categoryNotes: string;
+      checkpointPassed: string;
+      checkpointFailed: string;
+      noScorecard: string;
+      sendReviewRequest: string;
+      reviewRequestSent: string;
+      reviewRequestError: string;
+      clientReview: string;
+      reviewSubmitted: string;
+      reviewBannerTitle: string;
+      reviewBannerSub: string;
+    };
   };
 }
 

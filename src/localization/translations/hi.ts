@@ -1120,6 +1120,19 @@ export const hiTranslations = mergeWithBaseTranslations(enTranslations, {
         updating: "अपडेट हो रहा है...",
       },
     },
+    history: {
+      title: "इतिहास",
+      actions: "दर्ज क्रियाएं",
+      showAll: "सभी देखें",
+      showLess: "कम दिखाएं",
+    },
+    difficulty: {
+      label: "कठिनाई",
+      easy: "आसान",
+      medium: "मध्यम",
+      hard: "कठिन",
+      expert: "विशेषज्ञ",
+    },
   },
 
   settings: {

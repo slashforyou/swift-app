@@ -1158,6 +1158,19 @@ export const itTranslations = mergeWithBaseTranslations(enTranslations, {
         updating: "Aggiornamento in corso...",
       },
     },
+    history: {
+      title: "Cronologia",
+      actions: "azioni registrate",
+      showAll: "Mostra tutto",
+      showLess: "Mostra meno",
+    },
+    difficulty: {
+      label: "Difficoltà",
+      easy: "Facile",
+      medium: "Medio",
+      hard: "Difficile",
+      expert: "Esperto",
+    },
   },
 
   settings: {

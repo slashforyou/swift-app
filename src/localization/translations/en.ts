@@ -1457,6 +1457,19 @@ export const enTranslations: TranslationKeys = {
         updating: "Updating...",
       },
     },
+    history: {
+      title: "History",
+      actions: "recorded actions",
+      showAll: "Show all",
+      showLess: "Show less",
+    },
+    difficulty: {
+      label: "Difficulty",
+      easy: "Easy",
+      medium: "Medium",
+      hard: "Hard",
+      expert: "Expert",
+    },
   },
 
   settings: {
@@ -2149,6 +2162,10 @@ export const enTranslations: TranslationKeys = {
     assignSuccess: "Staff assigned successfully",
     unassignSuccess: "Staff unassigned successfully",
     assignError: "Failed to assign staff",
+    weeklyHours: {
+      title: "Weekly Hours",
+      noData: "No data for this week",
+    },
   },
 
   messages: {
@@ -4686,6 +4703,25 @@ export const enTranslations: TranslationKeys = {
   },
 
   // ============================================================================
+  // REFERRAL / PARRAINAGE
+  // ============================================================================
+  referral: {
+    title: "Referral",
+    yourCode: "Your Referral Code",
+    shareText: "Share",
+    copy: "Copy",
+    copied: "Copied!",
+    referrals: "Referrals",
+    rewardsGranted: "Rewards",
+    noReferrals: "No referrals yet",
+    noReferralsSubtitle: "Share your code to invite other businesses",
+    joined: "Joined",
+    rewardGranted: "✅ Reward granted",
+    rewardPending: "⏳ Reward pending",
+    loadError: "Unable to load referral data",
+  },
+
+  // ============================================================================
   // PAYMENTS DASHBOARD
   // ============================================================================
   paymentsDashboard: {
@@ -5197,5 +5233,72 @@ export const enTranslations: TranslationKeys = {
     closeBubble: "Close hint",
     bubbleDismissed: "Hint closed",
     finishTour: "Finish tour",
+  },
+  gamification: {
+    title: "My Progress",
+    myQuests: "⚔️ My Quests",
+    filterAll: "All",
+    filterIntro: "🚀 Intro",
+    filterDaily: "📅 Daily",
+    filterWeekly: "📆 Weekly",
+    filterMonthly: "🗓️ Monthly",
+    filterEvent: "🎪 Event",
+    categoryIntro: "🚀 Discovery",
+    categoryDaily: "📅 Daily",
+    categoryWeekly: "📆 Weekly",
+    categoryMonthly: "🗓️ Monthly",
+    categoryEvent: "🎪 Event",
+    noQuestsInCategory: "No quests in this category.",
+    claim: "Claim",
+    claimed: "Claimed",
+    expired: "Expired",
+    inProgress: "In progress…",
+    notStarted: "Not started",
+    claimSuccessTitle: "🎉 Reward claimed!",
+    claimSuccessMessage: "+{{xp}} XP",
+    claimSuccessMessageTrophies: "+{{xp}} XP · 🏆 {{trophies}} trophy",
+    claimOk: "Great!",
+    error: "Error",
+    claimError: "Unable to claim the reward",
+    xpBonus: "⚡ +{{pct}}% XP",
+    time: {
+      ended: "Ended",
+      daysHoursLeft: "{{d}}d {{h}}h left",
+      daysLeft: "{{d}} days left",
+      hoursMinutesLeft: "{{h}}h {{m}}min left",
+      hoursLeft: "{{h}}h left",
+      minutesLeft: "{{m}}min left",
+      endsOn: "Ends on {{date}}",
+      endsTomorrow: "Ends tomorrow",
+      daysRemaining: "{{d}} days left",
+    },
+    trophy: {
+      sectionTitle: "Trophies",
+      currentSeason: "Current Season",
+      pastSeasons: "Past Seasons",
+      trophiesCount: "{{n}} trophy",
+      seasonEnds: "Ends {{date}}",
+      rankLabel: "Rank #{{rank}}",
+      noArchives: "No archived seasons",
+    },
+    scorecard: {
+      title: "Scorecard",
+      score: "Score",
+      percentage: "{{pct}}%",
+      categoryPhotos: "Photos",
+      categoryDocuments: "Documents",
+      categorySteps: "Steps",
+      categoryNotes: "Notes",
+      checkpointPassed: "Passed",
+      checkpointFailed: "Missed",
+      noScorecard: "Scorecard not available",
+      sendReviewRequest: "Request client review",
+      reviewRequestSent: "Email sent to client ✅",
+      reviewRequestError: "Could not send email",
+      clientReview: "Client review",
+      reviewSubmitted: "Review received",
+      reviewBannerTitle: "Your client left a review ⭐",
+      reviewBannerSub: "See details in the scorecard",
+    },
   },
 };

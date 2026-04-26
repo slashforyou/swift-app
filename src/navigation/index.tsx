@@ -66,9 +66,12 @@ const TeamsManagement = lazyScreen(
 const Leaderboard = lazyScreen(() => import("../screens/leaderboard"));
 const Badges = lazyScreen(() => import("../screens/badges"));
 const XpHistory = lazyScreen(() => import("../screens/xpHistory"));
+const GamificationV2Screen = lazyScreen(() => import("../screens/GamificationV2Screen"));
+const QuestsScreen = lazyScreen(() => import("../screens/QuestsScreen"));
 const EmployeeDashboard = lazyScreen(
   () => import("../screens/EmployeeDashboardScreen"),
 );
+const ReferralScreen = lazyScreen(() => import("../screens/ReferralScreen"));
 
 // Support screens
 const SupportInbox = lazyScreen(
@@ -98,6 +101,9 @@ const JobTemplateEditor = lazyScreen(
 );
 const JobTimeBreakdownScreen = lazyScreen(
   () => import("../screens/job/JobTimeBreakdownScreen"),
+);
+const JobScorecardScreen = lazyScreen(
+  () => import("../screens/JobScorecardScreen"),
 );
 
 // Onboarding screens
@@ -168,9 +174,16 @@ export default function Navigation() {
         <Stack.Screen name="Leaderboard" component={Leaderboard} />
         <Stack.Screen name="Badges" component={Badges} />
         <Stack.Screen name="XpHistory" component={XpHistory} />
+        <Stack.Screen name="GamificationV2" component={GamificationV2Screen} />
+        <Stack.Screen name="Quests" component={QuestsScreen} />
         <Stack.Screen
           name="EmployeeDashboard"
           component={EmployeeDashboard}
+          options={{ animation: "slide_from_right" }}
+        />
+        <Stack.Screen
+          name="Referral"
+          component={ReferralScreen}
           options={{ animation: "slide_from_right" }}
         />
         <Stack.Screen name="SupportInbox" component={SupportInbox} />
@@ -198,6 +211,11 @@ export default function Navigation() {
         <Stack.Screen
           name="CompleteProfile"
           component={CompleteProfileScreen}
+          options={{ animation: "slide_from_right" }}
+        />
+        <Stack.Screen
+          name="JobScorecard"
+          component={JobScorecardScreen}
           options={{ animation: "slide_from_right" }}
         />
       </Stack.Navigator>

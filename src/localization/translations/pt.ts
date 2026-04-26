@@ -1215,6 +1215,19 @@ export const ptTranslations = mergeWithBaseTranslations(enTranslations, {
         updating: "Atualizando...",
       },
     },
+    history: {
+      title: "Histórico",
+      actions: "ações registradas",
+      showAll: "Ver tudo",
+      showLess: "Ver menos",
+    },
+    difficulty: {
+      label: "Dificuldade",
+      easy: "Fácil",
+      medium: "Médio",
+      hard: "Difícil",
+      expert: "Especialista",
+    },
   },
 
   business: {

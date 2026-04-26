@@ -1473,6 +1473,19 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
           updating: "Mise à jour en cours...",
         },
       },
+      history: {
+        title: "Historique",
+        actions: "actions enregistrées",
+        showAll: "Voir tout",
+        showLess: "Voir moins",
+      },
+      difficulty: {
+        label: "Difficulté",
+        easy: "Facile",
+        medium: "Moyen",
+        hard: "Difficile",
+        expert: "Expert",
+      },
     },
 
     settings: {
@@ -2178,6 +2191,10 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
       assignSuccess: "Personnel assigné avec succès",
       unassignSuccess: "Personnel désassigné avec succès",
       assignError: "Impossible d'assigner le personnel",
+      weeklyHours: {
+        title: "Heures hebdomadaires",
+        noData: "Aucune donnée pour cette semaine",
+      },
     },
 
     messages: {
@@ -4497,6 +4514,25 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
     },
 
     // ============================================================================
+    // REFERRAL / PARRAINAGE
+    // ============================================================================
+    referral: {
+      title: "Parrainage",
+      yourCode: "Votre code de parrainage",
+      shareText: "Partager",
+      copy: "Copier",
+      copied: "Copié !",
+      referrals: "Filleuls",
+      rewardsGranted: "Récompenses",
+      noReferrals: "Aucun filleul pour l'instant",
+      noReferralsSubtitle: "Partagez votre code pour inviter d'autres entreprises",
+      joined: "Rejoint le",
+      rewardGranted: "✅ Récompense accordée",
+      rewardPending: "⏳ Récompense en attente",
+      loadError: "Impossible de charger les données de parrainage",
+    },
+
+    // ============================================================================
     // PAYMENTS DASHBOARD
     // ============================================================================
     paymentsDashboard: {
@@ -5002,6 +5038,73 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
       closeBubble: "Fermer l'indice",
       bubbleDismissed: "Indice fermé",
       finishTour: "Terminer la visite",
+    },
+    gamification: {
+      title: "Ma progression",
+      myQuests: "⚔️ Mes quêtes",
+      filterAll: "Toutes",
+      filterIntro: "🚀 Intro",
+      filterDaily: "📅 Daily",
+      filterWeekly: "📆 Weekly",
+      filterMonthly: "🗓️ Monthly",
+      filterEvent: "🎪 Event",
+      categoryIntro: "🚀 Découverte",
+      categoryDaily: "📅 Quotidiennes",
+      categoryWeekly: "📆 Hebdomadaires",
+      categoryMonthly: "🗓️ Mensuelles",
+      categoryEvent: "🎪 Événement",
+      noQuestsInCategory: "Aucune quête dans cette catégorie.",
+      claim: "Réclamer",
+      claimed: "Réclamé",
+      expired: "Expiré",
+      inProgress: "En cours…",
+      notStarted: "Pas encore commencé",
+      claimSuccessTitle: "🎉 Récompense réclamée !",
+      claimSuccessMessage: "+{{xp}} XP",
+      claimSuccessMessageTrophies: "+{{xp}} XP · 🏆 {{trophies}} trophée(s)",
+      claimOk: "Super !",
+      error: "Erreur",
+      claimError: "Impossible de réclamer la récompense",
+      xpBonus: "⚡ +{{pct}}% XP",
+      time: {
+        ended: "Terminé",
+        daysHoursLeft: "encore {{d}}j {{h}}h",
+        daysLeft: "encore {{d}} jours",
+        hoursMinutesLeft: "encore {{h}}h {{m}}min",
+        hoursLeft: "encore {{h}}h",
+        minutesLeft: "encore {{m}}min",
+        endsOn: "Finit le {{date}}",
+        endsTomorrow: "Finit demain",
+        daysRemaining: "{{d}} jours restants",
+      },
+      trophy: {
+        sectionTitle: "Trophées",
+        currentSeason: "Saison en cours",
+        pastSeasons: "Saisons passées",
+        trophiesCount: "{{n}} trophée{{n,plural:0=s}}",
+        seasonEnds: "Fin le {{date}}",
+        rankLabel: "Rang #{{rank}}",
+        noArchives: "Aucune saison archivée",
+      },
+      scorecard: {
+        title: "Scorecard",
+        score: "Score",
+        percentage: "{{pct}}%",
+        categoryPhotos: "Photos",
+        categoryDocuments: "Documents",
+        categorySteps: "Étapes",
+        categoryNotes: "Notes",
+        checkpointPassed: "Validé",
+        checkpointFailed: "Manqué",
+        noScorecard: "Scorecard non disponible",
+        sendReviewRequest: "Demander un avis client",
+        reviewRequestSent: "Email envoyé au client ✅",
+        reviewRequestError: "Impossible d'envoyer l'email",
+        clientReview: "Avis client",
+        reviewSubmitted: "Avis reçu",
+        reviewBannerTitle: "Votre client a laissé un avis ⭐",
+        reviewBannerSub: "Voir les détails dans la scorecard",
+      },
     },
   },
 );
