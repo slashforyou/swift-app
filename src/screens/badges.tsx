@@ -1,16 +1,17 @@
 /**
  * Badges Screen - Affiche les badges gagnés et disponibles
+ * Utilise l'endpoint V2 GET /v1/user/gamification/v2/badges
  * Supporte les modes Light et Dark
  */
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  Text,
-  View,
+    Pressable,
+    RefreshControl,
+    ScrollView,
+    Text,
+    View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import HeaderLogo from "../components/ui/HeaderLogo";
@@ -18,11 +19,7 @@ import MascotLoading from "../components/ui/MascotLoading";
 import { DESIGN_TOKENS } from "../constants/Styles";
 import { useTheme } from "../context/ThemeProvider";
 import { useTranslation } from "../localization";
-import {
-  BadgeDetailed,
-  fetchGamification,
-  getBadgesByCategory,
-} from "../services/gamification";
+import { V2Badge, fetchV2Badges } from "../services/gamificationV2";
 
 type BadgeCategory =
   | "driver"
@@ -56,8 +53,8 @@ const BadgesScreen: React.FC = () => {
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [earnedBadges, setEarnedBadges] = useState<BadgeDetailed[]>([]);
-  const [availableBadges, setAvailableBadges] = useState<BadgeDetailed[]>([]);
+  const [earnedBadges, setEarnedBadges] = useState<V2Badge[]>([]);
+  const [availableBadges, setAvailableBadges] = useState<V2Badge[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<
     BadgeCategory | "all"
   >("all");
@@ -66,17 +63,9 @@ const BadgesScreen: React.FC = () => {
   const loadBadges = useCallback(async () => {
     try {
       setError(null);
-      const data = await fetchGamification();
-
-      // Badges gagnés
-      const earned =
-        data.badgesDetailed?.filter((b) => b.earned || b.earnedAt) || [];
-      setEarnedBadges(earned);
-
-      // Badges disponibles (non gagnés)
-      const available =
-        data.availableBadges?.filter((b) => !b.earned && !b.earnedAt) || [];
-      setAvailableBadges(available);
+      const data = await fetchV2Badges();
+      setEarnedBadges(data.earned);
+      setAvailableBadges(data.available);
     } catch (err) {
       console.error("Failed to load badges:", err);
       setError(err instanceof Error ? err.message : "Failed to load badges");
@@ -96,9 +85,9 @@ const BadgesScreen: React.FC = () => {
   }, [loadBadges]);
 
   // Filtrer les badges par catégorie
-  const getFilteredBadges = (badges: BadgeDetailed[]): BadgeDetailed[] => {
+  const getFilteredBadges = (badges: V2Badge[]): V2Badge[] => {
     if (selectedCategory === "all") return badges;
-    return getBadgesByCategory(badges, selectedCategory);
+    return badges.filter((b) => b.category === selectedCategory);
   };
 
   const filteredEarned = getFilteredBadges(earnedBadges);
@@ -122,7 +111,7 @@ const BadgesScreen: React.FC = () => {
     item,
     earned,
   }: {
-    item: BadgeDetailed;
+    item: V2Badge;
     earned: boolean;
   }) => {
     const categoryInfo =

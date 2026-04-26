@@ -26,9 +26,11 @@ import { useOnboardingTarget } from "../context/OnboardingSpotlightContext";
 import { useOnboardingTour } from "../context/OnboardingTourContext";
 import { useTheme } from "../context/ThemeProvider";
 import { usePushNotifications } from "../hooks/usePushNotifications";
+import DailyRecapModal, { recapSeenKey } from "./DailyRecapModal";
 
 import { useUserProfile } from "../hooks/useUserProfile";
 import { useTranslation } from "../localization";
+import { DailyRecapData, fetchDailyRecap } from "../services/gamificationV2";
 import { clearSession } from "../utils/auth";
 import { useAuthCheck } from "../utils/checkAuth";
 import { clearLocalSession } from "../utils/session";
@@ -137,6 +139,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const [showDevMenu, setShowDevMenu] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showNotificationWizard, setShowNotificationWizard] = useState(false);
+  const [dailyRecapData, setDailyRecapData] = useState<DailyRecapData | null>(null);
   const { unreadCount } = useNotifications();
   const [showNotifications, setShowNotifications] = useState(false);
   const { profile, refreshProfile } = useUserProfile();
@@ -159,9 +162,21 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   }, []);
 
   // Rafraîchir le profil quand l'écran revient au focus (ex: après changement d'avatar)
+  // Vérifier aussi le récap quotidien
   useFocusEffect(
     useCallback(() => {
       refreshProfile();
+
+      // Récap quotidien : vérifier si disponible et pas encore affiché
+      (async () => {
+        try {
+          const today = new Date().toISOString().slice(0, 10);
+          const seen = await AsyncStorage.getItem(recapSeenKey(today));
+          if (seen) return;
+          const recap = await fetchDailyRecap(today);
+          if (recap) setDailyRecapData(recap);
+        } catch {}
+      })();
     }, []),
   );
 
@@ -660,6 +675,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
       {__DEV__ && (
         <DevMenu visible={showDevMenu} onClose={() => setShowDevMenu(false)} />
+      )}
+
+      {/* Récap XP quotidien — affiché 15 min après le dernier job de la journée */}
+      {dailyRecapData && (
+        <DailyRecapModal
+          data={dailyRecapData}
+          onClose={() => setDailyRecapData(null)}
+        />
       )}
 
       {/* Logout confirmation modal — testID-based so Maestro can interact reliably */}

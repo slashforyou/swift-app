@@ -43,15 +43,12 @@ interface ProfileHeaderProps {
   };
 }
 
-// Variable pour le double tap
-let lastTapTime = 0;
-
 const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   navigation,
   onLanguagePress,
   avatarId,
 }) => {
-  const { data: gamificationData, isLoading, addXP } = useGamification();
+  const { data: gamificationData, isLoading } = useGamification();
   const { colors } = useTheme();
   const { t } = useLocalization();
 
@@ -79,14 +76,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
         {/* Card compacte - Avatar + Level + Progression */}
         <Pressable
           testID="home-profile-card"
-          onPress={() => {
-            const now = Date.now();
-            if (now - lastTapTime < 500) {
-              // Double tap - Easter egg
-              addXP(5, "🎯 Easter egg bonus!");
-            }
-            lastTapTime = now;
-          }}
+          onPress={() => navigation.navigate("GamificationV2")}
           onLongPress={() => navigation.navigate("XpHistory")}
           style={({ pressed }) => ({
             marginHorizontal: DESIGN_TOKENS.spacing.lg,
@@ -191,6 +181,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                     })}
                   </Text>
                 </View>
+                <Ionicons name="chevron-forward" size={13} color={colors.textSecondary} style={{ opacity: 0.6 }} />
               </HStack>
 
               {/* Barre de progression */}
