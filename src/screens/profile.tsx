@@ -875,6 +875,51 @@ const ProfileScreen: React.FC = () => {
                 <Ionicons name="chevron-forward" size={18} color={colors.primary} />
               </Pressable>
             )}
+
+            {/* Referral CTA */}
+            {(companyData.company_role === "patron" ||
+              companyData.company_role === "cadre") && (
+              <Pressable
+                onPress={() => (navigation as any).navigate("Referral")}
+                style={({ pressed }) => ({
+                  flexDirection: "row",
+                  alignItems: "center",
+                  padding: DESIGN_TOKENS.spacing.md,
+                  backgroundColor: pressed
+                    ? "#8B5CF6" + "30"
+                    : "#8B5CF6" + "15",
+                  borderRadius: 12,
+                  marginTop: DESIGN_TOKENS.spacing.md,
+                  borderWidth: 1,
+                  borderColor: "#8B5CF6" + "40",
+                })}
+              >
+                <View
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 18,
+                    backgroundColor: "#8B5CF6" + "20",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    marginRight: DESIGN_TOKENS.spacing.md,
+                  }}
+                >
+                  <Ionicons name="people-outline" size={18} color="#8B5CF6" />
+                </View>
+                <Text
+                  style={{
+                    flex: 1,
+                    fontSize: 15,
+                    fontWeight: "600",
+                    color: "#8B5CF6",
+                  }}
+                >
+                  {t("referral.title" as any) ?? "Parrainage"}
+                </Text>
+                <Ionicons name="chevron-forward" size={18} color="#8B5CF6" />
+              </Pressable>
+            )}
           </CollapsibleSection>
         )}
 
