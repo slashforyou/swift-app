@@ -1,0 +1,1 @@
+SELECT COLUMN_NAME, COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='swiftapp' AND TABLE_NAME='quests' AND COLUMN_NAME IN ('category','end_date','event_id','trophy_count');SHOW TABLES LIKE 'gamification_quest_events';SELECT category, COUNT(*) n FROM quests GROUP BY category;
