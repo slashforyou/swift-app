@@ -13,12 +13,14 @@ import {
     Text,
     View,
 } from "react-native";
+import WeeklyHoursSection from "../../components/business/WeeklyHoursSection";
 import AddStaffModal from "../../components/modals/AddStaffModal";
 import EditStaffModal from "../../components/modals/EditStaffModal";
 import MascotLoading from "../../components/ui/MascotLoading";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useOnboardingTarget } from "../../context/OnboardingSpotlightContext";
 import { useTheme } from "../../context/ThemeProvider";
+import { useAuth } from "../../hooks/useAuth";
 import { useStaff } from "../../hooks/useStaff";
 import { useTranslation } from "../../localization/useLocalization";
 import { Contractor, Employee, StaffMember } from "../../types/staff";
@@ -26,6 +28,7 @@ import { Contractor, Employee, StaffMember } from "../../types/staff";
 export default function StaffCrewScreen() {
   const { colors } = useTheme();
   const { t } = useTranslation();
+  const { user } = useAuth();
   const addStaffTarget = useOnboardingTarget(26);
   const {
     staff,
@@ -281,6 +284,11 @@ export default function StaffCrewScreen() {
             {t("staff.actions.add")}
           </Text>
         </Pressable>
+
+        {/* Widget heures hebdomadaires (managers uniquement) */}
+        {!!user?.company_id && (
+          <WeeklyHoursSection companyId={user.company_id} />
+        )}
 
         {/* Filtres */}
         <View style={styles.filterContainer}>
