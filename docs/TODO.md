@@ -1,8 +1,8 @@
 # COBBR — Roadmap Consolidée
 
-> **Dernière mise à jour :** 16 avril 2026
-> **Version actuelle :** 1.1.0 (MVP live sur iOS + Android)
-> **Statut :** MVP fonctionnel — En route vers monétisation (juin 2026)
+> **Dernière mise à jour :** 28 avril 2026
+> **Version actuelle :** 1.2.0 (MVP live sur iOS + Android)
+> **Statut :** MVP fonctionnel — Monétisation + Features avancées (mai 2026)
 
 ---
 
@@ -12,14 +12,16 @@
 |-------|------|-------|-------------|
 | 🔴 **P0** — Bloquant production | 5 | 0 | 100% |
 | 🟠 **P1** — Monétisation (juin 2026) | 42 | 2 | **95%** |
-| 🟡 **P2** — Améliorations UX | 11 | 31 | 26% |
-| 🟢 **P3** — Nice-to-have | 0 | 15 | 0% |
+| 🟡 **P2** — Améliorations UX | 37 | 5 | **88%** |
+| 🟢 **P3** — Nice-to-have | 8 | 7 | 53% |
 | ⚪ **P4** — Long terme / IA | 0 | 17 | 0% |
 | 🎮 **Gamification v2** | spec | 5 phases | spec prête |
-| **TOTAL** | **58** | **64** | **48%** |
+| **TOTAL** | **92** | **31** | **75%** |
 | **Chemin critique (P0+P1)** | **47** | **2** | **96%** |
 
 > **Accomplissements récents (8-16 avril) :** Inscription simplifiée 8→1 écran, Business Hub redesign 8→4 onglets, Stripe dual-mode (test/live), Factures hebdo/bimensuelles avec wizard 4 étapes + sélection client, i18n complète 7 langues, Rebranding emails SwiftApp→Cobbr, SMTP fix, **Module Stockage complet** (6 tables, 22+ endpoints, 6 écrans, billing cron), **Stripe onboarding live FR** (person tokens client-side, document upload 2-phase), **Web dashboard fixes** (API routes, Stripe status gate), CI/CD fixes (TypeScript + lint + E2E), **Employee Dashboard** (#29/30/31: stats+heures+historique), **Carousel photos** (#32: PhotoViewModal déjà en place), **Notes internes job** (#33: JobNotesSection + backend + i18n)
+>
+> **Accomplissements récents (21-28 avril) :** **Audit sécurité Élise** (JWT-only company_id, crypto.randomInt, NODE_ENV guard — commit b81fab0), **Push notifications fix CRITIQUE** (pushTokens.js POST/DELETE, migration 035, NotificationsPanel redesign — commit 0a9d26e), **Wave features majeures** : 13 migrations DB (036-048), 14 endpoints backend (attachments, links, difficulty, availability, skills, quotas, mileage, maintenance, reviews, ratings, quotes, revenue dashboard, CSV export, referral), 9 services frontend + 13 écrans (JobAttachments, LinkedJobs, Difficulty, EmployeeAvailability, EmployeeSkills, WeeklyHours, VehicleMileage, VehicleMaintenance, Quotes, QuoteEditor, RevenueDashboard, EmployeeRatings, JobReview), tutoriel onboarding (OnboardingTutorial + useTutorial), navigation mise à jour
 
 ### Essentiels validés (21 avril 2026)
 
@@ -219,64 +221,64 @@
 |---|-------|-------|
 | ~~32~~ | ~~Carousel photos plein écran (swipe)~~ | ✅ PhotoViewModal dans JobPhotosSection (ScrollView horizontal + double-tap zoom + nav prev/next + counter) |
 | ~~33~~ | ~~Notes/commentaires internes sur un job~~ | ✅ JobNotesSection (collapsible) + useJobNotes hook + jobNotes backend + i18n |
-| 34 | Historique modifications job (audit trail) | Log des changements |
-| 35 | Pièces jointes (documents, devis, contrats) | Upload fichiers |
-| 36 | Classifier jobs par niveau de difficulté | Tags/badges |
-| 37 | Lier 2 jobs entre eux (interstate) | Relations jobs |
-| 38 | Support multi-camions par job | Code trucksCount existe mais désactivé |
-| 39 | Page "Logs" historique d'actions sur un job | Pour contractors |
+| ~~34~~ | ~~Historique modifications job (audit trail)~~ | ✅ `getJobActionsById.js` + écran logs |
+| ~~35~~ | ~~Pièces jointes (documents, devis, contrats)~~ | ✅ `jobAttachments.js` + `JobAttachmentsScreen` + migration 037 |
+| ~~36~~ | ~~Classifier jobs par niveau de difficulté~~ | ✅ `jobDifficulty.js` + `JobDifficultyScreen` + migration 036 |
+| ~~37~~ | ~~Lier 2 jobs entre eux (interstate)~~ | ✅ `jobLinks.js` + `LinkedJobsScreen` + migration 038 |
+| ~~38~~ | ~~Support multi-camions par job~~ | ✅ `trucks_count` activé, PATCH endpoint + UI |
+| ~~39~~ | ~~Page "Logs" historique d'actions sur un job~~ | ✅ `getJobActionsById.js` existant, entrée dans JobDetails |
 
 #### Gestion du personnel [C][S]
 
 | # | Tâche | Notes |
 |---|-------|-------|
-| 40 | Vue planning par employé (timeline) | Calendrier individuel |
-| 41 | Gestion disponibilités/indisponibilités | Plages horaires |
-| 42 | Système de compétences/qualifications | Tags/badges par employé |
-| 43 | Affectation auto suggérée (dispo + proximité) | Algorithme suggestion |
-| 44 | Quota d'heures max/semaine par travailleur | Tracking cumulé |
+| 40 | Vue planning par employé (timeline) | Calendrier individuel — à faire |
+| ~~41~~ | ~~Gestion disponibilités/indisponibilités~~ | ✅ `employeeAvailability.js` + `EmployeeAvailabilityScreen` + migration 039 |
+| ~~42~~ | ~~Système de compétences/qualifications~~ | ✅ `employeeSkills.js` + `EmployeeSkillsScreen` + migration 040 |
+| 43 | Affectation auto suggérée (dispo + proximité) | Algorithme suggestion — à faire |
+| ~~44~~ | ~~Quota d'heures max/semaine par travailleur~~ | ✅ `employeeHourQuotas.js` + `WeeklyHoursScreen` + migration 041 |
 | ~~45~~ | ~~Page clients — liste des clients (patron only)~~ | ✅ ClientsScreen (sub-tab Resources) + backend CRUD + i18n |
-| 46 | Parrainage récompensé (code invite / lien) | Invite → reward |
+| ~~46~~ | ~~Parrainage récompensé (code invite / lien)~~ | ✅ `ReferralScreen` + `referral.js` + `referral_rewards` migration 044 |
 
 #### Véhicules [C][S]
 
 | # | Tâche | Notes |
 |---|-------|-------|
-| 47 | Suivi kilométrique par véhicule | Odometer tracking |
-| 48 | Alertes maintenance (vidange, contrôle technique) | Rappels automatiques |
-| 49 | Disponibilité véhicule sur calendrier | Planning véhicules |
+| ~~47~~ | ~~Suivi kilométrique par véhicule~~ | ✅ `vehicleMileage.js` + `VehicleMileageScreen` + migration 042 |
+| ~~48~~ | ~~Alertes maintenance (vidange, contrôle technique)~~ | ✅ `vehicleMaintenance.js` + `VehicleMaintenanceScreen` + migration 043 |
+| 49 | Disponibilité véhicule sur calendrier | Planning véhicules — à faire |
 
 #### Autres [C][S]
 
 | # | Tâche | Notes |
 |---|-------|-------|
-| 50 | Chat interne (support messaging fait, chat interne reste) | Messagerie équipe |
-| 51 | Appel d'urgence pour contractors/contractee | Bouton rapide |
-| 52 | MapView pour contractee (trajet + temps estimé) | React Native Maps |
-| 53 | Mini tutoriel 1ère utilisation (tooltips/coach marks) | Onboarding in-app |
-| 54 | ~~Audit i18n complet (toutes langues, tous éléments)~~ | ✅ 7 langues (en/fr/es/it/pt/hi/zh) — Business Hub, modernJobBox, assignments, MonthlyInvoices, templates |
-| 55 | Demande d'avis automatique (happy customer → review) | Post-job |
-| 56 | Réponse par mail messages support | Backend email |
+| 50 | Chat interne (support messaging fait, chat interne reste) | Messagerie équipe — à faire |
+| 51 | Appel d'urgence pour contractors/contractee | Bouton rapide — à faire |
+| 52 | MapView pour contractee (trajet + temps estimé) | React Native Maps — à faire |
+| ~~53~~ | ~~Mini tutoriel 1ère utilisation (tooltips/coach marks)~~ | ✅ `OnboardingTutorial.tsx` + `useTutorial.ts` + migration 048 |
+| ~~54~~ | ~~Audit i18n complet (toutes langues, tous éléments)~~ | ✅ 7 langues (en/fr/es/it/pt/hi/zh) — Business Hub, modernJobBox, assignments, MonthlyInvoices, templates |
+| ~~55~~ | ~~Demande d'avis automatique (happy customer → review)~~ | ✅ `jobReviews.js` + `JobReviewScreen` + migration 045 |
+| 56 | Réponse par mail messages support | Backend email — à faire |
 
 ### 🟢 P3 — Nice-to-have
 
 | # | Tâche | Scope | Notes |
 |---|-------|-------|-------|
-| 57 | Générateur de devis (prestations + calcul auto) | [C][S] | |
-| 58 | Conversion devis → job en 1 clic | [C][S] | |
-| 59 | Factures PDF avec branding | [S] | |
-| 60 | Chat interne équipe (temps réel) | [C][S] | |
-| 61 | Chat avec client final (lié au job) | [C][S] | |
-| 62 | Partage position temps réel (ETA) | [C][S] | |
-| 63 | Notation job par client (étoiles + commentaire) | [C][S] | |
-| 64 | Notation interne employé par patron | [C][S] | |
-| 65 | Calcul itinéraire optimisé entre jobs | [C] | |
-| 66 | Tracking GPS flotte temps réel (opt-in) | [C][S] | |
-| 67 | Numérotation cartons (packing) | [C][S] | |
-| 68 | ~~Page stockage (inventaire, logs entrée/sortie)~~ | ~~[C][S]~~ | ✅ Module complet: 6 tables SQL, 22+ endpoints, 6 écrans, billing cron quotidien, intégration Job↔Storage bidirectionnelle |
-| 69 | Suivi paiements + relance auto impayés | [S] | |
-| 70 | Dashboard revenus (jour/semaine/mois) | [C][S] | |
-| 71 | Export CSV/PDF rapports | [S] | |
+| ~~57~~ | ~~Générateur de devis (prestations + calcul auto)~~ | ~~[C][S]~~ | ✅ `quotes.js` + `QuotesScreen` + `QuoteEditorScreen` + migration 047 |
+| ~~58~~ | ~~Conversion devis → job en 1 clic~~ | ~~[C][S]~~ | ✅ `POST /v1/quotes/:id/convert-to-job` + bouton dans QuoteEditorScreen |
+| 59 | Factures PDF avec branding | [S] | À faire — génération PDF serveur |
+| 60 | Chat interne équipe (temps réel) | [C][S] | À faire |
+| 61 | Chat avec client final (lié au job) | [C][S] | À faire |
+| 62 | Partage position temps réel (ETA) | [C][S] | À faire |
+| ~~63~~ | ~~Notation job par client (étoiles + commentaire)~~ | ~~[C][S]~~ | ✅ `jobReviews.js` (token email) + `job_reviews` migration 045 |
+| ~~64~~ | ~~Notation interne employé par patron~~ | ~~[C][S]~~ | ✅ `employeeRatings.js` + `EmployeeRatingsScreen` + migration 046 |
+| 65 | Calcul itinéraire optimisé entre jobs | [C] | À faire |
+| 66 | Tracking GPS flotte temps réel (opt-in) | [C][S] | À faire |
+| 67 | Numérotation cartons (packing) | [C][S] | À faire |
+| ~~68~~ | ~~Page stockage (inventaire, logs entrée/sortie)~~ | ~~[C][S]~~ | ✅ Module complet: 6 tables SQL, 22+ endpoints, 6 écrans, billing cron quotidien, intégration Job↔Storage bidirectionnelle |
+| 69 | Suivi paiements + relance auto impayés | [S] | À faire |
+| ~~70~~ | ~~Dashboard revenus (jour/semaine/mois)~~ | ~~[C][S]~~ | ✅ `revenueDashboard.js` + `RevenueDashboardScreen` (KPIs + bar chart + top clients) |
+| ~~71~~ | ~~Export CSV/PDF rapports~~ | ~~[S]~~ | ✅ `exportData.js` → GET /v1/export/jobs + /v1/export/revenue |
 
 ### ⚪ P4 — Long terme / IA
 

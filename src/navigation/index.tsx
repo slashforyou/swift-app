@@ -111,6 +111,55 @@ const CompleteProfileScreen = lazyScreen(
   () => import("../screens/CompleteProfileScreen"),
 );
 
+// Job detail sub-screens
+const JobAttachmentsScreen = lazyScreen(
+  () => import("../screens/JobDetailsScreens/attachments"),
+);
+const JobLinkedJobsScreen = lazyScreen(
+  () => import("../screens/JobDetailsScreens/linkedJobs"),
+);
+const JobDifficultyScreen = lazyScreen(
+  () => import("../screens/JobDetailsScreens/difficulty"),
+);
+const JobReviewScreen = lazyScreen(
+  () => import("../screens/JobReviewScreen"),
+);
+
+// Employee screens
+const EmployeeAvailabilityScreen = lazyScreen(
+  () => import("../screens/EmployeeAvailabilityScreen"),
+);
+const EmployeeSkillsScreen = lazyScreen(
+  () => import("../screens/EmployeeSkillsScreen"),
+);
+const EmployeeRatingsScreen = lazyScreen(
+  () => import("../screens/EmployeeRatingsScreen"),
+);
+const WeeklyHoursScreen = lazyScreen(
+  () => import("../screens/WeeklyHoursScreen"),
+);
+
+// Vehicle screens
+const VehicleMileageScreen = lazyScreen(
+  () => import("../screens/VehicleMileageScreen"),
+);
+const VehicleMaintenanceScreen = lazyScreen(
+  () => import("../screens/VehicleMaintenanceScreen"),
+);
+
+// Quotes screens
+const QuotesScreen = lazyScreen(
+  () => import("../screens/QuotesScreen"),
+);
+const QuoteEditorScreen = lazyScreen(
+  () => import("../screens/QuoteEditorScreen"),
+);
+
+// Revenue dashboard
+const RevenueDashboardScreen = lazyScreen(
+  () => import("../screens/RevenueDashboardScreen"),
+);
+
 const Stack = createNativeStackNavigator();
 
 export default function Navigation() {
@@ -216,6 +265,76 @@ export default function Navigation() {
         <Stack.Screen
           name="JobScorecard"
           component={JobScorecardScreen}
+          options={{ animation: "slide_from_right" }}
+        />
+        {/* Job detail sub-screens */}
+        <Stack.Screen
+          name="JobAttachments"
+          component={JobAttachmentsScreen}
+          options={{ animation: "slide_from_right" }}
+        />
+        <Stack.Screen
+          name="JobLinkedJobs"
+          component={JobLinkedJobsScreen}
+          options={{ animation: "slide_from_right" }}
+        />
+        <Stack.Screen
+          name="JobDifficulty"
+          component={JobDifficultyScreen}
+          options={{ animation: "slide_from_right" }}
+        />
+        <Stack.Screen
+          name="JobReview"
+          component={JobReviewScreen}
+          options={{ animation: "slide_from_right" }}
+        />
+        {/* Employee screens */}
+        <Stack.Screen
+          name="EmployeeAvailability"
+          component={EmployeeAvailabilityScreen}
+          options={{ animation: "slide_from_right" }}
+        />
+        <Stack.Screen
+          name="EmployeeSkills"
+          component={EmployeeSkillsScreen}
+          options={{ animation: "slide_from_right" }}
+        />
+        <Stack.Screen
+          name="EmployeeRatings"
+          component={EmployeeRatingsScreen}
+          options={{ animation: "slide_from_right" }}
+        />
+        <Stack.Screen
+          name="WeeklyHours"
+          component={WeeklyHoursScreen}
+          options={{ animation: "slide_from_right" }}
+        />
+        {/* Vehicle screens */}
+        <Stack.Screen
+          name="VehicleMileage"
+          component={VehicleMileageScreen}
+          options={{ animation: "slide_from_right" }}
+        />
+        <Stack.Screen
+          name="VehicleMaintenance"
+          component={VehicleMaintenanceScreen}
+          options={{ animation: "slide_from_right" }}
+        />
+        {/* Quotes screens */}
+        <Stack.Screen
+          name="Quotes"
+          component={QuotesScreen}
+          options={{ animation: "slide_from_right" }}
+        />
+        <Stack.Screen
+          name="QuoteEditor"
+          component={QuoteEditorScreen}
+          options={{ animation: "slide_from_bottom" }}
+        />
+        {/* Revenue dashboard */}
+        <Stack.Screen
+          name="RevenueDashboard"
+          component={RevenueDashboardScreen}
           options={{ animation: "slide_from_right" }}
         />
       </Stack.Navigator>

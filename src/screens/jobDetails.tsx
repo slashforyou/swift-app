@@ -1052,6 +1052,43 @@ const JobDetails: React.FC<JobDetailsProps> = ({
           </Pressable>
         )}
 
+        {/* Quick actions row */}
+        <View
+          style={{
+            flexDirection: "row",
+            paddingHorizontal: DESIGN_TOKENS.spacing.md,
+            paddingVertical: DESIGN_TOKENS.spacing.sm,
+            gap: 8,
+          }}
+        >
+          {[
+            { icon: "attach-outline", label: "Fichiers", screen: "JobAttachments" },
+            { icon: "link-outline", label: "Liés", screen: "JobLinkedJobs" },
+            { icon: "layers-outline", label: "Difficulté", screen: "JobDifficulty" },
+            { icon: "star-outline", label: "Avis", screen: "JobReview" },
+          ].map((action) => (
+            <Pressable
+              key={action.screen}
+              onPress={() => navigation.navigate(action.screen as any, { jobId: numericJobId })}
+              style={({ pressed }) => ({
+                flex: 1,
+                alignItems: "center",
+                paddingVertical: 10,
+                backgroundColor: pressed ? colors.backgroundTertiary : colors.backgroundSecondary,
+                borderRadius: DESIGN_TOKENS.radius.md,
+                borderWidth: 1,
+                borderColor: colors.border,
+                gap: 4,
+              })}
+            >
+              <Ionicons name={action.icon as any} size={20} color={colors.primary} />
+              <Text style={{ color: colors.textSecondary, fontSize: 10, fontWeight: "600" }}>
+                {action.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+
         {/* ScrollView principal */}
         <ScrollView
           testID="job-details-scroll"

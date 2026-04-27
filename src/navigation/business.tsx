@@ -4,7 +4,7 @@
  */
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useCallback, useEffect, useState } from "react";
-import { ScrollView, TextInput, View } from "react-native";
+import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BusinessTabMenu } from "../components/business";
 import BusinessHeader from "../components/business/BusinessHeader";
@@ -341,8 +341,62 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
         }
         return (
           <>
-            {resourcesSubTab === "staff" && <StaffCrewScreen />}
-            {resourcesSubTab === "vehicles" && <TrucksScreen />}
+            {resourcesSubTab === "staff" && (
+              <>
+                {/* Staff quick links */}
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, paddingHorizontal: DESIGN_TOKENS.spacing.lg, paddingTop: DESIGN_TOKENS.spacing.sm, paddingBottom: DESIGN_TOKENS.spacing.sm }}>
+                  {[
+                    { icon: "calendar-outline", label: "Dispo", screen: "EmployeeAvailability" },
+                    { icon: "ribbon-outline", label: "Compétences", screen: "EmployeeSkills" },
+                    { icon: "star-outline", label: "Notations", screen: "EmployeeRatings" },
+                    { icon: "time-outline", label: "Heures", screen: "WeeklyHours" },
+                  ].map((item) => (
+                    <Pressable
+                      key={item.screen}
+                      onPress={() => navigation?.navigate(item.screen as any)}
+                      style={({ pressed }) => ({
+                        flexDirection: "row", alignItems: "center", gap: 6,
+                        paddingVertical: 8, paddingHorizontal: 12,
+                        backgroundColor: pressed ? colors.backgroundTertiary : colors.backgroundSecondary,
+                        borderRadius: DESIGN_TOKENS.radius.md,
+                        borderWidth: 1, borderColor: colors.border,
+                      })}
+                    >
+                      <Ionicons name={item.icon as any} size={16} color={colors.primary} />
+                      <Text style={{ color: colors.text, fontWeight: "600", fontSize: 13 }}>{item.label}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+                <StaffCrewScreen />
+              </>
+            )}
+            {resourcesSubTab === "vehicles" && (
+              <>
+                {/* Vehicle quick links */}
+                <View style={{ flexDirection: "row", gap: 8, paddingHorizontal: DESIGN_TOKENS.spacing.lg, paddingTop: DESIGN_TOKENS.spacing.sm, paddingBottom: DESIGN_TOKENS.spacing.sm }}>
+                  {[
+                    { icon: "speedometer-outline", label: "Kilométrage", screen: "VehicleMileage" },
+                    { icon: "construct-outline", label: "Maintenance", screen: "VehicleMaintenance" },
+                  ].map((item) => (
+                    <Pressable
+                      key={item.screen}
+                      onPress={() => navigation?.navigate(item.screen as any)}
+                      style={({ pressed }) => ({
+                        flex: 1, flexDirection: "row", alignItems: "center", gap: 8,
+                        paddingVertical: 10, paddingHorizontal: 12,
+                        backgroundColor: pressed ? colors.backgroundTertiary : colors.backgroundSecondary,
+                        borderRadius: DESIGN_TOKENS.radius.md,
+                        borderWidth: 1, borderColor: colors.border,
+                      })}
+                    >
+                      <Ionicons name={item.icon as any} size={16} color={colors.primary} />
+                      <Text style={{ color: colors.text, fontWeight: "600", fontSize: 13 }}>{item.label}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+                <TrucksScreen />
+              </>
+            )}
             {resourcesSubTab === "partners" && <RelationsScreen />}
             {resourcesSubTab === "clients" && <ClientsScreen />}
             {resourcesSubTab === "storage" && (
@@ -373,6 +427,29 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
       case "Finances":
         return (
           <>
+            {/* Quick nav: Devis + Revenue */}
+            <View style={{ flexDirection: "row", gap: 10, paddingHorizontal: DESIGN_TOKENS.spacing.lg, paddingTop: DESIGN_TOKENS.spacing.md, paddingBottom: DESIGN_TOKENS.spacing.sm }}>
+              {[
+                { icon: "document-text-outline", label: "Devis", screen: "Quotes" },
+                { icon: "bar-chart-outline", label: "Revenus", screen: "RevenueDashboard" },
+              ].map((item) => (
+                <Pressable
+                  key={item.screen}
+                  onPress={() => navigation?.navigate(item.screen as any)}
+                  style={({ pressed }) => ({
+                    flex: 1, flexDirection: "row", alignItems: "center", gap: 8,
+                    paddingVertical: 12, paddingHorizontal: 14,
+                    backgroundColor: pressed ? colors.backgroundTertiary : colors.backgroundSecondary,
+                    borderRadius: DESIGN_TOKENS.radius.lg,
+                    borderWidth: 1, borderColor: colors.border,
+                  })}
+                >
+                  <Ionicons name={item.icon as any} size={20} color={colors.primary} />
+                  <Text style={{ color: colors.text, fontWeight: "600", fontSize: 14 }}>{item.label}</Text>
+                  <Ionicons name="chevron-forward" size={14} color={colors.textSecondary} style={{ marginLeft: "auto" }} />
+                </Pressable>
+              ))}
+            </View>
             {financesSubTab === "payments" && (
               <StripePaymentsTab
                 onNavigateStripeScreen={handleDrillDown}
