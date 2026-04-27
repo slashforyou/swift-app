@@ -43,6 +43,327 @@ interface NotificationsPanelProps {
   onClose: () => void;
 }
 
+// ─── Config visuelle par type de notification ──────────────────────────────────
+const NOTIFICATION_CONFIG: Record<
+  NotificationType,
+  {
+    emoji: string;
+    icon: keyof typeof Ionicons.glyphMap;
+    color: string;
+    hookText: string;
+  }
+> = {
+  job: {
+    emoji: "📦",
+    icon: "briefcase",
+    color: "#FF6B35",
+    hookText: "Nouveau job disponible !",
+  },
+  bonus: {
+    emoji: "⚡",
+    icon: "flash",
+    color: "#F59E0B",
+    hookText: "Tu as gagné un bonus !",
+  },
+  payment: {
+    emoji: "💰",
+    icon: "card",
+    color: "#4CAF50",
+    hookText: "Paiement reçu ✓",
+  },
+  call: {
+    emoji: "📞",
+    icon: "call",
+    color: "#2196F3",
+    hookText: "Appel manqué",
+  },
+  reminder: {
+    emoji: "⏰",
+    icon: "alarm",
+    color: "#9C27B0",
+    hookText: "Rappel important",
+  },
+  alert: {
+    emoji: "🚨",
+    icon: "warning",
+    color: "#F44336",
+    hookText: "Action requise",
+  },
+  system: {
+    emoji: "🔔",
+    icon: "notifications",
+    color: "#607D8B",
+    hookText: "Information",
+  },
+  new_partnership: {
+    emoji: "🤝",
+    icon: "people",
+    color: "#00BCD4",
+    hookText: "Nouvelle collaboration !",
+  },
+};
+
+// ─── NotificationItem ──────────────────────────────────────────────────────────
+interface NotificationItemProps {
+  notif: {
+    id: string;
+    type: NotificationType;
+    title: string;
+    message: string;
+    isRead: boolean;
+    createdAt: string | Date;
+  };
+  index: number;
+  onRemove: (id: string) => void;
+}
+
+const NotificationItem: React.FC<NotificationItemProps> = ({
+  notif,
+  index,
+  onRemove,
+}) => {
+  const { colors } = useTheme();
+  const config = NOTIFICATION_CONFIG[notif.type] || NOTIFICATION_CONFIG.system;
+  const accentColor = config.color || "#607D8B";
+
+  const enterOpacity = useRef(new Animated.Value(0)).current;
+  const enterTranslateY = useRef(new Animated.Value(20)).current;
+  const pressScale = useRef(new Animated.Value(1)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(enterOpacity, {
+        toValue: 1,
+        duration: 320,
+        delay: index * 55,
+        useNativeDriver: true,
+        easing: Easing.out(Easing.cubic),
+      }),
+      Animated.timing(enterTranslateY, {
+        toValue: 0,
+        duration: 320,
+        delay: index * 55,
+        useNativeDriver: true,
+        easing: Easing.out(Easing.cubic),
+      }),
+    ]).start();
+
+    if (!notif.isRead) {
+      const pulse = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.25,
+            duration: 700,
+            useNativeDriver: true,
+            easing: Easing.inOut(Easing.ease),
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 700,
+            useNativeDriver: true,
+            easing: Easing.inOut(Easing.ease),
+          }),
+        ])
+      );
+      pulse.start();
+      return () => pulse.stop();
+    }
+  }, []);
+
+  const handlePressIn = () => {
+    Animated.spring(pressScale, {
+      toValue: 0.98,
+      useNativeDriver: true,
+      friction: 8,
+      tension: 300,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(pressScale, {
+      toValue: 1,
+      useNativeDriver: true,
+      friction: 8,
+      tension: 300,
+    }).start();
+  };
+
+  return (
+    <Animated.View
+      style={{
+        opacity: enterOpacity,
+        transform: [{ translateY: enterTranslateY }, { scale: pressScale }],
+        marginHorizontal: DESIGN_TOKENS.spacing.md,
+        marginBottom: DESIGN_TOKENS.spacing.sm,
+        borderRadius: DESIGN_TOKENS.radius.lg,
+        overflow: "hidden",
+      }}
+    >
+      <Pressable
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        onPress={() => {}}
+        style={{
+          flexDirection: "row",
+          alignItems: "stretch",
+          backgroundColor: !notif.isRead
+            ? accentColor + "14"
+            : colors.backgroundSecondary,
+          borderRadius: DESIGN_TOKENS.radius.lg,
+          overflow: "hidden",
+        }}
+      >
+        {/* Left accent bar */}
+        <View
+          style={{
+            width: 4,
+            backgroundColor: accentColor,
+            borderTopLeftRadius: DESIGN_TOKENS.radius.lg,
+            borderBottomLeftRadius: DESIGN_TOKENS.radius.lg,
+          }}
+        />
+
+        {/* Card content */}
+        <View style={{ flex: 1, padding: DESIGN_TOKENS.spacing.md }}>
+          {/* Top row : icône + titre + badge NEW */}
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              marginBottom: 6,
+            }}
+          >
+            {/* Emoji dans cercle coloré */}
+            <View
+              style={{
+                width: 42,
+                height: 42,
+                borderRadius: 21,
+                backgroundColor: accentColor + "22",
+                borderWidth: 1.5,
+                borderColor: accentColor + "44",
+                justifyContent: "center",
+                alignItems: "center",
+                marginRight: 10,
+              }}
+            >
+              <Text style={{ fontSize: 18 }}>{config.emoji}</Text>
+            </View>
+
+            {/* Titre + hook text */}
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: "800",
+                  color: colors.text,
+                  letterSpacing: -0.2,
+                }}
+                numberOfLines={1}
+              >
+                {notif.title}
+              </Text>
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: "600",
+                  color: accentColor,
+                  marginTop: 1,
+                }}
+              >
+                {config.hookText}
+              </Text>
+            </View>
+
+            {/* Badge NEW animé */}
+            {!notif.isRead && (
+              <Animated.View
+                style={{
+                  transform: [{ scale: pulseAnim }],
+                  backgroundColor: accentColor,
+                  borderRadius: 8,
+                  paddingHorizontal: 6,
+                  paddingVertical: 2,
+                  marginLeft: 6,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 9,
+                    fontWeight: "900",
+                    color: "white",
+                    letterSpacing: 0.5,
+                  }}
+                >
+                  NEW
+                </Text>
+              </Animated.View>
+            )}
+          </View>
+
+          {/* Message tronqué 2 lignes */}
+          <Text
+            style={{
+              fontSize: 13,
+              color: colors.textSecondary,
+              lineHeight: 18,
+              marginBottom: 8,
+            }}
+            numberOfLines={2}
+          >
+            {notif.message}
+          </Text>
+
+          {/* Footer : timestamp + delete */}
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
+            >
+              <Ionicons
+                name="time-outline"
+                size={11}
+                color={accentColor + "99"}
+              />
+              <Text
+                style={{
+                  fontSize: 11,
+                  color: colors.textMuted,
+                  fontWeight: "500",
+                }}
+              >
+                {formatRelativeTime(notif.createdAt)}
+              </Text>
+            </View>
+            <Pressable
+              onPress={() => onRemove(notif.id)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              style={({ pressed }) => ({
+                width: 28,
+                height: 28,
+                borderRadius: 14,
+                backgroundColor: pressed
+                  ? colors.error + "30"
+                  : colors.error + "12",
+                justifyContent: "center",
+                alignItems: "center",
+              })}
+            >
+              <Ionicons name="trash-outline" size={14} color={colors.error} />
+            </Pressable>
+          </View>
+        </View>
+      </Pressable>
+    </Animated.View>
+  );
+};
+
 const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
   isVisible,
   onClose,
@@ -115,26 +436,6 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
       openPanel();
     }
   }, [isVisible, openPanel]);
-
-  const getNotificationIcon = (
-    type: NotificationType,
-  ): { name: keyof typeof Ionicons.glyphMap; color: string } => {
-    switch (type) {
-      case "job":
-        return { name: "briefcase", color: colors.primary };
-      case "bonus":
-        return { name: "flash", color: "#FFD700" };
-      case "call":
-        return { name: "call", color: colors.success };
-      case "payment":
-        return { name: "card", color: colors.success };
-      case "reminder":
-        return { name: "alarm", color: colors.warning };
-      case "system":
-      default:
-        return { name: "notifications", color: colors.textSecondary };
-    }
-  };
 
   const handleRemoveNotification = (id: string) => {
     removeNotification(id);
@@ -391,149 +692,63 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
             showsVerticalScrollIndicator={false}
           >
             {notifications.length === 0 ? (
+              /* ── Empty state redesigné ── */
               <View
                 style={{
-                  paddingVertical: DESIGN_TOKENS.spacing.xxl,
+                  paddingVertical: DESIGN_TOKENS.spacing.xxl * 1.5,
+                  paddingHorizontal: DESIGN_TOKENS.spacing.xl,
                   alignItems: "center",
                 }}
               >
-                <Ionicons
-                  name="notifications-off-outline"
-                  size={64}
-                  color={colors.textMuted}
-                />
-                <Text
+                <View
                   style={{
-                    fontSize: 16,
-                    color: colors.textSecondary,
-                    marginTop: DESIGN_TOKENS.spacing.md,
-                    textAlign: "center",
+                    width: 96,
+                    height: 96,
+                    borderRadius: 48,
+                    backgroundColor: colors.backgroundSecondary,
+                    borderWidth: 2,
+                    borderColor: colors.border,
+                    justifyContent: "center",
+                    alignItems: "center",
+                    marginBottom: DESIGN_TOKENS.spacing.lg,
                   }}
                 >
-                  Aucune notification
+                  <Text style={{ fontSize: 44 }}>☀️</Text>
+                </View>
+                <Text
+                  style={{
+                    fontSize: 18,
+                    fontWeight: "800",
+                    color: colors.text,
+                    textAlign: "center",
+                    marginBottom: 8,
+                    letterSpacing: -0.3,
+                  }}
+                >
+                  Tout est calme pour l'instant
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    color: colors.textSecondary,
+                    textAlign: "center",
+                    lineHeight: 20,
+                  }}
+                >
+                  Les nouvelles notifications apparaîtront ici
                 </Text>
               </View>
             ) : (
-              notifications.map((notif, index) => {
-                const iconInfo = getNotificationIcon(notif.type);
-
-                return (
-                  <Pressable
+              <View style={{ paddingTop: DESIGN_TOKENS.spacing.sm }}>
+                {notifications.map((notif, index) => (
+                  <NotificationItem
                     key={notif.id}
-                    onPress={() => {
-                      // Action sur la notification
-                    }}
-                    style={({ pressed }) => ({
-                      flexDirection: "row",
-                      alignItems: "flex-start",
-                      paddingHorizontal: DESIGN_TOKENS.spacing.lg,
-                      paddingVertical: DESIGN_TOKENS.spacing.md,
-                      backgroundColor: pressed
-                        ? colors.backgroundTertiary
-                        : !notif.isRead
-                          ? colors.primary + "08"
-                          : colors.background,
-                      borderBottomWidth:
-                        index < notifications.length - 1 ? 1 : 0,
-                      borderBottomColor: colors.border,
-                    })}
-                  >
-                    {/* Icône */}
-                    <View
-                      style={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: 22,
-                        backgroundColor: iconInfo.color + "15",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        marginRight: DESIGN_TOKENS.spacing.md,
-                      }}
-                    >
-                      <Ionicons
-                        name={iconInfo.name}
-                        size={22}
-                        color={iconInfo.color}
-                      />
-                    </View>
-
-                    {/* Contenu */}
-                    <View
-                      style={{ flex: 1, marginRight: DESIGN_TOKENS.spacing.md }}
-                    >
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          marginBottom: 4,
-                          gap: 8,
-                        }}
-                      >
-                        <Text
-                          style={{
-                            fontSize: 15,
-                            fontWeight: notif.isRead ? "500" : "700",
-                            color: colors.text,
-                            flex: 1,
-                          }}
-                        >
-                          {notif.title}
-                        </Text>
-                        {!notif.isRead && (
-                          <View
-                            style={{
-                              width: 8,
-                              height: 8,
-                              borderRadius: 4,
-                              backgroundColor: colors.primary,
-                            }}
-                          />
-                        )}
-                      </View>
-                      <Text
-                        style={{
-                          fontSize: 14,
-                          color: colors.textSecondary,
-                          lineHeight: 20,
-                          marginBottom: 6,
-                        }}
-                      >
-                        {notif.message}
-                      </Text>
-                      <Text
-                        style={{
-                          fontSize: 12,
-                          color: colors.textMuted,
-                        }}
-                      >
-                        {formatRelativeTime(notif.createdAt)}
-                      </Text>
-                    </View>
-
-                    {/* Bouton supprimer */}
-                    <Pressable
-                      onPress={() => handleRemoveNotification(notif.id)}
-                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                      style={({ pressed }) => ({
-                        width: 32,
-                        height: 32,
-                        borderRadius: 16,
-                        backgroundColor: pressed
-                          ? colors.error + "20"
-                          : "transparent",
-                        justifyContent: "center",
-                        alignItems: "center",
-                      })}
-                    >
-                      <Ionicons
-                        name="trash-outline"
-                        size={18}
-                        color={colors.textMuted}
-                      />
-                    </Pressable>
-                  </Pressable>
-                );
-              })
+                    notif={notif}
+                    index={index}
+                    onRemove={handleRemoveNotification}
+                  />
+                ))}
+              </View>
             )}
           </ScrollView>
 
