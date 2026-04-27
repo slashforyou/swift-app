@@ -1,6 +1,7 @@
 // services/session.ts
 import * as SecureStore from "expo-secure-store";
 import { ServerData } from "../constants/ServerData";
+import { navigateGlobal } from "../services/navRef";
 import { clearStripeCache } from "../services/stripeCache";
 import { getAuthHeaders, refreshToken as refreshAuthToken } from "./auth";
 
@@ -39,6 +40,25 @@ export async function clearLocalSession() {
   await SecureStore.deleteItemAsync("user_data"); // ✅ FIX: Clear user data too
   clearStripeCache(); // ✅ FIX: Clear Stripe cache to avoid stale account data
   sessionCache = null; // ✅ Invalidate session cache on logout
+}
+
+// Debounce flag — prevent multiple simultaneous "session expired" navigations
+let _forcingLogout = false;
+
+/**
+ * Force logout: clear session and silently navigate to Connection screen.
+ * Safe to call from any service or utility (not just React components).
+ */
+export async function forceLogout(): Promise<void> {
+  if (_forcingLogout) return;
+  _forcingLogout = true;
+  try {
+    await clearLocalSession();
+    navigateGlobal("Connection");
+  } finally {
+    // Re-allow after 3 seconds to avoid stale lock
+    setTimeout(() => { _forcingLogout = false; }, 3000);
+  }
 }
 
 // Ping the /me endpoint to verify the session token
@@ -255,8 +275,8 @@ export async function fetchWithAuth(
   try {
     await refreshAuthToken();
   } catch (e) {
-    // refresh failed
-    await clearLocalSession();
+    // refresh failed — silently log out and redirect
+    await forceLogout();
     return res;
   }
 

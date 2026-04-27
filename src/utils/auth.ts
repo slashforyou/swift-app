@@ -1,6 +1,8 @@
 ﻿// services/auth.ts
 import * as SecureStore from "expo-secure-store";
 import { ServerData } from "../constants/ServerData";
+import { navigateGlobal } from "../services/navRef";
+import { clearStripeCache } from "../services/stripeCache";
 import { collectDevicePayload } from "./device";
 
 const API = ServerData.serverUrl;
@@ -235,6 +237,9 @@ export async function refreshToken(): Promise<boolean> {
 export async function clearSession(): Promise<void> {
   await SecureStore.deleteItemAsync("session_token");
   await SecureStore.deleteItemAsync("refresh_token");
+  await SecureStore.deleteItemAsync("device_id");
+  await SecureStore.deleteItemAsync("user_data");
+  clearStripeCache();
 }
 
 /**
@@ -274,11 +279,13 @@ export async function authenticatedFetch(
 
       if (response.status === 401) {
         await clearSession();
+        navigateGlobal("Connection");
         throw new Error("SESSION_EXPIRED");
       }
     } else {
       // Refresh a échoué, clear session
       await clearSession();
+      navigateGlobal("Connection");
       throw new Error("SESSION_EXPIRED");
     }
   }
