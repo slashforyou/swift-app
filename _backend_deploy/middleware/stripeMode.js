@@ -29,7 +29,8 @@ function resolveStripeMode(req, res, next) {
     });
   }
 
-  const companyId = req.user?.company_id || req.body?.company_id || req.query?.company_id;
+  // company_id UNIQUEMENT depuis le JWT — jamais du body/query
+  const companyId = req.user?.company_id ?? null;
 
   // Fast path: if no company, use header or default
   if (!companyId) {
@@ -62,7 +63,8 @@ function requireStripeConnected(req, res, next) {
     return res.status(503).json({ success: false, error: 'Stripe not configured' });
   }
 
-  const companyId = req.user?.company_id || req.body?.company_id || req.query?.company_id;
+  // company_id UNIQUEMENT depuis le JWT — jamais du body/query
+  const companyId = req.user?.company_id ?? null;
   if (!companyId) {
     return res.status(401).json({ success: false, error: 'No company found for user' });
   }

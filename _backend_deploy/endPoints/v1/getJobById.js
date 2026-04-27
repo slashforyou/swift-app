@@ -7,9 +7,9 @@ const getJobByIdEndpoint = async (req, res) => {
   try {
     const jobCode = req.params.id;
     
-    // Récupérer user_id et company_id depuis l'auth (si présent)
-    const userId = req.user?.id || req.query?.user_id || null;
-    const userCompanyId = req.user?.company_id || req.query?.company_id || null;
+    // user_id et company_id UNIQUEMENT depuis le JWT — jamais du query
+    const userId = req.user?.id ?? null;
+    const userCompanyId = req.user?.company_id ?? null;
     
     // Connect to database
     connection = await connect();

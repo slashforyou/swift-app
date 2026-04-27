@@ -27,9 +27,8 @@ const acceptJobEndpoint = async (req, res) => {
     const jobRef = req.params.id;
     const isNumericId = /^\d+$/.test(jobRef);
 
-    const userId = req.user?.id || req.body?.user_id || req.query?.user_id;
-    const userCompanyId =
-      req.user?.company_id || req.body?.company_id || req.query?.company_id;
+    const userId = req.user?.id;
+    const userCompanyId = req.user?.company_id;
 
     if (!userId || !userCompanyId) {
       return res.status(401).json({

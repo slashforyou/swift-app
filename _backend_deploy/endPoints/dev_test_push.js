@@ -34,18 +34,21 @@ async function testPush(req, res) {
   }
 
   const sanitizedEmail = email.trim().toLowerCase();
+  // Scope : un utilisateur ne peut tester que les tokens de sa propre company
+  const callerCompanyId = req.user?.company_id ?? null;
 
   const connection = await connect();
   try {
-    // Récupérer les tokens actifs de l'utilisateur
+    // Récupérer les tokens actifs — scopé à la company de l'appelant
     const [rows] = await connection.execute(
       `SELECT upt.push_token
        FROM user_push_tokens upt
        JOIN users u ON u.id = upt.user_id
        WHERE u.email = ?
          AND upt.is_active = 1
-         AND upt.push_token IS NOT NULL`,
-      [sanitizedEmail]
+         AND upt.push_token IS NOT NULL
+         AND (? IS NULL OR u.company_id = ?)`,
+      [sanitizedEmail, callerCompanyId, callerCompanyId]
     );
 
     if (!rows.length) {
@@ -89,6 +92,11 @@ async function testPush(req, res) {
  * @param {Function} authenticateToken
  */
 function registerRoutes(router, authenticateToken) {
+  // Guard obligatoire : route désactivée en production
+  if (process.env.NODE_ENV === 'production') {
+    console.warn('⚠️  [dev_test_push] Route /dev/test-push disabled in production (NODE_ENV=production)');
+    return;
+  }
   router.post('/dev/test-push', authenticateToken, testPush);
 }
 

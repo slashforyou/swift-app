@@ -11,26 +11,26 @@ import Ionicons from "@react-native-vector-icons/ionicons";
 import { useFocusEffect } from "@react-navigation/native";
 import React, { useCallback, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Pressable,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  View,
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    Pressable,
+    RefreshControl,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
 import { useLocalization } from "../../localization";
 import {
-  fetchMyAssignments,
-  respondToAssignment,
+    fetchMyAssignments,
+    respondToAssignment,
 } from "../../services/jobAssignments";
 import type {
-  AssignmentStatus,
-  JobAssignment,
+    AssignmentStatus,
+    JobAssignment,
 } from "../../types/jobAssignment";
 
 // ─────────────────────────────────────────────────────────────

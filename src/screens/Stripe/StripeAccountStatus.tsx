@@ -8,9 +8,9 @@ import { useTheme } from "../../context/ThemeProvider_Advanced";
 import { Button, Card } from "../../design-system/components";
 import { DESIGN_TOKENS } from "../../design-system/tokens";
 import {
-  formatDate,
-  useLocalization,
-  useTranslation,
+    formatDate,
+    useLocalization,
+    useTranslation,
 } from "../../localization";
 import type { StripeAccount, StripeRequirement } from "../../types/stripe";
 

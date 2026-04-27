@@ -68,7 +68,7 @@ const subscribeEndpoint = async (req) => {
         [userId, companyId]
       );
 
-      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      const verificationCode = crypto.randomInt(100_000, 999_999).toString();
       await connection.execute('UPDATE users SET verification_code = ? WHERE email = ?', [verificationCode, mail]);
 
       const { MailSender } = require('./functions/mailSender');
@@ -90,7 +90,7 @@ const subscribeEndpoint = async (req) => {
       const userId = (await connection.execute('SELECT LAST_INSERT_ID() AS id'))[0][0].id;
       if (!userId) return { success: false, message: 'User not found after insertion' };
 
-      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      const verificationCode = crypto.randomInt(100_000, 999_999).toString();
       await connection.execute('UPDATE users SET verification_code = ? WHERE email = ?', [verificationCode, mail]);
 
       const { MailSender } = require('./functions/mailSender');
@@ -106,7 +106,7 @@ const subscribeEndpoint = async (req) => {
 
   } catch (error) {
     console.error('[Subscribe error]', error);
-    return { success: false, message: 'Subscription failed', error: error.message };
+    return { success: false, message: 'Subscription failed' };
   } finally {
     if (connection) await connection.release();
   }

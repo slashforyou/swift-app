@@ -31,10 +31,9 @@ const declineJobEndpoint = async (req, res) => {
 
     const { reason, reset_contractor } = req.body;
 
-    // Récupérer user_id et company_id (auth middleware ou body fallback)
-    const userId = req.user?.id || req.body?.user_id || req.query?.user_id;
-    const userCompanyId =
-      req.user?.company_id || req.body?.company_id || req.query?.company_id;
+    // user_id et company_id UNIQUEMENT depuis le JWT — jamais du body/query
+    const userId = req.user?.id;
+    const userCompanyId = req.user?.company_id;
 
     if (!userId || !userCompanyId) {
       return res.status(401).json({

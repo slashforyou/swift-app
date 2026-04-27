@@ -25,8 +25,8 @@ import { useInvoice } from "../../hooks/useInvoice";
 import { useJobDetails } from "../../hooks/useJobDetails";
 import { useJobPaymentStatus } from "../../hooks/useJobPaymentStatus";
 import { useLocalization } from "../../localization/useLocalization";
-import { updateJob } from "../../services/jobs";
 import { checkJobSignatureExists } from "../../services/jobDetails";
+import { updateJob } from "../../services/jobs";
 import {
     checkStripeConnectionStatus,
     createStripePaymentLink,

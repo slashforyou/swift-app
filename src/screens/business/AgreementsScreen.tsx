@@ -5,20 +5,20 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Text,
-  TouchableOpacity,
-  View,
-  StyleSheet,
+    ActivityIndicator,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
 import {
-  fetchModularTemplates,
+    fetchModularTemplates,
 } from "../../services/business/templatesService";
 import {
-  ContractClause,
-  fetchClauses,
+    ContractClause,
+    fetchClauses,
 } from "../../services/contractsService";
 import type { ModularJobTemplate } from "../../types/jobSegment";
 
