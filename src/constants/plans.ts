@@ -27,13 +27,13 @@ export const PLANS: Record<PlanType, Plan> = {
   },
   pro: {
     id: "pro",
-    commissionRate: 0.015, // 1.5%
-    minFeeAud: 0.25,
+    commissionRate: 0, // 0% — inclus dans l'abonnement $99/mo
+    minFeeAud: 0,
     publiclyAvailable: false, // masqué au lancement
   },
   enterprise: {
     id: "enterprise",
-    commissionRate: 0.005, // 0.5%
+    commissionRate: 0, // 0% — inclus dans l'abonnement $179/mo
     minFeeAud: 0,
     publiclyAvailable: false, // masqué au lancement
   },

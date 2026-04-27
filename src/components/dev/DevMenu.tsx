@@ -6,23 +6,25 @@ import { Ionicons } from "@expo/vector-icons";
 import * as SecureStore from "expo-secure-store";
 import React, { useEffect, useState } from "react";
 import {
-  Alert,
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
+    Alert,
+    Modal,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
+import { ServerData } from "../../constants/ServerData";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
 import { useTranslation } from "../../localization";
 import {
-  clearStripeCache,
-  deleteStripeAccount,
+    clearStripeCache,
+    deleteStripeAccount,
 } from "../../services/StripeService";
 import { scheduleLocalNotification } from "../../services/pushNotifications";
 import type { CompanyRole } from "../../services/user";
+import { fetchWithAuth } from "../../utils/session";
 
 interface DevMenuProps {
   visible: boolean;
@@ -227,6 +229,27 @@ export default function DevMenu({ visible, onClose }: DevMenuProps) {
         },
       ],
     );
+  };
+
+  const handleTestPushProduction = async () => {
+    try {
+      setLoading(true);
+      const response = await fetchWithAuth(`${ServerData.serverUrl}v1/dev/test-push`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: "romaingiovanni@gmail.com" }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        Alert.alert("✅ Push envoyé", `Notification envoyée à romaingiovanni@gmail.com`);
+      } else {
+        Alert.alert("Erreur", data.error || "Impossible d'envoyer la notification");
+      }
+    } catch (error) {
+      Alert.alert("Erreur", "Appel backend échoué");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleTestPushNotification = async () => {
@@ -492,6 +515,25 @@ export default function DevMenu({ visible, onClose }: DevMenuProps) {
                   style={[styles.optionText, { flex: 0, fontWeight: "600" }]}
                 >
                   Test notification push (job)
+                </Text>
+              </Pressable>
+              <Pressable
+                style={[
+                  styles.optionButton,
+                  { justifyContent: "center", gap: DESIGN_TOKENS.spacing.sm },
+                ]}
+                onPress={handleTestPushProduction}
+                disabled={loading}
+              >
+                <Ionicons
+                  name="send"
+                  size={20}
+                  color={(colors as any).primaryDark || colors.primary}
+                />
+                <Text
+                  style={[styles.optionText, { flex: 0, fontWeight: "600" }]}
+                >
+                  Test push production (romaingiovanni@gmail.com)
                 </Text>
               </Pressable>
             </View>

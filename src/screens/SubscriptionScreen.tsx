@@ -164,6 +164,16 @@ const SubscriptionScreen: React.FC<Props> = ({ navigation }) => {
       if (selection.requires_subscription) {
         const data = await subscribe(planId);
 
+        // Trial: clientSecret is null — no immediate payment needed
+        if (data.is_trial || !data.clientSecret) {
+          Alert.alert(
+            "✓ Essai gratuit activé",
+            "Votre essai gratuit de 30 jours commence maintenant. Aucun paiement ne sera prélevé avant la fin de la période d'essai.",
+          );
+          await refresh();
+          return;
+        }
+
         const { error: initError } = await initPaymentSheet({
           paymentIntentClientSecret: data.clientSecret,
           customerEphemeralKeySecret: data.ephemeralKey,

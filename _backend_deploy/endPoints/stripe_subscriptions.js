@@ -128,11 +128,12 @@ async function createSubscription(req, res) {
       { apiVersion: '2023-10-16' }
     );
 
-    // 5. Créer la subscription avec payment_behavior: 'default_incomplete'
-    //    Cela crée un PaymentIntent/SetupIntent que le client doit confirmer
+    // 5. Créer la subscription avec trial de 30 jours
+    //    Pendant le trial, latest_invoice.payment_intent sera null — c'est normal
     const subscription = await stripe.subscriptions.create({
       customer: customer.id,
       items: [{ price: plan.stripe_price_id }],
+      trial_period_days: 30,
       payment_behavior: 'default_incomplete',
       payment_settings: {
         save_default_payment_method: 'on_subscription',
@@ -153,23 +154,19 @@ async function createSubscription(req, res) {
     );
 
     // 7. Retourner les secrets pour le PaymentSheet natif
+    //    Pendant le trial, paymentIntent est null — retourner clientSecret: null sans erreur
     const paymentIntent = subscription.latest_invoice?.payment_intent;
-
-    if (!paymentIntent) {
-      return res.status(500).json({
-        success: false,
-        error: 'No payment intent created for subscription'
-      });
-    }
 
     res.json({
       success: true,
       data: {
         subscriptionId: subscription.id,
-        clientSecret: paymentIntent.client_secret,
+        clientSecret: paymentIntent?.client_secret ?? null,
         ephemeralKey: ephemeralKey.secret,
         customerId: customer.id,
         publishableKey: config.publishableKey,
+        trial_end: subscription.trial_end,
+        is_trial: !!subscription.trial_end,
       }
     });
 

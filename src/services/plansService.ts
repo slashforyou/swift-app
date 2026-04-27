@@ -58,10 +58,12 @@ export async function getCompanyPlan(): Promise<CompanyPlan> {
 
 export interface SubscriptionCreateResponse {
   subscriptionId: string;
-  clientSecret: string;
+  clientSecret: string | null;
   ephemeralKey: string;
   customerId: string;
   publishableKey: string;
+  trial_end?: number | null;
+  is_trial?: boolean;
 }
 
 export interface SubscriptionStatus {
