@@ -3,6 +3,8 @@
  * To be injected into the existing webhooks.js switch/case block.
  */
 
+const { sendPushToCompany, insertNotification } = require('../../utils/pushHelper');
+
 // === SUBSCRIPTION EVENT HANDLERS ===
 
 /**
@@ -127,9 +129,58 @@ async function handleSubscriptionInvoicePaid(invoice, connection) {
   return true; // Handled
 }
 
+/**
+ * customer.subscription.trial_will_end
+ * Stripe envoie cet événement 3 jours avant la fin du trial.
+ * → Push notification à tous les users de la company.
+ * → Notification insérée en DB pour chaque user.
+ */
+async function handleTrialWillEnd(subscription, connection) {
+  console.log(`⏳ Trial will end: ${subscription.id}`);
+
+  const companyId = subscription.metadata?.company_id;
+  if (!companyId) return;
+
+  const trialEnd = subscription.trial_end
+    ? new Date(subscription.trial_end * 1000).toLocaleDateString('en-AU', {
+        day: 'numeric', month: 'long', year: 'numeric',
+      })
+    : 'soon';
+
+  const title = '⏳ Your free trial ends in 3 days';
+  const body = `Your Cobbr trial expires on ${trialEnd}. Add a payment method to keep access.`;
+
+  // Envoyer le push à toute la company
+  await sendPushToCompany(connection, companyId, title, body, {
+    type: 'system',
+    screen: 'Subscription',
+  });
+
+  // Insérer une notification en DB pour chaque patron de la company
+  const [owners] = await connection.query(
+    "SELECT id FROM users WHERE company_id = ? AND role = 'patron'",
+    [companyId]
+  );
+
+  for (const owner of owners) {
+    await insertNotification(
+      connection,
+      owner.id,
+      'system',
+      title,
+      body,
+      null,
+      'high'
+    );
+  }
+
+  console.log(`✅ Trial warning sent for company ${companyId} (trial ends ${trialEnd})`);
+}
+
 module.exports = {
   handleSubscriptionCreated,
   handleSubscriptionUpdated,
   handleSubscriptionDeleted,
   handleSubscriptionInvoicePaid,
+  handleTrialWillEnd,
 };

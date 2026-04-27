@@ -50,7 +50,7 @@ with open(wh_path, 'r') as f:
 
 if 'customer.subscription.created' not in wh:
     # Add require
-    req_line = "const { handleSubscriptionCreated, handleSubscriptionUpdated, handleSubscriptionDeleted, handleSubscriptionInvoicePaid } = require('./subscription-webhooks');"
+    req_line = "const { handleSubscriptionCreated, handleSubscriptionUpdated, handleSubscriptionDeleted, handleSubscriptionInvoicePaid, handleTrialWillEnd } = require('./subscription-webhooks');"
     insert_after = "const { connect, close } = require('../../../swiftDb');"
     wh = wh.replace(insert_after, insert_after + '\n' + req_line)
 
@@ -67,6 +67,10 @@ if 'customer.subscription.created' not in wh:
 
     case 'customer.subscription.deleted':
       await handleSubscriptionDeleted(data, connection);
+      break;
+
+    case 'customer.subscription.trial_will_end':
+      await handleTrialWillEnd(data, connection);
       break;
 
 """
