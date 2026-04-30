@@ -170,6 +170,20 @@ export const hiTranslations = mergeWithBaseTranslations(enTranslations, {
       declineReason: "अस्वीकार का कारण...",
       viewJob: "कार्य देखें",
     },
+    notificationsPanel: {
+      emptyTitle: "सब ठीक है!",
+      emptyMessage: "नई सूचनाएं यहाँ दिखेंगी",
+      newBadge: "नया",
+      pendingRequests: "{{count}} अनुरोध(ों) की प्रतीक्षा",
+      hookJob: "नया काम उपलब्ध!",
+      hookBonus: "आपने बोनस कमाया!",
+      hookPayment: "भुगतान प्राप्त ✓",
+      hookCall: "छूटी हुई कॉल",
+      hookReminder: "महत्वपूर्ण अनुस्मारक",
+      hookAlert: "कार्रवाई आवश्यक",
+      hookSystem: "जानकारी",
+      hookNewPartnership: "नई साझेदारी!",
+    },
   },
 
   leaderboard: {
@@ -1299,6 +1313,7 @@ export const hiTranslations = mergeWithBaseTranslations(enTranslations, {
       edit: "संपादित करें",
       remove: "हटाएं",
       cancel: "रद्द करें",
+      planning: "शेड्यूल",
     },
     filters: {
       all: "सभी",
@@ -1346,6 +1361,17 @@ export const hiTranslations = mergeWithBaseTranslations(enTranslations, {
     assignSuccess: "कर्मचारी सफलतापूर्वक नियुक्त",
     unassignSuccess: "कर्मचारी सफलतापूर्वक हटाया गया",
     assignError: "कर्मचारी नियुक्त करने में विफल",
+  },
+
+  employeeSchedule: {
+    title: "कर्मचारी शेड्यूल",
+    subtitle: "साप्ताहिक कार्य कैलेंडर",
+    loading: "शेड्यूल लोड हो रहा है...",
+    today: "आज",
+    noJobs: "कोई कार्य निर्धारित नहीं",
+    jobCount: "{{count}} कार्य",
+    weekSummary: "इस सप्ताह {{count}} कार्य",
+    backToCurrentWeek: "वर्तमान सप्ताह पर वापस जाएं",
   },
 
   messages: {
@@ -1431,6 +1457,16 @@ export const hiTranslations = mergeWithBaseTranslations(enTranslations, {
         feature1: "काम बनाएं और प्रबंधित करें",
         feature2: "स्टाफ असाइन करें और समन्वय करें",
         feature3: "भुगतान प्राप्त करें और इनवॉइस बनाएं",
+      },
+      abnContractor: {
+        title: "ABN ठेकेदार",
+        subtitle: "स्वतंत्र ठेकेदारों के लिए",
+        feature1: "कंपनियों से सौंपे गए काम स्वीकार करें",
+        feature2: "अपना शेड्यूल खुद प्रबंधित करें",
+        feature3: "Stripe के जरिए सीधे भुगतान पाएं",
+        companyNameLabel: "व्यापारिक नाम",
+        companyNamePlaceholder: "जैसे Raj Services (वैकल्पिक)",
+        companyNameHelper: "खाली छोड़ें तो आपका पूरा नाम उपयोग होगा",
       },
       employee: {
         title: "कर्मचारी",

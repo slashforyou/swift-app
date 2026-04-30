@@ -222,6 +222,20 @@ export interface TranslationKeys {
       permissionDeniedTitle?: string;
       permissionDeniedMessage?: string;
     };
+    notificationsPanel?: {
+      emptyTitle?: string;
+      emptyMessage?: string;
+      newBadge?: string;
+      pendingRequests?: string;
+      hookJob?: string;
+      hookBonus?: string;
+      hookPayment?: string;
+      hookCall?: string;
+      hookReminder?: string;
+      hookAlert?: string;
+      hookSystem?: string;
+      hookNewPartnership?: string;
+    };
     stripeAlert: {
       title: string;
       description: string;
@@ -1838,6 +1852,7 @@ export interface TranslationKeys {
       edit: string;
       remove: string;
       cancel: string;
+      planning?: string;
     };
     filters: {
       all: string;
@@ -1879,6 +1894,18 @@ export interface TranslationKeys {
       title?: string;
       noData?: string;
     };
+  };
+
+  // Employee Schedule
+  employeeSchedule?: {
+    title?: string;
+    subtitle?: string;
+    loading?: string;
+    today?: string;
+    noJobs?: string;
+    jobCount?: string;
+    weekSummary?: string;
+    backToCurrentWeek?: string;
   };
 
   // Errors and Messages

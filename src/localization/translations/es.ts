@@ -170,6 +170,20 @@ export const esTranslations = mergeWithBaseTranslations(enTranslations, {
       declineReason: "Motivo del rechazo...",
       viewJob: "Ver trabajo",
     },
+    notificationsPanel: {
+      emptyTitle: "¡Todo tranquilo!",
+      emptyMessage: "Las nuevas notificaciones aparecerán aquí",
+      newBadge: "NUEVO",
+      pendingRequests: "{{count}} solicitud(es) pendiente(s)",
+      hookJob: "¡Nuevo trabajo disponible!",
+      hookBonus: "¡Ganaste un bono!",
+      hookPayment: "Pago recibido ✓",
+      hookCall: "Llamada perdida",
+      hookReminder: "Recordatorio importante",
+      hookAlert: "Acción requerida",
+      hookSystem: "Información",
+      hookNewPartnership: "¡Nueva colaboración!",
+    },
   },
 
   leaderboard: {
@@ -1642,6 +1656,7 @@ export const esTranslations = mergeWithBaseTranslations(enTranslations, {
       edit: "Editar",
       remove: "Eliminar",
       cancel: "Cancelar",
+      planning: "Agenda",
     },
     filters: {
       all: "Todos",
@@ -1689,6 +1704,17 @@ export const esTranslations = mergeWithBaseTranslations(enTranslations, {
     assignSuccess: "Personal asignado con éxito",
     unassignSuccess: "Personal desasignado con éxito",
     assignError: "Error al asignar personal",
+  },
+
+  employeeSchedule: {
+    title: "Agenda del Empleado",
+    subtitle: "Calendario semanal de trabajos",
+    loading: "Cargando agenda...",
+    today: "Hoy",
+    noJobs: "Sin trabajos programados",
+    jobCount: "{{count}} trabajo(s)",
+    weekSummary: "{{count}} trabajo(s) esta semana",
+    backToCurrentWeek: "Volver a la semana actual",
   },
 
   auth: {
@@ -1757,6 +1783,16 @@ export const esTranslations = mergeWithBaseTranslations(enTranslations, {
         feature1: "Crear y gestionar trabajos",
         feature2: "Asignar y coordinar el personal",
         feature3: "Recibir pagos y facturar",
+      },
+      abnContractor: {
+        title: "Contratista ABN",
+        subtitle: "Para autónomos y contratistas independientes",
+        feature1: "Aceptar trabajos delegados de empresas",
+        feature2: "Gestiona tu propio horario",
+        feature3: "Cobra directamente via Stripe",
+        companyNameLabel: "Nombre comercial",
+        companyNamePlaceholder: "ej. Juan Pérez Servicios (opcional)",
+        companyNameHelper: "Deja en blanco para usar tu nombre completo",
       },
       employee: {
         title: "Empleado",

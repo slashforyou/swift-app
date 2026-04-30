@@ -205,6 +205,20 @@ export const enTranslations: TranslationKeys = {
       permissionDeniedTitle: "Notifications disabled",
       permissionDeniedMessage: "You can enable notifications later in Settings.",
     },
+    notificationsPanel: {
+      emptyTitle: "All clear!",
+      emptyMessage: "New notifications will appear here",
+      newBadge: "NEW",
+      pendingRequests: "{{count}} pending request(s)",
+      hookJob: "New job available!",
+      hookBonus: "You earned a bonus!",
+      hookPayment: "Payment received ✓",
+      hookCall: "Missed call",
+      hookReminder: "Important reminder",
+      hookAlert: "Action required",
+      hookSystem: "Information",
+      hookNewPartnership: "New collaboration!",
+    },
     stripeAlert: {
       title: "Payments not set up",
       description:
@@ -2178,6 +2192,7 @@ export const enTranslations: TranslationKeys = {
       edit: "Edit",
       remove: "Remove",
       cancel: "Cancel",
+      planning: "Planning",
     },
     filters: {
       all: "All",
@@ -2219,6 +2234,17 @@ export const enTranslations: TranslationKeys = {
       title: "Weekly Hours",
       noData: "No data for this week",
     },
+  },
+
+  employeeSchedule: {
+    title: "Employee Planning",
+    subtitle: "Weekly job schedule",
+    loading: "Loading schedule...",
+    today: "Today",
+    noJobs: "No jobs scheduled",
+    jobCount: "{{count}} job(s)",
+    weekSummary: "{{count}} job(s) this week",
+    backToCurrentWeek: "Back to current week",
   },
 
   messages: {
@@ -2407,6 +2433,16 @@ export const enTranslations: TranslationKeys = {
         feature1: "Manage teams and employees",
         feature2: "Create and assign jobs",
         feature3: "Accept payments via Stripe",
+      },
+      abnContractor: {
+        title: "ABN Contractor",
+        subtitle: "For sole traders & independent contractors",
+        feature1: "Accept delegated jobs from companies",
+        feature2: "Manage your own schedule",
+        feature3: "Get paid directly via Stripe",
+        companyNameLabel: "Business / Trading Name",
+        companyNamePlaceholder: "e.g. John Smith Services (optional)",
+        companyNameHelper: "Leave blank to use your full name",
       },
       employee: {
         title: "Employee",

@@ -3,6 +3,7 @@
  * Affiche les employés et prestataires avec possibilité d'ajout
  */
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
 import {
     Alert,
@@ -23,12 +24,14 @@ import { useTheme } from "../../context/ThemeProvider";
 import { useAuth } from "../../hooks/useAuth";
 import { useStaff } from "../../hooks/useStaff";
 import { useTranslation } from "../../localization/useLocalization";
+import { analytics } from "../../services/analytics";
 import { Contractor, Employee, StaffMember } from "../../types/staff";
 
 export default function StaffCrewScreen() {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const { user } = useAuth();
+  const navigation = useNavigation<any>();
   const addStaffTarget = useOnboardingTarget(26);
   const {
     staff,
@@ -71,10 +74,12 @@ export default function StaffCrewScreen() {
   };
 
   const handleAddStaff = () => {
+    analytics.trackButtonPress('staff_add_open', 'StaffCrew');
     setIsModalVisible(true);
   };
 
   const handleRemoveStaff = (member: StaffMember) => {
+    analytics.trackButtonPress('staff_remove_confirm', 'StaffCrew', { staff_id: member.id });
     Alert.alert(
       t("staff.alerts.removeConfirm.title"),
       t("staff.alerts.removeConfirm.message", {
@@ -88,6 +93,7 @@ export default function StaffCrewScreen() {
           onPress: async () => {
             try {
               await removeStaff(member.id);
+              analytics.trackCustomEvent('staff_removed', 'business', { staff_id: member.id });
               Alert.alert(
                 t("staff.alerts.removeSuccess.title"),
                 t("staff.alerts.removeSuccess.message", {
@@ -107,6 +113,7 @@ export default function StaffCrewScreen() {
   };
 
   const handleEditStaff = (member: StaffMember) => {
+    analytics.trackButtonPress('staff_edit_open', 'StaffCrew', { staff_id: member.id });
     setSelectedMember(member);
     setIsEditModalVisible(true);
   };
@@ -659,6 +666,31 @@ export default function StaffCrewScreen() {
                       ]}
                     >
                       {t("staff.actions.edit")}
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    testID={`planning-button-${member.id}`}
+                    style={[
+                      styles.actionButton,
+                      { backgroundColor: colors.info + "20" },
+                    ]}
+                    onPress={() => {
+                      analytics.trackButtonPress('staff_planning_open', 'StaffCrew', { staff_id: member.id });
+                      navigation.navigate('EmployeeSchedule', {
+                        userId: member.id,
+                        employeeName: `${member.firstName} ${member.lastName}`,
+                      });
+                    }}
+                  >
+                    <Ionicons
+                      name="calendar-outline"
+                      size={20}
+                      color={colors.info}
+                    />
+                    <Text
+                      style={[styles.actionButtonText, { color: colors.info }]}
+                    >
+                      {t("staff.actions.planning")}
                     </Text>
                   </Pressable>
                   <Pressable

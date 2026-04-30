@@ -169,6 +169,20 @@ export const zhTranslations = mergeWithBaseTranslations(enTranslations, {
       declineReason: "拒绝原因...",
       viewJob: "查看工作",
     },
+    notificationsPanel: {
+      emptyTitle: "一切正常！",
+      emptyMessage: "新通知将显示在这里",
+      newBadge: "新",
+      pendingRequests: "{{count}} 个待处理请求",
+      hookJob: "有新工作！",
+      hookBonus: "您获得了奖励！",
+      hookPayment: "已收到付款 ✓",
+      hookCall: "未接来电",
+      hookReminder: "重要提醒",
+      hookAlert: "需要操作",
+      hookSystem: "信息",
+      hookNewPartnership: "新合作！",
+    },
   },
 
   leaderboard: {
@@ -1287,6 +1301,7 @@ export const zhTranslations = mergeWithBaseTranslations(enTranslations, {
       edit: "编辑",
       remove: "移除",
       cancel: "取消",
+      planning: "日程",
     },
     filters: {
       all: "全部",
@@ -1334,6 +1349,17 @@ export const zhTranslations = mergeWithBaseTranslations(enTranslations, {
     assignSuccess: "员工分配成功",
     unassignSuccess: "员工取消分配成功",
     assignError: "分配员工失败",
+  },
+
+  employeeSchedule: {
+    title: "员工日程",
+    subtitle: "每周工作日历",
+    loading: "加载日程中...",
+    today: "今天",
+    noJobs: "无安排工作",
+    jobCount: "{{count}} 个工作",
+    weekSummary: "本周 {{count}} 个工作",
+    backToCurrentWeek: "返回本周",
   },
 
   messages: {
@@ -1418,6 +1444,16 @@ export const zhTranslations = mergeWithBaseTranslations(enTranslations, {
         feature1: "创建并管理工作",
         feature2: "分配并协调员工",
         feature3: "收款并开具发票",
+      },
+      abnContractor: {
+        title: "ABN 承包商",
+        subtitle: "适合独立承包商和自雇人士",
+        feature1: "接受公司委派的工作",
+        feature2: "自行管理日程安排",
+        feature3: "通过 Stripe 直接收款",
+        companyNameLabel: "商号 / 交易名称",
+        companyNamePlaceholder: "例：王小明服务（可选）",
+        companyNameHelper: "留空则默认使用您的全名",
       },
       employee: {
         title: "员工",

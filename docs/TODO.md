@@ -1,6 +1,6 @@
 # COBBR — Roadmap Consolidée
 
-> **Dernière mise à jour :** 28 avril 2026
+> **Dernière mise à jour :** 30 avril 2026
 > **Version actuelle :** 1.2.0 (MVP live sur iOS + Android)
 > **Statut :** MVP fonctionnel — Monétisation + Features avancées (mai 2026)
 
@@ -16,10 +16,12 @@
 | 🟢 **P3** — Nice-to-have | 8 | 7 | 53% |
 | ⚪ **P4** — Long terme / IA | 0 | 17 | 0% |
 | 🎮 **Gamification v2** | spec | 5 phases | spec prête |
-| **TOTAL** | **92** | **31** | **75%** |
+| **TOTAL** | **95** | **28** | **77%** |
 | **Chemin critique (P0+P1)** | **47** | **2** | **96%** |
 
 > **Accomplissements récents (8-16 avril) :** Inscription simplifiée 8→1 écran, Business Hub redesign 8→4 onglets, Stripe dual-mode (test/live), Factures hebdo/bimensuelles avec wizard 4 étapes + sélection client, i18n complète 7 langues, Rebranding emails SwiftApp→Cobbr, SMTP fix, **Module Stockage complet** (6 tables, 22+ endpoints, 6 écrans, billing cron), **Stripe onboarding live FR** (person tokens client-side, document upload 2-phase), **Web dashboard fixes** (API routes, Stripe status gate), CI/CD fixes (TypeScript + lint + E2E), **Employee Dashboard** (#29/30/31: stats+heures+historique), **Carousel photos** (#32: PhotoViewModal déjà en place), **Notes internes job** (#33: JobNotesSection + backend + i18n)
+>
+> **Accomplissements récents (30 avril) :** **Fixes critiques** : `payment.tsx` crash (commentaire JSX corrompu U+FFFD), HTTP 400 `additional_items` (colonne DB + allowedFields), **Billing features** : PDF branding (`GET /v1/billing/monthly-invoices/:id/pdf` via pdfkit — header coloré, logo, tableau lignes, totaux), **Cron impayés** (`overduePaymentsCron` à 09:00 — détection auto overdue sur `monthly_invoices` + `job_transfers`, push notifications), **Admin support** (`POST /v1/support/conversations/:id/reply` — réponse admin + email HTML Cobbr au user)
 >
 > **Accomplissements récents (21-28 avril) :** **Audit sécurité Élise** (JWT-only company_id, crypto.randomInt, NODE_ENV guard — commit b81fab0), **Push notifications fix CRITIQUE** (pushTokens.js POST/DELETE, migration 035, NotificationsPanel redesign — commit 0a9d26e), **Wave features majeures** : 13 migrations DB (036-048), 14 endpoints backend (attachments, links, difficulty, availability, skills, quotas, mileage, maintenance, reviews, ratings, quotes, revenue dashboard, CSV export, referral), 9 services frontend + 13 écrans (JobAttachments, LinkedJobs, Difficulty, EmployeeAvailability, EmployeeSkills, WeeklyHours, VehicleMileage, VehicleMaintenance, Quotes, QuoteEditor, RevenueDashboard, EmployeeRatings, JobReview), tutoriel onboarding (OnboardingTutorial + useTutorial), navigation mise à jour
 
@@ -232,7 +234,7 @@
 
 | # | Tâche | Notes |
 |---|-------|-------|
-| 40 | Vue planning par employé (timeline) | Calendrier individuel — à faire |
+| ~~40~~ | ~~Vue planning par employé (timeline)~~ | ✅ `EmployeeScheduleScreen` + `staffSchedule.js` |
 | ~~41~~ | ~~Gestion disponibilités/indisponibilités~~ | ✅ `employeeAvailability.js` + `EmployeeAvailabilityScreen` + migration 039 |
 | ~~42~~ | ~~Système de compétences/qualifications~~ | ✅ `employeeSkills.js` + `EmployeeSkillsScreen` + migration 040 |
 | 43 | Affectation auto suggérée (dispo + proximité) | Algorithme suggestion — à faire |
@@ -258,7 +260,7 @@
 | ~~53~~ | ~~Mini tutoriel 1ère utilisation (tooltips/coach marks)~~ | ✅ `OnboardingTutorial.tsx` + `useTutorial.ts` + migration 048 |
 | ~~54~~ | ~~Audit i18n complet (toutes langues, tous éléments)~~ | ✅ 7 langues (en/fr/es/it/pt/hi/zh) — Business Hub, modernJobBox, assignments, MonthlyInvoices, templates |
 | ~~55~~ | ~~Demande d'avis automatique (happy customer → review)~~ | ✅ `jobReviews.js` + `JobReviewScreen` + migration 045 |
-| 56 | Réponse par mail messages support | Backend email — à faire |
+| ~~56~~ | ~~Réponse par mail messages support~~ | ✅ `POST /v1/support/conversations/:id/reply` — admin reply + email HTML notification via mailSender |
 
 ### 🟢 P3 — Nice-to-have
 
@@ -266,7 +268,7 @@
 |---|-------|-------|-------|
 | ~~57~~ | ~~Générateur de devis (prestations + calcul auto)~~ | ~~[C][S]~~ | ✅ `quotes.js` + `QuotesScreen` + `QuoteEditorScreen` + migration 047 |
 | ~~58~~ | ~~Conversion devis → job en 1 clic~~ | ~~[C][S]~~ | ✅ `POST /v1/quotes/:id/convert-to-job` + bouton dans QuoteEditorScreen |
-| 59 | Factures PDF avec branding | [S] | À faire — génération PDF serveur |
+| ~~59~~ | ~~Factures PDF avec branding~~ | ~~[S]~~ | ✅ `pdfInvoice.js` — `GET /v1/billing/monthly-invoices/:id/pdf` (pdfkit 0.18, header coloré, logo GCS, tableau lignes, totaux) |
 | 60 | Chat interne équipe (temps réel) | [C][S] | À faire |
 | 61 | Chat avec client final (lié au job) | [C][S] | À faire |
 | 62 | Partage position temps réel (ETA) | [C][S] | À faire |
@@ -276,7 +278,7 @@
 | 66 | Tracking GPS flotte temps réel (opt-in) | [C][S] | À faire |
 | 67 | Numérotation cartons (packing) | [C][S] | À faire |
 | ~~68~~ | ~~Page stockage (inventaire, logs entrée/sortie)~~ | ~~[C][S]~~ | ✅ Module complet: 6 tables SQL, 22+ endpoints, 6 écrans, billing cron quotidien, intégration Job↔Storage bidirectionnelle |
-| 69 | Suivi paiements + relance auto impayés | [S] | À faire |
+| ~~69~~ | ~~Suivi paiements + relance auto impayés~~ | ~~[S]~~ | ✅ `overduePaymentsCron.js` (09:00 daily) — détecte `monthly_invoices` + `job_transfers` overdue, push notifications |
 | ~~70~~ | ~~Dashboard revenus (jour/semaine/mois)~~ | ~~[C][S]~~ | ✅ `revenueDashboard.js` + `RevenueDashboardScreen` (KPIs + bar chart + top clients) |
 | ~~71~~ | ~~Export CSV/PDF rapports~~ | ~~[S]~~ | ✅ `exportData.js` → GET /v1/export/jobs + /v1/export/revenue |
 

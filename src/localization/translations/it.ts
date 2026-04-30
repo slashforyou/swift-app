@@ -170,6 +170,20 @@ export const itTranslations = mergeWithBaseTranslations(enTranslations, {
       declineReason: "Motivo del rifiuto...",
       viewJob: "Vedi lavoro",
     },
+    notificationsPanel: {
+      emptyTitle: "Tutto tranquillo!",
+      emptyMessage: "Le nuove notifiche appariranno qui",
+      newBadge: "NUOVO",
+      pendingRequests: "{{count}} richiesta/e in sospeso",
+      hookJob: "Nuovo lavoro disponibile!",
+      hookBonus: "Hai guadagnato un bonus!",
+      hookPayment: "Pagamento ricevuto ✓",
+      hookCall: "Chiamata persa",
+      hookReminder: "Promemoria importante",
+      hookAlert: "Azione richiesta",
+      hookSystem: "Informazione",
+      hookNewPartnership: "Nuova collaborazione!",
+    },
   },
 
   leaderboard: {
@@ -1341,6 +1355,7 @@ export const itTranslations = mergeWithBaseTranslations(enTranslations, {
       edit: "Modifica",
       remove: "Rimuovi",
       cancel: "Annulla",
+      planning: "Pianificazione",
     },
     filters: {
       all: "Tutti",
@@ -1388,6 +1403,17 @@ export const itTranslations = mergeWithBaseTranslations(enTranslations, {
     assignSuccess: "Personale assegnato con successo",
     unassignSuccess: "Personale rimosso con successo",
     assignError: "Impossibile assegnare il personale",
+  },
+
+  employeeSchedule: {
+    title: "Agenda Dipendente",
+    subtitle: "Calendario settimanale dei lavori",
+    loading: "Caricamento agenda...",
+    today: "Oggi",
+    noJobs: "Nessun lavoro pianificato",
+    jobCount: "{{count}} lavoro/i",
+    weekSummary: "{{count}} lavoro/i questa settimana",
+    backToCurrentWeek: "Torna alla settimana corrente",
   },
 
   messages: {
@@ -1473,6 +1499,16 @@ export const itTranslations = mergeWithBaseTranslations(enTranslations, {
         feature1: "Crea e gestisci i lavori",
         feature2: "Assegna e coordina il personale",
         feature3: "Ricevi pagamenti ed emetti fatture",
+      },
+      abnContractor: {
+        title: "Contraente ABN",
+        subtitle: "Per liberi professionisti e lavoratori autonomi",
+        feature1: "Accetta lavori delegati dalle aziende",
+        feature2: "Gestisci il tuo programma in autonomia",
+        feature3: "Ricevi pagamenti direttamente via Stripe",
+        companyNameLabel: "Nome commerciale",
+        companyNamePlaceholder: "es. Mario Rossi Servizi (facoltativo)",
+        companyNameHelper: "Lascia vuoto per usare il tuo nome completo",
       },
       employee: {
         title: "Dipendente",

@@ -209,6 +209,20 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
         permissionDeniedTitle: "Notifications désactivées",
         permissionDeniedMessage: "Vous pourrez les activer plus tard dans les paramètres.",
       },
+      notificationsPanel: {
+        emptyTitle: "Tout est calme !",
+        emptyMessage: "Les nouvelles notifications apparaîtront ici",
+        newBadge: "NOUVEAU",
+        pendingRequests: "{{count}} demande(s) en attente",
+        hookJob: "Nouveau job disponible !",
+        hookBonus: "Tu as gagné un bonus !",
+        hookPayment: "Paiement reçu ✓",
+        hookCall: "Appel manqué",
+        hookReminder: "Rappel important",
+        hookAlert: "Action requise",
+        hookSystem: "Information",
+        hookNewPartnership: "Nouvelle collaboration !",
+      },
       stripeAlert: {
         title: "Paiements non configurés",
         description:
@@ -2206,6 +2220,7 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
         edit: "Modifier",
         remove: "Retirer",
         cancel: "Annuler",
+        planning: "Planning",
       },
       filters: {
         all: "Tous",
@@ -2247,6 +2262,17 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
         title: "Heures hebdomadaires",
         noData: "Aucune donnée pour cette semaine",
       },
+    },
+
+    employeeSchedule: {
+      title: "Planning employé",
+      subtitle: "Calendrier hebdomadaire des jobs",
+      loading: "Chargement du planning...",
+      today: "Aujourd'hui",
+      noJobs: "Aucun job planifié",
+      jobCount: "{{count}} job(s)",
+      weekSummary: "{{count}} job(s) cette semaine",
+      backToCurrentWeek: "Revenir à la semaine actuelle",
     },
 
     messages: {
@@ -2450,6 +2476,16 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
           feature2: "Créez et assignez des jobs",
           feature3: "Encaissez via Stripe",
         },
+        abnContractor: {
+          title: "Prestataire ABN",
+          subtitle: "Pour les auto-entrepreneurs et indépendants",
+          feature1: "Acceptez des missions déléguées par des entreprises",
+          feature2: "Gérez votre planning en solo",
+          feature3: "Soyez payé directement via Stripe",
+          companyNameLabel: "Nom commercial / d'enseigne",
+          companyNamePlaceholder: "ex. Jean Dupont Services (optionnel)",
+          companyNameHelper: "Laissez vide pour utiliser votre nom complet",
+        },
         employee: {
           title: "Employé",
           subtitle: "Pour rejoindre une entreprise existante",
@@ -2545,6 +2581,16 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
         feature1: "Gérez vos équipes et employés",
         feature2: "Créez et assignez des jobs",
         feature3: "Encaissez via Stripe",
+      },
+      abnContractor: {
+        title: "Prestataire ABN",
+        subtitle: "Pour les auto-entrepreneurs et indépendants",
+        feature1: "Acceptez des missions déléguées par des entreprises",
+        feature2: "Gérez votre planning en solo",
+        feature3: "Soyez payé directement via Stripe",
+        companyNameLabel: "Nom commercial / d'enseigne",
+        companyNamePlaceholder: "ex. Jean Dupont Services (optionnel)",
+        companyNameHelper: "Laissez vide pour utiliser votre nom complet",
       },
       employee: {
         title: "Employé",

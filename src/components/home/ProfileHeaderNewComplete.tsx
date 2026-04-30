@@ -1,12 +1,18 @@
 /**
  * ProfileHeaderComplete - Header avec gamification �pur� pour la page d'accueil
  * Version simplifi�e : Avatar, nom, titre, barre de progression
+ *
+ * Onboarding progressif :
+ *   - La barre XP, le badge niveau et le texte XP sont CACHÉS au départ
+ *   - Ils s'unlock après le milestone `first_job_created`
+ *   - Un reveal animé + bulle explicative est joué une seule fois
  */
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Animated, Pressable, Text, View } from 'react-native';
 import { DESIGN_TOKENS } from '../../constants/Styles';
 import { useTheme } from '../../context/ThemeProvider';
+import { useOnboardingMilestones } from '../../hooks/useOnboardingMilestones';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import { useTranslation } from '../../localization';
 import { HStack, VStack } from '../primitives/Stack';
@@ -19,6 +25,40 @@ const ProfileHeaderComplete: React.FC<ProfileHeaderProps> = ({ navigation }) => 
     const { colors } = useTheme();
     const { profile, isLoading } = useUserProfile();
     const { t } = useTranslation();
+    const { isReady, isUnlocked, isShown, markShown } = useOnboardingMilestones();
+
+    // ── Onboarding : XP visible uniquement après first_job_created ────────────
+    const xpUnlocked = isReady && isUnlocked('first_job_created');
+    const xpAlreadyShown = isShown('first_job_created');
+
+    // Animated values pour le reveal
+    const revealOpacity = useRef(new Animated.Value(xpUnlocked ? 1 : 0)).current;
+    const revealScale = useRef(new Animated.Value(xpUnlocked ? 1 : 0.7)).current;
+    const [showRevealBubble, setShowRevealBubble] = useState(false);
+    const hasPlayedReveal = useRef(xpAlreadyShown);
+
+    useEffect(() => {
+        if (!xpUnlocked || hasPlayedReveal.current) return;
+        hasPlayedReveal.current = true;
+
+        // Délai court pour laisser le layout se stabiliser
+        const timer = setTimeout(() => {
+            setShowRevealBubble(true);
+            Animated.parallel([
+                Animated.spring(revealOpacity, { toValue: 1, useNativeDriver: true }),
+                Animated.spring(revealScale, { toValue: 1, friction: 6, tension: 80, useNativeDriver: true }),
+            ]).start(() => {
+                // Masquer la bulle après 5 secondes et marquer comme montrée
+                setTimeout(() => {
+                    setShowRevealBubble(false);
+                    markShown('first_job_created');
+                }, 5000);
+            });
+        }, 600);
+
+        return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [xpUnlocked]);
     
     // Donn�es utilisateur s�curis�es avec fallbacks
     const safeUser = {
@@ -67,6 +107,7 @@ const ProfileHeaderComplete: React.FC<ProfileHeaderProps> = ({ navigation }) => 
     }
 
     return (
+        <View>
         <Pressable
             onPress={() => navigation.navigate('Profile')}
             style={({ pressed }) => ({
@@ -93,37 +134,41 @@ const ProfileHeaderComplete: React.FC<ProfileHeaderProps> = ({ navigation }) => 
                         <Ionicons name="person" size={40} color={colors.primary} />
                     </View>
 
-                    {/* Badge niveau en overlay */}
-                    <View style={{
-                        position: 'absolute',
-                        bottom: -4,
-                        right: -4,
-                        backgroundColor: colors.primary,
-                        borderRadius: 14,
-                        paddingHorizontal: 10,
-                        paddingVertical: 4,
-                        borderWidth: 3,
-                        borderColor: colors.background,
-                        shadowColor: colors.shadow,
-                        shadowOffset: { width: 0, height: 2 },
-                        shadowOpacity: 0.2,
-                        shadowRadius: 3,
-                        elevation: 4,
-                    }}>
-                        <Text style={{
-                            fontSize: 11,
-                            fontWeight: '700',
-                            color: 'white',
+                    {/* Badge niveau en overlay — visible uniquement si XP débloqué */}
+                    {xpUnlocked && (
+                        <Animated.View style={{
+                            position: 'absolute',
+                            bottom: -4,
+                            right: -4,
+                            backgroundColor: colors.primary,
+                            borderRadius: 14,
+                            paddingHorizontal: 10,
+                            paddingVertical: 4,
+                            borderWidth: 3,
+                            borderColor: colors.background,
+                            shadowColor: colors.shadow,
+                            shadowOffset: { width: 0, height: 2 },
+                            shadowOpacity: 0.2,
+                            shadowRadius: 3,
+                            elevation: 4,
+                            opacity: revealOpacity,
+                            transform: [{ scale: revealScale }],
                         }}>
-                            Lvl {safeUser.level}
-                        </Text>
-                    </View>
+                            <Text style={{
+                                fontSize: 11,
+                                fontWeight: '700',
+                                color: 'white',
+                            }}>
+                                Lvl {safeUser.level}
+                            </Text>
+                        </Animated.View>
+                    )}
                 </View>
 
                 {/* Infos utilisateur */}
                 <VStack gap="xs" style={{ flex: 1 }}>
                     {/* Nom */}
-                    <Text 
+                    <Text
                         style={{
                             fontSize: 16,
                             fontWeight: '700',
@@ -135,7 +180,7 @@ const ProfileHeaderComplete: React.FC<ProfileHeaderProps> = ({ navigation }) => 
                     </Text>
 
                     {/* Titre/Rang avec emoji */}
-                    <Text 
+                    <Text
                         style={{
                             fontSize: 13,
                             fontWeight: '600',
@@ -146,43 +191,84 @@ const ProfileHeaderComplete: React.FC<ProfileHeaderProps> = ({ navigation }) => 
                         {getRankEmoji(safeUser.level)} {safeUser.role}
                     </Text>
 
-                    {/* Barre de progression */}
-                    <HStack gap="sm" align="center" style={{ marginTop: 4 }}>
-                        <View style={{
-                            flex: 1,
-                            height: 8,
-                            backgroundColor: colors.backgroundTertiary,
-                            borderRadius: 4,
-                            overflow: 'hidden',
-                        }}>
-                            <View style={{
-                                width: `${progressPercentage}%`,
-                                height: '100%',
-                                backgroundColor: colors.primary,
-                                borderRadius: 4,
-                            }} />
-                        </View>
-                        <Text style={{
-                            fontSize: 11,
-                            fontWeight: '700',
-                            color: colors.primary,
-                            minWidth: 38,
-                        }}>
-                            {Math.round(progressPercentage)}%
-                        </Text>
-                    </HStack>
+                    {/* Barre de progression — visible uniquement si XP débloqué */}
+                    {xpUnlocked && (
+                        <Animated.View style={{ opacity: revealOpacity, transform: [{ scale: revealScale }] }}>
+                            <HStack gap="sm" align="center" style={{ marginTop: 4 }}>
+                                <View style={{
+                                    flex: 1,
+                                    height: 8,
+                                    backgroundColor: colors.backgroundTertiary,
+                                    borderRadius: 4,
+                                    overflow: 'hidden',
+                                }}>
+                                    <View style={{
+                                        width: `${progressPercentage}%`,
+                                        height: '100%',
+                                        backgroundColor: colors.primary,
+                                        borderRadius: 4,
+                                    }} />
+                                </View>
+                                <Text style={{
+                                    fontSize: 11,
+                                    fontWeight: '700',
+                                    color: colors.primary,
+                                    minWidth: 38,
+                                }}>
+                                    {Math.round(progressPercentage)}%
+                                </Text>
+                            </HStack>
 
-                    {/* Texte progression (optionnel, petit) */}
-                    <Text style={{
-                        fontSize: 9,
-                        color: colors.textMuted,
-                        marginTop: 2,
-                    }}>
-                        {currentXP.toLocaleString()} / {targetXP.toLocaleString()} XP
-                    </Text>
+                            {/* Texte progression (optionnel, petit) */}
+                            <Text style={{
+                                fontSize: 9,
+                                color: colors.textMuted,
+                                marginTop: 2,
+                            }}>
+                                {currentXP.toLocaleString()} / {targetXP.toLocaleString()} XP
+                            </Text>
+                        </Animated.View>
+                    )}
                 </VStack>
             </HStack>
         </Pressable>
+
+        {/* Bulle de reveal XP — apparaît une seule fois après first_job_created */}
+        {showRevealBubble && (
+            <Pressable
+                onPress={() => {
+                    setShowRevealBubble(false);
+                    markShown('first_job_created');
+                }}
+                style={{
+                    marginHorizontal: DESIGN_TOKENS.spacing.lg,
+                    marginBottom: DESIGN_TOKENS.spacing.sm,
+                    backgroundColor: colors.primary,
+                    borderRadius: 12,
+                    padding: 12,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 10,
+                    shadowColor: colors.shadow,
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.25,
+                    shadowRadius: 8,
+                    elevation: 6,
+                }}
+            >
+                <Text style={{ fontSize: 22 }}>🏆</Text>
+                <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: 'white' }}>
+                        XP & Achievements unlocked!
+                    </Text>
+                    <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.85)', marginTop: 2 }}>
+                        You completed your first job. Your progress is now tracked here.
+                    </Text>
+                </View>
+                <Ionicons name="close" size={16} color="rgba(255,255,255,0.7)" />
+            </Pressable>
+        )}
+        </View>
     );
 };
 

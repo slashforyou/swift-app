@@ -4,6 +4,7 @@
 } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React, { useEffect, useRef } from "react";
+import { analytics } from "../services/analytics";
 import { navigationContainerRef } from "../services/navRef";
 import { testController } from "../services/testController";
 import { lazyScreen } from "../utils/lazyLoading";
@@ -141,6 +142,11 @@ const WeeklyHoursScreen = lazyScreen(
   () => import("../screens/WeeklyHoursScreen"),
 );
 
+// Employee schedule screen
+const EmployeeScheduleScreen = lazyScreen(
+  () => import("../screens/EmployeeScheduleScreen"),
+);
+
 // Vehicle screens
 const VehicleMileageScreen = lazyScreen(
   () => import("../screens/VehicleMileageScreen"),
@@ -171,6 +177,8 @@ const Stack = createNativeStackNavigator();
 
 export default function Navigation() {
   const navigationRef = useRef<NavigationContainerRef<any>>(null);
+  const previousRouteNameRef = useRef<string | undefined>(undefined);
+  const screenEnterTimeRef = useRef<number>(Date.now());
 
   useEffect(() => {
     // Provide navigation reference to test controller
@@ -186,6 +194,31 @@ export default function Navigation() {
   const onReady = () => {
     if (navigationRef.current) {
       (navigationContainerRef as any).current = navigationRef.current;
+      previousRouteNameRef.current =
+        navigationRef.current.getCurrentRoute()?.name;
+    }
+  };
+
+  const onStateChange = () => {
+    const currentRoute = navigationRef.current?.getCurrentRoute();
+    const currentRouteName = currentRoute?.name;
+    const previousRouteName = previousRouteNameRef.current;
+    const now = Date.now();
+
+    if (currentRouteName !== previousRouteName) {
+      // Track le temps passé sur l'écran précédent
+      const timeOnPreviousScreen = now - screenEnterTimeRef.current;
+      if (previousRouteName && timeOnPreviousScreen > 500) {
+        analytics.trackScreenTime(previousRouteName, timeOnPreviousScreen);
+      }
+
+      // Track la vue du nouvel écran
+      if (currentRouteName) {
+        analytics.trackNavigation(currentRouteName, previousRouteName);
+      }
+
+      previousRouteNameRef.current = currentRouteName;
+      screenEnterTimeRef.current = now;
     }
   };
 
@@ -193,6 +226,7 @@ export default function Navigation() {
     <NavigationContainer
       ref={navigationRef}
       onReady={onReady}
+      onStateChange={onStateChange}
       linking={linking}
     >
       <Stack.Navigator
@@ -319,6 +353,11 @@ export default function Navigation() {
         <Stack.Screen
           name="WeeklyHours"
           component={WeeklyHoursScreen}
+          options={{ animation: "slide_from_right" }}
+        />
+        <Stack.Screen
+          name="EmployeeSchedule"
+          component={EmployeeScheduleScreen}
           options={{ animation: "slide_from_right" }}
         />
         {/* Vehicle screens */}
