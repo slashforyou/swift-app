@@ -29,6 +29,7 @@ import MascotLoading from "../components/ui/MascotLoading";
 import { DESIGN_TOKENS } from "../constants/Styles";
 import { useTheme } from "../context/ThemeProvider";
 import { getUserCompanyData } from "../hooks/useCompanyPermissions";
+import { useGamificationV2 } from "../hooks/useGamificationV2";
 import { useUserProfile } from "../hooks/useUserProfile";
 import { useTranslation } from "../localization/useLocalization";
 import type { Company, CompanyRole } from "../services/user";
@@ -271,11 +272,12 @@ const ProfileFormField: React.FC<ProfileFormFieldProps> = ({
 };
 
 const ProfileScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const { colors } = useTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { profile, isLoading, updateProfile, refreshProfile } = useUserProfile();
+  const { profile: gamifProfile, xpProgress, isLoadingProfile: isLoadingGamif } = useGamificationV2();
 
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -584,6 +586,90 @@ const ProfileScreen: React.FC = () => {
             </View>
           </Pressable>
         </View>
+
+        {/* Gamification Section */}
+        <Pressable
+          testID="profile-gamification-card"
+          onPress={() => navigation.navigate("GamificationV2")}
+          style={({ pressed }) => ({
+            backgroundColor: pressed ? colors.backgroundTertiary : colors.backgroundSecondary,
+            borderRadius: 16,
+            marginBottom: DESIGN_TOKENS.spacing.md,
+            padding: DESIGN_TOKENS.spacing.md,
+            shadowColor: colors.shadow,
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 4,
+            elevation: 3,
+            borderWidth: 1,
+            borderColor: colors.border,
+          })}
+        >
+          {/* Header row */}
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: DESIGN_TOKENS.spacing.sm }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <Text style={{ fontSize: 18 }}>⚡</Text>
+              <Text style={{ fontSize: 16, fontWeight: "700", color: colors.text }}>
+                {gamifProfile?.level_label
+                  ? `Niv. ${gamifProfile.level ?? 1} · ${gamifProfile.level_label}`
+                  : `Niv. ${gamifProfile?.level ?? (isLoadingGamif ? "…" : 1)}`}
+              </Text>
+            </View>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+              {/* Trophées */}
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                <Text style={{ fontSize: 14 }}>🏆</Text>
+                <Text style={{ fontSize: 14, fontWeight: "700", color: "#f59e0b" }}>
+                  {gamifProfile?.total_trophies ?? 0}
+                </Text>
+              </View>
+              {/* XP total */}
+              <Text style={{ fontSize: 13, fontWeight: "600", color: colors.textSecondary }}>
+                {(gamifProfile?.total_xp ?? 0).toLocaleString()} XP
+              </Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+            </View>
+          </View>
+
+          {/* XP Progress bar */}
+          <View style={{ backgroundColor: colors.border, borderRadius: 4, height: 6, overflow: "hidden", marginBottom: 4 }}>
+            <View
+              style={{
+                height: "100%",
+                width: `${Math.max(0, Math.min(100, xpProgress))}%`,
+                backgroundColor: colors.primary,
+                borderRadius: 4,
+              }}
+            />
+          </View>
+          <Text style={{ fontSize: 11, color: colors.textMuted, textAlign: "right" }}>
+            {Math.round(xpProgress)}% vers le niveau suivant
+          </Text>
+          {/* Lien rapide quêtes */}
+          <Pressable
+            testID="profile-quests-link"
+            onPress={(e) => { e.stopPropagation(); navigation.navigate("Quests"); }}
+            style={({ pressed }) => ({
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              marginTop: DESIGN_TOKENS.spacing.sm,
+              paddingVertical: 6,
+              paddingHorizontal: 12,
+              borderRadius: 8,
+              backgroundColor: pressed ? colors.backgroundTertiary : "transparent",
+              borderWidth: 1,
+              borderColor: colors.border,
+              gap: 6,
+            })}
+          >
+            <Text style={{ fontSize: 13 }}>⚔️</Text>
+            <Text style={{ fontSize: 12, fontWeight: "600", color: colors.textSecondary }}>
+              Voir mes quêtes
+            </Text>
+            <Ionicons name="chevron-forward" size={12} color={colors.textMuted} />
+          </Pressable>
+        </Pressable>
 
         {/* Personal Information Section */}
         <CollapsibleSection

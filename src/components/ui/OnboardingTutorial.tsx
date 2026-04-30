@@ -3,8 +3,8 @@ import React from "react";
 import { Modal, Pressable, Text, View } from "react-native";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
-import { useLocalization } from "../../localization/useLocalization";
 import { useTutorial } from "../../hooks/useTutorial";
+import { useLocalization } from "../../localization/useLocalization";
 
 interface Step {
   icon: string;

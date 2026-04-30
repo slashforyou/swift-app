@@ -1,26 +1,25 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Animated,
-  Modal,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
+    ActivityIndicator,
+    Alert,
+    Modal,
+    Pressable,
+    ScrollView,
+    Text,
+    TextInput,
+    View
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DESIGN_TOKENS } from "../constants/Styles";
 import { useTheme } from "../context/ThemeProvider";
 import { useLocalization } from "../localization/useLocalization";
 import {
-  createMaintenanceAlert,
-  deleteMaintenanceAlert,
-  getAllMaintenanceAlerts,
-  MaintenanceAlert,
-  updateMaintenanceAlert,
+    createMaintenanceAlert,
+    deleteMaintenanceAlert,
+    getAllMaintenanceAlerts,
+    MaintenanceAlert,
+    updateMaintenanceAlert,
 } from "../services/vehicleMaintenanceService";
 
 const ALERT_TYPES = [

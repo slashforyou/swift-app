@@ -16,10 +16,15 @@ export interface JobAttachment {
 }
 
 export const getJobAttachments = async (jobId: number): Promise<JobAttachment[]> => {
-  const res = await authenticatedFetch(`${API}v1/jobs/${jobId}/attachments`);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const data = await res.json();
-  return data.attachments ?? data ?? [];
+  try {
+    const res = await authenticatedFetch(`${API}v1/jobs/${jobId}/attachments`);
+    if (res.status === 404 || res.status === 405) return [];
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.attachments ?? data ?? [];
+  } catch {
+    return [];
+  }
 };
 
 export const createJobAttachment = async (

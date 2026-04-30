@@ -9,6 +9,17 @@ jest.mock('../../src/services/jobs', () => ({
   fetchJobs: jest.fn()
 }));
 
+// Mock navRef pour éviter l'import de @react-navigation/native via auth.ts
+jest.mock('../../src/services/navRef', () => ({
+  navigateGlobal: jest.fn(),
+  navigationContainerRef: { current: null, isReady: jest.fn(() => false) },
+}));
+
+// Mock stripeCache importé transitivement par auth.ts
+jest.mock('../../src/services/stripeCache', () => ({
+  clearStripeCache: jest.fn(),
+}));
+
 // Mock du service Stripe
 jest.mock('../../src/services/StripeService', () => ({
   createStripeInvoice: jest.fn().mockResolvedValue({

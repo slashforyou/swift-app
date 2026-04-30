@@ -17,6 +17,7 @@ import {
     View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import FirstXPGuide from '../components/gamification/FirstXPGuide';
 import { GamificationV2StatsCard } from '../components/gamification/GamificationV2StatsCard';
 import { Screen } from '../components/primitives/Screen';
 import { HStack, VStack } from '../components/primitives/Stack';
@@ -546,6 +547,8 @@ const GamificationV2Screen: React.FC = () => {
 
   return (
     <Screen>
+      {/* Guide first-XP — s'affiche automatiquement la première fois */}
+      <FirstXPGuide />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{

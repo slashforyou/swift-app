@@ -24,8 +24,7 @@ const linking = {
       Profile: "profile",
       StripeOnboarding: "stripe-onboarding",
       JobTemplateEditor: "business/templates/edit",
-      JobTimeBreakdown: "job/time-breakdown",
-    },
+      JobTimeBreakdown: "job/time-breakdown",      ReviewForm: "review",    },
   },
 };
 
@@ -70,6 +69,9 @@ const GamificationV2Screen = lazyScreen(() => import("../screens/GamificationV2S
 const QuestsScreen = lazyScreen(() => import("../screens/QuestsScreen"));
 const EmployeeDashboard = lazyScreen(
   () => import("../screens/EmployeeDashboardScreen"),
+);
+const ManagerDashboard = lazyScreen(
+  () => import("../screens/ManagerDashboardScreen"),
 );
 const ReferralScreen = lazyScreen(() => import("../screens/ReferralScreen"));
 
@@ -160,6 +162,11 @@ const RevenueDashboardScreen = lazyScreen(
   () => import("../screens/RevenueDashboardScreen"),
 );
 
+// Public review form (accessible via deep link sans auth)
+const ReviewFormScreen = lazyScreen(
+  () => import("../screens/ReviewFormScreen"),
+);
+
 const Stack = createNativeStackNavigator();
 
 export default function Navigation() {
@@ -228,6 +235,11 @@ export default function Navigation() {
         <Stack.Screen
           name="EmployeeDashboard"
           component={EmployeeDashboard}
+          options={{ animation: "slide_from_right" }}
+        />
+        <Stack.Screen
+          name="ManagerDashboard"
+          component={ManagerDashboard}
           options={{ animation: "slide_from_right" }}
         />
         <Stack.Screen
@@ -336,6 +348,12 @@ export default function Navigation() {
           name="RevenueDashboard"
           component={RevenueDashboardScreen}
           options={{ animation: "slide_from_right" }}
+        />
+        {/* Public review form */}
+        <Stack.Screen
+          name="ReviewForm"
+          component={ReviewFormScreen}
+          options={{ animation: "slide_from_bottom", headerShown: false }}
         />
       </Stack.Navigator>
     </NavigationContainer>

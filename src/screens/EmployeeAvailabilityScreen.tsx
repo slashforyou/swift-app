@@ -1,15 +1,15 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Modal,
-  Pressable,
-  ScrollView,
-  Switch,
-  Text,
-  TextInput,
-  View,
+    ActivityIndicator,
+    Alert,
+    Modal,
+    Pressable,
+    ScrollView,
+    Switch,
+    Text,
+    TextInput,
+    View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DESIGN_TOKENS } from "../constants/Styles";
@@ -17,12 +17,12 @@ import { useTheme } from "../context/ThemeProvider";
 import { useAuth } from "../hooks/useAuth";
 import { useLocalization } from "../localization/useLocalization";
 import {
-  addAvailabilityException,
-  AvailabilityException,
-  AvailabilitySlot,
-  deleteAvailabilityException,
-  getEmployeeAvailability,
-  updateEmployeeAvailability,
+    addAvailabilityException,
+    AvailabilityException,
+    AvailabilitySlot,
+    deleteAvailabilityException,
+    getEmployeeAvailability,
+    updateEmployeeAvailability,
 } from "../services/employeeAvailabilityService";
 
 const DAY_LABELS = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];

@@ -7,6 +7,56 @@ import { collectDevicePayload } from "./device";
 
 const API = ServerData.serverUrl;
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Circuit breaker — bloque tous les appels API dès que la session est morte.
+// Réinitialisé uniquement lors d'un login réussi.
+// ─────────────────────────────────────────────────────────────────────────────
+let _sessionDead = false;
+export function isSessionDead(): boolean { return _sessionDead; }
+export function markSessionDead(): void { _sessionDead = true; }
+export function resetSessionDead(): void { _sessionDead = false; }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Mutex refresh — une seule tentative de refresh à la fois.
+// Tous les appels concurrents attendent la même promesse.
+// ─────────────────────────────────────────────────────────────────────────────
+let _refreshPromise: Promise<boolean> | null = null;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Rate limiting refresh — protection contre les refresh storms.
+// Max REFRESH_RATE_LIMIT tentatives par fenêtre REFRESH_WINDOW_MS.
+// Si dépassé : session marquée comme morte immédiatement.
+// ─────────────────────────────────────────────────────────────────────────────
+let _refreshAttemptCount = 0;
+let _refreshWindowStart = 0;
+const REFRESH_RATE_LIMIT = 3;        // max 3 tentatives
+const REFRESH_WINDOW_MS = 60_000;    // par tranche de 60 secondes
+
+function canAttemptRefresh(): boolean {
+  const now = Date.now();
+  if (now - _refreshWindowStart > REFRESH_WINDOW_MS) {
+    _refreshAttemptCount = 0;
+    _refreshWindowStart = now;
+  }
+  if (_refreshAttemptCount >= REFRESH_RATE_LIMIT) {
+    _sessionDead = true;
+    return false;
+  }
+  _refreshAttemptCount++;
+  return true;
+}
+
+function refreshTokenOnce(): Promise<boolean> {
+  if (_refreshPromise) return _refreshPromise;
+  if (!canAttemptRefresh()) {
+    return Promise.resolve(false);
+  }
+  _refreshPromise = refreshToken().finally(() => {
+    _refreshPromise = null;
+  });
+  return _refreshPromise;
+}
+
 export async function login(mail: string, password: string) {
   const device = await collectDevicePayload();
 
@@ -99,6 +149,9 @@ export async function login(mail: string, password: string) {
       }),
     );
   }
+
+  // 🔓 Login réussi — réinitialiser le circuit breaker
+  resetSessionDead();
 
   return { sessionToken, success, hasRefresh: !!refreshToken, user };
 }
@@ -249,6 +302,11 @@ export async function authenticatedFetch(
   url: string,
   options: RequestInit = {},
 ): Promise<Response> {
+  // 🔒 Circuit breaker : session morte → fast-fail immédiat
+  if (_sessionDead) {
+    throw new Error("SESSION_EXPIRED");
+  }
+
   // Première tentative avec le token actuel
   let headers = await getAuthHeaders();
 
@@ -263,9 +321,9 @@ export async function authenticatedFetch(
 
   let response = await fetch(url, requestOptions);
 
-  // Si 401, essayer de refresh le token
+  // Si 401, essayer de refresh le token (une seule tentative partagée entre tous les appels concurrents)
   if (response.status === 401) {
-    const refreshSuccess = await refreshToken();
+    const refreshSuccess = await refreshTokenOnce();
 
     if (refreshSuccess) {
       headers = await getAuthHeaders();
@@ -278,12 +336,14 @@ export async function authenticatedFetch(
       response = await fetch(url, requestOptions);
 
       if (response.status === 401) {
+        _sessionDead = true;
         await clearSession();
         navigateGlobal("Connection");
         throw new Error("SESSION_EXPIRED");
       }
     } else {
       // Refresh a échoué, clear session
+      _sessionDead = true;
       await clearSession();
       navigateGlobal("Connection");
       throw new Error("SESSION_EXPIRED");

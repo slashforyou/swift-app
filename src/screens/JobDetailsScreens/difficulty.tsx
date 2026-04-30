@@ -1,19 +1,19 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
+    ActivityIndicator,
+    Alert,
+    Pressable,
+    ScrollView,
+    Text,
+    View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ServerData } from "../../constants/ServerData";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
 import { useLocalization } from "../../localization/useLocalization";
 import { authenticatedFetch } from "../../utils/auth";
-import { ServerData } from "../../constants/ServerData";
 
 const API = ServerData.serverUrl;
 
@@ -23,13 +23,6 @@ interface DifficultyOption {
   emoji: string;
   color: string;
 }
-
-const DIFFICULTIES: DifficultyOption[] = [
-  { id: "easy", label: "Facile", emoji: "😊", color: "#38A169" },
-  { id: "medium", label: "Moyen", emoji: "💪", color: "#D69E2E" },
-  { id: "hard", label: "Difficile", emoji: "🔥", color: "#E53E3E" },
-  { id: "expert", label: "Expert", emoji: "⚡", color: "#805AD5" },
-];
 
 interface Props {
   route?: any;
@@ -42,6 +35,13 @@ export default function JobDifficultyScreen({ route, navigation, jobId: propJobI
   const { colors } = useTheme();
   const { t } = useLocalization();
   const jobId: number = route?.params?.jobId ?? propJobId;
+
+  const DIFFICULTIES = useMemo<DifficultyOption[]>(() => [
+    { id: "easy", label: t("difficulty.easy") || "Easy", emoji: "😊", color: "#38A169" },
+    { id: "medium", label: t("difficulty.medium") || "Medium", emoji: "💪", color: "#D69E2E" },
+    { id: "hard", label: t("difficulty.hard") || "Hard", emoji: "🔥", color: "#E53E3E" },
+    { id: "expert", label: t("difficulty.expert") || "Expert", emoji: "⚡", color: "#805AD5" },
+  ], [t]);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

@@ -81,7 +81,7 @@ const getJobScorecardEndpoint = async (req, res) => {
 
     // Vérifier s'il y a un avis client soumis
     const [reviewRows] = await connection.execute(
-      'SELECT rating_overall, rating_service, rating_team, comment, submitted_at FROM client_reviews WHERE job_id = ? AND submitted_at IS NOT NULL',
+      'SELECT rating_overall, rating_service, rating_team, comment, submitted_at FROM job_reviews WHERE job_id = ? AND submitted_at IS NOT NULL',
       [jobId]
     );
 

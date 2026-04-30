@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { fetchJobs, JobAPI } from '../services/jobs';
+import { isSessionDead } from '../utils/auth';
 
 export interface WeekDay {
   date: Date;
@@ -48,6 +49,7 @@ export const useJobsForWeek = (referenceDate: Date): UseJobsForWeekResult => {
   }, [monday]);
 
   const loadJobs = useCallback(async () => {
+    if (isSessionDead()) return;
     try {
       setIsLoading(true);
       setError(null);

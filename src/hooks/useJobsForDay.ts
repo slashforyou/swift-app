@@ -1,6 +1,6 @@
 ﻿import { useCallback, useEffect, useState } from "react";
 import { fetchJobs as fetchJobsAPI } from "../services/jobs";
-import { isLoggedIn } from "../utils/auth";
+import { isLoggedIn, isSessionDead } from "../utils/auth";
 
 export interface Job {
   id: string; // ID numérique pour les appels API
@@ -478,6 +478,7 @@ export const useJobsForDay = (
   }, [day, month, year]);
 
   const fetchJobs = useCallback(async () => {
+    if (isSessionDead()) return;
     try {
       setIsLoading(true);
       setError(null);

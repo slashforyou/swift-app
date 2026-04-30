@@ -115,32 +115,29 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
       setIsLoading(true);
       setError(null);
 
-      // Vérifier les permissions actuelles
-      const status = await checkPermissionStatus();
-
-      if (status === "granted") {
-        // Initialiser et enregistrer le token
-        const success = await initializePushNotifications();
-        if (success) {
-          const token = await getExpoPushToken();
-          setPushToken(token);
-        }
-
-        // Charger les préférences
-        const prefs = await getNotificationPreferences();
-        setPreferences(prefs || DEFAULT_PREFERENCES);
-
-        setIsInitialized(true);
-        return true;
+      // initializePushNotifications -> getExpoPushToken gère la demande de permission en interne
+      // On ne gate plus sur le statut initial (undetermined = jamais demandé → token jamais enregistré)
+      const success = await initializePushNotifications();
+      if (success) {
+        const token = await getExpoPushToken();
+        setPushToken(token);
       }
 
+      // Mettre à jour le statut de permission après la tentative
+      await checkPermissionStatus();
+
+      // Charger les préférences
+      const prefs = await getNotificationPreferences();
+      setPreferences(prefs || DEFAULT_PREFERENCES);
+
       setIsInitialized(true);
-      return false;
+      return success;
     } catch {
       setError("Failed to initialize notifications");
       return false;
     } finally {
       setIsLoading(false);
+      setIsInitialized(true);
     }
   }, [isInitialized, checkPermissionStatus]);
 

@@ -16,21 +16,21 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  Animated,
-  Dimensions,
-  Easing,
-  Modal,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
+    Animated,
+    Dimensions,
+    Easing,
+    Modal,
+    Pressable,
+    ScrollView,
+    Text,
+    View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import {
-  formatRelativeTime,
-  NotificationType,
-  useNotifications,
+    formatRelativeTime,
+    NotificationType,
+    useNotifications,
 } from "../../context/NotificationsProvider";
 import { useTheme } from "../../context/ThemeProvider";
 import { usePendingAssignments } from "../../hooks/usePendingAssignments";

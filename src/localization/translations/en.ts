@@ -111,6 +111,7 @@ export const enTranslations: TranslationKeys = {
     accept: "Accept",
     decline: "Decline",
     goBack: "Go back",
+    loadError: "Load error",
   },
 
   home: {
@@ -798,6 +799,11 @@ export const enTranslations: TranslationKeys = {
       notes: "Notes",
       payment: "Payment",
     },
+    quickActions: {
+      files: "Files",
+      linked: "Linked",
+      difficulty: "Difficulty",
+    },
     errors: {
       invalidJobId: "Invalid job ID",
       cannotLoadDetails: "Cannot load job details",
@@ -1000,6 +1006,8 @@ export const enTranslations: TranslationKeys = {
         totalBillableHours: "Total billable hours",
         hourlyRate: "Hourly rate",
         finalAmount: "FINAL AMOUNT",
+        estimatedAmount: "ESTIMATED AMOUNT",
+        estimatedAmountNote: "Final amount confirmed once job is completed & signed",
         explanatoryNote:
           "The calculation includes a minimum of 2 hours, a 30-minute call-out fee, and rounding to the next half hour according to the 7-minute rule (≥7min rounded to 30min, <7min rounded to 0min).",
       },
@@ -1075,6 +1083,17 @@ export const enTranslations: TranslationKeys = {
         successMessage:
           "Your manager has been notified and will review the issue.",
         errorMessage: "Failed to send report. Please try again.",
+      },
+      manualPayment: {
+        title: "Record Manual Payment",
+        subtitle: "Cash, card or bank transfer received in person",
+        cash: "Cash",
+        card: "Card / EFTPOS",
+        bankTransfer: "Bank Transfer",
+        notesPlaceholder: "Reference, notes (optional)...",
+        confirmPayment: "Mark as Paid",
+        recorded: "Payment recorded successfully",
+        error: "Unable to record payment. Please try again.",
       },
     },
     components: {
@@ -1470,6 +1489,20 @@ export const enTranslations: TranslationKeys = {
       hard: "Hard",
       expert: "Expert",
     },
+  },
+
+  difficulty: {
+    title: "Difficulty / Trucks",
+    sectionLabel: "Difficulty level",
+    truckCountLabel: "Number of trucks",
+    truck: "truck",
+    trucks: "trucks",
+    easy: "Easy",
+    medium: "Medium",
+    hard: "Hard",
+    expert: "Expert",
+    saveSuccess: "Difficulty updated",
+    saveError: "Unable to save",
   },
 
   settings: {
@@ -1874,10 +1907,30 @@ export const enTranslations: TranslationKeys = {
       default: "default",
       billingModes: {
         locationToLocation: "Location to location",
+        locationToLocationDesc: "From first to last location",
         depotToDepot: "Depot to depot",
+        depotToDepotDesc: "Start and end at depot",
         flatRate: "Flat rate",
-        packingOnly: "Packing",
-        unpackingOnly: "Unpacking",
+        flatRateDesc: "Fixed predefined amount",
+        packingOnly: "Packing only",
+        packingOnlyDesc: "Location segments only",
+        unpackingOnly: "Unpacking only",
+        unpackingOnlyDesc: "Location segments only",
+      },
+      segmentTypes: {
+        location: "Location",
+        travel: "Travel",
+        storage: "Storage",
+        loading: "Loading",
+      },
+      locationTypes: {
+        house: "House",
+        apartment: "Apartment",
+        garage: "Garage",
+        privateStorage: "Private Storage",
+        depot: "Depot / Storage",
+        office: "Office",
+        other: "Other",
       },
     },
     contracts: {
@@ -5300,5 +5353,31 @@ export const enTranslations: TranslationKeys = {
       reviewBannerTitle: "Your client left a review ⭐",
       reviewBannerSub: "See details in the scorecard",
     },
+  },
+  jobAttachments: {
+    title: "📎 Attachments",
+    empty: "No attachments",
+    addTitle: "Add attachment",
+  },
+  attachments: {
+    cannotOpen: "Cannot open this file",
+    deleteConfirm: "Delete this attachment?",
+    deleteError: "Failed to delete",
+    saveError: "Cannot add attachment",
+    urlLabel: "File URL *",
+    nameLabel: "File name *",
+    labelLabel: "Label (optional)",
+  },
+  linkedJobs: {
+    title: "🔗 Linked Jobs",
+    link: "Link",
+    empty: "No linked jobs",
+    deleteConfirm: "Delete this link?",
+    deleteError: "Cannot delete",
+    saveError: "Cannot link this job",
+    linkTitle: "Link a job",
+    jobIdLabel: "Job ID *",
+    typeLabel: "Link type",
+    linkAction: "Link this job",
   },
 };

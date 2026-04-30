@@ -1,26 +1,26 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Modal,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
+    ActivityIndicator,
+    Alert,
+    Modal,
+    Pressable,
+    ScrollView,
+    Text,
+    TextInput,
+    View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ServerData } from "../constants/ServerData";
 import { DESIGN_TOKENS } from "../constants/Styles";
 import { useTheme } from "../context/ThemeProvider";
+import { useAuth } from "../hooks/useAuth";
 import { useLocalization } from "../localization/useLocalization";
 import {
-  fetchWeeklyHours,
-  WorkerWeeklyHours,
+    fetchWeeklyHours,
+    WorkerWeeklyHours,
 } from "../services/weeklyHours";
-import { useAuth } from "../hooks/useAuth";
 import { authenticatedFetch } from "../utils/auth";
-import { ServerData } from "../constants/ServerData";
 
 const API = ServerData.serverUrl;
 

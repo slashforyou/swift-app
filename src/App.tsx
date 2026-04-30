@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { OfflineBanner } from "./components/OfflineBanner";
 import { OnboardingTourOverlay } from "./components/onboarding/OnboardingTourOverlay";
 import { ENV, STRIPE_PUBLISHABLE_KEY } from "./config/environment";
 import { AppAlertProvider } from "./context/AppAlertProvider";
@@ -26,6 +27,7 @@ import { ToastProvider } from "./context/ToastProvider";
 import { VehiclesProvider } from "./context/VehiclesProvider";
 import { PermissionsProvider } from "./contexts/PermissionsContext";
 import { useForceUpdate } from "./hooks/useForceUpdate";
+import { useNetworkStatus } from "./hooks/useNetworkStatus";
 import { LocalizationProvider } from "./localization";
 import Navigation from "./navigation/index";
 import { appAlert } from "./services/appAlert";
@@ -57,6 +59,7 @@ export default function App() {
   });
 
   const { status: updateStatus } = useForceUpdate();
+  const { isConnected } = useNetworkStatus();
 
   useEffect(() => {
     // Marquer le premier rendu
@@ -131,6 +134,7 @@ export default function App() {
                         <View style={{ flex: 1 }}>
                           <Navigation />
                           <OnboardingTourOverlay />
+                          <OfflineBanner isConnected={isConnected} />
                         </View>
                       </OnboardingSpotlightProvider>
                     </OnboardingTourProvider>

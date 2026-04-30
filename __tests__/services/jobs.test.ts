@@ -5,17 +5,17 @@
 
 // Mock des dépendances
 import {
-  completeJob,
-  createJob,
-  deleteJob,
-  fetchJobById,
-  fetchJobs,
-  pauseJob,
-  resumeJob,
-  startJob,
-  updateJob,
-  type CreateJobRequest,
-  type JobAPI,
+    completeJob,
+    createJob,
+    deleteJob,
+    fetchJobById,
+    fetchJobs,
+    pauseJob,
+    resumeJob,
+    startJob,
+    updateJob,
+    type CreateJobRequest,
+    type JobAPI,
 } from "../../src/services/jobs";
 
 jest.mock("../../src/utils/auth", () => ({
@@ -24,6 +24,8 @@ jest.mock("../../src/utils/auth", () => ({
   }),
   refreshToken: jest.fn().mockResolvedValue(true),
   clearSession: jest.fn(),
+  isSessionDead: jest.fn().mockReturnValue(false),
+  markSessionDead: jest.fn(),
 }));
 
 jest.mock("../../src/constants/ServerData", () => ({

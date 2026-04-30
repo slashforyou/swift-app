@@ -12,10 +12,15 @@ export interface LinkedJob {
 }
 
 export const getJobLinks = async (jobId: number): Promise<LinkedJob[]> => {
-  const res = await authenticatedFetch(`${API}v1/jobs/${jobId}/links`);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const data = await res.json();
-  return data.links ?? [];
+  try {
+    const res = await authenticatedFetch(`${API}v1/jobs/${jobId}/links`);
+    if (res.status === 404 || res.status === 405) return [];
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.links ?? [];
+  } catch {
+    return [];
+  }
 };
 
 export const createJobLink = async (

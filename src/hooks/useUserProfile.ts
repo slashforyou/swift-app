@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 import { fetchUserProfile, updateUserProfile, UpdateUserProfile, UserProfile } from '../services/user';
 import { getMockProfile } from '../services/userMockData';
+import { isSessionDead } from '../utils/auth';
 
 // Development mode - set to true to use mock data
 const USE_MOCK_DATA = false;
@@ -48,6 +49,9 @@ export const useUserProfile = (): UseUserProfileResult => {
   };
 
   const loadProfile = async () => {
+    // Ne pas charger si la session est morte (évite la retry storm)
+    if (isSessionDead()) return;
+
     try {
       setIsLoading(true);
       setError(null);

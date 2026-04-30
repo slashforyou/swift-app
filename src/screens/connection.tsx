@@ -1,9 +1,10 @@
-﻿import React, { useEffect, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+﻿import { LinearGradient } from "expo-linear-gradient";
+import React, { useEffect, useRef, useState } from "react";
+import { Animated, Easing, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import HeaderLogo from "../components/ui/HeaderLogo";
-import RoundLanguageButton from "../components/ui/RoundLanguageButton";
 import MascotLoading from "../components/ui/MascotLoading";
+import RoundLanguageButton from "../components/ui/RoundLanguageButton";
 import { useCommonThemedStyles } from "../hooks/useCommonStyles";
 import { useTranslation } from "../localization";
 import { ensureSession } from "../utils/session";
@@ -27,8 +28,10 @@ const ConnectionScreen: React.FC<ConnectionScreenProps> = ({ navigation }) => {
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(32)).current;
 
+  useEffect(() => {
     const checkSession = async () => {
       try {
         setIsLoading(true);
@@ -45,165 +48,129 @@ const ConnectionScreen: React.FC<ConnectionScreenProps> = ({ navigation }) => {
     checkSession();
   }, [navigation]);
 
+  useEffect(() => {
+    if (!isLoading) {
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 700,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 700,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [isLoading, fadeAnim, slideAnim]);
+
   if (isLoading) {
     return <MascotLoading text={t("common.loading")} />;
   }
 
   return (
-    <SafeAreaView testID="connection-screen" style={styles.container}>
-      <View
-        style={{
-          position: "absolute",
-          top: 28,
-          right: 32,
-          zIndex: 10,
-        }}
-      >
-        <RoundLanguageButton testID="connection-language-btn" />
-      </View>
-      <View testID="connection-content" style={styles.containerCentered}>
-        {/* Logo Section */}
-        <View
-          style={{
-            width: 200,
-            height: 100,
-            justifyContent: "center",
-            alignItems: "center",
-            marginBottom: 30,
-          }}
-        >
-          <HeaderLogo preset="md" variant="square" marginVertical={0} />
+    <View style={[localStyles.root, { backgroundColor: colors.background }]}>
+      {/* Gradient décoratif : teinte primaire en haut → background */}
+      <LinearGradient
+        colors={[colors.primary + "22", colors.background]}
+        locations={[0, 0.55]}
+        style={StyleSheet.absoluteFillObject}
+        pointerEvents="none"
+      />
+
+      <SafeAreaView testID="connection-screen" style={localStyles.safeArea}>
+        {/* Language switcher */}
+        <View style={localStyles.languageBtn}>
+          <RoundLanguageButton testID="connection-language-btn" />
         </View>
 
-        {/* Welcome Text */}
-        <Text
-          testID="connection-title-text"
-          style={[styles.title, { marginBottom: 8, textAlign: "center" }]}
-        >
-          {t("auth.connection.title")}
-        </Text>
-
-        <Text
-          testID="connection-subtitle-text"
+        {/* Main content with fade+slide-in */}
+        <Animated.View
+          testID="connection-content"
           style={[
-            styles.body,
-            {
-              color: colors.textSecondary,
-              textAlign: "center",
-              marginBottom: 40,
-              paddingHorizontal: 20,
-            },
+            localStyles.content,
+            { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
           ]}
         >
-          {t("auth.connection.subtitle")}
-        </Text>
-
-        {/* Action Buttons */}
-        <View
-          testID="connection-actions"
-          style={{ width: "100%", paddingHorizontal: 20, gap: 16 }}
-        >
-          <Pressable
-            testID="connection-login-btn"
-            style={[styles.buttonPrimary, { width: "100%" }]}
-            onPress={() => navigation.navigate("Login")}
-          >
-            <Text
-              testID="connection-login-text"
-              style={styles.buttonPrimaryText}
-            >
-              {t("auth.connection.loginButton")}
-            </Text>
-          </Pressable>
-
-          <Pressable
-            testID="connection-register-btn"
-            style={[styles.buttonSecondary, { width: "100%" }]}
-            onPress={() => navigation.navigate("RegisterTypeSelection")}
-          >
-            <Text
-              testID="connection-register-text"
-              style={styles.buttonSecondaryText}
-            >
-              {t("auth.connection.registerButton")}
-            </Text>
-          </Pressable>
-        </View>
-
-        {/* Features List */}
-        <View style={{ marginTop: 40, width: "100%", paddingHorizontal: 20 }}>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              marginBottom: 12,
-            }}
-          >
-            <View
-              style={{
-                backgroundColor: colors.success + "20",
-                marginRight: 12,
-                width: 32,
-                height: 32,
-                borderRadius: 16,
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <Text style={{ color: colors.success, fontSize: 16 }}>✓</Text>
-            </View>
-            <Text style={[styles.body, { color: colors.textSecondary }]}>
-              {t("auth.connection.features.planning")}
+          {/* Logo + Slogan */}
+          <View style={localStyles.logoSection}>
+            <HeaderLogo preset="lg" variant="square" marginVertical={0} />
+            <Text style={[localStyles.slogan, { color: colors.textSecondary }]}>
+              Carry less, Move more
             </Text>
           </View>
 
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              marginBottom: 12,
-            }}
-          >
-            <View
-              style={{
-                backgroundColor: colors.info + "20",
-                marginRight: 12,
-                width: 32,
-                height: 32,
-                borderRadius: 16,
-                justifyContent: "center",
-                alignItems: "center",
-              }}
+          {/* CTA Buttons */}
+          <View testID="connection-actions" style={localStyles.actions}>
+            <Pressable
+              testID="connection-login-btn"
+              style={[styles.buttonPrimary, localStyles.button]}
+              onPress={() => navigation.navigate("Login")}
             >
-              <Text style={{ color: colors.info, fontSize: 16 }}>📱</Text>
-            </View>
-            <Text style={[styles.body, { color: colors.textSecondary }]}>
-              {t("auth.connection.features.realtime")}
-            </Text>
-          </View>
+              <Text testID="connection-login-text" style={styles.buttonPrimaryText}>
+                {t("auth.connection.loginButton")}
+              </Text>
+            </Pressable>
 
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <View
-              style={{
-                backgroundColor: colors.warning + "20",
-                marginRight: 12,
-                width: 32,
-                height: 32,
-                borderRadius: 16,
-                justifyContent: "center",
-                alignItems: "center",
-              }}
+            <Pressable
+              testID="connection-register-btn"
+              style={[styles.buttonSecondary, localStyles.button]}
+              onPress={() => navigation.navigate("RegisterTypeSelection")}
             >
-              <Text style={{ color: colors.warning, fontSize: 16 }}>🚛</Text>
-            </View>
-            <Text style={[styles.body, { color: colors.textSecondary }]}>
-              {t("auth.connection.features.management")}
-            </Text>
+              <Text testID="connection-register-text" style={styles.buttonSecondaryText}>
+                {t("auth.connection.registerButton")}
+              </Text>
+            </Pressable>
           </View>
-        </View>
-      </View>
-    </SafeAreaView>
+        </Animated.View>
+      </SafeAreaView>
+    </View>
   );
 };
+
+const localStyles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  safeArea: {
+    flex: 1,
+  },
+  languageBtn: {
+    position: "absolute",
+    top: 28,
+    right: 32,
+    zIndex: 10,
+  },
+  content: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingTop: 100,
+    paddingBottom: 48,
+  },
+  logoSection: {
+    alignItems: "center",
+    gap: 12,
+  },
+  slogan: {
+    fontSize: 16,
+    fontStyle: "italic",
+    letterSpacing: 0.5,
+    textAlign: "center",
+    opacity: 0.85,
+    marginTop: 4,
+  },
+  actions: {
+    width: "100%",
+    paddingHorizontal: 24,
+    gap: 14,
+  },
+  button: {
+    width: "100%",
+  },
+});
 
 export default ConnectionScreen;

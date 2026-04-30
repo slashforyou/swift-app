@@ -73,18 +73,24 @@ const getJobTimelineByIdEndpoint = async (req, res) => {
     const jobRef = req.params.id;
     const isNumeric = /^\d+$/.test(jobRef);
 
+    // company_id UNIQUEMENT depuis le JWT — jamais du client
+    const userCompanyId = req.user?.company_id;
+    if (!userCompanyId) {
+      return res.status(403).json({ success: false, error: "Access denied — missing company context" });
+    }
+
     connection = await connect();
 
-    // Resolve job
+    // Resolve job (inclure contractor/contractee pour vérification d'accès)
     let jobRows;
     if (isNumeric) {
       [jobRows] = await connection.execute(
-        "SELECT id, code, status, created_at, updated_at FROM jobs WHERE id = ?",
+        "SELECT id, code, status, created_at, updated_at, contractee_company_id, contractor_company_id FROM jobs WHERE id = ?",
         [parseInt(jobRef)],
       );
     } else {
       [jobRows] = await connection.execute(
-        "SELECT id, code, status, created_at, updated_at FROM jobs WHERE code = ?",
+        "SELECT id, code, status, created_at, updated_at, contractee_company_id, contractor_company_id FROM jobs WHERE code = ?",
         [jobRef],
       );
     }
@@ -96,6 +102,14 @@ const getJobTimelineByIdEndpoint = async (req, res) => {
     }
 
     const job = jobRows[0];
+
+    // Vérifier que l'utilisateur appartient à l'une des deux companies du job
+    const isContractee = parseInt(job.contractee_company_id) === parseInt(userCompanyId);
+    const isContractor = parseInt(job.contractor_company_id) === parseInt(userCompanyId);
+    if (!isContractee && !isContractor) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
     const jobId = job.id;
 
     // Try to fetch from job_actions table

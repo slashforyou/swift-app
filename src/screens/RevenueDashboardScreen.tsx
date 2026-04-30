@@ -1,19 +1,19 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
+    ActivityIndicator,
+    Pressable,
+    ScrollView,
+    Text,
+    View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DESIGN_TOKENS } from "../constants/Styles";
 import { useTheme } from "../context/ThemeProvider";
 import { useLocalization } from "../localization/useLocalization";
 import {
-  getRevenueDashboard,
-  RevenueDashboard,
+    getRevenueDashboard,
+    RevenueDashboard,
 } from "../services/revenueDashboardService";
 
 type Period = "week" | "month" | "year";

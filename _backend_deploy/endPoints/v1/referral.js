@@ -17,6 +17,19 @@
 const crypto = require('crypto');
 const { connect } = require('../../swiftDb');
 
+/* ─── Rate limiter in-memory pour routes publiques ───────────────────────── */
+// Max 10 tentatives par IP par heure
+const _referralRateStore = new Map();
+const _isReferralRateLimited = (ip) => {
+  const MAX = 10, WINDOW = 60 * 60 * 1000;
+  const now = Date.now();
+  const entry = _referralRateStore.get(ip) || { count: 0, resetAt: now + WINDOW };
+  if (now > entry.resetAt) { entry.count = 0; entry.resetAt = now + WINDOW; }
+  entry.count++;
+  _referralRateStore.set(ip, entry);
+  return entry.count > MAX;
+};
+
 /* ─── Générateur de code parrain: 8 chars A-Z0-9 ─────────────────────────── */
 const generateCode = () => crypto.randomBytes(4).toString('hex').toUpperCase();
 
@@ -124,6 +137,11 @@ const listReferrals = async (req, res) => {
 
 /* ─── POST /v1/referral/use (PUBLIC — pas d'auth requise) ────────────────── */
 const useReferral = async (req, res) => {
+  const clientIp = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+  if (_isReferralRateLimited(clientIp)) {
+    return res.status(429).json({ success: false, message: 'Too many requests. Please try again later.' });
+  }
+
   const { referral_code, new_company_id } = req.body;
 
   if (!referral_code || typeof referral_code !== 'string' || !referral_code.trim()) {

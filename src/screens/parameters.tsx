@@ -12,6 +12,7 @@ import {
     ScrollView,
     Switch,
     Text,
+    TextInput,
     View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -30,10 +31,11 @@ import { useSubscription } from "../hooks/usePlans";
 import { useLocalization, useTranslation } from "../localization/useLocalization";
 import { trackCustomEvent } from "../services/analytics";
 import {
+    adminSendNotification,
     getNotificationPreferences,
     updateNotificationPreferences,
 } from "../services/pushNotifications";
-import { deleteUserAccount } from "../services/user";
+import { deleteUserAccount, fetchUserProfile } from "../services/user";
 import { clearSession } from "../utils/auth";
 import { useAuthCheck } from "../utils/checkAuth";
 
@@ -298,6 +300,12 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
     t("common.checkingAuth"),
   );
   const { companyPlan, isLoading: planLoading } = useSubscription();
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [adminEmail, setAdminEmail] = useState("romaingiovanni@gmail.com");
+  const [adminTitle, setAdminTitle] = useState("");
+  const [adminBody, setAdminBody] = useState("");
+  const [adminSending, setAdminSending] = useState(false);
+
   const [settings, setSettings] = useState<AppSettings>({
     notifications: {
       pushNotifications: true,
@@ -321,6 +329,14 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
   const currentPlanTier = normalizePlanId(companyPlan?.plan?.id);
 
   useEffect(() => {
+    const loadUserRole = async () => {
+      try {
+        const profile = await fetchUserProfile();
+        setUserRole(profile.company_role ?? null);
+      } catch {}
+    };
+    loadUserRole();
+
     const loadNotificationSettings = async () => {
       const prefs = await getNotificationPreferences();
       if (!prefs) return;
@@ -679,6 +695,20 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
               }
               color={colors.textSecondary}
             />
+            <SettingItem
+              colors={colors}
+              label={t("settings.items.offlineMode") || "Mode hors-ligne"}
+              description={
+                t("settings.items.offlineModeDescription") ||
+                "Activer manuellement le mode hors-ligne"
+              }
+              icon="cloud-offline-outline"
+              value={settings.preferences.offlineMode}
+              onToggle={(value) =>
+                updateSetting("preferences", "offlineMode", value)
+              }
+              color={colors.warning}
+            />
           </SettingSection>
 
           {/* Language Section */}
@@ -1013,6 +1043,141 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
               </HStack>
             </Pressable>
           </SettingSection>
+
+          {/* Admin — Test Push Notification (patron only) */}
+          {userRole === "patron" && (
+            <SettingSection
+              colors={colors}
+              title="Admin — Push Notification"
+              icon="megaphone-outline"
+            >
+              <Text
+                style={{
+                  color: colors.textSecondary,
+                  fontSize: DESIGN_TOKENS.typography.caption.fontSize,
+                  marginBottom: DESIGN_TOKENS.spacing.xs,
+                }}
+              >
+                Envoie une notif push en direct à un compte.
+              </Text>
+
+              {/* Email */}
+              <TextInput
+                value={adminEmail}
+                onChangeText={setAdminEmail}
+                placeholder="Email du destinataire"
+                placeholderTextColor={colors.textSecondary}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                style={{
+                  backgroundColor: colors.background,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  borderRadius: DESIGN_TOKENS.radius.md,
+                  paddingHorizontal: DESIGN_TOKENS.spacing.md,
+                  paddingVertical: DESIGN_TOKENS.spacing.sm,
+                  color: colors.text,
+                  fontSize: DESIGN_TOKENS.typography.body.fontSize,
+                }}
+              />
+
+              {/* Titre */}
+              <TextInput
+                value={adminTitle}
+                onChangeText={setAdminTitle}
+                placeholder="Titre de la notification"
+                placeholderTextColor={colors.textSecondary}
+                style={{
+                  backgroundColor: colors.background,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  borderRadius: DESIGN_TOKENS.radius.md,
+                  paddingHorizontal: DESIGN_TOKENS.spacing.md,
+                  paddingVertical: DESIGN_TOKENS.spacing.sm,
+                  color: colors.text,
+                  fontSize: DESIGN_TOKENS.typography.body.fontSize,
+                }}
+              />
+
+              {/* Message */}
+              <TextInput
+                value={adminBody}
+                onChangeText={setAdminBody}
+                placeholder="Message"
+                placeholderTextColor={colors.textSecondary}
+                multiline
+                numberOfLines={3}
+                style={{
+                  backgroundColor: colors.background,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  borderRadius: DESIGN_TOKENS.radius.md,
+                  paddingHorizontal: DESIGN_TOKENS.spacing.md,
+                  paddingVertical: DESIGN_TOKENS.spacing.sm,
+                  color: colors.text,
+                  fontSize: DESIGN_TOKENS.typography.body.fontSize,
+                  minHeight: 80,
+                  textAlignVertical: "top",
+                }}
+              />
+
+              {/* Bouton Envoyer */}
+              <Pressable
+                testID="admin-send-notif-btn"
+                disabled={adminSending || !adminEmail.trim() || !adminTitle.trim() || !adminBody.trim()}
+                onPress={async () => {
+                  setAdminSending(true);
+                  const result = await adminSendNotification({
+                    email: adminEmail.trim(),
+                    title: adminTitle.trim(),
+                    body: adminBody.trim(),
+                  });
+                  setAdminSending(false);
+                  if (result.success) {
+                    setAdminTitle("");
+                    setAdminBody("");
+                    Alert.alert(
+                      "✅ Notification envoyée",
+                      `${result.message}\nTokens atteints : ${result.tokens_reached ?? 0}`,
+                      [{ text: "OK" }],
+                    );
+                  } else {
+                    Alert.alert("Erreur", result.error ?? "Impossible d'envoyer la notification.");
+                  }
+                }}
+                style={({ pressed }) => ({
+                  backgroundColor:
+                    adminSending || !adminEmail.trim() || !adminTitle.trim() || !adminBody.trim()
+                      ? colors.backgroundTertiary
+                      : pressed
+                      ? colors.primaryDark ?? colors.primary
+                      : colors.primary,
+                  borderRadius: DESIGN_TOKENS.radius.md,
+                  paddingVertical: DESIGN_TOKENS.spacing.md,
+                  alignItems: "center",
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  gap: DESIGN_TOKENS.spacing.sm,
+                  minHeight: DESIGN_TOKENS.touch.minSize,
+                })}
+              >
+                {adminSending ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Ionicons name="send-outline" size={18} color="#fff" />
+                )}
+                <Text
+                  style={{
+                    color: "#fff",
+                    fontWeight: "700",
+                    fontSize: DESIGN_TOKENS.typography.body.fontSize,
+                  }}
+                >
+                  {adminSending ? "Envoi..." : "Envoyer la notification"}
+                </Text>
+              </Pressable>
+            </SettingSection>
+          )}
 
           {/* Account Section with Logout */}
           <SettingSection

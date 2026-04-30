@@ -23,6 +23,7 @@ import {
 } from "react-native";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
+import { useLocalization } from "../../localization/useLocalization";
 import {
     createModularTemplate,
     updateModularTemplate,
@@ -37,33 +38,8 @@ import type {
 } from "../../types/jobSegment";
 
 // ============================================================================
-// CONSTANTES
+// CONSTANTES (sans labels — les labels sont générés via t() dans le composant)
 // ============================================================================
-
-const BILLING_MODES: { key: BillingMode; icon: string; label: string; desc: string }[] = [
-  { key: "location_to_location", icon: "location-outline", label: "Lieu à lieu", desc: "Du 1er au dernier lieu" },
-  { key: "depot_to_depot", icon: "business-outline", label: "Dépôt à dépôt", desc: "Départ et retour dépôt" },
-  { key: "flat_rate", icon: "cash-outline", label: "Forfait", desc: "Montant fixe prédéfini" },
-  { key: "packing_only", icon: "cube-outline", label: "Packing only", desc: "Segments lieu uniquement" },
-  { key: "unpacking_only", icon: "download-outline", label: "Unpacking only", desc: "Segments lieu uniquement" },
-];
-
-const SEGMENT_TYPES: { key: SegmentType; icon: string; label: string; color: string }[] = [
-  { key: "location", icon: "location-outline", label: "Lieu", color: "#3B82F6" },
-  { key: "travel", icon: "car-outline", label: "Trajet", color: "#8B5CF6" },
-  { key: "storage", icon: "filing-outline", label: "Storage", color: "#EF4444" },
-  { key: "loading", icon: "cube-outline", label: "Chargement", color: "#F59E0B" },
-];
-
-const LOCATION_TYPES: { key: LocationType; label: string }[] = [
-  { key: "house", label: "Maison" },
-  { key: "apartment", label: "Appartement" },
-  { key: "garage", label: "Garage" },
-  { key: "private_storage", label: "Storage privé" },
-  { key: "depot", label: "Dépôt" },
-  { key: "office", label: "Bureau" },
-  { key: "other", label: "Autre" },
-];
 
 const ROUNDING_OPTIONS = [
   { value: 1, label: "1 min" },
@@ -100,6 +76,33 @@ const JobTemplateEditor: React.FC<JobTemplateEditorProps> = ({
   onCancel,
 }) => {
   const { colors } = useTheme();
+  const { t } = useLocalization();
+
+  // ── Constantes traduites ──
+  const BILLING_MODES = useMemo(() => [
+    { key: "location_to_location" as BillingMode, icon: "location-outline", label: t("businessHub.templates.billingModes.locationToLocation") || "Location to location", desc: t("businessHub.templates.billingModes.locationToLocationDesc") || "From first to last location" },
+    { key: "depot_to_depot" as BillingMode, icon: "business-outline", label: t("businessHub.templates.billingModes.depotToDepot") || "Depot to depot", desc: t("businessHub.templates.billingModes.depotToDepotDesc") || "Start and end at depot" },
+    { key: "flat_rate" as BillingMode, icon: "cash-outline", label: t("businessHub.templates.billingModes.flatRate") || "Flat rate", desc: t("businessHub.templates.billingModes.flatRateDesc") || "Fixed predefined amount" },
+    { key: "packing_only" as BillingMode, icon: "cube-outline", label: t("businessHub.templates.billingModes.packingOnly") || "Packing only", desc: t("businessHub.templates.billingModes.packingOnlyDesc") || "Location segments only" },
+    { key: "unpacking_only" as BillingMode, icon: "download-outline", label: t("businessHub.templates.billingModes.unpackingOnly") || "Unpacking only", desc: t("businessHub.templates.billingModes.unpackingOnlyDesc") || "Location segments only" },
+  ], [t]);
+
+  const SEGMENT_TYPES = useMemo(() => [
+    { key: "location" as SegmentType, icon: "location-outline", label: t("businessHub.templates.segmentTypes.location") || "Location", color: "#3B82F6" },
+    { key: "travel" as SegmentType, icon: "car-outline", label: t("businessHub.templates.segmentTypes.travel") || "Travel", color: "#8B5CF6" },
+    { key: "storage" as SegmentType, icon: "filing-outline", label: t("businessHub.templates.segmentTypes.storage") || "Storage", color: "#EF4444" },
+    { key: "loading" as SegmentType, icon: "cube-outline", label: t("businessHub.templates.segmentTypes.loading") || "Loading", color: "#F59E0B" },
+  ], [t]);
+
+  const LOCATION_TYPES = useMemo(() => [
+    { key: "house" as LocationType, label: t("businessHub.templates.locationTypes.house") || "House" },
+    { key: "apartment" as LocationType, label: t("businessHub.templates.locationTypes.apartment") || "Apartment" },
+    { key: "garage" as LocationType, label: t("businessHub.templates.locationTypes.garage") || "Garage" },
+    { key: "private_storage" as LocationType, label: t("businessHub.templates.locationTypes.privateStorage") || "Private Storage" },
+    { key: "depot" as LocationType, label: t("businessHub.templates.locationTypes.depot") || "Depot / Storage" },
+    { key: "office" as LocationType, label: t("businessHub.templates.locationTypes.office") || "Office" },
+    { key: "other" as LocationType, label: t("businessHub.templates.locationTypes.other") || "Other" },
+  ], [t]);
 
   const existingTemplate = existingTemplateProp ?? route?.params?.template;
   const handleCancel = onCancel ?? (() => navigation?.goBack?.());

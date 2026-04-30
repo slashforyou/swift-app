@@ -3,7 +3,7 @@ import * as SecureStore from "expo-secure-store";
 import { ServerData } from "../constants/ServerData";
 import { navigateGlobal } from "../services/navRef";
 import { clearStripeCache } from "../services/stripeCache";
-import { getAuthHeaders, refreshToken as refreshAuthToken } from "./auth";
+import { getAuthHeaders, isSessionDead, refreshToken as refreshAuthToken } from "./auth";
 
 const API = ServerData.serverUrl;
 
@@ -250,6 +250,11 @@ export async function fetchWithAuth(
   input: RequestInfo | URL,
   init: RequestInit = {},
 ) {
+  // 🔒 Circuit breaker : si la session est morte, pas de requête réseau
+  if (isSessionDead()) {
+    throw new Error("SESSION_EXPIRED");
+  }
+
   // Convert input to string if it's a URL
   const fetchInput: RequestInfo =
     input instanceof URL ? input.toString() : input;

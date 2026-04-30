@@ -127,6 +127,7 @@ export interface TranslationKeys {
     accept?: string;
     decline?: string;
     goBack?: string;
+    loadError?: string;
   };
 
   // Home Screen
@@ -4139,6 +4140,32 @@ export interface TranslationKeys {
       reviewBannerTitle: string;
       reviewBannerSub: string;
     };
+  };
+  jobAttachments: {
+    title: string;
+    empty: string;
+    addTitle: string;
+  };
+  attachments: {
+    cannotOpen: string;
+    deleteConfirm: string;
+    deleteError: string;
+    saveError: string;
+    urlLabel: string;
+    nameLabel: string;
+    labelLabel: string;
+  };
+  linkedJobs: {
+    title: string;
+    link: string;
+    empty: string;
+    deleteConfirm: string;
+    deleteError: string;
+    saveError: string;
+    linkTitle: string;
+    jobIdLabel: string;
+    typeLabel: string;
+    linkAction: string;
   };
 }
 

@@ -1,6 +1,7 @@
 ﻿// hooks/useJobsForYear.ts
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { fetchJobs, JobAPI } from '../services/jobs';
+import { isSessionDead } from '../utils/auth';
 
 interface JobsByMonth {
   [key: number]: JobAPI[]; // key = month number (1-12)
@@ -21,6 +22,7 @@ export const useJobsForYear = (year: number): UseJobsForYearResult => {
   const [error, setError] = useState<string | null>(null);
 
   const loadJobs = async () => {
+    if (isSessionDead()) return;
     try {
       setIsLoading(true);
       setError(null);

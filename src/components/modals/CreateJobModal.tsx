@@ -39,11 +39,13 @@ import {
     fetchClients,
 } from "../../services/clients";
 import { CreateJobRequest } from "../../services/jobs";
+import { listUnits } from "../../services/storageService";
 import {
     JobSegmentTemplate,
     ModularJobTemplate,
     SegmentType,
 } from "../../types/jobSegment";
+import { StorageUnit } from "../../types/storage";
 import { OnboardingTourOverlay } from "../onboarding/OnboardingTourOverlay";
 
 interface CreateJobModalProps {
@@ -292,6 +294,10 @@ export default function CreateJobModal({
   const [selectedExtras, setSelectedExtras] = useState<string[]>([]);
   const [showStaffPicker, setShowStaffPicker] = useState(false);
   const [showVehiclePicker, setShowVehiclePicker] = useState(false);
+
+  // Storage units (loaded lazily when a storage segment exists)
+  const [storageUnits, setStorageUnits] = useState<StorageUnit[]>([]);
+  const [isLoadingStorageUnits, setIsLoadingStorageUnits] = useState(false);
 
   // Payment state
   const [amountTotal, setAmountTotal] = useState("");
@@ -1054,7 +1060,7 @@ export default function CreateJobModal({
 
   // Add a new segment to the list
   const handleAddSegment = useCallback(
-    (type: SegmentType) => {
+    (type: SegmentType, storageUnit?: StorageUnit) => {
       const newOrder = jobSegments.length + 1;
       const locationCount = jobSegments.filter(
         (s) => s.type === "location" || s.type === "storage" || s.type === "loading",
@@ -1066,7 +1072,9 @@ export default function CreateJobModal({
         order: newOrder,
         type,
         label:
-          type === "location"
+          storageUnit
+            ? storageUnit.name
+            : type === "location"
             ? `${t("jobs.organization.addLocation").replace("+ ", "") || "Location"} #${locationCount + 1}`
             : type === "travel"
               ? t("jobs.organization.addTravel").replace("+ ", "") || "Travel"
@@ -1077,7 +1085,12 @@ export default function CreateJobModal({
         locationType: type === "location" ? "house" : type === "storage" ? "depot" : undefined,
         address:
           type === "location" || type === "storage" || type === "loading"
-            ? { street: "", city: "", state: "", zip: "" }
+            ? {
+                street: storageUnit?.location_description || "",
+                city: "",
+                state: "",
+                zip: "",
+              }
             : undefined,
       };
       setJobSegments((prev) => [...prev, newSeg]);
@@ -1116,6 +1129,38 @@ export default function CreateJobModal({
     },
     [],
   );
+
+  // Apply a storage unit to a segment (fills label + address)
+  const handleApplyStorageUnit = useCallback((index: number, unit: StorageUnit) => {
+    setJobSegments((prev) =>
+      prev.map((seg, i) =>
+        i === index
+          ? {
+              ...seg,
+              label: unit.name,
+              address: {
+                street: unit.location_description || "",
+                city: seg.address?.city || "",
+                state: seg.address?.state || "",
+                zip: seg.address?.zip || "",
+              },
+            }
+          : seg,
+      ),
+    );
+  }, []);
+
+  // Auto-load storage units when a storage segment exists
+  useEffect(() => {
+    const hasStorageSeg = jobSegments.some((s) => s.type === "storage");
+    if (hasStorageSeg && storageUnits.length === 0 && !isLoadingStorageUnits) {
+      setIsLoadingStorageUnits(true);
+      listUnits()
+        .then((units) => setStorageUnits(units))
+        .catch(() => setStorageUnits([]))
+        .finally(() => setIsLoadingStorageUnits(false));
+    }
+  }, [jobSegments, storageUnits.length, isLoadingStorageUnits]);
 
   // Can proceed from organization step
   const canProceedFromOrganization = (): boolean => {
@@ -1402,6 +1447,93 @@ export default function CreateJobModal({
                 {/* Address form for location/storage/loading segments */}
                 {seg.address && (
                   <View style={{ padding: DESIGN_TOKENS.spacing.md }}>
+
+                    {/* Storage unit selector — inline, only for storage segments */}
+                    {seg.type === "storage" && (
+                      <View style={{ marginBottom: DESIGN_TOKENS.spacing.md }}>
+                        <Text style={{ fontSize: 12, fontWeight: "600", color: colors.textSecondary, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                          {t("jobs.organization.selectStorage") || "Select Storage Unit"}
+                        </Text>
+                        {isLoadingStorageUnits ? (
+                          <ActivityIndicator size="small" color={colors.primary} style={{ marginVertical: 8 }} />
+                        ) : storageUnits.length === 0 ? (
+                          <Text style={{ fontSize: 13, color: colors.textSecondary, fontStyle: "italic" }}>
+                            {t("jobs.organization.noStorageUnits") || "No storage units — enter address manually"}
+                          </Text>
+                        ) : (
+                          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -4 }}>
+                            {storageUnits.map((unit) => {
+                              const isSelected = seg.label === unit.name;
+                              return (
+                                <Pressable
+                                  key={unit.id}
+                                  onPress={() => handleApplyStorageUnit(index, unit)}
+                                  style={({ pressed }) => ({
+                                    backgroundColor: isSelected
+                                      ? colors.primary + "20"
+                                      : colors.backgroundSecondary,
+                                    borderRadius: DESIGN_TOKENS.radius.md,
+                                    padding: DESIGN_TOKENS.spacing.sm,
+                                    marginHorizontal: 4,
+                                    minWidth: 150,
+                                    borderWidth: 1.5,
+                                    borderColor: isSelected ? colors.primary : colors.border,
+                                    opacity: pressed ? 0.7 : 1,
+                                  })}
+                                >
+                                  <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginBottom: 4 }}>
+                                    <Ionicons
+                                      name="filing-outline"
+                                      size={16}
+                                      color={isSelected ? colors.primary : colors.textSecondary}
+                                    />
+                                    <Text style={{ fontSize: 12, fontWeight: "700", color: isSelected ? colors.primary : colors.text, flex: 1 }} numberOfLines={1}>
+                                      {unit.name}
+                                    </Text>
+                                  </View>
+                                  <View style={{ flexDirection: "row", gap: 4, flexWrap: "wrap", marginBottom: 2 }}>
+                                    <View style={{ backgroundColor: colors.backgroundTertiary, borderRadius: 4, paddingHorizontal: 5, paddingVertical: 1 }}>
+                                      <Text style={{ fontSize: 9, color: colors.textSecondary, fontWeight: "600", textTransform: "uppercase" }}>
+                                        {unit.unit_type}
+                                      </Text>
+                                    </View>
+                                    <View style={{
+                                      backgroundColor: unit.status === "available" ? colors.success + "20" : unit.status === "in_use" ? colors.warning + "20" : colors.error + "20",
+                                      borderRadius: 4, paddingHorizontal: 5, paddingVertical: 1,
+                                    }}>
+                                      <Text style={{
+                                        fontSize: 9, fontWeight: "600", textTransform: "uppercase",
+                                        color: unit.status === "available" ? colors.success : unit.status === "in_use" ? colors.warning : colors.error,
+                                      }}>
+                                        {unit.status.replace("_", " ")}
+                                      </Text>
+                                    </View>
+                                    {unit.capacity_cbm != null && (
+                                      <View style={{ backgroundColor: colors.info + "20", borderRadius: 4, paddingHorizontal: 5, paddingVertical: 1 }}>
+                                        <Text style={{ fontSize: 9, color: colors.info || colors.primary, fontWeight: "600" }}>
+                                          {unit.capacity_cbm} m³
+                                        </Text>
+                                      </View>
+                                    )}
+                                  </View>
+                                  {unit.location_description ? (
+                                    <Text style={{ fontSize: 10, color: colors.textSecondary, marginTop: 1 }} numberOfLines={1}>
+                                      {unit.location_description}
+                                    </Text>
+                                  ) : null}
+                                  {(unit.active_lots ?? 0) > 0 && (
+                                    <Text style={{ fontSize: 9, color: colors.textSecondary, marginTop: 1 }}>
+                                      {unit.active_lots} active lot{(unit.active_lots ?? 0) > 1 ? "s" : ""}
+                                    </Text>
+                                  )}
+                                </Pressable>
+                              );
+                            })}
+                          </ScrollView>
+                        )}
+                      </View>
+                    )}
+
                     <View
                       style={[
                         styles.inputGroup,
@@ -3755,6 +3887,8 @@ export default function CreateJobModal({
           </View>
         </Pressable>
       </Modal>
+
+
     </Modal>
   );
 }

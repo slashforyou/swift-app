@@ -16,6 +16,7 @@ import {
     GamificationV2Quest,
     V2Period,
 } from '../services/gamificationV2';
+import { isSessionDead } from '../utils/auth';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types publics
@@ -65,6 +66,7 @@ export function useGamificationV2(): UseGamificationV2Return {
   const [profileError, setProfileError] = useState<string | null>(null);
 
   const loadProfile = useCallback(async () => {
+    if (isSessionDead()) return;
     setIsLoadingProfile(true);
     setProfileError(null);
     try {
@@ -92,6 +94,7 @@ export function useGamificationV2(): UseGamificationV2Return {
   const periodRef = useRef<V2Period>('weekly');
 
   const loadLeaderboard = useCallback(async (period: V2Period) => {
+    if (isSessionDead()) return;
     setIsLoadingLeaderboard(true);
     setLeaderboardError(null);
     try {
@@ -121,6 +124,7 @@ export function useGamificationV2(): UseGamificationV2Return {
   const [historyError, setHistoryError] = useState<string | null>(null);
 
   const loadHistory = useCallback(async (page: number, append = false) => {
+    if (isSessionDead()) return;
     setIsLoadingHistory(true);
     setHistoryError(null);
     try {
@@ -150,6 +154,7 @@ export function useGamificationV2(): UseGamificationV2Return {
   const [questsError, setQuestsError] = useState<string | null>(null);
 
   const loadQuests = useCallback(async () => {
+    if (isSessionDead()) return;
     setIsLoadingQuests(true);
     setQuestsError(null);
     try {

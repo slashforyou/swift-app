@@ -1062,10 +1062,9 @@ const JobDetails: React.FC<JobDetailsProps> = ({
           }}
         >
           {[
-            { icon: "attach-outline", label: "Fichiers", screen: "JobAttachments" },
-            { icon: "link-outline", label: "Liés", screen: "JobLinkedJobs" },
-            { icon: "layers-outline", label: "Difficulté", screen: "JobDifficulty" },
-            { icon: "star-outline", label: "Avis", screen: "JobReview" },
+            { icon: "attach-outline", label: t("jobDetails.quickActions.files") || "Files", screen: "JobAttachments" },
+            { icon: "link-outline", label: t("jobDetails.quickActions.linked") || "Linked", screen: "JobLinkedJobs" },
+            { icon: "layers-outline", label: t("jobDetails.quickActions.difficulty") || "Difficulty", screen: "JobDifficulty" },
           ].map((action) => (
             <Pressable
               key={action.screen}

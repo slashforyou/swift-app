@@ -18,8 +18,8 @@ async function handleSubscriptionCreated(subscription, connection) {
   if (!companyId) return;
 
   await connection.query(
-    'UPDATE companies SET subscription_id = ?, subscription_status = ? WHERE id = ?',
-    [subscription.id, subscription.status, companyId]
+    'UPDATE companies SET subscription_id = ?, stripe_subscription_id = ?, subscription_status = ? WHERE id = ?',
+    [subscription.id, subscription.id, subscription.status, companyId]
   );
 }
 
@@ -92,19 +92,19 @@ async function handleSubscriptionDeleted(subscription, connection) {
   const companyId = subscription.metadata?.company_id;
   if (!companyId) return;
 
-  // Downgrade to free plan and reset fee
-  const [freePlan] = await connection.query(
-    'SELECT platform_fee_percentage FROM plans WHERE id = ?',
-    ['free']
-  );
-  const freeFee = freePlan.length ? freePlan[0].platform_fee_percentage : 2.50;
-
+  // Modèle v2 : plus de plan free — on passe en 'cancelled' et on bloque l'accès
+  // stripe_platform_fee_percentage = 0 (commissions abandonnées)
   await connection.query(
-    'UPDATE companies SET plan_type = ?, subscription_status = ?, subscription_id = NULL, stripe_platform_fee_percentage = ? WHERE id = ?',
-    ['free', 'canceled', freeFee, companyId]
+    `UPDATE companies
+     SET subscription_status = 'cancelled',
+         subscription_id = NULL,
+         stripe_subscription_id = NULL,
+         stripe_platform_fee_percentage = 0.00
+     WHERE id = ?`,
+    [companyId]
   );
 
-  console.log(`⬇️ Company ${companyId} downgraded to free plan`);
+  console.log(`🚫 Company ${companyId} subscription cancelled — access restricted`);
 }
 
 /**

@@ -32,6 +32,11 @@
 -keep class com.stripe.** { *; }
 -keep class com.reactnativestripesdk.** { *; }
 
+# Stripe Push Provisioning (NFC/wallet feature optionnelle, non utilisée dans Cobbr)
+# Ces classes sont référencées par react-native-stripe-sdk mais absentes du SDK standard
+# -dontwarn évite que R8 plante au build sans désactiver aucune protection
+-dontwarn com.stripe.android.pushProvisioning.**
+
 # OkHttp / networking
 -dontwarn okhttp3.**
 -dontwarn okio.**

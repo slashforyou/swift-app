@@ -2,21 +2,19 @@
  * useGamification - Hook pour gérer les données de gamification
  * Intégration avec l'API backend pour Level, XP, Badges
  */
-import { useState, useEffect, useCallback } from 'react';
-import { 
-    fetchGamification, 
-    fetchLeaderboard,
-    fetchXpHistory,
-    GamificationData, 
-    GamificationRank,
-    LeaderboardEntry,
+import { useCallback, useEffect, useState } from 'react';
+import {
     BadgeDetailed,
-    getRankFromLevel 
+    fetchGamification,
+    fetchLeaderboard,
+    GamificationData,
+    GamificationRank,
+    getRankFromLevel,
+    LeaderboardEntry
 } from '../services/gamification';
+import { isSessionDead } from '../utils/auth';
 
-// Interface pour la rétro-compatibilité avec l'ancien format
 export interface GamificationDisplayData {
-    firstName?: string;
     level: number;
     xp: number;
     xpToNextLevel: number;
@@ -93,6 +91,9 @@ export const useGamification = (): UseGamificationReturn => {
 
     // Charger les données de gamification
     const loadGamificationData = useCallback(async () => {
+        // Ne pas retenter si la session est morte
+        if (isSessionDead()) return;
+
         try {
             setIsLoading(true);
             setError(null);
@@ -101,10 +102,14 @@ export const useGamification = (): UseGamificationReturn => {
             setFullData(apiData);
             setData(transformApiData(apiData));
         } catch (err) {
-            console.error('❌ Erreur lors du chargement de la gamification:', err);
-            setError(err instanceof Error ? err.message : 'Erreur de chargement');
-            // Utiliser les données par défaut en cas d'erreur
-            setData(DEFAULT_DATA);
+            const isExpired = err instanceof Error && err.message === 'SESSION_EXPIRED';
+            if (!isExpired) {
+                console.error('\u274c Erreur lors du chargement de la gamification:', err);
+                setError(err instanceof Error ? err.message : 'Erreur de chargement');
+                // Utiliser les données par défaut seulement pour les erreurs non-auth
+                setData(DEFAULT_DATA);
+            }
+            // SESSION_EXPIRED → ne pas afficher d'erreur ni retry, la session va se fermer
         } finally {
             setIsLoading(false);
         }
@@ -131,18 +136,18 @@ export const useGamification = (): UseGamificationReturn => {
     // L'XP est maintenant géré entièrement par le backend
 
     const addXP = (_amount: number, _reason: string) => {
-        // L'XP est maintenant géré par le backend
-        // Cette fonction peut déclencher un refetch si nécessaire
+        // Ne pas retenter si la session est morte
+        if (isSessionDead()) return;
         loadGamificationData();
     };
 
     const updateLevel = () => {
-        // Le niveau est calculé par le backend
+        if (isSessionDead()) return;
         loadGamificationData();
     };
 
     const resetStreak = () => {
-        // Le streak est géré par le backend
+        if (isSessionDead()) return;
         loadGamificationData();
     };
 

@@ -1,6 +1,6 @@
 ﻿// services/jobs.ts
 import { ServerData } from "../constants/ServerData";
-import { getAuthHeaders } from "../utils/auth";
+import { getAuthHeaders, isSessionDead, markSessionDead } from "../utils/auth";
 
 const API = ServerData.serverUrl;
 
@@ -185,6 +185,11 @@ async function authenticatedFetch(
   options: RequestInit = {},
   retryCount = 0,
 ): Promise<Response> {
+  // 🔒 Circuit breaker : session morte → fast-fail immédiat
+  if (isSessionDead()) {
+    throw new Error("SESSION_EXPIRED");
+  }
+
   const headers = await getAuthHeaders();
 
   const response = await fetch(url, {
@@ -212,6 +217,7 @@ async function authenticatedFetch(
       return authenticatedFetch(url, options, retryCount + 1);
     } else {
       const { clearSession } = await import("../utils/auth");
+      markSessionDead();
       await clearSession();
 
       // Optionnel: Rediriger vers login

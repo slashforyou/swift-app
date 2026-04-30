@@ -2,7 +2,7 @@
   "expo": {
     "name": "Cobbr",
     "slug": "swiftapp",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "orientation": "portrait",
     "scheme": "cobbr",
     "userInterfaceStyle": "automatic",
@@ -27,6 +27,7 @@
       }
     },
     "android": {
+      "googleServicesFile": "./google-services.json",
       "edgeToEdgeEnabled": true,
       "icon": "./assets/android-icon.png",
       "adaptiveIcon": {
@@ -35,8 +36,8 @@
         "monochromeImage": "./assets/adaptive-icon-monochrome.png"
       },
       "package": "com.slash4u.cobbr",
-      "versionCode": 3,
-      "runtimeVersion": "1.1.0"
+      "versionCode": 4,
+      "runtimeVersion": "1.2.0"
     },
     "web": {
       "bundler": "metro"

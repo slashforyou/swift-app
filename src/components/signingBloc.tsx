@@ -13,13 +13,38 @@ import { fetchJobContract, generateJobContract, JobContract } from '../services/
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 // Types
+interface JobAddress {
+  street?: string;
+  city?: string;
+  type?: string;
+}
+
 interface Job {
   id: string;
   signatureDataUrl?: string;
   signatureFileUri?: string;
-  client?: {
-    name: string;
+  code?: string;
+  // Données récap — peuvent être imbriquées dans job.job
+  job?: {
+    code?: string;
+    client?: { name?: string; first_name?: string; last_name?: string; phone?: string };
+    time?: { start?: string; end?: string };
+    addresses?: JobAddress[];
+    billing_rate?: number;
+    minimum_hours?: number;
+    payment_amount?: number;
   };
+  client?: {
+    name?: string;
+    first_name?: string;
+    last_name?: string;
+    phone?: string;
+  };
+  time?: { start?: string; end?: string };
+  addresses?: JobAddress[];
+  billing_rate?: number;
+  minimum_hours?: number;
+  payment_amount?: number;
 }
 
 interface SigningBlocProps {
@@ -653,6 +678,93 @@ const SigningBloc: React.FC<SigningBlocProps> = ({
               }
             }}
           >
+            {/* Job Recap Section */}
+            {(() => {
+              const data = job?.job ?? job as any;
+              const client = data?.client;
+              const clientName = client?.name || (client?.first_name && client?.last_name ? `${client.first_name} ${client.last_name}` : null);
+              const time = data?.time;
+              const addresses = data?.addresses ?? [];
+              const pickup = addresses.find((a: JobAddress) => a.type === 'pickup') ?? addresses[0];
+              const delivery = addresses.find((a: JobAddress) => a.type === 'delivery') ?? addresses[addresses.length - 1];
+              const jobCode = data?.code ?? job?.code ?? job?.id;
+              const amount = data?.payment_amount ?? null;
+              const billingRate = data?.billing_rate;
+              const minimumHours = data?.minimum_hours;
+
+              return (
+                <View style={{
+                  margin: DESIGN_TOKENS.spacing.lg,
+                  marginBottom: DESIGN_TOKENS.spacing.sm,
+                  backgroundColor: colors.backgroundSecondary,
+                  borderRadius: DESIGN_TOKENS.radius.md,
+                  padding: DESIGN_TOKENS.spacing.md,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: DESIGN_TOKENS.spacing.sm }}>
+                    <Ionicons name="receipt-outline" size={18} color={colors.primary} />
+                    <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text }}>
+                      {t('signature.jobRecap') || 'Job Summary'}
+                    </Text>
+                    {jobCode && (
+                      <Text style={{ fontSize: 12, color: colors.textSecondary, marginLeft: 'auto' }}>#{jobCode}</Text>
+                    )}
+                  </View>
+
+                  {clientName && (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                      <Ionicons name="person-outline" size={14} color={colors.textSecondary} />
+                      <Text style={{ fontSize: 13, color: colors.text }}>{clientName}</Text>
+                      {client?.phone && (
+                        <Text style={{ fontSize: 12, color: colors.textSecondary }}>{client.phone}</Text>
+                      )}
+                    </View>
+                  )}
+
+                  {pickup && (
+                    <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
+                      <Ionicons name="location-outline" size={14} color={colors.success} style={{ marginTop: 2 }} />
+                      <Text style={{ fontSize: 13, color: colors.text, flex: 1 }}>
+                        {[pickup.street, pickup.city].filter(Boolean).join(', ') || (t('signature.pickup') || 'Pickup')}
+                      </Text>
+                    </View>
+                  )}
+
+                  {delivery && delivery !== pickup && (
+                    <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
+                      <Ionicons name="flag-outline" size={14} color={colors.error} style={{ marginTop: 2 }} />
+                      <Text style={{ fontSize: 13, color: colors.text, flex: 1 }}>
+                        {[delivery.street, delivery.city].filter(Boolean).join(', ') || (t('signature.delivery') || 'Delivery')}
+                      </Text>
+                    </View>
+                  )}
+
+                  {time?.start && (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                      <Ionicons name="time-outline" size={14} color={colors.textSecondary} />
+                      <Text style={{ fontSize: 13, color: colors.text }}>
+                        {new Date(time.start).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}
+                      </Text>
+                    </View>
+                  )}
+
+                  {(amount != null || billingRate) && (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                      <Ionicons name="cash-outline" size={14} color={colors.primary} />
+                      <Text style={{ fontSize: 13, fontWeight: '600', color: colors.primary }}>
+                        {amount != null
+                          ? `$${Number(amount).toFixed(2)}`
+                          : billingRate
+                          ? `$${Number(billingRate).toFixed(2)}/h${minimumHours ? ` (min ${minimumHours}h)` : ''}`
+                          : ''}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              );
+            })()}
+
             {/* Contract Section — real clauses from backend */}
             <View style={styles.contractBloc}>
               <View style={styles.contractHeader}>

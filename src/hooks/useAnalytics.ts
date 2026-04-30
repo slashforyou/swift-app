@@ -39,7 +39,8 @@ export const useAnalytics = (screenName?: string, previousScreen?: string) => {
       try {
         trackJobStep(jobId, currentStep, totalSteps, notes);
         logger.debug('Job step tracked via hook', { jobId, currentStep, totalSteps });
-      } catch (error) {
+      } catch (error) {
+
         logger.error('Failed to track job step via hook', {
           error: error instanceof Error ? error.message : 'Unknown error',
           jobId,
@@ -53,7 +54,8 @@ export const useAnalytics = (screenName?: string, previousScreen?: string) => {
       try {
         trackPayment(action, amount, jobId);
         logger.debug('Payment event tracked via hook', { action, amount, jobId });
-      } catch (error) {
+      } catch (error) {
+
         logger.error('Failed to track payment via hook', {
           error: error instanceof Error ? error.message : 'Unknown error',
           action,
@@ -67,7 +69,8 @@ export const useAnalytics = (screenName?: string, previousScreen?: string) => {
       try {
         trackNavigation(newScreen, previousScreen);
         logger.debug('Navigation tracked via hook', { newScreen, previousScreen });
-      } catch (error) {
+      } catch (error) {
+
         logger.error('Failed to track navigation via hook', {
           error: error instanceof Error ? error.message : 'Unknown error',
           newScreen
@@ -80,7 +83,8 @@ export const useAnalytics = (screenName?: string, previousScreen?: string) => {
       try {
         analytics.trackCustomEvent(eventType, category, data);
         logger.debug('Custom event tracked via hook', { eventType, category });
-      } catch (error) {
+      } catch (error) {
+
         logger.error('Failed to track custom event via hook', {
           error: error instanceof Error ? error.message : 'Unknown error',
           eventType,
@@ -89,12 +93,29 @@ export const useAnalytics = (screenName?: string, previousScreen?: string) => {
       }
     }, []),
 
+    // Press / tap on any element
+    press: useCallback((elementName: string, context?: Record<string, any>) => {
+      try {
+        analytics.trackCustomEvent(`press_${elementName}`, 'user_action', {
+          screen: screenName,
+          ...context,
+        });
+        logger.debug('Press tracked via hook', { elementName, screenName });
+      } catch (error) {
+        logger.error('Failed to track press via hook', {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          elementName,
+        });
+      }
+    }, [screenName]),
+
     // User actions
     userAction: useCallback((action: string, context?: Record<string, any>) => {
       try {
         analytics.trackCustomEvent(`user_${action}`, 'user_action', context);
         logger.debug('User action tracked via hook', { action, context });
-      } catch (error) {
+      } catch (error) {
+
         logger.error('Failed to track user action via hook', {
           error: error instanceof Error ? error.message : 'Unknown error',
           action
@@ -136,8 +157,24 @@ export const useAnalytics = (screenName?: string, previousScreen?: string) => {
     return analytics.measureExecutionTime(functionName, asyncFunction, context);
   }, []);
 
+  /**
+   * Wrap an onPress handler to automatically track the interaction.
+   * Usage: <Button onPress={withTracking(handleSubmit, 'submit_form')} />
+   */
+  const withTracking = useCallback(<T extends (...args: any[]) => any>(
+    handler: T,
+    actionName: string,
+    context?: Record<string, any>,
+  ): T => {
+    return ((...args: any[]) => {
+      track.press(actionName, context);
+      return handler(...args);
+    }) as T;
+  }, [track]);
+
   return {
     track,
+    withTracking,
     measureAsync,
     analytics: analytics // Direct access for advanced usage
   };

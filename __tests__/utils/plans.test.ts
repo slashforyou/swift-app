@@ -5,17 +5,22 @@ import {
 } from "../../src/constants/plans";
 
 describe("plans — commission calculation", () => {
+  // Modèle actuel :
+  //   free       → 3% commission, min $0.50 AUD
+  //   pro        → 0% commission (abonnement $99/mo)
+  //   enterprise → 0% commission (abonnement $179/mo)
+
   describe("calculatePlatformFee", () => {
     it("applies 3% fee for free plan", () => {
       expect(calculatePlatformFee(100, "free")).toBe(3.0);
     });
 
-    it("applies 1.5% fee for pro plan", () => {
-      expect(calculatePlatformFee(100, "pro")).toBe(1.5);
+    it("pro plan has 0% commission (flat subscription model)", () => {
+      expect(calculatePlatformFee(100, "pro")).toBe(0);
     });
 
-    it("applies 0.5% fee for enterprise plan", () => {
-      expect(calculatePlatformFee(100, "enterprise")).toBe(0.5);
+    it("enterprise plan has 0% commission (flat subscription model)", () => {
+      expect(calculatePlatformFee(100, "enterprise")).toBe(0);
     });
 
     it("enforces $0.50 minimum for free plan", () => {
@@ -23,14 +28,14 @@ describe("plans — commission calculation", () => {
       expect(calculatePlatformFee(10, "free")).toBe(0.5);
     });
 
-    it("enforces $0.25 minimum for pro plan", () => {
-      // 1.5% of $10 = $0.15 → rounded up to $0.25 minimum
-      expect(calculatePlatformFee(10, "pro")).toBe(0.25);
+    it("pro plan returns 0 regardless of amount (no minimum)", () => {
+      expect(calculatePlatformFee(10, "pro")).toBe(0);
+      expect(calculatePlatformFee(0, "pro")).toBe(0);
     });
 
-    it("enterprise has no minimum (zero floor)", () => {
-      // 0.5% of $10 = $0.05 → no minimum, returns $0.05
-      expect(calculatePlatformFee(10, "enterprise")).toBe(0.05);
+    it("enterprise plan returns 0 regardless of amount (no minimum)", () => {
+      expect(calculatePlatformFee(10, "enterprise")).toBe(0);
+      expect(calculatePlatformFee(0, "enterprise")).toBe(0);
     });
 
     it("handles zero amount", () => {
@@ -47,10 +52,10 @@ describe("plans — commission calculation", () => {
       expect(calculatePlatformFee(33.33, "free")).toBe(1.0);
     });
 
-    it("large amounts scale correctly", () => {
+    it("large amounts scale correctly for free plan", () => {
       expect(calculatePlatformFee(1000, "free")).toBe(30.0);
-      expect(calculatePlatformFee(1000, "pro")).toBe(15.0);
-      expect(calculatePlatformFee(1000, "enterprise")).toBe(5.0);
+      expect(calculatePlatformFee(1000, "pro")).toBe(0);
+      expect(calculatePlatformFee(1000, "enterprise")).toBe(0);
     });
   });
 
@@ -59,12 +64,12 @@ describe("plans — commission calculation", () => {
       expect(formatCommissionRate("free")).toBe("3%");
     });
 
-    it('returns "1.5%" for pro plan', () => {
-      expect(formatCommissionRate("pro")).toBe("1.5%");
+    it('returns "0%" for pro plan (flat subscription)', () => {
+      expect(formatCommissionRate("pro")).toBe("0%");
     });
 
-    it('returns "0.5%" for enterprise plan', () => {
-      expect(formatCommissionRate("enterprise")).toBe("0.5%");
+    it('returns "0%" for enterprise plan (flat subscription)', () => {
+      expect(formatCommissionRate("enterprise")).toBe("0%");
     });
 
     it("defaults to free plan when omitted", () => {

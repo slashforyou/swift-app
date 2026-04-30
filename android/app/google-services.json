@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "800590632826",
+    "project_id": "cobbr-app",
+    "storage_bucket": "cobbr-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:800590632826:android:1da2375a036add33a4e8c3",
+        "android_client_info": {
+          "package_name": "com.slash4u.cobbr"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyARWyUce3Cm0FdrIA_CEbJRyhn4PuZO3rY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

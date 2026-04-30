@@ -1,20 +1,19 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
+    ActivityIndicator,
+    Pressable,
+    ScrollView,
+    Text,
+    View
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DESIGN_TOKENS } from "../constants/Styles";
 import { useTheme } from "../context/ThemeProvider";
 import { useLocalization } from "../localization/useLocalization";
 import {
-  getQuotes,
-  Quote,
+    getQuotes,
+    Quote,
 } from "../services/quotesService";
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {

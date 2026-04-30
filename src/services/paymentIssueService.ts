@@ -2,7 +2,7 @@
  * Service API pour signaler et gérer les problèmes de paiement
  */
 import { ServerData } from "../constants/ServerData";
-import { fetchWithAuth } from "../utils/session";
+import { authenticatedFetch } from "../utils/auth";
 
 const API = ServerData.serverUrl;
 
@@ -41,7 +41,7 @@ export async function reportPaymentIssue(
   issueType: PaymentIssueType,
   description?: string,
 ): Promise<{ success: boolean; issueId?: number }> {
-  const res = await fetchWithAuth(`${API}v1/jobs/${jobId}/payment-issues`, {
+  const res = await authenticatedFetch(`${API}v1/jobs/${jobId}/payment-issues`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -56,7 +56,7 @@ export async function reportPaymentIssue(
 export async function getPaymentIssues(
   jobId: number,
 ): Promise<{ success: boolean; issues: PaymentIssue[] }> {
-  const res = await fetchWithAuth(`${API}v1/jobs/${jobId}/payment-issues`);
+  const res = await authenticatedFetch(`${API}v1/jobs/${jobId}/payment-issues`);
   return res.json();
 }
 
@@ -66,7 +66,7 @@ export async function resolvePaymentIssue(
   status: "resolved" | "rejected",
   resolutionNote?: string,
 ): Promise<{ success: boolean }> {
-  const res = await fetchWithAuth(
+  const res = await authenticatedFetch(
     `${API}v1/payment-issues/${issueId}/resolve`,
     {
       method: "PATCH",

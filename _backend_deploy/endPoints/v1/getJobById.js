@@ -8,8 +8,11 @@ const getJobByIdEndpoint = async (req, res) => {
     const jobCode = req.params.id;
     
     // user_id et company_id UNIQUEMENT depuis le JWT — jamais du query
-    const userId = req.user?.id ?? null;
-    const userCompanyId = req.user?.company_id ?? null;
+    const userId = req.user?.id;
+    const userCompanyId = req.user?.company_id;
+    if (!userId || !userCompanyId) {
+      return res.status(403).json({ success: false, error: "Access denied — missing user or company context" });
+    }
     
     // Connect to database
     connection = await connect();
@@ -74,8 +77,14 @@ const getJobByIdEndpoint = async (req, res) => {
     const jobStats = stats[0] || { crew_count: 0, truck_count: 0, item_count: 0, note_count: 0 };
     
     // Calculer les permissions basées sur la company de l'utilisateur
-    const isOwner = userCompanyId !== null && parseInt(job.contractee_company_id) === parseInt(userCompanyId);
-    const isAssigned = userCompanyId !== null && parseInt(job.contractor_company_id) === parseInt(userCompanyId);
+    const isOwner = parseInt(job.contractee_company_id) === parseInt(userCompanyId);
+    const isAssigned = parseInt(job.contractor_company_id) === parseInt(userCompanyId);
+
+    // Refuser l'accès si l'utilisateur n'appartient ni au contractee ni au contractor
+    if (!isOwner && !isAssigned) {
+      return res.status(403).json({ success: false, error: 'Access denied' });
+    }
+
     const isPending = job.assignment_status === 'pending';
     const isAccepted = job.assignment_status === 'accepted';
     const isDeclined = job.assignment_status === 'declined';

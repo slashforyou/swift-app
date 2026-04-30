@@ -1,25 +1,24 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
+    ActivityIndicator,
+    Alert,
+    Pressable,
+    ScrollView,
+    Text,
+    TextInput,
+    View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DESIGN_TOKENS } from "../constants/Styles";
 import { useTheme } from "../context/ThemeProvider";
 import { useLocalization } from "../localization/useLocalization";
 import {
-  convertQuoteToJob,
-  createQuote,
-  getQuoteById,
-  Quote,
-  QuoteItem,
-  updateQuote,
+    convertQuoteToJob,
+    createQuote,
+    getQuoteById,
+    QuoteItem,
+    updateQuote
 } from "../services/quotesService";
 
 const TAX_RATE = 0.1; // 10% GST

@@ -66,6 +66,12 @@ const getJobActionsEndpoint = async (req, res) => {
     const offset = parseInt(req.query.offset || "0");
     const filterType = req.query.action_type || null;
 
+    // company_id UNIQUEMENT depuis le JWT — jamais du client
+    const userCompanyId = req.user?.company_id;
+    if (!userCompanyId) {
+      return res.status(403).json({ success: false, error: "Access denied — missing company context" });
+    }
+
     connection = await connect();
 
     // Resolve job
@@ -88,6 +94,13 @@ const getJobActionsEndpoint = async (req, res) => {
       return res
         .status(404)
         .json({ success: false, error: "Job not found", ref: jobRef });
+    }
+
+    // Vérifier que l'utilisateur appartient à l'une des deux companies du job
+    const isContractee = parseInt(jobRow.contractee_company_id) === parseInt(userCompanyId);
+    const isContractor = parseInt(jobRow.contractor_company_id) === parseInt(userCompanyId);
+    if (!isContractee && !isContractor) {
+      return res.status(403).json({ success: false, error: "Access denied" });
     }
 
     const jobId = jobRow.id;

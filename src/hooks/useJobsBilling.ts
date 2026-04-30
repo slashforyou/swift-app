@@ -1,6 +1,7 @@
 ﻿import { useCallback, useEffect, useState } from 'react';
 import { fetchJobs } from '../services/jobs';
 import { createStripeInvoice } from '../services/StripeService';
+import { isSessionDead } from '../utils/auth';
 
 export interface JobBilling {
   id: string;
@@ -91,6 +92,7 @@ export const useJobsBilling = (): UseJobsBillingResult => {
   }, [determinePaymentStatus]);
 
   const loadJobs = useCallback(async () => {
+    if (isSessionDead()) return;
     try {
       setIsLoading(true);
       setError(null);

@@ -28,11 +28,20 @@ const uploadCompanyLogoEndpoint = async (req, res) => {
     const { originalname, buffer, mimetype, size } = req.file;
     const { companyId } = req.params;
     const userId = req.user?.id;
+    // company_id UNIQUEMENT depuis le JWT — le param URL ne peut pas être approuvé seul
+    const jwtCompanyId = req.user?.company_id;
 
     if (!userId) {
       return res
         .status(401)
         .json({ success: false, error: "Authentication required" });
+    }
+
+    // Vérifier que l'utilisateur appartient bien à cette company (anti-IDOR)
+    if (!jwtCompanyId || parseInt(companyId) !== parseInt(jwtCompanyId)) {
+      return res
+        .status(403)
+        .json({ success: false, error: "Access denied: company mismatch" });
     }
 
     // Validate mime type
@@ -54,10 +63,10 @@ const uploadCompanyLogoEndpoint = async (req, res) => {
 
     connection = await connect();
 
-    // Verify user belongs to this company
+    // Vérifier que la company existe (l'appartenance a déjà été vérifiée via JWT ci-dessus)
     const [companyCheck] = await connection.execute(
       "SELECT id FROM companies WHERE id = ?",
-      [companyId],
+      [jwtCompanyId],
     );
     if (companyCheck.length === 0) {
       return res
@@ -65,20 +74,10 @@ const uploadCompanyLogoEndpoint = async (req, res) => {
         .json({ success: false, error: "Company not found" });
     }
 
-    // Ensure logo_url column exists
-    try {
-      await connection.execute(
-        "ALTER TABLE companies ADD COLUMN logo_url VARCHAR(500) NULL AFTER company_code",
-      );
-      console.log("✅ Added logo_url column to companies");
-    } catch (_e) {
-      // Column already exists - ignore
-    }
-
     // Upload to GCS
     const timestamp = Date.now();
     const ext = originalname.split(".").pop() || "jpg";
-    const gcsPath = `logos/${companyId}/${timestamp}_logo.${ext}`;
+    const gcsPath = `logos/${jwtCompanyId}/${timestamp}_logo.${ext}`;
     const file = bucket.file(gcsPath);
 
     await file.save(buffer, {
@@ -98,11 +97,11 @@ const uploadCompanyLogoEndpoint = async (req, res) => {
     // Update company record
     await connection.execute("UPDATE companies SET logo_url = ? WHERE id = ?", [
       gcsPath,
-      companyId,
+      jwtCompanyId,
     ]);
 
     console.log(
-      `✅ Company logo uploaded for company ${companyId}: ${gcsPath}`,
+      `✅ Company logo uploaded for company ${jwtCompanyId}: ${gcsPath}`,
     );
 
     res.json({

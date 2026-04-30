@@ -1,7 +1,7 @@
 {
   "name": "cobbr",
   "main": "App.tsx",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "scripts": {
     "start": "cross-env EXPO_NO_DOCTOR=1 expo start",
     "start:offline": "cross-env EXPO_NO_DOCTOR=1 expo start --offline",
@@ -56,6 +56,7 @@
     "expo-image-picker": "~17.0.10",
     "expo-linear-gradient": "~15.0.8",
     "expo-linking": "~8.0.11",
+    "expo-network": "~8.0.8",
     "expo-notifications": "~0.32.16",
     "expo-secure-store": "~15.0.8",
     "expo-splash-screen": "~31.0.13",

@@ -80,6 +80,9 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
   const [newItemDescription, setNewItemDescription] = useState("");
   const [newItemAmount, setNewItemAmount] = useState("");
   const [isReportIssueVisible, setIsReportIssueVisible] = useState(false);
+  const [isRecordingManualPayment, setIsRecordingManualPayment] = useState(false);
+  const [manualPaymentMethod, setManualPaymentMethod] = useState<"cash" | "card" | "bank_transfer" | null>(null);
+  const [manualPaymentNotes, setManualPaymentNotes] = useState("");
 
   // �tats acompte et UI
   const [depositInputAmount, setDepositInputAmount] = useState("");
@@ -375,6 +378,38 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
     setAdditionalItems((prev) => prev.filter((item) => item.id !== itemId));
   };
 
+  const handleRecordManualPayment = async (method: "cash" | "card" | "bank_transfer") => {
+    const jobId = job?.id || job?.job?.id;
+    if (!jobId) return;
+    try {
+      setIsRecordingManualPayment(true);
+      await updateJob(String(jobId), {
+        payment_status: "completed",
+        payment_method: method,
+        amount_paid: paymentInfo.current + additionalItemsTotal,
+        payment_details: manualPaymentNotes.trim() || undefined,
+      });
+      setJob((prev: any) => ({
+        ...prev,
+        payment_status: "completed",
+        payment_method: method,
+      }));
+      setManualPaymentMethod(null);
+      setManualPaymentNotes("");
+      Alert.alert(
+        t("common.success") || "Success",
+        t("jobDetails.payment.manualPayment.recorded") || "Payment recorded successfully",
+      );
+    } catch {
+      Alert.alert(
+        t("common.error") || "Error",
+        t("jobDetails.payment.manualPayment.error") || "Unable to record payment. Please try again.",
+      );
+    } finally {
+      setIsRecordingManualPayment(false);
+    }
+  };
+
   const additionalItemsTotal = useMemo(() => {
     return additionalItems.reduce((sum, item) => sum + item.amount, 0);
   }, [additionalItems]);
@@ -412,22 +447,8 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
   const jobJobStatus = job?.job?.status;
 
   const isJobCompleted = useMemo(() => {
-    // ? FIX: Job compl�t� si on a atteint au moins l'�tape 4
-    // (car �tape 5 = paiement, pas une �tape de travail)
-    // OU si le statut du job est 'completed'
-    const isStepCompleted = currentStep >= 4; // Au moins step 4
-    const isStatusCompleted =
-      jobStatus === "completed" || jobJobStatus === "completed";
-
-    //     currentStep,
-    //     totalSteps,
-    //     isStepCompleted,
-    //     isStatusCompleted,
-    //     result: isStepCompleted || isStatusCompleted
-    // });
-
-    return isStepCompleted || isStatusCompleted;
-  }, [currentStep, totalSteps, jobStatus, jobJobStatus]);
+    return jobStatus === "completed" || jobJobStatus === "completed";
+  }, [jobStatus, jobJobStatus]);
 
   // ? V�rifier si le client a sign� (serveur OU local OU API) - UTILISER useMemo pour �viter boucle infinie
   const hasSignature = useMemo(() => {
@@ -727,7 +748,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
               )}
           </View>
 
-          {/* Montant total */}
+          {/* Montant total — provisoire avant fin de job */}
           <Text
             style={{
               fontSize: 13,
@@ -735,18 +756,34 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
               marginBottom: 4,
             }}
           >
-            {t("jobDetails.payment.billingBreakdown.finalAmount")}
+            {isJobCompleted
+              ? t("jobDetails.payment.billingBreakdown.finalAmount")
+              : t("jobDetails.payment.billingBreakdown.estimatedAmount") || "Estimated Amount"}
           </Text>
           <Text
             style={{
-              fontSize: 34,
+              fontSize: isJobCompleted ? 34 : 28,
               fontWeight: "800",
-              color: colors.primary,
-              marginBottom: DESIGN_TOKENS.spacing.lg,
+              color: isJobCompleted ? colors.primary : colors.warning,
+              marginBottom: isJobCompleted ? DESIGN_TOKENS.spacing.lg : DESIGN_TOKENS.spacing.xs,
             }}
           >
-            {formatCurrency(paymentInfo.current + additionalItemsTotal)}
+            {isJobCompleted
+              ? formatCurrency(paymentInfo.current + additionalItemsTotal)
+              : `~${formatCurrency(paymentInfo.current + additionalItemsTotal)}`}
           </Text>
+          {!isJobCompleted && (
+            <Text
+              style={{
+                fontSize: 11,
+                color: colors.textSecondary,
+                fontStyle: "italic",
+                marginBottom: DESIGN_TOKENS.spacing.lg,
+              }}
+            >
+              {t("jobDetails.payment.billingBreakdown.estimatedAmountNote") || "Final amount confirmed once job is completed & signed"}
+            </Text>
+          )}
 
           {/* CTA principal � visible uniquement si job termin� */}
           {isJobCompleted && (
@@ -1391,7 +1428,102 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
           )}
         </View>
 
-        {/* ===== 4. D�TAIL DE FACTURATION (collapsible) ===== */}
+        {/* ===== 3b. PAIEMENT MANUEL (cash/carte/virement) ===== */}
+        {isJobCompleted && !paymentInfo.isPaid && (
+          <View
+            style={{
+              backgroundColor: colors.backgroundSecondary,
+              borderRadius: DESIGN_TOKENS.radius.lg,
+              marginBottom: DESIGN_TOKENS.spacing.lg,
+              padding: DESIGN_TOKENS.spacing.lg,
+            }}
+          >
+            <View style={{ flexDirection: "row", alignItems: "center", gap: DESIGN_TOKENS.spacing.sm, marginBottom: DESIGN_TOKENS.spacing.md }}>
+              <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: colors.success + "20", justifyContent: "center", alignItems: "center" }}>
+                <Ionicons name="cash-outline" size={18} color={colors.success} />
+              </View>
+              <Text style={{ fontSize: 17, fontWeight: "700", color: colors.text, flex: 1 }}>
+                {t("jobDetails.payment.manualPayment.title") || "Record Manual Payment"}
+              </Text>
+            </View>
+            <Text style={{ fontSize: 13, color: colors.textSecondary, marginBottom: DESIGN_TOKENS.spacing.md }}>
+              {t("jobDetails.payment.manualPayment.subtitle") || "Cash, card or bank transfer received in person"}
+            </Text>
+            <View style={{ flexDirection: "row", gap: DESIGN_TOKENS.spacing.sm, marginBottom: DESIGN_TOKENS.spacing.md }}>
+              {([
+                { method: "cash" as const, icon: "cash-outline", label: t("jobDetails.payment.manualPayment.cash") || "Cash" },
+                { method: "card" as const, icon: "card-outline", label: t("jobDetails.payment.manualPayment.card") || "Card / EFTPOS" },
+                { method: "bank_transfer" as const, icon: "business-outline", label: t("jobDetails.payment.manualPayment.bankTransfer") || "Bank Transfer" },
+              ] as { method: "cash" | "card" | "bank_transfer"; icon: string; label: string }[]).map(({ method, icon, label }) => (
+                <Pressable
+                  key={method}
+                  onPress={() => setManualPaymentMethod(method === manualPaymentMethod ? null : method)}
+                  style={({ pressed }) => ({
+                    flex: 1,
+                    alignItems: "center",
+                    paddingVertical: DESIGN_TOKENS.spacing.sm,
+                    paddingHorizontal: 4,
+                    backgroundColor: manualPaymentMethod === method
+                      ? colors.success + "25"
+                      : pressed ? colors.backgroundTertiary : colors.background,
+                    borderRadius: DESIGN_TOKENS.radius.md,
+                    borderWidth: 2,
+                    borderColor: manualPaymentMethod === method ? colors.success : colors.border,
+                    gap: 4,
+                  })}
+                >
+                  <Ionicons name={icon as any} size={20} color={manualPaymentMethod === method ? colors.success : colors.textSecondary} />
+                  <Text style={{ fontSize: 10, fontWeight: "600", color: manualPaymentMethod === method ? colors.success : colors.textSecondary, textAlign: "center" }}>
+                    {label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+            {manualPaymentMethod && (
+              <>
+                <TextInput
+                  value={manualPaymentNotes}
+                  onChangeText={setManualPaymentNotes}
+                  placeholder={t("jobDetails.payment.manualPayment.notesPlaceholder") || "Reference, notes (optional)..."}
+                  placeholderTextColor={colors.textSecondary}
+                  style={{
+                    backgroundColor: colors.background,
+                    borderRadius: DESIGN_TOKENS.radius.md,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                    padding: DESIGN_TOKENS.spacing.md,
+                    fontSize: 14,
+                    color: colors.text,
+                    marginBottom: DESIGN_TOKENS.spacing.md,
+                  }}
+                />
+                <Pressable
+                  onPress={() => handleRecordManualPayment(manualPaymentMethod)}
+                  disabled={isRecordingManualPayment}
+                  style={({ pressed }) => ({
+                    backgroundColor: pressed || isRecordingManualPayment ? colors.success + "CC" : colors.success,
+                    paddingVertical: DESIGN_TOKENS.spacing.md,
+                    borderRadius: DESIGN_TOKENS.radius.lg,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: DESIGN_TOKENS.spacing.sm,
+                  })}
+                >
+                  {isRecordingManualPayment
+                    ? <ActivityIndicator size="small" color="#FFF" />
+                    : <Ionicons name="checkmark-circle" size={20} color="#FFF" />
+                  }
+                  <Text style={{ color: "#FFF", fontWeight: "700", fontSize: 16 }}>
+                    {isRecordingManualPayment
+                      ? (t("common.saving") || "Saving...")
+                      : (t("jobDetails.payment.manualPayment.confirmPayment") || "Mark as Paid")}
+                  </Text>
+                </Pressable>
+              </>
+            )}
+          </View>
+        )}�TAIL DE FACTURATION (collapsible) ===== */}
         <View
           style={{
             backgroundColor: colors.backgroundSecondary,
@@ -1631,17 +1763,17 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                 }}
               />
 
-              {/* Montant final */}
+              {/* Montant final / estimé */}
               <View
                 style={{
                   flexDirection: "row",
                   justifyContent: "space-between",
                   alignItems: "center",
-                  backgroundColor: colors.primary + "10",
+                  backgroundColor: isJobCompleted ? colors.primary + "10" : colors.warning + "10",
                   padding: DESIGN_TOKENS.spacing.lg,
                   borderRadius: DESIGN_TOKENS.radius.md,
                   borderWidth: 2,
-                  borderColor: colors.primary + "30",
+                  borderColor: isJobCompleted ? colors.primary + "30" : colors.warning + "30",
                 }}
               >
                 <Text
@@ -1651,16 +1783,20 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
                     fontWeight: "700",
                   }}
                 >
-                  {t("jobDetails.payment.billingBreakdown.finalAmount")}
+                  {isJobCompleted
+                    ? t("jobDetails.payment.billingBreakdown.finalAmount")
+                    : t("jobDetails.payment.billingBreakdown.estimatedAmount") || "Estimated Amount"}
                 </Text>
                 <Text
                   style={{
                     fontSize: 22,
                     fontWeight: "700",
-                    color: colors.primary,
+                    color: isJobCompleted ? colors.primary : colors.warning,
                   }}
                 >
-                  {formatCurrency(paymentInfo.current + additionalItemsTotal)}
+                  {isJobCompleted
+                    ? formatCurrency(paymentInfo.current + additionalItemsTotal)
+                    : `~${formatCurrency(paymentInfo.current + additionalItemsTotal)}`}
                 </Text>
               </View>
             </View>
@@ -1849,7 +1985,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
       <ReportPaymentIssueModal
         visible={isReportIssueVisible}
         onClose={() => setIsReportIssueVisible(false)}
-        jobId={job?.id || job?.job?.id || 0}
+        jobId={job?.id || job?.job?.id}
       />
     </>
   );

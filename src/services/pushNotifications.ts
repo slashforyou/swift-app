@@ -66,6 +66,16 @@ if (Constants.appOwnership !== "expo") {
 // Push Token Management
 // ========================================
 
+const PUSH_DIAG_URL = "https://cobbr-app.com/swift-app/v1/logs";
+
+const sendPushDiag = (message: string, context?: Record<string, unknown>) => {
+  fetch(PUSH_DIAG_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ level: "DEBUG", message: `[Push][diag] ${message}`, context: { screen: "push_init", platform: Platform.OS, ...context } }),
+  }).catch(() => {});
+};
+
 /**
  * Demande la permission et récupère le token Expo Push
  */
@@ -73,11 +83,15 @@ export const getExpoPushToken = async (): Promise<string | null> => {
   try {
     // Expo Go limitations (SDK 53+ removed remote notifications support)
     if (Constants.appOwnership === "expo") {
+      console.log("[Push][diag] EARLY RETURN: appOwnership=expo");
+      sendPushDiag("EARLY RETURN: appOwnership=expo");
       return null;
     }
 
     // Vérifier si c'est un device physique (pas un simulateur)
     if (!Device.isDevice) {
+      console.log("[Push][diag] EARLY RETURN: Device.isDevice=false");
+      sendPushDiag("EARLY RETURN: Device.isDevice=false");
       return null;
     }
 
@@ -85,13 +99,19 @@ export const getExpoPushToken = async (): Promise<string | null> => {
     const { status: existingStatus } =
       await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
+    console.log(`[Push][diag] existingStatus=${existingStatus} platform=${Platform.OS} appOwnership=${Constants.appOwnership}`);
+    sendPushDiag(`existingStatus=${existingStatus}`, { appOwnership: Constants.appOwnership });
 
     if (existingStatus !== "granted") {
       const { status } = await Notifications.requestPermissionsAsync();
       finalStatus = status;
+      console.log(`[Push][diag] requestPermissions result=${status}`);
+      sendPushDiag(`requestPermissions result=${status}`);
     }
 
     if (finalStatus !== "granted") {
+      console.log(`[Push][diag] EARLY RETURN: finalStatus=${finalStatus}`);
+      sendPushDiag(`EARLY RETURN: finalStatus=${finalStatus}`);
       return null;
     }
 
@@ -106,22 +126,31 @@ export const getExpoPushToken = async (): Promise<string | null> => {
     }
 
     // EAS projectId (UUID) is required by getExpoPushTokenAsync
+    // Hardcoded as fallback because Constants.easConfig may be unavailable in older native builds
+    const HARDCODED_PROJECT_ID = "197a33fd-1b2f-4c2e-b51b-b3ff8f976a80";
     const projectId =
       (Constants.easConfig as any)?.projectId ||
-      (Constants.expoConfig as any)?.extra?.eas?.projectId;
+      (Constants.expoConfig as any)?.extra?.eas?.projectId ||
+      HARDCODED_PROJECT_ID;
 
     if (!projectId || typeof projectId !== "string") {
+      sendPushDiag("EARLY RETURN: projectId invalid");
       return null;
     }
+
+    sendPushDiag(`calling getExpoPushTokenAsync with projectId=${projectId}`);
 
     // Récupérer le token Expo
     const tokenData = await Notifications.getExpoPushTokenAsync({
       projectId,
     });
 
+    sendPushDiag(`SUCCESS: token=${tokenData.data}`);
     return tokenData.data;
   } catch (error) {
-    // Non-blocking: push is optional and can fail depending on environment.
+    const errMsg = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+    console.error("[Push][diag] ERROR in getExpoPushToken:", errMsg);
+    sendPushDiag(`ERROR: ${errMsg}`, { error_stack: error instanceof Error ? error.stack : undefined });
     return null;
   }
 };
@@ -360,6 +389,59 @@ export const getBadgeCount = async (): Promise<number> => {
  */
 export const clearBadge = async (): Promise<boolean> => {
   return await setBadgeCount(0);
+};
+
+// ========================================
+// Admin — Direct Push Send
+// ========================================
+
+export interface AdminSendNotificationParams {
+  email: string;
+  title: string;
+  body: string;
+  data?: Record<string, unknown>;
+}
+
+export interface AdminSendNotificationResult {
+  success: boolean;
+  message?: string;
+  tokens_reached?: number;
+  error?: string;
+}
+
+/**
+ * Envoie une notification push à un utilisateur via son email.
+ * Requiert un JWT avec company_role = "patron".
+ * POST /v1/admin/send-notification
+ */
+export const adminSendNotification = async (
+  params: AdminSendNotificationParams,
+): Promise<AdminSendNotificationResult> => {
+  try {
+    const response = await fetchWithAuth(
+      `${ServerData.serverUrl}v1/admin/send-notification`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(params),
+      },
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return { success: false, error: data.error || `HTTP ${response.status}` };
+    }
+
+    return {
+      success: true,
+      message: data.message,
+      tokens_reached: data.tokens_reached,
+    };
+  } catch (error) {
+    console.error("[Push] adminSendNotification error:", error);
+    return { success: false, error: "Network error" };
+  }
 };
 
 // ========================================

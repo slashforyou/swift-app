@@ -445,6 +445,74 @@ class AnalyticsService {
   setEnabled(enabled: boolean) {
     this.isEnabled = enabled;
   }
+
+  // ========== JOB FUNNEL EVENTS (AARRR) ==========
+  // 7 events couvrant le cycle complet d'un job Cobbr.
+  // TODO: remplacer this.trackEvent(...) par Analytics.track(event_type, event_data)
+  //       lors de l'intégration d'un SDK tiers (Mixpanel / Amplitude / PostHog).
+
+  /** EVENT 1 — job_created. Funnel: activation — premier job = milestone d'activation clé */
+  trackJobCreated(params: {
+    job_id: number;
+    company_id: number;
+    billing_mode: string;
+    has_staff_assigned: boolean;
+    has_client: boolean;
+  }) {
+    this.trackEvent({ event_type: "job_created", event_category: "business", event_data: params });
+  }
+
+  /** EVENT 2 — job_staff_assigned. Funnel: activation — job sans staff = job orphelin */
+  trackJobStaffAssigned(params: {
+    job_id: number;
+    company_id: number;
+    staff_count: number;
+  }) {
+    this.trackEvent({ event_type: "job_staff_assigned", event_category: "business", event_data: params });
+  }
+
+  /** EVENT 3 — job_accepted. Funnel: retention — acceptation = engagement du contractor */
+  trackJobAccepted(params: {
+    job_id: number;
+    company_id: number;
+    time_to_accept_hours?: number;
+  }) {
+    this.trackEvent({ event_type: "job_accepted", event_category: "business", event_data: params });
+  }
+
+  /** EVENT 4 — job_started. Funnel: retention — début effectif = utilisation terrain réelle */
+  trackJobStarted(params: {
+    job_id: number;
+    company_id: number;
+  }) {
+    this.trackEvent({ event_type: "job_started", event_category: "business", event_data: params });
+  }
+
+  /** EVENT 5 — job_completed. Funnel: retention — ratio completed/started mesure les jobs bloqués */
+  trackJobCompleted(params: {
+    job_id: number;
+    company_id: number;
+    duration_minutes?: number;
+  }) {
+    this.trackEvent({ event_type: "job_completed", event_category: "business", event_data: params });
+  }
+
+  /** EVENT 6 — review_requested. Funnel: referral — dernier maillon du cycle job */
+  trackReviewRequested(params: {
+    job_id: number;
+    company_id?: number;
+  }) {
+    this.trackEvent({ event_type: "review_requested", event_category: "business", event_data: params });
+  }
+
+  /** EVENT 7 — job_declined. Funnel: retention — signal friction ou mismatch job/contractor */
+  trackJobDeclined(params: {
+    job_id: number;
+    company_id: number;
+    reason?: string;
+  }) {
+    this.trackEvent({ event_type: "job_declined", event_category: "business", event_data: params });
+  }
 }
 
 // Singleton instance
@@ -463,3 +531,12 @@ export const measureExecutionTime =
 export const getBusinessMetrics = analytics.getBusinessMetrics.bind(analytics);
 export const getUsageAnalytics = analytics.getUsageAnalytics.bind(analytics);
 export const flushAnalytics = analytics.flush.bind(analytics);
+
+// Job funnel events
+export const trackJobCreated = analytics.trackJobCreated.bind(analytics);
+export const trackJobStaffAssigned = analytics.trackJobStaffAssigned.bind(analytics);
+export const trackJobAccepted = analytics.trackJobAccepted.bind(analytics);
+export const trackJobStarted = analytics.trackJobStarted.bind(analytics);
+export const trackJobCompleted = analytics.trackJobCompleted.bind(analytics);
+export const trackReviewRequested = analytics.trackReviewRequested.bind(analytics);
+export const trackJobDeclined = analytics.trackJobDeclined.bind(analytics);
