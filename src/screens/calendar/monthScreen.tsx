@@ -22,6 +22,7 @@ import { useOnboardingTour } from "../../context/OnboardingTourContext";
 import { useCommonThemedStyles } from "../../hooks/useCommonStyles";
 import { useJobsForMonth } from "../../hooks/useJobsForMonth";
 import { useTranslation } from "../../localization";
+import { analytics } from "../../services/analytics";
 import { JobAPI } from "../../services/jobs";
 
 // Adapter pour normaliser les données de l'API
@@ -276,6 +277,7 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
             : selectedYear + 1;
 
       navigation.navigate("Month", { year: newYear, month: newMonth });
+      analytics.trackButtonPress(`calendar_month_${direction}`, 'MonthScreen', { year: newYear, month: newMonth });
     },
     [selectedMonthIndex, selectedYear, animatedValue, navigation],
   );
@@ -815,20 +817,22 @@ const MonthCalendarScreen = ({ navigation, route }: any) => {
                       : customStyles.dayButton),
                     opacity: pressed ? 0.8 : 1,
                   })}
-                  onPress={() =>
+                  onPress={() => {
+                    analytics.trackButtonPress('calendar_day_open', 'MonthScreen', { day, month: selectedMonthIndex + 1, year: selectedYear });
                     navigation.navigate("Day", {
                       day,
                       month: selectedMonthIndex + 1,
                       year: selectedYear,
-                    })
-                  }
-                  onLongPress={() =>
+                    });
+                  }}
+                  onLongPress={() => {
+                    analytics.trackButtonPress('calendar_week_open_from_month', 'MonthScreen', { day, month: selectedMonthIndex + 1, year: selectedYear });
                     navigation.navigate("Week", {
                       day,
                       month: selectedMonthIndex + 1,
                       year: selectedYear,
-                    })
-                  }
+                    });
+                  }}
                 >
                   <Text
                     testID={`calendar-month-day-${day}-text`}

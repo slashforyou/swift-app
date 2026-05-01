@@ -7,6 +7,7 @@ import MascotLoading from "../components/ui/MascotLoading";
 import RoundLanguageButton from "../components/ui/RoundLanguageButton";
 import { useCommonThemedStyles } from "../hooks/useCommonStyles";
 import { useTranslation } from "../localization";
+import { analytics } from "../services/analytics";
 import { ensureSession } from "../utils/session";
 
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -108,7 +109,10 @@ const ConnectionScreen: React.FC<ConnectionScreenProps> = ({ navigation }) => {
             <Pressable
               testID="connection-login-btn"
               style={[styles.buttonPrimary, localStyles.button]}
-              onPress={() => navigation.navigate("Login")}
+              onPress={() => {
+                analytics.trackButtonPress('login_btn', 'Connection');
+                navigation.navigate("Login");
+              }}
             >
               <Text testID="connection-login-text" style={styles.buttonPrimaryText}>
                 {t("auth.connection.loginButton")}
@@ -118,7 +122,10 @@ const ConnectionScreen: React.FC<ConnectionScreenProps> = ({ navigation }) => {
             <Pressable
               testID="connection-register-btn"
               style={[styles.buttonSecondary, localStyles.button]}
-              onPress={() => navigation.navigate("RegisterTypeSelection")}
+              onPress={() => {
+                analytics.trackButtonPress('register_btn', 'Connection');
+                navigation.navigate("RegisterTypeSelection");
+              }}
             >
               <Text testID="connection-register-text" style={styles.buttonSecondaryText}>
                 {t("auth.connection.registerButton")}

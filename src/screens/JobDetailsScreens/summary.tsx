@@ -78,6 +78,7 @@ const JobSummary = ({
   const handleSetDifficulty = async (
     difficulty: "easy" | "medium" | "hard" | "expert" | null,
   ) => {
+    track.userAction("difficulty_set", { jobId: job?.id, difficulty: difficulty ?? "none" });
     setIsDifficultyModalVisible(false);
     try {
       await updateJob(String(job.id), { difficulty });
@@ -297,7 +298,7 @@ const JobSummary = ({
             <JobHeroCard
               job={job}
               canEditDifficulty={job.permissions?.can_edit ?? false}
-              onEditDifficulty={() => setIsDifficultyModalVisible(true)}
+              onEditDifficulty={() => { track.userAction("difficulty_modal_open", { jobId: job?.id }); setIsDifficultyModalVisible(true); }}
             />
 
             {/* Bandeau de délégation active */}
@@ -321,8 +322,8 @@ const JobSummary = ({
                 job={job}
                 setJob={setJob}
                 onAddNote={handleAddNote}
-                onShowNoteModal={() => setIsNoteModalVisible(true)}
-                onShowPhotoModal={() => setIsPhotoModalVisible(true)}
+                onShowNoteModal={() => { track.userAction("note_modal_open", { jobId: job?.id }); setIsNoteModalVisible(true); }}
+                onShowPhotoModal={() => { track.userAction("photo_modal_open", { jobId: job?.id }); setIsPhotoModalVisible(true); }}
               />
             </View>
 

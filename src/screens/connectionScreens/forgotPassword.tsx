@@ -16,6 +16,7 @@ import MascotLoading from "../../components/ui/MascotLoading";
 import { ServerData } from "../../constants/ServerData";
 import { useCommonThemedStyles } from "../../hooks/useCommonStyles";
 import { useTranslation } from "../../localization";
+import { analytics } from "../../services/analytics";
 import { validatePassword } from "../../utils/validators/passwordValidator";
 
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -75,6 +76,7 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
     }
 
     setIsLoading(true);
+    analytics.trackButtonPress('forgot_password_submit_email', 'ForgotPassword');
     try {
       const response = await fetch(
         `${ServerData.serverUrl}auth/forgot-password`,
@@ -88,9 +90,11 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
       const data = await response.json();
 
       if (response.ok) {
+        analytics.trackCustomEvent('forgot_password_code_sent', 'user_action', { screen: 'ForgotPassword' });
         showAlert("success", t("auth.forgotPassword.codeSent"));
         setStep("code");
       } else {
+        analytics.trackError({ error_type: 'forgot_password_error', error_message: data.message || 'Request failed', context: { screen: 'ForgotPassword' } });
         showAlert("error", data.message || t("auth.errors.generic"));
       }
     } catch {
@@ -105,6 +109,7 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
       showAlert("warning", t("auth.forgotPassword.codeInvalid"));
       return;
     }
+    analytics.trackButtonPress('forgot_password_verify_code', 'ForgotPassword');
     setStep("newPassword");
   };
 
@@ -143,8 +148,10 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
       const data = await response.json();
 
       if (response.ok && data.success) {
+        analytics.trackCustomEvent('forgot_password_reset_success', 'user_action', { screen: 'ForgotPassword' });
         setStep("success");
       } else {
+        analytics.trackError({ error_type: 'forgot_password_reset_error', error_message: data.message || 'Reset failed', context: { screen: 'ForgotPassword' } });
         showAlert("error", data.message || t("auth.errors.generic"));
       }
     } catch {
@@ -292,7 +299,10 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
         disabled={isLoading}
         style={{ marginTop: 16, alignItems: "center" }}
       >
-        <Text style={[styles.body, { color: colors.primary }]}>
+        <Text
+          style={[styles.body, { color: colors.primary }]}
+          onPress={() => analytics.trackButtonPress('forgot_password_resend_code', 'ForgotPassword')}
+        >
           {t("auth.forgotPassword.resendCode")}
         </Text>
       </Pressable>
@@ -389,7 +399,7 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
           styles.buttonPrimary,
           { backgroundColor: colors.primary, width: "100%" },
         ]}
-        onPress={() => navigation.navigate("Login")}
+        onPress={() => { analytics.trackButtonPress('back_to_login_from_reset', 'ForgotPassword'); navigation.navigate("Login"); }}
       >
         <Text style={styles.buttonPrimaryText}>
           {t("auth.forgotPassword.backToLogin")}

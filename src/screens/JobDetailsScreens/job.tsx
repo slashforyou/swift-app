@@ -23,6 +23,7 @@ import { HStack, VStack } from "../../components/primitives/Stack";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
 import { useLocalization } from "../../localization/useLocalization";
+import { analytics } from "../../services/analytics";
 import { addJobItem, updateJobItem } from "../../services/jobs";
 
 // Fonction pour extraire l'ID numérique depuis un ID job de format JOB-NERD-URGENT-006
@@ -543,6 +544,7 @@ const JobPage: React.FC<JobPageProps> = ({
           is_checked: checked,
           completedQuantity: item.completedQuantity || 0,
         });
+        analytics.trackCustomEvent('item_toggled', 'business', { job_id: numericJobId, item_id: item.id, checked });
       } catch (error) {
         console.error(
           `[handleItemToggle] Failed to update item ${item.id} in API:`,
@@ -613,8 +615,7 @@ const JobPage: React.FC<JobPageProps> = ({
     try {
 
       await addJobItem(numericJobId, { name, quantity });
-
-      // Mettre Ã  jour la liste des items localement
+      analytics.trackCustomEvent('item_added', 'business', { job_id: numericJobId, item_name: name, quantity });
       const updatedJob = { ...job };
       if (!updatedJob.items) {
         updatedJob.items = [];

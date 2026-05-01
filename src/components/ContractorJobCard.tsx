@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
+    ActivityIndicator,
+    Pressable,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 
 export type ContractorAssignment = {

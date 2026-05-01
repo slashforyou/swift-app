@@ -32,6 +32,7 @@ import { useCompanyPermissions } from "../../hooks/useCompanyPermissions";
 import { Job, useJobsForDay } from "../../hooks/useJobsForDay";
 import { useLocalization, useTranslation } from "../../localization";
 import { formatDateWithDay } from "../../localization/formatters";
+import { analytics } from "../../services/analytics";
 import {
     acceptJob,
     createJob,
@@ -103,6 +104,7 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
   // Handler for the "+" FAB: opens the modal AND advances onboarding synchronously
   // so there is no frame where the bubble still points at the closed FAB.
   const handleOpenCreateJob = useCallback(() => {
+    analytics.trackButtonPress('create_job_fab', 'DayScreen');
     setIsCreateJobModalVisible(true);
     if (currentStep === 4) {
       advanceToStep(5);
@@ -168,6 +170,7 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
       if (currentStep === 12) {
         markStepSeen(12);
       }
+      analytics.trackButtonPress('open_job', 'DayScreen', { job_id: job.id });
       const isExternal =
         job.contractee &&
         job.contractor &&

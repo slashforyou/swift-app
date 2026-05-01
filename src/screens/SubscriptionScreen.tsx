@@ -25,6 +25,7 @@ import { DESIGN_TOKENS } from "../constants/Styles";
 import { useTheme } from "../context/ThemeProvider";
 import { useSubscription } from "../hooks/usePlans";
 import { useTranslation } from "../localization";
+import { analytics } from "../services/analytics";
 import { Plan } from "../services/plansService";
 
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -155,6 +156,7 @@ const SubscriptionScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const handleSubscribe = async (planId: string) => {
+    analytics.trackCustomEvent('subscription_start', 'business', { plan_id: planId });
     setProcessingPlanId(planId);
     try {
       // First, record the plan selection in DB
@@ -231,6 +233,7 @@ const SubscriptionScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const handleChangePlan = async (planId: string) => {
+    analytics.trackCustomEvent('subscription_upgrade', 'business', { plan_id: planId, current_plan: currentPlanId });
     setProcessingPlanId(planId);
     try {
       await upgrade(planId);
@@ -252,6 +255,7 @@ const SubscriptionScreen: React.FC<Props> = ({ navigation }) => {
           text: t("subscription.cancelConfirmButton"),
           style: "destructive",
           onPress: async () => {
+            analytics.trackCustomEvent('subscription_cancel', 'business', { current_plan: currentPlanId });
             try {
               await cancel();
               Alert.alert("✓", t("subscription.cancelSuccess"));
@@ -265,6 +269,7 @@ const SubscriptionScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const handleResume = async () => {
+    analytics.trackCustomEvent('subscription_resume', 'business', { current_plan: currentPlanId });
     try {
       await resume();
       Alert.alert("✓", t("subscription.resumeSuccess"));
@@ -513,7 +518,10 @@ const SubscriptionScreen: React.FC<Props> = ({ navigation }) => {
       >
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Pressable
-            onPress={() => navigation.goBack()}
+              onPress={() => {
+                analytics.trackButtonPress('back_btn', 'Subscription');
+                navigation.goBack();
+              }}
             hitSlop={DESIGN_TOKENS.touch.hitSlop}
             style={{ marginRight: DESIGN_TOKENS.spacing.md }}
           >

@@ -23,6 +23,7 @@ import { useTheme } from "../../context/ThemeProvider";
 import { useVehicles as useVehiclesContext } from "../../context/VehiclesProvider";
 import { useVehicles, type VehicleAPI } from "../../hooks/useVehicles";
 import { useTranslation } from "../../localization/useLocalization";
+import { analytics } from "../../services/analytics";
 
 // Types
 interface Vehicle {
@@ -595,6 +596,7 @@ export default function TrucksScreen() {
   ).length;
 
   const handleAddVehicle = () => {
+    analytics.trackButtonPress('vehicle_add_open', 'Trucks');
     setIsAddModalVisible(true);
   };
 
@@ -613,6 +615,7 @@ export default function TrucksScreen() {
       });
 
       setIsAddModalVisible(false);
+      analytics.trackCustomEvent('vehicle_added', 'business', { type: vehicleData.type });
     } catch (error) {
       console.error("Error creating vehicle:", error);
       Alert.alert(
@@ -623,6 +626,7 @@ export default function TrucksScreen() {
   };
 
   const handleVehiclePress = (vehicle: Vehicle) => {
+    analytics.trackButtonPress('vehicle_open', 'Trucks', { vehicle_id: vehicle.id });
     setSelectedVehicle(vehicle);
   };
 
@@ -651,6 +655,7 @@ export default function TrucksScreen() {
           onPress: async () => {
             try {
               await deleteVehicleFromContext(vehicle.id);
+              analytics.trackCustomEvent('vehicle_deleted', 'business', { vehicle_id: vehicle.id });
               Alert.alert(
                 t("vehicles.alerts.deleteSuccess.title"),
                 t("vehicles.alerts.deleteSuccess.message"),

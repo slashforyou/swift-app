@@ -17,6 +17,7 @@ import { HeaderLogo } from "../../components/ui/HeaderLogo";
 import RoundLanguageButton from "../../components/ui/RoundLanguageButton";
 import { useCommonThemedStyles } from "../../hooks/useCommonStyles";
 import { useTranslation } from "../../localization";
+import { analytics } from "../../services/analytics";
 import { validatePassword } from "../../utils/validators/passwordValidator";
 
 import type { RouteProp } from "@react-navigation/native";
@@ -25,7 +26,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 type RootStackParamList = {
   Home: undefined;
   Login: undefined;
-  Subscribe: { accountType?: 'business_owner' | 'employee' } | undefined;
+  Subscribe: { accountType?: 'business_owner' | 'abn_contractor' | 'employee' } | undefined;
   Connection: undefined;
   SubscribeMailVerification: {
     id: string;
@@ -45,6 +46,8 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation, route }) 
   const { t } = useTranslation();
   const accountType = route.params?.accountType ?? 'business_owner';
   const isBusinessOwner = accountType === 'business_owner';
+  const isAbnContractor = accountType === 'abn_contractor';
+  const isCompanyAccount = accountType === 'business_owner' || accountType === 'abn_contractor';
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -108,8 +111,8 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation, route }) 
   };
 
   const subscribe = async () => {
+    analytics.trackButtonPress('register_submit', 'Subscribe', { account_type: accountType });
 
-    // Validation des champs
     if (!firstName.trim()) {
       showAlert(
         "warning",
@@ -128,7 +131,7 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation, route }) 
       return;
     }
 
-    if (isBusinessOwner && !companyName.trim()) {
+    if (isCompanyAccount && !companyName.trim() && !isAbnContractor) {
       showAlert(
         "warning",
         t("auth.validation.companyNameRequired"),
@@ -204,7 +207,7 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation, route }) 
           password,
           firstName,
           lastName,
-          ...(isBusinessOwner ? { companyName: companyName.trim() } : {}),
+          ...(isCompanyAccount ? { companyName: companyName.trim() || (isAbnContractor ? `${firstName.trim()} ${lastName.trim()}` : '') } : {}),
           accountType,
         }),
       });
@@ -213,6 +216,7 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation, route }) 
       if (response.status === 200) {
         const data = await response.json();
         if (data.success) {
+          analytics.trackCustomEvent('register_success', 'user_action', { account_type: accountType });
           showAlert(
             "success",
             t("auth.success.registerSuccess"),
@@ -299,8 +303,11 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation, route }) 
           >
             <Pressable
               testID="subscribe-back-btn"
-              onPress={() => navigation.navigate("Connection")}
               disabled={isLoading}
+              onPress={() => {
+                analytics.trackButtonPress('back_to_connection', 'Subscribe');
+                navigation.navigate("Connection");
+              }}
               style={{
                 flexDirection: "row",
                 alignItems: "center",
@@ -337,7 +344,7 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation, route }) 
           >
             <HeaderLogo preset="md" variant="square" marginVertical={0} />
 
-            {isBusinessOwner && (
+          {isCompanyAccount && (
               <View style={{
                 backgroundColor: colors.primary + '15',
                 paddingHorizontal: 16,
@@ -346,14 +353,14 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation, route }) 
                 marginTop: 16,
               }}>
                 <Text style={[styles.bodySmall, { color: colors.primary, fontWeight: '600' }]}>
-                  🏢 {t("auth.registration.businessOwner.title")}
+                  {isAbnContractor ? '🔨' : '🏢'} {isAbnContractor ? t("auth.registration.abnContractor.title") : t("auth.registration.businessOwner.title")}
                 </Text>
               </View>
             )}
 
             <Text
               testID="subscribe-title-text"
-              style={[styles.title, { marginBottom: 8, marginTop: isBusinessOwner ? 12 : 20 }]}
+              style={[styles.title, { marginBottom: 8, marginTop: isCompanyAccount ? 12 : 20 }]}
             >
               {t("auth.register.title")}
             </Text>
@@ -369,7 +376,7 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation, route }) 
                 },
               ]}
             >
-              {isBusinessOwner
+              {isCompanyAccount
                 ? t("auth.register.businessSubtitle")
                 : t("auth.register.subtitle")}
             </Text>
@@ -424,7 +431,7 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation, route }) 
               />
             </View>
 
-            {isBusinessOwner && (
+            {isCompanyAccount && (
             <View
               testID="subscribe-companyname-field"
               style={{ marginBottom: 20 }}
@@ -433,18 +440,27 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation, route }) 
                 testID="subscribe-companyname-label"
                 style={[styles.subtitle, { marginBottom: 8 }]}
               >
-                {t("auth.register.companyName")}
+                {isAbnContractor
+                  ? t("auth.registration.abnContractor.companyNameLabel")
+                  : t("auth.register.companyName")}
               </Text>
               <TextInput
                 testID="subscribe-companyname-input"
                 style={styles.inputBase}
-                placeholder={t("auth.register.companyNamePlaceholder")}
+                placeholder={isAbnContractor
+                  ? t("auth.registration.abnContractor.companyNamePlaceholder")
+                  : t("auth.register.companyNamePlaceholder")}
                 placeholderTextColor={colors.textSecondary}
                 value={companyName}
                 onChangeText={setCompanyName}
                 autoCapitalize="words"
                 editable={!isLoading}
               />
+              {isAbnContractor && (
+                <Text style={[styles.bodySmall, { color: colors.textSecondary, marginTop: 4 }]}>
+                  {t("auth.registration.abnContractor.companyNameHelper")}
+                </Text>
+              )}
             </View>
             )}
 
@@ -619,7 +635,10 @@ const SubscribeScreen: React.FC<SubscribeScreenProps> = ({ navigation, route }) 
             <Pressable
               testID="subscribe-already-account-btn"
               style={[styles.buttonSecondary, { width: "100%" }]}
-              onPress={() => navigation.navigate("Login")}
+              onPress={() => {
+                analytics.trackButtonPress('go_to_login', 'Subscribe');
+                navigation.navigate("Login");
+              }}
               disabled={isLoading}
             >
               <Text

@@ -16,6 +16,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DESIGN_TOKENS } from "../constants/Styles";
 import { useTheme } from "../context/ThemeProvider";
+import { analytics } from "../services/analytics";
 import {
     fetchManagerDashboard,
     type ManagerDashboardData,
@@ -175,7 +176,7 @@ export default function ManagerDashboardScreen() {
     }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { load(); analytics.trackCustomEvent('manager_dashboard_viewed', 'business'); }, [load]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -201,7 +202,7 @@ export default function ManagerDashboardScreen() {
         }}
       >
         <Pressable
-          onPress={() => navigation.goBack()}
+          onPress={() => { analytics.trackButtonPress('back_btn', 'ManagerDashboard'); navigation.goBack(); }}
           hitSlop={12}
           style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
         >
@@ -290,7 +291,7 @@ export default function ManagerDashboardScreen() {
             {(["jobs", "team"] as const).map((tab) => (
               <Pressable
                 key={tab}
-                onPress={() => setActiveTab(tab)}
+                onPress={() => { analytics.trackButtonPress(`manager_tab_${tab}`, 'ManagerDashboard'); setActiveTab(tab); }}
                 style={{
                   flex: 1,
                   paddingVertical: 8,

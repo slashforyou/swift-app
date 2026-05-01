@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
+    KeyboardAvoidingView,
+    Platform,
+    Pressable,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    View,
 } from "react-native";
 import AlertMessage from "../../components/ui/AlertMessage";
 import AnimatedBackground from "../../components/ui/AnimatedBackground";
@@ -18,6 +18,7 @@ import RoundLanguageButton from "../../components/ui/RoundLanguageButton";
 import { usePermissionsContext } from "../../contexts/PermissionsContext";
 import { useCommonThemedStyles } from "../../hooks/useCommonStyles";
 import { useTranslation } from "../../localization";
+import { analytics } from "../../services/analytics";
 import { login } from "../../utils/auth";
 
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -101,6 +102,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     setIsLoading(true);
 
     try {
+      analytics.trackButtonPress('login_submit', 'Login');
       await login(email, password);
 
       // Load user permissions after successful login (with timeout)
@@ -115,6 +117,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
       }
 
       // Navigate to Home
+      analytics.trackCustomEvent('login_success', 'user_action', { screen: 'Login' });
       navigation.navigate("Home");
     } catch (error: any) {
       // Log pour débugger
@@ -172,6 +175,11 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
       }
 
       // Afficher l'erreur sans auto-hide pour que l'utilisateur puisse lire
+      analytics.trackError({
+        error_type: 'api_error',
+        error_message: error.message || 'login_failed',
+        context: { screen: 'Login' },
+      });
       showAlert("error", errorMessage, errorTitle, false);
     } finally {
       setIsLoading(false);
@@ -295,7 +303,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
             <Pressable
               testID="login-forgot-password-btn"
-              onPress={() => navigation.navigate("ForgotPassword")}
+              onPress={() => {
+                analytics.trackButtonPress('forgot_password', 'Login');
+                navigation.navigate("ForgotPassword");
+              }}
               disabled={isLoading}
               style={{
                 alignSelf: "flex-end",
@@ -340,7 +351,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             <Pressable
               testID="login-create-account-btn"
               style={[styles.buttonSecondary, { width: "100%" }]}
-              onPress={() => navigation.navigate("Subscribe")}
+              onPress={() => {
+                analytics.trackButtonPress('create_account', 'Login');
+                navigation.navigate("Subscribe");
+              }}
               disabled={isLoading}
             >
               <Text
@@ -353,7 +367,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
             <Pressable
               testID="login-back-btn"
-              onPress={() => navigation.navigate("Connection")}
+              onPress={() => {
+                analytics.trackButtonPress('back_to_connection', 'Login');
+                navigation.navigate("Connection");
+              }}
               disabled={isLoading}
               style={{
                 flexDirection: "row",

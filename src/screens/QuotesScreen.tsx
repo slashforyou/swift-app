@@ -11,6 +11,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DESIGN_TOKENS } from "../constants/Styles";
 import { useTheme } from "../context/ThemeProvider";
 import { useLocalization } from "../localization/useLocalization";
+import { analytics } from "../services/analytics";
 import {
     getQuotes,
     Quote,
@@ -85,7 +86,7 @@ export default function QuotesScreen({ route, navigation }: Props) {
           borderBottomWidth: 1, borderBottomColor: colors.border,
         }}
       >
-        <Pressable onPress={() => navigation.goBack()} hitSlop={8}>
+        <Pressable onPress={() => { analytics.trackButtonPress('back_btn', 'Quotes'); navigation.goBack(); }} hitSlop={8}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </Pressable>
         <Text style={{ flex: 1, fontSize: 18, fontWeight: "700", color: colors.text }}>
@@ -142,7 +143,7 @@ export default function QuotesScreen({ route, navigation }: Props) {
               return (
                 <Pressable
                   key={tab}
-                  onPress={() => setFilterTab(tab)}
+                  onPress={() => { analytics.trackButtonPress(`quote_filter_${tab}`, 'Quotes'); setFilterTab(tab); }}
                   style={{
                     paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20,
                     backgroundColor: filterTab === tab ? colors.primary : colors.backgroundSecondary,
@@ -172,7 +173,7 @@ export default function QuotesScreen({ route, navigation }: Props) {
                 return (
                   <Pressable
                     key={quote.id}
-                    onPress={() => navigation.navigate("QuoteEditor", { quoteId: quote.id })}
+                    onPress={() => { analytics.trackButtonPress('quote_opened', 'Quotes', { quote_id: quote.id, status: quote.status }); navigation.navigate("QuoteEditor", { quoteId: quote.id }); }}
                     style={({ pressed }) => ({
                       backgroundColor: pressed ? colors.backgroundTertiary : colors.backgroundSecondary,
                       borderRadius: DESIGN_TOKENS.radius.lg,
@@ -216,7 +217,7 @@ export default function QuotesScreen({ route, navigation }: Props) {
       {/* FAB */}
       <View style={{ position: "absolute", bottom: insets.bottom + DESIGN_TOKENS.spacing.lg, right: DESIGN_TOKENS.spacing.lg }}>
         <Pressable
-          onPress={() => navigation.navigate("QuoteEditor")}
+          onPress={() => { analytics.trackButtonPress('quote_create_fab', 'Quotes'); navigation.navigate("QuoteEditor"); }}
           style={({ pressed }) => ({
             backgroundColor: pressed ? colors.primary + "cc" : colors.primary,
             width: 56, height: 56, borderRadius: 28,

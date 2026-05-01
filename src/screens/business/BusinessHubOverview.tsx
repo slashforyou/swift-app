@@ -9,8 +9,7 @@ import {
     StyleSheet,
     Text,
     TouchableOpacity,
-    View,
-    Animated,
+    View
 } from "react-native";
 import type { BusinessTab } from "../../components/business/BusinessTabMenu";
 import { ServerData } from "../../constants/ServerData";

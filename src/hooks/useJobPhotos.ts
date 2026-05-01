@@ -2,13 +2,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { useJobStateOptional } from "../context/JobStateProvider";
 import {
-  deletePhoto,
-  fetchJobPhotos,
-  getPhotoServeUrl,
-  JobPhotoAPI,
-  updatePhotoDescription,
-  uploadJobPhoto,
-  uploadJobPhotos,
+    deletePhoto,
+    fetchJobPhotos,
+    getPhotoServeUrl,
+    JobPhotoAPI,
+    updatePhotoDescription,
+    uploadJobPhoto,
+    uploadJobPhotos,
 } from "../services/jobPhotos";
 import { PhotoUploadStatus } from "../types/jobState";
 import { isLoggedIn } from "../utils/auth";

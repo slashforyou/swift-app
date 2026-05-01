@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Payment Page � Gestion des paiements
  * Structure : Hero CTA ? Acompte ? Items additionnels ? D�tail facturation ? Signaler probl�me
  */
@@ -25,6 +25,7 @@ import { useInvoice } from "../../hooks/useInvoice";
 import { useJobDetails } from "../../hooks/useJobDetails";
 import { useJobPaymentStatus } from "../../hooks/useJobPaymentStatus";
 import { useLocalization } from "../../localization/useLocalization";
+import { analytics } from "../../services/analytics";
 import { checkJobSignatureExists } from "../../services/jobDetails";
 import { updateJob } from "../../services/jobs";
 import {
@@ -271,6 +272,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
       return;
     }
     const jobId = job?.id || job?.job?.id;
+    analytics.trackButtonPress('deposit_link_create', 'JobPayment', { job_id: jobId, amount });
     setIsCreatingDepositLink(true);
     try {
       const link = await createStripePaymentLink({
@@ -298,7 +300,9 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
         deposit_status: "link_sent",
         deposit_payment_link_url: link.url,
       });
+      analytics.trackCustomEvent('deposit_link_created', 'business', { job_id: jobId, amount });
     } catch {
+      analytics.trackError({ error_type: 'deposit_link_error', error_message: 'Failed to create deposit link', context: { job_id: jobId } });
       Alert.alert("Erreur", "Impossible de cr�er le lien de paiement.");
     } finally {
       setIsCreatingDepositLink(false);
@@ -308,6 +312,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
   const handleShareDepositLink = async () => {
     const url = paymentStatusHook.depositLinkUrl;
     if (!url) return;
+    analytics.trackButtonPress('deposit_link_share', 'JobPayment', { job_id: job?.id || job?.job?.id });
     await Share.share({ message: url, url });
   };
 
@@ -328,6 +333,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
             if (linkId) {
               try {
                 await deactivateStripePaymentLink(linkId);
+                analytics.trackCustomEvent('deposit_link_deactivated', 'business', { job_id: job?.id || job?.job?.id });
                 setJob((p: any) => ({
                   ...p,
                   deposit_status: "none",
@@ -368,6 +374,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
       amount: amount,
     };
 
+    analytics.trackCustomEvent('additional_item_added', 'business', { job_id: job?.id || job?.job?.id, amount: newItem.amount });
     setAdditionalItems((prev) => [...prev, newItem]);
     setNewItemDescription("");
     setNewItemAmount("");
@@ -375,12 +382,14 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
   };
 
   const handleRemoveItem = (itemId: string) => {
+    analytics.trackCustomEvent('additional_item_removed', 'business', { job_id: job?.id || job?.job?.id, item_id: itemId });
     setAdditionalItems((prev) => prev.filter((item) => item.id !== itemId));
   };
 
   const handleRecordManualPayment = async (method: "cash" | "card" | "bank_transfer") => {
     const jobId = job?.id || job?.job?.id;
     if (!jobId) return;
+    analytics.trackButtonPress('manual_payment_record', 'JobPayment', { job_id: jobId, method });
     try {
       setIsRecordingManualPayment(true);
       await updateJob(String(jobId), {
@@ -396,11 +405,13 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
       }));
       setManualPaymentMethod(null);
       setManualPaymentNotes("");
+      analytics.trackCustomEvent('manual_payment_recorded', 'business', { job_id: jobId, method });
       Alert.alert(
         t("common.success") || "Success",
         t("jobDetails.payment.manualPayment.recorded") || "Payment recorded successfully",
       );
     } catch {
+      analytics.trackError({ error_type: 'manual_payment_error', error_message: 'Failed to record manual payment', context: { job_id: jobId, method } });
       Alert.alert(
         t("common.error") || "Error",
         t("jobDetails.payment.manualPayment.error") || "Unable to record payment. Please try again.",
@@ -482,10 +493,12 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
 
   // ? Handler pour le bouton de signature
   const handleOpenSignature = () => {
+    analytics.trackButtonPress('signature_open', 'JobPayment', { job_id: job?.id || job?.job?.id });
     setIsSigningVisible(true);
   };
 
   const handlePayment = () => {
+    analytics.trackButtonPress('payment_cta', 'JobPayment', { job_id: job?.id || job?.job?.id });
     if (!isJobCompleted) {
       Alert.alert(
         t("jobDetails.payment.alerts.jobInProgress"),
@@ -538,6 +551,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
 
   // ? Handler pour envoyer la facture au client (quand d�j� pay�)
   const handleSendInvoice = useCallback(async () => {
+    analytics.trackButtonPress('invoice_send', 'JobPayment', { job_id: job?.id || job?.job?.id });
     try {
       const jobData = {
         id: job?.id || job?.job?.id,
@@ -1523,7 +1537,8 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
               </>
             )}
           </View>
-        )}�TAIL DE FACTURATION (collapsible) ===== */}
+        )}
+        {/* ===== 4. DÉTAIL DE FACTURATION (collapsible) ===== */}
         <View
           style={{
             backgroundColor: colors.backgroundSecondary,

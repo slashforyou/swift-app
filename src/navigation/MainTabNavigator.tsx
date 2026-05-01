@@ -68,11 +68,7 @@ export default function MainTabNavigator() {
     headerShown: false,
     tabBarActiveTintColor: colors.primary,
     tabBarInactiveTintColor: colors.textSecondary,
-    tabBarStyle: {
-      backgroundColor: colors.backgroundTertiary,
-      borderTopColor: colors.backgroundSecondary,
-      borderTopWidth: 1,
-    },
+    tabBarStyle: { display: 'none' as const },
   };
 
   return (
@@ -140,7 +136,6 @@ export default function MainTabNavigator() {
             options={{
               title: "Jobs",
               tabBarIcon: makeTabIcon("briefcase", "briefcase-outline"),
-              tabBarStyle: { display: 'none' },
             }}
           />
           <Tab.Screen

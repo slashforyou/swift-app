@@ -1,6 +1,7 @@
 ﻿// services/auth.ts
 import * as SecureStore from "expo-secure-store";
 import { ServerData } from "../constants/ServerData";
+import { analytics, setAnalyticsUser } from "../services/analytics";
 import { navigateGlobal } from "../services/navRef";
 import { clearStripeCache } from "../services/stripeCache";
 import { collectDevicePayload } from "./device";
@@ -152,6 +153,11 @@ export async function login(mail: string, password: string) {
 
   // 🔓 Login réussi — réinitialiser le circuit breaker
   resetSessionDead();
+
+  // 📊 Associer l'utilisateur aux analytics (pour tous les events suivants)
+  if (user) {
+    setAnalyticsUser(user.id, user.company_id);
+  }
 
   return { sessionToken, success, hasRefresh: !!refreshToken, user };
 }
@@ -319,6 +325,7 @@ export async function authenticatedFetch(
     },
   };
 
+  const callStart = Date.now();
   let response = await fetch(url, requestOptions);
 
   // Si 401, essayer de refresh le token (une seule tentative partagée entre tous les appels concurrents)
@@ -349,6 +356,13 @@ export async function authenticatedFetch(
       throw new Error("SESSION_EXPIRED");
     }
   }
+
+  // Track API call timing (extract path from full URL)
+  try {
+    const urlPath = url.replace(/^https?:\/\/[^\/]+/, '');
+    const method = (options.method ?? 'GET').toUpperCase();
+    analytics.trackAPICall(urlPath, method, Date.now() - callStart, response.status);
+  } catch {}
 
   return response;
 }

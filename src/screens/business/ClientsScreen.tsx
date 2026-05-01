@@ -19,6 +19,7 @@ import {
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
 import { useLocalization } from "../../localization/useLocalization";
+import { analytics } from "../../services/analytics";
 import {
     ClientAPI,
     createClient,
@@ -396,11 +397,13 @@ export default function ClientsScreen() {
   };
 
   const handleEdit = (c: ClientAPI) => {
+    analytics.trackButtonPress('client_edit_open', 'Clients', { client_id: c.id });
     setEditingClient(c);
     setShowModal(true);
   };
 
   const handleDelete = (c: ClientAPI) => {
+    analytics.trackButtonPress('client_delete_confirm', 'Clients', { client_id: c.id });
     Alert.alert(
       t("businessHub.clients.deleteTitle"),
       t("businessHub.clients.deleteConfirm"),
@@ -412,6 +415,7 @@ export default function ClientsScreen() {
           onPress: async () => {
             try {
               await deleteClientService(c.id);
+              analytics.trackCustomEvent('client_deleted', 'business', { client_id: c.id });
               await load();
               Alert.alert(t("businessHub.clients.success"), t("businessHub.clients.deleted"));
             } catch {
@@ -548,7 +552,7 @@ export default function ClientsScreen() {
 
       {/* FAB */}
       <Pressable
-        onPress={() => { setEditingClient(null); setShowModal(true); }}
+        onPress={() => { analytics.trackButtonPress('client_add_open', 'Clients'); setEditingClient(null); setShowModal(true); }}
         style={{
           position: "absolute",
           bottom: DESIGN_TOKENS.spacing.xl,

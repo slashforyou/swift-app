@@ -1,5 +1,6 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useCallback, useEffect, useState } from "react";
+import HeaderLogo from "../../components/ui/HeaderLogo";
 import {
     ActivityIndicator,
     Alert,
@@ -144,10 +145,14 @@ export default function JobAttachmentsScreen({ route, navigation, jobId: propJob
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
+      {/* Logo */}
+      <View style={{ alignItems: "center", paddingTop: insets.top }}>
+        <HeaderLogo preset="sm" variant="rectangle" marginVertical={0} />
+      </View>
       {/* Header */}
       <View
         style={{
-          paddingTop: insets.top + DESIGN_TOKENS.spacing.sm,
+          paddingTop: DESIGN_TOKENS.spacing.sm,
           paddingHorizontal: DESIGN_TOKENS.spacing.lg,
           paddingBottom: DESIGN_TOKENS.spacing.md,
           flexDirection: "row",

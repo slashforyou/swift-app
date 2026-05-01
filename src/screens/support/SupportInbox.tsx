@@ -17,6 +17,7 @@ import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
 import { useConversations } from "../../hooks/useSupport";
 import { useTranslation } from "../../localization";
+import { analytics } from "../../services/analytics";
 import { Conversation } from "../../services/supportService";
 
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -83,12 +84,13 @@ const SupportInbox: React.FC<SupportInboxProps> = ({ navigation }) => {
 
     return (
       <Pressable
-        onPress={() =>
+        onPress={() => {
+          analytics.trackButtonPress('open_conversation', 'SupportInbox', { conversation_id: item.id });
           navigation.navigate("SupportConversation", {
             conversationId: item.id,
             subject: item.subject,
-          })
-        }
+          });
+        }}
         accessible
         accessibilityRole="button"
         accessibilityLabel={`${item.subject} — ${t(`support.status.${item.status}`)}`}
@@ -287,8 +289,10 @@ const SupportInbox: React.FC<SupportInboxProps> = ({ navigation }) => {
       >
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Pressable
-            onPress={() => navigation.goBack()}
-            hitSlop={DESIGN_TOKENS.touch.hitSlop}
+            onPress={() => {
+            analytics.trackButtonPress('back_btn', 'SupportInbox');
+            navigation.goBack();
+          }}
             style={{ marginRight: DESIGN_TOKENS.spacing.md }}
             accessible
             accessibilityRole="button"
@@ -334,7 +338,10 @@ const SupportInbox: React.FC<SupportInboxProps> = ({ navigation }) => {
 
       {/* New conversation FAB */}
       <Pressable
-        onPress={() => navigation.navigate("SupportNewConversation")}
+        onPress={() => {
+          analytics.trackButtonPress('new_conversation', 'SupportInbox');
+          navigation.navigate("SupportNewConversation");
+        }}
         accessible
         accessibilityRole="button"
         accessibilityLabel={t("support.newConversation") || "New conversation"}

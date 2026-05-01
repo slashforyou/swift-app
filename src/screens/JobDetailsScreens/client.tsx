@@ -4,7 +4,7 @@
  */
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { AppState, Pressable, Text, View } from "react-native";
 import SignatureSection from "../../components/jobDetails/sections/SignatureSection";
 import { HStack, VStack } from "../../components/primitives/Stack";
 import SigningBloc from "../../components/signingBloc";
@@ -13,6 +13,7 @@ import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useCommonThemedStyles } from "../../hooks/useCommonStyles";
 import { useJobDetails } from "../../hooks/useJobDetails";
 import { useLocalization } from "../../localization/useLocalization";
+import { analytics } from "../../services/analytics";
 import { ClientAPI, fetchClientById } from "../../services/clients";
 import contactLink from "../../services/contactLink";
 import { isLoggedIn } from "../../utils/auth";
@@ -134,6 +135,18 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
     useState<ClientAPI | null>(null);
   const [isLoadingClient, setIsLoadingClient] = useState(false);
   const [isSigningVisible, setIsSigningVisible] = useState(false);
+  const [lastContactAction, setLastContactAction] = useState<string | null>(null);
+
+  // AppState listener — track return to app after call/sms/email
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active' && lastContactAction) {
+        analytics.trackCustomEvent('app_returned_after_contact', 'user_action', { job_id: job?.id, action: lastContactAction });
+        setLastContactAction(null);
+      }
+    });
+    return () => subscription.remove();
+  }, [lastContactAction, job?.id]);
 
   // ✅ Récupérer jobDetails du context pour avoir les données fraîches (notamment signature_blob)
   // NOTE: L'endpoint /job/:code/full attend un CODE (JOB-XXX), pas un ID numérique
@@ -262,23 +275,35 @@ const JobClient: React.FC<JobClientProps> = ({ job, setJob }) => {
       list.push({
         icon: "call",
         label: t("jobDetails.client.call"),
-        onPress: () => contactLink(phone, "tel"),
+        onPress: () => {
+          analytics.trackCustomEvent('call_client', 'business', { job_id: job?.id });
+          setLastContactAction('call');
+          contactLink(phone, "tel");
+        },
       });
       list.push({
         icon: "chatbubble",
         label: t("jobDetails.client.sms"),
-        onPress: () => contactLink(phone, "sms"),
+        onPress: () => {
+          analytics.trackCustomEvent('sms_client', 'business', { job_id: job?.id });
+          setLastContactAction('sms');
+          contactLink(phone, "sms");
+        },
       });
     }
     if (email) {
       list.push({
         icon: "mail",
         label: t("jobDetails.client.emailAction"),
-        onPress: () => contactLink(email, "mailto"),
+        onPress: () => {
+          analytics.trackCustomEvent('email_client', 'business', { job_id: job?.id });
+          setLastContactAction('email');
+          contactLink(email, "mailto");
+        },
       });
     }
     return list;
-  }, [phone, email, t]);
+  }, [phone, email, t, job?.id]);
 
   // Détails secondaires (company, address, notes)
   const secondaryDetails = useMemo(() => {

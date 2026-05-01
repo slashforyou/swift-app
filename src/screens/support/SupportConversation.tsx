@@ -21,6 +21,7 @@ import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
 import { useConversationMessages } from "../../hooks/useSupport";
 import { useTranslation } from "../../localization";
+import { analytics } from "../../services/analytics";
 import { Message } from "../../services/supportService";
 
 type SupportStackParamList = {
@@ -95,6 +96,7 @@ const SupportConversation: React.FC<SupportConversationProps> = ({
     setText("");
     try {
       await send(trimmed);
+      analytics.trackCustomEvent('message_sent', 'business', { conversation_id: conversationId });
     } catch {
       setText(trimmed);
     } finally {
@@ -216,7 +218,7 @@ const SupportConversation: React.FC<SupportConversationProps> = ({
           }}
         >
           <Pressable
-            onPress={() => navigation.goBack()}
+            onPress={() => { analytics.trackButtonPress('back_btn', 'SupportConversation', { conversation_id: conversationId }); navigation.goBack(); }}
             hitSlop={DESIGN_TOKENS.touch.hitSlop}
             accessible
             accessibilityRole="button"

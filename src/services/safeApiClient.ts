@@ -24,6 +24,7 @@
  */
 
 import { API_URL } from "../config/environment";
+import { analytics } from "./analytics";
 import { apiDiscovery } from "./apiDiscovery";
 import { logger } from "./logger";
 
@@ -257,6 +258,7 @@ export async function safeApiCall<T = any>(
   }
 
   // 3. ENDPOINT DISPONIBLE → APPEL NORMAL
+  const callStartTime = Date.now();
   try {
     const fullUrl = endpoint.startsWith("http")
       ? endpoint
@@ -278,9 +280,11 @@ export async function safeApiCall<T = any>(
     };
 
     const response = await fetch(fullUrl, fetchOptions);
+    const callDuration = Date.now() - callStartTime;
 
     // Cas spécial: 404 alors que Discovery dit que c'est disponible
     if (response.status === 404) {
+      analytics.trackAPICall(normalizedEndpoint, method, callDuration, 404);
       logger.warn("[SafeApiCall] Got 404 but endpoint should be available", {
         endpoint: normalizedEndpoint,
         method,
@@ -312,6 +316,7 @@ export async function safeApiCall<T = any>(
 
     // Autres erreurs HTTP
     if (!response.ok) {
+      analytics.trackAPICall(normalizedEndpoint, method, callDuration, response.status);
       const errorText = await response.text();
       logger.error("[SafeApiCall] HTTP error", {
         endpoint: normalizedEndpoint,
@@ -330,6 +335,7 @@ export async function safeApiCall<T = any>(
 
     // Succès
     const data = await response.json();
+    analytics.trackAPICall(normalizedEndpoint, method, callDuration, response.status);
     logger.debug("[SafeApiCall] Success", { endpoint: normalizedEndpoint });
 
     return {

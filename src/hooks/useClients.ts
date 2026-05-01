@@ -53,10 +53,13 @@ export const useClients = (): UseClientsReturn => {
         err instanceof Error ? err.message : "An error occurred";
 
       if (
+        errorMessage === 'SESSION_EXPIRED' ||
         errorMessage.includes("401") ||
         errorMessage.includes("Unauthorized")
       ) {
-        setError("Session expirée. Veuillez vous reconnecter.");
+        // Session expired — already navigated away by auth layer, ignore silently
+        setClients([]);
+        return;
       } else if (
         errorMessage.includes("Network") ||
         errorMessage.includes("fetch")

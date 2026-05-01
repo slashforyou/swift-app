@@ -1,4 +1,4 @@
-﻿// hooks/useJobNotes.ts
+// hooks/useJobNotes.ts
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -107,10 +107,12 @@ export const useJobNotes = (jobId: string): UseJobNotesReturn => {
         err instanceof Error ? err.message : "An error occurred";
 
       if (
+        errorMessage === 'SESSION_EXPIRED' ||
         errorMessage.includes("401") ||
         errorMessage.includes("Unauthorized")
       ) {
-        setError("Session expirée. Veuillez vous reconnecter.");
+        // Session expired — already navigated away by auth layer, ignore silently
+        return;
       } else if (
         errorMessage.includes("Network") ||
         errorMessage.includes("fetch")

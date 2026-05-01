@@ -18,6 +18,7 @@ import { DESIGN_TOKENS } from "../constants/Styles";
 import { useTheme } from "../context/ThemeProvider";
 import { useTranslation } from "../localization";
 import { lookupAbn } from "../services/abnLookupService";
+import { analytics } from "../services/analytics";
 import { fetchWithAuth } from "../utils/session";
 
 const BRAND_COLORS = [
@@ -210,6 +211,7 @@ export default function CompleteProfileScreen() {
 
       const json = await response.json();
       if (!json.success) {
+        analytics.trackError({ error_type: 'profile_save_error', error_message: json.error || 'Save failed', context: { screen: 'CompleteProfile' } });
         Alert.alert(
           t("common.error") || "Error",
           json.error || t("completeProfile.saveError") || "Failed to save profile",
@@ -220,7 +222,10 @@ export default function CompleteProfileScreen() {
       Alert.alert(
         t("completeProfile.savedTitle") || "Profile Saved",
         t("completeProfile.savedMessage") || "Your business profile has been updated.",
-        [{ text: "OK", onPress: () => navigation.goBack() }],
+        [{ text: "OK", onPress: () => {
+          analytics.trackCustomEvent('profile_saved', 'business');
+          navigation.goBack();
+        }}],
       );
     } catch (err) {
       console.error("[CompleteProfile] Save error:", err);
@@ -334,8 +339,10 @@ export default function CompleteProfileScreen() {
         });
         scheduleDraftSave();
         setAbnStatus("success");
+        analytics.trackCustomEvent('abn_lookup_success', 'business', { abn: cleaned });
       } catch {
         setAbnStatus("error");
+        analytics.trackError({ error_type: 'abn_lookup_error', error_message: 'ABN lookup failed', context: { screen: 'CompleteProfile', abn: cleaned } });
       }
     }, 500);
 
@@ -513,7 +520,7 @@ export default function CompleteProfileScreen() {
           { backgroundColor: colors.background, borderBottomColor: colors.border },
         ]}
       >
-        <Pressable onPress={() => navigation.goBack()} style={styles.backBtn}>
+        <Pressable onPress={() => { analytics.trackButtonPress('back_btn', 'CompleteProfile'); navigation.goBack(); }} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </Pressable>
         <Text style={[styles.headerTitle, { color: colors.text }]}>

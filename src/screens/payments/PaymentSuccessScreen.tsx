@@ -18,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { DESIGN_TOKENS } from '../../constants/Styles'
 import { useTheme } from '../../context/ThemeProvider'
 import { useTranslation } from '../../localization/useLocalization'
+import { analytics } from '../../services/analytics'
 
 // Types
 interface PaymentSuccessData {
@@ -49,6 +50,12 @@ export const PaymentSuccessScreen: React.FC<PaymentSuccessScreenProps> = ({
 
   // Animation d'entrée du cercle de succès
   useEffect(() => {
+    analytics.trackCustomEvent('payment_success_viewed', 'business', {
+      payment_id: paymentData.paymentId,
+      amount: paymentData.amount,
+      currency: paymentData.currency,
+      job_id: paymentData.jobId,
+    });
     Animated.spring(scaleValue, {
       toValue: 1,
       tension: 50,
@@ -253,7 +260,7 @@ export const PaymentSuccessScreen: React.FC<PaymentSuccessScreenProps> = ({
               {onDownloadReceipt && (
                 <TouchableOpacity 
                   style={[styles.secondaryButton, styles.receiptButton]}
-                  onPress={onDownloadReceipt}
+                  onPress={() => { analytics.trackButtonPress('download_receipt', 'PaymentSuccess', { payment_id: paymentData.paymentId, job_id: paymentData.jobId }); onDownloadReceipt?.(); }}
                   accessibilityLabel="Download receipt"
                 >
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -266,7 +273,7 @@ export const PaymentSuccessScreen: React.FC<PaymentSuccessScreenProps> = ({
               {onSendReceipt && (
                 <TouchableOpacity 
                   style={[styles.secondaryButton, styles.receiptButton]}
-                  onPress={onSendReceipt}
+                  onPress={() => { analytics.trackButtonPress('send_receipt', 'PaymentSuccess', { payment_id: paymentData.paymentId, job_id: paymentData.jobId }); onSendReceipt?.(); }}
                   accessibilityLabel="Email receipt"
                 >
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -281,7 +288,7 @@ export const PaymentSuccessScreen: React.FC<PaymentSuccessScreenProps> = ({
           {/* Bouton principal */}
           <TouchableOpacity
             style={styles.primaryButton}
-            onPress={onContinue}
+            onPress={() => { analytics.trackButtonPress('payment_continue', 'PaymentSuccess', { payment_id: paymentData.paymentId, job_id: paymentData.jobId }); onContinue(); }}
             accessibilityLabel="Continue to next screen"
           >
             <Text style={styles.primaryButtonText}>{t('payment.buttons.continue')}</Text>
@@ -289,7 +296,7 @@ export const PaymentSuccessScreen: React.FC<PaymentSuccessScreenProps> = ({
 
           <TouchableOpacity
             style={styles.tertiaryButton}
-            onPress={onContinue}
+            onPress={() => { analytics.trackButtonPress('payment_back_to_dashboard', 'PaymentSuccess', { payment_id: paymentData.paymentId }); onContinue(); }}
             accessibilityLabel="Back to dashboard"
           >
             <Text style={styles.tertiaryButtonText}>{t('payment.buttons.backToDashboard')}</Text>

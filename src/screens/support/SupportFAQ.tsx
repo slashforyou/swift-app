@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
 import { useTranslation } from "../../localization";
+import { analytics } from "../../services/analytics";
 
 type IoniconsName = React.ComponentProps<typeof Ionicons>["name"];
 
@@ -94,7 +95,7 @@ const SupportFAQ: React.FC<Props> = ({ navigation }) => {
       {FAQ_CATEGORIES.map((cat) => (
         <Pressable
           key={cat.key}
-          onPress={() => setSelectedCategory(cat.key)}
+          onPress={() => { analytics.trackButtonPress(`faq_category_${cat.key}`, 'SupportFAQ'); setSelectedCategory(cat.key); }}
           style={({ pressed }) => ({
             backgroundColor: pressed
               ? colors.backgroundTertiary
@@ -199,9 +200,11 @@ const SupportFAQ: React.FC<Props> = ({ navigation }) => {
         {items.map((item, index) => (
           <Pressable
             key={index}
-            onPress={() =>
-              setExpandedQuestion(expandedQuestion === index ? null : index)
-            }
+            onPress={() => {
+              const isExpanding = expandedQuestion !== index;
+              if (isExpanding) analytics.trackButtonPress('faq_question_expand', 'SupportFAQ', { question_index: index, category: selectedCategory });
+              setExpandedQuestion(expandedQuestion === index ? null : index);
+            }}
             style={{
               backgroundColor: colors.backgroundSecondary,
               borderRadius: DESIGN_TOKENS.radius.md,
@@ -301,7 +304,7 @@ const SupportFAQ: React.FC<Props> = ({ navigation }) => {
             {t("supportFAQ.stillNeedHelpDesc")}
           </Text>
           <Pressable
-            onPress={() => navigation.navigate("SupportInbox")}
+            onPress={() => { analytics.trackButtonPress('faq_contact_support', 'SupportFAQ'); navigation.navigate("SupportInbox"); }}
             style={({ pressed }) => ({
               backgroundColor: pressed
                 ? colors.primary + "DD"

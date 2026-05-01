@@ -12,12 +12,29 @@
  * - Fallback silent si endpoint non disponible
  */
 
+import Constants from "expo-constants";
+import { Platform } from "react-native";
 import { API_URL } from "../config/environment";
 import { getAuthHeaders } from "../utils/auth";
 import { apiDiscovery } from "./apiDiscovery";
 import { logger } from "./logger";
 
 const API_BASE_URL = `${API_URL}v1`;
+
+// Génère un session_id unique par lancement d'app
+function generateSessionId(): string {
+  const ts = Date.now().toString(36);
+  const rand = Math.random().toString(36).substring(2, 10);
+  return `sess_${ts}_${rand}`;
+}
+
+// Mapping catégories frontend → catégories serveur
+const CATEGORY_MAP: Record<string, string> = {
+  user_action: "user",
+  business: "business",
+  technical: "performance",
+  error: "error",
+};
 
 // Types pour les événements analytics
 export interface AnalyticsEvent {
@@ -37,7 +54,7 @@ export interface PerformanceMetric {
 }
 
 export interface ErrorEvent {
-  error_type: "api_error" | "app_crash" | "validation_error" | "network_error";
+  error_type: string;
   error_message: string;
   error_stack?: string;
   context?: Record<string, any>;
@@ -48,10 +65,21 @@ class AnalyticsService {
   private isEnabled: boolean = true;
   private eventQueue: AnalyticsEvent[] = [];
   private batchSize: number = 10;
-  private flushInterval: number = 30000; // 30 secondes
+  private flushInterval: number = 10000; // 10 secondes
+  private sessionId: string = generateSessionId();
+  private userId: string | null = null;
+  private companyId: string | null = null;
 
   constructor() {
     this.startPeriodicFlush();
+  }
+
+  /**
+   * Associer l'utilisateur connecté à la session (appeler après login)
+   */
+  setUser(userId: string | number | null, companyId: string | number | null) {
+    this.userId = userId !== null ? String(userId) : null;
+    this.companyId = companyId !== null ? String(companyId) : null;
   }
 
   // ========== EVENT TRACKING ==========
@@ -165,6 +193,46 @@ class AnalyticsService {
   }
 
   /**
+   * Track a button press / tap interaction
+   */
+  trackButtonPress(
+    buttonId: string,
+    screenName?: string,
+    extraData?: Record<string, any>,
+  ) {
+    this.trackEvent({
+      event_type: "button_press",
+      event_category: "user_action",
+      event_data: {
+        button_id: buttonId,
+        screen_name: screenName,
+        ...extraData,
+      },
+    });
+  }
+
+  /**
+   * Track a form field interaction (focus, blur, error)
+   */
+  trackFormEvent(
+    formName: string,
+    fieldName: string,
+    action: "focus" | "blur" | "error" | "submit",
+    screenName?: string,
+  ) {
+    this.trackEvent({
+      event_type: "form_interaction",
+      event_category: "user_action",
+      event_data: {
+        form_name: formName,
+        field_name: fieldName,
+        action,
+        screen_name: screenName,
+      },
+    });
+  }
+
+  /**
    * Generic event tracking
    */
   private trackEvent(event: AnalyticsEvent) {
@@ -177,6 +245,9 @@ class AnalyticsService {
 
     const enrichedEvent: AnalyticsEvent = {
       ...event,
+      session_id: this.sessionId,
+      user_id: this.userId ?? event.user_id,
+      company_id: this.companyId ?? event.company_id,
       timestamp: new Date().toISOString(),
     };
 
@@ -371,13 +442,26 @@ class AnalyticsService {
         eventCount: eventsToFlush.length,
       });
 
+      // Mapper les catégories frontend → serveur
+      const mappedEvents = eventsToFlush.map((e) => ({
+        ...e,
+        event_category: CATEGORY_MAP[e.event_category] ?? e.event_category,
+      }));
+
+      const appVersion =
+        (Constants.expoConfig?.version ?? Constants.manifest?.version ?? "unknown");
+      const platform = Platform.OS; // "ios" | "android" | "web"
+
       const response = await fetch(`${API_BASE_URL}/analytics/events`, {
         method: "POST",
         headers: {
           ...authHeaders,
           "Content-Type": "application/json",
+          "x-session-id": this.sessionId,
+          "x-platform": platform,
+          "x-app-version": appVersion,
         },
-        body: JSON.stringify({ events: eventsToFlush }),
+        body: JSON.stringify({ events: mappedEvents }),
       });
 
       if (response.ok) {
@@ -540,3 +624,8 @@ export const trackJobStarted = analytics.trackJobStarted.bind(analytics);
 export const trackJobCompleted = analytics.trackJobCompleted.bind(analytics);
 export const trackReviewRequested = analytics.trackReviewRequested.bind(analytics);
 export const trackJobDeclined = analytics.trackJobDeclined.bind(analytics);
+
+// UX interaction events
+export const trackButtonPress = analytics.trackButtonPress.bind(analytics);
+export const trackFormEvent = analytics.trackFormEvent.bind(analytics);
+export const setAnalyticsUser = analytics.setUser.bind(analytics);

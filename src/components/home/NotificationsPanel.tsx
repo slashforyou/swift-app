@@ -50,56 +50,50 @@ const NOTIFICATION_CONFIG: Record<
     emoji: string;
     icon: keyof typeof Ionicons.glyphMap;
     color: string;
-    hookText: string;
+    hookKey: string;
   }
 > = {
   job: {
-    emoji: "📦",
-    icon: "briefcase",
+    emoji: "🚛",
+    icon: "car-sport-outline",
     color: "#FF6B35",
-    hookText: "Nouveau job disponible !",
+    hookKey: "home.notificationsPanel.hookJob",
   },
   bonus: {
     emoji: "⚡",
     icon: "flash",
     color: "#F59E0B",
-    hookText: "Tu as gagné un bonus !",
+    hookKey: "home.notificationsPanel.hookBonus",
   },
   payment: {
     emoji: "💰",
     icon: "card",
     color: "#4CAF50",
-    hookText: "Paiement reçu ✓",
+    hookKey: "home.notificationsPanel.hookPayment",
   },
   call: {
     emoji: "📞",
     icon: "call",
     color: "#2196F3",
-    hookText: "Appel manqué",
+    hookKey: "home.notificationsPanel.hookCall",
   },
   reminder: {
     emoji: "⏰",
     icon: "alarm",
     color: "#9C27B0",
-    hookText: "Rappel important",
-  },
-  alert: {
-    emoji: "🚨",
-    icon: "warning",
-    color: "#F44336",
-    hookText: "Action requise",
+    hookKey: "home.notificationsPanel.hookReminder",
   },
   system: {
     emoji: "🔔",
     icon: "notifications",
     color: "#607D8B",
-    hookText: "Information",
+    hookKey: "home.notificationsPanel.hookSystem",
   },
   new_partnership: {
     emoji: "🤝",
     icon: "people",
     color: "#00BCD4",
-    hookText: "Nouvelle collaboration !",
+    hookKey: "home.notificationsPanel.hookNewPartnership",
   },
 };
 
@@ -112,17 +106,21 @@ interface NotificationItemProps {
     message: string;
     isRead: boolean;
     createdAt: string | Date;
+    data?: Record<string, any>;
   };
   index: number;
   onRemove: (id: string) => void;
+  onPress: () => void;
 }
 
 const NotificationItem: React.FC<NotificationItemProps> = ({
   notif,
   index,
   onRemove,
+  onPress,
 }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const config = NOTIFICATION_CONFIG[notif.type] || NOTIFICATION_CONFIG.system;
   const accentColor = config.color || "#607D8B";
 
@@ -203,7 +201,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
       <Pressable
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        onPress={() => {}}
+        onPress={onPress}
         style={{
           flexDirection: "row",
           alignItems: "stretch",
@@ -272,7 +270,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
                   marginTop: 1,
                 }}
               >
-                {config.hookText}
+                {t(config.hookKey)}
               </Text>
             </View>
 
@@ -296,7 +294,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
                     letterSpacing: 0.5,
                   }}
                 >
-                  NEW
+                  {t("home.notificationsPanel.newBadge")}
                 </Text>
               </Animated.View>
             )}
@@ -338,7 +336,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
                   fontWeight: "500",
                 }}
               >
-                {formatRelativeTime(notif.createdAt)}
+                {formatRelativeTime(typeof notif.createdAt === 'string' ? new Date(notif.createdAt) : notif.createdAt)}
               </Text>
             </View>
             <Pressable
@@ -440,6 +438,18 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
   const handleRemoveNotification = (id: string) => {
     removeNotification(id);
   };
+
+  const handleNotificationPress = useCallback((notif: { type: NotificationType; data?: Record<string, any> }) => {
+    const jobId = notif.data?.job?.id;
+    closePanel();
+    setTimeout(() => {
+      if (notif.type === 'job' && jobId) {
+        navigation.navigate('JobDetails', { jobId, from: 'Home' });
+      } else if (notif.type === 'payment') {
+        navigation.navigate('Business', { initialTab: 'Payments' });
+      }
+    }, 300);
+  }, [closePanel, navigation]);
 
   if (!isModalVisible && !isVisible) return null;
 
@@ -598,8 +608,7 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
                     color: colors.warning,
                   }}
                 >
-                  {pendingAssignments.length} demande
-                  {pendingAssignments.length > 1 ? "s" : ""} en attente
+                  {t("home.notificationsPanel.pendingRequests", { count: pendingAssignments.length })}
                 </Text>
               </View>
               {pendingAssignments.map((a) => {
@@ -725,7 +734,7 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
                     letterSpacing: -0.3,
                   }}
                 >
-                  Tout est calme pour l'instant
+                  {t("home.notificationsPanel.emptyTitle")}
                 </Text>
                 <Text
                   style={{
@@ -735,7 +744,7 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
                     lineHeight: 20,
                   }}
                 >
-                  Les nouvelles notifications apparaîtront ici
+                  {t("home.notificationsPanel.emptyMessage")}
                 </Text>
               </View>
             ) : (
@@ -746,6 +755,7 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
                     notif={notif}
                     index={index}
                     onRemove={handleRemoveNotification}
+                    onPress={() => handleNotificationPress(notif)}
                   />
                 ))}
               </View>

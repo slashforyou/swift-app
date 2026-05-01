@@ -31,6 +31,7 @@ import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useCommonThemedStyles } from "../../hooks/useCommonStyles";
 import { useJobsForWeek, WeekDay } from "../../hooks/useJobsForWeek";
 import { useLocalization, useTranslation } from "../../localization";
+import { analytics } from "../../services/analytics";
 import { updateJob } from "../../services/jobs";
 
 interface WeekScreenProps {
@@ -79,6 +80,7 @@ const WeekScreen: React.FC<WeekScreenProps> = ({ route, navigation }) => {
 
   const navigateWeek = useCallback(
     (direction: "prev" | "next") => {
+      analytics.trackButtonPress(`calendar_week_${direction}`, 'WeekScreen');
       setReferenceDate((prev) => {
         const d = new Date(prev);
         d.setDate(d.getDate() + (direction === "next" ? 7 : -7));
@@ -89,11 +91,13 @@ const WeekScreen: React.FC<WeekScreenProps> = ({ route, navigation }) => {
   );
 
   const goToToday = useCallback(() => {
+    analytics.trackButtonPress('calendar_go_to_today', 'WeekScreen');
     setReferenceDate(new Date());
   }, []);
 
   const navigateToDay = useCallback(
     (weekDay: WeekDay) => {
+      analytics.trackButtonPress('calendar_day_open', 'WeekScreen', { day: weekDay.day, month: weekDay.month, year: weekDay.year });
       navigation.navigate("Day", {
         day: weekDay.day,
         month: weekDay.month,
@@ -253,6 +257,7 @@ const WeekScreen: React.FC<WeekScreenProps> = ({ route, navigation }) => {
             onPress: async () => {
               try {
                 await updateJob(jobId, { time: newTime });
+                analytics.trackCustomEvent('job_rescheduled', 'business', { job_id: jobId, to_date: targetDateLabel });
                 await refreshJobs();
               } catch {
                 Alert.alert(

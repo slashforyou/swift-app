@@ -1,12 +1,12 @@
 ﻿import { useCallback, useEffect, useState } from "react";
 import {
-    addJobNote as addJobNoteService,
-    completeJob as completeJobService,
-    getJobDetails,
-    pauseJob as pauseJobService,
-    resumeJob as resumeJobService,
-    startJob as startJobService,
-    updateJob as updateJobService,
+  addJobNote as addJobNoteService,
+  completeJob as completeJobService,
+  getJobDetails,
+  pauseJob as pauseJobService,
+  resumeJob as resumeJobService,
+  startJob as startJobService,
+  updateJob as updateJobService,
 } from "../services/jobs";
 
 export const useJobDetails = (jobId: string) => {
@@ -65,10 +65,13 @@ export const useJobDetails = (jobId: string) => {
 
       // Gestion de l'expiration de session
       if (
+        errorMessage === 'SESSION_EXPIRED' ||
         errorMessage.includes("session") ||
         errorMessage.includes("authentication")
       ) {
-        setIsSessionExpired(true);
+        // Navigation already triggered by auth layer — return silently
+        setIsLoading(false);
+        return;
       }
 
       setError(errorMessage);

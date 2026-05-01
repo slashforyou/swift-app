@@ -4,12 +4,12 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useEffect, useState } from "react";
 import {
-  Alert,
-  Pressable,
-  ScrollView,
-  Text,
-  TouchableWithoutFeedback,
-  View,
+    Alert,
+    Pressable,
+    ScrollView,
+    Text,
+    TouchableWithoutFeedback,
+    View,
 } from "react-native";
 import ImprovedNoteModal from "../../components/jobDetails/modals/ImprovedNoteModal";
 import { DESIGN_TOKENS } from "../../constants/Styles";
@@ -17,6 +17,7 @@ import { useTheme } from "../../context/ThemeProvider";
 import { useToast } from "../../context/ToastProvider";
 import { useJobNotes } from "../../hooks/useJobNotes";
 import { useLocalization } from "../../localization/useLocalization";
+import { analytics } from "../../services/analytics";
 import { JobNoteAPI } from "../../services/jobNotes";
 
 interface JobNoteProps {
@@ -80,6 +81,7 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob, jobId }) => {
         note_type,
       });
       if (result) {
+        analytics.trackCustomEvent('note_created', 'business', { job_id: actualJobId, note_type });
         showSuccess(
           t("jobDetails.messages.noteAdded"),
           t("jobDetails.messages.noteAddedSuccess"),
@@ -97,6 +99,7 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob, jobId }) => {
       }
     } catch (error) {
       console.error("Error adding note:", error);
+      analytics.trackError({ error_type: 'note_add_error', error_message: error instanceof Error ? error.message : 'Unknown', context: { job_id: actualJobId } });
       showError(
         t("jobDetails.messages.noteAddError"),
         t("jobDetails.messages.noteAddErrorMessage"),
@@ -120,6 +123,7 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob, jobId }) => {
       });
 
       if (result) {
+        analytics.trackCustomEvent('note_updated', 'business', { job_id: actualJobId });
         showSuccess(
           t("jobDetails.messages.noteUpdated") || "Note updated",
           t("jobDetails.messages.noteUpdatedSuccess") ||
@@ -135,6 +139,7 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob, jobId }) => {
       }
     } catch (error) {
       console.error("Error updating note:", error);
+      analytics.trackError({ error_type: 'note_update_error', error_message: error instanceof Error ? error.message : 'Unknown', context: { job_id: actualJobId } });
       showError(
         t("jobDetails.messages.noteUpdateError") || "Update error",
         t("jobDetails.messages.noteUpdateErrorMessage") ||
@@ -372,7 +377,10 @@ const JobNote: React.FC<JobNoteProps> = ({ job, setJob, jobId }) => {
 
                 <Pressable
                   testID="job-notes-add-btn"
-                  onPress={() => setIsNoteModalVisible(true)}
+                  onPress={() => {
+                    analytics.trackButtonPress('note_modal_open', 'JobNotes', { job_id: actualJobId });
+                    setIsNoteModalVisible(true);
+                  }}
                   style={({ pressed }) => ({
                     backgroundColor: pressed ? colors.tint + "DD" : colors.tint,
                     paddingHorizontal: DESIGN_TOKENS.spacing.md,

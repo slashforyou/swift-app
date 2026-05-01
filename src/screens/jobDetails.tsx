@@ -31,6 +31,7 @@ import { useJobDetails } from "../hooks/useJobDetails";
 import { useJobNotes } from "../hooks/useJobNotes";
 import { usePerformanceMetrics } from "../hooks/usePerformanceMetrics";
 import { useLocalization } from "../localization/useLocalization";
+import { analytics } from "../services/analytics";
 import {
     assignStaffToJob,
     getJobCrew,
@@ -322,6 +323,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({
 
   // Handle Edit Job
   const handleEditJob = useCallback(() => {
+    analytics.trackButtonPress('edit_job', 'JobDetails', { job_id: actualJobId });
     setIsEditModalVisible(true);
   }, [actualJobId]);
 
@@ -337,6 +339,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({
 
   // Handle Assign Staff
   const handleOpenAssignStaff = useCallback(() => {
+    analytics.trackButtonPress('assign_staff_open', 'JobDetails', { job_id: actualJobId });
     setIsAssignStaffModalVisible(true);
   }, [actualJobId]);
 
@@ -352,6 +355,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({
               removeCrewMember(actualJobId, member.id),
             ),
           );
+          analytics.trackCustomEvent('staff_unassigned', 'business', { job_id: actualJobId });
           showToast(
             t("staff.unassignSuccess") || "Staff unassigned successfully",
             "success",
@@ -359,6 +363,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({
         } else {
           // Assign: ajouter au crew via POST /job/:id/crew
           await assignStaffToJob(actualJobId, staffId);
+          analytics.trackCustomEvent('staff_assigned', 'business', { job_id: actualJobId, staff_id: staffId });
           showToast(
             t("staff.assignSuccess") || "Staff assigned successfully",
             "success",
@@ -390,6 +395,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({
           style: "destructive",
           onPress: async () => {
             try {
+              analytics.trackCustomEvent('job_delete', 'business', { job_id: actualJobId });
               await deleteJob(actualJobId);
               showToast(
                 t("jobs.deleteSuccess") || "Job deleted successfully",
@@ -413,6 +419,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({
   const handleAcceptJob = useCallback(
     async (notes?: string) => {
       try {
+        analytics.trackCustomEvent('job_accept', 'business', { job_id: actualJobId });
         await acceptJob(actualJobId, notes);
         showToast(
           t("jobs.acceptSuccess") || "Job accepted successfully",
@@ -432,6 +439,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({
   const handleDeclineJob = useCallback(
     async (reason: string) => {
       try {
+        analytics.trackCustomEvent('job_decline', 'business', { job_id: actualJobId, reason });
         await declineJob(actualJobId, reason);
         showToast(
           t("jobs.declineSuccess") || "Job declined successfully",
@@ -755,6 +763,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({
 
   // ✅ Handler pour la complétion du job
   const handleJobCompleted = (finalCost: number, billableHours: number) => {
+    analytics.trackJobCompleted({ job_id: numericJobId, company_id: 0, duration_minutes: Math.round(billableHours * 60) });
 
     // Basculer automatiquement vers le panel de paiement
     setJobPanel("payment");
@@ -783,6 +792,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({
 
   // Handler pour TabMenu
   const handleTabPress = (tabId: string) => {
+    analytics.trackButtonPress(`job_tab_${tabId}`, 'JobDetails', { job_id: actualJobId });
     setJobPanel(tabId);
 
     // ✅ Marquer toutes les notes comme lues quand l'utilisateur ouvre l'onglet Notes
@@ -1014,7 +1024,10 @@ const JobDetails: React.FC<JobDetailsProps> = ({
           !job.permissions?.is_owner && (
             <Pressable
               testID="job-details-negotiation-btn"
-              onPress={() => setIsNegotiationModalVisible(true)}
+              onPress={() => {
+                analytics.trackButtonPress('negotiation_modal_open', 'JobDetails', { job_id: actualJobId });
+                setIsNegotiationModalVisible(true);
+              }}
             >
               <Ionicons name="swap-horizontal-outline" size={16} color="#fff" />
               <Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>
@@ -1029,7 +1042,10 @@ const JobDetails: React.FC<JobDetailsProps> = ({
         {jobStatus === "completed" && (
           <Pressable
             testID="job-details-send-to-storage"
-            onPress={() => setShowStorageLotModal(true)}
+            onPress={() => {
+              analytics.trackButtonPress('send_to_storage', 'JobDetails', { job_id: actualJobId });
+              setShowStorageLotModal(true);
+            }}
             style={({ pressed }) => ({
               flexDirection: "row",
               alignItems: "center",
@@ -1068,7 +1084,10 @@ const JobDetails: React.FC<JobDetailsProps> = ({
           ].map((action) => (
             <Pressable
               key={action.screen}
-              onPress={() => navigation.navigate(action.screen as any, { jobId: numericJobId })}
+              onPress={() => {
+              analytics.trackButtonPress(`quick_action_${action.screen.toLowerCase()}`, 'JobDetails', { job_id: actualJobId });
+              navigation.navigate(action.screen as any, { jobId: numericJobId });
+            }}
               style={({ pressed }) => ({
                 flex: 1,
                 alignItems: "center",

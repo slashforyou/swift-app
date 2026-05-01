@@ -20,6 +20,7 @@ import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
 import { useConversations } from "../../hooks/useSupport";
 import { useTranslation } from "../../localization";
+import { analytics } from "../../services/analytics";
 
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
@@ -65,6 +66,7 @@ const SupportNewConversation: React.FC<Props> = ({ navigation }) => {
       const finalSubject =
         subject.trim() || t(`support.categories.${category}`);
       const conv = await create({ category, subject: finalSubject, message: message.trim() });
+      analytics.trackCustomEvent('support_conversation_created', 'business', { category, conversation_id: conv.id });
       navigation.replace("SupportConversation", {
         conversationId: conv.id,
         subject: finalSubject,
@@ -93,7 +95,7 @@ const SupportNewConversation: React.FC<Props> = ({ navigation }) => {
       >
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Pressable
-            onPress={() => navigation.goBack()}
+            onPress={() => { analytics.trackButtonPress('back_btn', 'SupportNewConversation'); navigation.goBack(); }}
             hitSlop={DESIGN_TOKENS.touch.hitSlop}
             style={{ marginRight: DESIGN_TOKENS.spacing.md }}
             accessible
@@ -149,7 +151,7 @@ const SupportNewConversation: React.FC<Props> = ({ navigation }) => {
             return (
               <Pressable
                 key={cat.key}
-                onPress={() => setCategory(cat.key)}
+                  onPress={() => { analytics.trackButtonPress(`support_category_${cat.key}`, 'SupportNewConversation'); setCategory(cat.key); }}
                 style={({ pressed }) => ({
                   flexBasis: "47%",
                   flexGrow: 1,

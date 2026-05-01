@@ -3,7 +3,7 @@
  */
 
 import { useCallback, useEffect, useRef } from 'react';
-import { analytics, trackJobStep, trackNavigation, trackPayment } from '../services/analytics';
+import { analytics, trackButtonPress, trackFormEvent, trackJobStep, trackNavigation, trackPayment } from '../services/analytics';
 import { logger } from '../services/logger';
 
 export const useAnalytics = (screenName?: string, previousScreen?: string) => {
@@ -145,7 +145,17 @@ export const useAnalytics = (screenName?: string, previousScreen?: string) => {
         error_message: message,
         context: context
       });
-    }, [])
+    }, []),
+
+    // Button press (tracked with button_id for grouping in analytics dashboard)
+    button: useCallback((buttonId: string, extraData?: Record<string, any>) => {
+      trackButtonPress(buttonId, screenName, extraData);
+    }, [screenName]),
+
+    // Form field interaction
+    form: useCallback((formName: string, fieldName: string, action: 'focus' | 'blur' | 'error' | 'submit') => {
+      trackFormEvent(formName, fieldName, action, screenName);
+    }, [screenName]),
   };
 
   // Performance measurement helper

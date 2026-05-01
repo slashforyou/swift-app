@@ -53,8 +53,9 @@ export const useJobsForMonth = (year: number, month: number): UseJobsForMonthRes
       if (err instanceof Error) {
         console.error('❌ Error loading month jobs:', err);
         
-        if (err.message.includes('401') || err.message.includes('403')) {
-          errorMessage = '🔐 Session expirée. Tentative de reconnexion...';
+        if (err.message === 'SESSION_EXPIRED' || err.message.includes('401') || err.message.includes('403')) {
+          // Session expired — already navigated away by auth layer, ignore silently
+          return;
         } else if (err.message.includes('IP_BLOCKED')) {
           errorMessage = '🚫 Accès temporairement bloqué. Réessayez plus tard.';
         } else if (err.message.includes('Network')) {

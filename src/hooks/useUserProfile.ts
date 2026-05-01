@@ -1,7 +1,5 @@
 ﻿// hooks/useUserProfile.ts
-import { useNavigation } from '@react-navigation/native';
 import { useEffect, useState } from 'react';
-import { Alert } from 'react-native';
 import { fetchUserProfile, updateUserProfile, UpdateUserProfile, UserProfile } from '../services/user';
 import { getMockProfile } from '../services/userMockData';
 import { isSessionDead } from '../utils/auth';
@@ -25,27 +23,11 @@ export const useUserProfile = (): UseUserProfileResult => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSessionExpired, setIsSessionExpired] = useState(false);
-  const navigation = useNavigation();
 
   // Fonction pour gérer la redirection en cas de session expirée
   const handleSessionExpired = () => {
     setIsSessionExpired(true);
-    
-    Alert.alert(
-      '🔐 Session expirée',
-      'Votre session a expiré. Vous allez être redirigé vers la connexion.',
-      [
-        {
-          text: 'OK',
-          onPress: () => {
-            (navigation as any).reset({
-              index: 0,
-              routes: [{ name: 'Connection' }],
-            });
-          }
-        }
-      ]
-    );
+    // Navigation already triggered by auth layer — no message needed
   };
 
   const loadProfile = async () => {
@@ -97,7 +79,8 @@ export const useUserProfile = (): UseUserProfileResult => {
         }
         
         if (err.message.includes('401') || err.message.includes('403')) {
-          errorMessage = '🔐 Session expirée. Reconnexion nécessaire.';
+          // Session expired — already navigated away by auth layer, ignore silently
+          return;
         } else if (err.message.includes('Network')) {
           errorMessage = '📡 Problème de connexion réseau.';
         } else {

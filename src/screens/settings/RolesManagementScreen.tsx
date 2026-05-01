@@ -5,15 +5,15 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Modal,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    Modal,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -29,11 +29,12 @@ import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
 import { useRoles } from "../../hooks/useRoles";
 import { useTranslation } from "../../localization";
+import { analytics } from "../../services/analytics";
 import {
-  AVAILABLE_PERMISSIONS,
-  PERMISSION_CATEGORIES,
-  Role,
-  getPermissionDisplayName,
+    AVAILABLE_PERMISSIONS,
+    PERMISSION_CATEGORIES,
+    Role,
+    getPermissionDisplayName,
 } from "../../services/rolesService";
 
 // ============================================================================
@@ -493,6 +494,7 @@ export default function RolesManagementScreen({
   }, []);
 
   const handleViewPermissions = useCallback((role: Role) => {
+    analytics.trackButtonPress('role_view_permissions', 'RolesManagement', { role_id: role.id, role: role.name });
     setSelectedRole(role);
     setIsViewModalVisible(true);
   }, []);
@@ -513,6 +515,7 @@ export default function RolesManagementScreen({
             onPress: async () => {
               try {
                 await deleteRole(role.id);
+                analytics.trackCustomEvent('role_deleted', 'business', { role_id: role.id, role: role.name });
                 Alert.alert(
                   t("common.success"),
                   t("roles.alerts.deleteSuccess"),
@@ -553,6 +556,7 @@ export default function RolesManagementScreen({
           permissions: formData.permissions,
           scope: formData.scope,
         });
+        analytics.trackCustomEvent('role_created', 'business', { name: formData.name });
         Alert.alert(t("common.success"), t("roles.alerts.createSuccess"));
       } else if (selectedRole) {
         await updateRole(selectedRole.id, {
@@ -561,6 +565,7 @@ export default function RolesManagementScreen({
           permissions: formData.permissions,
           scope: formData.scope,
         });
+        analytics.trackCustomEvent('role_updated', 'business', { role_id: selectedRole.id });
         Alert.alert(t("common.success"), t("roles.alerts.updateSuccess"));
       }
       setIsEditModalVisible(false);

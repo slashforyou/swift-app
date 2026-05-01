@@ -5,15 +5,15 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Modal,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    Modal,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -30,6 +30,7 @@ import { useTheme } from "../../context/ThemeProvider";
 import { useStaff } from "../../hooks/useStaff";
 import { useTeams } from "../../hooks/useTeams";
 import { useTranslation } from "../../localization";
+import { analytics } from "../../services/analytics";
 import { Team } from "../../services/teamsService";
 
 // ============================================================================
@@ -511,6 +512,7 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({
       });
 
       if (result) {
+        analytics.trackCustomEvent('team_updated', 'business', { team_id: selectedTeam.id });
         Alert.alert(t("common.success"), t("teams.alerts.updateSuccess"));
         handleCloseModals();
       } else {
@@ -548,6 +550,7 @@ const TeamsManagementScreen: React.FC<TeamsManagementScreenProps> = ({
             onPress: async () => {
               const success = await deleteTeam(team.id);
               if (success) {
+                analytics.trackCustomEvent('team_deleted', 'business', { team_id: team.id, team_name: team.name });
                 Alert.alert(
                   t("common.success"),
                   t("teams.alerts.deleteSuccess"),

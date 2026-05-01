@@ -526,12 +526,14 @@ export const useJobsForDay = (
 
       // Gestion d'erreur plus précise
       if (
+        errorMessage === 'SESSION_EXPIRED' ||
         errorMessage.includes("401") ||
         errorMessage.includes("403") ||
         errorMessage.includes("Unauthorized")
       ) {
-        setError("🔐 Session expirée. Reconnexion automatique en cours...");
+        // Session expired — already navigated away by auth layer, ignore silently
         setJobs([]);
+        return;
       } else if (errorMessage.includes("IP_BLOCKED")) {
         setError("🚫 Accès temporairement bloqué. Réessayez plus tard.");
         setJobs([]);

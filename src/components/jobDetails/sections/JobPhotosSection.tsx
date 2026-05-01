@@ -11,22 +11,23 @@ import { Image as ExpoImage } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Animated,
-  Dimensions,
-  FlatList,
-  Modal,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
+    ActivityIndicator,
+    Alert,
+    Animated,
+    Dimensions,
+    FlatList,
+    Modal,
+    Pressable,
+    ScrollView,
+    Text,
+    TextInput,
+    View,
 } from "react-native";
 import { DESIGN_TOKENS } from "../../../constants/Styles";
 import { useCommonThemedStyles } from "../../../hooks/useCommonStyles";
 import { useJobPhotos } from "../../../hooks/useJobPhotos";
 import { useLocalization } from "../../../localization/useLocalization";
+import { analytics } from "../../../services/analytics";
 import { JobPhotoAPI } from "../../../services/jobPhotos";
 import { HStack, VStack } from "../../primitives/Stack";
 import { Card } from "../../ui/Card";
@@ -997,6 +998,7 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({
 
 
       if (result) {
+        analytics.trackCustomEvent('photo_uploaded', 'business', { job_id: jobId });
         await refetch();
 
         Alert.alert(
@@ -1010,6 +1012,7 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({
         "❌ [DEBUG] Stack trace:",
         err instanceof Error ? err.stack : "N/A",
       );
+      analytics.trackError({ error_type: 'photo_upload_error', error_message: err instanceof Error ? err.message : 'Unknown', context: { job_id: jobId } });
       Alert.alert(
         t("jobDetails.components.photos.error"),
         t("jobDetails.components.photos.updateError"),
@@ -1209,7 +1212,10 @@ export const JobPhotosSection: React.FC<JobPhotosSectionProps> = ({
           {/* Bouton Ajouter une photo */}
           <Pressable
             testID="job-photos-add-btn"
-            onPress={() => setShowPhotoModal(true)}
+            onPress={() => {
+              analytics.trackButtonPress('add_photo_open', 'JobPhotos', { job_id: jobId });
+              setShowPhotoModal(true);
+            }}
             style={{
               flexDirection: "row",
               alignItems: "center",

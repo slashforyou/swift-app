@@ -29,7 +29,7 @@ import { DESIGN_TOKENS } from "../constants/Styles";
 import { useTheme } from "../context/ThemeProvider";
 import { useSubscription } from "../hooks/usePlans";
 import { useLocalization, useTranslation } from "../localization/useLocalization";
-import { trackCustomEvent } from "../services/analytics";
+import { analytics, trackCustomEvent } from "../services/analytics";
 import {
     adminSendNotification,
     getNotificationPreferences,
@@ -572,7 +572,10 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
         <HStack gap="md" align="center" justify="space-between">
           <Pressable
             testID="parameters-back-btn"
-            onPress={() => navigation?.goBack()}
+            onPress={() => {
+              analytics.trackButtonPress('back_btn', 'Parameters');
+              navigation?.goBack();
+            }}
             style={({ pressed }) => ({
               backgroundColor: pressed
                 ? colors.backgroundTertiary
@@ -602,7 +605,10 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
 
           <Pressable
             testID="parameters-reset-btn"
-            onPress={resetSettings}
+            onPress={() => {
+              analytics.trackButtonPress('reset_settings', 'Parameters');
+              resetSettings();
+            }}
             style={({ pressed }) => ({
               backgroundColor: pressed ? colors.errorLight : "transparent",
               padding: DESIGN_TOKENS.spacing.xs,
@@ -719,7 +725,10 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
           >
             <Pressable
               testID="parameters-language-btn"
-              onPress={() => setShowLanguageSelector(true)}
+              onPress={() => {
+                analytics.trackButtonPress('open_language_selector', 'Parameters');
+                setShowLanguageSelector(true);
+              }}
               style={({ pressed }) => ({
                 backgroundColor: pressed
                   ? colors.backgroundTertiary
@@ -844,7 +853,10 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
 
             {/* Privacy Policy & Terms links */}
             <Pressable
-              onPress={() => Linking.openURL("https://cobbr-app.com/privacy")}
+              onPress={() => {
+                analytics.trackButtonPress('privacy_policy', 'Parameters');
+                Linking.openURL("https://cobbr-app.com/privacy");
+              }}
               style={({ pressed }) => ({
                 backgroundColor: pressed
                   ? colors.backgroundTertiary
@@ -872,7 +884,10 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
             </Pressable>
 
             <Pressable
-              onPress={() => Linking.openURL("https://cobbr-app.com/terms")}
+              onPress={() => {
+                analytics.trackButtonPress('terms_of_service', 'Parameters');
+                Linking.openURL("https://cobbr-app.com/terms");
+              }}
               style={({ pressed }) => ({
                 backgroundColor: pressed
                   ? colors.backgroundTertiary
@@ -968,7 +983,10 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
           >
             <Pressable
               testID="parameters-subscription-btn"
-              onPress={() => navigation?.navigate("Subscription")}
+              onPress={() => {
+                analytics.trackButtonPress('navigate_subscription', 'Parameters');
+                navigation?.navigate("Subscription");
+              }}
               style={({ pressed }) => ({
                 backgroundColor: pressed
                   ? colors.backgroundTertiary
@@ -1187,7 +1205,10 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
           >
             <Pressable
               testID="profile-delete-account-btn"
-              onPress={handleDeleteAccount}
+              onPress={() => {
+                analytics.trackButtonPress('delete_account', 'Parameters');
+                handleDeleteAccount();
+              }}
               style={({ pressed }) => ({
                 backgroundColor: pressed ? colors.errorLight : "transparent",
                 borderRadius: DESIGN_TOKENS.radius.md,
@@ -1240,7 +1261,10 @@ const Parameters: React.FC<ParametersProps> = ({ navigation }) => {
             </Pressable>
 
             <Pressable
-              onPress={handleLogout}
+              onPress={() => {
+                analytics.trackButtonPress('logout_btn', 'Parameters');
+                handleLogout();
+              }}
               style={({ pressed }) => ({
                 backgroundColor: pressed ? colors.errorLight : "transparent",
                 borderRadius: DESIGN_TOKENS.radius.md,

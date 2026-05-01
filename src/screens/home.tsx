@@ -28,8 +28,10 @@ import { useTheme } from "../context/ThemeProvider";
 import { usePushNotifications } from "../hooks/usePushNotifications";
 import DailyRecapModal, { recapSeenKey } from "./DailyRecapModal";
 
+import { useAccountType } from "../hooks/useAccountType";
 import { useUserProfile } from "../hooks/useUserProfile";
 import { useTranslation } from "../localization";
+import { analytics } from "../services/analytics";
 import { DailyRecapData, fetchDailyRecap } from "../services/gamificationV2";
 import { clearSession } from "../utils/auth";
 import { useAuthCheck } from "../utils/checkAuth";
@@ -143,6 +145,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const { unreadCount } = useNotifications();
   const [showNotifications, setShowNotifications] = useState(false);
   const { profile, refreshProfile } = useUserProfile();
+  const { isOwner, isEmployee, isContractor } = useAccountType();
   const { permissionStatus, requestPermission, isLoading: isPushLoading } =
     usePushNotifications();
 
@@ -174,7 +177,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           const seen = await AsyncStorage.getItem(recapSeenKey(today));
           if (seen) return;
           const recap = await fetchDailyRecap(today);
-          if (recap) setDailyRecapData(recap);
+          if (recap && recap.date === today) setDailyRecapData(recap);
         } catch {}
       })();
     }, []),
@@ -228,6 +231,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const confirmLogout = async () => {
     setShowLogoutConfirm(false);
     try {
+      analytics.trackCustomEvent('logout_confirmed', 'user_action', { screen: 'Home' });
       await clearSession();
       await clearLocalSession();
       navigation.reset({ index: 0, routes: [{ name: "Connection" }] });
@@ -354,7 +358,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         >
           <Pressable
             testID="home-notifications-btn"
-            onPress={() => setShowNotifications(true)}
+            onPress={() => {
+              analytics.trackButtonPress('notifications_btn', 'Home');
+              setShowNotifications(true);
+            }}
             style={({ pressed }) => ({
               width: 40,
               height: 40,
@@ -418,6 +425,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         >
           <TodaySection
             onPress={() => {
+              analytics.trackButtonPress('today_calendar_shortcut', 'Home');
               const today = new Date();
               navigation.navigate("Calendar", {
                 screen: "Day",
@@ -468,19 +476,145 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                 title={t("home.calendar.title")}
                 icon="calendar"
                 description={t("home.calendar.description")}
-                onPress={() => navigation.navigate("Calendar")}
+                onPress={() => {
+                  analytics.trackButtonPress('menu_calendar', 'Home');
+                  navigation.navigate("Calendar");
+                }}
                 color={colors.primary}
               />
             </Animated.View>
 
-            <MenuItem
-              testID="home-business-btn"
-              title={t("home.business.title")}
-              icon="business"
-              description={t("home.business.description")}
-              onPress={() => navigation.navigate("Business")}
-              color={colors.success}
-            />
+            {/* Quick actions — conditionnées par account_type */}
+            {isOwner && (
+              <>
+                <MenuItem
+                  testID="home-newjob-btn"
+                  title="New Job"
+                  icon="add-circle"
+                  description="Create and assign a new moving job"
+                  onPress={() => {
+                    analytics.trackButtonPress('menu_new_job', 'Home');
+                    navigation.navigate("Business");
+                  }}
+                  color={colors.success}
+                />
+                <MenuItem
+                  testID="home-schedule-btn"
+                  title="Schedule"
+                  icon="calendar-outline"
+                  description="Team schedule & job calendar"
+                  onPress={() => {
+                    analytics.trackButtonPress('menu_schedule', 'Home');
+                    navigation.navigate("Calendar");
+                  }}
+                  color={colors.primary}
+                />
+                <MenuItem
+                  testID="home-invoices-btn"
+                  title="Invoices"
+                  icon="receipt-outline"
+                  description="Billing, payments & invoices"
+                  onPress={() => {
+                    analytics.trackButtonPress('menu_invoices', 'Home');
+                    navigation.navigate("Business");
+                  }}
+                  color="#9B59B6"
+                />
+              </>
+            )}
+
+            {/* TODO: Employee-specific actions — temp placeholders pointing to Calendar/Business until dedicated screens exist */}
+            {isEmployee && (
+              <>
+                <MenuItem
+                  testID="home-myjobs-btn"
+                  title="My Jobs"
+                  icon="briefcase-outline"
+                  description="Your assigned jobs today & upcoming"
+                  onPress={() => {
+                    analytics.trackButtonPress('menu_my_jobs', 'Home');
+                    navigation.navigate("Calendar");
+                  }}
+                  color={colors.primary}
+                />
+                <MenuItem
+                  testID="home-availability-btn"
+                  title="Availability"
+                  icon="time-outline"
+                  description="Set your availability for the week"
+                  onPress={() => {
+                    analytics.trackButtonPress('menu_availability', 'Home');
+                    navigation.navigate("Business");
+                  }}
+                  color={colors.success}
+                />
+                <MenuItem
+                  testID="home-earnings-btn"
+                  title="Earnings"
+                  icon="cash-outline"
+                  description="Your pay & hours summary"
+                  onPress={() => {
+                    analytics.trackButtonPress('menu_earnings', 'Home');
+                    navigation.navigate("Business");
+                  }}
+                  color="#9B59B6"
+                />
+              </>
+            )}
+
+            {/* TODO: Contractor-specific actions — temp placeholders until dedicated contractor screens exist */}
+            {isContractor && (
+              <>
+                <MenuItem
+                  testID="home-pending-requests-btn"
+                  title="Pending Requests"
+                  icon="notifications-outline"
+                  description="Jobs waiting for your response"
+                  onPress={() => {
+                    analytics.trackButtonPress('menu_pending_requests', 'Home');
+                    navigation.navigate("Business");
+                  }}
+                  color="#B5451B"
+                />
+                <MenuItem
+                  testID="home-my-assignments-btn"
+                  title="My Assignments"
+                  icon="briefcase-outline"
+                  description="Accepted & upcoming jobs"
+                  onPress={() => {
+                    analytics.trackButtonPress('menu_my_assignments', 'Home');
+                    navigation.navigate("Calendar");
+                  }}
+                  color={colors.primary}
+                />
+                <MenuItem
+                  testID="home-contractor-earnings-btn"
+                  title="My Earnings"
+                  icon="cash-outline"
+                  description="Revenue & payment history"
+                  onPress={() => {
+                    analytics.trackButtonPress('menu_contractor_earnings', 'Home');
+                    navigation.navigate("Business");
+                  }}
+                  color={colors.success}
+                />
+              </>
+            )}
+
+            {/* Fallback si account_type absent : menu générique */}
+            {!isOwner && !isEmployee && !isContractor && (
+              <MenuItem
+                testID="home-business-btn"
+                title={t("home.business.title")}
+                icon="business"
+                description={t("home.business.description")}
+                onPress={() => {
+                  analytics.trackButtonPress('menu_business', 'Home');
+                  navigation.navigate("Business");
+                }}
+                color={colors.success}
+              />
+            )}
 
             {/* Manager Dashboard — visible uniquement pour patron et cadre */}
             {(profile?.company_role === "patron" || profile?.company_role === "cadre") && (
@@ -489,7 +623,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                 title="Dashboard Manager"
                 icon="stats-chart"
                 description="Vue superviseur · Jobs équipe · KPIs"
-                onPress={() => navigation.navigate("ManagerDashboard")}
+                onPress={() => {
+                  analytics.trackButtonPress('menu_manager_dashboard', 'Home');
+                  navigation.navigate("ManagerDashboard");
+                }}
                 color="#9B59B6"
               />
             )}
@@ -501,7 +638,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               {/* Bouton Paramètres — compact */}
               <Pressable
                 testID="home-parameters-btn"
-                onPress={() => navigation.navigate("Parameters")}
+                onPress={() => {
+                  analytics.trackButtonPress('parameters_btn', 'Home');
+                  navigation.navigate("Parameters");
+                }}
                 style={({ pressed }) => ({
                   backgroundColor: pressed
                     ? colors.backgroundTertiary
@@ -551,7 +691,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               {/* Bouton Déconnexion — flex 1 */}
               <Pressable
                 testID="home-logout-btn"
-                onPress={handleLogout}
+                onPress={() => {
+                  analytics.trackButtonPress('logout_btn', 'Home');
+                  handleLogout();
+                }}
                 style={({ pressed }) => ({
                   flex: 1,
                   backgroundColor: pressed

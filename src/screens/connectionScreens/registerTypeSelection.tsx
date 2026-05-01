@@ -7,10 +7,11 @@ import { HeaderLogo } from "../../components/ui/HeaderLogo";
 import RoundLanguageButton from "../../components/ui/RoundLanguageButton";
 import { useCommonThemedStyles } from "../../hooks/useCommonStyles";
 import { useTranslation } from "../../localization";
+import { analytics } from "../../services/analytics";
 
 type RootStackParamList = {
   Connection: undefined;
-  Subscribe: { accountType?: 'business_owner' | 'employee' } | undefined;
+  Subscribe: { accountType?: 'business_owner' | 'abn_contractor' | 'employee' } | undefined;
 };
 
 interface RegisterTypeSelectionProps {
@@ -37,6 +38,20 @@ const RegisterTypeSelection: React.FC<RegisterTypeSelectionProps> = ({
       route: "Subscribe" as const,
       routeParams: { accountType: 'business_owner' as const },
       recommended: true,
+    },
+    {
+      id: "abn_contractor",
+      title: t("auth.registration.abnContractor.title"),
+      subtitle: t("auth.registration.abnContractor.subtitle"),
+      icon: "🔨",
+      features: [
+        t("auth.registration.abnContractor.feature1"),
+        t("auth.registration.abnContractor.feature2"),
+        t("auth.registration.abnContractor.feature3"),
+      ],
+      route: "Subscribe" as const,
+      routeParams: { accountType: 'abn_contractor' as const },
+      recommended: false,
     },
     {
       id: "employee",
@@ -72,7 +87,10 @@ const RegisterTypeSelection: React.FC<RegisterTypeSelectionProps> = ({
       >
         <Pressable
           testID="register-type-back-btn"
-          onPress={() => navigation.navigate("Connection")}
+          onPress={() => {
+            analytics.trackButtonPress('back_to_connection', 'RegisterTypeSelection');
+            navigation.navigate("Connection");
+          }}
           style={{
             flexDirection: "row",
             alignItems: "center",
@@ -139,7 +157,10 @@ const RegisterTypeSelection: React.FC<RegisterTypeSelectionProps> = ({
               shadowRadius: 8,
               elevation: 4,
             }}
-            onPress={() => navigation.navigate(type.route, type.routeParams)}
+            onPress={() => {
+              analytics.trackButtonPress(`select_account_type_${type.id}`, 'RegisterTypeSelection');
+              navigation.navigate(type.route, type.routeParams);
+            }}
           >
             {type.recommended && (
               <View

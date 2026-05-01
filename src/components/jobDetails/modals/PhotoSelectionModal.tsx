@@ -15,6 +15,7 @@ import {
 import { DESIGN_TOKENS } from '../../../constants/Styles';
 import { useTheme } from '../../../context/ThemeProvider';
 import { useLocalization } from '../../../localization/useLocalization';
+import { analytics } from '../../../services/analytics';
 
 interface PhotoSelectionModalProps {
     isVisible: boolean;
@@ -47,7 +48,7 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
 
     // Prendre une photo avec la caméra
     const handleTakePhoto = async () => {
-        
+        analytics.trackButtonPress('take_photo_camera', 'JobPhotos', { job_id: jobId });
         try {
             const permissions = await requestPermissions();
             
@@ -71,6 +72,7 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
 
             if (!result.canceled && result.assets && result.assets.length > 0) {
                 const photoUri = result.assets[0].uri;
+                analytics.trackCustomEvent('photo_taken_camera', 'business', { job_id: jobId });
                 onPhotoSelected(photoUri);
             }
             
@@ -81,13 +83,14 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
 
             console.error('❌ [DEBUG] ERREUR dans handleTakePhoto:', error);
             console.error('❌ [DEBUG] Stack trace:', error instanceof Error ? error.stack : 'N/A');
+            analytics.trackError({ error_type: 'take_photo_error', error_message: error instanceof Error ? error.message : 'Unknown', context: { job_id: jobId } });
             Alert.alert(t('jobDetails.components.photos.error'), t('jobDetails.components.photos.takePhotoError'));
         }
     };
 
     // Sélectionner une photo dans la galerie
     const handleSelectFromGallery = async () => {
-        
+        analytics.trackButtonPress('take_photo_gallery', 'JobPhotos', { job_id: jobId });
         try {
             const permissions = await requestPermissions();
             
@@ -111,6 +114,7 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
 
             if (!result.canceled && result.assets && result.assets.length > 0) {
                 const photoUri = result.assets[0].uri;
+                analytics.trackCustomEvent('photo_selected_gallery', 'business', { job_id: jobId });
                 onPhotoSelected(photoUri);
             }
             
@@ -121,6 +125,7 @@ const PhotoSelectionModal: React.FC<PhotoSelectionModalProps> = ({
 
             console.error('❌ [DEBUG] ERREUR dans handleSelectFromGallery:', error);
             console.error('❌ [DEBUG] Stack trace:', error instanceof Error ? error.stack : 'N/A');
+            analytics.trackError({ error_type: 'select_photo_error', error_message: error instanceof Error ? error.message : 'Unknown', context: { job_id: jobId } });
             Alert.alert(t('jobDetails.components.photos.error'), t('jobDetails.components.photos.selectPhotoError'));
         }
     };

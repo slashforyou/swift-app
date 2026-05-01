@@ -14,6 +14,7 @@ import { DESIGN_TOKENS } from "../../../constants/Styles";
 import { useOnboardingTour } from "../../../context/OnboardingTourContext";
 import { useTheme } from "../../../context/ThemeProvider";
 import { useLocalization } from "../../../localization/useLocalization";
+import { analytics } from "../../../services/analytics";
 import {
     deleteAssignment,
     listAssignments,
@@ -155,11 +156,12 @@ const StaffingSection: React.FC<StaffingSectionProps> = ({
   const [showModal, setShowModal] = useState(false);
 
   const handleOpenAssignModal = useCallback(() => {
+    analytics.trackButtonPress('assign_resource_open', 'StaffingSection', { job_id: job.id });
     setShowModal(true);
     if (onboardingStep === 20) {
       advanceToStep(21 as any);
     }
-  }, [onboardingStep, advanceToStep]);
+  }, [onboardingStep, advanceToStep, job.id]);
 
   // The contractor is responsible for providing resources (staff + vehicle).
   // Their company name is shown on empty slots so both parties know who must fill them.
@@ -693,6 +695,7 @@ const StaffingSection: React.FC<StaffingSectionProps> = ({
         visible={showModal}
         onClose={() => setShowModal(false)}
         onAssigned={() => {
+          analytics.trackCustomEvent('resource_assigned', 'business', { job_id: job.id });
           setShowModal(false);
           load();
           onJobRefresh?.();
