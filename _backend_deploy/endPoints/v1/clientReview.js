@@ -361,6 +361,17 @@ const submitReviewEndpoint = async (req, res) => {
        rating_team ? Number(rating_team) : null, safeComment, safeIp, token]
     );
 
+    // [Phase 3 JQS] Log job event — non-blocking
+    try {
+      await connection.execute(
+        `INSERT INTO job_events (job_id, company_id, actor_user_id, event_type, payload)
+         VALUES (?, NULL, NULL, 'review_submitted', JSON_OBJECT('stars', ?, 'has_comment', ?))`,
+        [jobId, Number(rating_overall), safeComment ? 1 : 0]
+      );
+    } catch (evtErr) {
+      console.error('[review_submitted] job_events insert failed:', evtErr.message);
+    }
+
     connection.release();
 
     // Fire-and-forget gamification si note >= 4
@@ -380,4 +391,82 @@ const submitReviewEndpoint = async (req, res) => {
   }
 };
 
-module.exports = { sendReviewRequestEndpoint, getReviewPageEndpoint, submitReviewEndpoint };
+
+// [AUTO] autoSendReviewRequest
+// ─────────────────────────────────────────────────────────────
+// Called fire-and-forget from completeJobById after job completion.
+// Sends a review request email to the client if:
+//   - job has a contractee_email
+//   - no review token / submitted review already exists
+// ─────────────────────────────────────────────────────────────
+const autoSendReviewRequest = async (jobId) => {
+  let connection;
+  try {
+    connection = await connect();
+
+    const [jobRows] = await connection.execute(
+      `SELECT id, code, status, contractee_email, contractee_contact_name
+         FROM jobs WHERE id = ?`,
+      [parseInt(jobId)]
+    );
+
+    if (!jobRows.length) return;
+    const job = jobRows[0];
+
+    // Only if email exists and job is completed
+    if (!job.contractee_email || job.status !== 'completed') return;
+
+    // Skip if review already exists (submitted or not)
+    const [existingRows] = await connection.execute(
+      'SELECT id FROM client_reviews WHERE job_id = ?',
+      [job.id]
+    );
+    if (existingRows.length > 0) return; // already sent before
+
+    // Generate token + insert
+    const reviewToken = buildReviewToken(job.id);
+    await connection.execute(
+      'INSERT INTO client_reviews (job_id, token) VALUES (?, ?)',
+      [job.id, reviewToken]
+    );
+
+    // Record request (no sent_by since it's automatic)
+    await connection.execute(
+      `INSERT INTO client_review_requests (job_id, sent_by, recipient_email)
+       VALUES (?, NULL, ?)`,
+      [job.id, job.contractee_email]
+    );
+
+    const reviewUrl = `${APP_BASE_URL}/review/${reviewToken}`;
+    const clientName = job.contractee_contact_name || 'Valued Client';
+
+    // Send email
+    const { sendMail } = MailSender();
+    const subject = '⭐ How was your move? Leave a review — Cobbr';
+    const textBody = `Hi ${clientName},\n\nYour job #${job.code} is now complete. We'd love your feedback!\n\nLeave your review: ${reviewUrl}\n\nBest regards,\nThe Cobbr Team`;
+    const htmlBody = `
+<!DOCTYPE html><html><body style="font-family:sans-serif;background:#f8f9fa;padding:24px">
+<div style="max-width:500px;margin:0 auto;background:#fff;border-radius:12px;padding:32px">
+  <h2 style="color:#4361ee;margin:0 0 16px">How was your experience? ⭐</h2>
+  <p style="color:#495057">Hi <strong>${clientName}</strong>,</p>
+  <p style="color:#495057">Your job <strong>#${job.code}</strong> is now complete.</p>
+  <p style="color:#495057">We'd love to hear your feedback — it only takes 30 seconds!</p>
+  <div style="text-align:center;margin:32px 0">
+    <a href="${reviewUrl}" style="background:#4361ee;color:#fff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:600;font-size:16px">
+      Leave a Review
+    </a>
+  </div>
+  <p style="color:#6c757d;font-size:13px">Or copy this link: ${reviewUrl}</p>
+</div>
+</body></html>`;
+
+    await sendMail(job.contractee_email, subject, textBody, htmlBody);
+    if (connection) connection.release();
+    consoleStyle.success('REVIEW', '[AUTO] Review request sent automatically', { jobId: job.id, to: job.contractee_email });
+  } catch (err) {
+    if (connection) try { connection.release(); } catch (_) {}
+    consoleStyle.warn('REVIEW', '[AUTO] autoSendReviewRequest failed (non-critical)', { error: err.message });
+  }
+};
+
+module.exports = { sendReviewRequestEndpoint, getReviewPageEndpoint, submitReviewEndpoint, autoSendReviewRequest };
