@@ -203,7 +203,7 @@ async function createJobPaymentIntent(req, res) {
     let planType = 'free';
     try {
       const companyId = job.contractor_company_id || req.user.company_id;
-      const [planRows] = await connection.execute(
+      const [planRows] = await db.execute(
         'SELECT plan_type FROM companies WHERE id = ?', [companyId]
       );
       planType = planRows[0]?.plan_type || 'free';
@@ -214,7 +214,7 @@ async function createJobPaymentIntent(req, res) {
     const planMinFee = PLAN_MIN_FEE_CENTS[planType]    ?? 50;
     const applicationFeeAmount = Math.max(planMinFee, Math.round(amountCents * planRate));
     // Record commission in job_commissions (non-blocking)
-    connection.execute(
+    db.execute(
       `INSERT IGNORE INTO job_commissions
          (job_id, company_id, plan_type, job_amount_aud, commission_rate, commission_amount, status)
        VALUES (?, ?, ?, ?, ?, ?, 'pending')`,

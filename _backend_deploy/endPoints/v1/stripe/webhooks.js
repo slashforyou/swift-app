@@ -140,6 +140,52 @@ async function handleWebhook(req, res) {
         // TODO: notifier la company, passer subscription_status à 'past_due'
         break;
 
+      // ── PaymentIntent (job payments) ─────────────────────────────────────
+      case 'payment_intent.succeeded': {
+        const jobId = data.metadata?.swiftapp_job_id
+          ? parseInt(data.metadata.swiftapp_job_id, 10)
+          : null;
+        if (jobId && !isNaN(jobId)) {
+          const paymentTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
+          await connection.execute(
+            `UPDATE jobs
+             SET payment_status = 'paid',
+                 payment_time   = ?,
+                 amount_paid    = amount_total,
+                 amount_due     = 0,
+                 updated_at     = NOW()
+             WHERE id = ?
+               AND payment_status != 'paid'`,
+            [paymentTime, jobId]
+          );
+          // Update job_commissions status
+          await connection.execute(
+            `UPDATE job_commissions SET status = 'collected', updated_at = NOW()
+             WHERE job_id = ? AND status = 'pending'`,
+            [jobId]
+          ).catch((e) => console.warn('[webhook] commission update failed:', e.message));
+          console.log(`[Webhook] payment_intent.succeeded → job ${jobId} marked paid`);
+        } else {
+          console.log(`[Webhook] payment_intent.succeeded: ${data.id} (no job metadata)`);
+        }
+        break;
+      }
+
+      case 'payment_intent.payment_failed': {
+        const jobId = data.metadata?.swiftapp_job_id
+          ? parseInt(data.metadata.swiftapp_job_id, 10)
+          : null;
+        if (jobId && !isNaN(jobId)) {
+          await connection.execute(
+            `UPDATE jobs SET payment_status = 'failed', updated_at = NOW()
+             WHERE id = ? AND payment_status = 'pending'`,
+            [jobId]
+          );
+          console.log(`[Webhook] payment_intent.payment_failed → job ${jobId} marked failed`);
+        }
+        break;
+      }
+
       // ── Connect / Payout events ──────────────────────────────────────────
       case 'account.updated':
         console.log(`[Webhook] account.updated: ${data.id}`);

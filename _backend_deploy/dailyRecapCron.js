@@ -30,9 +30,21 @@ const DELAY_MINUTES = 15;
         jobs_completed  INT NOT NULL DEFAULT 0,
         level_before    INT NOT NULL DEFAULT 1,
         level_after     INT NOT NULL DEFAULT 1,
+        level_up        TINYINT(1) NOT NULL DEFAULT 0,
+        breakdown       JSON NULL,
+        sent_at         DATETIME NULL,
         UNIQUE KEY uq_user_date (user_id, recap_date)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     `);
+
+    // Idempotent: add missing columns if table was created by an older version
+    for (const alterSql of [
+      "ALTER TABLE gamification_daily_recap ADD COLUMN IF NOT EXISTS level_up TINYINT(1) NOT NULL DEFAULT 0",
+      "ALTER TABLE gamification_daily_recap ADD COLUMN IF NOT EXISTS breakdown JSON NULL",
+      "ALTER TABLE gamification_daily_recap ADD COLUMN IF NOT EXISTS sent_at DATETIME NULL",
+    ]) {
+      await connection.execute(alterSql).catch(() => {}); // ignore if column already exists
+    }
 
     const today = new Date().toISOString().slice(0, 10);
     const cutoff = new Date(Date.now() - DELAY_MINUTES * 60 * 1000)
@@ -103,9 +115,9 @@ const DELAY_MINUTES = 15;
         // Save recap (INSERT IGNORE — idempotent)
         await connection.execute(
           `INSERT IGNORE INTO gamification_daily_recap
-             (user_id, recap_date, total_xp_gained, jobs_completed, level_before, level_after)
-           VALUES (?, ?, ?, ?, ?, ?)`,
-          [userId, today, xpToday, jobsCompleted, levelBefore, currentLevel]
+             (user_id, recap_date, total_xp_gained, jobs_completed, level_before, level_after, level_up)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [userId, today, xpToday, jobsCompleted, levelBefore, currentLevel, levelUp ? 1 : 0]
         );
 
         // Build push message

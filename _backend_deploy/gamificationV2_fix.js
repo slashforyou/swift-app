@@ -579,7 +579,11 @@ const getV2DailyRecapEndpoint = async (req, res) => {
     connection = await connect();
 
     const [rows] = await connection.query(
-      `SELECT recap_date, total_xp_gained, jobs_completed, level_before, level_after, sent_at
+      `SELECT recap_date, total_xp_gained, jobs_completed,
+              level_before, level_after,
+              COALESCE(level_up, 0)         AS level_up,
+              COALESCE(breakdown, '[]')      AS breakdown,
+              sent_at
        FROM gamification_daily_recap
        WHERE user_id = ?
        ORDER BY recap_date DESC
@@ -587,7 +591,17 @@ const getV2DailyRecapEndpoint = async (req, res) => {
       [userId]
     );
 
-    return res.json({ ok: true, data: rows });
+    // Parse breakdown JSON (stored as string in MariaDB JSON columns)
+    const parsedRows = rows.map(r => ({
+      ...r,
+      level_up: Boolean(r.level_up),
+      breakdown: typeof r.breakdown === 'string'
+        ? (() => { try { return JSON.parse(r.breakdown); } catch { return []; } })()
+        : (Array.isArray(r.breakdown) ? r.breakdown : []),
+      sent: r.sent_at != null,
+    }));
+
+    return res.json({ ok: true, data: parsedRows });
   } catch (e) {
     console.error('[gamifV2 daily-recap]', e);
     return res.status(500).json({ ok: false, error: 'internal' });
