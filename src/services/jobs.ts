@@ -463,12 +463,12 @@ export async function updateJob(
 }
 
 /**
- * Supprime un job
+ * Supprime un job (soft-delete: status → 'deleted')
  */
 export async function deleteJob(jobId: string): Promise<void> {
   try {
 
-    const res = await authenticatedFetch(`${API}v1/jobs/${jobId}`, {
+    const res = await authenticatedFetch(`${API}v1/job/${jobId}`, {
       method: "DELETE",
     });
 

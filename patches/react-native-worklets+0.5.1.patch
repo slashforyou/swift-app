@@ -1,0 +1,13 @@
+diff --git a/node_modules/react-native-worklets/scripts/worklets_utils.rb b/node_modules/react-native-worklets/scripts/worklets_utils.rb
+index a42a309..a5a7302 100644
+--- a/node_modules/react-native-worklets/scripts/worklets_utils.rb
++++ b/node_modules/react-native-worklets/scripts/worklets_utils.rb
+@@ -70,7 +70,7 @@ end
+ def worklets_get_static_feature_flags()
+   feature_flags = {}
+ 
+-  static_feature_flags_path = File.path('./src/featureFlags/staticFlags.json')
++  static_feature_flags_path = File.expand_path('../src/featureFlags/staticFlags.json', __dir__)
+   if !File.exist?(static_feature_flags_path)
+     raise "[Worklets] Feature flags file not found at #{static_feature_flags_path}."
+   end

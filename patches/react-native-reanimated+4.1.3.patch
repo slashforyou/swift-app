@@ -1,0 +1,13 @@
+diff --git a/node_modules/react-native-reanimated/scripts/reanimated_utils.rb b/node_modules/react-native-reanimated/scripts/reanimated_utils.rb
+index 72bdfce..3c2aac9 100644
+--- a/node_modules/react-native-reanimated/scripts/reanimated_utils.rb
++++ b/node_modules/react-native-reanimated/scripts/reanimated_utils.rb
+@@ -79,7 +79,7 @@ end
+ def get_static_feature_flags()
+   feature_flags = {}
+ 
+-  static_feature_flags_path = File.path('./src/featureFlags/staticFlags.json')
++  static_feature_flags_path = File.expand_path('../src/featureFlags/staticFlags.json', __dir__)
+   if !File.exist?(static_feature_flags_path)
+     raise "[Reanimated] Feature flags file not found at #{static_feature_flags_path}."
+   end
