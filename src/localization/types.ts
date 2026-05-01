@@ -918,6 +918,8 @@ export interface TranslationKeys {
         totalBillableHours: string;
         hourlyRate: string;
         finalAmount: string;
+        estimatedAmount?: string;
+        estimatedAmountNote?: string;
         explanatoryNote: string;
       };
       // Additional items section
@@ -1623,6 +1625,66 @@ export interface TranslationKeys {
       to?: string;
       ref?: string;
       overdueDate?: string;
+    };
+    invoices?: {
+      statusDraft?: string;
+      statusSent?: string;
+      statusPaid?: string;
+      statusOverdue?: string;
+      statusCancelled?: string;
+      generateTitle?: string;
+      generateMessage?: string;
+      generateWeekMessage?: string;
+      choosePeriodType?: string;
+      periodMonthly?: string;
+      periodWeekly?: string;
+      periodFortnightly?: string;
+      generateInvoice?: string;
+      generated?: string;
+      generateError?: string;
+      loadError?: string;
+      sendTitle?: string;
+      sendMessage?: string;
+      sent?: string;
+      markSent?: string;
+      markPaid?: string;
+      markOverdue?: string;
+      markCancelled?: string;
+      close?: string;
+      back?: string;
+      dueDate?: string;
+      jobDetails?: string;
+      flatRate?: string;
+      subtotal?: string;
+      platformCommission?: string;
+      gst?: string;
+      total?: string;
+      sendByEmail?: string;
+      status?: string;
+      actions?: string;
+      loading?: string;
+      generating?: string;
+      generateMonthly?: string;
+      filterAll?: string;
+      emptyTitle?: string;
+      emptyHint?: string;
+      selectDate?: string;
+      selectDateMonthlyHint?: string;
+      selectDateWeeklyHint?: string;
+      selectDateFortnightlyHint?: string;
+      selectClient?: string;
+      selectClientHint?: string;
+      allClients?: string;
+      noClients?: string;
+      confirmTitle?: string;
+      periodLabel?: string;
+      dateRange?: string;
+      client?: string;
+      noJobsTitle?: string;
+      noJobsMessage?: string;
+      periodMonthlyDesc?: string;
+      periodWeeklyDesc?: string;
+      periodFortnightlyDesc?: string;
     };
   };
 
@@ -2795,6 +2857,12 @@ export interface TranslationKeys {
         cobbrUsersLabel?: string;
         searchResultsLabel?: string;
         noCobbrUsersHint?: string;
+        addAsEmployee?: string;
+        inviteAsContractor?: string;
+        onCobbrBadge?: string;
+        empty?: string;
+        noResults?: string;
+        loadError?: string;
       };
       // Step: Employee form
       employeeForm: {
@@ -3592,8 +3660,11 @@ export interface TranslationKeys {
     specialtyExamples?: string;
     // Pricing types
     fixedPrice?: string;
+    fixedPriceDesc?: string;
     hourlyRate?: string;
+    hourlyRateDesc?: string;
     volumeBased?: string;
+    volumeBasedDesc?: string;
   };
 
   // Staff Management (EditStaffModal)
@@ -3845,6 +3916,7 @@ export interface TranslationKeys {
     cancelSuccess?: string;
     resumeSuccess?: string;
     changePlanSuccess?: string;
+    error?: string;
   };
 
   // Contracts — Modular contract clauses

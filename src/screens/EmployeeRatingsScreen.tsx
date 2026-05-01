@@ -89,7 +89,7 @@ export default function EmployeeRatingsScreen({ route, navigation }: Props) {
       setSummary((prev) => prev ? {
         ...prev,
         total_ratings: prev.total_ratings + 1,
-        average: ((prev.average * prev.total_ratings) + newStars) / (prev.total_ratings + 1),
+        average_stars: ((prev.average_stars * prev.total_ratings) + newStars) / (prev.total_ratings + 1),
       } : prev);
       setShowAdd(false);
       setNewStars(5);
@@ -153,9 +153,9 @@ export default function EmployeeRatingsScreen({ route, navigation }: Props) {
             }}
           >
             <Text style={{ fontSize: 64, fontWeight: "900", color: "#F6AD55" }}>
-              {summary ? summary.average.toFixed(1) : "—"}
+              {summary ? summary.average_stars.toFixed(1) : "—"}
             </Text>
-            <StarRow value={summary ? Math.round(summary.average) : 0} size={28} />
+            <StarRow value={summary ? Math.round(summary.average_stars) : 0} size={28} />
             <Text style={{ color: colors.textSecondary, fontSize: 14, marginTop: 8 }}>
               {summary?.total_ratings ?? 0} {t("ratings.totalRatings") ?? "évaluations"}
             </Text>
@@ -164,7 +164,7 @@ export default function EmployeeRatingsScreen({ route, navigation }: Props) {
             {summary?.distribution && (
               <View style={{ width: "100%", marginTop: 16, gap: 6 }}>
                 {[5, 4, 3, 2, 1].map((star) => {
-                  const count = summary.distribution![star] ?? 0;
+                  const count = summary.distribution.find(d => d.stars === star)?.count ?? 0;
                   const pct = summary.total_ratings > 0 ? count / summary.total_ratings : 0;
                   return (
                     <View key={star} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>

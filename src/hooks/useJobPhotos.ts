@@ -1,6 +1,6 @@
 ﻿import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useState } from "react";
-import { useJobState } from "../context/JobStateProvider";
+import { useJobStateOptional } from "../context/JobStateProvider";
 import {
   deletePhoto,
   fetchJobPhotos,
@@ -87,12 +87,7 @@ export const useJobPhotos = (jobId: string): UseJobPhotosReturn => {
   const PHOTOS_PER_PAGE = 8;
 
   // ✅ Essayer d'obtenir le JobStateProvider (optionnel, peut être undefined si hors provider)
-  let jobStateContext: ReturnType<typeof useJobState> | undefined;
-  try {
-    jobStateContext = useJobState();
-  } catch (e) {
-    // Provider not available, use local state
-  }
+  const jobStateContext = useJobStateOptional();
 
   // ✅ Helper pour set upload status (provider si disponible, sinon local)
   const setUploadStatus = useCallback(

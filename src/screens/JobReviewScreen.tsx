@@ -8,7 +8,7 @@ import {
     View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import ServerData from "../constants/ServerData";
+import { ServerData } from "../constants/ServerData";
 import { DESIGN_TOKENS } from "../constants/Styles";
 import { useTheme } from "../context/ThemeProvider";
 import { useLocalization } from "../localization/useLocalization";

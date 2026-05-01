@@ -418,3 +418,10 @@ export const useJobState = (): JobStateContextType => {
     
     return context;
 };
+
+/**
+ * Version optionnelle : retourne undefined si hors provider, sans throw
+ */
+export const useJobStateOptional = (): JobStateContextType | undefined => {
+    return useContext(JobStateContext);
+};

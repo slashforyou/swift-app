@@ -42,9 +42,9 @@ export const createEmployeeRating = async (
   return data.rating ?? data;
 };
 
-export const getRatingsSummary = async (): Promise<RatingsSummary[]> => {
-  const res = await authenticatedFetch(`${API}v1/employees/ratings/summary`);
+export const getRatingsSummary = async (userId: number): Promise<RatingsSummary> => {
+  const res = await authenticatedFetch(`${API}v1/employees/${userId}/ratings/summary`);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();
-  return data.summary ?? data ?? [];
+  return data.summary ?? data;
 };

@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useState } from "react";
-import ServerData from "../constants/ServerData";
+import { ServerData } from "../constants/ServerData";
 import { authenticatedFetch } from "../utils/auth";
 
 const API = ServerData.serverUrl;
