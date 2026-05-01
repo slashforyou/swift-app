@@ -72,6 +72,31 @@ git commit -m "deploy: description"
 git push origin main
 ```
 
+## Projet web — Dashboard & Landing Page
+
+**Chemin local** : `C:\Users\romai\OneDrive\Documents\client\Swift\App\swift-webapp\landing-app`
+
+Ce projet (React/TypeScript/Vite) contient le dashboard web et la landing page Cobbr.
+
+### Déploiement web — GitHub Actions uniquement
+
+```bash
+cd "C:\Users\romai\OneDrive\Documents\client\Swift\App\swift-webapp\landing-app"
+git add .
+git commit -m "feat: description"
+git push origin main
+# → GitHub Actions prend le relais automatiquement → build + déploiement en ligne
+```
+
+### ⛔ RÈGLE ABSOLUE — Jamais de SCP direct sur le web
+
+**INTERDIT** pour le projet web : SCP, SSH, rsync direct, modification manuelle en production.
+**Seul canal autorisé** : `git commit` → GitHub Actions → déploiement automatique.
+
+> Toute modification hors workflow git est non versionnée et sera écrasée au prochain push.
+
+---
+
 ## Règles absolues
 
 1. Priorité aux solutions simples — un script bash de 10 lignes > un outil de 300 lignes
