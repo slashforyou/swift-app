@@ -16,6 +16,9 @@ export type UserType = "employee" | "worker";
 // Company roles for the new backend system
 export type CompanyRole = "patron" | "cadre" | "employee";
 
+// Account type for Phase 1 multi-role system
+export type AccountType = "business_owner" | "employee" | "contractor";
+
 export interface Company {
   id: number;
   name: string;
@@ -29,6 +32,9 @@ export interface UserProfile {
   phone: string;
   role: string;
   userType: UserType; // employee (TFN) or worker (ABN)
+
+  // Phase 1 multi-role account type
+  account_type?: AccountType;
 
   // New company relationship fields (API v1.1.0)
   company_id?: number;
@@ -57,6 +63,7 @@ export interface UserProfile {
   experience?: number;
   experienceToNextLevel?: number;
   title?: string;
+  reputationScore?: number;
 
   preferences?: {
     theme: "light" | "dark" | "auto";
@@ -350,6 +357,7 @@ function normalizeUserProfile(apiData: any): UserProfile {
     experienceToNextLevel:
       apiData.experienceToNextLevel || apiData.experience_to_next_level || 1000,
     title: apiData.title || "New Driver",
+    reputationScore: apiData.reputationScore != null ? parseFloat(apiData.reputationScore) : undefined,
 
     preferences: {
       theme: apiData.preferences?.theme || "auto",

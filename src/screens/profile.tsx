@@ -18,9 +18,11 @@ import {
     SafeAreaView,
     useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import { analytics } from "../services/analytics";
 import { validatePassword } from "../utils/validators/passwordValidator";
 
 // Utiliser le système unifié au lieu du design system avancé
+import ArcadeProfileSection from "../components/arcade/ArcadeProfileSection";
 import LanguageButton from "../components/calendar/LanguageButton";
 import AvatarPickerModal, {
     getAvatarSource,
@@ -494,7 +496,10 @@ const ProfileScreen: React.FC = () => {
             alignItems: "center",
             transform: [{ scale: pressed ? 0.95 : 1 }], // Micro-interaction
           })}
-          onPress={() => navigation.goBack()}
+          onPress={() => {
+            analytics.trackButtonPress('back_btn', 'Profile');
+            navigation.goBack();
+          }}
         >
           <Ionicons name="arrow-back" size={20} color={colors.text} />
         </Pressable>
@@ -535,7 +540,10 @@ const ProfileScreen: React.FC = () => {
           }}
         >
           <Pressable
-            onPress={() => setShowAvatarPicker(true)}
+            onPress={() => {
+              analytics.trackButtonPress('avatar_picker', 'Profile');
+              setShowAvatarPicker(true);
+            }}
             style={({ pressed }) => ({
               opacity: pressed ? 0.7 : 1,
             })}
@@ -590,7 +598,10 @@ const ProfileScreen: React.FC = () => {
         {/* Gamification Section */}
         <Pressable
           testID="profile-gamification-card"
-          onPress={() => navigation.navigate("GamificationV2")}
+          onPress={() => {
+            analytics.trackButtonPress('view_gamification', 'Profile');
+            navigation.navigate("GamificationV2");
+          }}
           style={({ pressed }) => ({
             backgroundColor: pressed ? colors.backgroundTertiary : colors.backgroundSecondary,
             borderRadius: 16,
@@ -648,7 +659,7 @@ const ProfileScreen: React.FC = () => {
           {/* Lien rapide quêtes */}
           <Pressable
             testID="profile-quests-link"
-            onPress={(e) => { e.stopPropagation(); navigation.navigate("Quests"); }}
+            onPress={(e) => { e.stopPropagation(); analytics.trackButtonPress('view_quests', 'Profile'); navigation.navigate("Quests"); }}
             style={({ pressed }) => ({
               flexDirection: "row",
               alignItems: "center",
@@ -670,6 +681,9 @@ const ProfileScreen: React.FC = () => {
             <Ionicons name="chevron-forward" size={12} color={colors.textMuted} />
           </Pressable>
         </Pressable>
+
+        {/* Arcade Profile Section (dev only) */}
+        <ArcadeProfileSection reputationScore={profile?.reputationScore} />
 
         {/* Personal Information Section */}
         <CollapsibleSection
@@ -921,7 +935,10 @@ const ProfileScreen: React.FC = () => {
             {/* Employee dashboard CTA */}
             {companyData.company_role === "employee" && (
               <Pressable
-                onPress={() => (navigation as any).navigate("EmployeeDashboard")}
+                onPress={() => {
+                analytics.trackButtonPress('employee_dashboard', 'Profile');
+                (navigation as any).navigate("EmployeeDashboard");
+              }}
                 style={({ pressed }) => ({
                   flexDirection: "row",
                   alignItems: "center",
@@ -966,7 +983,10 @@ const ProfileScreen: React.FC = () => {
             {(companyData.company_role === "patron" ||
               companyData.company_role === "cadre") && (
               <Pressable
-                onPress={() => (navigation as any).navigate("Referral")}
+                onPress={() => {
+                analytics.trackButtonPress('referral', 'Profile');
+                (navigation as any).navigate("Referral");
+              }}
                 style={({ pressed }) => ({
                   flexDirection: "row",
                   alignItems: "center",
@@ -1019,7 +1039,10 @@ const ProfileScreen: React.FC = () => {
         >
           {/* Change Password Button */}
           <Pressable
-            onPress={() => setShowPasswordModal(true)}
+            onPress={() => {
+              analytics.trackButtonPress('change_password', 'Profile');
+              setShowPasswordModal(true);
+            }}
             style={({ pressed }) => ({
               flexDirection: "row",
               alignItems: "center",
@@ -1063,7 +1086,10 @@ const ProfileScreen: React.FC = () => {
 
           {/* Change Email Button */}
           <Pressable
-            onPress={() => setShowEmailModal(true)}
+            onPress={() => {
+              analytics.trackButtonPress('change_email', 'Profile');
+              setShowEmailModal(true);
+            }}
             style={({ pressed }) => ({
               flexDirection: "row",
               alignItems: "center",
