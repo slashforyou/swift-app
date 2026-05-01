@@ -317,7 +317,10 @@ export async function fetchDailyRecap(date?: string): Promise<DailyRecapData | n
   if (!res.ok) return null;
   const json = await res.json();
   if (!json?.ok || !json?.data) return null;
-  const data: DailyRecapData = json.data;
+  const data: DailyRecapData = {
+    ...json.data,
+    breakdown: Array.isArray(json.data.breakdown) ? json.data.breakdown : [],
+  };
   if (data.total_xp_gained <= 0) return null;
   return data;
 }

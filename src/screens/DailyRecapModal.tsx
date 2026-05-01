@@ -98,10 +98,10 @@ export default function DailyRecapModal({ data, onClose }: DailyRecapModalProps)
           {levelUpBadge}
 
           {/* Breakdown */}
-          {data.breakdown.length > 0 && (
+          {(data.breakdown ?? []).length > 0 && (
             <View style={[styles.breakdownBox, { borderColor: colors.border, backgroundColor: colors.background }]}>
               <FlatList
-                data={data.breakdown}
+                data={data.breakdown ?? []}
                 keyExtractor={(item) => item.action}
                 scrollEnabled={false}
                 ItemSeparatorComponent={() => <View style={[styles.separator, { backgroundColor: colors.border }]} />}
