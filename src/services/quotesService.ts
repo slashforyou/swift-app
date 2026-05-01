@@ -33,7 +33,8 @@ export const getQuotes = async (): Promise<Quote[]> => {
   const res = await authenticatedFetch(`${API}v1/quotes`);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();
-  return data.quotes ?? data ?? [];
+  const arr = data.quotes ?? data.data ?? data;
+  return Array.isArray(arr) ? arr : [];
 };
 
 export const getQuoteById = async (id: number): Promise<Quote> => {

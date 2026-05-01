@@ -5,6 +5,7 @@ import { analytics, setAnalyticsUser } from "../services/analytics";
 import { navigateGlobal } from "../services/navRef";
 import { clearStripeCache } from "../services/stripeCache";
 import { collectDevicePayload } from "./device";
+export { getAuthHeaders } from "./authHeaders";
 
 const API = ServerData.serverUrl;
 
@@ -162,18 +163,7 @@ export async function login(mail: string, password: string) {
   return { sessionToken, success, hasRefresh: !!refreshToken, user };
 }
 
-export async function getAuthHeaders(): Promise<Record<string, string>> {
-  // ✅ Ne pas bloquer sur ensureValidToken si ça prend trop de temps
-  // On récupère directement le token et on laisse fetchWithAuth gérer le 401
-  const st = await SecureStore.getItemAsync("session_token");
-
-  if (st) {
-    return { Authorization: `Bearer ${st}` };
-  } else {
-    // Silencieux - pas de session est un état normal (non connecté)
-    return {};
-  }
-}
+// getAuthHeaders est re-exportée depuis ./authHeaders (pour briser le cycle circulaire avec analytics.ts)
 
 /**
  * Vérifie si le token de session est expiré et le rafraîchit si nécessaire

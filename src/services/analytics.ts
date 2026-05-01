@@ -15,7 +15,7 @@
 import Constants from "expo-constants";
 import { Platform } from "react-native";
 import { API_URL } from "../config/environment";
-import { getAuthHeaders } from "../utils/auth";
+import { getAuthHeaders } from "../utils/authHeaders";
 import { apiDiscovery } from "./apiDiscovery";
 import { logger } from "./logger";
 

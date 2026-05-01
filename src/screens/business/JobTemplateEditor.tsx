@@ -224,11 +224,11 @@ const JobTemplateEditor: React.FC<JobTemplateEditorProps> = ({
   // ── Save ──
   const handleSave = useCallback(async () => {
     if (!name.trim()) {
-      Alert.alert("Erreur", "Le nom du modèle est requis.");
+      Alert.alert("Error", "Template name is required.");
       return;
     }
     if (segments.length === 0) {
-      Alert.alert("Erreur", "Ajoutez au moins un segment.");
+      Alert.alert("Error", "Add at least one segment.");
       return;
     }
 
@@ -266,7 +266,7 @@ const JobTemplateEditor: React.FC<JobTemplateEditorProps> = ({
         navigation?.goBack?.();
       }
     } catch (error) {
-      Alert.alert("Erreur", "Impossible de sauvegarder le modèle.");
+      Alert.alert("Error", "Unable to save template.");
       console.error("Error saving template:", error);
     } finally {
       setIsSaving(false);
@@ -328,7 +328,7 @@ const JobTemplateEditor: React.FC<JobTemplateEditorProps> = ({
           <Ionicons name="close" size={24} color={colors.text} />
         </Pressable>
         <Text style={{ fontSize: 17, fontWeight: "700", color: colors.text }}>
-          {isEditing ? "Modifier le modèle" : "Nouveau modèle de job"}
+          {isEditing ? "Edit template" : "New job template"}
         </Text>
         <Pressable
           onPress={handleSave}
@@ -338,7 +338,7 @@ const JobTemplateEditor: React.FC<JobTemplateEditorProps> = ({
           })}
         >
           <Text style={{ fontSize: 16, fontWeight: "700", color: colors.primary }}>
-            {isSaving ? "..." : "Sauvegarder"}
+            {isSaving ? "..." : "Save"}
           </Text>
         </Pressable>
       </View>
@@ -351,16 +351,16 @@ const JobTemplateEditor: React.FC<JobTemplateEditorProps> = ({
         keyboardShouldPersistTaps="handled"
       >
         {/* ── Nom & Description ── */}
-        <Text style={sectionTitle}>Informations</Text>
+        <Text style={sectionTitle}>Information</Text>
         <TextInput
-          placeholder="Nom du modèle"
+          placeholder="Template name"
           placeholderTextColor={colors.textSecondary}
           value={name}
           onChangeText={setName}
           style={[inputStyle, { marginBottom: DESIGN_TOKENS.spacing.sm }]}
         />
         <TextInput
-          placeholder="Description (optionnel)"
+          placeholder="Description (optional)"
           placeholderTextColor={colors.textSecondary}
           value={description}
           onChangeText={setDescription}
@@ -370,7 +370,7 @@ const JobTemplateEditor: React.FC<JobTemplateEditorProps> = ({
         />
 
         {/* ── Catégorie ── */}
-        <Text style={sectionTitle}>Catégorie</Text>
+        <Text style={sectionTitle}>Category</Text>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -404,7 +404,7 @@ const JobTemplateEditor: React.FC<JobTemplateEditorProps> = ({
         </ScrollView>
 
         {/* ── Mode de facturation ── */}
-        <Text style={sectionTitle}>Mode de facturation</Text>
+        <Text style={sectionTitle}>Billing mode</Text>
         <View style={{ gap: DESIGN_TOKENS.spacing.sm }}>
           {BILLING_MODES.map((mode) => {
             const isSelected = billingMode === mode.key;
@@ -558,7 +558,7 @@ const JobTemplateEditor: React.FC<JobTemplateEditorProps> = ({
             >
               <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
               <Text style={{ fontSize: 14, fontWeight: "600", color: colors.primary }}>
-                Ajouter un segment
+                Add segment
               </Text>
             </Pressable>
           ) : (
@@ -579,7 +579,7 @@ const JobTemplateEditor: React.FC<JobTemplateEditorProps> = ({
                   marginBottom: DESIGN_TOKENS.spacing.sm,
                 }}
               >
-                Type de segment
+                Segment type
               </Text>
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: DESIGN_TOKENS.spacing.sm }}>
                 {SEGMENT_TYPES.map((st) => (
@@ -612,7 +612,7 @@ const JobTemplateEditor: React.FC<JobTemplateEditorProps> = ({
                 onPress={() => setShowAddSegment(false)}
                 style={{ alignSelf: "center", marginTop: DESIGN_TOKENS.spacing.sm }}
               >
-                <Text style={{ fontSize: 13, color: colors.textSecondary }}>Annuler</Text>
+                <Text style={{ fontSize: 13, color: colors.textSecondary }}>Cancel</Text>
               </Pressable>
             </View>
           )}
@@ -621,12 +621,12 @@ const JobTemplateEditor: React.FC<JobTemplateEditorProps> = ({
         {/* ── Facturation (modes horaires) ── */}
         {!isFlatRate && (
           <>
-            <Text style={sectionTitle}>Facturation</Text>
+            <Text style={sectionTitle}>Billing</Text>
             <View style={{ gap: DESIGN_TOKENS.spacing.sm }}>
               <View style={{ flexDirection: "row", gap: DESIGN_TOKENS.spacing.sm }}>
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 4 }}>
-                    Taux horaire ($/h)
+                    Hourly rate ($/h)
                   </Text>
                   <TextInput
                     value={hourlyRate}
@@ -638,7 +638,7 @@ const JobTemplateEditor: React.FC<JobTemplateEditorProps> = ({
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 4 }}>
-                    Heures minimum
+                    Minimum hours
                   </Text>
                   <TextInput
                     value={minimumHours}
@@ -653,7 +653,7 @@ const JobTemplateEditor: React.FC<JobTemplateEditorProps> = ({
               <View style={{ flexDirection: "row", gap: DESIGN_TOKENS.spacing.sm }}>
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 4 }}>
-                    Arrondi
+                    Rounding
                   </Text>
                   <View style={{ flexDirection: "row", gap: 6 }}>
                     {ROUNDING_OPTIONS.map((opt) => (
@@ -697,7 +697,7 @@ const JobTemplateEditor: React.FC<JobTemplateEditorProps> = ({
               {billingMode === "depot_to_depot" && (
                 <View>
                   <Text style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 4 }}>
-                    Retour par défaut (min)
+                    Return trip default (min)
                   </Text>
                   <TextInput
                     value={returnTripMinutes}
@@ -715,11 +715,11 @@ const JobTemplateEditor: React.FC<JobTemplateEditorProps> = ({
         {/* ── Facturation (mode forfait) ── */}
         {isFlatRate && (
           <>
-            <Text style={sectionTitle}>Forfait</Text>
+            <Text style={sectionTitle}>Flat rate</Text>
             <View style={{ gap: DESIGN_TOKENS.spacing.sm }}>
               <View>
                 <Text style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 4 }}>
-                  Montant fixe ($)
+                  Fixed amount ($)
                 </Text>
                 <TextInput
                   value={flatRateAmount}
@@ -733,7 +733,7 @@ const JobTemplateEditor: React.FC<JobTemplateEditorProps> = ({
               <View style={{ flexDirection: "row", gap: DESIGN_TOKENS.spacing.sm }}>
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 4 }}>
-                    Limite horaire (h)
+                    Max hours (h)
                   </Text>
                   <TextInput
                     value={flatRateMaxHours}
@@ -746,7 +746,7 @@ const JobTemplateEditor: React.FC<JobTemplateEditorProps> = ({
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 4 }}>
-                    Taux si dépassement ($/h)
+                    Overage rate ($/h)
                   </Text>
                   <TextInput
                     value={flatRateOverageRate}
@@ -768,7 +768,7 @@ const JobTemplateEditor: React.FC<JobTemplateEditorProps> = ({
                   marginTop: DESIGN_TOKENS.spacing.md,
                 }}
               >
-                Options ajoutables au paiement
+                Add-on options
               </Text>
               {flatRateOptions.map((opt) => (
                 <View
@@ -811,7 +811,7 @@ const JobTemplateEditor: React.FC<JobTemplateEditorProps> = ({
               >
                 <Ionicons name="add-circle-outline" size={16} color={colors.primary} />
                 <Text style={{ fontSize: 13, fontWeight: "600", color: colors.primary }}>
-                  Ajouter une option
+                  Add option
                 </Text>
               </Pressable>
             </View>
@@ -836,14 +836,14 @@ function getDefaultLabel(
       const locLabel = locationType
         ? LOCATION_TYPES.find((l) => l.key === locationType)?.label ?? ""
         : "";
-      return `Lieu N°${order}${locLabel ? ` (${locLabel.toLowerCase()})` : ""}`;
+    return `Location #${order}${locLabel ? ` (${locLabel.toLowerCase()})` : ""}`;
     }
     case "travel":
-      return "Trajet";
+      return "Travel";
     case "storage":
-      return "Mise en storage";
+      return "Storage";
     case "loading":
-      return "Chargement";
+      return "Loading";
     default:
       return `Segment ${order}`;
   }
