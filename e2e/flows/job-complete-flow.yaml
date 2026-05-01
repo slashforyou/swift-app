@@ -1,0 +1,489 @@
+appId: host.exp.exponent
+---
+# Flow 055 — Parcours critique : Quote → Job → Pay → Review
+# Phases :
+#   A  (Création du job avec devis)
+#   B  (Assignation driver)
+#   C  (Réalisation : driver démarre le job)
+#   D  (Complétion + paiement via PaymentSheet)
+#   E  (Demande d'avis client + vérification scorecard)
+#
+# Comptes requis : ADMIN_EMAIL / ADMIN_PASSWORD + DRIVER_EMAIL / DRIVER_PASSWORD
+# Jour utilisé : 5 du mois courant (non utilisé par 050/051/052)
+#
+# Variables d'environnement nécessaires :
+#   ADMIN_EMAIL, ADMIN_PASSWORD, DRIVER_EMAIL, DRIVER_PASSWORD,
+#   EXPO_URL, TRUCK_NAME
+
+# ─────────────────────────────────────────────────────────────
+# Phase A — Création du job + saisie du devis (Admin)
+# ─────────────────────────────────────────────────────────────
+- runFlow:
+    file: sub-flows/_go-to-home.yaml
+    env:
+      EMAIL: "${ADMIN_EMAIL}"
+      PASSWORD: "${ADMIN_PASSWORD}"
+
+# Naviguer vers Calendrier
+- tapOn:
+    id: "home-calendar-btn"
+- extendedWaitUntil:
+    visible:
+      id: "calendar-month-screen"
+    timeout: 8000
+
+# Aller sur le jour 5 du mois courant
+- tapOn:
+    id: "calendar-month-day-5"
+- extendedWaitUntil:
+    visible:
+      id: "calendar-day-screen"
+    timeout: 8000
+
+# Ouvrir le modal de création
+- tapOn:
+    id: "calendar-day-create-job-fab"
+- extendedWaitUntil:
+    visible:
+      id: "create-job-modal"
+    timeout: 8000
+
+# ── Étape 1 : Sélection du client E2E (id=30) ──
+- tapOn:
+    id: "create-job-client-search"
+- inputText: "E2E"
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      id: "create-job-client-item-30"
+    timeout: 5000
+- tapOn:
+    id: "create-job-client-item-30"
+- waitForAnimationToEnd
+
+# ── Étape 2 : Adresses (pickup Sydney → delivery Melbourne) ──
+- extendedWaitUntil:
+    visible:
+      id: "address-0-street"
+    timeout: 10000
+
+- tapOn:
+    id: "address-0-street"
+- inputText: "88 George Street"
+- hideKeyboard
+
+- tapOn:
+    id: "address-0-city"
+- inputText: "Sydney"
+- hideKeyboard
+
+- tapOn:
+    id: "address-0-state-picker"
+- extendedWaitUntil:
+    visible:
+      id: "state-picker-title"
+    timeout: 3000
+- tapOn:
+    id: "state-option-NSW"
+
+- tapOn:
+    id: "address-0-zip"
+- inputText: "2000"
+- hideKeyboard
+
+- scrollUntilVisible:
+    element:
+      id: "address-1-street"
+    direction: DOWN
+    timeout: 5000
+
+- tapOn:
+    id: "address-1-street"
+- inputText: "12 Collins Street"
+- hideKeyboard
+
+- tapOn:
+    id: "address-1-city"
+- inputText: "Melbourne"
+- hideKeyboard
+
+- tapOn:
+    id: "address-1-state-picker"
+- extendedWaitUntil:
+    visible:
+      id: "state-picker-title"
+    timeout: 3000
+- tapOn:
+    id: "state-option-VIC"
+
+- tapOn:
+    id: "address-1-zip"
+- inputText: "3000"
+- hideKeyboard
+
+- scrollUntilVisible:
+    element:
+      id: "create-job-address-next-btn"
+    direction: DOWN
+- tapOn:
+    id: "create-job-address-next-btn"
+
+# ── Étape 3 : Schedule (horaires par défaut) ──
+- extendedWaitUntil:
+    visible:
+      id: "create-job-schedule-next-btn"
+    timeout: 5000
+- tapOn:
+    id: "create-job-schedule-next-btn"
+
+# ── Étape 4 : Details (par défaut) ──
+- extendedWaitUntil:
+    visible:
+      id: "create-job-details-next-btn"
+    timeout: 8000
+- tapOn:
+    id: "create-job-details-next-btn"
+
+# ── Étape 5 : Pricing — saisie du devis ──
+# On remplit un vrai devis au lieu de skipper
+- extendedWaitUntil:
+    visible:
+      id: "create-job-pricing-screen"
+    timeout: 8000
+
+# Saisir le taux horaire
+- tapOn:
+    id: "pricing-hourly-rate-input"
+- clearText
+- inputText: "120"
+- hideKeyboard
+
+# Saisir les heures minimum
+- tapOn:
+    id: "pricing-minimum-hours-input"
+- clearText
+- inputText: "3"
+- hideKeyboard
+
+# Activer le mode flat rate / devis fixe
+- scrollUntilVisible:
+    element:
+      id: "pricing-flat-rate-toggle"
+    direction: DOWN
+    timeout: 5000
+- tapOn:
+    id: "pricing-flat-rate-toggle"
+
+# Saisir le montant forfaitaire
+- extendedWaitUntil:
+    visible:
+      id: "pricing-flat-rate-amount-input"
+    timeout: 3000
+- tapOn:
+    id: "pricing-flat-rate-amount-input"
+- clearText
+- inputText: "480"
+- hideKeyboard
+
+# Passer à la confirmation
+- scrollUntilVisible:
+    element:
+      id: "create-job-pricing-next-btn"
+    direction: DOWN
+- tapOn:
+    id: "create-job-pricing-next-btn"
+
+# ── Étape 6 : Confirmation — sauvegarder ──
+- extendedWaitUntil:
+    visible:
+      id: "create-job-save-btn"
+    timeout: 8000
+- tapOn:
+    id: "create-job-save-btn"
+
+# Assert : retour à l'écran du jour, job visible
+- extendedWaitUntil:
+    visible:
+      id: "calendar-day-screen"
+    timeout: 30000
+- assertVisible:
+    text: "E2E Client"
+
+# ─────────────────────────────────────────────────────────────
+# Phase B — Assignation du driver (Admin)
+# ─────────────────────────────────────────────────────────────
+# Ouvrir le job créé
+- tapOn:
+    text: "E2E Client"
+- extendedWaitUntil:
+    visible:
+      id: "job-details-screen"
+    timeout: 10000
+
+# Vérifier que le job est bien en statut pending (bannière)
+- assertVisible:
+    id: "job-status-banner"
+
+# Naviguer vers l'onglet Job (staffing)
+- tapOn:
+    id: "tab-job"
+- waitForAnimationToEnd
+
+# Ouvrir la modal d'assignation (assign ou manage)
+- runFlow:
+    when:
+      visible:
+        id: "job-staffing-assign-btn"
+    commands:
+      - tapOn:
+          id: "job-staffing-assign-btn"
+- runFlow:
+    when:
+      visible:
+        id: "job-staffing-manage-btn"
+    commands:
+      - tapOn:
+          id: "job-staffing-manage-btn"
+
+- extendedWaitUntil:
+    visible:
+      text: "Assign a resource"
+    timeout: 5000
+
+# Assigner le véhicule d'abord (onglet Vehicle par défaut)
+- tapOn:
+    text: "${TRUCK_NAME}"
+- tapOn:
+    text: "Assign"
+- extendedWaitUntil:
+    notVisible:
+      text: "Assign a resource"
+    timeout: 10000
+
+# Ouvrir à nouveau pour assigner le driver
+- tapOn:
+    id: "job-staffing-manage-btn"
+- extendedWaitUntil:
+    visible:
+      text: "Assign a resource"
+    timeout: 8000
+
+- tapOn:
+    text: "Team"
+- extendedWaitUntil:
+    visible:
+      text: "Driver Test"
+    timeout: 5000
+- tapOn:
+    text: "Driver Test"
+- tapOn:
+    text: "Driver"
+- tapOn:
+    text: "Assign"
+- extendedWaitUntil:
+    notVisible:
+      text: "Assign a resource"
+    timeout: 10000
+
+# Retour à l'écran du jour
+- pressKey: Back
+- extendedWaitUntil:
+    visible:
+      id: "job-details-screen"
+    timeout: 5000
+- pressKey: Back
+
+# ─────────────────────────────────────────────────────────────
+# Phase C — Réalisation du job (Driver)
+# ─────────────────────────────────────────────────────────────
+- runFlow:
+    file: sub-flows/_switch-to-driver.yaml
+
+- tapOn:
+    id: "home-calendar-btn"
+- extendedWaitUntil:
+    visible:
+      id: "calendar-month-screen"
+    timeout: 8000
+- tapOn:
+    id: "calendar-month-day-5"
+- extendedWaitUntil:
+    visible:
+      id: "calendar-day-screen"
+    timeout: 8000
+
+# Ouvrir le job assigné
+- tapOn:
+    text: "E2E Client"
+- extendedWaitUntil:
+    visible:
+      id: "job-details-screen"
+    timeout: 10000
+
+# Démarrer le chrono → job passe in_progress
+- tapOn:
+    id: "job-timer-start-btn"
+- extendedWaitUntil:
+    visible:
+      id: "job-timer-pause-btn"
+    timeout: 8000
+
+# Simuler du travail (scroll)
+- swipe:
+    direction: DOWN
+    duration: 1500
+
+# Mettre en pause (l'admin reprend la main ensuite)
+- tapOn:
+    id: "job-timer-pause-btn"
+- extendedWaitUntil:
+    visible:
+      id: "job-timer-play-btn"
+    timeout: 5000
+
+# ─────────────────────────────────────────────────────────────
+# Phase D — Complétion du job + Paiement (Admin)
+# ─────────────────────────────────────────────────────────────
+- runFlow:
+    file: sub-flows/_switch-to-admin.yaml
+
+- tapOn:
+    id: "home-calendar-btn"
+- extendedWaitUntil:
+    visible:
+      id: "calendar-month-screen"
+    timeout: 8000
+- tapOn:
+    id: "calendar-month-day-5"
+- extendedWaitUntil:
+    visible:
+      id: "calendar-day-screen"
+    timeout: 8000
+
+- extendedWaitUntil:
+    visible:
+      text: "E2E Client"
+    timeout: 10000
+- tapOn:
+    text: "E2E Client"
+- extendedWaitUntil:
+    visible:
+      id: "job-details-screen"
+    timeout: 10000
+
+# Marquer le job comme terminé (bouton Complete dans l'onglet Job)
+- tapOn:
+    id: "tab-job"
+- scrollUntilVisible:
+    element:
+      id: "job-complete-btn"
+    direction: DOWN
+    timeout: 8000
+- tapOn:
+    id: "job-complete-btn"
+
+# Confirmer la complétion dans la dialog
+- extendedWaitUntil:
+    visible:
+      id: "job-complete-confirm-btn"
+    timeout: 5000
+- tapOn:
+    id: "job-complete-confirm-btn"
+
+# Assert : bannière statut = completed
+- extendedWaitUntil:
+    visible:
+      id: "job-status-banner"
+    timeout: 8000
+
+# Naviguer vers l'onglet Paiement
+- tapOn:
+    id: "tab-payment"
+- extendedWaitUntil:
+    visible:
+      id: "job-payment-scroll"
+    timeout: 8000
+
+# Lancer le paiement via PaymentSheet Stripe
+- tapOn:
+    id: "job-payment-sheet-btn"
+- extendedWaitUntil:
+    visible:
+      id: "stripe-payment-sheet"
+    timeout: 10000
+
+# Remplir les informations de carte de test Stripe
+- tapOn:
+    id: "stripe-card-number"
+- inputText: "4242424242424242"
+- hideKeyboard
+
+- tapOn:
+    id: "stripe-card-expiry"
+- inputText: "1228"
+- hideKeyboard
+
+- tapOn:
+    id: "stripe-card-cvc"
+- inputText: "123"
+- hideKeyboard
+
+# Confirmer le paiement
+- tapOn:
+    id: "stripe-pay-btn"
+
+# Attendre la confirmation de paiement (webhook simulé en test)
+- extendedWaitUntil:
+    visible:
+      id: "payment-success-banner"
+    timeout: 15000
+
+# Assert : statut paiement = paid
+- assertVisible:
+    id: "payment-success-banner"
+
+# ─────────────────────────────────────────────────────────────
+# Phase E — Demande d'avis client + Vérification scorecard (Admin)
+# ─────────────────────────────────────────────────────────────
+# Naviguer vers l'onglet Scorecard / Summary
+- tapOn:
+    id: "tab-summary"
+- extendedWaitUntil:
+    visible:
+      id: "job-scorecard-screen"
+    timeout: 8000
+
+# Assert : scorecard visible avec les checkpoints
+- assertVisible:
+    id: "job-scorecard-screen"
+
+# Envoyer la demande d'avis au client
+- scrollUntilVisible:
+    element:
+      id: "scorecard-send-review-btn"
+    direction: DOWN
+    timeout: 5000
+- tapOn:
+    id: "scorecard-send-review-btn"
+
+# Confirmer l'envoi dans la toast/snackbar
+- extendedWaitUntil:
+    visible:
+      id: "review-request-sent-toast"
+    timeout: 8000
+- assertVisible:
+    id: "review-request-sent-toast"
+
+# ─────────────────────────────────────────────────────────────
+# Assertions finales — État cohérent du job
+# ─────────────────────────────────────────────────────────────
+# Retourner à l'écran du jour et vérifier que le job est bien archivé/completed
+- pressKey: Back
+- extendedWaitUntil:
+    visible:
+      id: "calendar-day-screen"
+    timeout: 5000
+
+# Le job doit toujours apparaître dans la liste du jour (pas supprimé)
+- assertVisible:
+    text: "E2E Client"
