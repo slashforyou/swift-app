@@ -2,12 +2,17 @@
  * DailyRecapModal
  * Affiche le récap XP de fin de journée (appelé depuis home.tsx au focus).
  * Ne s'affiche qu'une fois par jour (AsyncStorage).
+ * - Centré sur l'écran
+ * - Entrée animée (scale + fade, 600ms)
+ * - Lignes de breakdown animées en stagger
+ * - Clé "seen" écrite au mount pour éviter le re-affichage si on quitte sans fermer
  */
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-    FlatList,
+    Animated,
+    Easing,
     Modal,
     Pressable,
     StyleSheet,
@@ -34,45 +39,89 @@ interface DailyRecapModalProps {
 export default function DailyRecapModal({ data, onClose }: DailyRecapModalProps) {
   const { colors } = useTheme();
   const [visible, setVisible] = useState(true);
+  const breakdown = data.breakdown ?? [];
 
-  const handleClose = async () => {
-    setVisible(false);
-    try {
-      await AsyncStorage.setItem(recapSeenKey(data.date), '1');
-    } catch {}
-    onClose();
+  // ── Marquer immédiatement comme vu au mount ─────────────────────────────
+  // Évite le re-affichage si l'utilisateur navigue hors de Home sans fermer.
+  useEffect(() => {
+    AsyncStorage.setItem(recapSeenKey(data.date), '1').catch(() => {});
+  }, [data.date]);
+
+  // ── Valeurs d'animation ──────────────────────────────────────────────────
+  const backdropOpacity = useRef(new Animated.Value(0)).current;
+  const cardScale       = useRef(new Animated.Value(0.86)).current;
+  const cardOpacity     = useRef(new Animated.Value(0)).current;
+  const rowAnims        = useRef(breakdown.map(() => new Animated.Value(0))).current;
+
+  // ── Animation d'entrée ───────────────────────────────────────────────────
+  useEffect(() => {
+    Animated.timing(backdropOpacity, {
+      toValue: 1, duration: 380, useNativeDriver: true,
+      easing: Easing.out(Easing.ease),
+    }).start();
+
+    Animated.parallel([
+      Animated.timing(cardScale, {
+        toValue: 1, duration: 620, useNativeDriver: true,
+        easing: Easing.out(Easing.back(1.04)),
+      }),
+      Animated.timing(cardOpacity, {
+        toValue: 1, duration: 500, useNativeDriver: true,
+        easing: Easing.out(Easing.ease),
+      }),
+    ]).start(() => {
+      if (rowAnims.length > 0) {
+        Animated.stagger(
+          120,
+          rowAnims.map(a =>
+            Animated.timing(a, {
+              toValue: 1, duration: 270, useNativeDriver: true,
+              easing: Easing.out(Easing.ease),
+            })
+          )
+        ).start();
+      }
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ── Fermeture avec animation de sortie ───────────────────────────────────
+  const handleClose = () => {
+    Animated.parallel([
+      Animated.timing(backdropOpacity, { toValue: 0, duration: 280, useNativeDriver: true }),
+      Animated.timing(cardOpacity,     { toValue: 0, duration: 220, useNativeDriver: true }),
+      Animated.timing(cardScale,       { toValue: 0.92, duration: 260, useNativeDriver: true }),
+    ]).start(() => {
+      setVisible(false);
+      onClose();
+    });
   };
 
   if (!visible) return null;
-
-  const levelUpBadge = data.level_up && (
-    <View style={[styles.levelUpBadge, { backgroundColor: colors.primary + '22', borderColor: colors.primary + '55' }]}>
-      <Ionicons name="arrow-up-circle" size={18} color={colors.primary} />
-      <Text style={[styles.levelUpText, { color: colors.primary }]}>
-        Niveau {data.level_before} → {data.level_after}
-      </Text>
-    </View>
-  );
 
   return (
     <Modal
       visible={visible}
       transparent
-      animationType="slide"
+      animationType="none"
       onRequestClose={handleClose}
       statusBarTranslucent
     >
-      {/* Backdrop */}
-      <Pressable style={styles.backdrop} onPress={handleClose}>
-        {/* Sheet — stop propagation so it doesn't close when tapping inside */}
-        <Pressable onPress={() => {}} style={[styles.sheet, { backgroundColor: colors.backgroundSecondary }]}>
-          {/* Handle */}
-          <View style={[styles.handle, { backgroundColor: colors.border }]} />
+      {/* Backdrop semi-transparent */}
+      <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
+        {/* Tap en dehors = fermer */}
+        <Pressable style={StyleSheet.absoluteFillObject} onPress={handleClose} />
 
-          {/* Title */}
-          <Text style={[styles.title, { color: colors.text }]}>
-            Bilan du jour
-          </Text>
+        {/* Card centré */}
+        <Animated.View
+          style={[
+            styles.card,
+            { backgroundColor: colors.backgroundSecondary },
+            { opacity: cardOpacity, transform: [{ scale: cardScale }] },
+          ]}
+        >
+          {/* Titre */}
+          <Text style={[styles.title, { color: colors.text }]}>🏆 Bilan du jour</Text>
           <Text style={[styles.date, { color: colors.textSecondary }]}>
             {new Date(data.date + 'T12:00:00').toLocaleDateString('fr-FR', {
               weekday: 'long',
@@ -81,7 +130,7 @@ export default function DailyRecapModal({ data, onClose }: DailyRecapModalProps)
             })}
           </Text>
 
-          {/* Big XP number */}
+          {/* Gros chiffre XP */}
           <View style={styles.xpRow}>
             <Text style={[styles.xpValue, { color: colors.primary }]}>
               +{data.total_xp_gained}
@@ -89,34 +138,54 @@ export default function DailyRecapModal({ data, onClose }: DailyRecapModalProps)
             <Text style={[styles.xpUnit, { color: colors.textSecondary }]}> XP</Text>
           </View>
 
-          {/* Jobs count */}
+          {/* Nombre de jobs */}
           <Text style={[styles.jobsLine, { color: colors.textSecondary }]}>
-            {data.jobs_completed} job{data.jobs_completed > 1 ? 's' : ''} complété{data.jobs_completed > 1 ? 's' : ''} aujourd&apos;hui
+            {data.jobs_completed} job{data.jobs_completed > 1 ? 's' : ''} complété
+            {data.jobs_completed > 1 ? 's' : ''} aujourd&apos;hui
           </Text>
 
-          {/* Level up badge */}
-          {levelUpBadge}
+          {/* Badge level up */}
+          {data.level_up && (
+            <View style={[styles.levelUpBadge, { backgroundColor: colors.primary + '22', borderColor: colors.primary + '55' }]}>
+              <Ionicons name="arrow-up-circle" size={18} color={colors.primary} />
+              <Text style={[styles.levelUpText, { color: colors.primary }]}>
+                Niveau {data.level_before} → {data.level_after}
+              </Text>
+            </View>
+          )}
 
-          {/* Breakdown */}
-          {(data.breakdown ?? []).length > 0 && (
+          {/* Breakdown — lignes animées une par une */}
+          {breakdown.length > 0 && (
             <View style={[styles.breakdownBox, { borderColor: colors.border, backgroundColor: colors.background }]}>
-              <FlatList
-                data={data.breakdown ?? []}
-                keyExtractor={(item) => item.action}
-                scrollEnabled={false}
-                ItemSeparatorComponent={() => <View style={[styles.separator, { backgroundColor: colors.border }]} />}
-                renderItem={({ item }) => (
-                  <View style={styles.breakdownRow}>
-                    <Text style={[styles.breakdownLabel, { color: colors.text }]} numberOfLines={1}>
-                      {xpActionLabel(item.action)}
-                      {item.cnt > 1 ? ` ×${item.cnt}` : ''}
-                    </Text>
-                    <Text style={[styles.breakdownXp, { color: colors.primary }]}>
-                      +{item.xp} XP
-                    </Text>
-                  </View>
-                )}
-              />
+              {breakdown.map((item, idx) => (
+                <Animated.View
+                  key={item.action}
+                  style={[
+                    styles.breakdownRow,
+                    idx < breakdown.length - 1 && {
+                      borderBottomWidth: StyleSheet.hairlineWidth,
+                      borderBottomColor: colors.border,
+                    },
+                    {
+                      opacity: rowAnims[idx] ?? 1,
+                      transform: [{
+                        translateY: (rowAnims[idx] ?? new Animated.Value(1)).interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [10, 0],
+                        }),
+                      }],
+                    },
+                  ]}
+                >
+                  <Text style={[styles.breakdownLabel, { color: colors.text }]} numberOfLines={1}>
+                    {xpActionLabel(item.action)}
+                    {item.cnt > 1 ? ` ×${item.cnt}` : ''}
+                  </Text>
+                  <Text style={[styles.breakdownXp, { color: colors.primary }]}>
+                    +{item.xp} XP
+                  </Text>
+                </Animated.View>
+              ))}
             </View>
           )}
 
@@ -132,8 +201,8 @@ export default function DailyRecapModal({ data, onClose }: DailyRecapModalProps)
           >
             <Text style={styles.ctaText}>Super !</Text>
           </Pressable>
-        </Pressable>
-      </Pressable>
+        </Animated.View>
+      </Animated.View>
     </Modal>
   );
 }
@@ -141,39 +210,40 @@ export default function DailyRecapModal({ data, onClose }: DailyRecapModalProps)
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.52)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
   },
-  sheet: {
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+  card: {
+    width: '100%',
+    borderRadius: 24,
     paddingHorizontal: DESIGN_TOKENS.spacing.lg,
-    paddingTop: 12,
+    paddingTop: DESIGN_TOKENS.spacing.xl,
     paddingBottom: DESIGN_TOKENS.spacing.xl,
-  },
-  handle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginBottom: DESIGN_TOKENS.spacing.md,
+    gap: DESIGN_TOKENS.spacing.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.28,
+    shadowRadius: 28,
+    elevation: 14,
   },
   title: {
     fontSize: 22,
     fontWeight: '700',
     textAlign: 'center',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   date: {
     fontSize: 13,
     textAlign: 'center',
-    marginBottom: DESIGN_TOKENS.spacing.md,
     textTransform: 'capitalize',
   },
   xpRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     justifyContent: 'center',
+    marginTop: DESIGN_TOKENS.spacing.sm,
     marginBottom: 4,
   },
   xpValue: {
@@ -189,7 +259,6 @@ const styles = StyleSheet.create({
   jobsLine: {
     fontSize: 14,
     textAlign: 'center',
-    marginBottom: DESIGN_TOKENS.spacing.md,
   },
   levelUpBadge: {
     flexDirection: 'row',
@@ -200,7 +269,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingHorizontal: 14,
     paddingVertical: 6,
-    marginBottom: DESIGN_TOKENS.spacing.md,
   },
   levelUpText: {
     fontSize: 14,
@@ -209,8 +277,8 @@ const styles = StyleSheet.create({
   breakdownBox: {
     borderWidth: 1,
     borderRadius: DESIGN_TOKENS.radius.md,
-    marginBottom: DESIGN_TOKENS.spacing.md,
     overflow: 'hidden',
+    marginTop: DESIGN_TOKENS.spacing.xs,
   },
   breakdownRow: {
     flexDirection: 'row',
@@ -228,13 +296,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
   },
-  separator: {
-    height: StyleSheet.hairlineWidth,
-  },
   ctaButton: {
-    borderRadius: DESIGN_TOKENS.radius.md,
-    paddingVertical: DESIGN_TOKENS.spacing.md,
+    borderRadius: DESIGN_TOKENS.radius.lg,
+    paddingVertical: 14,
     alignItems: 'center',
+    marginTop: DESIGN_TOKENS.spacing.sm,
   },
   ctaText: {
     color: '#fff',

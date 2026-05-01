@@ -1733,6 +1733,21 @@ export const enTranslations: TranslationKeys = {
       default: "My company",
       incomplete: "Complete your profile",
     },
+    hero: {
+      subtitle: "Business Command Center",
+      configured: "configured",
+    },
+    setup: {
+      businessInfo: "Complete business info (name, address, ABN)",
+      stripe: "Connect Stripe for payments",
+      team: "Add team members",
+      vehicles: "Add a vehicle to the fleet",
+      partners: "Add a partner company",
+    },
+    tutorial: {
+      title: "Getting Started Guide",
+      tip: "Tap any step to complete it. A fully configured business ensures a smooth experience for your team.",
+    },
     tools: "Quick Access",
     actionsRequired: "Actions Required",
     search: {

@@ -10,6 +10,7 @@ import {
     Text,
     TouchableOpacity,
     View,
+    Animated,
 } from "react-native";
 import type { BusinessTab } from "../../components/business/BusinessTabMenu";
 import { ServerData } from "../../constants/ServerData";
@@ -26,7 +27,7 @@ import { useStaff } from "../../hooks/useStaff";
 import { useStripeConnection } from "../../hooks/useStripeConnection";
 import { useVehicles } from "../../hooks/useVehicles";
 import { useTranslation } from "../../localization/useLocalization";
-import { trackCustomEvent } from "../../services/analytics";
+import { analytics, trackCustomEvent } from "../../services/analytics";
 import { authenticatedFetch } from "../../utils/auth";
 
 // Palettes de couleurs pour les cards (mode clair)
@@ -92,7 +93,7 @@ export default function BusinessHubOverview({
       label: t("businessHub.actions.configureStripe"),
       icon: "card-outline",
       color: "#EF4444",
-      onPress: () => onNavigateTab("Finances", "payments"),
+      onPress: () => { analytics.trackButtonPress('hub_action_configure_stripe', 'BusinessHub'); onNavigateTab("Finances", "payments"); },
     });
   }
   if (profile && (!profile.address || !profile.phone || !profile.abn)) {
@@ -100,7 +101,7 @@ export default function BusinessHubOverview({
       label: t("businessHub.actions.completeProfile"),
       icon: "business-outline",
       color: "#F59E0B",
-      onPress: () => onDrillDown("BusinessInfo"),
+      onPress: () => { analytics.trackButtonPress('hub_action_complete_profile', 'BusinessHub'); onDrillDown("BusinessInfo"); },
     });
   }
   if (totalVehicles === 0 && !vehiclesLoading) {
@@ -108,7 +109,7 @@ export default function BusinessHubOverview({
       label: t("businessHub.actions.addVehicle"),
       icon: "car-outline",
       color: "#F59E0B",
-      onPress: () => onNavigateTab("Resources", "vehicles"),
+      onPress: () => { analytics.trackButtonPress('hub_action_add_vehicle', 'BusinessHub'); onNavigateTab("Resources", "vehicles"); },
     });
   }
   if (staffCount === 0 && !staffLoading) {
@@ -116,7 +117,7 @@ export default function BusinessHubOverview({
       label: t("businessHub.actions.inviteTeam"),
       icon: "person-add-outline",
       color: "#F59E0B",
-      onPress: () => onNavigateTab("Resources", "staff"),
+      onPress: () => { analytics.trackButtonPress('hub_action_invite_team', 'BusinessHub'); onNavigateTab("Resources", "staff"); },
     });
   }
   if (partnerCount === 0 && !partnersLoading) {
@@ -124,7 +125,7 @@ export default function BusinessHubOverview({
       label: t("businessHub.actions.addPartner"),
       icon: "people-outline",
       color: "#F59E0B",
-      onPress: () => onNavigateTab("Resources", "partners"),
+      onPress: () => { analytics.trackButtonPress('hub_action_add_partner', 'BusinessHub'); onNavigateTab("Resources", "partners"); },
     });
   }
 
@@ -188,10 +189,145 @@ export default function BusinessHubOverview({
 
   const isLoading = profileLoading || statsLoading || stripeConnection.loading;
 
+  // ── Tutorial / Quickstart ─────────────────────────────────────────────────
+  const [tutorialOpen, setTutorialOpen] = useState(false);
+
+  // Score d'installation : combien d'éléments critiques sont configurés
+  const setupItems = useMemo(() => [
+    {
+      label: t("businessHub.setup.businessInfo"),
+      icon: "business-outline",
+      done: !!(profile?.name && profile?.address && profile?.phone && profile?.abn),
+      onPress: () => onDrillDown("BusinessInfo"),
+    },
+    {
+      label: t("businessHub.setup.stripe"),
+      icon: "card-outline",
+      done: stripeConnected,
+      onPress: () => onNavigateTab("Finances", "payments"),
+    },
+    {
+      label: t("businessHub.setup.team"),
+      icon: "people-outline",
+      done: staffCount > 0,
+      onPress: () => onNavigateTab("Resources", "staff"),
+    },
+    {
+      label: t("businessHub.setup.vehicles"),
+      icon: "car-outline",
+      done: totalVehicles > 0,
+      onPress: () => onNavigateTab("Resources", "vehicles"),
+    },
+    {
+      label: t("businessHub.setup.partners"),
+      icon: "people-circle-outline",
+      done: partnerCount > 0,
+      onPress: () => onNavigateTab("Resources", "partners"),
+    },
+  ], [profile, stripeConnected, staffCount, totalVehicles, partnerCount, t, onDrillDown, onNavigateTab]);
+
+  const setupDone  = setupItems.filter(i => i.done).length;
+  const setupTotal = setupItems.length;
+  const setupPct   = Math.round((setupDone / setupTotal) * 100);
+
+  const PLAN_COLORS: Record<string, { bg: string; text: string }> = {
+    elite:    { bg: "#7C3AED", text: "#fff" },
+    pro:      { bg: "#2563EB", text: "#fff" },
+    basic:    { bg: "#059669", text: "#fff" },
+  };
+  const planChip = PLAN_COLORS[currentPlan ?? ""] ?? { bg: colors.primary, text: "#fff" };
+
   const s = getStyles(colors);
 
   return (
     <View>
+      {/* ── Hero Banner ─────────────────────────────────────────────────────── */}
+      <View style={[s.heroBanner, { backgroundColor: isDark ? colors.backgroundSecondary : colors.primary + "0E" }]}>
+        <View style={s.heroTop}>
+          <View style={{ flex: 1 }}>
+            <Text style={[s.heroTitle, { color: colors.text }]} numberOfLines={1}>
+              {profile?.name || t("businessHub.company.default")}
+            </Text>
+            <Text style={[s.heroSub, { color: colors.textSecondary }]}>
+              {t("businessHub.hero.subtitle")}
+            </Text>
+          </View>
+          {currentPlan && (
+            <View style={[s.planChip, { backgroundColor: planChip.bg }]}>
+              <Text style={[s.planChipText, { color: planChip.text }]}>
+                {currentPlan.toUpperCase()}
+              </Text>
+            </View>
+          )}
+        </View>
+        {/* Progress bar de configuration */}
+        <View style={s.setupRow}>
+          <View style={[s.setupTrack, { backgroundColor: colors.border }]}>
+            <View style={[s.setupFill, { width: `${setupPct}%`, backgroundColor: setupDone === setupTotal ? "#10B981" : colors.primary }]} />
+          </View>
+          <Text style={[s.setupLabel, { color: colors.textSecondary }]}>
+            {setupDone}/{setupTotal} {t("businessHub.hero.configured")}
+          </Text>
+        </View>
+      </View>
+
+      {/* ── Quick Start Guide (tutoriel collapsible) ─────────────────────────── */}
+      <TouchableOpacity
+        style={[s.tutorialHeader, { backgroundColor: isDark ? "#1e3a5f" : "#EFF6FF", borderColor: isDark ? "#2563EB44" : "#BFDBFE" }]}
+        onPress={() => setTutorialOpen(o => !o)}
+        activeOpacity={0.75}
+      >
+        <View style={s.tutorialHeaderLeft}>
+          <Ionicons name="map-outline" size={20} color="#2563EB" />
+          <Text style={[s.tutorialHeaderTitle, { color: isDark ? "#93C5FD" : "#1D4ED8" }]}>
+            {t("businessHub.tutorial.title")}
+          </Text>
+          {setupDone < setupTotal && (
+            <View style={s.tutorialBadge}>
+              <Text style={s.tutorialBadgeText}>{setupTotal - setupDone}</Text>
+            </View>
+          )}
+        </View>
+        <Ionicons
+          name={tutorialOpen ? "chevron-up" : "chevron-down"}
+          size={18}
+          color="#2563EB"
+        />
+      </TouchableOpacity>
+      {tutorialOpen && (
+        <View style={[s.tutorialBody, { backgroundColor: isDark ? "#162032" : "#F0F9FF", borderColor: isDark ? "#2563EB33" : "#BAE6FD" }]}>
+          {setupItems.map((item, idx) => (
+            <TouchableOpacity
+              key={idx}
+              style={[s.tutorialStep, idx < setupItems.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: isDark ? "#ffffff10" : "#BAE6FD" }]}
+              onPress={item.onPress}
+              activeOpacity={0.7}
+            >
+              <View style={[s.tutorialStepIcon, { backgroundColor: item.done ? "#10B98120" : "#2563EB15" }]}>
+                <Ionicons
+                  name={item.done ? "checkmark-circle" : (item.icon as any)}
+                  size={20}
+                  color={item.done ? "#10B981" : "#2563EB"}
+                />
+              </View>
+              <Text style={[s.tutorialStepLabel, { color: item.done ? colors.textSecondary : colors.text }]}>
+                {item.label}
+              </Text>
+              {item.done
+                ? <Ionicons name="checkmark" size={16} color="#10B981" />
+                : <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
+              }
+            </TouchableOpacity>
+          ))}
+          <View style={[s.tutorialTip, { backgroundColor: isDark ? "#0f2d4a" : "#E0F2FE" }]}>
+            <Ionicons name="information-circle-outline" size={15} color="#0EA5E9" />
+            <Text style={[s.tutorialTipText, { color: isDark ? "#7DD3FC" : "#0369A1" }]}>
+              {t("businessHub.tutorial.tip")}
+            </Text>
+          </View>
+        </View>
+      )}
+
       {/* ── Bloc A : Actions requises ── */}
       {actions.length > 0 && (
         <View style={[s.actionsCard, { backgroundColor: isDark ? "#7F1D1D40" : "#FEF2F2", borderColor: isDark ? "#EF444440" : "#FECACA" }]}>
@@ -347,6 +483,134 @@ export default function BusinessHubOverview({
 
 const getStyles = (colors: any) =>
   StyleSheet.create({
+    // ── Hero ──
+    heroBanner: {
+      borderRadius: DESIGN_TOKENS.radius.lg,
+      padding: DESIGN_TOKENS.spacing.md,
+      marginBottom: DESIGN_TOKENS.spacing.md,
+      borderWidth: 1,
+      borderColor: colors.primary + "25",
+    },
+    heroTop: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: 10,
+      marginBottom: DESIGN_TOKENS.spacing.sm,
+    },
+    heroTitle: {
+      fontSize: 18,
+      fontWeight: "700",
+      marginBottom: 2,
+    },
+    heroSub: {
+      fontSize: 12,
+      fontWeight: "500",
+    },
+    planChip: {
+      borderRadius: 6,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      alignSelf: "flex-start",
+    },
+    planChipText: {
+      fontSize: 11,
+      fontWeight: "800",
+      letterSpacing: 0.5,
+    },
+    setupRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: DESIGN_TOKENS.spacing.sm,
+    },
+    setupTrack: {
+      flex: 1,
+      height: 6,
+      borderRadius: 3,
+      overflow: "hidden",
+    },
+    setupFill: {
+      height: "100%",
+      borderRadius: 3,
+    },
+    setupLabel: {
+      fontSize: 12,
+      fontWeight: "600",
+      minWidth: 60,
+    },
+    // ── Tutorial ──
+    tutorialHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      borderWidth: 1,
+      borderRadius: DESIGN_TOKENS.radius.lg,
+      paddingHorizontal: DESIGN_TOKENS.spacing.md,
+      paddingVertical: DESIGN_TOKENS.spacing.sm + 2,
+      marginBottom: 2,
+    },
+    tutorialHeaderLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      flex: 1,
+    },
+    tutorialHeaderTitle: {
+      fontSize: 14,
+      fontWeight: "700",
+    },
+    tutorialBadge: {
+      width: 20,
+      height: 20,
+      borderRadius: 10,
+      backgroundColor: "#EF4444",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    tutorialBadgeText: {
+      color: "#fff",
+      fontSize: 11,
+      fontWeight: "700",
+    },
+    tutorialBody: {
+      borderWidth: 1,
+      borderTopWidth: 0,
+      borderBottomLeftRadius: DESIGN_TOKENS.radius.lg,
+      borderBottomRightRadius: DESIGN_TOKENS.radius.lg,
+      marginBottom: DESIGN_TOKENS.spacing.md,
+      overflow: "hidden",
+    },
+    tutorialStep: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: DESIGN_TOKENS.spacing.md,
+      paddingVertical: DESIGN_TOKENS.spacing.sm + 2,
+      gap: 10,
+    },
+    tutorialStepIcon: {
+      width: 34,
+      height: 34,
+      borderRadius: 17,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    tutorialStepLabel: {
+      flex: 1,
+      fontSize: 14,
+      fontWeight: "500",
+    },
+    tutorialTip: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: 6,
+      margin: DESIGN_TOKENS.spacing.sm,
+      padding: DESIGN_TOKENS.spacing.sm,
+      borderRadius: DESIGN_TOKENS.radius.md,
+    },
+    tutorialTipText: {
+      fontSize: 12,
+      flex: 1,
+      lineHeight: 17,
+    },
     actionsCard: {
       borderWidth: 1,
       borderRadius: DESIGN_TOKENS.radius.lg,

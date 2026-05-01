@@ -549,69 +549,59 @@ const GamificationV2Screen: React.FC = () => {
     <Screen>
       {/* Guide first-XP — s'affiche automatiquement la première fois */}
       <FirstXPGuide />
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingTop: insets.top + DESIGN_TOKENS.spacing.lg,
-          paddingHorizontal: DESIGN_TOKENS.gutters?.horizontal ?? DESIGN_TOKENS.spacing.lg,
-          paddingBottom: insets.bottom + DESIGN_TOKENS.spacing.xxl,
-        }}
-        refreshControl={
-          <RefreshControl
-            refreshing={isLoadingProfile || isLoadingQuests}
-            onRefresh={onRefresh}
-            tintColor={colors.primary}
-          />
-        }
-      >
-        {/* Back + titre */}
-        <HStack gap="sm" align="center" style={{ marginBottom: DESIGN_TOKENS.spacing.lg }}>
-          <Pressable
-            onPress={() => navigation.goBack()}
-            hitSlop={DESIGN_TOKENS.touch.hitSlop}
-            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-          >
-            <Ionicons name="chevron-back" size={24} color={colors.text} />
-          </Pressable>
-          <Text style={[styles.screenTitle, { color: colors.text }]}>
-            {t('gamification.title')}
+
+      {/* ── Sticky Header : saison + progrès + filtres ───────────────────── */}
+      <View style={[styles.stickyHeader, { backgroundColor: colors.background, borderBottomColor: colors.border, paddingTop: insets.top + DESIGN_TOKENS.spacing.sm }]}>
+        <View style={{ paddingHorizontal: DESIGN_TOKENS.gutters?.horizontal ?? DESIGN_TOKENS.spacing.lg }}>
+          {/* Back + titre */}
+          <HStack gap="sm" align="center" style={{ marginBottom: DESIGN_TOKENS.spacing.md }}>
+            <Pressable
+              onPress={() => navigation.goBack()}
+              hitSlop={DESIGN_TOKENS.touch.hitSlop}
+              style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+            >
+              <Ionicons name="chevron-back" size={24} color={colors.text} />
+            </Pressable>
+            <Text style={[styles.screenTitle, { color: colors.text }]}>
+              {t('gamification.title')}
+            </Text>
+          </HStack>
+
+          {/* Carte de stats (progrès utilisateur) */}
+          {isLoadingProfile && !profile ? (
+            <ActivityIndicator color={colors.primary} style={{ marginBottom: DESIGN_TOKENS.spacing.md }} />
+          ) : profileError ? (
+            <Text style={{ color: colors.error, textAlign: 'center', marginBottom: DESIGN_TOKENS.spacing.md }}>
+              {profileError}
+            </Text>
+          ) : (
+            <GamificationV2StatsCard
+              profile={profile}
+              xpProgress={xpProgress}
+              colorAccent={colors.primary}
+              seasonTrophies={trophies?.current_season?.trophies}
+            />
+          )}
+
+          {/* Saison en cours */}
+          {isLoadingTrophies && !trophies ? (
+            <ActivityIndicator color={colors.primary} style={{ marginBottom: DESIGN_TOKENS.spacing.sm }} />
+          ) : trophies ? (
+            <TrophySeasonCard data={trophies} t={t} />
+          ) : null}
+        </View>
+
+        {/* Titre quêtes + filtres — pleine largeur */}
+        <View style={{ paddingHorizontal: DESIGN_TOKENS.gutters?.horizontal ?? DESIGN_TOKENS.spacing.lg }}>
+          <Text style={[styles.sectionTitle, { color: colors.text, marginBottom: DESIGN_TOKENS.spacing.sm }]}>
+            {t('gamification.myQuests')}
           </Text>
-        </HStack>
-
-        {/* Carte de stats */}
-        {isLoadingProfile && !profile ? (
-          <ActivityIndicator color={colors.primary} style={{ marginBottom: DESIGN_TOKENS.spacing.lg }} />
-        ) : profileError ? (
-          <Text style={{ color: colors.error, textAlign: 'center', marginBottom: DESIGN_TOKENS.spacing.lg }}>
-            {profileError}
-          </Text>
-        ) : (
-          <GamificationV2StatsCard
-            profile={profile}
-            xpProgress={xpProgress}
-            colorAccent={colors.primary}
-            seasonTrophies={trophies?.current_season?.trophies}
-          />
-        )}
-
-        {/* Trophées saisonniers */}
-        {isLoadingTrophies && !trophies ? (
-          <ActivityIndicator color={colors.primary} style={{ marginBottom: DESIGN_TOKENS.spacing.md }} />
-        ) : trophies ? (
-          <TrophySeasonCard data={trophies} t={t} />
-        ) : null}
-
-        {/* Titre "⚔️ Mes quêtes" */}
-        <Text style={[styles.sectionTitle, { color: colors.text, marginTop: DESIGN_TOKENS.spacing.lg, marginBottom: DESIGN_TOKENS.spacing.md }]}>
-          {t('gamification.myQuests')}
-        </Text>
-
-        {/* Filtres */}
+        </View>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filterRow}
-          style={{ marginBottom: DESIGN_TOKENS.spacing.md }}
+          contentContainerStyle={[styles.filterRow, { paddingHorizontal: DESIGN_TOKENS.gutters?.horizontal ?? DESIGN_TOKENS.spacing.lg }]}
+          style={{ marginBottom: DESIGN_TOKENS.spacing.sm }}
         >
           {availableFilters.map(cat => {
             const active = activeFilter === cat;
@@ -635,7 +625,24 @@ const GamificationV2Screen: React.FC = () => {
             );
           })}
         </ScrollView>
+      </View>
 
+      {/* ── Liste de quêtes scrollable ─────────────────────────────────────── */}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingHorizontal: DESIGN_TOKENS.gutters?.horizontal ?? DESIGN_TOKENS.spacing.lg,
+          paddingTop: DESIGN_TOKENS.spacing.md,
+          paddingBottom: insets.bottom + DESIGN_TOKENS.spacing.xxl,
+        }}
+        refreshControl={
+          <RefreshControl
+            refreshing={isLoadingProfile || isLoadingQuests}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+          />
+        }
+      >
         {/* Sections de quêtes */}
         {isLoadingQuests && quests.length === 0 ? (
           <ActivityIndicator color={colors.primary} style={{ marginVertical: DESIGN_TOKENS.spacing.lg }} />
@@ -685,6 +692,13 @@ const GamificationV2Screen: React.FC = () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
+  stickyHeader: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingTop: 0,    // insets.top appliqué inline via paddingTop dynamique
+  },
+  stickyInner: {
+    paddingHorizontal: 0,   // Les composants internes appliquent leur propre padding
+  },
   screenTitle: {
     fontSize: 20,
     fontWeight: '700',
@@ -696,7 +710,7 @@ const styles = StyleSheet.create({
   filterRow: {
     flexDirection: 'row',
     gap: DESIGN_TOKENS.spacing.sm,
-    paddingBottom: DESIGN_TOKENS.spacing.xs,
+    paddingBottom: DESIGN_TOKENS.spacing.sm,
   },
   filterPill: {
     borderRadius: 20,

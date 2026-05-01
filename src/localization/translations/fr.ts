@@ -1760,6 +1760,21 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
         default: "Mon entreprise",
         incomplete: "Complétez votre profil",
       },
+      hero: {
+        subtitle: "Centre de commande Business",
+        configured: "configurés",
+      },
+      setup: {
+        businessInfo: "Infos entreprise (nom, adresse, ABN)",
+        stripe: "Connecter Stripe pour les paiements",
+        team: "Ajouter des membres à l'équipe",
+        vehicles: "Ajouter un véhicule à la flotte",
+        partners: "Ajouter une entreprise partenaire",
+      },
+      tutorial: {
+        title: "Guide de démarrage rapide",
+        tip: "Touchez une étape pour la compléter. Une configuration complète garantit une expérience fluide pour votre équipe.",
+      },
       tools: "Accès rapide",
       actionsRequired: "Actions requises",
       search: {

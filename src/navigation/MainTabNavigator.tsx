@@ -10,27 +10,26 @@
  *
  * Fallback (isLoading) : tabs Owner — safe par défaut.
  */
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import React from "react";
 
-import { useAccountType } from "../hooks/useAccountType";
 import { useTheme } from "../context/ThemeProvider";
+import { useAccountType } from "../hooks/useAccountType";
 
 // Owner screens
 import HomeScreen from "../screens/home";
-import CalendarNavigation from "./calendar";
-import BusinessNavigation from "./business";
-import TeamsManagementScreen from "../screens/settings/TeamsManagementScreen";
 import ProfileScreen from "../screens/profile";
+import TeamsManagementScreen from "../screens/settings/TeamsManagementScreen";
+import BusinessNavigation from "./business";
+import CalendarNavigation from "./calendar";
 
 // Employee screens
-import EmployeeDashboardScreen from "../screens/EmployeeDashboardScreen";
 import EmployeeScheduleScreen from "../screens/EmployeeScheduleScreen";
 
 // Contractor screens
-import PendingRequestsScreen from "../screens/contractor/PendingRequestsScreen";
 import MyAssignmentsScreen from "../screens/contractor/MyAssignmentsScreen";
+import PendingRequestsScreen from "../screens/contractor/PendingRequestsScreen";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -141,6 +140,7 @@ export default function MainTabNavigator() {
             options={{
               title: "Jobs",
               tabBarIcon: makeTabIcon("briefcase", "briefcase-outline"),
+              tabBarStyle: { display: 'none' },
             }}
           />
           <Tab.Screen
