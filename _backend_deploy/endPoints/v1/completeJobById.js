@@ -303,7 +303,15 @@ const completeJobByIdEndpoint = async (req, res) => {
         console.error('[damage_reported] job_events insert failed:', evtErr.message);
       }
     }
-
+    // [Phase 3 JQS] Calculer et stocker le Job Quality Score — non-blocking
+    try {
+      const { calculateAndStoreJobQualityScore } = require('../../utils/jobQualityScore');
+      const jqsCompanyId = user.company_id || job.contractee_company_id || job.contractor_company_id || null;
+      const jqsResult = await calculateAndStoreJobQualityScore(jobId, jqsCompanyId, user.id, connection);
+      console.log(`[JQS] Job ${jobId} scored ${jqsResult.score}/100 (×${jqsResult.qualityMultiplier} XP)`);
+    } catch (jqsErr) {
+      console.error('[JQS] calculateAndStoreJobQualityScore failed:', jqsErr.message);
+    }
     // RÃ©cupÃ©ration des dÃ©tails de l'Ã©quipe et des trucks pour la rÃ©ponse
     const [assignedCrewResults] = await connection.execute(
       `SELECT u.id, u.email, CONCAT(u.first_name, ' ', u.last_name) as name, 

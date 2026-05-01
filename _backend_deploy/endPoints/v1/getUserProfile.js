@@ -43,6 +43,7 @@ const getUserProfileEndpoint = async (token) => {
                    u.level, u.experience, u.experience_to_next_level,
                    u.total_jobs_completed, u.total_items_handled,
                    u.title, u.streak, u.last_activity, u.last_level_up, u.avatar_url, u.profile_picture,
+                   u.reputation_score,
                    c.name AS company_name, c.abn AS company_abn, c.logo_url AS company_logo_url,
                    cm.role AS membership_role,
                    cm.can_create_jobs,
@@ -173,6 +174,7 @@ const getUserProfileEndpoint = async (token) => {
                     totalJobsCompleted: userData.total_jobs_completed || 0,
                     totalItemsHandled: userData.total_items_handled || 0
                 },
+                reputationScore: userData.reputation_score !== null ? parseFloat(userData.reputation_score) : null,
                 security: {
                     activeSessions: parseInt(sessionsCount) || 0
                 }
