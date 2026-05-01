@@ -33,7 +33,7 @@ const STORAGE_KEY = ONBOARDING_CONFIG.STORAGE_KEY;
 const MAX_STEP = ONBOARDING_CONFIG.TOTAL_STEPS;
 
 // ⚙️ DEV: mettre à true pour toujours afficher l'onboarding (test)
-const DEV_FORCE_ONBOARDING = __DEV__;
+const DEV_FORCE_ONBOARDING = false;
 
 export type OnboardingStep =
   | 0   // inactive / not started

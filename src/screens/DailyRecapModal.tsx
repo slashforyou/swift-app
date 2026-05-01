@@ -21,6 +21,7 @@ import {
 } from 'react-native';
 import { DESIGN_TOKENS } from '../constants/Styles';
 import { useTheme } from '../context/ThemeProvider';
+import { useLocalization } from '../localization/useLocalization';
 import {
     DailyRecapData,
     xpActionLabel,
@@ -38,6 +39,7 @@ interface DailyRecapModalProps {
 
 export default function DailyRecapModal({ data, onClose }: DailyRecapModalProps) {
   const { colors } = useTheme();
+  const { t, currentLanguage } = useLocalization();
   const [visible, setVisible] = useState(true);
   const breakdown = data.breakdown ?? [];
 
@@ -121,9 +123,9 @@ export default function DailyRecapModal({ data, onClose }: DailyRecapModalProps)
           ]}
         >
           {/* Titre */}
-          <Text style={[styles.title, { color: colors.text }]}>🏆 Bilan du jour</Text>
+          <Text style={[styles.title, { color: colors.text }]}>{t('gamification.recap.title')}</Text>
           <Text style={[styles.date, { color: colors.textSecondary }]}>
-            {new Date(data.date + 'T12:00:00').toLocaleDateString('fr-FR', {
+            {new Date(data.date + 'T12:00:00').toLocaleDateString(currentLanguage ?? undefined, {
               weekday: 'long',
               day: 'numeric',
               month: 'long',
@@ -140,8 +142,7 @@ export default function DailyRecapModal({ data, onClose }: DailyRecapModalProps)
 
           {/* Nombre de jobs */}
           <Text style={[styles.jobsLine, { color: colors.textSecondary }]}>
-            {data.jobs_completed} job{data.jobs_completed > 1 ? 's' : ''} complété
-            {data.jobs_completed > 1 ? 's' : ''} aujourd&apos;hui
+            {t(data.jobs_completed > 1 ? 'gamification.recap.jobsCompleted_other' : 'gamification.recap.jobsCompleted_one', { count: data.jobs_completed })}
           </Text>
 
           {/* Badge level up */}
@@ -149,7 +150,7 @@ export default function DailyRecapModal({ data, onClose }: DailyRecapModalProps)
             <View style={[styles.levelUpBadge, { backgroundColor: colors.primary + '22', borderColor: colors.primary + '55' }]}>
               <Ionicons name="arrow-up-circle" size={18} color={colors.primary} />
               <Text style={[styles.levelUpText, { color: colors.primary }]}>
-                Niveau {data.level_before} → {data.level_after}
+                {t('gamification.recap.levelUp', { before: data.level_before, after: data.level_after })}
               </Text>
             </View>
           )}
@@ -178,7 +179,7 @@ export default function DailyRecapModal({ data, onClose }: DailyRecapModalProps)
                   ]}
                 >
                   <Text style={[styles.breakdownLabel, { color: colors.text }]} numberOfLines={1}>
-                    {xpActionLabel(item.action)}
+                    {xpActionLabel(item.action, t)}
                     {item.cnt > 1 ? ` ×${item.cnt}` : ''}
                   </Text>
                   <Text style={[styles.breakdownXp, { color: colors.primary }]}>
@@ -199,7 +200,7 @@ export default function DailyRecapModal({ data, onClose }: DailyRecapModalProps)
             accessibilityRole="button"
             accessibilityLabel="Fermer le récap du jour"
           >
-            <Text style={styles.ctaText}>Super !</Text>
+            <Text style={styles.ctaText}>{t('gamification.recap.cta')}</Text>
           </Pressable>
         </Animated.View>
       </Animated.View>

@@ -179,34 +179,19 @@ export function calcXpProgress(
 /**
  * Retourne le label lisible d'un action_code.
  */
-export function xpActionLabel(actionCode: string): string {
-  const MAP: Record<string, string> = {
-    job_completed:          'Job complété',
-    five_star_rating:       'Note 5 étoiles',
-    first_job_of_day:       '1er job du jour',
-    no_incident:            'Sans incident',
-    photo_added:            'Photo ajoutée',
-    note_added:             'Note ajoutée',
-    signature_collected:    'Signature collectée',
-    review_submitted:       'Review soumise',
-    review_4star_overall:   'Note globale 4★',
-    review_5star_overall:   'Note globale 5★',
-    review_5star_service:   'Service 5★',
-    review_5star_team:      'Équipe 5★',
-    staff_5star_rating:     'Personnel 5★',
-    staff_positive_adjectives: 'Adjectifs positifs',
-    photo_milestone_5:      '5 photos sur un job',
-    photo_milestone_10:     '10 photos sur un job',
-    photo_milestone_20:     '20 photos sur un job',
-    photo_total_50:         '50 photos cumulées',
-    photo_total_100:        '100 photos cumulées',
-    photo_total_500:        '500 photos cumulées',
-    streak_7:               'Streak 7 jours',
-    streak_30:              'Streak 30 jours',
-    streak_100:             'Streak 100 jours',
-    streak_365:             'Streak 365 jours',
-  };
-  return MAP[actionCode] ?? actionCode.replace(/_/g, ' ');
+/**
+ * Retourne le label traduit d'une action XP.
+ * @param actionCode  Code action (ex: 'job_completed')
+ * @param t           Fonction de traduction (useLocalization().t)
+ */
+export function xpActionLabel(actionCode: string, t?: (key: string) => string): string {
+  if (t) {
+    const key = `gamification.actionLabels.${actionCode}`;
+    const translated = t(key);
+    // Si la clé n'est pas trouvée, t() retourne la clé elle-même
+    if (translated !== key) return translated;
+  }
+  return actionCode.replace(/_/g, ' ');
 }
 
 /**
