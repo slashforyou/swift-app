@@ -11,7 +11,7 @@ import { lazyScreen } from "../utils/lazyLoading";
 
 // Critical screens - loaded immediately
 import ConnectionScreen from "../screens/connection";
-import HomeScreen from "../screens/home";
+import MainTabNavigator from "./MainTabNavigator";
 
 // Deep linking configuration
 const linking = {
@@ -245,7 +245,7 @@ export default function Navigation() {
           component={SubscribeMailVerification}
         />
         <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Home" component={MainTabNavigator} />
         <Stack.Screen name="Calendar" component={CalendarNavigation} />
         <Stack.Screen name="Business" component={BusinessNavigation} />
         <Stack.Screen
