@@ -59,7 +59,7 @@ cron.schedule("0 7 * * *", async () => {
              SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) AS completed
            FROM jobs
            WHERE (contractor_company_id = ? OR contractee_company_id = ?)
-             AND DATE(start_date) = ?`,
+             AND DATE(start_window_start) = ?`,
           [companyId, companyId, todayStr]
         );
 
@@ -76,7 +76,7 @@ cron.schedule("0 7 * * *", async () => {
            JOIN jobs j ON j.id = ja.job_id
            WHERE ja.assigned_by_company_id = ?
              AND ja.status = 'pending'
-             AND DATE(j.start_date) = ?`,
+             AND DATE(j.start_window_start) = ?`,
           [companyId, todayStr]
         );
         const pendingCount = parseInt(pendingAssignments[0]?.pending_count) || 0;
