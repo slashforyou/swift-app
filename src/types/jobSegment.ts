@@ -4,7 +4,7 @@
  */
 
 // Types de segments de temps
-export type SegmentType = 'location' | 'travel' | 'storage' | 'loading';
+export type SegmentType = 'location' | 'travel' | 'storage' | 'loading' | 'service';
 
 // Types de lieux
 export type LocationType =
@@ -29,6 +29,7 @@ export interface JobSegmentTemplate {
   id: string;
   order: number;
   type: SegmentType;
+  serviceType?: string; // 'packing' | 'unpacking' | 'cleaning' | 'painting' | etc. (si type === 'service')
   label: string; // "Lieu N°1", "Trajet A→B"
   locationType?: LocationType; // Pour 'location', 'storage', 'loading'
   isBillable: boolean;
@@ -42,6 +43,7 @@ export interface JobSegmentInstance {
   templateSegmentId: string;
   order: number;
   type: SegmentType;
+  serviceType?: string; // Si type === 'service'
   label: string;
   locationType?: LocationType;
   isBillable: boolean;

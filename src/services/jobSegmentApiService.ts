@@ -120,6 +120,84 @@ export async function assignEmployeesToSegment(
 }
 
 // ============================================================================
+// SEGMENT MODIFICATION (futurs segments uniquement)
+// ============================================================================
+
+export interface SegmentUpdateInput {
+  label?: string;
+  type?: string;
+  serviceType?: string;
+  locationType?: string;
+  isBillable?: boolean;
+  order?: number;
+}
+
+/**
+ * Met à jour un segment futur (started_at IS NULL)
+ */
+export async function updateJobSegmentApi(
+  jobId: string | number,
+  segmentId: string | number,
+  updates: SegmentUpdateInput,
+): Promise<JobSegmentInstance> {
+  const response = await fetchWithAuth(
+    `${BASE}/jobs/${jobId}/segments/${segmentId}`,
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    },
+  );
+
+  const data = await response.json();
+  if (!data.success) throw new Error(data.error || 'Failed to update segment');
+  return data.segment;
+}
+
+/**
+ * Supprime un segment futur (started_at IS NULL)
+ */
+export async function deleteJobSegmentApi(
+  jobId: string | number,
+  segmentId: string | number,
+): Promise<void> {
+  const response = await fetchWithAuth(
+    `${BASE}/jobs/${jobId}/segments/${segmentId}`,
+    { method: 'DELETE' },
+  );
+
+  const data = await response.json();
+  if (!data.success) throw new Error(data.error || 'Failed to delete segment');
+}
+
+export interface AddSegmentInput {
+  type: string;
+  serviceType?: string;
+  label: string;
+  locationType?: string;
+  isBillable?: boolean;
+  order?: number;
+}
+
+/**
+ * Ajoute un segment custom à un job en cours
+ */
+export async function addCustomSegmentApi(
+  jobId: string | number,
+  segment: AddSegmentInput,
+): Promise<JobSegmentInstance> {
+  const response = await fetchWithAuth(`${BASE}/jobs/${jobId}/segments/add`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(segment),
+  });
+
+  const data = await response.json();
+  if (!data.success) throw new Error(data.error || 'Failed to add segment');
+  return data.segment;
+}
+
+// ============================================================================
 // RETURN TRIP & FLAT RATE OPTIONS
 // ============================================================================
 

@@ -570,6 +570,7 @@ export default function CreateJobModal({
               templateSegmentId: seg.id,
               order: seg.order,
               type: seg.type,
+              serviceType: (seg as any).serviceType || undefined,
               label: seg.label,
               locationType: seg.locationType,
               isBillable: seg.isBillable,
@@ -1004,6 +1005,8 @@ export default function CreateJobModal({
         return "cube";
       case "loading":
         return "archive";
+      case "service":
+        return "construct";
       default:
         return "ellipse";
     }
@@ -1020,6 +1023,8 @@ export default function CreateJobModal({
         return colors.warning || "#f59e0b";
       case "loading":
         return colors.success || "#22c55e";
+      case "service":
+        return "#8b5cf6";
       default:
         return colors.textSecondary;
     }
@@ -1080,8 +1085,11 @@ export default function CreateJobModal({
               ? t("jobs.organization.addTravel").replace("+ ", "") || "Travel"
               : type === "storage"
                 ? t("jobs.organization.addStorage").replace("+ ", "") || "Storage"
-                : t("jobs.organization.addLoading").replace("+ ", "") || "Loading",
+                : type === "loading"
+                  ? t("jobs.organization.addLoading").replace("+ ", "") || "Loading"
+                  : "Service",
         isBillable: type !== "travel",
+        serviceType: type === "service" ? "packing" : undefined,
         locationType: type === "location" ? "house" : type === "storage" ? "depot" : undefined,
         address:
           type === "location" || type === "storage" || type === "loading"
@@ -1165,6 +1173,13 @@ export default function CreateJobModal({
   // Can proceed from organization step
   const canProceedFromOrganization = (): boolean => {
     if (!selectedTemplate || jobSegments.length === 0) return false;
+    // Must have at least 1 location segment
+    const hasLocation = jobSegments.some((s) => s.type === "location" || s.type === "storage" || s.type === "loading");
+    if (!hasLocation) return false;
+    // No 2 consecutive travel segments
+    for (let i = 0; i < jobSegments.length - 1; i++) {
+      if (jobSegments[i].type === "travel" && jobSegments[i + 1].type === "travel") return false;
+    }
     // Check all location/storage/loading segments have at least street+city
     return jobSegments
       .filter((s) => s.address)
@@ -1419,18 +1434,24 @@ export default function CreateJobModal({
                         ? (colors.success || "#22c55e") + "20"
                         : (colors.textSecondary || "#999") + "20",
                       marginRight: DESIGN_TOKENS.spacing.sm,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 3,
                     }}
                   >
+                    <Text style={{ fontSize: 11 }}>
+                      {seg.isBillable ? "💰" : "🚫"}
+                    </Text>
                     <Text
                       style={{
                         fontSize: 10,
                         color: seg.isBillable
                           ? colors.success || "#22c55e"
                           : colors.textSecondary || "#999",
-                        fontWeight: "600",
+                        fontWeight: "700",
                       }}
                     >
-                      {seg.isBillable ? "💰" : "🚫"}
+                      {seg.isBillable ? "Billable" : "Free"}
                     </Text>
                   </Pressable>
                   {jobSegments.length > 1 && (
@@ -1443,6 +1464,46 @@ export default function CreateJobModal({
                     </Pressable>
                   )}
                 </View>
+
+                {/* Service type selector — only for 'service' segments */}
+                {seg.type === "service" && (
+                  <View style={{ paddingHorizontal: DESIGN_TOKENS.spacing.md, paddingTop: DESIGN_TOKENS.spacing.sm, paddingBottom: DESIGN_TOKENS.spacing.sm }}>
+                    <Text style={{ fontSize: 12, fontWeight: "600", color: colors.textSecondary, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                      Service Type
+                    </Text>
+                    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+                      {[
+                        { value: "packing", label: "📦 Packing" },
+                        { value: "unpacking", label: "📤 Unpacking" },
+                        { value: "cleaning", label: "🧹 Cleaning" },
+                        { value: "painting", label: "🎨 Painting" },
+                        { value: "assembly", label: "🔧 Assembly" },
+                        { value: "disassembly", label: "🔩 Disassembly" },
+                        { value: "packing_materials", label: "📋 Materials" },
+                      ].map((st) => {
+                        const isSelected = (seg as any).serviceType === st.value;
+                        return (
+                          <Pressable
+                            key={st.value}
+                            onPress={() => setJobSegments((prev) => prev.map((s, i) => i === index ? { ...s, serviceType: st.value, label: st.label.replace(/^.+ /, "") } : s))}
+                            style={{
+                              paddingHorizontal: DESIGN_TOKENS.spacing.sm,
+                              paddingVertical: 6,
+                              borderRadius: DESIGN_TOKENS.radius.sm,
+                              borderWidth: 1.5,
+                              borderColor: isSelected ? "#8b5cf6" : colors.border,
+                              backgroundColor: isSelected ? "#8b5cf620" : colors.backgroundSecondary,
+                            }}
+                          >
+                            <Text style={{ fontSize: 12, color: isSelected ? "#8b5cf6" : colors.text, fontWeight: isSelected ? "700" : "400" }}>
+                              {st.label}
+                            </Text>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                  </View>
+                )}
 
                 {/* Address form for location/storage/loading segments */}
                 {seg.address && (
@@ -1675,6 +1736,11 @@ export default function CreateJobModal({
                     type: "loading" as SegmentType,
                     label: t("jobs.organization.addLoading") || "+ Loading",
                     icon: "archive",
+                  },
+                  {
+                    type: "service" as SegmentType,
+                    label: "+ Service",
+                    icon: "construct",
                   },
                 ] as const
               ).map((btn) => (

@@ -492,6 +492,31 @@ export const deleteModularTemplate = async (id: string): Promise<void> => {
   }
 };
 
+/**
+ * Récupère un template modulaire par ID
+ */
+export const fetchModularTemplate = async (id: string): Promise<ModularJobTemplate> => {
+  try {
+    const response = await fetchWithAuth(
+      `${ServerData.serverUrl}v1/templates/modular/${id}`,
+      { method: 'GET' },
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data: ModularTemplateResponse = await response.json();
+    if (!data.success || !data.template) {
+      throw new Error('API returned invalid modular template data');
+    }
+    return data.template;
+  } catch (error) {
+    console.error('Error fetching modular template:', error);
+    throw new Error('Failed to fetch modular template');
+  }
+};
+
 // ============================================================================
 // TEMPLATES MODULAIRES PAR DÉFAUT
 // ============================================================================
