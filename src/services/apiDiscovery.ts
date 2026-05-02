@@ -436,9 +436,6 @@ class ApiDiscoveryService {
       return null;
     }
 
-    console.debug(`[ApiDiscovery] Cache hit for key: ${key}`, {
-      age: `${Math.round(age / 1000)}s`,
-    });
     return data;
   }
 
@@ -452,7 +449,6 @@ class ApiDiscoveryService {
       data,
       timestamp: Date.now(),
     });
-    console.debug(`[ApiDiscovery] Cached data for key: ${key}`);
   }
 
   /**
@@ -468,7 +464,6 @@ class ApiDiscoveryService {
    */
   clearCacheKey(key: string): void {
     this.cache.delete(key);
-    console.debug(`[ApiDiscovery] Cache key cleared: ${key}`);
   }
 
   /**

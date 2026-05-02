@@ -8,7 +8,7 @@
  */
 
 import { API_URL } from "../config/environment";
-import { getAuthHeaders } from "../utils/auth";
+import { getAuthHeaders } from "../utils/authHeaders";
 import { apiDiscovery } from "./apiDiscovery";
 
 const API_BASE_URL = `${API_URL}v1`;

@@ -395,8 +395,8 @@ const JobDetails: React.FC<JobDetailsProps> = ({
           style: "destructive",
           onPress: async () => {
             try {
-              analytics.trackCustomEvent('job_archive', 'business', { job_id: actualJobId });
-              await deleteJob(actualJobId);
+              analytics.trackCustomEvent('job_archive', 'business', { job_id: numericJobId });
+              await deleteJob(String(numericJobId));
               showToast(
                 t("jobs.deleteSuccess") || "Job deleted successfully",
                 "success",
