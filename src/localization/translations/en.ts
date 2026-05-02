@@ -114,6 +114,13 @@ export const enTranslations: TranslationKeys = {
     loadError: "Load error",
   },
 
+  updates: {
+    checking: "Checking for updates...",
+    downloading: "Downloading update...",
+    ready: "Applying update...",
+    subtitle: "This will only take a moment.",
+  },
+
   home: {
     title: "Home",
     welcome: "Welcome back!",

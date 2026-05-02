@@ -118,6 +118,13 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
       goBack: "Retour",
     },
 
+    updates: {
+      checking: "Vérification des mises à jour...",
+      downloading: "Téléchargement en cours...",
+      ready: "Application de la mise à jour...",
+      subtitle: "Patienter, cela ne prendra qu'un instant.",
+    },
+
     home: {
       title: "Accueil",
       welcome: "Bon retour !",

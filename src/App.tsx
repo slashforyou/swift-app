@@ -7,14 +7,12 @@ import {
 } from "@expo-google-fonts/space-grotesk";
 import React, { useEffect } from "react";
 import {
-    ActivityIndicator,
     Alert as NativeAlert,
-    StyleSheet,
-    Text,
     View,
 } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import ErrorBoundary from "./components/ErrorBoundary";
+import MascotLoading from "./components/ui/MascotLoading";
 import { OfflineBanner } from "./components/OfflineBanner";
 import { OnboardingTourOverlay } from "./components/onboarding/OnboardingTourOverlay";
 import { ENV, STRIPE_PUBLISHABLE_KEY } from "./config/environment";
@@ -22,13 +20,13 @@ import { AppAlertProvider } from "./context/AppAlertProvider";
 import { NotificationsProvider } from "./context/NotificationsProvider";
 import { OnboardingSpotlightProvider } from "./context/OnboardingSpotlightContext";
 import { OnboardingTourProvider } from "./context/OnboardingTourContext";
-import { ThemeProvider } from "./context/ThemeProvider";
+import { ThemeProvider, useTheme } from "./context/ThemeProvider";
 import { ToastProvider } from "./context/ToastProvider";
 import { VehiclesProvider } from "./context/VehiclesProvider";
 import { PermissionsProvider } from "./contexts/PermissionsContext";
-import { useForceUpdate } from "./hooks/useForceUpdate";
+import { useForceUpdate, UpdateStatus } from "./hooks/useForceUpdate";
 import { useNetworkStatus } from "./hooks/useNetworkStatus";
-import { LocalizationProvider } from "./localization";
+import { LocalizationProvider, useTranslation } from "./localization";
 import Navigation from "./navigation/index";
 import { appAlert } from "./services/appAlert";
 import "./services/logger"; // Initialize global error handlers early
@@ -50,6 +48,23 @@ try {
 performanceMonitor.markAppStart();
 
 NativeAlert.alert = appAlert.alert;
+
+// OTA update screen — rendered inside LocalizationProvider + ThemeProvider
+const OTAUpdateScreen: React.FC<{ status: UpdateStatus }> = ({ status }) => {
+  const { t } = useTranslation();
+  const { colors } = useTheme();
+  const title =
+    status === "checking"
+      ? t("updates.checking")
+      : status === "downloading"
+        ? t("updates.downloading")
+        : t("updates.ready");
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <MascotLoading text={title} />
+    </View>
+  );
+};
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -101,29 +116,13 @@ export default function App() {
     return null;
   }
 
-  // Block the app while an OTA update is being downloaded/applied
-  if (updateStatus === "checking" || updateStatus === "downloading" || updateStatus === "ready") {
-    return (
-      <View style={updateStyles.container}>
-        <ActivityIndicator size="large" color="#4F46E5" />
-        <Text style={updateStyles.title}>
-          {updateStatus === "checking"
-            ? "Checking for updates..."
-            : updateStatus === "downloading"
-              ? "Downloading update..."
-              : "Restarting..."}
-        </Text>
-        <Text style={updateStyles.subtitle}>
-          Please wait, this will only take a moment.
-        </Text>
-      </View>
-    );
-  }
-
   const content = (
     <LocalizationProvider>
       <ThemeProvider>
-        <NotificationsProvider>
+        {(updateStatus === "checking" || updateStatus === "downloading" || updateStatus === "ready") ? (
+          <OTAUpdateScreen status={updateStatus} />
+        ) : (
+          <NotificationsProvider>
           <PermissionsProvider autoLoad={false}>
             <VehiclesProvider>
               <ToastProvider>
@@ -144,6 +143,7 @@ export default function App() {
             </VehiclesProvider>
           </PermissionsProvider>
         </NotificationsProvider>
+        )}
       </ThemeProvider>
     </LocalizationProvider>
   );
@@ -161,26 +161,3 @@ export default function App() {
   );
 }
 
-const updateStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#F6F8FC",
-    padding: 32,
-  },
-  title: {
-    fontSize: 18,
-    fontFamily: "SpaceGrotesk_600SemiBold",
-    color: "#1E293B",
-    marginTop: 20,
-    textAlign: "center",
-  },
-  subtitle: {
-    fontSize: 14,
-    fontFamily: "SpaceGrotesk_400Regular",
-    color: "#64748B",
-    marginTop: 8,
-    textAlign: "center",
-  },
-});

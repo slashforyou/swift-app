@@ -4,8 +4,9 @@ import { ServerData } from "../constants/ServerData";
 import { analytics, setAnalyticsUser } from "../services/analytics";
 import { navigateGlobal } from "../services/navRef";
 import { clearStripeCache } from "../services/stripeCache";
+import { getAuthHeaders } from "./authHeaders";
 import { collectDevicePayload } from "./device";
-export { getAuthHeaders } from "./authHeaders";
+export { getAuthHeaders };
 
 const API = ServerData.serverUrl;
 

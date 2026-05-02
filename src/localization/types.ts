@@ -4266,6 +4266,13 @@ export interface TranslationKeys {
     typeLabel: string;
     linkAction: string;
   };
+
+  updates: {
+    checking: string;
+    downloading: string;
+    ready: string;
+    subtitle: string;
+  };
 }
 
 export type TranslationFunction = (
