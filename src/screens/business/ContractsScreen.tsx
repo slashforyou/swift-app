@@ -45,6 +45,7 @@ const ContractsScreen: React.FC = () => {
   const { t } = useLocalization();
   const [clauses, setClauses] = useState<ContractClause[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [editorVisible, setEditorVisible] = useState(false);
   const [editingClause, setEditingClause] = useState<ContractClause | null>(
     null,
@@ -52,11 +53,12 @@ const ContractsScreen: React.FC = () => {
 
   const loadClauses = useCallback(async () => {
     setLoading(true);
+    setLoadError(null);
     try {
       const data = await fetchClauses();
       setClauses(data);
-    } catch {
-      // Silent fail — empty state shown
+    } catch (err: any) {
+      setLoadError(err?.message || 'Unknown error');
     } finally {
       setLoading(false);
     }
@@ -130,6 +132,26 @@ const ContractsScreen: React.FC = () => {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingVertical: 40 }}>
         <ActivityIndicator size="large" color={colors.tint} />
+      </View>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingVertical: 40, paddingHorizontal: 24 }}>
+        <Ionicons name="warning-outline" size={40} color={colors.error ?? '#FF3B30'} />
+        <Text style={{ fontSize: 15, fontWeight: "600", color: colors.text, marginTop: 12, textAlign: "center" }}>
+          Impossible de charger les clauses
+        </Text>
+        <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 6, textAlign: "center", fontFamily: "monospace" }}>
+          {loadError}
+        </Text>
+        <Pressable
+          onPress={loadClauses}
+          style={{ marginTop: 16, backgroundColor: colors.tint, borderRadius: 10, paddingVertical: 10, paddingHorizontal: 24 }}
+        >
+          <Text style={{ color: "#FFF", fontWeight: "600" }}>Réessayer</Text>
+        </Pressable>
       </View>
     );
   }
