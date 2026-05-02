@@ -1321,6 +1321,12 @@ export const esTranslations = mergeWithBaseTranslations(enTranslations, {
   },
 
   businessHub: {
+    tabs: {
+      hub: "Hub",
+      resources: "Recursos",
+      config: "Config",
+      finances: "Finanzas",
+    },
     subTabs: {
       staff: "Equipo",
       vehicles: "Vehículos",

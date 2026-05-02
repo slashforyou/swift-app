@@ -293,7 +293,7 @@ export const itTranslations = mergeWithBaseTranslations(enTranslations, {
           description: "Servizio di imballaggio e disimballaggio sul posto",
         },
         "default-flat-rate": {
-          name: "Forfait standard",
+          name: "Tariffa forfettaria standard",
           description: "Trasloco completo a prezzo fisso",
         },
       },
@@ -301,7 +301,7 @@ export const itTranslations = mergeWithBaseTranslations(enTranslations, {
         location_to_location: "Da luogo a luogo",
         depot_to_depot: "Da deposito a deposito",
         packing_only: "Solo imballaggio",
-        flat_rate: "Forfait",
+        flat_rate: "Tariffa forfettaria",
       },
       segmentLabels: {
         travelToLocation1: "Tragitto verso il luogo n°1",
@@ -1589,6 +1589,12 @@ export const itTranslations = mergeWithBaseTranslations(enTranslations, {
   },
 
   businessHub: {
+    tabs: {
+      hub: "Hub",
+      resources: "Risorse",
+      config: "Config",
+      finances: "Finanze",
+    },
     subTabs: {
       staff: "Squadra",
       vehicles: "Veicoli",

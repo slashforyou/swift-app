@@ -1531,6 +1531,12 @@ export const zhTranslations = mergeWithBaseTranslations(enTranslations, {
   },
 
   businessHub: {
+    tabs: {
+      hub: "中心",
+      resources: "资源",
+      config: "设置",
+      finances: "财务",
+    },
     subTabs: {
       staff: "团队",
       vehicles: "车辆",
