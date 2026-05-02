@@ -13,13 +13,11 @@ import {
     Text,
     View,
 } from "react-native";
-import { AUSTRALIAN_DEFAULT_CLAUSES } from "../../constants/australianContractClauses";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
 import { useLocalization } from "../../localization/useLocalization";
 import {
     ContractClause,
-    createClause,
     deleteClause,
     fetchClauses,
     updateClause,
@@ -128,36 +126,6 @@ const ContractsScreen: React.FC = () => {
     [loadClauses],
   );
 
-  const handleSeedDefaultClauses = useCallback(() => {
-    Alert.alert(
-      t("contracts.seedDefaultTitle") || "Insert default clauses",
-      t("contracts.seedDefaultMessage") || "This will add 10 standard Australian moving industry clauses. Existing clauses will not be modified.",
-      [
-        { text: t("common.cancel"), style: "cancel" },
-        {
-          text: t("contracts.seedDefaultConfirm") || "Insert",
-          onPress: async () => {
-            try {
-              for (const clause of AUSTRALIAN_DEFAULT_CLAUSES) {
-                await createClause(clause);
-              }
-              await loadClauses();
-              Alert.alert(
-                t("common.success") || "Success",
-                t("contracts.seedDefaultSuccess") || "10 default clauses have been added.",
-              );
-            } catch {
-              Alert.alert(
-                t("businessHub.billing.error"),
-                t("contracts.seedDefaultError") || "Failed to insert default clauses. Please try again.",
-              );
-            }
-          },
-        },
-      ],
-    );
-  }, [t, loadClauses]);
-
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingVertical: 40 }}>
@@ -209,29 +177,6 @@ const ContractsScreen: React.FC = () => {
             {t("contracts.addClause")}
           </Text>
         </Pressable>
-        <Pressable
-            onPress={handleSeedDefaultClauses}
-            style={({ pressed }) => ({
-              backgroundColor: "transparent",
-              borderRadius: 12,
-              paddingVertical: 10,
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 6,
-              marginTop: 8,
-              borderWidth: 1,
-              borderColor: colors.tint + "60",
-              opacity: pressed ? 0.7 : 1,
-            })}
-            accessibilityLabel="Insert default Australian clauses"
-            accessibilityRole="button"
-          >
-            <Ionicons name="flag-outline" size={16} color={colors.tint} />
-            <Text style={{ color: colors.tint, fontWeight: "600", fontSize: 13 }}>
-              {t("contracts.seedDefault") || "Insert default clauses (Australia)"}
-            </Text>
-          </Pressable>
       </View>
 
       {/* Empty state */}

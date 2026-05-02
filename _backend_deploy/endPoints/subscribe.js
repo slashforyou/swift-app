@@ -68,6 +68,14 @@ const subscribeEndpoint = async (req) => {
         [userId, companyId]
       );
 
+      // Seed default contract clauses for the new company
+      try {
+        const { seedDefaultClausesForCompany } = require('./helpers/defaultClauses');
+        await seedDefaultClausesForCompany(connection, companyId);
+      } catch (seedError) {
+        console.error('[SUBSCRIBE] Failed to seed default clauses (non-blocking):', seedError.message);
+      }
+
       const verificationCode = crypto.randomInt(100_000, 999_999).toString();
       await connection.execute('UPDATE users SET verification_code = ? WHERE email = ?', [verificationCode, mail]);
 
