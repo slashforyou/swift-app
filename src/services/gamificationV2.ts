@@ -349,3 +349,185 @@ export async function fetchV2Badges(): Promise<V2BadgesData> {
   const json = await res.json();
   return (json.data ?? { earned: [], available: [], stats: {} }) as V2BadgesData;
 }
+
+// ============================================================
+//  FOUNDATION — Phase 1 (nouveaux endpoints /v1/gamification/...)
+// ============================================================
+
+export interface FoundationUserProfile {
+  entity_type: 'user';
+  entity_id: number;
+  lifetime_xp: number;
+  current_level: number;
+  level_title: string;
+  current_streak_days: number;
+  longest_streak_days: number;
+}
+
+export interface FoundationCompanyProfile {
+  entity_type: 'company';
+  entity_id: number;
+  lifetime_xp: number;
+  current_level: number;
+  level_title: string;
+}
+
+export interface FoundationLeague {
+  code: string;
+  label: string;
+  icon: string;
+  color: string;
+}
+
+export interface FoundationProfileData {
+  user: FoundationUserProfile;
+  company: FoundationCompanyProfile;
+  next_level_xp: number | null;
+  badges_unlocked: number;
+  total_trophies: number;
+  league: FoundationLeague;
+}
+
+export interface FoundationXpEvent {
+  xp_amount: number;
+  source_type: string;
+  source_id: number | null;
+  metadata: string | null;
+  created_at: string;
+}
+
+export interface FoundationBadge {
+  badge_code: string;
+  name: string;
+  description: string;
+  icon: string | null;
+  category: BadgeCategory;
+  xp_bonus: number;
+  sort_order: number;
+  unlocked_at_user: string | null;
+  unlocked_at_company: string | null;
+  is_unlocked: boolean;
+}
+
+export interface FoundationLeaderboardEntry {
+  user_id?: number;
+  company_id?: number;
+  first_name?: string;
+  last_name?: string;
+  company_name?: string;
+  profile_picture?: string | null;
+  trophies: number;
+  current_level: number;
+  level_title: string | null;
+  rank_position: number;
+}
+
+export type LeaderboardPeriod = 'weekly' | 'monthly' | 'yearly' | 'alltime';
+export type LeaderboardEntityType = 'user' | 'company';
+
+export interface FoundationCheckpointResult {
+  checkpoint_id: number;
+  passed: boolean;
+  score: number;
+  code: string;
+  label_fr: string;
+  label_en: string;
+  category: string;
+  xp_reward: number;
+  weight: number;
+}
+
+export interface FoundationScorecard {
+  job_id: number;
+  total_score?: number;
+  max_score?: number;
+  percentage?: number;
+  generated_at?: string;
+}
+
+/** GET /v1/gamification/profile */
+export async function fetchFoundationProfile(): Promise<FoundationProfileData> {
+  const res = await authenticatedFetch(`${API}v1/gamification/profile`, { method: 'GET' });
+  if (!res.ok) throw new Error(`fetchFoundationProfile: HTTP ${res.status}`);
+  const json = await res.json();
+  return json.profile as FoundationProfileData;
+}
+
+/** GET /v1/gamification/xp/history */
+export async function fetchFoundationXpHistory(
+  limit = 20,
+  offset = 0,
+): Promise<{ events: FoundationXpEvent[]; total: number; limit: number; offset: number }> {
+  const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+  const res = await authenticatedFetch(`${API}v1/gamification/xp/history?${params}`, { method: 'GET' });
+  if (!res.ok) throw new Error(`fetchFoundationXpHistory: HTTP ${res.status}`);
+  return res.json();
+}
+
+/** GET /v1/gamification/badges */
+export async function fetchFoundationBadges(): Promise<FoundationBadge[]> {
+  const res = await authenticatedFetch(`${API}v1/gamification/badges`, { method: 'GET' });
+  if (!res.ok) throw new Error(`fetchFoundationBadges: HTTP ${res.status}`);
+  const json = await res.json();
+  return (json.badges ?? []) as FoundationBadge[];
+}
+
+/** GET /v1/gamification/leaderboard */
+export async function fetchFoundationLeaderboard(
+  period: LeaderboardPeriod = 'weekly',
+  entityType: LeaderboardEntityType = 'user',
+): Promise<{ leaderboard: FoundationLeaderboardEntry[]; period_type: LeaderboardPeriod; season_key: string; entity_type: LeaderboardEntityType }> {
+  const params = new URLSearchParams({ period, entity: entityType });
+  const res = await authenticatedFetch(`${API}v1/gamification/leaderboard?${params}`, { method: 'GET' });
+  if (!res.ok) throw new Error(`fetchFoundationLeaderboard: HTTP ${res.status}`);
+  return res.json();
+}
+
+/** GET /v1/gamification/scorecard/:jobId */
+export async function fetchFoundationScorecard(jobId: number | string): Promise<{
+  scorecard: FoundationScorecard | null;
+  checkpoint_results: FoundationCheckpointResult[];
+}> {
+  const res = await authenticatedFetch(`${API}v1/gamification/scorecard/${jobId}`, { method: 'GET' });
+  if (!res.ok) throw new Error(`fetchFoundationScorecard: HTTP ${res.status}`);
+  return res.json();
+}
+
+/** POST /v1/gamification/client-review/create — crée ou récupère le lien de review d'un job */
+export async function createFoundationReviewLink(
+  jobId: number | string,
+): Promise<{ review_id: number; token: string }> {
+  const res = await authenticatedFetch(`${API}v1/gamification/client-review/create`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ job_id: jobId }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json?.error ?? `createFoundationReviewLink: HTTP ${res.status}`);
+  return json;
+}
+
+/** GET /v1/gamification/client-review/:token (public, no auth) */
+export async function fetchFoundationReviewForm(token: string): Promise<{
+  already_submitted: boolean;
+  job: { id: number; client_name: string };
+}> {
+  const res = await fetch(`${API}v1/gamification/client-review/${encodeURIComponent(token)}`);
+  if (!res.ok) throw new Error(`fetchFoundationReviewForm: HTTP ${res.status}`);
+  return res.json();
+}
+
+/** POST /v1/gamification/client-review (public, no auth) */
+export async function submitFoundationReview(
+  token: string,
+  data: { overall_rating: number; service_rating?: number; team_rating?: number; comment?: string },
+): Promise<{ success: boolean; message?: string }> {
+  const res = await fetch(`${API}v1/gamification/client-review`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, ...data }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json?.error ?? `submitFoundationReview: HTTP ${res.status}`);
+  return json;
+}

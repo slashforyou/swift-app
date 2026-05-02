@@ -57,13 +57,15 @@ export async function fetchJobScorecard(jobId: number | string): Promise<Scoreca
   return json;
 }
 
-export async function sendReviewRequest(jobId: number | string): Promise<{ success: boolean; review_url: string }> {
-  const res = await authenticatedFetch(`${API}v1/jobs/${jobId}/review-request`, {
+export async function sendReviewRequest(jobId: number | string): Promise<{ success: boolean; token: string }> {
+  const res = await authenticatedFetch(`${API}v1/gamification/client-review/create`, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ job_id: jobId }),
   });
   const json = await res.json();
-  if (!res.ok) throw new Error(json?.message ?? `sendReviewRequest: HTTP ${res.status}`);
-  return json;
+  if (!res.ok) throw new Error(json?.error ?? `sendReviewRequest: HTTP ${res.status}`);
+  return { success: true, token: json.token };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -105,13 +107,19 @@ export async function submitClientReview(
     throw new Error('Le commentaire ne peut pas dépasser 1000 caractères');
   }
 
-  const res = await fetch(`${API}v1/review/${encodeURIComponent(token)}/submit`, {
+  const res = await fetch(`${API}v1/gamification/client-review`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
+    body: JSON.stringify({
+      token,
+      overall_rating: data.rating_overall,
+      service_rating: data.rating_service,
+      team_rating: data.rating_team,
+      comment: data.comment,
+    }),
   });
 
   const json = await res.json();
-  if (!res.ok) throw new Error(json?.message ?? `submitClientReview: HTTP ${res.status}`);
-  return json;
+  if (!res.ok) throw new Error(json?.error ?? json?.message ?? `submitClientReview: HTTP ${res.status}`);
+  return { success: json.success ?? true, message: json.message };
 }
