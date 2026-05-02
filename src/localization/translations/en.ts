@@ -394,11 +394,11 @@ export const enTranslations: TranslationKeys = {
     startTime: "Start Time",
     endTime: "End Time",
     // Job actions
-    deleteConfirmTitle: "Delete Job",
+    deleteConfirmTitle: "Archive Job",
     deleteConfirmMessage:
-      "Are you sure you want to delete this job? This action cannot be undone.",
-    deleteSuccess: "Job deleted successfully",
-    deleteError: "Failed to delete job",
+      "This job will be archived and removed from your active jobs list. You can still access it later.",
+    deleteSuccess: "Job archived successfully",
+    deleteError: "Failed to archive job",
     acceptSuccess: "Job accepted successfully",
     acceptError: "Failed to accept job",
     declineSuccess: "Job declined successfully",

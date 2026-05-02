@@ -516,11 +516,11 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
       startTime: "Heure de début",
       endTime: "Heure de fin",
       // Job actions
-      deleteConfirmTitle: "Supprimer le job",
+      deleteConfirmTitle: "Archiver le job",
       deleteConfirmMessage:
-        "Êtes-vous sûr de vouloir supprimer ce job ? Cette action est irréversible.",
-      deleteSuccess: "Job supprimé avec succès",
-      deleteError: "Échec de la suppression du job",
+        "Ce job sera archivé et retiré de votre liste active. Vous pourrez toujours y accéder ultérieurement.",
+      deleteSuccess: "Job archivé avec succès",
+      deleteError: "Impossible d'archiver ce job",
       acceptSuccess: "Job accepté avec succès",
       acceptError: "Échec de l'acceptation du job",
       declineSuccess: "Job refusé avec succès",

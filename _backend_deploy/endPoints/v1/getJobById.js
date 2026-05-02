@@ -99,6 +99,7 @@ const getJobByIdEndpoint = async (req, res) => {
       can_cancel: isOwner && ['pending', 'accepted'].includes(jobStatus),
       can_edit: isOwner && ['pending', 'draft'].includes(jobStatus),
       can_reassign: isOwner && ['pending', 'declined'].includes(jobStatus),
+      can_delete: isOwner && ['pending', 'draft', 'declined'].includes(jobStatus),
       is_owner: isOwner,
       is_assigned: isAssigned,
       // Délégation B2B
