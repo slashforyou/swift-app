@@ -44,8 +44,9 @@ const BusinessHeader: React.FC<BusinessHeaderProps> = ({
   const handleBackPress = () => {
     if (onBackPress) {
       onBackPress();
+    } else if ((navToUse as any).canGoBack?.()) {
+      (navToUse as any).goBack();
     } else {
-      // Naviguer vers Home au lieu de goBack()
       (navToUse as any).navigate("Home");
     }
   };
