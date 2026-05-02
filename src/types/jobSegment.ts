@@ -82,6 +82,7 @@ export interface FlatRateOption {
 // Template de job modulaire complet
 export interface ModularJobTemplate {
   id: string;
+  nameKey?: string; // i18n slug (e.g. 'default-simple-move') — used for translation lookup
   name: string;
   description: string;
   category: string;

@@ -24,6 +24,7 @@ async function loadFullTemplate(connection, templateId) {
 function formatTemplate(template, segments, options) {
   return {
     id: String(template.id),
+    nameKey: template.name_key || null,
     companyId: String(template.company_id),
     name: template.name,
     description: template.description || '',
@@ -41,7 +42,6 @@ function formatTemplate(template, segments, options) {
       id: String(s.id),
       order: s.segment_order,
       type: s.type,
-      serviceType: s.service_type || undefined,
       label: s.label || '',
       locationType: s.location_type || undefined,
       isBillable: !!s.is_billable,
@@ -92,6 +92,10 @@ const createModularTemplate = async (req, res) => {
   let connection;
   try {
     const companyId = req.user?.company_id;
+    if (!companyId) {
+      return res.status(400).json({ success: false, error: 'Company ID required' });
+    }
+
     const {
       name, description, category, billingMode,
       defaultHourlyRate, minimumHours, timeRoundingMinutes,
@@ -132,9 +136,9 @@ const createModularTemplate = async (req, res) => {
         const seg = segments[i];
         await connection.execute(
           `INSERT INTO job_template_segments
-           (template_id, segment_order, type, service_type, label, location_type, is_billable)
-           VALUES (?, ?, ?, ?, ?, ?, ?)`,
-          [templateId, i + 1, seg.type, seg.serviceType || null, seg.label || null, seg.locationType || null, seg.isBillable !== false ? 1 : 0]
+           (template_id, segment_order, type, label, location_type, is_billable)
+           VALUES (?, ?, ?, ?, ?, ?)`,
+          [templateId, i + 1, seg.type, seg.label || null, seg.locationType || null, seg.isBillable !== false ? 1 : 0]
         );
       }
     }
@@ -173,6 +177,9 @@ const getModularTemplate = async (req, res) => {
   try {
     const templateId = req.params.id;
     const companyId = req.user?.company_id;
+    if (!companyId) {
+      return res.status(400).json({ success: false, error: 'Company ID required' });
+    }
 
     connection = await connect();
     const [tplRows] = await connection.execute(
@@ -204,6 +211,10 @@ const updateModularTemplate = async (req, res) => {
   try {
     const templateId = req.params.id;
     const companyId = req.user?.company_id;
+    if (!companyId) {
+      return res.status(400).json({ success: false, error: 'Company ID required' });
+    }
+
     const {
       name, description, category, billingMode,
       defaultHourlyRate, minimumHours, timeRoundingMinutes,
@@ -254,9 +265,9 @@ const updateModularTemplate = async (req, res) => {
         const seg = segments[i];
         await connection.execute(
           `INSERT INTO job_template_segments
-           (template_id, segment_order, type, service_type, label, location_type, is_billable)
-           VALUES (?, ?, ?, ?, ?, ?, ?)`,
-          [templateId, i + 1, seg.type, seg.serviceType || null, seg.label || null, seg.locationType || null, seg.isBillable !== false ? 1 : 0]
+           (template_id, segment_order, type, label, location_type, is_billable)
+           VALUES (?, ?, ?, ?, ?, ?)`,
+          [templateId, i + 1, seg.type, seg.label || null, seg.locationType || null, seg.isBillable !== false ? 1 : 0]
         );
       }
     }
@@ -295,6 +306,9 @@ const deleteModularTemplate = async (req, res) => {
   try {
     const templateId = req.params.id;
     const companyId = req.user?.company_id;
+    if (!companyId) {
+      return res.status(400).json({ success: false, error: 'Company ID required' });
+    }
 
     connection = await connect();
     const [tplRows] = await connection.execute(
@@ -311,7 +325,7 @@ const deleteModularTemplate = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Cannot delete default templates' });
     }
 
-    // CASCADE handles child tables
+    // CASCADE handles child tables (job_template_segments, job_template_flat_rate_options)
     await connection.execute('DELETE FROM job_templates_modular WHERE id = ?', [templateId]);
 
     res.json({ success: true, message: 'Template deleted' });

@@ -500,7 +500,7 @@ const JobTimeBreakdownScreen: React.FC<JobTimeBreakdownScreenProps> = ({
         }}
       >
         {/* Edit return trip (depot modes) */}
-        {breakdown.billingMode === "depot_to_depot" && onEditReturnTrip && (
+        {breakdown.billingMode === "depot_to_depot" && (onEditReturnTrip || jobId) && (
           <>
             {!editingReturnTrip ? (
               <Pressable

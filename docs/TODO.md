@@ -171,7 +171,7 @@
 | # | Tâche | Scope | Notes |
 |---|-------|-------|-------|
 | ~~3~~ | ~~Stocker planType + commissionRate au choix du plan~~ | ~~[S]~~ | ✅ POST /v1/company/select-plan — met à jour plan_type + stripe_platform_fee_percentage |
-| 4 | Décider modèle paiement plan (Stripe activé OU free trial) | 👤 | Option A: paiement quand Stripe activé. Option B: free trial 7-14j |
+| ~~4~~ | ~~Décider modèle paiement plan (Stripe activé OU free trial)~~ | 👤 | ✅ **Décidé (2 mai 2026) : Free trial 7-14j puis paiement automatique à l'expiration.** |
 | ~~5~~ | ~~Persistence draft profile backend~~ | ~~[S]~~ | ✅ Auto-save debounced (2s) dans CompleteProfileScreen via PATCH existant, icône cloud-done dans le header |
 | ~~6~~ | ~~Personnaliser thème/couleurs par entreprise~~ | ~~[C][S]~~ | ✅ primary_color en DB + ThemeProvider override + color picker dans CompleteProfileScreen (12 couleurs) + sync au login |
 | ~~7~~ | ~~Branding sur factures et liens de paiement~~ | ~~[C][S]~~ | ✅ Logo + primary_color sur MonthlyInvoicesScreen (detail view) + email HTML brandé avec logo GCS signé |
@@ -179,7 +179,7 @@
 | ~~9~~ | ~~Facture mensuelle auto pour le contractor~~ | ~~[S]~~ | ✅ monthly_invoices + monthly_invoice_items tables, CRUD endpoints (generate/list/detail/update/send), cron job (1er du mois 02:00), email HTML brandé, MonthlyInvoicesScreen dans Finances > Factures |
 | ~~10~~ | ~~Revoir les mails de facturation~~ | ~~[S]~~ | ✅ Rebranding SwiftApp→Cobbr dans mailSender.js, centralisation emails (forgotPassword, monthlyInvoices, cron), ajout invoiceNotificationMail brandé (logo+couleurs) + invoiceDetailMail avec tableau détaillé, plain text fallback, redirection test emails |
 | ~~11~~ | ~~Valider commission (application_fee_amount) en production~~ | 👤 | ✅ Vérifié en prod (stripe_transactions): paiement `succeeded` avec `application_fee_amount > 0` et `net_amount` cohérent |
-| 12 | Tester Apple Pay / Google Pay via PaymentSheet | 👤 | Devices réels iOS + Android |
+| ~~12~~ | ~~Tester Apple Pay / Google Pay via PaymentSheet~~ | 👤 | ~~Devices réels iOS + Android~~ — **Hors scope (2 mai 2026)** |
 | 13 | Valider flow complet PaymentSheet sur iOS et Android | 👤 | End-to-end test |
 | ~~14~~ | ~~Auto-complétion ABN via API gouvernement australien~~ | ~~[C][S]~~ | ✅ ABN Lookup API (abr.business.gov.au) → remplissage auto dans CompleteProfileScreen (nom, adresse, type, GST). Déclenchement à 11 chiffres, debounce 500ms. |
 

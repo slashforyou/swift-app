@@ -197,13 +197,15 @@ export default function CreateJobModal({
   };
 
   const translateTemplateName = (tpl: ModularJobTemplate): string => {
-    const key = `jobs.organization.templates.${tpl.id}.name`;
+    const lookupId = tpl.nameKey || tpl.id;
+    const key = `jobs.organization.templates.${lookupId}.name`;
     const translated = t(key as any);
     return translated && translated !== key ? String(translated) : tpl.name;
   };
 
   const translateTemplateDescription = (tpl: ModularJobTemplate): string => {
-    const key = `jobs.organization.templates.${tpl.id}.description`;
+    const lookupId = tpl.nameKey || tpl.id;
+    const key = `jobs.organization.templates.${lookupId}.description`;
     const translated = t(key as any);
     return translated && translated !== key ? String(translated) : tpl.description;
   };

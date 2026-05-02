@@ -56,6 +56,17 @@ const CATEGORIES = [
   "specialty",
 ];
 
+// Static labels for getDefaultLabel (module-level, no translation needed for generated names)
+const LOCATION_TYPE_LABELS: Record<string, string> = {
+  house: "House",
+  apartment: "Apartment",
+  garage: "Garage",
+  private_storage: "Private Storage",
+  depot: "Depot",
+  office: "Office",
+  other: "Other",
+};
+
 // ============================================================================
 // COMPOSANT PRINCIPAL
 // ============================================================================
@@ -833,10 +844,8 @@ function getDefaultLabel(
 ): string {
   switch (type) {
     case "location": {
-      const locLabel = locationType
-        ? LOCATION_TYPES.find((l) => l.key === locationType)?.label ?? ""
-        : "";
-    return `Location #${order}${locLabel ? ` (${locLabel.toLowerCase()})` : ""}`;
+      const locLabel = locationType ? (LOCATION_TYPE_LABELS[locationType] ?? "") : "";
+      return `Location #${order}${locLabel ? ` (${locLabel.toLowerCase()})` : ""}`;
     }
     case "travel":
       return "Travel";

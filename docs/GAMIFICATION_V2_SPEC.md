@@ -1304,6 +1304,7 @@ Les trophées sont liés au concept de **saison** : chaque saison dure 6 mois et
 | **Saison Été** | 1er juillet → 31 décembre | Nuit du 31 décembre → 1er janvier |
 
 À la fin d'une saison :
+
 - Le compteur de trophées de chaque utilisateur/entreprise **est archivé** dans `trophy_season_archives`
 - Le compteur **repart à zéro**
 - Un **récapitulatif de saison** est envoyé en push notification (classement final, récompenses de saison)
@@ -1347,6 +1348,7 @@ CREATE TABLE trophy_season_archives (
 ### 9.4 Récompenses de fin de saison (à venir)
 
 À la fin d'une saison, des récompenses cosmétiques sont attribuées selon le classement :
+
 - Top 1% → Badge légendaire de saison + titre
 - Top 5% → Badge épique de saison
 - Top 20% → Badge rare de saison
@@ -1458,6 +1460,7 @@ L'écran quêtes affiche les achievements groupés par catégorie dans cet ordre
 ```
 
 Les **sections événementielles** ont un traitement visuel spécial :
+
 - Fond coloré selon `gamification_quest_events.color`
 - Badge "⚡ +50% XP" affiché sur chaque carte de la section
 - Compte à rebours jusqu'à la date de fin
