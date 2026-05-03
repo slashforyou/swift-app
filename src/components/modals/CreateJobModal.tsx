@@ -210,8 +210,8 @@ export default function CreateJobModal({
     return translated && translated !== key ? String(translated) : tpl.description;
   };
 
-  const translateSegmentLabel = (label: string): string => {
-    const slug = SEGMENT_LABEL_KEYS[label];
+  const translateSegmentLabel = (label: string, labelKey?: string): string => {
+    const slug = labelKey || SEGMENT_LABEL_KEYS[label];
     if (!slug) return label;
     const key = `jobs.organization.segmentLabels.${slug}`;
     const translated = t(key as any);
@@ -1424,7 +1424,7 @@ export default function CreateJobModal({
                       color: colors.text,
                     }}
                   >
-                    {seg.order}. {translateSegmentLabel(seg.label)}
+                    {seg.order}. {translateSegmentLabel(seg.label, seg.labelKey)}
                   </Text>
                   <Pressable
                     onPress={() => handleToggleBillable(index)}
@@ -2673,7 +2673,7 @@ export default function CreateJobModal({
                   { color: colors.textSecondary },
                 ]}
               >
-                📍 {translateSegmentLabel(seg.label)}
+                📍 {translateSegmentLabel(seg.label, seg.labelKey)}
               </Text>
               <Text style={[styles.confirmationValue, { color: colors.text }]}>
                 {seg.address!.street}

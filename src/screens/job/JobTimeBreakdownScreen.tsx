@@ -20,6 +20,7 @@ import {
 } from "react-native";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
+import { useLocalization } from "../../localization/useLocalization";
 import {
     fetchJobTimeBreakdown,
     updateReturnTripApi,
@@ -33,6 +34,7 @@ import type {
     FlatRateOption,
     JobTimeBreakdown as JobTimeBreakdownType,
 } from "../../types/jobSegment";
+import { getSegmentLabel } from "../../utils/getSegmentLabel";
 
 // ============================================================================
 // TYPES
@@ -66,6 +68,7 @@ const JobTimeBreakdownScreen: React.FC<JobTimeBreakdownScreenProps> = ({
   onClose,
 }) => {
   const { colors } = useTheme();
+  const { t } = useLocalization();
 
   const jobId = jobIdProp ?? route?.params?.jobId;
   const jobReference = jobReferenceProp ?? route?.params?.jobReference;
@@ -284,7 +287,7 @@ const JobTimeBreakdownScreen: React.FC<JobTimeBreakdownScreenProps> = ({
                       color: colors.text,
                     }}
                   >
-                    {seg.label}
+                    {getSegmentLabel(t, seg.labelKey, seg.label)}
                   </Text>
                   <Text style={{ fontSize: 13, color: colors.textSecondary }}>
                     {formatDurationMs(seg.durationMs)}

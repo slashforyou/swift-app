@@ -31,6 +31,7 @@ export interface JobSegmentTemplate {
   type: SegmentType;
   serviceType?: string; // 'packing' | 'unpacking' | 'cleaning' | 'painting' | etc. (si type === 'service')
   label: string; // "Lieu N°1", "Trajet A→B"
+  labelKey?: string; // i18n slug (e.g. 'location1', 'travelToLocation1') — used for translation
   locationType?: LocationType; // Pour 'location', 'storage', 'loading'
   isBillable: boolean;
   estimatedDurationMinutes?: number;
@@ -45,6 +46,7 @@ export interface JobSegmentInstance {
   type: SegmentType;
   serviceType?: string; // Si type === 'service'
   label: string;
+  labelKey?: string; // i18n slug copied from template segment at job init
   locationType?: LocationType;
   isBillable: boolean;
 

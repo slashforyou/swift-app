@@ -26,6 +26,7 @@ import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useJobTimerContext } from "../../context/JobTimerProvider";
 import { useTheme } from "../../context/ThemeProvider";
 import { useTranslation } from "../../localization";
+import { getSegmentLabel } from "../../utils/getSegmentLabel";
 import { checkJobSignatureExists } from "../../services/jobDetails";
 import { formatDurationMs, getSegmentColor, getSegmentIcon } from "../../services/jobSegmentService";
 import type { JobSummaryData } from "../../types/jobSummary";
@@ -651,7 +652,7 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({
                       }}
                       numberOfLines={1}
                     >
-                      {seg.label}
+                      {getSegmentLabel(t, seg.labelKey, seg.label)}
                     </Text>
                     {(isActive || isDone) && elapsed > 0 && (
                       <Text
@@ -710,7 +711,7 @@ const JobTimerDisplay: React.FC<JobTimerDisplayProps> = ({
                     color: getSegmentColor(currentSegment.type),
                   }}
                 >
-                  {currentSegment.label}
+                  {getSegmentLabel(t, currentSegment.labelKey, currentSegment.label)}
                   {currentSegment.isBillable ? " • facturable" : " • non facturable"}
                 </Text>
               </View>

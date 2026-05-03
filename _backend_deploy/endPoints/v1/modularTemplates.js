@@ -43,6 +43,7 @@ function formatTemplate(template, segments, options) {
       order: s.segment_order,
       type: s.type,
       label: s.label || '',
+      labelKey: s.label_key || null,
       locationType: s.location_type || undefined,
       isBillable: !!s.is_billable,
     })),

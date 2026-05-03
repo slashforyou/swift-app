@@ -18,12 +18,14 @@ import {
 } from "react-native";
 import { DESIGN_TOKENS } from "../../../constants/Styles";
 import { useTheme } from "../../../context/ThemeProvider";
+import { useLocalization } from "../../../localization/useLocalization";
 import {
     assignEmployeesToSegment,
     getJobSegments,
 } from "../../../services/jobSegmentApiService";
 import { getSegmentColor, getSegmentIcon } from "../../../services/jobSegmentService";
 import type { JobSegmentInstance } from "../../../types/jobSegment";
+import { getSegmentLabel } from "../../../utils/getSegmentLabel";
 
 // ============================================================================
 // TYPES
@@ -206,7 +208,7 @@ const SegmentEmployeeAssignmentScreen: React.FC<SegmentEmployeeAssignmentProps> 
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text }}>
-                    {seg.label}
+                    {getSegmentLabel(t, seg.labelKey, seg.label)}
                   </Text>
                   {seg.locationType && (
                     <Text style={{ fontSize: 12, color: colors.textSecondary }}>

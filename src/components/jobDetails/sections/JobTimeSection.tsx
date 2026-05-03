@@ -12,6 +12,7 @@ import { useJobTimerContext } from "../../../context/JobTimerProvider";
 import { useTheme } from "../../../context/ThemeProvider";
 import { useLocalization } from "../../../localization/useLocalization";
 import { formatDurationMs, getSegmentColor, getSegmentIcon } from "../../../services/jobSegmentService";
+import { getSegmentLabel } from "../../../utils/getSegmentLabel";
 
 interface JobTimeSectionProps {
   job: any;
@@ -258,7 +259,7 @@ const JobTimeSection: React.FC<JobTimeSectionProps> = ({ job }) => {
                 color: getSegmentColor(currentSegment.type),
               }}
             >
-              {currentSegment.label}
+              {getSegmentLabel(t, currentSegment.labelKey, currentSegment.label)}
             </Text>
             {currentSegment.isBillable && (
               <View
@@ -465,7 +466,7 @@ const JobTimeSection: React.FC<JobTimeSectionProps> = ({ job }) => {
                       }}
                       numberOfLines={1}
                     >
-                      {seg.label}
+                      {getSegmentLabel(t, seg.labelKey, seg.label)}
                     </Text>
                     <Text
                       style={{

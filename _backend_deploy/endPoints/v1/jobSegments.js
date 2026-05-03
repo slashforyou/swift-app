@@ -23,6 +23,7 @@ function formatSegmentInstance(seg) {
     order: seg.segment_order,
     type: seg.type,
     label: seg.label || '',
+    labelKey: seg.label_key || undefined,
     locationType: seg.location_type || undefined,
     isBillable: !!seg.is_billable,
     startedAt: seg.started_at || undefined,
@@ -92,11 +93,11 @@ const initJobSegments = async (req, res) => {
     for (const seg of templateSegs) {
       await connection.execute(
         `INSERT INTO job_segment_instances
-         (job_id, template_segment_id, segment_order, type, label,
+         (job_id, template_segment_id, segment_order, type, label, label_key,
           location_type, is_billable, is_return_trip, configured_duration_minutes)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
-          jobId, seg.id, seg.segment_order, seg.type, seg.label,
+          jobId, seg.id, seg.segment_order, seg.type, seg.label, seg.label_key || null,
           seg.location_type, seg.is_billable ? 1 : 0, 0, null,
         ]
       );
