@@ -1279,6 +1279,7 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
           performsWork: "Entreprise qui effectue le travail",
           createdBy: "👤 Créé par :",
           assignedStaff: "👷 Staff assigné :",
+          callButton: "Appeler",
           assignedOn: "Assigné le :",
           companyLabel: "🏢 Entreprise",
         },

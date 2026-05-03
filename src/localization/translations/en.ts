@@ -1275,6 +1275,7 @@ export const enTranslations: TranslationKeys = {
         assignedStaff: "👷 Assigned staff:",
         assignedOn: "Assigned on:",
         companyLabel: "🏢 Company",
+        callButton: "Call",
       },
       stepHistory: {
         title: "📊 Step History",

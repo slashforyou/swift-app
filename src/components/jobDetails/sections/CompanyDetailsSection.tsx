@@ -2,8 +2,9 @@
  * CompanyDetailsSection - Section modulaire pour les informations d'entreprise
  * Affiche intelligemment les rôles contractee/contractor selon le contexte
  */
-import React from "react";
-import { Text, View } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import React, { useCallback } from "react";
+import { Alert, Linking, Pressable, Text, View } from "react-native";
 import { DESIGN_TOKENS } from "../../../constants/Styles";
 import { useTheme } from "../../../context/ThemeProvider";
 import { useLocalization } from "../../../localization/useLocalization";
@@ -26,6 +27,18 @@ const CompanyDetailsSection: React.FC<CompanyDetailsSectionProps> = React.memo(
       hasContractee &&
       hasContractor &&
       job.contractee!.company_id !== job.contractor!.company_id;
+
+    const handleCall = useCallback((phone: string, companyName: string) => {
+      const clean = phone.replace(/[^\d+]/g, "");
+      Alert.alert(
+        companyName,
+        phone,
+        [
+          { text: t("common.cancel"), style: "cancel" },
+          { text: t("jobDetails.components.company.callButton"), onPress: () => Linking.openURL(`tel:${clean}`) },
+        ],
+      );
+    }, [t]);
 
     if (!hasContractee && !hasContractor) {
       return null;
@@ -94,6 +107,27 @@ const CompanyDetailsSection: React.FC<CompanyDetailsSectionProps> = React.memo(
                   {job.contractee!.created_by_name}
                 </Text>
               )}
+              {job.contractee!.phone && (
+                <Pressable
+                  onPress={() => handleCall(job.contractee!.phone!, job.contractee!.company_name)}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 5,
+                    marginTop: 8,
+                    alignSelf: "flex-start",
+                    backgroundColor: colors.success + "18",
+                    paddingHorizontal: 10,
+                    paddingVertical: 5,
+                    borderRadius: DESIGN_TOKENS.radius.sm,
+                  }}
+                >
+                  <Ionicons name="call-outline" size={14} color={colors.success} />
+                  <Text style={{ fontSize: 13, color: colors.success, fontWeight: "600" }}>
+                    {t("jobDetails.components.company.callButton")}
+                  </Text>
+                </Pressable>
+              )}
             </View>
 
             {/* Contractor */}
@@ -135,6 +169,27 @@ const CompanyDetailsSection: React.FC<CompanyDetailsSectionProps> = React.memo(
                   {job.contractor!.assigned_staff_name}
                 </Text>
               )}
+              {job.contractor!.phone && (
+                <Pressable
+                  onPress={() => handleCall(job.contractor!.phone!, job.contractor!.company_name)}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 5,
+                    marginTop: 8,
+                    alignSelf: "flex-start",
+                    backgroundColor: colors.info + "18",
+                    paddingHorizontal: 10,
+                    paddingVertical: 5,
+                    borderRadius: DESIGN_TOKENS.radius.sm,
+                  }}
+                >
+                  <Ionicons name="call-outline" size={14} color={colors.info} />
+                  <Text style={{ fontSize: 13, color: colors.info, fontWeight: "600" }}>
+                    {t("jobDetails.components.company.callButton")}
+                  </Text>
+                </Pressable>
+              )}
             </View>
           </>
         ) : (
@@ -173,6 +228,31 @@ const CompanyDetailsSection: React.FC<CompanyDetailsSectionProps> = React.memo(
                 )}
               </View>
             )}
+            {(job.contractee?.phone || job.contractor?.phone) && (() => {
+              const phone = job.contractee?.phone || job.contractor?.phone;
+              const name = mainCompanyName || "";
+              return (
+                <Pressable
+                  onPress={() => handleCall(phone!, name)}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 5,
+                    marginTop: 8,
+                    alignSelf: "flex-start",
+                    backgroundColor: colors.primary + "18",
+                    paddingHorizontal: 10,
+                    paddingVertical: 5,
+                    borderRadius: DESIGN_TOKENS.radius.sm,
+                  }}
+                >
+                  <Ionicons name="call-outline" size={14} color={colors.primary} />
+                  <Text style={{ fontSize: 13, color: colors.primary, fontWeight: "600" }}>
+                    {t("jobDetails.components.company.callButton")}
+                  </Text>
+                </Pressable>
+              );
+            })()}
           </View>
         )}
       </SectionCard>

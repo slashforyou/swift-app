@@ -75,6 +75,7 @@ export interface JobContractee {
   created_by_user_id?: number;
   created_by_name?: string;
   stripe_account_id?: string;
+  phone?: string;
 }
 
 /** Contractor (assigned company) */
@@ -84,6 +85,7 @@ export interface JobContractor {
   assigned_staff_id?: string;
   assigned_staff_name?: string;
   assigned_at?: string;
+  phone?: string;
 }
 
 /** Time windows */

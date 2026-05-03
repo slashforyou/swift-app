@@ -647,6 +647,7 @@ export async function getJobDetails(jobCode: string): Promise<any> {
             ? `${data.job.created_by_first_name} ${data.job.created_by_last_name}`
             : undefined,
         stripe_account_id: contracteeCompanyData.stripe_account_id || undefined,
+        phone: contracteeCompanyData.phone || undefined,
       };
     }
 
@@ -663,6 +664,7 @@ export async function getJobDetails(jobCode: string): Promise<any> {
             ? `${data.crew[0].first_name} ${data.crew[0].last_name}`
             : undefined,
           assigned_at: data.crew?.[0]?.assigned_at || undefined,
+          phone: contracteeCompanyData.phone || undefined,
         };
       } else if (companyData) {
         // Job multi-entreprise - Utiliser company de l'API
@@ -675,6 +677,7 @@ export async function getJobDetails(jobCode: string): Promise<any> {
             ? `${data.crew[0].first_name} ${data.crew[0].last_name}`
             : undefined,
           assigned_at: data.crew?.[0]?.assigned_at || undefined,
+          phone: companyData.phone || undefined,
         };
       } else {
       }
