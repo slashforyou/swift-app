@@ -61,7 +61,9 @@
   },
   "submit": {
     "production": {
-      "ios": {},
+      "ios": {
+        "ascAppId": "6761254208"
+      },
       "android": {
         "serviceAccountKeyPath": "./google-service-account.json",
         "track": "internal"
