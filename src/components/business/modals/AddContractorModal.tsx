@@ -92,7 +92,7 @@ export default function AddContractorModal({
           t("businessModals.addContractor.noResultsMessage"),
         );
       }
-    } catch (error) {
+    } catch {
       Alert.alert(
         t("businessModals.addContractor.errorTitle"),
         t("businessModals.addContractor.searchError"),
@@ -124,7 +124,7 @@ export default function AddContractorModal({
         }),
         [{ text: t("common.ok"), onPress: handleClose }],
       );
-    } catch (error) {
+    } catch {
       Alert.alert(
         t("businessModals.addContractor.errorTitle"),
         t("businessModals.addContractor.addError"),

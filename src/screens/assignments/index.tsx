@@ -81,7 +81,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = React.memo(function Assign
   assignment,
   onAction,
   loading,
-}) => {
+}) {
   const { colors } = useTheme();
   const { t } = useLocalization();
   const statusCfg = STATUS_LABELS[assignment.status];

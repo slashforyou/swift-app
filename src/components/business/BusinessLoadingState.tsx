@@ -4,12 +4,10 @@
  */
 
 import React from 'react';
-import { ActivityIndicator, Dimensions, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { useTheme } from '../../context/ThemeProvider';
 import { Body, BodySmall } from '../../design-system/components';
 import { DESIGN_TOKENS } from '../../design-system/tokens';
-
-const { width } = Dimensions.get('window');
 
 interface BusinessLoadingProps {
   loading?: boolean;

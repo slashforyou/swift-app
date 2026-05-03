@@ -32,7 +32,7 @@ export const SimpleSessionLogViewer: React.FC<SimpleSessionLogViewerProps> = ({
     try {
       const content = simpleSessionLogger.getFormattedLogs();
       setLogContent(content);
-    } catch (_error) {
+    } catch {
       Alert.alert(
         t("devTools.sessionLogs.readErrorTitle"),
         t("devTools.sessionLogs.readErrorMessage"),
@@ -50,7 +50,7 @@ export const SimpleSessionLogViewer: React.FC<SimpleSessionLogViewerProps> = ({
           title: "Cobbr Session Logs (Simple)",
         });
       }
-    } catch (_error) {
+    } catch {
       Alert.alert(
         t("devTools.sessionLogs.shareErrorTitle"),
         t("devTools.sessionLogs.shareErrorMessage"),

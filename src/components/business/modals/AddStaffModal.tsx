@@ -341,8 +341,7 @@ const AddStaffModal: React.FC<AddStaffModalProps> = ({
           email: employeeData.email,
         }),
       );
-    } catch (error) {
-
+    } catch {
       Alert.alert(
         t('staffModals.addStaff.validation.error'),
         t('staffModals.addStaff.validation.inviteError'),

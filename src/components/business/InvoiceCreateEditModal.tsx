@@ -186,7 +186,7 @@ const InvoiceCreateEditModal: React.FC<InvoiceCreateEditModalProps> = ({
     try {
       setSaving(true);
       await onSave(formData as Invoice);
-    } catch (error) {
+    } catch {
       Alert.alert(t("common.error"), t("invoices.alerts.saveError"));
     } finally {
       setSaving(false);
@@ -482,6 +482,7 @@ const InvoiceCreateEditModal: React.FC<InvoiceCreateEditModalProps> = ({
           {invoice?.id && onDelete && (
             <Button
               title={t("invoiceEdit.deleteBtn")}
+              onPress={handleDelete}
               disabled={loading}
               style={{ flex: 0.3 }}
             />
