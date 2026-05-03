@@ -155,30 +155,37 @@ const SubscribeMailVerification = ({ route }: any) => {
         if (data.success) {
           // Auto-login: store session tokens and navigate to Home
           if (data.autoLogin && data.sessionToken) {
-            await SecureStore.setItemAsync("session_token", data.sessionToken);
-            if (data.sessionExpiry) {
-              await SecureStore.setItemAsync("session_expiry", data.sessionExpiry);
-            } else {
-              const expiry = new Date(Date.now() + 15 * 60 * 1000).toISOString();
-              await SecureStore.setItemAsync("session_expiry", expiry);
-            }
-            if (data.refreshToken) {
-              await SecureStore.setItemAsync("refresh_token", data.refreshToken);
-            }
-            if (data.user) {
-              await SecureStore.setItemAsync(
-                "user_data",
-                JSON.stringify({
-                  id: data.user.id,
-                  email: data.user.email,
-                  first_name: data.user.first_name,
-                  last_name: data.user.last_name,
-                  role: data.user.role,
-                  company_id: data.user.company_id,
-                  company_role: data.user.company_role,
-                  company: data.user.company,
-                }),
-              );
+            let storageOk = true;
+            try {
+              await SecureStore.setItemAsync("session_token", data.sessionToken);
+              if (data.sessionExpiry) {
+                await SecureStore.setItemAsync("session_expiry", data.sessionExpiry);
+              } else {
+                const expiry = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+                await SecureStore.setItemAsync("session_expiry", expiry);
+              }
+              if (data.refreshToken) {
+                await SecureStore.setItemAsync("refresh_token", data.refreshToken);
+              }
+              if (data.user) {
+                await SecureStore.setItemAsync(
+                  "user_data",
+                  JSON.stringify({
+                    id: data.user.id,
+                    email: data.user.email,
+                    first_name: data.user.first_name,
+                    last_name: data.user.last_name,
+                    role: data.user.role,
+                    company_id: data.user.company_id,
+                    company_role: data.user.company_role,
+                    company: data.user.company,
+                  }),
+                );
+              }
+            } catch (storageError) {
+              console.error("SecureStore write failed:", storageError);
+              // Storage failed — account is verified but auto-login is not possible
+              storageOk = false;
             }
 
             showAlert(
@@ -188,10 +195,14 @@ const SubscribeMailVerification = ({ route }: any) => {
             );
 
             setTimeout(() => {
-              navigation.reset({
-                index: 0,
-                routes: [{ name: "Home" }],
-              });
+              if (storageOk) {
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: "Home" }],
+                });
+              } else {
+                navigation.navigate("Login");
+              }
             }, 1500);
           } else {
             // Fallback: no auto-login, navigate to Login

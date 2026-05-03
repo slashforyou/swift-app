@@ -135,10 +135,34 @@ async function handleWebhook(req, res) {
         await handleSubscriptionInvoicePaid(data, connection);
         break;
 
-      case 'invoice.payment_failed':
-        console.log(`[Webhook] invoice.payment_failed: ${data.id}`);
-        // TODO: notifier la company, passer subscription_status à 'past_due'
+      case 'invoice.payment_failed': {
+        // Lookup company by stripe_subscription_id first, fallback to stripe_customer_id
+        let companyId = null;
+        if (data.subscription) {
+          const [subRows] = await connection.query(
+            'SELECT id FROM companies WHERE stripe_subscription_id = ? LIMIT 1',
+            [data.subscription]
+          );
+          if (subRows.length > 0) companyId = subRows[0].id;
+        }
+        if (!companyId && data.customer) {
+          const [custRows] = await connection.query(
+            'SELECT id FROM companies WHERE stripe_customer_id = ? LIMIT 1',
+            [data.customer]
+          );
+          if (custRows.length > 0) companyId = custRows[0].id;
+        }
+        if (!companyId) {
+          console.warn(`[Webhook] invoice.payment_failed: company not found (subscription=${data.subscription}, customer=${data.customer})`);
+          break;
+        }
+        await connection.query(
+          "UPDATE companies SET subscription_status = 'past_due', updated_at = NOW() WHERE id = ?",
+          [companyId]
+        );
+        console.log(`[Webhook] invoice.payment_failed → company ${companyId} → past_due`);
         break;
+      }
 
       // ── PaymentIntent (job payments) ─────────────────────────────────────
       case 'payment_intent.succeeded': {
