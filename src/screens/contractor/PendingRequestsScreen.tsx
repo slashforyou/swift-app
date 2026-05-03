@@ -5,24 +5,24 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Pressable,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  View,
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    Pressable,
+    RefreshControl,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useTheme } from "../../context/ThemeProvider";
 import { useLocalization } from "../../localization/useLocalization";
 import {
-  acceptJob,
-  declineJob,
-  fetchPendingAssignments,
-  PendingAssignment,
+    acceptJob,
+    declineJob,
+    fetchPendingAssignments,
+    PendingAssignment,
 } from "../../services/jobs";
 
 interface Props {
@@ -76,7 +76,7 @@ export default function PendingRequestsScreen({ navigation }: Props) {
           onPress: async () => {
             setActionId(jobId);
             try {
-              await declineJob(jobId);
+              await declineJob(jobId, "");
               setJobs(prev => prev.filter(j => j.id !== jobId));
             } catch {
               Alert.alert(t("common.error") ?? "Erreur", "Impossible de refuser ce job");
@@ -294,6 +294,4 @@ const styles = StyleSheet.create({
   btnDecline: { borderWidth: 1.5, backgroundColor: "transparent" },
   btnAccept: { },
   btnText: { fontSize: 14, fontWeight: "600" },
-});
-
 });

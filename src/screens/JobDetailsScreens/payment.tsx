@@ -635,7 +635,7 @@ const PaymentScreen: React.FC<PaymentProps> = ({ job, setJob }) => {
               <Text
                 style={{ fontSize: 13, color: colors.text, lineHeight: 18 }}
               >
-                Votre compte Stripe n'est pas encore actif. Finalisez la
+                Votre compte Stripe n&apos;est pas encore actif. Finalisez la
                 configuration pour pouvoir recevoir des paiements.
               </Text>
               <Pressable

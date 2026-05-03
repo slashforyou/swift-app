@@ -12,7 +12,7 @@ import {
     View,
 } from "react-native";
 import { useTranslation } from "../../localization";
-import simpleSessionLogger from "../../services/simpleSessionLogger"; // eslint-disable-line no-restricted-imports
+import { simpleSessionLogger } from "../../services/simpleSessionLogger";
 
 interface SimpleSessionLogViewerProps {
   visible: boolean;
@@ -84,6 +84,7 @@ export const SimpleSessionLogViewer: React.FC<SimpleSessionLogViewerProps> = ({
     if (visible) {
       loadLogs();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
 
   if (!__DEV__) {

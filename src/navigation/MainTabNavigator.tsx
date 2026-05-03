@@ -46,13 +46,15 @@ interface TabIconProps {
 // ─── Icon helper ────────────────────────────────────────────────────────────
 
 function makeTabIcon(focusedIcon: IconName, unfocusedIcon: IconName) {
-  return ({ focused, color, size }: Omit<TabIconProps, "focusedIcon" | "unfocusedIcon">) => (
+  const TabIcon = ({ focused, color, size }: Omit<TabIconProps, "focusedIcon" | "unfocusedIcon">) => (
     <Ionicons
       name={focused ? focusedIcon : unfocusedIcon}
       size={size}
       color={color}
     />
   );
+  TabIcon.displayName = "TabIcon";
+  return TabIcon;
 }
 
 // ─── Navigator ──────────────────────────────────────────────────────────────

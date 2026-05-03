@@ -48,7 +48,7 @@ interface DashboardMetrics {
     locks_clicked: number;
     upgrade_cta_clicked: number;
     conversion_rate: number;
-    breakdown: Array<{ source: string; locks: number; cta: number }>;
+    breakdown: { source: string; locks: number; cta: number }[];
   };
 }
 
@@ -66,6 +66,7 @@ const AnalyticsDashboard: React.FC = () => {
 
   useEffect(() => {
     loadDashboardData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPeriod]);
 
   const extractEventCount = (usagePayload: any, eventName: string): number => {
@@ -96,14 +97,6 @@ const AnalyticsDashboard: React.FC = () => {
 
     // Try to extract per-source breakdown from event_data arrays
     const breakdownMap: Record<string, { locks: number; cta: number }> = {};
-    const KNOWN_SOURCES = [
-      "business_hub_shortcut",
-      "business_finances_billing_lock",
-      "business_finances_invoices_lock",
-      "settings_plan_access",
-      "settings_plan_access_alert",
-    ];
-
     const tryExtractBreakdown = (candidate: any, eventKey: string, field: "locks" | "cta") => {
       if (!candidate || typeof candidate !== "object") return;
       // Some backends return events as arrays: [{event_type, source, count}, ...]

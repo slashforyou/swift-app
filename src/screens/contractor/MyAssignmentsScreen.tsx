@@ -60,7 +60,7 @@ interface JobCardProps {
   navigation?: any;
 }
 
-const JobCard = React.memo(({ job, navigation }: JobCardProps) => {
+const JobCard = React.memo(function JobCard({ job, navigation }: JobCardProps) {
   const { colors } = useTheme();
   const { t } = useTranslation();
 

@@ -213,7 +213,7 @@ export default function ManagerDashboardScreen() {
             Dashboard Manager
           </Text>
           <Text style={{ fontSize: 12, color: colors.textMuted }}>
-            Vue superviseur de l'équipe
+            Vue superviseur de l&apos;équipe
           </Text>
         </View>
         <Pressable
@@ -263,7 +263,7 @@ export default function ManagerDashboardScreen() {
           {/* KPIs */}
           <View style={{ padding: DESIGN_TOKENS.spacing.md }}>
             <Text style={{ fontSize: 13, fontWeight: "600", color: colors.textSecondary, marginBottom: 10, textTransform: "uppercase", letterSpacing: 0.5 }}>
-              Aujourd'hui
+              Aujourd&apos;hui
             </Text>
             <View style={{ flexDirection: "row", gap: 10, marginBottom: 10 }}>
               <KpiCard label="Jobs total" value={data.kpis.total_jobs_today} icon="briefcase-outline" color={primary} colors={colors} />
@@ -352,7 +352,7 @@ export default function ManagerDashboardScreen() {
             >
               {data.team.length === 0 ? (
                 <View style={{ padding: DESIGN_TOKENS.spacing.lg, alignItems: "center" }}>
-                  <Text style={{ color: colors.textMuted }}>Aucun membre d'équipe</Text>
+                  <Text style={{ color: colors.textMuted }}>Aucun membre d&apos;équipe</Text>
                 </View>
               ) : (
                 data.team.map((member, idx) => (

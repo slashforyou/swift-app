@@ -77,7 +77,7 @@ interface AssignmentCardProps {
   loading: boolean;
 }
 
-const AssignmentCard: React.FC<AssignmentCardProps> = React.memo(({
+const AssignmentCard: React.FC<AssignmentCardProps> = React.memo(function AssignmentCard({
   assignment,
   onAction,
   loading,

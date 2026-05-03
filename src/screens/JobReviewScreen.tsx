@@ -173,7 +173,7 @@ export default function JobReviewScreen({ route, navigation }: Props) {
               )}
               {review.comment && (
                 <Text style={{ color: colors.textSecondary, fontSize: 14, textAlign: "center", fontStyle: "italic" }}>
-                  "{review.comment}"
+                  &quot;{review.comment}&quot;
                 </Text>
               )}
               {review.submitted_at && (

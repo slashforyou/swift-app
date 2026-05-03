@@ -136,7 +136,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({ visible, onClose }) => {
                   message: formattedLogs,
                   title: "SwiftApp Session Logs",
                 });
-              } catch (_error) {
+              } catch {
                 Alert.alert(
                   t("devTools.logViewer.shareErrorTitle"),
                   t("devTools.logViewer.shareErrorMessage"),
@@ -146,7 +146,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({ visible, onClose }) => {
           },
         ],
       );
-    } catch (_error) {
+    } catch {
       Alert.alert(
         t("devTools.logViewer.exportErrorTitle"),
         t("devTools.logViewer.exportErrorMessage"),
