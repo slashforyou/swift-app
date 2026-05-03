@@ -269,10 +269,11 @@ describe('submitClientReview (service)', () => {
     await realSubmit('my-valid-token-xyz', { rating_overall: 4, comment: 'Très bien' });
 
     expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining('review/my-valid-token-xyz/submit'),
+      expect.stringContaining('gamification/client-review'),
       expect.objectContaining({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: expect.stringContaining('my-valid-token-xyz'),
       }),
     );
   });
