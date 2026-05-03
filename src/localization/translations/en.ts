@@ -675,6 +675,9 @@ export const enTranslations: TranslationKeys = {
       timeSlot: "Time slot",
       details: "Details",
       noVehicleSelected: "No vehicle selected",
+      vehicleBar: {
+        noVehicle: "No truck",
+      },
       noPickupAddress: "No pickup address",
       noDeliveryAddress: "No delivery address",
       notAvailable: "N/A",
@@ -4405,6 +4408,16 @@ export const enTranslations: TranslationKeys = {
     confirmBtn: "Confirm",
     noAssignments: "No assignments",
     noAssignmentsDesc: "When a company assigns you to a job,\nyou'll see the request here.",
+  },
+
+  myAssignments: {
+    title: "My Assignments",
+    subtitle: "Upcoming confirmed jobs (next 30 days)",
+    pickup: "Pickup",
+    delivery: "Delivery",
+    location: "Location",
+    noJobs: "No upcoming jobs",
+    noJobsHint: "Your confirmed assignments for the next 30 days will appear here.",
   },
 
   // ============================================================================

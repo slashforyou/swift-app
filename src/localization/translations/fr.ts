@@ -677,6 +677,9 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
         timeSlot: "Créneau horaire",
         details: "Détails",
         noVehicleSelected: "Aucun véhicule sélectionné",
+      vehicleBar: {
+        noVehicle: "Sans camion",
+      },
         noPickupAddress: "Adresse de départ non renseignée",
         noDeliveryAddress: "Adresse de livraison non renseignée",
         notAvailable: "N/A",
@@ -4223,6 +4226,16 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
       declineJobDesc:
         "Veuillez indiquer la raison de votre refus. Le créateur du job sera notifié.",
       confirmBtn: "Confirmer",
+    },
+
+    myAssignments: {
+      title: "Mes Missions",
+      subtitle: "Jobs confirmés à venir (30 prochains jours)",
+      pickup: "Collecte",
+      delivery: "Livraison",
+      location: "Adresse",
+      noJobs: "Aucun job à venir",
+      noJobsHint: "Vos missions confirmées pour les 30 prochains jours apparaîtront ici.",
     },
 
     // ============================================================================

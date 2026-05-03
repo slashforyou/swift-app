@@ -163,7 +163,26 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
     [jobs],
   );
 
-  // Handle job press — open wizard for pending contractor jobs, else navigate to details
+  // #49 — Vehicle availability: derive truck usage from loaded jobs (no extra API call)
+  const vehicleAvailability = useMemo(() => {
+    const map = new Map<string, { name: string; licensePlate: string; count: number }>();
+    let unassigned = 0;
+    for (const job of jobs) {
+      if (job.status === "cancelled") continue;
+      if (job.truck?.id) {
+        const key = String(job.truck.id);
+        const existing = map.get(key);
+        if (existing) {
+          existing.count += 1;
+        } else {
+          map.set(key, { name: job.truck.name || key, licensePlate: job.truck.licensePlate || "", count: 1 });
+        }
+      } else {
+        unassigned += 1;
+      }
+    }
+    return { trucks: Array.from(map.values()), unassigned };
+  }, [jobs]); — open wizard for pending contractor jobs, else navigate to details
   const handleJobPress = useCallback(
     (job: Job) => {
       // Onboarding: tapping the job acknowledges step 12.
@@ -664,6 +683,101 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
           </Text>
         </View>
       </View>
+
+      {/* #49 — Vehicle Availability Bar */}
+      {!isLoading && totalJobs > 0 && (vehicleAvailability.trucks.length > 0 || vehicleAvailability.unassigned > 0) && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ flexGrow: 0 }}
+          contentContainerStyle={{
+            paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+            paddingVertical: DESIGN_TOKENS.spacing.sm,
+            gap: DESIGN_TOKENS.spacing.sm,
+          }}
+        >
+          {vehicleAvailability.trucks.map((truck) => (
+            <View
+              key={truck.name}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 5,
+                backgroundColor: truck.count > 1 ? colors.warning + "22" : colors.primary + "18",
+                paddingHorizontal: 10,
+                paddingVertical: 5,
+                borderRadius: DESIGN_TOKENS.radius.sm,
+                borderWidth: 1,
+                borderColor: truck.count > 1 ? colors.warning + "60" : colors.primary + "40",
+              }}
+            >
+              <Ionicons
+                name="car-sport"
+                size={13}
+                color={truck.count > 1 ? colors.warning : colors.primary}
+              />
+              <Text style={{ fontSize: 12, color: truck.count > 1 ? colors.warning : colors.primary, fontWeight: "600" }}>
+                {truck.name}
+              </Text>
+              <View
+                style={{
+                  backgroundColor: truck.count > 1 ? colors.warning : colors.primary,
+                  borderRadius: 10,
+                  minWidth: 18,
+                  height: 18,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  paddingHorizontal: 4,
+                }}
+              >
+                <Text style={{ fontSize: 11, color: colors.buttonPrimaryText, fontWeight: "700" }}>
+                  {truck.count}
+                </Text>
+              </View>
+              {truck.licensePlate ? (
+                <Text style={{ fontSize: 11, color: colors.textSecondary }}>
+                  {truck.licensePlate}
+                </Text>
+              ) : null}
+            </View>
+          ))}
+          {vehicleAvailability.unassigned > 0 && (
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 5,
+                backgroundColor: colors.backgroundTertiary,
+                paddingHorizontal: 10,
+                paddingVertical: 5,
+                borderRadius: DESIGN_TOKENS.radius.sm,
+                borderWidth: 1,
+                borderColor: colors.border,
+              }}
+            >
+              <Ionicons name="car-outline" size={13} color={colors.textSecondary} />
+              <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+                {t("calendar.dayScreen.vehicleBar.noVehicle")}
+              </Text>
+              <View
+                style={{
+                  backgroundColor: colors.textSecondary,
+                  borderRadius: 10,
+                  minWidth: 18,
+                  height: 18,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  paddingHorizontal: 4,
+                }}
+              >
+                <Text style={{ fontSize: 11, color: colors.background, fontWeight: "700" }}>
+                  {vehicleAvailability.unassigned}
+                </Text>
+              </View>
+            </View>
+          )}
+        </ScrollView>
+      )}
 
       {/* Filters */}
       <View testID="calendar-day-filters" style={styles.filtersContainer}>
