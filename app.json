@@ -22,9 +22,7 @@
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },
-      "runtimeVersion": {
-        "policy": "appVersion"
-      }
+      "runtimeVersion": "1.2.0"
     },
     "android": {
       "googleServicesFile": "./google-services.json",
@@ -93,7 +91,7 @@
     "owner": "slash4u",
     "updates": {
       "url": "https://u.expo.dev/197a33fd-1b2f-4c2e-b51b-b3ff8f976a80",
-      "checkAutomatically": "ON_ERROR_RECOVERY"
+      "checkAutomatically": "ON_LOAD"
     }
   }
 }
