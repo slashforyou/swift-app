@@ -182,7 +182,7 @@ const DayScreen: React.FC<DayScreenProps> = ({ route, navigation }) => {
       }
     }
     return { trucks: Array.from(map.values()), unassigned };
-  }, [jobs]); — open wizard for pending contractor jobs, else navigate to details
+  }, [jobs]);
   const handleJobPress = useCallback(
     (job: Job) => {
       // Onboarding: tapping the job acknowledges step 12.

@@ -523,7 +523,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               </>
             )}
 
-            {/* TODO: Employee-specific actions — temp placeholders pointing to Calendar/Business until dedicated screens exist */}
+            {/* Employee-specific actions */}
             {isEmployee && (
               <>
                 <MenuItem
@@ -544,7 +544,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                   description="Set your availability for the week"
                   onPress={() => {
                     analytics.trackButtonPress('menu_availability', 'Home');
-                    navigation.navigate("Business");
+                    (navigation as any).navigate("EmployeeAvailability");
                   }}
                   color={colors.success}
                 />
@@ -562,7 +562,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               </>
             )}
 
-            {/* TODO: Contractor-specific actions — temp placeholders until dedicated contractor screens exist */}
+            {/* Contractor-specific actions */}
             {isContractor && (
               <>
                 <MenuItem
@@ -572,7 +572,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                   description="Jobs waiting for your response"
                   onPress={() => {
                     analytics.trackButtonPress('menu_pending_requests', 'Home');
-                    navigation.navigate("Business");
+                    (navigation as any).navigate("PendingRequests");
                   }}
                   color="#B5451B"
                 />
@@ -583,7 +583,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                   description="Accepted & upcoming jobs"
                   onPress={() => {
                     analytics.trackButtonPress('menu_my_assignments', 'Home');
-                    navigation.navigate("Calendar");
+                    (navigation as any).navigate("MyAssignments");
                   }}
                   color={colors.primary}
                 />

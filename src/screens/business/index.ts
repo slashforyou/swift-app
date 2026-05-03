@@ -18,5 +18,4 @@ export { default as StripeHub } from "./StripeHub";
 export { default as StripeSettingsScreen } from "./StripeSettingsScreen";
 export { default as TrucksScreen } from "./trucksScreen";
 export { default as VehicleDetailsScreen } from "./VehicleDetailsScreen";
-export { default as VehicleFleetScreen } from "./VehicleFleetScreen";
 

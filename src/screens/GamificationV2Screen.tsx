@@ -553,7 +553,7 @@ const GamificationV2Screen: React.FC = () => {
       {/* ── Sticky Header : saison + progrès + filtres ───────────────────── */}
       <View style={[styles.stickyHeader, { backgroundColor: colors.background, borderBottomColor: colors.border, paddingTop: insets.top + DESIGN_TOKENS.spacing.sm }]}>
         <View style={{ paddingHorizontal: DESIGN_TOKENS.gutters?.horizontal ?? DESIGN_TOKENS.spacing.lg }}>
-          {/* Back + titre */}
+          {/* Back + titre + leaderboard */}
           <HStack gap="sm" align="center" style={{ marginBottom: DESIGN_TOKENS.spacing.md }}>
             <Pressable
               onPress={() => navigation.goBack()}
@@ -562,9 +562,19 @@ const GamificationV2Screen: React.FC = () => {
             >
               <Ionicons name="chevron-back" size={24} color={colors.text} />
             </Pressable>
-            <Text style={[styles.screenTitle, { color: colors.text }]}>
+            <Text style={[styles.screenTitle, { color: colors.text, flex: 1 }]}>
               {t('gamification.title')}
             </Text>
+            <Pressable
+              onPress={() => (navigation as any).navigate('Leaderboard')}
+              hitSlop={DESIGN_TOKENS.touch.hitSlop}
+              style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1, flexDirection: 'row', alignItems: 'center', gap: 4 })}
+            >
+              <Ionicons name="trophy-outline" size={20} color={colors.primary} />
+              <Text style={{ color: colors.primary, fontSize: 13, fontWeight: '600' }}>
+                {t('gamification.leaderboard') || 'Leaderboard'}
+              </Text>
+            </Pressable>
           </HStack>
 
           {/* Carte de stats (progrès utilisateur) */}

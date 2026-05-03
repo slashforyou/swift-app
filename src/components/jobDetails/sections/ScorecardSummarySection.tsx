@@ -52,6 +52,10 @@ const ScorecardSummarySection: React.FC<Props> = React.memo(function ScorecardSu
   };
 
   // Pas de scorecard et job pas complété → ne rien afficher
+  const handleOpenReview = () => {
+    (navigation as any).navigate('JobReview', { jobId: job.id });
+  };
+
   if (!loading && !scorecard && job.status !== 'completed') return null;
 
   const pct      = scorecard?.percentage ?? 0;
@@ -107,6 +111,24 @@ const ScorecardSummarySection: React.FC<Props> = React.memo(function ScorecardSu
 
         <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
       </Pressable>
+
+      {/* Bouton demander un avis — visible uniquement si job complété et pas encore d'avis */}
+      {job.status === 'completed' && !clientReview && !loading && (
+        <Pressable
+          onPress={handleOpenReview}
+          style={({ pressed }) => ({
+            flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+            marginTop: 10, paddingVertical: 10, borderRadius: 10,
+            backgroundColor: pressed ? colors.primary + 'cc' : colors.primary + '15',
+            borderWidth: 1, borderColor: colors.primary + '40',
+          })}
+        >
+          <Ionicons name="star-outline" size={16} color={colors.primary} />
+          <Text style={{ color: colors.primary, fontWeight: '600', fontSize: 13 }}>
+            {t('gamification.scorecard.requestReview') || 'Demander un avis client'}
+          </Text>
+        </Pressable>
+      )}
     </SectionCard>
   );
 });

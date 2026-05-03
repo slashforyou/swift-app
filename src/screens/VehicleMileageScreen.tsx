@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
+    FlatList,
     Modal,
     Pressable,
     ScrollView,
@@ -11,6 +12,7 @@ import {
     View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ServerData } from "../constants/ServerData";
 import { DESIGN_TOKENS } from "../constants/Styles";
 import { useTheme } from "../context/ThemeProvider";
 import { useLocalization } from "../localization/useLocalization";
@@ -21,21 +23,50 @@ import {
     updateVehicleServiceInfo,
     VehicleServiceInfo,
 } from "../services/vehicleMileageService";
+import { authenticatedFetch } from "../utils/auth";
 
 interface Props {
   route?: any;
   navigation: any;
 }
 
+interface SimpleVehicle { id: number; name: string; license_plate?: string; }
+
 export default function VehicleMileageScreen({ route, navigation }: Props) {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const { t } = useLocalization();
-  const vehicleId: number = route?.params?.vehicleId;
+  const paramVehicleId: number | undefined = route?.params?.vehicleId;
+
+  // Vehicle picker (when no vehicleId passed)
+  const [vehicles, setVehicles] = useState<SimpleVehicle[]>([]);
+  const [vehiclesLoading, setVehiclesLoading] = useState(!paramVehicleId);
+  const [selectedVehicleId, setSelectedVehicleId] = useState<number | undefined>(paramVehicleId);
+  const [showVehiclePicker, setShowVehiclePicker] = useState(!paramVehicleId);
+
+  const vehicleId = selectedVehicleId ?? 0;
+
+  useEffect(() => {
+    if (paramVehicleId) return;
+    (async () => {
+      try {
+        const res = await authenticatedFetch(`${ServerData.serverUrl}v1/trucks`);
+        const json = await res.json();
+        const list: SimpleVehicle[] = (json.trucks ?? json.data ?? []).map((v: any) => ({
+          id: v.id,
+          name: v.name || v.make || 'Véhicule',
+          license_plate: v.license_plate || v.registration,
+        }));
+        setVehicles(list);
+      } catch { /* silently ignore */ } finally {
+        setVehiclesLoading(false);
+      }
+    })();
+  }, [paramVehicleId]);
 
   const [entries, setEntries] = useState<MileageEntry[]>([]);
   const [serviceInfo, setServiceInfo] = useState<VehicleServiceInfo>({});
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!!paramVehicleId);
   const [error, setError] = useState<string | null>(null);
 
   // Add mileage modal
@@ -53,6 +84,7 @@ export default function VehicleMileageScreen({ route, navigation }: Props) {
   const [savingSvc, setSavingSvc] = useState(false);
 
   const load = useCallback(async () => {
+    if (!vehicleId) return;
     try {
       setError(null);
       setLoading(true);
@@ -66,7 +98,7 @@ export default function VehicleMileageScreen({ route, navigation }: Props) {
     }
   }, [vehicleId]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { if (vehicleId) load(); }, [load, vehicleId]);
 
   const isServiceDue =
     serviceInfo.current_odometer != null &&
@@ -114,6 +146,63 @@ export default function VehicleMileageScreen({ route, navigation }: Props) {
 
   const formatDate = (iso: string) =>
     new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
+
+  // Show vehicle picker if no vehicleId provided
+  if (!selectedVehicleId) {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.background }}>
+        {/* Header */}
+        <View style={{ paddingTop: insets.top + DESIGN_TOKENS.spacing.sm, paddingHorizontal: DESIGN_TOKENS.spacing.lg, paddingBottom: DESIGN_TOKENS.spacing.md, flexDirection: "row", alignItems: "center", gap: 12, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+          <Pressable onPress={() => navigation.goBack()} hitSlop={8}>
+            <Ionicons name="arrow-back" size={24} color={colors.text} />
+          </Pressable>
+          <Text style={{ flex: 1, fontSize: 18, fontWeight: "700", color: colors.text }}>
+            {t("mileage.title") ?? "Kilométrage"}
+          </Text>
+        </View>
+        {vehiclesLoading ? (
+          <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+            <ActivityIndicator color={colors.primary} size="large" />
+          </View>
+        ) : (
+          <FlatList
+            data={vehicles}
+            keyExtractor={(v) => String(v.id)}
+            contentContainerStyle={{ padding: DESIGN_TOKENS.spacing.lg, gap: DESIGN_TOKENS.spacing.sm }}
+            ListHeaderComponent={
+              <Text style={{ color: colors.textSecondary, fontSize: 14, marginBottom: DESIGN_TOKENS.spacing.md }}>
+                Sélectionnez un véhicule
+              </Text>
+            }
+            ListEmptyComponent={
+              <View style={{ alignItems: "center", paddingTop: 40 }}>
+                <Ionicons name="car-outline" size={40} color={colors.textSecondary} />
+                <Text style={{ color: colors.textSecondary, marginTop: 10 }}>Aucun véhicule trouvé</Text>
+              </View>
+            }
+            renderItem={({ item }) => (
+              <Pressable
+                onPress={() => { setSelectedVehicleId(item.id); setLoading(true); }}
+                style={({ pressed }) => ({
+                  flexDirection: "row", alignItems: "center", gap: 12,
+                  backgroundColor: pressed ? colors.backgroundTertiary : colors.backgroundSecondary,
+                  borderRadius: DESIGN_TOKENS.radius.md, padding: DESIGN_TOKENS.spacing.md,
+                  borderWidth: 1, borderColor: colors.border,
+                })}
+              >
+                <Ionicons name="car-outline" size={22} color={colors.primary} />
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontWeight: "700", color: colors.text }}>{item.name}</Text>
+                  {item.license_plate ? <Text style={{ color: colors.textSecondary, fontSize: 12 }}>{item.license_plate}</Text> : null}
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
+              </Pressable>
+            )}
+          />
+        )}
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>

@@ -26,10 +26,10 @@ import { DESIGN_TOKENS } from "../../constants/Styles";
 import { useJobTimerContext } from "../../context/JobTimerProvider";
 import { useTheme } from "../../context/ThemeProvider";
 import { useTranslation } from "../../localization";
-import { getSegmentLabel } from "../../utils/getSegmentLabel";
 import { checkJobSignatureExists } from "../../services/jobDetails";
 import { formatDurationMs, getSegmentColor, getSegmentIcon } from "../../services/jobSegmentService";
 import type { JobSummaryData } from "../../types/jobSummary";
+import { getSegmentLabel } from "../../utils/getSegmentLabel";
 
 interface JobTimerDisplayProps {
   job: JobSummaryData;

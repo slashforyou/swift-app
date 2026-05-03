@@ -18,7 +18,6 @@ import {
 } from "react-native";
 import { DESIGN_TOKENS } from "../../../constants/Styles";
 import { useTheme } from "../../../context/ThemeProvider";
-import { useLocalization } from "../../../localization/useLocalization";
 import {
     assignEmployeesToSegment,
     getJobSegments,

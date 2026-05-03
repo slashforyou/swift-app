@@ -199,7 +199,6 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
         case "BusinessInfo": return t("businessHub.drillDown.companyProfile");
         case "JobTemplates": return t("businessHub.drillDown.jobTemplates");
         case "Contracts": return t("businessHub.drillDown.contracts");
-        case "Reports": return t("businessHub.drillDown.reports");
         case "PaymentsList": return t("businessHub.drillDown.paymentsReceived");
         case "Payouts": return t("businessHub.drillDown.payouts");
         case "StripeSettings": return t("businessHub.drillDown.stripeSettings");
