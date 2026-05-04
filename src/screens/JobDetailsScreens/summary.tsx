@@ -5,6 +5,7 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useState } from "react";
 import { Modal, Pressable, Text, View } from "react-native";
+import { JobAssignmentActions } from "../../components/jobs/JobAssignmentActions";
 import { JobStepHistoryCard } from "../../components/jobDetails/JobStepHistoryCard";
 import JobSummarySkeleton from "../../components/jobDetails/JobSummarySkeleton";
 import JobTimerDisplay from "../../components/jobDetails/JobTimerDisplay";
@@ -42,6 +43,8 @@ const JobSummary = ({
   isLoading = false,
   onRefresh,
   onOpenDelegateWizard,
+  onAcceptStaffAssignment,
+  onDeclineStaffAssignment,
 }: {
   job: JobSummaryData;
   setJob: React.Dispatch<React.SetStateAction<JobSummaryData>>;
@@ -51,6 +54,8 @@ const JobSummary = ({
   onOpenDelegateWizard?: (
     mode: "resources" | "delegate_part" | "delegate_full",
   ) => void;
+  onAcceptStaffAssignment?: (notes?: string) => Promise<void>;
+  onDeclineStaffAssignment?: (reason: string) => Promise<void>;
 }) => {
   const [isSigningVisible, setIsSigningVisible] = useState(false);
   const [isPhotoModalVisible, setIsPhotoModalVisible] = useState(false);
@@ -292,6 +297,13 @@ const JobSummary = ({
       <View testID="job-summary-root">
         {isLoading ? (
           <JobSummarySkeleton />
+        ) : job.staff_assignment_status === "pending" ? (
+          // ── Vue restreinte : employee non-confirmé (staff cross-company pending) ──
+          <JobPendingStaffView
+            job={job}
+            onAccept={onAcceptStaffAssignment ?? (() => Promise.resolve())}
+            onDecline={onDeclineStaffAssignment ?? (() => Promise.resolve())}
+          />
         ) : (
           <>
             {/* ── Hero card : identité du job ── */}
@@ -420,8 +432,147 @@ const JobSummary = ({
 };
 
 // ─────────────────────────────────────────────────────────────
+// Vue restreinte : employee cross-company en attente d'acceptation
+// ─────────────────────────────────────────────────────────────
+
+const JobPendingStaffView: React.FC<{
+  job: JobSummaryData;
+  onAccept: (notes?: string) => Promise<void>;
+  onDecline: (reason: string) => Promise<void>;
+}> = ({ job, onAccept, onDecline }) => {
+  const { colors } = useTheme();
+  const { t } = useLocalization();
+
+  const clientName =
+    job.client?.name ||
+    [job.client?.firstName, job.client?.lastName].filter(Boolean).join(" ").trim() ||
+    null;
+
+  const pickupAddress = job.addresses?.find((a) => a.type === "pickup") ?? job.addresses?.[0];
+  const suburb = pickupAddress?.city || pickupAddress?.state || null;
+
+  const formatDateTime = (iso: string | undefined) => {
+    if (!iso) return { date: null, time: null };
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return { date: null, time: null };
+    return {
+      date: d.toLocaleDateString(undefined, { weekday: "short", day: "2-digit", month: "short", year: "numeric" }),
+      time: d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }),
+    };
+  };
+
+  const { date, time } = formatDateTime(job.start_window_start);
+  const hourlyRate = job.hourly_rate ?? job.rate ?? null;
+  const drivers = job.required_driver ?? 0;
+  const offsiders = job.required_offsider ?? 0;
+  const vehicles = job.required_vehicle ?? 0;
+
+  return (
+    <View style={{ gap: DESIGN_TOKENS.spacing.md }}>
+      {/* ── Info card ── */}
+      <View
+        style={{
+          backgroundColor: colors.backgroundSecondary,
+          borderRadius: DESIGN_TOKENS.radius.lg,
+          borderWidth: 1,
+          borderColor: colors.border + "60",
+          overflow: "hidden",
+        }}
+      >
+        {/* Accent strip bleu */}
+        <View style={{ height: 3, backgroundColor: "#3B82F6" }} />
+        <View style={{ padding: DESIGN_TOKENS.spacing.md, gap: DESIGN_TOKENS.spacing.sm }}>
+          {/* Code + client */}
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <Text style={{ fontSize: 18, fontWeight: "800", color: colors.text, letterSpacing: -0.3 }}>
+              {job.code ?? `#${job.id}`}
+            </Text>
+            <View
+              style={{
+                paddingHorizontal: 10,
+                paddingVertical: 4,
+                borderRadius: DESIGN_TOKENS.radius.full,
+                backgroundColor: "#3B82F620",
+                borderWidth: 1,
+                borderColor: "#3B82F640",
+              }}
+            >
+              <Text style={{ fontSize: 11, fontWeight: "700", color: "#3B82F6" }}>
+                {t("jobDetails.components.statusBanner.accepted" as any) ?? "Pending"}
+              </Text>
+            </View>
+          </View>
+
+          {/* Séparateur */}
+          <View style={{ height: 1, backgroundColor: colors.border + "40" }} />
+
+          {/* Infos */}
+          <View style={{ gap: 10 }}>
+            {clientName && (
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                <Ionicons name="person-outline" size={16} color={colors.textSecondary} />
+                <Text style={{ fontSize: 14, color: colors.text, fontWeight: "500" }}>{clientName}</Text>
+              </View>
+            )}
+            {suburb && (
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                <Ionicons name="location-outline" size={16} color={colors.textSecondary} />
+                <Text style={{ fontSize: 14, color: colors.text, fontWeight: "500" }}>{suburb}</Text>
+              </View>
+            )}
+            {date && (
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                <Ionicons name="calendar-outline" size={16} color={colors.textSecondary} />
+                <Text style={{ fontSize: 14, color: colors.text, fontWeight: "500" }}>{date}</Text>
+              </View>
+            )}
+            {time && (
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                <Ionicons name="time-outline" size={16} color={colors.textSecondary} />
+                <Text style={{ fontSize: 14, color: colors.text, fontWeight: "500" }}>{time}</Text>
+              </View>
+            )}
+            {(drivers > 0 || offsiders > 0 || vehicles > 0) && (
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                <Ionicons name="people-outline" size={16} color={colors.textSecondary} />
+                <Text style={{ fontSize: 14, color: colors.text, fontWeight: "500" }}>
+                  {[
+                    drivers > 0 ? `${drivers} driver${drivers > 1 ? "s" : ""}` : null,
+                    offsiders > 0 ? `${offsiders} offsider${offsiders > 1 ? "s" : ""}` : null,
+                    vehicles > 0 ? `${vehicles} vehicle${vehicles > 1 ? "s" : ""}` : null,
+                  ].filter(Boolean).join(" · ")}
+                </Text>
+              </View>
+            )}
+            {hourlyRate != null && (
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                <Ionicons name="cash-outline" size={16} color={colors.textSecondary} />
+                <Text style={{ fontSize: 14, color: colors.text, fontWeight: "600" }}>
+                  ${Number(hourlyRate).toFixed(2)} / hr
+                </Text>
+              </View>
+            )}
+          </View>
+        </View>
+      </View>
+
+      {/* ── Accept / Decline ── */}
+      <JobAssignmentActions
+        jobId={String(job.id)}
+        jobTitle={job.code ?? String(job.id)}
+        canAccept
+        canDecline
+        onAccept={onAccept}
+        onDecline={onDecline}
+      />
+    </View>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────
 // Hero card — identité compacte du job
 // ─────────────────────────────────────────────────────────────
+
 
 const STATUS_CFG: Record<
   string,

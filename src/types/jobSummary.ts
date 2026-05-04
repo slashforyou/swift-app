@@ -224,6 +224,9 @@ export interface JobSummaryData {
   // -- Transfert actif (délégation B2B) --
   active_transfer?: import("./jobTransfer").JobTransfer;
 
+  // -- Staff cross-company assignment --
+  staff_assignment_status?: "pending" | "confirmed" | "declined" | null;
+
   // -- Staffing (Phase 1 affectations) --
   staffing_status?: import("./jobAssignment").StaffingStatus;
   /** Ressources requises (depuis job_transfers ou mise à jour par B) */

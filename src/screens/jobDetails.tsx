@@ -979,8 +979,9 @@ const JobDetails: React.FC<JobDetailsProps> = ({
             />
           )}
 
-        {/* Job Assignment Actions - Show if can accept or decline */}
-        {(job.permissions?.can_accept || job.permissions?.can_decline) && (
+        {/* Job Assignment Actions - B2B only (staff pending is handled inside summary tab) */}
+        {(job.permissions?.can_accept || job.permissions?.can_decline) &&
+          job.staff_assignment_status !== "pending" && (
           <JobAssignmentActions
             jobId={job.id}
             jobTitle={job.title || job.code || "Job"}
@@ -1119,6 +1120,8 @@ const JobDetails: React.FC<JobDetailsProps> = ({
                 setWizardInitialMode(mode);
                 setIsDelegateWizardVisible(true);
               }}
+              onAcceptStaffAssignment={handleAcceptStaffAssignment}
+              onDeclineStaffAssignment={handleDeclineStaffAssignment}
             />
           )}
           {jobPanel === "job" && (
