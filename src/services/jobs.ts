@@ -40,6 +40,7 @@ export interface JobAPI {
     | "accepted"
     | "declined"
     | "negotiating";
+  staff_assignment_status?: "pending" | "confirmed" | "declined" | null;
   contractee?: {
     company_id: number;
     company_name: string;
@@ -696,16 +697,21 @@ export async function getJobDetails(jobCode: string): Promise<any> {
     // job_assignments hérite des droits "owner" du job.
     const isViewerFromJobCompany =
       !!viewerCompanyId && viewerCompanyId === contracteeCompanyId;
+    // Staff cross-company assignment status
+    const staffAssignmentStatus = data.staff_assignment_status ?? null;
+    const isStaffPendingAssignment = staffAssignmentStatus === "pending";
     const permissions = {
       is_owner: isSameCompany && isViewerFromJobCompany, // Même entreprise ET viewer dans cette entreprise
       is_contractee: isContractee, // Créateur du job
       is_contractor: isContractor, // Exécutant (cessionnaire)
       is_assigned: !!data.job?.assigned_staff_id,
-      // Accepter/refuser : uniquement le contractor pour les transferts
+      // Accepter/refuser : contractor B2B OU staff cross-company en attente
       can_accept:
-        assignmentStatus === "pending" && (isContractor || (isSameCompany && isViewerFromJobCompany)),
+        (assignmentStatus === "pending" && (isContractor || (isSameCompany && isViewerFromJobCompany)))
+        || isStaffPendingAssignment,
       can_decline:
-        assignmentStatus === "pending" && (isContractor || (isSameCompany && isViewerFromJobCompany)),
+        (assignmentStatus === "pending" && (isContractor || (isSameCompany && isViewerFromJobCompany)))
+        || isStaffPendingAssignment,
       // Démarrer/compléter : le contractor ou job interne (viewer de la bonne entreprise)
       can_start: isContractor || (isSameCompany && isViewerFromJobCompany),
       can_complete: true,
@@ -743,6 +749,8 @@ export async function getJobDetails(jobCode: string): Promise<any> {
         permissions: permissions,
         // ✅ DELEGATION: Transfert actif (remonté depuis data.active_transfer)
         active_transfer: data.active_transfer || null,
+        // ✅ STAFF ASSIGNMENT: Statut d'assignation cross-company
+        staff_assignment_status: staffAssignmentStatus,
       },
       client: data.client,
       company: data.company,
@@ -1044,6 +1052,39 @@ export async function declineJob(
     throw error;
   }
 }
+
+/**
+ * Accepter une assignation staff cross-company
+ * POST /v1/jobs/{jobId}/staff-assignments/accept
+ */
+export const acceptStaffAssignment = async (jobId: string | number): Promise<void> => {
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${API}v1/jobs/${jobId}/staff-assignments/accept`, {
+    method: "POST",
+    headers,
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.error || `Failed to accept staff assignment: ${response.status}`);
+  }
+};
+
+/**
+ * Refuser une assignation staff cross-company
+ * POST /v1/jobs/{jobId}/staff-assignments/decline
+ */
+export const declineStaffAssignment = async (jobId: string | number, reason: string): Promise<void> => {
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${API}v1/jobs/${jobId}/staff-assignments/decline`, {
+    method: "POST",
+    headers: { ...headers, "Content-Type": "application/json" },
+    body: JSON.stringify({ reason }),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.error || `Failed to decline staff assignment: ${response.status}`);
+  }
+};
 
 /**
  * Faire une contre-proposition sur un job assigné

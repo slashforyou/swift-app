@@ -43,7 +43,9 @@ import {
 } from "../services/jobCorrection";
 import {
     acceptJob,
+    acceptStaffAssignment,
     declineJob,
+    declineStaffAssignment,
     deleteJob,
     updateJob as updateJobAPI,
     UpdateJobRequest,
@@ -290,6 +292,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({
       can_decline?: boolean;
       can_respond_transfer?: boolean;
     },
+    staff_assignment_status: null as string | null,
     active_transfer: null as null | { status: string; [key: string]: unknown },
   });
 
@@ -454,6 +457,30 @@ const JobDetails: React.FC<JobDetailsProps> = ({
     },
     [actualJobId, navigation, showToast, t],
   );
+
+  // Handle Accept Staff Assignment (cross-company)
+  const handleAcceptStaffAssignment = useCallback(async (notes?: string) => {
+    try {
+      await acceptStaffAssignment(numericJobId);
+      showToast(t("jobs.acceptSuccess") || "Assignment accepted", "success");
+      await refreshJobDetails();
+    } catch (error) {
+      showToast(t("jobs.acceptError") || "Failed to accept", "error");
+      throw error;
+    }
+  }, [numericJobId, refreshJobDetails, showToast, t]);
+
+  // Handle Decline Staff Assignment (cross-company)
+  const handleDeclineStaffAssignment = useCallback(async (reason: string) => {
+    try {
+      await declineStaffAssignment(numericJobId, reason);
+      showToast(t("jobs.declineSuccess") || "Assignment declined", "success");
+      navigation.goBack();
+    } catch (error) {
+      showToast(t("jobs.declineError") || "Failed to decline", "error");
+      throw error;
+    }
+  }, [numericJobId, navigation, refreshJobDetails, showToast, t]);
 
   // Effet pour mettre à jour les données locales quand jobDetails change
   React.useEffect(() => {
@@ -657,6 +684,8 @@ const JobDetails: React.FC<JobDetailsProps> = ({
           // Délégation B2B active
           active_transfer:
             jobDetails.job?.active_transfer ?? prevJob.active_transfer,
+          staff_assignment_status:
+            jobDetails.job?.staff_assignment_status ?? prevJob.staff_assignment_status ?? null,
         };
       });
     }
@@ -957,8 +986,8 @@ const JobDetails: React.FC<JobDetailsProps> = ({
             jobTitle={job.title || job.code || "Job"}
             canAccept={job.permissions?.can_accept || false}
             canDecline={job.permissions?.can_decline || false}
-            onAccept={handleAcceptJob}
-            onDecline={handleDeclineJob}
+            onAccept={job.staff_assignment_status === "pending" ? handleAcceptStaffAssignment : handleAcceptJob}
+            onDecline={job.staff_assignment_status === "pending" ? handleDeclineStaffAssignment : handleDeclineJob}
           />
         )}
 
@@ -1348,11 +1377,11 @@ const JobDetails: React.FC<JobDetailsProps> = ({
                 canDecline={job.permissions?.can_decline || false}
                 onAccept={async (notes) => {
                   setIsPendingActionModalVisible(false);
-                  await handleAcceptJob(notes);
+                  await (job.staff_assignment_status === "pending" ? handleAcceptStaffAssignment : handleAcceptJob)(notes);
                 }}
                 onDecline={async (reason) => {
                   setIsPendingActionModalVisible(false);
-                  await handleDeclineJob(reason);
+                  await (job.staff_assignment_status === "pending" ? handleDeclineStaffAssignment : handleDeclineJob)(reason);
                 }}
               />
 
