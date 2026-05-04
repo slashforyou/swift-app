@@ -6,10 +6,13 @@ const API = ServerData.serverUrl;
 export interface RevenueDashboard {
   total_revenue: number;
   job_count: number;
+  total_jobs?: number;
   avg_job_value: number;
   by_period: { label: string; revenue: number }[];
-  top_clients: { client_name: string; total: number }[];
+  chart_data?: { label: string; value: number }[];
+  top_clients: { client_name: string; total: number; name?: string; jobs_count?: number }[];
   growth_vs_previous: { revenue_pct: number; job_count_pct: number };
+  growth_percent?: number;
 }
 
 export const getRevenueDashboard = async (

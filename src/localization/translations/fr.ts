@@ -1741,6 +1741,7 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
         stripeNotConfigured: "Non configuré",
       },
       actions: {
+        title: "Action requise",
         configureStripe: "Configurer Stripe",
         completeProfile: "Compléter le profil",
         addVehicle: "Ajouter un véhicule",
@@ -1920,6 +1921,7 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
         invoicesTab: "Factures",
         storage: "Stockage",
         clients: "Clients",
+        reports: "Rapports",
       },
       clients: {
         title: "Clients",
@@ -1998,6 +2000,14 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
           depot: "Dépôt / Entrepôt",
           office: "Bureau",
           other: "Autre",
+        },
+        categoryLabel: "Catégorie",
+        category: {
+          residential: "Résidentiel",
+          commercial: "Commercial",
+          storage: "Stockage",
+          packing: "Emballage",
+          specialty: "Spécialité",
         },
       },
       contracts: {
@@ -5098,6 +5108,13 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
         title: "Livraison planifiée",
         message: "Un job de livraison a été créé pour ce lot.",
       },
+      help: {
+        title: "Lots vs Espaces — quelle différence ?",
+        lotTitle: "Lots — groupes de facturation client",
+        lotDesc: "Un lot regroupe les affaires d'un client. C'est ce que vous facturez — il a un nom de client, une fréquence de facturation et un tarif.",
+        unitTitle: "Espaces — espaces physiques",
+        unitDesc: "Un espace est un lieu physique (conteneur, étagère, pièce…). Il appartient à votre entrepôt, indépendamment de tout client.",
+      },
     },
 
     onboardingTour: {
@@ -5298,6 +5315,31 @@ export const frTranslations: TranslationKeys = mergeWithBaseTranslations(
       jobIdLabel: "ID du job *",
       typeLabel: "Type de lien",
       linkAction: "Lier ce job",
+    },
+
+    mileage: {
+      title: "Kilométrage",
+      selectVehicle: "Sélectionnez un véhicule",
+      noVehicles: "Aucun véhicule trouvé",
+    },
+
+    maintenance: {
+      title: "Maintenance véhicules",
+      alertTypes: {
+        oil_change: "Vidange",
+        tyre: "Pneus",
+        rego: "Immatriculation",
+        service: "Service",
+        other: "Autre",
+      },
+    },
+
+    quotes: {
+      title: "📄 Devis",
+    },
+
+    revenue: {
+      title: "💰 Revenus",
     },
   },
 );

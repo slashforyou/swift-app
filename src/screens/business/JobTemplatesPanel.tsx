@@ -270,7 +270,7 @@ const JobTemplatesPanel: React.FC<JobTemplatesPanelProps> = ({ navigation }) => 
                       textTransform: "capitalize",
                     }}
                   >
-                    {template.category}
+                    {t(`businessHub.templates.category.${template.category}`) ?? template.category}
                   </Text>
                 </View>
 

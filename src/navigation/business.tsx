@@ -28,6 +28,7 @@ import {
     PaymentsListScreen,
     PayoutsScreen,
     RelationsScreen,
+    ReportsScreen,
     StaffCrewScreen,
     StripeSettingsScreen,
     TrucksScreen,
@@ -116,6 +117,7 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
     { id: "payments", label: t("businessHub.subTabs.payments") },
     { id: "billing", label: t("businessHub.subTabs.billing") },
     { id: "invoices", label: t("businessHub.subTabs.invoicesTab") },
+    { id: "reports", label: t("businessHub.subTabs.reports") || "Reports" },
   ], [t]);
 
   const { isLoading: authLoading, LoadingComponent } = useAuthCheck(
@@ -340,62 +342,8 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
         }
         return (
           <>
-            {resourcesSubTab === "staff" && (
-              <>
-                {/* Staff quick links */}
-                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, paddingHorizontal: DESIGN_TOKENS.spacing.lg, paddingTop: DESIGN_TOKENS.spacing.sm, paddingBottom: DESIGN_TOKENS.spacing.sm }}>
-                  {[
-                    { icon: "calendar-outline", label: "Dispo", screen: "EmployeeAvailability" },
-                    { icon: "ribbon-outline", label: "Compétences", screen: "EmployeeSkills" },
-                    { icon: "star-outline", label: "Notations", screen: "EmployeeRatings" },
-                    { icon: "time-outline", label: "Heures", screen: "WeeklyHours" },
-                  ].map((item) => (
-                    <Pressable
-                      key={item.screen}
-                      onPress={() => navigation?.navigate(item.screen as any)}
-                      style={({ pressed }) => ({
-                        flexDirection: "row", alignItems: "center", gap: 6,
-                        paddingVertical: 8, paddingHorizontal: 12,
-                        backgroundColor: pressed ? colors.backgroundTertiary : colors.backgroundSecondary,
-                        borderRadius: DESIGN_TOKENS.radius.md,
-                        borderWidth: 1, borderColor: colors.border,
-                      })}
-                    >
-                      <Ionicons name={item.icon as any} size={16} color={colors.primary} />
-                      <Text style={{ color: colors.text, fontWeight: "600", fontSize: 13 }}>{item.label}</Text>
-                    </Pressable>
-                  ))}
-                </View>
-                <StaffCrewScreen />
-              </>
-            )}
-            {resourcesSubTab === "vehicles" && (
-              <>
-                {/* Vehicle quick links */}
-                <View style={{ flexDirection: "row", gap: 8, paddingHorizontal: DESIGN_TOKENS.spacing.lg, paddingTop: DESIGN_TOKENS.spacing.sm, paddingBottom: DESIGN_TOKENS.spacing.sm }}>
-                  {[
-                    { icon: "speedometer-outline", label: "Kilométrage", screen: "VehicleMileage" },
-                    { icon: "construct-outline", label: "Maintenance", screen: "VehicleMaintenance" },
-                  ].map((item) => (
-                    <Pressable
-                      key={item.screen}
-                      onPress={() => navigation?.navigate(item.screen as any)}
-                      style={({ pressed }) => ({
-                        flex: 1, flexDirection: "row", alignItems: "center", gap: 8,
-                        paddingVertical: 10, paddingHorizontal: 12,
-                        backgroundColor: pressed ? colors.backgroundTertiary : colors.backgroundSecondary,
-                        borderRadius: DESIGN_TOKENS.radius.md,
-                        borderWidth: 1, borderColor: colors.border,
-                      })}
-                    >
-                      <Ionicons name={item.icon as any} size={16} color={colors.primary} />
-                      <Text style={{ color: colors.text, fontWeight: "600", fontSize: 13 }}>{item.label}</Text>
-                    </Pressable>
-                  ))}
-                </View>
-                <TrucksScreen />
-              </>
-            )}
+            {resourcesSubTab === "staff" && <StaffCrewScreen />}
+            {resourcesSubTab === "vehicles" && <TrucksScreen />}
             {resourcesSubTab === "partners" && <RelationsScreen />}
             {resourcesSubTab === "clients" && <ClientsScreen />}
             {resourcesSubTab === "storage" && (
@@ -429,8 +377,8 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
             {/* Quick nav: Devis + Revenue */}
             <View style={{ flexDirection: "row", gap: 10, paddingHorizontal: DESIGN_TOKENS.spacing.lg, paddingTop: DESIGN_TOKENS.spacing.md, paddingBottom: DESIGN_TOKENS.spacing.sm }}>
               {[
-                { icon: "document-text-outline", label: "Devis", screen: "Quotes" },
-                { icon: "bar-chart-outline", label: "Revenus", screen: "RevenueDashboard" },
+                { icon: "document-text-outline", label: t("quotes.title") ?? "Quotes", screen: "Quotes" },
+                { icon: "bar-chart-outline", label: t("revenue.title") ?? "Revenue", screen: "RevenueDashboard" },
               ].map((item) => (
                 <Pressable
                   key={item.screen}
@@ -509,6 +457,9 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
                 />
               )
             )}
+            {financesSubTab === "reports" && (
+              <ReportsScreen onBack={() => setFinancesSubTab("payments")} />
+            )}
           </>
         );
 
@@ -527,8 +478,17 @@ const Business: React.FC<BusinessProps> = ({ route, navigation }) => {
         flex: 1,
       }}
     >
-      {/* Logo + Header masqués en drill-down (les écrans drill-down ont leur propre header) */}
-      {!drillDownScreen && (
+      {/* Header principal ou header drill-down avec bouton retour */}
+      {drillDownScreen ? (
+        <BusinessHeader
+          title={getPanelTitle()}
+          navigation={navigation}
+          showBackButton={true}
+          onBackPress={handleDrillBack}
+          showHelpButton={false}
+          skipSafeAreaTop={false}
+        />
+      ) : (
         <>
           <View style={{ alignItems: "center", paddingTop: insets.top }}>
             <HeaderLogo preset="sm" variant="rectangle" marginVertical={2} />

@@ -1,21 +1,22 @@
 /**
  * BusinessInfoPage - Page d'informations business bien structurée
- * Affiche les informations de l'entreprise avec sections organisées (cont        <View style={[styles.infoCard, { backgroundColor: colors.backgroundSecondary }]}>       <View style={[styles.infoCard, { backgroundColor: colors.backgroundSecondary }]}>nu seulement, header géré par Business.tsx)
+ * Affiche les informations de l'entreprise avec sections organisées (contenu seulement, header géré par Business.tsx)
  */
 import * as ImagePicker from "expo-image-picker";
 import React from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
+    ActivityIndicator,
+    Alert,
+    Image,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 
 // Components
-import { HStack, VStack } from "../../components/primitives/Stack";
+import { VStack } from "../../components/primitives/Stack";
 import MascotLoading from "../../components/ui/MascotLoading";
 
 // Hooks & Utils
@@ -30,22 +31,37 @@ interface InfoRowProps {
   label: string;
   value: string;
   icon?: string;
+  isLast?: boolean;
 }
 
-// Composant InfoRow pour afficher une ligne d'information
-const InfoRow: React.FC<InfoRowProps> = ({ label, value, icon }) => {
+// Composant InfoRow avec séparateur
+const InfoRow: React.FC<InfoRowProps> = ({ label, value, icon, isLast }) => {
   const { colors } = useTheme();
 
   return (
-    <HStack style={styles.infoRow}>
-      {icon && <Text style={styles.infoIcon}>{icon}</Text>}
-      <VStack style={styles.infoContent}>
-        <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
-          {label}
-        </Text>
-        <Text style={[styles.infoValue, { color: colors.text }]}>{value}</Text>
-      </VStack>
-    </HStack>
+    <>
+      <View style={styles.infoRow}>
+        {icon && <Text style={styles.infoIcon}>{icon}</Text>}
+        <View style={styles.infoContent}>
+          <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>{label}</Text>
+          <Text style={[styles.infoValue, { color: colors.text }]}>{value}</Text>
+        </View>
+      </View>
+      {!isLast && <View style={[styles.rowDivider, { backgroundColor: colors.border }]} />}
+    </>
+  );
+};
+
+// En-tête de section avec icône colorée
+const SectionHeader: React.FC<{ icon: string; title: string }> = ({ icon, title }) => {
+  const { colors } = useTheme();
+  return (
+    <View style={styles.sectionHeader}>
+      <View style={[styles.sectionIconBadge, { backgroundColor: colors.primary + "18" }]}>
+        <Text style={{ fontSize: 16 }}>{icon}</Text>
+      </View>
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>{title}</Text>
+    </View>
   );
 };
 
@@ -169,195 +185,89 @@ const BusinessInfoPage: React.FC = () => {
   }
 
   return (
-    <View
+    <ScrollView
       testID="business-info-scroll"
       style={[styles.container, { backgroundColor: colors.background }]}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
     >
-      {/* Section Logo */}
-      <VStack style={[styles.section, { alignItems: "center" }]}>
-        <Text
-          style={[
-            styles.sectionTitle,
-            { color: colors.text, alignSelf: "flex-start" },
-          ]}
-        >
-          {t("business.info.companyLogo")}
-        </Text>
+      {/* Hero : Logo + Nom de l'entreprise */}
+      <View style={[styles.heroCard, { backgroundColor: colors.backgroundSecondary, borderColor: colors.border }]}>
         <Pressable
           onPress={handlePickLogo}
           disabled={isUploadingLogo}
-          style={({ pressed }) => ({
-            width: 120,
-            height: 120,
-            borderRadius: 60,
-            backgroundColor: pressed
-              ? colors.backgroundTertiary
-              : colors.backgroundSecondary,
-            borderWidth: 2,
-            borderColor: colors.border,
-            borderStyle: "dashed",
-            justifyContent: "center",
-            alignItems: "center",
-            overflow: "hidden",
-            opacity: isUploadingLogo ? 0.6 : 1,
-          })}
+          style={({ pressed }) => [
+            styles.logoPressable,
+            {
+              backgroundColor: pressed ? colors.backgroundTertiary : colors.background,
+              borderColor: colors.primary + "40",
+            },
+          ]}
         >
           {isUploadingLogo ? (
             <ActivityIndicator size="small" color={colors.primary} />
           ) : logoUri ? (
-            <Image
-              source={{ uri: logoUri }}
-              style={{ width: 120, height: 120, borderRadius: 60 }}
-            />
+            <Image source={{ uri: logoUri }} style={styles.logoImage} />
           ) : (
             <VStack style={{ alignItems: "center", gap: 4 }}>
-              <Text style={{ fontSize: 32 }}>📷</Text>
-              <Text
-                style={{
-                  fontSize: 11,
-                  color: colors.textSecondary,
-                  textAlign: "center",
-                  paddingHorizontal: 8,
-                }}
-              >
+              <Text style={{ fontSize: 36 }}>🏢</Text>
+              <Text style={{ fontSize: 10, color: colors.textSecondary, textAlign: "center", paddingHorizontal: 6 }}>
                 {t("business.info.addLogo")}
               </Text>
             </VStack>
           )}
         </Pressable>
-        {logoUri && (
-          <Pressable
-            onPress={handlePickLogo}
-            style={{ marginTop: DESIGN_TOKENS.spacing.sm }}
-          >
-            <Text
-              style={{
-                fontSize: 13,
-                color: colors.primary,
-                fontWeight: "600",
-              }}
-            >
-              {t("business.info.changeLogo")}
+
+        <View style={styles.heroText}>
+          <Text style={[styles.heroName, { color: colors.text }]}>
+            {businessData.name || t("businessHub.company.default")}
+          </Text>
+          {businessData.abn ? (
+            <View style={[styles.abnBadge, { backgroundColor: colors.primary + "15", borderColor: colors.primary + "30" }]}>
+              <Text style={[styles.abnText, { color: colors.primary }]}>ABN {businessData.abn}</Text>
+            </View>
+          ) : null}
+          <Pressable onPress={handlePickLogo}>
+            <Text style={[styles.changeLogoLink, { color: colors.primary }]}>
+              {logoUri ? t("business.info.changeLogo") : t("business.info.addLogo")} →
             </Text>
           </Pressable>
-        )}
-      </VStack>
+        </View>
+      </View>
 
       {/* Section des informations générales */}
-      <VStack style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>
-          {t("business.info.companyInformation")}
-        </Text>
-
-        <View
-          style={[
-            styles.infoCard,
-            { backgroundColor: colors.backgroundSecondary },
-          ]}
-        >
-          <InfoRow
-            icon="🏢"
-            label={t("business.info.companyName")}
-            value={businessData.name || "Swift Removals"}
-          />
-
-          <InfoRow
-            icon="🆔"
-            label={t("business.info.abn")}
-            value={businessData.abn || t("business.info.notSpecified")}
-          />
-
-          <InfoRow
-            icon="📅"
-            label={t("business.info.establishedDate")}
-            value={new Date(businessData.created_at).toLocaleDateString(
-              "en-AU",
-            )}
-          />
-
-          <InfoRow
-            icon="💼"
-            label={t("business.info.businessType")}
-            value={
-              businessData.businessType || t("business.info.movingServices")
-            }
-          />
+      <View style={styles.section}>
+        <SectionHeader icon="🏢" title={t("business.info.companyInformation")} />
+        <View style={[styles.infoCard, { backgroundColor: colors.backgroundSecondary, borderColor: colors.border }]}>
+          <InfoRow icon="🆔" label={t("business.info.abn")} value={businessData.abn || t("business.info.notSpecified")} />
+          <InfoRow icon="📅" label={t("business.info.establishedDate")} value={new Date(businessData.created_at).toLocaleDateString("en-AU")} />
+          <InfoRow icon="💼" label={t("business.info.businessType")} value={businessData.businessType || t("business.info.movingServices")} isLast />
         </View>
-      </VStack>
+      </View>
 
       {/* Section des coordonnées */}
-      <VStack style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>
-          {t("business.info.contactDetails")}
-        </Text>
-
-        <View
-          style={[
-            styles.infoCard,
-            { backgroundColor: colors.backgroundSecondary },
-          ]}
-        >
-          <InfoRow
-            icon="📱"
-            label={t("business.info.phone")}
-            value={businessData.phone || "+61 2 9000 0000"}
-          />
-
-          <InfoRow
-            icon="✉️"
-            label={t("business.info.email")}
-            value={businessData.email || "info@swiftremoval.com.au"}
-          />
-
-          <InfoRow
-            icon="🌐"
-            label={t("business.info.website")}
-            value={businessData.website || "www.swiftremoval.com.au"}
-          />
+      <View style={styles.section}>
+        <SectionHeader icon="📞" title={t("business.info.contactDetails")} />
+        <View style={[styles.infoCard, { backgroundColor: colors.backgroundSecondary, borderColor: colors.border }]}>
+          <InfoRow icon="📱" label={t("business.info.phone")} value={businessData.phone || "—"} />
+          <InfoRow icon="✉️" label={t("business.info.email")} value={businessData.email || "—"} />
+          <InfoRow icon="🌐" label={t("business.info.website")} value={businessData.website || "—"} isLast />
         </View>
-      </VStack>
+      </View>
 
       {/* Section de l'adresse */}
-      <VStack style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>
-          {t("business.info.businessAddress")}
-        </Text>
-
-        <View
-          style={[
-            styles.infoCard,
-            { backgroundColor: colors.backgroundSecondary },
-          ]}
-        >
-          <InfoRow
-            icon="📍"
-            label={t("business.info.streetAddress")}
-            value={businessData.address || "123 Business Street"}
-          />
-
-          <InfoRow
-            icon="🏙️"
-            label={t("business.info.city")}
-            value={businessData.city || "Sydney"}
-          />
-
-          <InfoRow
-            icon="🗺️"
-            label={t("business.info.state")}
-            value={businessData.state || "NSW"}
-          />
-
-          <InfoRow
-            icon="📮"
-            label={t("business.info.postcode")}
-            value={businessData.postcode || "2000"}
-          />
+      <View style={styles.section}>
+        <SectionHeader icon="📍" title={t("business.info.businessAddress")} />
+        <View style={[styles.infoCard, { backgroundColor: colors.backgroundSecondary, borderColor: colors.border }]}>
+          <InfoRow icon="🏘️" label={t("business.info.streetAddress")} value={businessData.address || "—"} />
+          <InfoRow icon="🏙️" label={t("business.info.city")} value={businessData.city || "—"} />
+          <InfoRow icon="🗺️" label={t("business.info.state")} value={businessData.state || "—"} />
+          <InfoRow icon="📮" label={t("business.info.postcode")} value={businessData.postcode || "—"} isLast />
         </View>
-      </VStack>
+      </View>
 
-      {/* Espacement final */}
       <View style={styles.bottomSpacer} />
-    </View>
+    </ScrollView>
   );
 };
 
@@ -367,17 +277,120 @@ const BusinessInfoPage: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: DESIGN_TOKENS.spacing.lg,
   },
-  loadingContainer: {
+  content: {
+    paddingHorizontal: DESIGN_TOKENS.spacing.lg,
+    paddingTop: DESIGN_TOKENS.spacing.lg,
+  },
+  // Hero card
+  heroCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: DESIGN_TOKENS.spacing.md,
+    padding: DESIGN_TOKENS.spacing.lg,
+    borderRadius: DESIGN_TOKENS.radius.lg,
+    borderWidth: 1,
+    marginBottom: DESIGN_TOKENS.spacing.xl,
+  },
+  logoPressable: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 2,
+    borderStyle: "dashed",
+    justifyContent: "center",
+    alignItems: "center",
+    overflow: "hidden",
+    flexShrink: 0,
+  },
+  logoImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+  },
+  heroText: {
     flex: 1,
+    gap: 6,
+  },
+  heroName: {
+    fontSize: 20,
+    fontWeight: "700",
+    lineHeight: 24,
+  },
+  abnBadge: {
+    alignSelf: "flex-start",
+    borderWidth: 1,
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  abnText: {
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  changeLogoLink: {
+    fontSize: 12,
+    fontWeight: "500",
+    marginTop: 2,
+  },
+  // Sections
+  section: {
+    marginBottom: DESIGN_TOKENS.spacing.xl,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: DESIGN_TOKENS.spacing.sm,
+    marginBottom: DESIGN_TOKENS.spacing.sm,
+  },
+  sectionIconBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
     justifyContent: "center",
     alignItems: "center",
   },
-  loadingText: {
-    marginTop: DESIGN_TOKENS.spacing.md,
+  sectionTitle: {
     fontSize: 16,
+    fontWeight: "700",
   },
+  // Cards
+  infoCard: {
+    borderRadius: DESIGN_TOKENS.radius.lg,
+    borderWidth: 1,
+    overflow: "hidden",
+  },
+  infoRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    paddingVertical: DESIGN_TOKENS.spacing.md,
+    paddingHorizontal: DESIGN_TOKENS.spacing.md,
+  },
+  rowDivider: {
+    height: 1,
+    marginHorizontal: DESIGN_TOKENS.spacing.md,
+  },
+  infoIcon: {
+    fontSize: 16,
+    marginRight: DESIGN_TOKENS.spacing.sm,
+    marginTop: 1,
+    width: 22,
+  },
+  infoContent: {
+    flex: 1,
+  },
+  infoLabel: {
+    fontSize: 11,
+    fontWeight: "500",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginBottom: 3,
+  },
+  infoValue: {
+    fontSize: 15,
+    fontWeight: "500",
+  },
+  // States
   emptyContainer: {
     flex: 1,
     justifyContent: "center",
@@ -388,41 +401,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center",
   },
-  section: {
-    marginBottom: DESIGN_TOKENS.spacing.xl,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    marginBottom: DESIGN_TOKENS.spacing.md,
-  },
-  infoCard: {
-    padding: DESIGN_TOKENS.spacing.md,
-    borderRadius: 12,
-  },
-  infoRow: {
-    paddingVertical: DESIGN_TOKENS.spacing.sm,
-    alignItems: "flex-start",
-  },
-  infoIcon: {
-    fontSize: 18,
-    marginRight: DESIGN_TOKENS.spacing.sm,
-    marginTop: 2,
-  },
-  infoContent: {
-    flex: 1,
-  },
-  infoLabel: {
-    fontSize: 12,
-    fontWeight: "500",
-    marginBottom: DESIGN_TOKENS.spacing.xs,
-  },
-  infoValue: {
-    fontSize: 16,
-    fontWeight: "400",
-  },
   bottomSpacer: {
-    height: DESIGN_TOKENS.spacing.xl,
+    height: DESIGN_TOKENS.spacing.xl * 2,
   },
 });
 

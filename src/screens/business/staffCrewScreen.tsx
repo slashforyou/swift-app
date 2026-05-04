@@ -167,7 +167,11 @@ export default function StaffCrewScreen() {
   };
 
   if (isLoading && staff.length === 0) {
-    return <MascotLoading text={t("staff.titles.loading")} />;
+    return (
+      <View testID="loading-text" style={{ flex: 1 }}>
+        <MascotLoading text={t("staff.titles.loading")} />
+      </View>
+    );
   }
 
   return (
@@ -436,285 +440,98 @@ export default function StaffCrewScreen() {
           </View>
         ) : (
           <View style={styles.staffList}>
-            {filteredStaff.map((member) => (
-              <View
-                key={member.id}
-                testID={`staff-card-${member.id}`}
-                style={[
-                  styles.staffCard,
-                  { backgroundColor: colors.backgroundSecondary },
-                ]}
-              >
-                {/* En-tête de la carte */}
-                <View style={styles.staffCardHeader}>
-                  <View style={styles.staffCardHeaderLeft}>
-                    <View
-                      style={[
-                        styles.staffTypeIcon,
-                        {
-                          backgroundColor:
-                            member.type === "employee"
-                              ? colors.success + "20"
-                              : colors.info + "20",
-                        },
-                      ]}
-                    >
-                      <Ionicons
-                        name={getTypeIcon(member.type)}
-                        size={20}
-                        color={
-                          member.type === "employee"
-                            ? colors.success
-                            : colors.info
-                        }
-                      />
+            {filteredStaff.map((member) => {
+              const initials = `${member.firstName?.[0] ?? ""}${member.lastName?.[0] ?? ""}`.toUpperCase();
+              const isEmployee = member.type === "employee";
+              const rate = isEmployee
+                ? `$${(member as Employee).hourlyRate}/h`
+                : `$${(member as Contractor).rate}${(member as Contractor).rateType === "hourly" ? "/h" : ""}`;
+
+              return (
+                <View
+                  key={member.id}
+                  testID={`staff-card-${member.id}`}
+                  style={[styles.staffCard, { backgroundColor: colors.backgroundSecondary, borderColor: colors.border }]}
+                >
+                  {/* Row principale : avatar + infos + actions */}
+                  <View style={styles.staffCardMain}>
+                    {/* Avatar initiales */}
+                    <View style={[styles.avatar, { backgroundColor: isEmployee ? colors.success + "20" : colors.info + "20" }]}>
+                      <Text style={[styles.avatarText, { color: isEmployee ? colors.success : colors.info }]}>
+                        {initials || "?"}
+                      </Text>
                     </View>
-                    <View>
-                      <Text
-                        testID={`staff-name-${member.id}`}
-                        style={[styles.staffName, { color: colors.text }]}
-                      >
+
+                    {/* Infos centrales */}
+                    <View style={styles.staffCenterInfo}>
+                      <Text testID={`staff-name-${member.id}`} style={[styles.staffName, { color: colors.text }]}>
                         {member.firstName} {member.lastName}
                       </Text>
-                      <Text
-                        testID={`staff-type-${member.id}`}
-                        style={[
-                          styles.staffType,
-                          { color: colors.textSecondary },
-                        ]}
-                      >
-                        {getTypeLabel(member.type)}
-                      </Text>
-                    </View>
-                  </View>
-                  <View
-                    testID={`staff-status-${member.id}`}
-                    style={[
-                      styles.statusBadge,
-                      { backgroundColor: `${getStatusColor(member.status)}20` },
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.statusText,
-                        { color: getStatusColor(member.status) },
-                      ]}
-                    >
-                      {getStatusLabel(member.status)}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Informations */}
-                <View style={styles.staffInfo}>
-                  <View style={styles.infoRow}>
-                    <Ionicons
-                      name="briefcase-outline"
-                      size={16}
-                      color={colors.textSecondary}
-                    />
-                    <Text
-                      style={[styles.infoText, { color: colors.textSecondary }]}
-                    >
-                      {member.role}
-                    </Text>
-                  </View>
-                  <View style={styles.infoRow}>
-                    <Ionicons
-                      name="people-outline"
-                      size={16}
-                      color={colors.textSecondary}
-                    />
-                    <Text
-                      style={[styles.infoText, { color: colors.textSecondary }]}
-                    >
-                      {member.team}
-                    </Text>
-                  </View>
-                  <View style={styles.infoRow}>
-                    <Ionicons
-                      name="mail-outline"
-                      size={16}
-                      color={colors.textSecondary}
-                    />
-                    <Text
-                      style={[styles.infoText, { color: colors.textSecondary }]}
-                    >
-                      {member.email}
-                    </Text>
-                  </View>
-                  <View style={styles.infoRow}>
-                    <Ionicons
-                      name="call-outline"
-                      size={16}
-                      color={colors.textSecondary}
-                    />
-                    <Text
-                      style={[styles.infoText, { color: colors.textSecondary }]}
-                    >
-                      {member.phone}
-                    </Text>
-                  </View>
-
-                  {/* Informations spécifiques selon le type */}
-                  {member.type === "employee" ? (
-                    <>
-                      <View style={styles.infoRow}>
-                        <Ionicons
-                          name="cash-outline"
-                          size={16}
-                          color={colors.textSecondary}
-                        />
-                        <Text
-                          style={[
-                            styles.infoText,
-                            { color: colors.textSecondary },
-                          ]}
-                        >
-                          ${(member as Employee).hourlyRate}/h
-                        </Text>
-                      </View>
-                      {(member as Employee).tfn && (
-                        <View style={styles.infoRow}>
-                          <Ionicons
-                            name="card-outline"
-                            size={16}
-                            color={colors.textSecondary}
-                          />
-                          <Text
-                            style={[
-                              styles.infoText,
-                              { color: colors.textSecondary },
-                            ]}
-                          >
-                            TFN: {(member as Employee).tfn}
+                      <View style={styles.staffMeta}>
+                        <View testID={`staff-type-${member.type}`} style={[styles.typePill, { backgroundColor: isEmployee ? colors.success + "15" : colors.info + "15" }]}>
+                          <Text style={[styles.typePillText, { color: isEmployee ? colors.success : colors.info }]}>
+                            {getTypeLabel(member.type)}
                           </Text>
                         </View>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <View style={styles.infoRow}>
-                        <Ionicons
-                          name="cash-outline"
-                          size={16}
-                          color={colors.textSecondary}
-                        />
-                        <Text
-                          style={[
-                            styles.infoText,
-                            { color: colors.textSecondary },
-                          ]}
-                        >
-                          ${(member as Contractor).rate}
-                          {(member as Contractor).rateType === "hourly" && "/h"}
+                        <Text style={[styles.roleText, { color: colors.textSecondary }]} numberOfLines={1}>
+                          {member.role}
                         </Text>
                       </View>
-                      <View style={styles.infoRow}>
-                        <Ionicons
-                          name="document-outline"
-                          size={16}
-                          color={colors.textSecondary}
-                        />
-                        <Text
-                          style={[
-                            styles.infoText,
-                            { color: colors.textSecondary },
-                          ]}
-                        >
-                          ABN: {(member as Contractor).abn}
-                        </Text>
-                      </View>
-                      <View style={styles.infoRow}>
-                        <Ionicons
-                          name="ribbon-outline"
-                          size={16}
-                          color={colors.textSecondary}
-                        />
-                        <Text
-                          style={[
-                            styles.infoText,
-                            { color: colors.textSecondary },
-                          ]}
-                        >
-                          Status: {(member as Contractor).contractStatus}
-                        </Text>
-                      </View>
-                    </>
-                  )}
-                </View>
+                      <Text style={[styles.rateText, { color: colors.textMuted }]}>{rate}</Text>
+                    </View>
 
-                {/* Actions */}
-                <View style={styles.staffActions}>
-                  <Pressable
-                    testID={`edit-button-${member.id}`}
-                    style={[
-                      styles.actionButton,
-                      { backgroundColor: colors.primary + "20" },
-                    ]}
-                    onPress={() => handleEditStaff(member)}
-                  >
-                    <Ionicons
-                      name="create-outline"
-                      size={20}
-                      color={colors.primary}
-                    />
-                    <Text
-                      style={[
-                        styles.actionButtonText,
-                        { color: colors.primary },
-                      ]}
-                    >
-                      {t("staff.actions.edit")}
-                    </Text>
-                  </Pressable>
-                  <Pressable
-                    testID={`planning-button-${member.id}`}
-                    style={[
-                      styles.actionButton,
-                      { backgroundColor: colors.info + "20" },
-                    ]}
-                    onPress={() => {
-                      analytics.trackButtonPress('staff_planning_open', 'StaffCrew', { staff_id: member.id });
-                      navigation.navigate('EmployeeSchedule', {
-                        userId: member.id,
-                        employeeName: `${member.firstName} ${member.lastName}`,
-                      });
-                    }}
-                  >
-                    <Ionicons
-                      name="calendar-outline"
-                      size={20}
-                      color={colors.info}
-                    />
-                    <Text
-                      style={[styles.actionButtonText, { color: colors.info }]}
-                    >
-                      {t("staff.actions.planning")}
-                    </Text>
-                  </Pressable>
-                  <Pressable
-                    testID={`remove-button-${member.id}`}
-                    style={[
-                      styles.actionButton,
-                      { backgroundColor: colors.error + "20" },
-                    ]}
-                    onPress={() => handleRemoveStaff(member)}
-                  >
-                    <Ionicons
-                      name="trash-outline"
-                      size={20}
-                      color={colors.error}
-                    />
-                    <Text
-                      style={[styles.actionButtonText, { color: colors.error }]}
-                    >
-                      {t("staff.actions.remove")}
-                    </Text>
-                  </Pressable>
+                    {/* Statut + actions */}
+                    <View style={styles.staffRight}>
+                      <View testID={`staff-status-${member.id}`} style={[styles.statusBadge, { backgroundColor: `${getStatusColor(member.status)}18` }]}>
+                        <Text style={[styles.statusText, { color: getStatusColor(member.status) }]}>
+                          {getStatusLabel(member.status)}
+                        </Text>
+                      </View>
+                      <View style={styles.iconActions}>
+                        <Pressable
+                          testID={`edit-button-${member.id}`}
+                          style={[styles.iconBtn, { backgroundColor: colors.primary + "15" }]}
+                          onPress={() => handleEditStaff(member)}
+                          hitSlop={8}
+                        >
+                          <Ionicons name="create-outline" size={18} color={colors.primary} />
+                        </Pressable>
+                        <Pressable
+                          testID={`remove-button-${member.id}`}
+                          style={[styles.iconBtn, { backgroundColor: colors.error + "15" }]}
+                          onPress={() => handleRemoveStaff(member)}
+                          hitSlop={8}
+                        >
+                          <Ionicons name="trash-outline" size={18} color={colors.error} />
+                        </Pressable>
+                      </View>
+                    </View>
+                  </View>
+
+                  {/* Ligne contact (email) — compact */}
+                  {(member.email || member.phone) ? (
+                    <View style={[styles.contactRow, { borderTopColor: colors.border }]}>
+                      {member.email ? (
+                        <>
+                          <Ionicons name="mail-outline" size={13} color={colors.textMuted} />
+                          <Text style={[styles.contactText, { color: colors.textMuted }]} numberOfLines={1}>
+                            {member.email}
+                          </Text>
+                        </>
+                      ) : null}
+                      {member.phone ? (
+                        <>
+                          <Ionicons name="call-outline" size={13} color={colors.textMuted} style={member.email ? { marginLeft: 10 } : undefined} />
+                          <Text style={[styles.contactText, { color: colors.textMuted }]} numberOfLines={1}>
+                            {member.phone}
+                          </Text>
+                        </>
+                      ) : null}
+                    </View>
+                  ) : null}
                 </View>
-              </View>
-            ))}
+              );
+            })}
           </View>
         )}
       </ScrollView>
@@ -850,76 +667,102 @@ const styles = StyleSheet.create({
     marginTop: DESIGN_TOKENS.spacing.xs,
   },
   staffList: {
-    gap: DESIGN_TOKENS.spacing.md,
-  },
-  staffCard: {
-    padding: DESIGN_TOKENS.spacing.md,
-    borderRadius: DESIGN_TOKENS.radius.md,
-  },
-  staffCardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: DESIGN_TOKENS.spacing.md,
-  },
-  staffCardHeaderLeft: {
-    flexDirection: "row",
-    alignItems: "center",
     gap: DESIGN_TOKENS.spacing.sm,
   },
-  staffTypeIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  staffCard: {
+    borderRadius: DESIGN_TOKENS.radius.lg,
+    borderWidth: 1,
+    overflow: "hidden",
+  },
+  staffCardMain: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: DESIGN_TOKENS.spacing.md,
+    gap: DESIGN_TOKENS.spacing.sm,
+  },
+  // Avatar initiales
+  avatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
+    flexShrink: 0,
+  },
+  avatarText: {
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  // Infos centrales
+  staffCenterInfo: {
+    flex: 1,
+    gap: 3,
+    minWidth: 0,
   },
   staffName: {
-    fontSize: 18,
-    fontWeight: "bold",
+    fontSize: 15,
+    fontWeight: "700",
   },
-  staffType: {
+  staffMeta: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    flexWrap: "wrap",
+  },
+  typePill: {
+    borderRadius: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+  },
+  typePillText: {
+    fontSize: 11,
+    fontWeight: "600",
+  },
+  roleText: {
     fontSize: 12,
-    marginTop: 2,
+    flex: 1,
+  },
+  rateText: {
+    fontSize: 12,
+    fontWeight: "500",
+  },
+  // Droite : statut + icons
+  staffRight: {
+    alignItems: "flex-end",
+    gap: 8,
+    flexShrink: 0,
   },
   statusBadge: {
-    paddingHorizontal: DESIGN_TOKENS.spacing.sm,
-    paddingVertical: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
     borderRadius: DESIGN_TOKENS.radius.sm,
   },
   statusText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "600",
   },
-  staffInfo: {
-    gap: DESIGN_TOKENS.spacing.sm,
-    marginBottom: DESIGN_TOKENS.spacing.md,
-  },
-  infoRow: {
+  iconActions: {
     flexDirection: "row",
-    alignItems: "center",
-    gap: DESIGN_TOKENS.spacing.sm,
+    gap: 6,
   },
-  infoText: {
-    fontSize: 14,
-    flex: 1,
-  },
-  staffActions: {
-    flexDirection: "row",
-    gap: DESIGN_TOKENS.spacing.sm,
-    marginTop: DESIGN_TOKENS.spacing.sm,
-  },
-  actionButton: {
-    flex: 1,
-    flexDirection: "row",
+  iconBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
-    padding: DESIGN_TOKENS.spacing.sm,
-    borderRadius: DESIGN_TOKENS.radius.md,
-    gap: DESIGN_TOKENS.spacing.xs,
   },
-  actionButtonText: {
-    fontSize: 14,
-    fontWeight: "600",
+  // Contact row
+  contactRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingHorizontal: DESIGN_TOKENS.spacing.md,
+    paddingVertical: 8,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  contactText: {
+    fontSize: 12,
+    flex: 1,
   },
 });

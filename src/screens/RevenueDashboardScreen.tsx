@@ -140,7 +140,7 @@ export default function RevenueDashboardScreen({ route, navigation }: Props) {
                   {t("revenue.kpiJobs") ?? "Nb Jobs"}
                 </Text>
                 <Text style={{ color: colors.primary, fontSize: 24, fontWeight: "800" }}>
-                  {data.total_jobs}
+                  {data.total_jobs ?? data.job_count}
                 </Text>
               </View>
             </View>
@@ -149,7 +149,7 @@ export default function RevenueDashboardScreen({ route, navigation }: Props) {
                 {t("revenue.kpiAvg") ?? "Valeur moyenne / job"}
               </Text>
               <Text style={{ color: "#D69E2E", fontSize: 22, fontWeight: "800" }}>
-                {data.total_jobs > 0 ? formatAmount(Math.round(data.total_revenue / data.total_jobs)) : "$0"}
+                {(data.total_jobs ?? data.job_count) > 0 ? formatAmount(Math.round(data.total_revenue / (data.total_jobs ?? data.job_count))) : "$0"}
               </Text>
             </View>
           </View>

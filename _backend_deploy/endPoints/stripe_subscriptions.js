@@ -128,12 +128,19 @@ async function createSubscription(req, res) {
       { apiVersion: '2023-10-16' }
     );
 
-    // 5. Créer la subscription avec trial de 30 jours
+    // 5. Vérifier l'éligibilité au trial Stripe (had_trial = 0 → jamais eu de trial Stripe)
+    const [trialRows] = await connection.query(
+      'SELECT had_trial FROM companies WHERE id = ?',
+      [companyId]
+    );
+    const isFirstTrial = !trialRows[0]?.had_trial;
+
+    // 6. Créer la subscription (trial 14j si éligible, sinon débit immédiat à la fin de période)
     //    Pendant le trial, latest_invoice.payment_intent sera null — c'est normal
     const subscription = await stripe.subscriptions.create({
       customer: customer.id,
       items: [{ price: plan.stripe_price_id }],
-      trial_period_days: 30,
+      ...(isFirstTrial ? { trial_period_days: 14 } : {}),
       payment_behavior: 'default_incomplete',
       payment_settings: {
         save_default_payment_method: 'on_subscription',
@@ -147,13 +154,21 @@ async function createSubscription(req, res) {
       }
     });
 
-    // 6. Sauvegarder l'ID de subscription en DB (status sera mis à jour par webhook)
+    // 7. Sauvegarder l'ID de subscription en DB (status sera mis à jour par webhook)
     await connection.query(
       'UPDATE companies SET subscription_id = ?, subscription_status = ? WHERE id = ?',
       [subscription.id, 'incomplete', companyId]
     );
 
-    // 7. Retourner les secrets pour le PaymentSheet natif
+    // Si c'était le premier trial, marquer had_trial = 1 (anti-abus)
+    if (isFirstTrial && subscription.trial_end) {
+      await connection.query(
+        'UPDATE companies SET had_trial = 1 WHERE id = ?',
+        [companyId]
+      );
+    }
+
+    // 8. Retourner les secrets pour le PaymentSheet natif
     //    Pendant le trial, paymentIntent est null — retourner clientSecret: null sans erreur
     const paymentIntent = subscription.latest_invoice?.payment_intent;
 

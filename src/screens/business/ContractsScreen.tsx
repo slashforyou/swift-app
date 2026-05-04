@@ -53,7 +53,7 @@ const ContractsScreen: React.FC = () => {
 
   const loadClauses = useCallback(async () => {
     setLoading(true);
-    setLoadError(null);
+    setLoadError(false);
     try {
       const data = await fetchClauses();
       setClauses(data);
@@ -271,10 +271,10 @@ const ContractsScreen: React.FC = () => {
               </Text>
             </View>
             <Switch
-              value={clause.is_active}
+              value={!!clause.is_active}
               onValueChange={() => handleToggleActive(clause)}
               trackColor={{ false: colors.border, true: colors.tint + "60" }}
-              thumbColor={clause.is_active ? colors.tint : "#999"}
+              thumbColor={!!clause.is_active ? colors.tint : "#999"}
             />
           </View>
 

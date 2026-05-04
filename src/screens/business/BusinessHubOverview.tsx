@@ -233,6 +233,9 @@ export default function BusinessHubOverview({
     elite:    { bg: "#7C3AED", text: "#fff" },
     pro:      { bg: "#2563EB", text: "#fff" },
     basic:    { bg: "#059669", text: "#fff" },
+    enterprise: { bg: "#1F2937", text: "#F59E0B" },
+    unlimited:  { bg: "#1F2937", text: "#F59E0B" },
+    comped:     { bg: "#1F2937", text: "#F59E0B" }, // plan offert — badge doré
   };
   const planChip = PLAN_COLORS[currentPlan ?? ""] ?? { bg: colors.primary, text: "#fff" };
 
@@ -252,11 +255,15 @@ export default function BusinessHubOverview({
             </Text>
           </View>
           {currentPlan && (
-            <View style={[s.planChip, { backgroundColor: planChip.bg }]}>
+            <TouchableOpacity
+              onPress={() => onDrillDown("Subscription")}
+              activeOpacity={0.75}
+              style={[s.planChip, { backgroundColor: currentPlan === "free" ? "#6B7280" : planChip.bg }]}
+            >
               <Text style={[s.planChipText, { color: planChip.text }]}>
                 {currentPlan.toUpperCase()}
               </Text>
-            </View>
+            </TouchableOpacity>
           )}
         </View>
         {/* Progress bar de configuration */}
@@ -269,6 +276,37 @@ export default function BusinessHubOverview({
           </Text>
         </View>
       </View>
+
+      {/* ── Actions requises (si existantes) ──────────────────────────────── */}
+      {actions.length > 0 && (
+        <View style={[s.actionsCard, { backgroundColor: isDark ? "#2D1515" : "#FEF2F2", borderColor: "#EF444440" }]}>
+          <View style={s.actionsHeader}>
+            <View style={[s.actionsBadge, { backgroundColor: "#EF4444" }]}>
+              <Text style={s.actionsBadgeText}>{actions.length}</Text>
+            </View>
+            <Text style={[s.sectionTitle, { color: isDark ? "#FCA5A5" : "#B91C1C", fontSize: 14 }]}>
+              {t("businessHub.actions.title")}
+            </Text>
+          </View>
+          {actions.map((action, i) => (
+            <TouchableOpacity
+              key={i}
+              style={[
+                s.actionRow,
+                i < actions.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#EF444420" },
+              ]}
+              onPress={action.onPress}
+              activeOpacity={0.7}
+            >
+              <View style={[s.actionIconCircle, { backgroundColor: action.color + "25" }]}>
+                <Ionicons name={action.icon as any} size={18} color={action.color} />
+              </View>
+              <Text style={[s.actionLabel, { color: isDark ? "#FCA5A5" : "#991B1B" }]}>{action.label}</Text>
+              <Ionicons name="chevron-forward" size={16} color={action.color} />
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
 
       {/* ── Quick Start Guide (tutoriel collapsible) ─────────────────────────── */}
       <TouchableOpacity
@@ -327,35 +365,10 @@ export default function BusinessHubOverview({
         </View>
       )}
 
-      {/* ── Bloc A : Actions requises ── */}
-      {actions.length > 0 && (
-        <View style={[s.actionsCard, { backgroundColor: isDark ? "#7F1D1D40" : "#FEF2F2", borderColor: isDark ? "#EF444440" : "#FECACA" }]}>
-          <View style={s.actionsHeader}>
-            <View style={[s.actionsBadge, { backgroundColor: "#EF4444" }]}>
-              <Text style={s.actionsBadgeText}>{actions.length}</Text>
-            </View>
-            <Text style={[s.sectionTitle, { color: colors.text }]}>
-              {t("businessHub.actionsRequired")}
-            </Text>
-          </View>
-          {actions.map((action, i) => (
-            <TouchableOpacity
-              key={i}
-              style={[s.actionRow, i < actions.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: isDark ? "#ffffff15" : "#FED7AA" }]}
-              onPress={action.onPress}
-              activeOpacity={0.7}
-            >
-              <View style={[s.actionIconCircle, { backgroundColor: action.color + "20" }]}>
-                <Ionicons name={action.icon as any} size={18} color={action.color} />
-              </View>
-              <Text style={[s.actionLabel, { color: colors.text }]}>{action.label}</Text>
-              <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
-
       {/* ── Bloc B : État de la boîte (grille 2×2 colorée) ── */}
+      <Text style={[s.sectionTitle, { color: colors.text, marginTop: DESIGN_TOKENS.spacing.md, marginBottom: DESIGN_TOKENS.spacing.sm }]}>
+        {t("businessHub.stats.title") ?? "Overview"}
+      </Text>
       <View style={s.grid}>
         <TouchableOpacity
           style={[s.statCard, { backgroundColor: cardBg(CARD_COLORS.staff.bg) }]}

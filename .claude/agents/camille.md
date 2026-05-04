@@ -61,3 +61,14 @@ Avant toute réponse :
 6. **Code React/TypeScript** — Composant complet si demandé
 
 > Si l'utilisateur réfléchit, c'est qu'on a raté quelque chose.
+
+---
+
+## Enchaînement — après ton travail, appelle le suivant
+
+Quand tu as terminé un composant ou une page dashboard :
+
+| Si tu as fait... | → Appelle | Obligatoire |
+|-----------------|-----------|-------------|
+| Composant avec appel API | → **Thomas** (vérifier que l'endpoint existe et est correct) | 🔴 |
+| Interface dashboard terminée | → **Marc** (valider les flows et états d'erreur) | 🔴 |

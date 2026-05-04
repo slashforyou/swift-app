@@ -1,8 +1,41 @@
 # COBBR — Roadmap Consolidée
 
-> **Dernière mise à jour :** 30 avril 2026
+> **Dernière mise à jour :** 3 mai 2026
 > **Version actuelle :** 1.2.0 (MVP live sur iOS + Android)
 > **Statut :** MVP fonctionnel — Monétisation + Features avancées (mai 2026)
+
+---
+
+## 🚨 DEADLINE ABSOLUE — Lundi 18 mai 2026
+
+> **Distribution grande échelle de l'app. L'app DOIT être 100% prête.**
+> **Chaque item non coché avant le 18 mai est un risque de lancement.**
+
+### Checklist bloquante GO / NO-GO (à valider avant le 18 mai)
+
+| # | Critère | Statut | Responsable |
+|---|---------|--------|-------------|
+| **B1** | `GET /v1/company/plan` retourne 200 (bug `company_id` → `contractee_company_id`) | ✅ **Fixé 3 mai** | Thomas |
+| **B2** | Trial 14j activé à l'inscription + cron expiration enregistré | ✅ **Déployé 3 mai** | Thomas |
+| **B3** | Plan `comped` (comptes existants protégés) | ✅ **Déployé 3 mai** | Thomas |
+| **B4** | PaymentSheet Stripe abonnement Pro — test sur iPhone réel | 👤 À tester | Romain |
+| **B5** | PaymentSheet Stripe abonnement Pro — test sur Android réel | 👤 À tester | Romain |
+| **B6** | Push notifications — device token iOS physique + routing (fg/bg/fermée) | 👤 À tester | Romain |
+| **B7** | Push notifications — device token Android physique + routing | 👤 À tester | Romain |
+| **B8** | Flow complet boss (inscription → job → paiement) validé sur device | 👤 À tester | Romain |
+| **B9** | Webhook Stripe actif en prod (`customer.subscription.updated`) | 👤 Vérifier | Romain |
+| **B10** | Email vérification reçu sur vraie boîte (SMTP IONOS) | 👤 À tester | Romain |
+
+### Risques identifiés (Audit équipe — 3 mai 2026)
+
+| Risque | Sévérité | Mitigation |
+|--------|----------|-----------|
+| PaymentSheet en réseau 3G instable → timeout silencieux | P1 | Tester avec Network Link Conditioner iOS |
+| `company/plan` 500 → SubscriptionScreen affiche "free" pour un Pro | ✅ Fixé | — |
+| Double-tap "Complete job" → idempotence non vérifiée côté backend | P2 | Thomas à vérifier |
+| Trial webhook Stripe non actif → accès Pro maintenu après expiration | P1 | Romain vérifier webhook live en prod |
+| ABN contractor — companyName vide → `" "` en DB | P3 | Validation backend à ajouter |
+| SecureStore.setItemAsync peut throw → crash silencieux post-vérif email | P2 | Ajouter try/catch séparé |
 
 ---
 
@@ -11,14 +44,16 @@
 | Scope | Fait | Reste | Progression |
 |-------|------|-------|-------------|
 | 🔴 **P0** — Bloquant production | 5 | 0 | 100% |
-| 🟠 **P1** — Monétisation (juin 2026) | 42 | 2 | **95%** |
+| 🟠 **P1** — Monétisation | 44 | 2 | **96%** |
 | 🟡 **P2** — Améliorations UX | 37 | 5 | **88%** |
 | 🟢 **P3** — Nice-to-have | 8 | 7 | 53% |
 | ⚪ **P4** — Long terme / IA | 0 | 17 | 0% |
 | 🎮 **Gamification v2** | spec | 5 phases | spec prête |
-| **TOTAL** | **95** | **28** | **77%** |
-| **Chemin critique (P0+P1)** | **47** | **2** | **96%** |
+| **TOTAL** | **97** | **28** | **78%** |
+| **Chemin critique (P0+P1)** | **49** | **2** | **96%** |
 
+> **Accomplissements (3 mai 2026) :** **Free trial 14j complet** (migration 050, `trial_ends_at` + `had_trial` en DB, `subscription_status=trial` à l'inscription, `trialExpirationCron` déployé + enregistré dans `index.js`), **Plan `comped`** (comptes existants protégés, bypass toutes les feature guards, chip gold dans BusinessHubOverview), **Fix plan.js** (`company_id` → `contractee_company_id` dans `GET /v1/company/plan`), **Bugs UI** (6 fixes : regex plaques AU, validation date service véhicule, reset type wizard, testIDs staffCrewScreen, contact strip phone, i18n businessHub.actions restauré)
+>
 > **Accomplissements récents (8-16 avril) :** Inscription simplifiée 8→1 écran, Business Hub redesign 8→4 onglets, Stripe dual-mode (test/live), Factures hebdo/bimensuelles avec wizard 4 étapes + sélection client, i18n complète 7 langues, Rebranding emails SwiftApp→Cobbr, SMTP fix, **Module Stockage complet** (6 tables, 22+ endpoints, 6 écrans, billing cron), **Stripe onboarding live FR** (person tokens client-side, document upload 2-phase), **Web dashboard fixes** (API routes, Stripe status gate), CI/CD fixes (TypeScript + lint + E2E), **Employee Dashboard** (#29/30/31: stats+heures+historique), **Carousel photos** (#32: PhotoViewModal déjà en place), **Notes internes job** (#33: JobNotesSection + backend + i18n)
 >
 > **Accomplissements récents (30 avril) :** **Fixes critiques** : `payment.tsx` crash (commentaire JSX corrompu U+FFFD), HTTP 400 `additional_items` (colonne DB + allowedFields), **Billing features** : PDF branding (`GET /v1/billing/monthly-invoices/:id/pdf` via pdfkit — header coloré, logo, tableau lignes, totaux), **Cron impayés** (`overduePaymentsCron` à 09:00 — détection auto overdue sur `monthly_invoices` + `job_transfers`, push notifications), **Admin support** (`POST /v1/support/conversations/:id/reply` — réponse admin + email HTML Cobbr au user)
@@ -166,12 +201,13 @@
 | ~~1~~ | ~~Créer Products/Prices dans Stripe Dashboard live et renseigner `stripe_price_id` en DB~~ | 👤 | ✅ Vérifié en prod: seuls les plans payants nécessitent Stripe (`pro`, `expert`) et ils sont configurés. `free`/`unlimited` restent volontairement sans `stripe_price_id` (non facturés). |
 | ~~2~~ | ~~Effectuer un paiement réel de test en production~~ | 👤 | ✅ Flow paiement réel validé en production |
 
-### 🟠 P1 — Nécessaire avant monétisation (juin 2026)
+### 🟠 P1 — Nécessaire avant monétisation
 
 | # | Tâche | Scope | Notes |
 |---|-------|-------|-------|
 | ~~3~~ | ~~Stocker planType + commissionRate au choix du plan~~ | ~~[S]~~ | ✅ POST /v1/company/select-plan — met à jour plan_type + stripe_platform_fee_percentage |
-| ~~4~~ | ~~Décider modèle paiement plan (Stripe activé OU free trial)~~ | 👤 | ✅ **Décidé (2 mai 2026) : Free trial 7-14j puis paiement automatique à l'expiration.** |
+| ~~4~~ | ~~Décider modèle paiement plan (Stripe activé OU free trial)~~ | 👤 | ✅ **Décidé (2 mai 2026) : Free trial 14j puis paiement automatique à l'expiration.** |
+| ~~4b~~ | ~~Free trial 14j — backend complet~~ | ~~[S]~~ | ✅ **Déployé 3 mai 2026** : migration 050 (`trial_ends_at`, `had_trial`), `subscribe.js` patché, `trialExpirationCron` déployé + enregistré, plan `comped` pour comptes existants |
 | ~~5~~ | ~~Persistence draft profile backend~~ | ~~[S]~~ | ✅ Auto-save debounced (2s) dans CompleteProfileScreen via PATCH existant, icône cloud-done dans le header |
 | ~~6~~ | ~~Personnaliser thème/couleurs par entreprise~~ | ~~[C][S]~~ | ✅ primary_color en DB + ThemeProvider override + color picker dans CompleteProfileScreen (12 couleurs) + sync au login |
 | ~~7~~ | ~~Branding sur factures et liens de paiement~~ | ~~[C][S]~~ | ✅ Logo + primary_color sur MonthlyInvoicesScreen (detail view) + email HTML brandé avec logo GCS signé |
@@ -179,8 +215,8 @@
 | ~~9~~ | ~~Facture mensuelle auto pour le contractor~~ | ~~[S]~~ | ✅ monthly_invoices + monthly_invoice_items tables, CRUD endpoints (generate/list/detail/update/send), cron job (1er du mois 02:00), email HTML brandé, MonthlyInvoicesScreen dans Finances > Factures |
 | ~~10~~ | ~~Revoir les mails de facturation~~ | ~~[S]~~ | ✅ Rebranding SwiftApp→Cobbr dans mailSender.js, centralisation emails (forgotPassword, monthlyInvoices, cron), ajout invoiceNotificationMail brandé (logo+couleurs) + invoiceDetailMail avec tableau détaillé, plain text fallback, redirection test emails |
 | ~~11~~ | ~~Valider commission (application_fee_amount) en production~~ | 👤 | ✅ Vérifié en prod (stripe_transactions): paiement `succeeded` avec `application_fee_amount > 0` et `net_amount` cohérent |
-| ~~12~~ | ~~Tester Apple Pay / Google Pay via PaymentSheet~~ | 👤 | ~~Devices réels iOS + Android~~ — **Hors scope (2 mai 2026)** |
-| 13 | Valider flow complet PaymentSheet sur iOS et Android | 👤 | End-to-end test |
+| ~~12~~ | ~~Tester Apple Pay / Google Pay via PaymentSheet~~ | 👤 | **Hors scope (2 mai 2026)** |
+| 13 | Valider flow complet PaymentSheet sur iOS et Android | 👤 | **🚨 BLOQUANT 18 mai** — End-to-end test device réel |
 | ~~14~~ | ~~Auto-complétion ABN via API gouvernement australien~~ | ~~[C][S]~~ | ✅ ABN Lookup API (abr.business.gov.au) → remplissage auto dans CompleteProfileScreen (nom, adresse, type, GST). Déclenchement à 11 chiffres, debounce 500ms. |
 
 ### 🟡 P2 — Améliorations UX
@@ -354,10 +390,21 @@ Le système gamification v2 est spécifié mais pas encore implémenté. Il comp
 
 ## 🎯 Prochaines étapes recommandées
 
-**Par quoi commencer (dans l'ordre) :**
+> **🚨 DEADLINE : 18 MAI 2026 — Distribution grande échelle**
+> **15 jours pour être 100% prêt. Focus exclusif sur les critères B1–B10.**
 
-1. **🟠 P1 — Décider le modèle plan (paiement après Stripe activé vs free trial)** → Décision produit pour verrouiller le funnel monétisation.
+**Par quoi commencer (ordre de priorité pour le 18 mai) :**
 
-2. **🟠 P1 — Tester Apple Pay / Google Pay + flow PaymentSheet complet (iOS/Android)** → Validation device réelle finale avant scale.
+1. **🔴 [Romain] Tester PaymentSheet sur device physique iOS + Android** (B4/B5) → Blocker absolu. Si ça plante, 2 semaines c'est juste pour corriger un bug Stripe natif.
 
-3. **🟡 P2 — Valider les notifications sur devices physiques (token + routing fg/bg/fermée)** → Clore la partie fiabilité notifications.
+2. **🔴 [Romain] Vérifier le webhook Stripe `customer.subscription.updated` actif en prod** (B9) → Sans ça, les expirations de trial ne se déclenchent pas et des users restent Pro gratuitement.
+
+3. **🔴 [Romain] Tester les push notifications sur devices physiques** (B6/B7) → Token réel APNs/FCM + routing foreground/background/fermée.
+
+4. **🟠 [Romain] Valider flow complet boss end-to-end** (B8) → Inscription → email vérifié → auto-login → premier job → paiement. Une fois, sur device réel.
+
+5. **🟡 [Code] Ajouter idempotence sur "Complete job"** → Risque terrain identifié par Marc : double-tap sur button complete → vérifier guard côté backend.
+
+6. **🟡 [Code] SecureStore catch séparé dans subscribeMailVerification** → Éviter crash silencieux si keychain verrouillé.
+
+> **Ce qui n'est PAS prioritaire pour le 18 mai :** Gamification v2, Chat interne, MapView, GPS tracking, IA, intégrations tierces. Tout ça peut attendre v1.3+.

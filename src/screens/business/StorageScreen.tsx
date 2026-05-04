@@ -68,6 +68,9 @@ export default function StorageScreen({ onOpenLot, onOpenUnit }: StorageScreenPr
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  // Help
+  const [showStorageHelp, setShowStorageHelp] = useState(false);
+
   // Modals
   const [showAddLot, setShowAddLot] = useState(false);
   const [showAddUnit, setShowAddUnit] = useState(false);
@@ -100,21 +103,32 @@ export default function StorageScreen({ onOpenLot, onOpenUnit }: StorageScreenPr
   // ── Stats banner ──
   const renderStats = () => {
     if (!stats) return null;
-    const items = [
-      { label: t("storage.stats.units"), value: stats.units.total, icon: "cube-outline", color: "#3B82F6" },
-      { label: t("storage.stats.activeLots"), value: stats.lots.active, icon: "people-outline", color: "#10B981" },
-      { label: t("storage.stats.itemsStored"), value: stats.items_in_storage, icon: "list-outline", color: "#8B5CF6" },
-      { label: t("storage.stats.overdue"), value: stats.lots.overdue, icon: "alert-circle-outline", color: "#EF4444" },
-    ];
+    const hasOverdue = stats.lots.overdue > 0;
     return (
-      <View style={[styles.statsRow, { backgroundColor: isDark ? colors.backgroundSecondary : "#F8FAFC" }]}>
-        {items.map((s) => (
-          <View key={s.label} style={styles.statItem}>
-            <Ionicons name={s.icon as any} size={18} color={s.color} />
-            <Text style={[styles.statValue, { color: colors.text }]}>{s.value}</Text>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{s.label}</Text>
-          </View>
-        ))}
+      <View style={[styles.statsRow, { backgroundColor: isDark ? colors.backgroundSecondary : "#F8FAFC", borderColor: colors.border }]}>
+        <View style={styles.statItem}>
+          <Text style={[styles.statValue, { color: "#3B82F6" }]}>{stats.units.total}</Text>
+          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t("storage.stats.units")}</Text>
+        </View>
+        <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
+        <View style={styles.statItem}>
+          <Text style={[styles.statValue, { color: "#10B981" }]}>{stats.lots.active}</Text>
+          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t("storage.stats.activeLots")}</Text>
+        </View>
+        <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
+        <View style={styles.statItem}>
+          <Text style={[styles.statValue, { color: "#8B5CF6" }]}>{stats.items_in_storage}</Text>
+          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t("storage.stats.itemsStored")}</Text>
+        </View>
+        <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
+        <View style={[styles.statItem, hasOverdue && styles.statItemAlert]}>
+          <Text style={[styles.statValue, { color: hasOverdue ? "#EF4444" : colors.textSecondary }]}>
+            {stats.lots.overdue}
+          </Text>
+          <Text style={[styles.statLabel, { color: hasOverdue ? "#EF4444" : colors.textSecondary }]}>
+            {t("storage.stats.overdue")}
+          </Text>
+        </View>
       </View>
     );
   };
@@ -139,80 +153,80 @@ export default function StorageScreen({ onOpenLot, onOpenUnit }: StorageScreenPr
   // ── Lot card ──
   const renderLotCard = ({ item: lot }: { item: StorageLot }) => {
     const statusColor = STATUS_COLORS[lot.status] || "#6B7280";
+    const isOverdue = lot.status === "overdue";
     return (
       <Pressable
-        style={[styles.card, { backgroundColor: isDark ? colors.backgroundSecondary : "#FFFFFF", borderColor: colors.border }]}
+        style={[
+          styles.card,
+          { backgroundColor: isDark ? colors.backgroundSecondary : "#FFFFFF", borderColor: colors.border },
+          isOverdue && { borderColor: "#EF444440" },
+        ]}
         onPress={() => onOpenLot?.(lot.id)}
       >
-        <View style={styles.cardHeader}>
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.cardTitle, { color: colors.text }]}>{lot.client_name}</Text>
-            <Text style={[styles.cardSub, { color: colors.textSecondary }]}>
-              {lot.unit_count ?? 0} {t("storage.units")} · {lot.item_count ?? 0} {t("storage.items")}
-            </Text>
-          </View>
-          <View style={[styles.badge, { backgroundColor: statusColor + "20" }]}>
-            <Text style={[styles.badgeText, { color: statusColor }]}>
-              {t(`storage.status.${lot.status}`)}
-            </Text>
-          </View>
-        </View>
-        <View style={styles.cardFooter}>
-          <View style={styles.cardFooterItem}>
-            <Ionicons name="cash-outline" size={14} color={colors.textSecondary} />
-            <Text style={[styles.cardFooterText, { color: colors.textSecondary }]}>
-              ${Number(lot.billing_amount).toFixed(2)} / {t(`storage.billing.${lot.billing_type}`)}
-            </Text>
-          </View>
-          {lot.billing_next_due && (
-            <View style={styles.cardFooterItem}>
-              <Ionicons name="calendar-outline" size={14} color={colors.textSecondary} />
-              <Text style={[styles.cardFooterText, { color: colors.textSecondary }]}>
-                {t("storage.nextDue")}: {lot.billing_next_due}
+        {/* Accent stripe */}
+        <View style={[styles.cardAccent, { backgroundColor: statusColor }]} />
+        <View style={styles.cardBody}>
+          <View style={styles.cardHeader}>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.cardTitle, { color: colors.text }]} numberOfLines={1}>
+                {lot.client_name}
+              </Text>
+              <Text style={[styles.cardSub, { color: colors.textSecondary }]}>
+                {lot.unit_count ?? 0} {t("storage.units")} · {lot.item_count ?? 0} {t("storage.items")}
               </Text>
             </View>
-          )}
+            <View style={[styles.badge, { backgroundColor: statusColor + "20" }]}>
+              <Text style={[styles.badgeText, { color: statusColor }]}>
+                {t(`storage.status.${lot.status}`)}
+              </Text>
+            </View>
+          </View>
+          <View style={[styles.cardFooter, { borderTopColor: colors.border }]}>
+            <View style={styles.cardFooterItem}>
+              <Ionicons name="cash-outline" size={13} color={colors.textSecondary} />
+              <Text style={[styles.cardFooterText, { color: colors.textSecondary }]}>
+                ${Number(lot.billing_amount).toFixed(2)} / {t(`storage.billing.${lot.billing_type}`)}
+              </Text>
+            </View>
+            {lot.billing_next_due && (
+              <View style={styles.cardFooterItem}>
+                <Ionicons name="calendar-outline" size={13} color={isOverdue ? "#EF4444" : colors.textSecondary} />
+                <Text style={[styles.cardFooterText, { color: isOverdue ? "#EF4444" : colors.textSecondary }]}>
+                  {lot.billing_next_due}
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
       </Pressable>
     );
   };
 
-  // ── Unit card ──
+  // ── Unit tile (schematic grid) ──
   const renderUnitCard = ({ item: unit }: { item: StorageUnit }) => {
     const statusColor = STATUS_COLORS[unit.status] || "#6B7280";
     const icon = UNIT_TYPE_ICONS[unit.unit_type] || "cube-outline";
+    const isFull = unit.status === "in_use" || unit.status === "full";
     return (
       <Pressable
-        style={[styles.card, { backgroundColor: isDark ? colors.backgroundSecondary : "#FFFFFF", borderColor: colors.border }]}
+        style={[
+          styles.unitTile,
+          { backgroundColor: statusColor + (isDark ? "30" : "18"), borderColor: statusColor + "50" },
+        ]}
         onPress={() => onOpenUnit?.(unit.id)}
       >
-        <View style={styles.cardHeader}>
-          <View style={[styles.unitIcon, { backgroundColor: statusColor + "15" }]}>
-            <Ionicons name={icon as any} size={22} color={statusColor} />
+        <Ionicons name={icon as any} size={20} color={statusColor} />
+        <Text style={[styles.unitTileName, { color: colors.text }]} numberOfLines={1}>
+          {unit.name}
+        </Text>
+        {unit.capacity_cbm ? (
+          <Text style={[styles.unitTileCap, { color: statusColor }]}>{unit.capacity_cbm} m³</Text>
+        ) : null}
+        {isFull && (unit.active_lots ?? 0) > 0 ? (
+          <View style={[styles.unitTileLotBadge, { backgroundColor: statusColor + "30" }]}>
+            <Text style={[styles.unitTileLotText, { color: statusColor }]}>{unit.active_lots} lots</Text>
           </View>
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <Text style={[styles.cardTitle, { color: colors.text }]}>{unit.name}</Text>
-            <Text style={[styles.cardSub, { color: colors.textSecondary }]}>
-              {t(`storage.unitType.${unit.unit_type}`)}
-              {unit.capacity_cbm ? ` · ${unit.capacity_cbm} m³` : ""}
-            </Text>
-          </View>
-          <View style={[styles.badge, { backgroundColor: statusColor + "20" }]}>
-            <Text style={[styles.badgeText, { color: statusColor }]}>
-              {t(`storage.unitStatus.${unit.status}`)}
-            </Text>
-          </View>
-        </View>
-        {unit.location_description && (
-          <Text style={[styles.locationText, { color: colors.textSecondary }]}>
-            <Ionicons name="location-outline" size={12} color={colors.textSecondary} /> {unit.location_description}
-          </Text>
-        )}
-        {(unit.active_lots ?? 0) > 0 && (
-          <Text style={[styles.cardFooterText, { color: colors.textSecondary, marginTop: 4 }]}>
-            {unit.active_lots} {t("storage.activeLots")}
-          </Text>
-        )}
+        ) : null}
       </Pressable>
     );
   };
@@ -448,6 +462,37 @@ export default function StorageScreen({ onOpenLot, onOpenUnit }: StorageScreenPr
   return (
     <View style={{ flex: 1 }}>
       {renderStats()}
+
+      {/* Collapsible help: lots vs units */}
+      <Pressable
+        onPress={() => setShowStorageHelp(!showStorageHelp)}
+        style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 8 }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <Ionicons name="information-circle-outline" size={16} color={colors.primary} />
+          <Text style={{ fontSize: 13, color: colors.primary, fontWeight: "600" }}>
+            {t("storage.help.title") ?? "Lots vs Units — what's the difference?"}
+          </Text>
+        </View>
+        <Ionicons name={showStorageHelp ? "chevron-up" : "chevron-down"} size={14} color={colors.textSecondary} />
+      </Pressable>
+      {showStorageHelp && (
+        <View style={{ marginHorizontal: 16, marginBottom: 8, padding: 12, backgroundColor: colors.primary + "10", borderRadius: 8, borderLeftWidth: 3, borderLeftColor: colors.primary }}>
+          <Text style={{ fontSize: 13, color: colors.text, fontWeight: "700", marginBottom: 6 }}>
+            📦 {t("storage.help.lotTitle") ?? "Lots — client billing groups"}
+          </Text>
+          <Text style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 10, lineHeight: 18 }}>
+            {t("storage.help.lotDesc") ?? "A lot groups items belonging to one client. It's what you invoice — it has a client name, billing cycle, and rate."}
+          </Text>
+          <Text style={{ fontSize: 13, color: colors.text, fontWeight: "700", marginBottom: 6 }}>
+            🗃️ {t("storage.help.unitTitle") ?? "Units — physical spaces"}
+          </Text>
+          <Text style={{ fontSize: 12, color: colors.textSecondary, lineHeight: 18 }}>
+            {t("storage.help.unitDesc") ?? "A unit is a physical space (container, shelf, room…). It belongs to your facility, independent of any client."}
+          </Text>
+        </View>
+      )}
+
       {renderTabs()}
 
       {subTab === "lots" ? (
@@ -470,8 +515,24 @@ export default function StorageScreen({ onOpenLot, onOpenUnit }: StorageScreenPr
           data={units}
           keyExtractor={(i) => String(i.id)}
           renderItem={renderUnitCard}
+          numColumns={3}
+          columnWrapperStyle={styles.unitGrid}
           contentContainerStyle={styles.listContent}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+          ListHeaderComponent={
+            units.length > 0 ? (
+              <View style={styles.unitLegend}>
+                {(["available", "in_use", "full", "maintenance"] as const).map((s) => (
+                  <View key={s} style={styles.legendItem}>
+                    <View style={[styles.legendDot, { backgroundColor: STATUS_COLORS[s] }]} />
+                    <Text style={[styles.legendText, { color: colors.textSecondary }]}>
+                      {t(`storage.unitStatus.${s}`)}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            ) : null
+          }
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <Ionicons name="cube-outline" size={48} color={colors.textSecondary} />
@@ -499,16 +560,20 @@ export default function StorageScreen({ onOpenLot, onOpenUnit }: StorageScreenPr
 const styles = StyleSheet.create({
   statsRow: {
     flexDirection: "row",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    marginHorizontal: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 14,
+    marginHorizontal: 12,
     marginTop: 8,
     marginBottom: 4,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: "center",
   },
-  statItem: { flex: 1, alignItems: "center", gap: 2 },
-  statValue: { fontSize: 18, fontWeight: "700" },
-  statLabel: { fontSize: 11, textAlign: "center" },
+  statItem: { flex: 1, alignItems: "center", gap: 2, paddingVertical: 4 },
+  statItemAlert: { backgroundColor: "#FEF2F230", borderRadius: 8 },
+  statDivider: { width: StyleSheet.hairlineWidth, height: 28 },
+  statValue: { fontSize: 20, fontWeight: "800" },
+  statLabel: { fontSize: 10, textAlign: "center", textTransform: "uppercase", letterSpacing: 0.3 },
 
   tabRow: {
     flexDirection: "row",
@@ -524,23 +589,53 @@ const styles = StyleSheet.create({
   card: {
     borderWidth: 1,
     borderRadius: 12,
-    padding: 14,
-    marginBottom: 10,
+    marginBottom: 8,
+    flexDirection: "row",
+    overflow: "hidden",
   },
-  cardHeader: { flexDirection: "row", alignItems: "center" },
-  cardTitle: { fontSize: 16, fontWeight: "600" },
-  cardSub: { fontSize: 13, marginTop: 2 },
-  cardFooter: { flexDirection: "row", marginTop: 10, gap: 16 },
+  cardAccent: { width: 4 },
+  cardBody: { flex: 1, padding: 12 },
+  cardHeader: { flexDirection: "row", alignItems: "flex-start" },
+  cardTitle: { fontSize: 15, fontWeight: "700" },
+  cardSub: { fontSize: 12, marginTop: 2 },
+  cardFooter: {
+    flexDirection: "row",
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    gap: 14,
+    flexWrap: "wrap",
+  },
   cardFooterItem: { flexDirection: "row", alignItems: "center", gap: 4 },
   cardFooterText: { fontSize: 12 },
 
-  unitIcon: {
-    width: 40,
-    height: 40,
+  // Unit schematic grid
+  unitGrid: { gap: 8, paddingHorizontal: 12 },
+  unitTile: {
+    flex: 1,
+    minWidth: 0,
     borderRadius: 10,
+    borderWidth: 1.5,
+    padding: 10,
     alignItems: "center",
-    justifyContent: "center",
+    gap: 4,
+    marginBottom: 8,
   },
+  unitTileName: { fontSize: 11, fontWeight: "600", textAlign: "center" },
+  unitTileCap: { fontSize: 10, fontWeight: "500" },
+  unitTileLotBadge: { borderRadius: 4, paddingHorizontal: 5, paddingVertical: 1 },
+  unitTileLotText: { fontSize: 10, fontWeight: "600" },
+  unitLegend: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  legendItem: { flexDirection: "row", alignItems: "center", gap: 5 },
+  legendDot: { width: 8, height: 8, borderRadius: 4 },
+  legendText: { fontSize: 11 },
+
   locationText: { fontSize: 12, marginTop: 8 },
 
   badge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },

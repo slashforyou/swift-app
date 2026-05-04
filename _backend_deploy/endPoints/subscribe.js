@@ -49,7 +49,7 @@ const subscribeEndpoint = async (req) => {
       // Business owner: create company + user as patron
       const companyCode = crypto.randomBytes(4).toString('hex').toUpperCase();
       await connection.execute(
-        'INSERT INTO companies (name, company_code) VALUES (?, ?)',
+        'INSERT INTO companies (name, company_code, subscription_status, trial_ends_at, had_trial) VALUES (?, ?, \'trial\', DATE_ADD(NOW(), INTERVAL 14 DAY), 0)',
         [companyName.trim(), companyCode]
       );
       const companyId = (await connection.execute('SELECT LAST_INSERT_ID() AS id'))[0][0].id;

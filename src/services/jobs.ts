@@ -691,31 +691,36 @@ export async function getJobDetails(jobCode: string): Promise<any> {
       !viewerCompanyId || viewerCompanyId === contracteeCompanyId;
     const isContractor =
       !isContractee && viewerCompanyId === contractorCompanyId;
+    // Pour les jobs internes (isSameCompany), vérifier que le viewer appartient bien
+    // à cette entreprise — évite qu'un employé d'une autre société assigné via
+    // job_assignments hérite des droits "owner" du job.
+    const isViewerFromJobCompany =
+      !!viewerCompanyId && viewerCompanyId === contracteeCompanyId;
     const permissions = {
-      is_owner: isSameCompany, // Même entreprise = job interne
+      is_owner: isSameCompany && isViewerFromJobCompany, // Même entreprise ET viewer dans cette entreprise
       is_contractee: isContractee, // Créateur du job
       is_contractor: isContractor, // Exécutant (cessionnaire)
       is_assigned: !!data.job?.assigned_staff_id,
       // Accepter/refuser : uniquement le contractor pour les transferts
       can_accept:
-        assignmentStatus === "pending" && (isContractor || isSameCompany),
+        assignmentStatus === "pending" && (isContractor || (isSameCompany && isViewerFromJobCompany)),
       can_decline:
-        assignmentStatus === "pending" && (isContractor || isSameCompany),
-      // Démarrer/compléter : le contractor ou job interne
-      can_start: isContractor || isSameCompany,
+        assignmentStatus === "pending" && (isContractor || (isSameCompany && isViewerFromJobCompany)),
+      // Démarrer/compléter : le contractor ou job interne (viewer de la bonne entreprise)
+      can_start: isContractor || (isSameCompany && isViewerFromJobCompany),
       can_complete: true,
-      // Éditer/supprimer : uniquement le contractee (créateur) ou job interne
-      can_edit: isContractee || isSameCompany,
-      can_delete: isContractee || isSameCompany,
+      // Éditer/supprimer : uniquement le contractee (créateur) ou viewer de la même entreprise
+      can_edit: isContractee || (isSameCompany && isViewerFromJobCompany),
+      can_delete: isContractee || (isSameCompany && isViewerFromJobCompany),
       // Transferts : seul le contractee peut initier/annuler
       // Uniquement si aucune délégation en cours ("none") ou si refusée ("declined")
       can_create_transfer:
-        (isContractee || isSameCompany) &&
+        (isContractee || (isSameCompany && isViewerFromJobCompany)) &&
         (assignmentStatus === "none" || assignmentStatus === "declined"),
-      can_cancel_transfer: isContractee || isSameCompany,
+      can_cancel_transfer: isContractee || (isSameCompany && isViewerFromJobCompany),
       can_respond_transfer: isContractor,
       // Ressources : le contractor affecte son équipe une fois le job accepté
-      can_assign_resources: isContractor || isSameCompany,
+      can_assign_resources: isContractor || (isSameCompany && isViewerFromJobCompany),
     };
 
 

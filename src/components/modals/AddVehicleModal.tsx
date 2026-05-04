@@ -1,9 +1,9 @@
-/**
- * AddVehicleModal - Modal pour ajouter un véhicule
- * Spécialisé pour les entreprises de déménagement australiennes
+﻿/**
+ * AddVehicleModal - Wizard progressif pour ajouter un véhicule
+ * Chaque étape apparaît juste après la précédente dans le même scroll.
  */
 import { Ionicons } from "@expo/vector-icons";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
@@ -38,69 +38,38 @@ interface AddVehicleModalProps {
   onAddVehicle: (data: VehicleCreateData) => Promise<void>;
 }
 
-type Step = "type" | "details" | "confirmation";
+// phase: 1 = type, 2 = details, 3 = logistics
+type Phase = 1 | 2 | 3;
 
 const VEHICLE_TYPES = [
-  {
-    type: "moving-truck" as const,
-    emoji: "🚛",
-    label: "Moving Truck",
-    description: "Large capacity truck for residential moves",
-  },
-  {
-    type: "van" as const,
-    emoji: "🚐",
-    label: "Van",
-    description: "Medium size for smaller jobs and deliveries",
-  },
-  {
-    type: "trailer" as const,
-    emoji: "🚜",
-    label: "Trailer",
-    description: "Additional capacity for large moves",
-  },
-  {
-    type: "ute" as const,
-    emoji: "🛻",
-    label: "Ute",
-    description: "Light pickups for quick jobs",
-  },
-  {
-    type: "dolly" as const,
-    emoji: "🛒",
-    label: "Dolly",
-    description: "Equipment for moving heavy items",
-  },
-  {
-    type: "tools" as const,
-    emoji: "🔧",
-    label: "Tools",
-    description: "Professional moving tools and equipment",
-  },
+  { type: "moving-truck" as const, emoji: "🚛", label: "Moving Truck" },
+  { type: "van" as const, emoji: "🚐", label: "Van" },
+  { type: "trailer" as const, emoji: "🚜", label: "Trailer" },
+  { type: "ute" as const, emoji: "🛻", label: "Ute" },
+  { type: "dolly" as const, emoji: "🛒", label: "Dolly" },
+  { type: "tools" as const, emoji: "🔧", label: "Tools" },
 ];
 
 const VEHICLE_MAKES = [
-  "Isuzu",
-  "Ford",
-  "Toyota",
-  "Mitsubishi",
-  "Mercedes-Benz",
-  "Hino",
-  "Fuso",
-  "Volkswagen",
-  "Hyundai",
-  "Nissan",
-  "Other",
+  "Isuzu", "Ford", "Toyota", "Mitsubishi", "Mercedes-Benz",
+  "Hino", "Fuso", "Volkswagen", "Hyundai", "Nissan", "Other",
 ];
 
 const LOCATIONS = [
-  "Sydney Depot",
-  "Melbourne Branch",
-  "Brisbane Office",
-  "Perth Warehouse",
-  "Adelaide Hub",
-  "Gold Coast Base",
+  "Sydney Depot", "Melbourne Branch", "Brisbane Office",
+  "Perth Warehouse", "Adelaide Hub", "Gold Coast Base",
 ];
+
+const EMPTY_DATA: VehicleCreateData = {
+  type: "moving-truck",
+  make: "",
+  model: "",
+  year: new Date().getFullYear(),
+  registration: "",
+  capacity: "",
+  location: "",
+  nextService: "",
+};
 
 export default function AddVehicleModal({
   visible,
@@ -109,39 +78,19 @@ export default function AddVehicleModal({
 }: AddVehicleModalProps) {
   const { colors } = useTheme();
   const { t } = useLocalization();
-  const [step, setStep] = useState<Step>("type");
-  const [isLoading, setIsLoading] = useState(false);
+  const scrollRef = useRef<ScrollView>(null);
 
-  const [vehicleData, setVehicleData] = useState<VehicleCreateData>({
-    type: "moving-truck",
-    make: "",
-    model: "",
-    year: new Date().getFullYear(),
-    registration: "",
-    capacity: "",
-    location: "",
-    nextService: "",
-  });
+  const [phase, setPhase] = useState<Phase>(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [vehicleData, setVehicleData] = useState<VehicleCreateData>(EMPTY_DATA);
 
   const resetModal = () => {
-    setStep("type");
-    setVehicleData({
-      type: "moving-truck",
-      make: "",
-      model: "",
-      year: new Date().getFullYear(),
-      registration: "",
-      capacity: "",
-      location: "",
-      nextService: "",
-    });
+    setPhase(1);
+    setVehicleData(EMPTY_DATA);
   };
 
-  // Réinitialiser le modal quand il est fermé
   useEffect(() => {
-    if (!visible) {
-      resetModal();
-    }
+    if (!visible) resetModal();
   }, [visible]);
 
   const handleClose = () => {
@@ -149,398 +98,117 @@ export default function AddVehicleModal({
     onClose();
   };
 
+  // Auto-scroll to bottom when a new section appears
+  const scrollToBottom = () => {
+    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
+  };
+
   const handleSelectType = (type: VehicleCreateData["type"]) => {
-    setVehicleData({ ...vehicleData, type });
-    setStep("details");
+    if (vehicleData.type === type) return;
+    if (phase >= 2) {
+      // Changing type mid-wizard: reset all downstream data
+      setVehicleData({ ...EMPTY_DATA, type });
+      setPhase(2);
+    } else {
+      setVehicleData((d) => ({ ...d, type }));
+      setPhase(2);
+      scrollToBottom();
+    }
+  };
+
+  // Unlock logistics once make + model + year + registration are set
+  const detailsComplete =
+    vehicleData.make.trim().length > 0 &&
+    vehicleData.model.trim().length > 0 &&
+    vehicleData.year >= 1990 &&
+    vehicleData.registration.trim().length >= 4;
+
+  const handleDetailsChange = (patch: Partial<VehicleCreateData>) => {
+    setVehicleData((d) => {
+      const next = { ...d, ...patch };
+      const complete =
+        next.make.trim().length > 0 &&
+        next.model.trim().length > 0 &&
+        next.year >= 1990 &&
+        next.registration.trim().length >= 4;
+      if (complete && phase < 3) {
+        setPhase(3);
+        scrollToBottom();
+      }
+      return next;
+    });
   };
 
   const validateRegistration = (reg: string): boolean => {
-    // Format australien : ABC-123 ou AB-12-CD
-    const pattern1 = /^[A-Z]{3}-\d{3}$/;
-    const pattern2 = /^[A-Z]{2}-\d{2}-[A-Z]{2}$/;
-    return pattern1.test(reg) || pattern2.test(reg);
+    // Australian plates: 5-8 alphanumeric chars, no dashes (NSW ABC123, VIC 1AB2CD, QLD 123ABC, WA 1ABC234)
+    return /^[A-Z0-9]{5,8}$/.test(reg);
   };
 
-  const validateForm = (): boolean => {
-    if (!vehicleData.make.trim()) {
-      Alert.alert(
-        t("vehicles.validation.error"),
-        t("vehicles.validation.selectMake"),
-      );
-      return false;
-    }
-    if (!vehicleData.model.trim()) {
-      Alert.alert(
-        t("vehicles.validation.error"),
-        t("vehicles.validation.enterModel"),
-      );
-      return false;
-    }
-    if (
-      vehicleData.year < 1990 ||
-      vehicleData.year > new Date().getFullYear()
-    ) {
-      Alert.alert(
-        t("vehicles.validation.error"),
-        t("vehicles.validation.yearRange", {
-          maxYear: new Date().getFullYear(),
-        }),
-      );
-      return false;
-    }
-    if (!vehicleData.registration.trim()) {
-      Alert.alert(
-        t("vehicles.validation.error"),
-        t("vehicles.validation.enterRegistration"),
-      );
-      return false;
-    }
-    if (!validateRegistration(vehicleData.registration.toUpperCase())) {
-      Alert.alert(
-        t("vehicles.validation.error"),
-        t("vehicles.validation.invalidRegistration"),
-      );
-      return false;
-    }
-    // Capacity est optionnel, donc pas de validation
-    if (!vehicleData.location.trim()) {
-      Alert.alert(
-        t("vehicles.validation.error"),
-        t("vehicles.validation.selectLocation"),
-      );
-      return false;
-    }
-    if (!vehicleData.nextService.trim()) {
-      Alert.alert(
-        t("vehicles.validation.error"),
-        t("vehicles.validation.enterNextService"),
-      );
-      return false;
-    }
-    // Valider que la date de service est dans le futur
-    const serviceDate = new Date(vehicleData.nextService);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Ignorer l'heure pour comparer seulement les dates
-    if (serviceDate < today) {
-      Alert.alert(
-        t("vehicles.validation.error"),
-        t("vehicles.validation.serviceDatePast"),
-      );
-      return false;
-    }
-    return true;
-  };
+  const canSubmit =
+    phase === 3 &&
+    vehicleData.location.trim().length > 0 &&
+    vehicleData.nextService.trim().length > 0;
 
   const handleAddVehicle = async () => {
-    if (!validateForm()) return;
-
+    if (!vehicleData.make.trim()) {
+      Alert.alert(t("vehicles.validation.error"), t("vehicles.validation.selectMake"));
+      return;
+    }
+    if (!vehicleData.model.trim()) {
+      Alert.alert(t("vehicles.validation.error"), t("vehicles.validation.enterModel"));
+      return;
+    }
+    if (vehicleData.year < 1990 || vehicleData.year > new Date().getFullYear()) {
+      Alert.alert(t("vehicles.validation.error"), t("vehicles.validation.yearRange", { maxYear: new Date().getFullYear() }));
+      return;
+    }
+    if (!vehicleData.registration.trim()) {
+      Alert.alert(t("vehicles.validation.error"), t("vehicles.validation.enterRegistration"));
+      return;
+    }
+    if (!validateRegistration(vehicleData.registration.toUpperCase())) {
+      Alert.alert(t("vehicles.validation.error"), t("vehicles.validation.invalidRegistration"));
+      return;
+    }
+    if (!vehicleData.location.trim()) {
+      Alert.alert(t("vehicles.validation.error"), t("vehicles.validation.selectLocation"));
+      return;
+    }
+    if (!vehicleData.nextService.trim()) {
+      Alert.alert(t("vehicles.validation.error"), t("vehicles.validation.enterNextService"));
+      return;
+    }
+    const serviceDate = new Date(vehicleData.nextService);
+    if (isNaN(serviceDate.getTime())) {
+      Alert.alert(t("vehicles.validation.error"), "Invalid date format. Please use YYYY-MM-DD.");
+      return;
+    }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (serviceDate < today) {
+      Alert.alert(t("vehicles.validation.error"), t("vehicles.validation.serviceDatePast"));
+      return;
+    }
     setIsLoading(true);
     try {
       await onAddVehicle(vehicleData);
       handleClose();
-    } catch (error) {
-      Alert.alert(
-        t("vehicles.validation.error"),
-        t("vehicles.alerts.addError.message"),
-      );
+    } catch {
+      Alert.alert(t("vehicles.validation.error"), t("vehicles.alerts.addError.message"));
     } finally {
       setIsLoading(false);
     }
   };
 
-  const renderStepType = () => (
-    <View style={styles.stepContainer}>
-      <Text style={[styles.stepTitle, { color: colors.text }]}>
-        {t("vehicles.addModal.vehicleType")}
-      </Text>
-      <Text style={[styles.stepSubtitle, { color: colors.textSecondary }]}>
-        {t("vehicles.addModal.selectTypeSubtitle")}
-      </Text>
+  const selectedTypeInfo = VEHICLE_TYPES.find((v) => v.type === vehicleData.type);
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.typesContainer}
-      >
-        {VEHICLE_TYPES.map((vehicleType) => (
-          <Pressable
-            key={vehicleType.type}
-            testID={`vehicle-type-${vehicleType.type}`}
-            style={[
-              styles.typeCard,
-              { backgroundColor: colors.backgroundSecondary },
-              vehicleData.type === vehicleType.type && {
-                backgroundColor: colors.primary + "20",
-                borderColor: colors.primary,
-                borderWidth: 2,
-              },
-            ]}
-            onPress={() => handleSelectType(vehicleType.type)}
-          >
-            <View
-              style={[
-                styles.typeIconContainer,
-                { backgroundColor: colors.primary + "10" },
-              ]}
-            >
-              <Text style={styles.typeEmoji}>{vehicleType.emoji}</Text>
-            </View>
-            <Text style={[styles.typeLabel, { color: colors.text }]}>
-              {vehicleType.label}
-            </Text>
-            <Text
-              style={[styles.typeDescription, { color: colors.textSecondary }]}
-            >
-              {vehicleType.description}
-            </Text>
-          </Pressable>
-        ))}
-      </ScrollView>
-    </View>
-  );
-
-  const renderStepDetails = () => (
-    <View style={styles.stepContainer}>
-      <Pressable
-        testID="back-button"
-        style={styles.backButton}
-        onPress={() => setStep("type")}
-      >
-        <Ionicons name="arrow-back" size={24} color={colors.text} />
-      </Pressable>
-
-      <Text style={[styles.stepTitle, { color: colors.text }]}>
-        {t("vehicles.addModal.vehicleDetails")}
-      </Text>
-      <Text style={[styles.stepSubtitle, { color: colors.textSecondary }]}>
-        {t("vehicles.addModal.detailsSubtitle")}
-      </Text>
-
-      <View style={styles.form}>
-        {/* Marque */}
-        <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>
-            {t("vehicles.addModal.make")}
-          </Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.makeScrollView}
-          >
-            {VEHICLE_MAKES.map((make) => (
-              <Pressable
-                key={make}
-                style={[
-                  styles.makeOption,
-                  { backgroundColor: colors.backgroundSecondary },
-                  vehicleData.make === make && {
-                    backgroundColor: colors.primary,
-                  },
-                ]}
-                onPress={() => setVehicleData({ ...vehicleData, make })}
-              >
-                <Text
-                  style={[
-                    styles.makeOptionText,
-                    { color: colors.text },
-                    vehicleData.make === make && { color: colors.background },
-                  ]}
-                >
-                  {make}
-                </Text>
-              </Pressable>
-            ))}
-          </ScrollView>
-        </View>
-
-        {/* Modèle */}
-        <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>
-            {t("vehicles.addModal.model")}
-          </Text>
-          <TextInput
-            testID="vehicle-model-input"
-            style={[
-              styles.input,
-              {
-                backgroundColor: colors.backgroundSecondary,
-                color: colors.text,
-              },
-            ]}
-            value={vehicleData.model}
-            onChangeText={(text) =>
-              setVehicleData({ ...vehicleData, model: text })
-            }
-            placeholder="Ex: NPR 200"
-            placeholderTextColor={colors.textSecondary}
-          />
-        </View>
-
-        {/* Année et Immatriculation */}
-        <View style={styles.formRow}>
-          <View style={[styles.formGroup, { flex: 1 }]}>
-            <Text style={[styles.label, { color: colors.text }]}>
-              {t("vehicles.addModal.year")}
-            </Text>
-            <TextInput
-              testID="vehicle-year-input"
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.backgroundSecondary,
-                  color: colors.text,
-                },
-              ]}
-              value={String(vehicleData.year)}
-              onChangeText={(text) =>
-                setVehicleData({
-                  ...vehicleData,
-                  year: parseInt(text) || new Date().getFullYear(),
-                })
-              }
-              placeholder="2024"
-              placeholderTextColor={colors.textSecondary}
-              keyboardType="numeric"
-            />
-          </View>
-          <View style={[styles.formGroup, { flex: 1 }]}>
-            <Text style={[styles.label, { color: colors.text }]}>
-              {t("vehicles.addModal.registration")}
-            </Text>
-            <TextInput
-              testID="vehicle-registration-input"
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.backgroundSecondary,
-                  color: colors.text,
-                },
-              ]}
-              value={vehicleData.registration}
-              onChangeText={(text) =>
-                setVehicleData({
-                  ...vehicleData,
-                  registration: text.toUpperCase(),
-                })
-              }
-              placeholder="ABC-123"
-              placeholderTextColor={colors.textSecondary}
-              autoCapitalize="characters"
-            />
-          </View>
-        </View>
-
-        {/* Capacité */}
-        <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>
-            {t("vehicles.addModal.capacity")}
-          </Text>
-          <TextInput
-            testID="vehicle-capacity-input"
-            style={[
-              styles.input,
-              {
-                backgroundColor: colors.backgroundSecondary,
-                color: colors.text,
-              },
-            ]}
-            value={vehicleData.capacity}
-            onChangeText={(text) =>
-              setVehicleData({ ...vehicleData, capacity: text })
-            }
-            placeholder="Ex: 3.5 tonnes ou 8 cubic meters"
-            placeholderTextColor={colors.textSecondary}
-          />
-        </View>
-
-        {/* Emplacement */}
-        <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>
-            {t("vehicles.addModal.location")}
-          </Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.makeScrollView}
-          >
-            {LOCATIONS.map((location) => (
-              <Pressable
-                key={location}
-                style={[
-                  styles.makeOption,
-                  { backgroundColor: colors.backgroundSecondary },
-                  vehicleData.location === location && {
-                    backgroundColor: colors.primary,
-                  },
-                ]}
-                onPress={() => setVehicleData({ ...vehicleData, location })}
-              >
-                <Text
-                  style={[
-                    styles.makeOptionText,
-                    { color: colors.text },
-                    vehicleData.location === location && {
-                      color: colors.background,
-                    },
-                  ]}
-                >
-                  {location}
-                </Text>
-              </Pressable>
-            ))}
-          </ScrollView>
-        </View>
-
-        {/* Prochain service */}
-        <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>
-            {t("vehicles.addModal.nextService")}
-          </Text>
-          <TextInput
-            testID="vehicle-nextservice-input"
-            style={[
-              styles.input,
-              {
-                backgroundColor: colors.backgroundSecondary,
-                color: colors.text,
-              },
-            ]}
-            value={vehicleData.nextService}
-            onChangeText={(text) =>
-              setVehicleData({ ...vehicleData, nextService: text })
-            }
-            placeholder="YYYY-MM-DD"
-            placeholderTextColor={colors.textSecondary}
-          />
-          <Text style={[styles.helperText, { color: colors.textSecondary }]}>
-            {t("vehicles.addModal.dateHelperText")}
-          </Text>
-        </View>
-      </View>
-
-      <Pressable
-        testID="vehicle-submit-btn"
-        style={[
-          styles.submitButton,
-          { backgroundColor: colors.primary },
-          isLoading && styles.submitButtonDisabled,
-        ]}
-        onPress={handleAddVehicle}
-        disabled={isLoading}
-      >
-        {isLoading ? (
-          <ActivityIndicator color={colors.background} />
-        ) : (
-          <>
-            <Ionicons name="add-circle" size={20} color={colors.background} />
-            <Text
-              style={[styles.submitButtonText, { color: colors.background }]}
-            >
-              {t("vehicles.addModal.addButton")}
-            </Text>
-          </>
-        )}
-      </Pressable>
+  // ─── Step Indicator ─────────────────────────────────────────────────────────
+  const StepBadge = ({ n, done }: { n: number; done: boolean }) => (
+    <View style={[styles.stepBadge, { backgroundColor: done ? colors.success : colors.primary }]}>
+      {done
+        ? <Ionicons name="checkmark" size={12} color="#fff" />
+        : <Text style={styles.stepBadgeText}>{n}</Text>
+      }
     </View>
   );
 
@@ -556,20 +224,232 @@ export default function AddVehicleModal({
         style={[styles.modalContainer, { backgroundColor: colors.background }]}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        <View
-          style={[styles.modalHeader, { borderBottomColor: colors.border }]}
-        >
+        {/* Header */}
+        <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
           <Text style={[styles.modalTitle, { color: colors.text }]}>
             {t("vehicles.addModal.title")}
           </Text>
-          <Pressable testID="close-button" onPress={handleClose}>
-            <Ionicons name="close" size={28} color={colors.text} />
+          <Pressable testID="close-button" onPress={handleClose} hitSlop={12}>
+            <Ionicons name="close" size={26} color={colors.text} />
           </Pressable>
         </View>
 
-        <ScrollView style={styles.modalContent}>
-          {step === "type" && renderStepType()}
-          {step === "details" && renderStepDetails()}
+        <ScrollView
+          ref={scrollRef}
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* ── STEP 1: Type ─────────────────────────────────────── */}
+          <View style={[styles.stepCard, { backgroundColor: colors.backgroundSecondary, borderColor: colors.border }]}>
+            <View style={styles.stepHeader}>
+              <StepBadge n={1} done={phase > 1} />
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.stepLabel, { color: colors.text }]}>
+                  {t("vehicles.addModal.vehicleType")}
+                </Text>
+                {phase > 1 && selectedTypeInfo && (
+                  <Text style={[styles.stepSummary, { color: colors.textSecondary }]}>
+                    {selectedTypeInfo.emoji} {selectedTypeInfo.label}
+                  </Text>
+                )}
+              </View>
+              {phase > 1 && (
+                <Pressable onPress={() => setPhase(1)} hitSlop={8}>
+                  <Text style={[styles.editLink, { color: colors.primary }]}>Edit</Text>
+                </Pressable>
+              )}
+            </View>
+
+            {/* Type grid — toujours visible pour éditer */}
+            <View style={styles.typeGrid}>
+              {VEHICLE_TYPES.map((vt) => {
+                const selected = vehicleData.type === vt.type;
+                return (
+                  <Pressable
+                    key={vt.type}
+                    testID={`vehicle-type-${vt.type}`}
+                    style={[
+                      styles.typeCell,
+                      { backgroundColor: colors.background, borderColor: colors.border },
+                      selected && { borderColor: colors.primary, backgroundColor: colors.primary + "12" },
+                    ]}
+                    onPress={() => handleSelectType(vt.type)}
+                  >
+                    <Text style={styles.typeEmoji}>{vt.emoji}</Text>
+                    <Text style={[styles.typeCellLabel, { color: selected ? colors.primary : colors.text }]}>
+                      {vt.label}
+                    </Text>
+                    {selected && (
+                      <Ionicons name="checkmark-circle" size={14} color={colors.primary} style={{ marginTop: 2 }} />
+                    )}
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+
+          {/* ── STEP 2: Details ──────────────────────────────────── */}
+          {phase >= 2 && (
+            <View style={[styles.stepCard, { backgroundColor: colors.backgroundSecondary, borderColor: colors.border }]}>
+              <View style={styles.stepHeader}>
+                <StepBadge n={2} done={detailsComplete && phase > 2} />
+                <Text style={[styles.stepLabel, { color: colors.text }]}>
+                  {t("vehicles.addModal.vehicleDetails")}
+                </Text>
+              </View>
+
+              {/* Make */}
+              <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>
+                {t("vehicles.addModal.make")}
+              </Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pillScroll}>
+                {VEHICLE_MAKES.map((make) => {
+                  const sel = vehicleData.make === make;
+                  return (
+                    <Pressable
+                      key={make}
+                      style={[
+                        styles.pill,
+                        { backgroundColor: sel ? colors.primary : colors.background, borderColor: sel ? colors.primary : colors.border },
+                      ]}
+                      onPress={() => handleDetailsChange({ make })}
+                    >
+                      <Text style={[styles.pillText, { color: sel ? "#fff" : colors.text }]}>{make}</Text>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
+
+              {/* Model */}
+              <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>
+                {t("vehicles.addModal.model")}
+              </Text>
+              <TextInput
+                testID="vehicle-model-input"
+                style={[styles.input, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
+                value={vehicleData.model}
+                onChangeText={(text) => handleDetailsChange({ model: text })}
+                placeholder="Ex: NPR 200"
+                placeholderTextColor={colors.textSecondary}
+              />
+
+              {/* Year + Registration row */}
+              <View style={styles.fieldRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>
+                    {t("vehicles.addModal.year")}
+                  </Text>
+                  <TextInput
+                    testID="vehicle-year-input"
+                    style={[styles.input, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
+                    value={String(vehicleData.year)}
+                    onChangeText={(text) => handleDetailsChange({ year: parseInt(text) || new Date().getFullYear() })}
+                    placeholder="2024"
+                    placeholderTextColor={colors.textSecondary}
+                    keyboardType="numeric"
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>
+                    {t("vehicles.addModal.registration")}
+                  </Text>
+                  <TextInput
+                    testID="vehicle-registration-input"
+                    style={[styles.input, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
+                    value={vehicleData.registration}
+                    onChangeText={(text) => handleDetailsChange({ registration: text.toUpperCase() })}
+                    placeholder="ABC-123"
+                    placeholderTextColor={colors.textSecondary}
+                    autoCapitalize="characters"
+                  />
+                </View>
+              </View>
+
+              {/* Capacity (optional) */}
+              <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>
+                {t("vehicles.addModal.capacity")} <Text style={{ fontWeight: "400" }}>(optional)</Text>
+              </Text>
+              <TextInput
+                testID="vehicle-capacity-input"
+                style={[styles.input, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
+                value={vehicleData.capacity}
+                onChangeText={(text) => handleDetailsChange({ capacity: text })}
+                placeholder="Ex: 3.5 tonnes"
+                placeholderTextColor={colors.textSecondary}
+              />
+            </View>
+          )}
+
+          {/* ── STEP 3: Logistics ─────────────────────────────────── */}
+          {phase >= 3 && (
+            <View style={[styles.stepCard, { backgroundColor: colors.backgroundSecondary, borderColor: colors.border }]}>
+              <View style={styles.stepHeader}>
+                <StepBadge n={3} done={canSubmit} />
+                <Text style={[styles.stepLabel, { color: colors.text }]}>
+                  Where & When
+                </Text>
+              </View>
+
+              {/* Location */}
+              <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>
+                {t("vehicles.addModal.location")}
+              </Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pillScroll}>
+                {LOCATIONS.map((loc) => {
+                  const sel = vehicleData.location === loc;
+                  return (
+                    <Pressable
+                      key={loc}
+                      style={[
+                        styles.pill,
+                        { backgroundColor: sel ? colors.primary : colors.background, borderColor: sel ? colors.primary : colors.border },
+                      ]}
+                      onPress={() => setVehicleData((d) => ({ ...d, location: loc }))}
+                    >
+                      <Text style={[styles.pillText, { color: sel ? "#fff" : colors.text }]}>{loc}</Text>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
+
+              {/* Next Service */}
+              <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>
+                {t("vehicles.addModal.nextService")}
+              </Text>
+              <TextInput
+                testID="vehicle-nextservice-input"
+                style={[styles.input, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
+                value={vehicleData.nextService}
+                onChangeText={(text) => setVehicleData((d) => ({ ...d, nextService: text }))}
+                placeholder="YYYY-MM-DD"
+                placeholderTextColor={colors.textSecondary}
+              />
+              <Text style={[styles.helperText, { color: colors.textSecondary }]}>
+                {t("vehicles.addModal.dateHelperText")}
+              </Text>
+            </View>
+          )}
+
+          {/* ── Submit ─────────────────────────────────────────────── */}
+          {canSubmit && (
+            <Pressable
+              testID="vehicle-submit-btn"
+              style={[styles.submitButton, { backgroundColor: colors.primary }, isLoading && { opacity: 0.6 }]}
+              onPress={handleAddVehicle}
+              disabled={isLoading}
+            >
+              {isLoading
+                ? <ActivityIndicator color="#fff" />
+                : <>
+                    <Ionicons name="add-circle" size={20} color="#fff" />
+                    <Text style={styles.submitButtonText}>{t("vehicles.addModal.addButton")}</Text>
+                  </>
+              }
+            </Pressable>
+          )}
+
+          <View style={{ height: 40 }} />
         </ScrollView>
       </KeyboardAvoidingView>
     </Modal>
@@ -577,122 +457,97 @@ export default function AddVehicleModal({
 }
 
 const styles = StyleSheet.create({
-  modalContainer: {
-    flex: 1,
-  },
+  modalContainer: { flex: 1 },
   modalHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     padding: DESIGN_TOKENS.spacing.lg,
-    borderBottomWidth: 1,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  modalContent: {
-    flex: 1,
-  },
-  stepContainer: {
-    padding: DESIGN_TOKENS.spacing.lg,
-  },
-  backButton: {
-    marginBottom: DESIGN_TOKENS.spacing.md,
-  },
-  stepTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: DESIGN_TOKENS.spacing.xs,
-  },
-  stepSubtitle: {
-    fontSize: 16,
-    marginBottom: DESIGN_TOKENS.spacing.lg,
-  },
-  typesContainer: {
-    paddingBottom: DESIGN_TOKENS.spacing.lg,
+  modalTitle: { fontSize: 20, fontWeight: "700" },
+  scroll: { flex: 1 },
+  scrollContent: {
+    padding: DESIGN_TOKENS.spacing.md,
     gap: DESIGN_TOKENS.spacing.md,
   },
-  typeCard: {
-    width: 160,
-    padding: DESIGN_TOKENS.spacing.lg,
-    borderRadius: DESIGN_TOKENS.radius.md,
-    marginRight: DESIGN_TOKENS.spacing.md,
-    alignItems: "center",
+  // Step cards
+  stepCard: {
+    borderRadius: DESIGN_TOKENS.radius.lg,
+    borderWidth: 1,
+    padding: DESIGN_TOKENS.spacing.md,
+    gap: DESIGN_TOKENS.spacing.sm,
   },
-  typeIconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+  stepHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: DESIGN_TOKENS.spacing.sm,
+    marginBottom: 4,
+  },
+  stepBadge: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: DESIGN_TOKENS.spacing.md,
+    flexShrink: 0,
   },
-  typeEmoji: {
-    fontSize: 32,
-  },
-  typeLabel: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: DESIGN_TOKENS.spacing.xs,
-    textAlign: "center",
-  },
-  typeDescription: {
-    fontSize: 12,
-    textAlign: "center",
-    lineHeight: 16,
-  },
-  form: {
-    gap: DESIGN_TOKENS.spacing.md,
-    marginBottom: DESIGN_TOKENS.spacing.lg,
-  },
-  formRow: {
+  stepBadgeText: { fontSize: 12, color: "#fff", fontWeight: "700" },
+  stepLabel: { fontSize: 16, fontWeight: "700", flex: 1 },
+  stepSummary: { fontSize: 13, marginTop: 1 },
+  editLink: { fontSize: 13, fontWeight: "600" },
+  // Type grid (3 col × 2 rows)
+  typeGrid: {
     flexDirection: "row",
-    gap: DESIGN_TOKENS.spacing.md,
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 4,
   },
-  formGroup: {
-    gap: DESIGN_TOKENS.spacing.xs,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  input: {
-    padding: DESIGN_TOKENS.spacing.md,
+  typeCell: {
+    width: "30%",
+    flexGrow: 1,
+    alignItems: "center",
+    paddingVertical: 12,
     borderRadius: DESIGN_TOKENS.radius.md,
-    fontSize: 16,
+    borderWidth: 1.5,
+    gap: 4,
   },
-  helperText: {
+  typeEmoji: { fontSize: 26 },
+  typeCellLabel: { fontSize: 12, fontWeight: "600", textAlign: "center" },
+  // Fields
+  fieldLabel: {
     fontSize: 12,
-    fontStyle: "italic",
-  },
-  makeScrollView: {
-    marginTop: DESIGN_TOKENS.spacing.xs,
-  },
-  makeOption: {
-    paddingHorizontal: DESIGN_TOKENS.spacing.md,
-    paddingVertical: DESIGN_TOKENS.spacing.sm,
-    borderRadius: DESIGN_TOKENS.radius.md,
-    marginRight: DESIGN_TOKENS.spacing.sm,
-  },
-  makeOptionText: {
-    fontSize: 14,
     fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.4,
+    marginTop: 4,
   },
+  fieldRow: { flexDirection: "row", gap: DESIGN_TOKENS.spacing.sm },
+  input: {
+    padding: DESIGN_TOKENS.spacing.sm,
+    borderRadius: DESIGN_TOKENS.radius.md,
+    fontSize: 15,
+    borderWidth: 1,
+  },
+  helperText: { fontSize: 11, fontStyle: "italic" },
+  // Pills
+  pillScroll: { marginVertical: 2 },
+  pill: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    marginRight: 8,
+  },
+  pillText: { fontSize: 13, fontWeight: "600" },
+  // Submit
   submitButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     padding: DESIGN_TOKENS.spacing.md,
-    borderRadius: DESIGN_TOKENS.radius.md,
+    borderRadius: DESIGN_TOKENS.radius.lg,
     gap: DESIGN_TOKENS.spacing.sm,
   },
-  submitButtonDisabled: {
-    opacity: 0.5,
-  },
-  submitButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "600",
-  },
+  submitButtonText: { color: "#fff", fontSize: 16, fontWeight: "700" },
 });

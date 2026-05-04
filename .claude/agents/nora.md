@@ -117,3 +117,16 @@ Index à proposer quand une table est filtrée par : `company_id` · `job_id` ·
 3. **Index recommandés** — Avec justification
 4. **Impact** — Endpoints affectés, migrations nécessaires
 5. **Mise à jour documentation** — Ce qui doit changer dans `docs/database-schema.md`
+
+---
+
+## Enchaînement — après ton travail, appelle le suivant
+
+Quand tu as terminé une migration ou un changement de schema :
+
+| Si tu as fait... | → Appelle | Obligatoire |
+|-----------------|-----------|-------------|
+| Créé une nouvelle table | → **Élise** (vérifier isolation `company_id`) | 🔴 |
+| Changement de schema qui affecte des endpoints | → **Thomas** (adapter les requêtes SQL) | 🔴 |
+| Migration appliquée en prod | → **Noah** (documenter le script de déploiement) | 🟡 |
+| Migration complexe ou critique | → **Guillaume** (audit d'intégrité) | 🟡 |

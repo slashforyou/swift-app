@@ -22,13 +22,7 @@ import {
     updateMaintenanceAlert,
 } from "../services/vehicleMaintenanceService";
 
-const ALERT_TYPES = [
-  { id: "oil_change", label: "Vidange" },
-  { id: "tyre", label: "Pneus" },
-  { id: "rego", label: "Rego" },
-  { id: "service", label: "Service" },
-  { id: "other", label: "Autre" },
-];
+const ALERT_TYPE_IDS = ["oil_change", "tyre", "rego", "service", "other"];
 
 interface Props {
   route?: any;
@@ -232,7 +226,7 @@ export default function VehicleMaintenanceScreen({ route, navigation }: Props) {
                     >
                       <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                         <Ionicons
-                          name={isDone ? "checkmark-circle" : overdue ? "alert-circle" : "wrench-outline"}
+                          name={isDone ? "checkmark-circle" : overdue ? "alert-circle" : "build-outline"}
                           size={22}
                           color={isDone ? "#38A169" : overdue ? "#E53E3E" : colors.primary}
                         />
@@ -248,7 +242,7 @@ export default function VehicleMaintenanceScreen({ route, navigation }: Props) {
                           <View style={{ flexDirection: "row", gap: 8, marginTop: 4, flexWrap: "wrap" }}>
                             <View style={{ backgroundColor: colors.primary + "15", borderRadius: 5, paddingHorizontal: 6, paddingVertical: 2 }}>
                               <Text style={{ color: colors.primary, fontSize: 11, fontWeight: "600" }}>
-                                {ALERT_TYPES.find((t) => t.id === alert.alert_type)?.label ?? alert.alert_type}
+                                {t(`maintenance.alertTypes.${alert.alert_type}`) ?? alert.alert_type}
                               </Text>
                             </View>
                             {alert.due_date && (
@@ -316,18 +310,18 @@ export default function VehicleMaintenanceScreen({ route, navigation }: Props) {
               {t("maintenance.typeLabel") ?? "Type"}
             </Text>
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 20 }}>
-              {ALERT_TYPES.map((at) => (
+              {ALERT_TYPE_IDS.map((id) => (
                 <Pressable
-                  key={at.id}
-                  onPress={() => setFormType(at.id)}
+                  key={id}
+                  onPress={() => setFormType(id)}
                   style={{
                     paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8,
-                    backgroundColor: formType === at.id ? colors.primary : colors.backgroundSecondary,
-                    borderWidth: 1, borderColor: formType === at.id ? colors.primary : colors.border,
+                    backgroundColor: formType === id ? colors.primary : colors.backgroundSecondary,
+                    borderWidth: 1, borderColor: formType === id ? colors.primary : colors.border,
                   }}
                 >
-                  <Text style={{ color: formType === at.id ? "#fff" : colors.text, fontWeight: "600", fontSize: 13 }}>
-                    {at.label}
+                  <Text style={{ color: formType === id ? "#fff" : colors.text, fontWeight: "600", fontSize: 13 }}>
+                    {t(`maintenance.alertTypes.${id}`) ?? id}
                   </Text>
                 </Pressable>
               ))}

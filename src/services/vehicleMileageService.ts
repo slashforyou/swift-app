@@ -25,7 +25,18 @@ export interface VehicleServiceInfo {
 export const getVehicleMileage = async (vehicleId: number): Promise<{ entries: MileageEntry[]; service_info: VehicleServiceInfo }> => {
   const res = await authenticatedFetch(`${API}v1/vehicles/${vehicleId}/mileage`);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
+  const json = await res.json();
+  const vehicle = json.data?.vehicle ?? {};
+  return {
+    entries: json.data?.logs ?? [],
+    service_info: {
+      current_odometer: vehicle.current_odometer_km,
+      service_interval_km: vehicle.service_interval_km,
+      last_service_km: vehicle.last_service_km,
+      next_service_km: vehicle.next_service_km,
+      next_service_date: vehicle.next_service_date,
+    },
+  };
 };
 
 export const addMileageEntry = async (

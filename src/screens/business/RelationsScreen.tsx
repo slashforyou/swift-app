@@ -244,7 +244,7 @@ export default function RelationsScreen() {
     container: { flex: 1 },
     section: { marginBottom: DESIGN_TOKENS.spacing.xl ?? 24 },
     sectionTitle: {
-      color: colors.textSecondary,
+      color: colors.primary,
       fontSize: 11,
       fontWeight: "700",
       letterSpacing: 1,
@@ -254,10 +254,10 @@ export default function RelationsScreen() {
     codeCard: {
       flexDirection: "row",
       alignItems: "center",
-      backgroundColor: colors.backgroundSecondary,
+      backgroundColor: colors.primary + "0D",
       borderRadius: DESIGN_TOKENS.radius.md,
-      borderWidth: 1,
-      borderColor: colors.border,
+      borderWidth: 1.5,
+      borderColor: colors.primary + "40",
       padding: DESIGN_TOKENS.spacing.md,
       gap: DESIGN_TOKENS.spacing.md,
     },
@@ -367,7 +367,7 @@ export default function RelationsScreen() {
         <View style={s.section}>
           <Text style={s.sectionTitle}>{t("relations.yourCompanyCode")}</Text>
           <View style={s.codeCard}>
-            <Ionicons name="key" size={20} color={colors.textSecondary} />
+            <Ionicons name="key" size={20} color={colors.primary} />
             <Text style={s.codeText}>{companyCode ?? "…"}</Text>
             <Pressable
               style={({ pressed }) => [s.copyBtn, pressed && { opacity: 0.7 }]}

@@ -381,7 +381,7 @@ const JobTemplateEditor: React.FC<JobTemplateEditorProps> = ({
         />
 
         {/* ── Catégorie ── */}
-        <Text style={sectionTitle}>Category</Text>
+        <Text style={sectionTitle}>{t("businessHub.templates.categoryLabel") ?? "Category"}</Text>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -408,7 +408,7 @@ const JobTemplateEditor: React.FC<JobTemplateEditorProps> = ({
                   textTransform: "capitalize",
                 }}
               >
-                {cat}
+                {t(`businessHub.templates.category.${cat}`) ?? cat}
               </Text>
             </Pressable>
           ))}

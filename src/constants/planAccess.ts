@@ -1,4 +1,4 @@
-export type AppPlanTier = "free" | "pro" | "expert" | "unlimited" | "enterprise";
+export type AppPlanTier = "free" | "pro" | "expert" | "unlimited" | "enterprise" | "comped";
 
 export type PlanFeatureKey =
   | "advanced_notifications"
@@ -12,6 +12,7 @@ const PLAN_ORDER: Record<AppPlanTier, number> = {
   expert: 2,
   unlimited: 3,
   enterprise: 4,
+  comped: 999, // plan offert — accès total à toutes les features
 };
 
 export const PLAN_FEATURE_RULES: Record<
@@ -52,6 +53,7 @@ export function normalizePlanId(rawPlanId?: string | null): AppPlanTier {
   if (id === "expert") return "expert";
   if (id === "unlimited") return "unlimited";
   if (id === "enterprise") return "enterprise";
+  if (id === "comped") return "comped"; // plan offert
 
   return "free";
 }

@@ -1713,13 +1713,16 @@ export const enTranslations: TranslationKeys = {
       stripeIncomplete: "Incomplete",
       stripeNotConfigured: "Not configured",
     },
+
     actions: {
+      title: "Action required",
       configureStripe: "Configure Stripe",
       completeProfile: "Complete profile",
       addVehicle: "Add a vehicle",
       inviteTeam: "Invite team member",
       addPartner: "Add a partner",
     },
+
     shortcuts: {
       companyProfile: "Company",
       jobTemplates: "Templates",
@@ -1893,6 +1896,7 @@ export const enTranslations: TranslationKeys = {
       invoicesTab: "Invoices",
       storage: "Storage",
       clients: "Clients",
+      reports: "Reports",
     },
     clients: {
       title: "Clients",
@@ -1971,6 +1975,14 @@ export const enTranslations: TranslationKeys = {
         depot: "Depot / Storage",
         office: "Office",
         other: "Other",
+      },
+      categoryLabel: "Category",
+      category: {
+        residential: "Residential",
+        commercial: "Commercial",
+        storage: "Storage",
+        packing: "Packing",
+        specialty: "Specialty",
       },
     },
     contracts: {
@@ -4671,8 +4683,6 @@ export const enTranslations: TranslationKeys = {
     hourlyRateDesc: "Per hour pricing",
     volumeBasedDesc: "Based on m³ or items",
     // generateTemplateName labels
-    storageService: "Storage Service",
-    packingService: "Packing Service",
     specialtyMove: "Specialty Move",
     moveFallback: "Move",
     templateSuffix: "Template",
@@ -5284,6 +5294,13 @@ export const enTranslations: TranslationKeys = {
       title: "Delivery Scheduled",
       message: "A delivery job has been created for this lot.",
     },
+    help: {
+      title: "Lots vs Units — what's the difference?",
+      lotTitle: "Lots — client billing groups",
+      lotDesc: "A lot groups items belonging to one client. It's what you invoice — it has a client name, billing cycle, and rate.",
+      unitTitle: "Units — physical spaces",
+      unitDesc: "A unit is a physical space (container, shelf, room…). It belongs to your facility, independent of any client.",
+    },
   },
 
   onboardingTour: {
@@ -5484,5 +5501,30 @@ export const enTranslations: TranslationKeys = {
     jobIdLabel: "Job ID *",
     typeLabel: "Link type",
     linkAction: "Link this job",
+  },
+
+  mileage: {
+    title: "Mileage",
+    selectVehicle: "Select a vehicle",
+    noVehicles: "No vehicles found",
+  },
+
+  maintenance: {
+    title: "Vehicle Maintenance",
+    alertTypes: {
+      oil_change: "Oil change",
+      tyre: "Tyres",
+      rego: "Registration",
+      service: "Service",
+      other: "Other",
+    },
+  },
+
+  quotes: {
+    title: "📄 Quotes",
+  },
+
+  revenue: {
+    title: "💰 Revenue",
   },
 };

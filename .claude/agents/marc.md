@@ -59,3 +59,15 @@ Vérifier après chaque action critique :
 3. **Tests DB** — Requêtes de validation post-action
 4. **Tests mobile** — Conditions terrain extrêmes
 5. **Critères d'acceptation** — Ce qui doit être vrai pour considérer la feature terminée
+
+---
+
+## Enchaînement — après ton travail, appelle le suivant
+
+Quand tu as terminé les tests :
+
+| Si tu as fait... | → Appelle | Obligatoire |
+|-----------------|-----------|-------------|
+| Tous les tests passent | → **Sarah** (code review finale avant merge) | 🔴 |
+| Tests échoués + corrections nécessaires | → Remonter à l'agent qui a produit le code (Thomas/Lucas/Camille) | 🔴 |
+| Bug détecté non lié à la feature testée | → **Sarah** (identifier la source) | 🔴 |

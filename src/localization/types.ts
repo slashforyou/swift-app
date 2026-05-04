@@ -568,6 +568,7 @@ export interface TranslationKeys {
       noDeliveryAddress: string;
       notAvailable: string;
       timeSlot?: string;
+      vehicleBar?: { noVehicle?: string };
     };
     selectMonth: string;
   };
@@ -712,6 +713,11 @@ export interface TranslationKeys {
       clientInfo: string;
       notes: string;
       payment: string;
+    };
+    quickActions?: {
+      files?: string;
+      linked?: string;
+      difficulty?: string;
     };
     errors: {
       invalidJobId: string;
@@ -988,6 +994,17 @@ export interface TranslationKeys {
         successTitle?: string;
         successMessage?: string;
         errorMessage?: string;
+      };
+      manualPayment?: {
+        title?: string;
+        subtitle?: string;
+        cash?: string;
+        card?: string;
+        bankTransfer?: string;
+        notesPlaceholder?: string;
+        confirmPayment?: string;
+        recorded?: string;
+        error?: string;
       };
     };
     // JobDetails components
@@ -1315,6 +1332,50 @@ export interface TranslationKeys {
     };
   };
 
+  difficulty?: {
+    title?: string;
+    sectionLabel?: string;
+    truckCountLabel?: string;
+    truck?: string;
+    trucks?: string;
+    easy?: string;
+    medium?: string;
+    hard?: string;
+    expert?: string;
+    saveSuccess?: string;
+    saveError?: string;
+  };
+
+  prepareJob?: {
+    title?: string;
+    addVehicle?: string;
+    vehicleAssigned?: string;
+    noVehicleNeeded?: string;
+    addVehicleDesc?: string;
+    notNeeded?: string;
+    addWorkers?: string;
+    workersAssigned?: string;
+    addWorkersDesc?: string;
+    addVehicleWorker?: string;
+    addVehicleWorkerDesc?: string;
+    allAssigned?: string;
+    jobDelegated?: string;
+    or?: string;
+    delegateFull?: string;
+    delegatedTo?: string;
+    delegateFullDesc?: string;
+  };
+
+  myAssignments?: {
+    title?: string;
+    subtitle?: string;
+    pickup?: string;
+    delivery?: string;
+    location?: string;
+    noJobs?: string;
+    noJobsHint?: string;
+  };
+
   // Settings
   settings: {
     title: string;
@@ -1525,8 +1586,36 @@ export interface TranslationKeys {
       default: string;
       incomplete: string;
     };
+    hero?: {
+      subtitle?: string;
+      configured?: string;
+    };
+    setup?: {
+      businessInfo?: string;
+      stripe?: string;
+      team?: string;
+      vehicles?: string;
+      partners?: string;
+    };
+    tutorial?: {
+      title?: string;
+      tip?: string;
+    };
     tools: string;
     actionsRequired: string;
+    subTabs?: {
+      staff?: string;
+      vehicles?: string;
+      partners?: string;
+      templates?: string;
+      clauses?: string;
+      payments?: string;
+      billing?: string;
+      invoicesTab?: string;
+      storage?: string;
+      clients?: string;
+      reports?: string;
+    };
     search: {
       resources: string;
     };
@@ -1685,6 +1774,46 @@ export interface TranslationKeys {
       periodMonthlyDesc?: string;
       periodWeeklyDesc?: string;
       periodFortnightlyDesc?: string;
+    };
+    templates?: {
+      title?: string;
+      count?: string;
+      countPlural?: string;
+      new?: string;
+      deleteDefaultError?: string;
+      deleteTitle?: string;
+      deleteMessage?: string;
+      deleteError?: string;
+      segmentCount?: string;
+      segmentCountPlural?: string;
+      default?: string;
+      categoryLabel?: string;
+      category?: {
+        residential?: string;
+        commercial?: string;
+        storage?: string;
+        packing?: string;
+        specialty?: string;
+      };
+      billingModes?: Record<string, string>;
+      segmentTypes?: Record<string, string>;
+      locationTypes?: Record<string, string>;
+    };
+    contracts?: {
+      conditionAlways?: string;
+      conditionSegment?: string;
+      conditionPostcode?: string;
+      conditionCity?: string;
+      conditionState?: string;
+      errorUpdateClause?: string;
+      errorDeleteClause?: string;
+    };
+    stripeSettings?: {
+      testMode?: string;
+      payoutManual?: string;
+      payoutDaily?: string;
+      payoutWeekly?: string;
+      payoutMonthly?: string;
     };
   };
 
@@ -3665,6 +3794,24 @@ export interface TranslationKeys {
     hourlyRateDesc?: string;
     volumeBased?: string;
     volumeBasedDesc?: string;
+    // generateTemplateName labels
+    specialtyMove?: string;
+    moveFallback?: string;
+    templateSuffix?: string;
+    // Validation errors
+    descriptionRequired?: string;
+    durationRequired?: string;
+    basePriceRequired?: string;
+    basePriceInvalid?: string;
+    rateRequired?: string;
+    rateInvalid?: string;
+    minChargeRequired?: string;
+    minChargeInvalid?: string;
+    staffMinimum?: string;
+    vehicleRequired?: string;
+    // Placeholders & extra
+    addInclusionPlaceholder?: string;
+    addBtn?: string;
   };
 
   // Staff Management (EditStaffModal)
@@ -4042,6 +4189,13 @@ export interface TranslationKeys {
     deliveryNotePrefix?: string;
     jobCompleted?: { title?: string; message?: string };
     deliveryCreated?: { title?: string; message?: string };
+    help?: {
+      title?: string;
+      lotTitle?: string;
+      lotDesc?: string;
+      unitTitle?: string;
+      unitDesc?: string;
+    };
   };
 
   // Support FAQ
@@ -4239,6 +4393,14 @@ export interface TranslationKeys {
       reviewBannerTitle: string;
       reviewBannerSub: string;
     };
+    recap?: {
+      title?: string;
+      jobsCompleted_one?: string;
+      jobsCompleted_other?: string;
+      levelUp?: string;
+      cta?: string;
+    };
+    actionLabels?: Record<string, string>;
   };
   jobAttachments: {
     title: string;
@@ -4272,6 +4434,31 @@ export interface TranslationKeys {
     downloading: string;
     ready: string;
     subtitle: string;
+  };
+
+  mileage?: {
+    title?: string;
+    selectVehicle?: string;
+    noVehicles?: string;
+  };
+
+  maintenance?: {
+    title?: string;
+    alertTypes?: {
+      oil_change?: string;
+      tyre?: string;
+      rego?: string;
+      service?: string;
+      other?: string;
+    };
+  };
+
+  quotes?: {
+    title?: string;
+  };
+
+  revenue?: {
+    title?: string;
   };
 }
 

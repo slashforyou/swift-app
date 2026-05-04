@@ -171,13 +171,13 @@ export default function VehicleMileageScreen({ route, navigation }: Props) {
             contentContainerStyle={{ padding: DESIGN_TOKENS.spacing.lg, gap: DESIGN_TOKENS.spacing.sm }}
             ListHeaderComponent={
               <Text style={{ color: colors.textSecondary, fontSize: 14, marginBottom: DESIGN_TOKENS.spacing.md }}>
-                Sélectionnez un véhicule
+                {t("mileage.selectVehicle") ?? "Select a vehicle"}
               </Text>
             }
             ListEmptyComponent={
               <View style={{ alignItems: "center", paddingTop: 40 }}>
                 <Ionicons name="car-outline" size={40} color={colors.textSecondary} />
-                <Text style={{ color: colors.textSecondary, marginTop: 10 }}>Aucun véhicule trouvé</Text>
+                <Text style={{ color: colors.textSecondary, marginTop: 10 }}>{t("mileage.noVehicles") ?? "No vehicles found"}</Text>
               </View>
             }
             renderItem={({ item }) => (

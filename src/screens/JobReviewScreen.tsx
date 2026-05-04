@@ -1,11 +1,11 @@
 import Ionicons from "@react-native-vector-icons/ionicons";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  Text,
-  View,
+    ActivityIndicator,
+    Alert,
+    Pressable,
+    Text,
+    View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ServerData } from "../constants/ServerData";

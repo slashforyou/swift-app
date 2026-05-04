@@ -282,3 +282,4 @@ const logButtonStyles = StyleSheet.create({
 });
 
 export { logButtonStyles };
+

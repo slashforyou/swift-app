@@ -82,3 +82,16 @@ Pour chaque analyse :
 3. **Niveau de gravité** — Critique / Moyen / Faible
 4. **Corrections proposées** — Concrètes, applicables immédiatement
 5. **Points à surveiller** — Régressions possibles, fichiers adjacents
+
+---
+
+## Enchaînement — après ton travail, appelle le suivant
+
+Quand tu as terminé une review :
+
+| Si tu as fait... | → Appelle | Obligatoire |
+|-----------------|-----------|-------------|
+| Review sans corrections majeures | → **Clara** (documenter la feature dans Notion) | 🔴 |
+| Review avec corrections demandées | → **Marc** (relancer les tests après corrections) | 🔴 |
+| Dette technique critique identifiée | → **Guillaume** (audit approfondi) | 🟡 |
+| Problème de sécurité détecté | → **Élise** (prendre en charge immédiatement) | 🔴 |

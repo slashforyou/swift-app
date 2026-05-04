@@ -108,3 +108,15 @@ git add _backend_deploy/ && git commit -m "security: description" && git push or
 2. **Vulnérabilités détectées** — Avec niveau de criticité (CRITIQUE / MOYEN / FAIBLE)
 3. **Corrections** — Code ou configuration exact
 4. **Tests de validation** — Comment vérifier que la fix est effective
+
+---
+
+## Enchaînement — après ton travail, appelle le suivant
+
+Quand tu as terminé ton audit de sécurité :
+
+| Si tu as fait... | → Appelle | Obligatoire |
+|-----------------|-----------|-------------|
+| Vulnérabilité critique identifiée | → **Guillaume** (audit global + impact) | 🔴 |
+| Problème d'isolation `company_id` détecté | → **Nora** (corriger le schema) | 🔴 |
+| Permissions / RBAC validés | → **Marc** (tester les scénarios d'accès refusés) | 🔴 |

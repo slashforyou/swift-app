@@ -62,3 +62,15 @@ Avant tout plan d'implémentation :
 4. **Ordre d'implémentation** — Étapes avec agent responsable
 5. **Risques** — Dépendances cachées, régressions, edge cases
 6. **Points de vigilance** — Ce qui peut mal tourner à chaque étape
+
+---
+
+## Enchaînement — après ton travail, appelle le suivant
+
+Quand tu as terminé l'architecture d'une feature :
+
+| Si tu as fait... | → Appelle | Obligatoire |
+|-----------------|-----------|-------------|
+| Architecture qui nécessite une nouvelle table DB | → **Nora** (créer le schema + migration) | 🔴 |
+| Toute nouvelle architecture de feature | → **Élise** (valider les permissions et l'isolation) | 🔴 |
+| Architecture qui implique des endpoints | → **Thomas** (implémenter les routes) | 🔴 |

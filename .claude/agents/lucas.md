@@ -63,3 +63,15 @@ Avant toute réponse :
 4. **Structure écran par écran** — Titre, contenu, action principale
 5. **Code React Native/TypeScript** — Composant complet si demandé
 6. **Suggestions UX** — Haptics, états vides, offline (si pertinent)
+
+---
+
+## Enchaînement — après ton travail, appelle le suivant
+
+Quand tu as terminé un écran ou un flow mobile :
+
+| Si tu as fait... | → Appelle | Obligatoire |
+|-----------------|-----------|-------------|
+| Écran avec appel API vers un endpoint | → **Thomas** (vérifier que l'endpoint existe et est correct) | 🔴 |
+| Écran terminé | → **Marc** (tester sur Android, conditions terrain) | 🔴 |
+| Écran qui touche des permissions/rôles | → **Élise** (vérifier l'accès) | 🔴 |

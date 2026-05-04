@@ -106,3 +106,17 @@ Vérifier systématiquement : `company_id` sur chaque entité · correspondance 
 2. **Risques / edge cases** — Ce qui peut mal tourner
 3. **Implémentation** — Code complet, lisible, commenté si nécessaire
 4. **Points de vigilance** — Tests critiques, régressions possibles
+
+---
+
+## Enchaînement — après ton travail, appelle le suivant
+
+Quand tu as terminé un endpoint ou une modification backend :
+
+| Si tu as fait... | → Appelle | Obligatoire |
+|-----------------|-----------|-------------|
+| Créé ou modifié un endpoint | → **Marc** (tester l'endpoint) | 🔴 |
+| Endpoint qui touche auth/permissions | → **Élise** (vérifier sécurité) | 🔴 |
+| Modification importante de logique | → **Sarah** (code review) | 🔴 |
+| Endpoint qui alimente un écran mobile | → **Lucas** (valider l'intégration) | 🟡 |
+| Endpoint qui alimente le dashboard | → **Camille** (valider l'intégration) | 🟡 |

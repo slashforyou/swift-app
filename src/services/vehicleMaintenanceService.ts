@@ -20,14 +20,14 @@ export const getAllMaintenanceAlerts = async (): Promise<MaintenanceAlert[]> => 
   const res = await authenticatedFetch(`${API}v1/vehicles/maintenance-alerts`);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();
-  return data.alerts ?? data ?? [];
+  return data.data ?? [];
 };
 
 export const getVehicleMaintenanceAlerts = async (vehicleId: number): Promise<MaintenanceAlert[]> => {
   const res = await authenticatedFetch(`${API}v1/vehicles/${vehicleId}/maintenance-alerts`);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();
-  return data.alerts ?? data ?? [];
+  return data.data ?? [];
 };
 
 export const createMaintenanceAlert = async (
