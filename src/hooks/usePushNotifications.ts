@@ -22,6 +22,7 @@ import {
     registerPushToken,
     updateNotificationPreferences,
 } from "../services/pushNotifications";
+import { navigateGlobal } from "../services/navRef";
 
 interface UsePushNotificationsReturn {
   // State
@@ -196,10 +197,8 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
         case "job_reminder":
         case "job_updated":
           if (job_id && screen === "JobDetails") {
-            navigation.navigate("JobDetails", {
-              jobId: job_id,
-              from: "Home",
-            });
+            // Use root nav ref — JobDetails is in the root stack, not inside the tab navigator
+            navigateGlobal("JobDetails", { jobId: job_id, from: "Home" });
           }
           break;
         case "job_assigned":
@@ -216,13 +215,13 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
           break;
         }
         case "payment_received":
-          navigation.navigate("Business", { initialTab: "Payments" });
+          navigateGlobal("Business", { initialTab: "Payments" });
           break;
         default:
           break;
       }
     },
-    [navigation],
+    [],
   );
 
   // Initialisation au montage

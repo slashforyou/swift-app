@@ -3,6 +3,7 @@
     NavigationContainerRef,
 } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import * as Notifications from "expo-notifications";
 import React, { useEffect, useRef } from "react";
 import { analytics } from "../services/analytics";
 import { navigationContainerRef } from "../services/navRef";
@@ -196,6 +197,20 @@ export default function Navigation() {
       (navigationContainerRef as any).current = navigationRef.current;
       previousRouteNameRef.current =
         navigationRef.current.getCurrentRoute()?.name;
+
+      // Cold start: app ouverte depuis une notification (app était tuée)
+      // Instagram/Twitter pattern: getLastNotificationResponseAsync() donne la notif qui a lancé l'app
+      Notifications.getLastNotificationResponseAsync().then((response) => {
+        if (!response) return;
+        const data = response.notification?.request?.content?.data;
+        if (!data) return;
+        const { type, job_id, screen } = data as any;
+        if ((type === "new_job" || type === "job_reminder" || type === "job_updated") && job_id && screen === "JobDetails") {
+          navigationRef.current?.navigate("JobDetails" as any, { jobId: job_id, from: "Home" });
+        } else if (type === "payment_received") {
+          navigationRef.current?.navigate("Business" as any, { initialTab: "Payments" });
+        }
+      }).catch(() => { /* ignore */ });
     }
   };
 
