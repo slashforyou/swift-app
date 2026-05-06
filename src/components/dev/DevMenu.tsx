@@ -252,6 +252,46 @@ export default function DevMenu({ visible, onClose }: DevMenuProps) {
     }
   };
 
+  // B7 — Test routing push notifications (foreground/background/closed)
+  const sendRoutingTestPush = async (scenario: "calendar" | "job" | "payment") => {
+    const payloads: Record<string, { title: string; body: string; data: Record<string, any> }> = {
+      calendar: {
+        title: "📅 Test routing — Calendrier",
+        body: "Tap → doit ouvrir le Calendrier",
+        data: { type: "job_reminder_morning", screen: "Calendar" },
+      },
+      job: {
+        title: "🚛 Test routing — JobDetails",
+        body: "Tap → doit ouvrir un job",
+        data: { type: "job_assigned", screen: "JobDetails", job_id: "1" },
+      },
+      payment: {
+        title: "💳 Test routing — Paiements",
+        body: "Tap → doit ouvrir Business > Paiements",
+        data: { type: "payment_received", screen: "Business" },
+      },
+    };
+    const { title, body, data } = payloads[scenario];
+    try {
+      setLoading(true);
+      const response = await fetchWithAuth(`${ServerData.serverUrl}v1/admin/send-notification`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: "romaingiovanni@gmail.com", title, body, data }),
+      });
+      const result = await response.json();
+      if (result.success) {
+        Alert.alert("✅ Push routing envoyé", `Scenario: ${scenario}\nToken(s) atteint(s): ${result.tokens_reached}`);
+      } else {
+        Alert.alert("Erreur routing push", result.error || "Échec envoi");
+      }
+    } catch {
+      Alert.alert("Erreur", "Appel backend échoué");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleTestPushNotification = async () => {
     try {
       await scheduleLocalNotification(
@@ -536,6 +576,27 @@ export default function DevMenu({ visible, onClose }: DevMenuProps) {
                   Test push production (romaingiovanni@gmail.com)
                 </Text>
               </Pressable>
+              {/* B7 — Routing tests */}
+              {(["calendar", "job", "payment"] as const).map((scenario) => (
+                <Pressable
+                  key={scenario}
+                  style={[
+                    styles.optionButton,
+                    { justifyContent: "center", gap: DESIGN_TOKENS.spacing.sm },
+                  ]}
+                  onPress={() => sendRoutingTestPush(scenario)}
+                  disabled={loading}
+                >
+                  <Ionicons
+                    name={scenario === "calendar" ? "calendar-outline" : scenario === "job" ? "car-outline" : "card-outline"}
+                    size={20}
+                    color={colors.textSecondary}
+                  />
+                  <Text style={[styles.optionText, { flex: 0 }]}>
+                    {scenario === "calendar" ? "B7 → routing Calendar" : scenario === "job" ? "B7 → routing JobDetails" : "B7 → routing Business/Payments"}
+                  </Text>
+                </Pressable>
+              ))}
             </View>
 
             {/* Section: Actions destructives */}

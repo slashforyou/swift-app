@@ -228,6 +228,18 @@ export default function Navigation() {
         } else if (type === "payment_received") {
           targetScreen = "Business";
           targetParams = { initialTab: "Payments" };
+        } else if (
+          type === "job_assigned" ||
+          type === "job_assigned_contractor" ||
+          type === "job_reminder_morning" ||
+          type === "job_recap_evening" ||
+          type === "daily_recap" ||
+          screen === "Calendar"
+        ) {
+          targetScreen = "Calendar";
+        } else if (screen) {
+          // Fallback générique : utiliser le champ screen directement
+          targetScreen = screen;
         }
 
         if (!targetScreen) return;
