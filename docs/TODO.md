@@ -256,7 +256,7 @@
 | ~~**101**~~ | ~~Fix `getLastNotificationResponseAsync` consommée une seule fois~~ — Flag mémoire + `isColdStartConsumed()` dans `onReady`. | ✅ Commit 691e40e |
 | **102** | **Notifs contextuelles basées sur le planning réel de l'utilisateur** — Remplacer les horaires fixes par des timings basés sur les jobs en DB. Phase 1 (MVP) : (1) Rappel ~1h avant le 1er job du jour si celui-ci n'a pas encore commencé. (2) Notif de fin de journée ~1h après la fin du dernier job du jour. Cron à ajuster dynamiquement par user selon `start_window_start` du 1er job et `end_window_end` du dernier job. Phase 2 : analyser les notifs qui déclenchent le plus d'ouvertures et enrichir ou retirer en conséquence. | [S] |
 | ~~**103**~~ | ~~In-app toast foreground~~ — Toast custom tapable (4s) via `ToastProvider` existant. `shouldShowAlert: false` supprime la bannière système. `onPress` → navigation. | ✅ Commit ci-après |
-| **104** | **Throttling backend + fenêtres horaires** — Ne pas envoyer de notifs entre 19h et 6h (heure locale de l'user). Max 2 notifs/jour hors types critiques (job assigné, paiement reçu). Implémenter dans `pushHelper.js`. | [S] |
+| **104** | ~~Throttling backend + fenêtres horaires~~ — `canSendPush()` dans `pushHelper.js` : silent 19h–6h (timezone user depuis `notification_preferences`), cap 2 notifs/jour non-critiques (count `notifications` table). Types critiques exemptés (`job_assigned`, `payment_received`). Fail-open. | ✅ Déployé PM2 |
 
 #### Calendrier [C] ✅ DONE
 
