@@ -252,7 +252,11 @@ export default function Navigation() {
 
         if (sessionToken) {
           // Connecté → naviguer directement
-          navigationRef.current?.navigate(targetScreen as any, targetParams as any);
+          // Délai 800ms pour laisser Connection screen finir son init et naviguer vers Home
+          // avant qu'on redirige vers la destination finale (évite la race condition)
+          setTimeout(() => {
+            navigationRef.current?.navigate(targetScreen as any, targetParams as any);
+          }, 800);
         } else {
           // Non connecté → sauvegarder pour après le login
           await savePendingDeepLink({ screen: targetScreen, params: targetParams });

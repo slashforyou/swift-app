@@ -220,6 +220,12 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
           navigateGlobal("Business", { initialTab: "Payments" });
           break;
         default:
+          // Fallback générique : si un champ screen est présent, on l'utilise directement
+          if (screen) {
+            const { handleNotificationNavigation: navRefHandler } =
+              require("../services/navRef");
+            navRefHandler({ screen, date: data.date, job_id });
+          }
           break;
       }
     },
