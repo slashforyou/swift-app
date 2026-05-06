@@ -1,6 +1,6 @@
 # COBBR — Roadmap Consolidée
 
-> **Dernière mise à jour :** 3 mai 2026
+> **Dernière mise à jour :** 6 mai 2026
 > **Version actuelle :** 1.2.0 (MVP live sur iOS + Android)
 > **Statut :** MVP fonctionnel — Monétisation + Features avancées (mai 2026)
 
@@ -18,18 +18,26 @@
 | **B1** | `GET /v1/company/plan` retourne 200 (bug `company_id` → `contractee_company_id`) | ✅ **Fixé 3 mai** | Thomas |
 | **B2** | Trial 14j activé à l'inscription + cron expiration enregistré | ✅ **Déployé 3 mai** | Thomas |
 | **B3** | Plan `comped` (comptes existants protégés) | ✅ **Déployé 3 mai** | Thomas |
-| **B4** | PaymentSheet Stripe abonnement Pro — test sur iPhone réel | 👤 À tester | Romain |
-| **B5** | PaymentSheet Stripe abonnement Pro — test sur Android réel | 👤 À tester | Romain |
+| **B4** | PaymentSheet Stripe abonnement Pro — test sur iPhone réel | ✅ Résolu 5 mai 2026 | Romain |
+| **B5** | PaymentSheet Stripe abonnement Pro — test sur Android réel | ✅ Résolu 5 mai 2026 | Romain |
 | **B6** | Push notifications — device token iOS physique + routing (fg/bg/fermée) | 👤 À tester | Romain |
 | **B7** | Push notifications — device token Android physique + routing | 👤 À tester | Romain |
 | **B8** | Flow complet boss (inscription → job → paiement) validé sur device | 👤 À tester | Romain |
 | **B9** | Webhook Stripe actif en prod (`customer.subscription.updated`) | 👤 Vérifier | Romain |
 | **B10** | Email vérification reçu sur vraie boîte (SMTP IONOS) | 👤 À tester | Romain |
+| **B11** | Fix config API — `api.config.ts` pointe vers `https://api.swiftapp.com.au` (mauvaise URL) → `businessStatsService` + `staffService` cassés en prod | ✅ Résolu 5 mai 2026 | Thomas |
+| **B12** | Retirer `RECORD_AUDIO` de `AndroidManifest.xml` (inutilisé → risque rejet Play Store) | ✅ Résolu 5 mai 2026 | Thomas |
+| **B13** | Build Android AAB production lancé + validé via Play Console internal testing | ✅ En cours (12 testeurs attendus) | Romain |
+| **B14** | Fiche Google Play complète : description, screenshots, feature graphic, catégorie, contact | ✅ Résolu 5 mai 2026 | Romain |
+| **B15** | Data Safety Form + Content Rating IARC + Privacy Policy/Terms dans Play Console | ✅ Résolu 5 mai 2026 | Romain |
+| **B16** | Flow complet multi-utilisateurs validé device réel (owner→staff→job→assign→worker complete→paiement→restrictions cross-company) | ✅ Résolu 5 mai 2026 | Romain |
 
 ### Risques identifiés (Audit équipe — 3 mai 2026)
 
 | Risque | Sévérité | Mitigation |
 |--------|----------|-----------|
+| ~~`api.config.ts` URL prod incorrecte~~ | ~~P0~~ | ✅ Résolu 5 mai 2026 — `businessStatsService` préfixe maintenant via `API_URL` de `environment.ts` |
+| ~~`RECORD_AUDIO` dans AndroidManifest~~ | ~~P0~~ | ✅ Résolu 5 mai 2026 — permission retirée |
 | PaymentSheet en réseau 3G instable → timeout silencieux | P1 | Tester avec Network Link Conditioner iOS |
 | `company/plan` 500 → SubscriptionScreen affiche "free" pour un Pro | ✅ Fixé | — |
 | Double-tap "Complete job" → idempotence non vérifiée côté backend | P2 | Thomas à vérifier |
@@ -52,6 +60,8 @@
 | **TOTAL** | **97** | **28** | **78%** |
 | **Chemin critique (P0+P1)** | **49** | **2** | **96%** |
 
+> **Accomplissements (6 mai 2026) :** **Push notifications Android opérationnelles** (FCM V1, token enregistré, deep-link en cours), **Build production AAB versionCode 14** (Play Store ready), **Fix navigation push** (navigateGlobal() racine + cold-start via getLastNotificationResponseAsync), **Audit notifications équipe** (value ladder, segmentation rôles, 5 bugs identifiés — voir tâches #100–#104)
+>
 > **Accomplissements (3 mai 2026) :** **Free trial 14j complet** (migration 050, `trial_ends_at` + `had_trial` en DB, `subscription_status=trial` à l'inscription, `trialExpirationCron` déployé + enregistré dans `index.js`), **Plan `comped`** (comptes existants protégés, bypass toutes les feature guards, chip gold dans BusinessHubOverview), **Fix plan.js** (`company_id` → `contractee_company_id` dans `GET /v1/company/plan`), **Bugs UI** (6 fixes : regex plaques AU, validation date service véhicule, reset type wizard, testIDs staffCrewScreen, contact strip phone, i18n businessHub.actions restauré)
 >
 > **Accomplissements récents (8-16 avril) :** Inscription simplifiée 8→1 écran, Business Hub redesign 8→4 onglets, Stripe dual-mode (test/live), Factures hebdo/bimensuelles avec wizard 4 étapes + sélection client, i18n complète 7 langues, Rebranding emails SwiftApp→Cobbr, SMTP fix, **Module Stockage complet** (6 tables, 22+ endpoints, 6 écrans, billing cron), **Stripe onboarding live FR** (person tokens client-side, document upload 2-phase), **Web dashboard fixes** (API routes, Stripe status gate), CI/CD fixes (TypeScript + lint + E2E), **Employee Dashboard** (#29/30/31: stats+heures+historique), **Carousel photos** (#32: PhotoViewModal déjà en place), **Notes internes job** (#33: JobNotesSection + backend + i18n)
@@ -200,6 +210,8 @@
 |---|-------|-------|-------|
 | ~~1~~ | ~~Créer Products/Prices dans Stripe Dashboard live et renseigner `stripe_price_id` en DB~~ | 👤 | ✅ Vérifié en prod: seuls les plans payants nécessitent Stripe (`pro`, `expert`) et ils sont configurés. `free`/`unlimited` restent volontairement sans `stripe_price_id` (non facturés). |
 | ~~2~~ | ~~Effectuer un paiement réel de test en production~~ | 👤 | ✅ Flow paiement réel validé en production |
+| **89** | **Fix config API** — `api.config.ts` pointe vers `https://api.swiftapp.com.au` au lieu de `https://cobbr-app.com/swift-app/` → `businessStatsService.ts` et `staffService.ts` importent cette config et appellent le mauvais serveur en prod. Faire pointer vers `API_URL` de `environment.ts` ou supprimer `api.config.ts`. | [C] | **🚨 BLOQUANT 18 mai** |
+| **90** | **Retirer `RECORD_AUDIO`** de `android/app/src/main/AndroidManifest.xml` ligne 5 — permission non utilisée dans le code. Risque de rejet Play Store ou demande de justification. | [C] | **🚨 BLOQUANT 18 mai** |
 
 ### 🟠 P1 — Nécessaire avant monétisation
 
@@ -216,8 +228,14 @@
 | ~~10~~ | ~~Revoir les mails de facturation~~ | ~~[S]~~ | ✅ Rebranding SwiftApp→Cobbr dans mailSender.js, centralisation emails (forgotPassword, monthlyInvoices, cron), ajout invoiceNotificationMail brandé (logo+couleurs) + invoiceDetailMail avec tableau détaillé, plain text fallback, redirection test emails |
 | ~~11~~ | ~~Valider commission (application_fee_amount) en production~~ | 👤 | ✅ Vérifié en prod (stripe_transactions): paiement `succeeded` avec `application_fee_amount > 0` et `net_amount` cohérent |
 | ~~12~~ | ~~Tester Apple Pay / Google Pay via PaymentSheet~~ | 👤 | **Hors scope (2 mai 2026)** |
-| 13 | Valider flow complet PaymentSheet sur iOS et Android | 👤 | **🚨 BLOQUANT 18 mai** — End-to-end test device réel |
+| ~~13~~ | ~~Valider flow complet PaymentSheet sur iOS et Android~~ | 👤 | ✅ Résolu 5 mai 2026 — paiement validé sur device réel |
 | ~~14~~ | ~~Auto-complétion ABN via API gouvernement australien~~ | ~~[C][S]~~ | ✅ ABN Lookup API (abr.business.gov.au) → remplissage auto dans CompleteProfileScreen (nom, adresse, type, GST). Déclenchement à 11 chiffres, debounce 500ms. |
+| **91** | Build Android AAB production (`eas build --platform android --profile production`) + upload sur Play Console internal testing track | 👤 | **🚨 BLOQUANT 18 mai** |
+| **92** | Fiche Google Play complète : description courte/longue, screenshots (phones + tablets), feature graphic 1024×500, catégorie Business, email contact | 👤 | **🚨 BLOQUANT 18 mai** |
+| **93** | Data Safety Form (types données collectées/partagées), Content Rating IARC (questionnaire), Privacy Policy URL + Terms of Service dans Play Console | 👤 | **🚨 BLOQUANT 18 mai** |
+| **94** | Flow complet multi-utilisateurs sur device réel : owner crée company → ajoute staff → crée job → assigne → worker reçoit/voit → worker complète → owner voit statut → paiement testé → restrictions cross-company vérifiées | 👤 | **🚨 BLOQUANT 18 mai** |
+| **95** | Webhooks Stripe live tous vérifiés en prod : `account.updated`, `payment_intent.succeeded`, `payment_intent.payment_failed`, `payout.created` (dépasse B9 — scope élargi) | 👤 | **🚨 BLOQUANT 18 mai** |
+| **96** | Compte démo propre + données démo réalistes (1 company, 2 trucks, 1 owner, 2 drivers, 2 offsiders, 3 jobs dont 1 terminé/1 en cours/1 à venir) | [S] | Pour pitchs et présentations commerciales | | ~~[C][S]~~ | ✅ ABN Lookup API (abr.business.gov.au) → remplissage auto dans CompleteProfileScreen (nom, adresse, type, GST). Déclenchement à 11 chiffres, debounce 500ms. |
 
 ### 🟡 P2 — Améliorations UX
 
@@ -234,6 +252,11 @@
 | 21 | Tester device token iOS physique | 👤 |
 | 22 | Tester device token Android physique | 👤 |
 | 23 | Valider routing notifications (foreground/background/fermée) | 👤 |
+| ~~**100**~~ | ~~Fix deep-link cold-start~~ — Guard auth + AsyncStorage pending deep-link. Consommé dans `login.tsx` + `subscribeMailVerification.tsx` après connexion. | ✅ Commit 691e40e |
+| ~~**101**~~ | ~~Fix `getLastNotificationResponseAsync` consommée une seule fois~~ — Flag mémoire + `isColdStartConsumed()` dans `onReady`. | ✅ Commit 691e40e |
+| **102** | **Notifs contextuelles basées sur le planning réel de l'utilisateur** — Remplacer les horaires fixes par des timings basés sur les jobs en DB. Phase 1 (MVP) : (1) Rappel ~1h avant le 1er job du jour si celui-ci n'a pas encore commencé. (2) Notif de fin de journée ~1h après la fin du dernier job du jour. Cron à ajuster dynamiquement par user selon `start_window_start` du 1er job et `end_window_end` du dernier job. Phase 2 : analyser les notifs qui déclenchent le plus d'ouvertures et enrichir ou retirer en conséquence. | [S] |
+| ~~**103**~~ | ~~In-app toast foreground~~ — Toast custom tapable (4s) via `ToastProvider` existant. `shouldShowAlert: false` supprime la bannière système. `onPress` → navigation. | ✅ Commit ci-après |
+| **104** | **Throttling backend + fenêtres horaires** — Ne pas envoyer de notifs entre 19h et 6h (heure locale de l'user). Max 2 notifs/jour hors types critiques (job assigné, paiement reçu). Implémenter dans `pushHelper.js`. | [S] |
 
 #### Calendrier [C] ✅ DONE
 
@@ -274,6 +297,8 @@
 | ~~41~~ | ~~Gestion disponibilités/indisponibilités~~ | ✅ `employeeAvailability.js` + `EmployeeAvailabilityScreen` + migration 039 |
 | ~~42~~ | ~~Système de compétences/qualifications~~ | ✅ `employeeSkills.js` + `EmployeeSkillsScreen` + migration 040 |
 | 43 | Affectation auto suggérée (dispo + proximité) | Algorithme suggestion — à faire |
+| **97** | Fix alerte API down — `alertService.ts` retourne des défauts sûrs (0) quand le fetch métriques échoue réseau → l'alerte `api_error_rate_high` n'est jamais déclenchée. Détecter les network errors et lever l'alerte. | [C] | |
+| **98** | Mode demo/reset demo data — script ou bouton admin pour réinitialiser les données démo (pour présentations/pitchs) | [C][S] | |
 | ~~44~~ | ~~Quota d'heures max/semaine par travailleur~~ | ✅ `employeeHourQuotas.js` + `WeeklyHoursScreen` + migration 041 |
 | ~~45~~ | ~~Page clients — liste des clients (patron only)~~ | ✅ ClientsScreen (sub-tab Resources) + backend CRUD + i18n |
 | ~~46~~ | ~~Parrainage récompensé (code invite / lien)~~ | ✅ `ReferralScreen` + `referral.js` + `referral_rewards` migration 044 |
@@ -306,6 +331,7 @@
 | ~~58~~ | ~~Conversion devis → job en 1 clic~~ | ~~[C][S]~~ | ✅ `POST /v1/quotes/:id/convert-to-job` + bouton dans QuoteEditorScreen |
 | ~~59~~ | ~~Factures PDF avec branding~~ | ~~[S]~~ | ✅ `pdfInvoice.js` — `GET /v1/billing/monthly-invoices/:id/pdf` (pdfkit 0.18, header coloré, logo GCS, tableau lignes, totaux) |
 | 60 | Chat interne équipe (temps réel) | [C][S] | À faire |
+| **99** | Écran bloquant dédié "Stripe setup incomplete" (full page, pas juste label dans le dashboard) — CTA clair pour reprendre l'onboarding Stripe. Actuellement un label dans BusinessHubOverview, pas suffisamment visible. | [C] | |
 | 61 | Chat avec client final (lié au job) | [C][S] | À faire |
 | 62 | Partage position temps réel (ETA) | [C][S] | À faire |
 | ~~63~~ | ~~Notation job par client (étoiles + commentaire)~~ | ~~[C][S]~~ | ✅ `jobReviews.js` (token email) + `job_reviews` migration 045 |

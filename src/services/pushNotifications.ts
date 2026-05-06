@@ -53,10 +53,10 @@ interface NotificationData {
 if (Constants.appOwnership !== "expo") {
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
-      shouldShowAlert: true,
+      shouldShowAlert: false, // Géré par le toast in-app (#103)
       shouldPlaySound: true,
       shouldSetBadge: true,
-      shouldShowBanner: true,
+      shouldShowBanner: false,
       shouldShowList: true,
     }),
   });

@@ -10,14 +10,15 @@ interface ToastData {
     title: string;
     message?: string;
     duration?: number;
+    onPress?: () => void;
 }
 
 interface ToastContextType {
-    showToast: (type: ToastType, title: string, message?: string, duration?: number) => void;
+    showToast: (type: ToastType, title: string, message?: string, duration?: number, onPress?: () => void) => void;
     showSuccess: (title: string, message?: string, duration?: number) => void;
     showError: (title: string, message?: string, duration?: number) => void;
     showWarning: (title: string, message?: string, duration?: number) => void;
-    showInfo: (title: string, message?: string, duration?: number) => void;
+    showInfo: (title: string, message?: string, duration?: number, onPress?: () => void) => void;
     hideToast: (id: string) => void;
 }
 
@@ -38,7 +39,7 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
         setToasts(prev => prev.filter(toast => toast.id !== id));
     }, []); // ✅ Pas de dépendances, stable
 
-    const showToast = useCallback((type: ToastType, title: string, message?: string, duration?: number) => {
+    const showToast = useCallback((type: ToastType, title: string, message?: string, duration?: number, onPress?: () => void) => {
         const id = generateId();
         const newToast: ToastData = {
             id,
@@ -46,6 +47,7 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
             title,
             message,
             duration: duration || 3000,
+            onPress,
         };
 
         setToasts(prev => [...prev, newToast]);
@@ -68,8 +70,8 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
         showToast('warning', title, message, duration);
     }, [showToast]);
 
-    const showInfo = useCallback((title: string, message?: string, duration?: number) => {
-        showToast('info', title, message, duration);
+    const showInfo = useCallback((title: string, message?: string, duration?: number, onPress?: () => void) => {
+        showToast('info', title, message, duration, onPress);
     }, [showToast]);
 
     const contextValue: ToastContextType = useMemo(() => ({
@@ -95,6 +97,7 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
                     message={toast.message}
                     duration={toast.duration}
                     onHide={() => hideToast(toast.id)}
+                    onPress={toast.onPress}
                 />
             ))}
         </ToastContext.Provider>

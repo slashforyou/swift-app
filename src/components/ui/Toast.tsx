@@ -25,6 +25,7 @@ interface ToastProps {
     message?: string;
     duration?: number;
     onHide: () => void;
+    onPress?: () => void;
 }
 
 const Toast: React.FC<ToastProps> = ({
@@ -33,7 +34,8 @@ const Toast: React.FC<ToastProps> = ({
     title,
     message,
     duration = 3000,
-    onHide
+    onHide,
+    onPress,
 }) => {
     const { colors } = useTheme();
     const translateY = useRef(new Animated.Value(-100)).current;
@@ -184,20 +186,25 @@ const Toast: React.FC<ToastProps> = ({
                     },
                 ]}
             >
-                <View style={styles.iconContainer}>
-                    <Ionicons
-                        name={config.icon as any}
-                        size={24}
-                        color={config.iconColor}
-                    />
-                </View>
-                
-                <View style={styles.textContainer}>
-                    <Text style={styles.title}>{title}</Text>
-                    {message && (
-                        <Text style={styles.message}>{message}</Text>
-                    )}
-                </View>
+                <Pressable
+                    style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}
+                    onPress={onPress ? () => { onPress(); hideToast(); } : undefined}
+                >
+                    <View style={styles.iconContainer}>
+                        <Ionicons
+                            name={config.icon as any}
+                            size={24}
+                            color={config.iconColor}
+                        />
+                    </View>
+                    
+                    <View style={styles.textContainer}>
+                        <Text style={styles.title}>{title}</Text>
+                        {message && (
+                            <Text style={styles.message}>{message}</Text>
+                        )}
+                    </View>
+                </Pressable>
 
                 <Pressable
                     style={styles.closeButton}

@@ -10,6 +10,8 @@ import Constants from "expo-constants";
 import * as Notifications from "expo-notifications";
 import { useCallback, useEffect, useState } from "react";
 import { AppState, AppStateStatus } from "react-native";
+import { useToast } from "../context/ToastProvider";
+import { navigateGlobal } from "../services/navRef";
 import {
     addNotificationReceivedListener,
     addNotificationResponseListener,
@@ -22,7 +24,6 @@ import {
     registerPushToken,
     updateNotificationPreferences,
 } from "../services/pushNotifications";
-import { navigateGlobal } from "../services/navRef";
 
 interface UsePushNotificationsReturn {
   // State
@@ -58,6 +59,7 @@ const DEFAULT_PREFERENCES: NotificationPreferences = {
 
 export const usePushNotifications = (): UsePushNotificationsReturn => {
   const navigation = useNavigation<any>();
+  const { showInfo } = useToast();
 
   const [isInitialized, setIsInitialized] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -236,11 +238,17 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
     if (Constants.appOwnership === "expo") return;
     const subscription = addNotificationReceivedListener((notification) => {
       // Notification reçue pendant que l'app est au premier plan
+      // La bannière système est supprimée (shouldShowAlert: false) → on affiche un toast tapable
       const data = parseNotificationData(notification);
+      const title = notification.request.content.title ?? "Notification";
+      const body = notification.request.content.body ?? undefined;
+
+      const onPress = data ? () => handleNotificationNavigation(data) : undefined;
+      showInfo(title, body, 4000, onPress);
     });
 
     return () => subscription.remove();
-  }, []);
+  }, [showInfo, handleNotificationNavigation]);
 
   // Écouter les interactions avec les notifications (tap)
   // Skip in Expo Go SDK 53+ — addPushTokenListener was removed and causes a dev overlay
