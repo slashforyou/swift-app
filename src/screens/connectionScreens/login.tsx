@@ -19,6 +19,7 @@ import { usePermissionsContext } from "../../contexts/PermissionsContext";
 import { useCommonThemedStyles } from "../../hooks/useCommonStyles";
 import { useTranslation } from "../../localization";
 import { analytics } from "../../services/analytics";
+import { consumePendingDeepLink } from "../../services/navRef";
 import { login } from "../../utils/auth";
 
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -116,9 +117,11 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         // Permissions loading failure is non-blocking
       }
 
-      // Navigate to Home
+      // Navigate to Home then consume any pending deep-link from cold-start notification
       analytics.trackCustomEvent('login_success', 'user_action', { screen: 'Login' });
       navigation.navigate("Home");
+      // Small delay to let Home mount before navigating deeper
+      setTimeout(() => { consumePendingDeepLink(); }, 300);
     } catch (error: any) {
       // Log pour débugger
       console.error("❌ [LoginScreen] Login error:", error);

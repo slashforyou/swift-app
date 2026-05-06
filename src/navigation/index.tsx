@@ -4,9 +4,15 @@
 } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import * as Notifications from "expo-notifications";
+import * as SecureStore from "expo-secure-store";
 import React, { useEffect, useRef } from "react";
 import { analytics } from "../services/analytics";
-import { navigationContainerRef } from "../services/navRef";
+import {
+    isColdStartConsumed,
+    markColdStartConsumed,
+    navigationContainerRef,
+    savePendingDeepLink,
+} from "../services/navRef";
 import { testController } from "../services/testController";
 import { lazyScreen } from "../utils/lazyLoading";
 
@@ -199,16 +205,45 @@ export default function Navigation() {
         navigationRef.current.getCurrentRoute()?.name;
 
       // Cold start: app ouverte depuis une notification (app était tuée)
-      // Instagram/Twitter pattern: getLastNotificationResponseAsync() donne la notif qui a lancé l'app
-      Notifications.getLastNotificationResponseAsync().then((response) => {
+      // #101 — Consommer getLastNotificationResponseAsync une seule fois par lancement
+      if (isColdStartConsumed()) return;
+
+      Notifications.getLastNotificationResponseAsync().then(async (response) => {
         if (!response) return;
         const data = response.notification?.request?.content?.data;
         if (!data) return;
+
         const { type, job_id, screen } = data as any;
-        if ((type === "new_job" || type === "job_reminder" || type === "job_updated") && job_id && screen === "JobDetails") {
-          navigationRef.current?.navigate("JobDetails" as any, { jobId: job_id, from: "Home" });
+
+        // Déterminer la destination
+        let targetScreen: string | null = null;
+        let targetParams: Record<string, any> | undefined;
+
+        if (
+          (type === "new_job" || type === "job_reminder" || type === "job_updated") &&
+          job_id && screen === "JobDetails"
+        ) {
+          targetScreen = "JobDetails";
+          targetParams = { jobId: job_id, from: "Home" };
         } else if (type === "payment_received") {
-          navigationRef.current?.navigate("Business" as any, { initialTab: "Payments" });
+          targetScreen = "Business";
+          targetParams = { initialTab: "Payments" };
+        }
+
+        if (!targetScreen) return;
+
+        // Marquer comme consommée immédiatement (#101)
+        await markColdStartConsumed();
+
+        // #100 — Guard auth : vérifier si l'user est connecté
+        const sessionToken = await SecureStore.getItemAsync("session_token");
+
+        if (sessionToken) {
+          // Connecté → naviguer directement
+          navigationRef.current?.navigate(targetScreen as any, targetParams as any);
+        } else {
+          // Non connecté → sauvegarder pour après le login
+          await savePendingDeepLink({ screen: targetScreen, params: targetParams });
         }
       }).catch(() => { /* ignore */ });
     }

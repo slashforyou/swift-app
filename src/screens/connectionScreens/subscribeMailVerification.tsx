@@ -1,6 +1,7 @@
 ﻿import { ServerData } from "@/src/constants/ServerData";
 import { useNavigation } from "@react-navigation/native";
 import * as SecureStore from "expo-secure-store";
+import { consumePendingDeepLink } from "../../services/navRef";
 import React, { useState } from "react";
 import {
     Alert,
@@ -200,6 +201,8 @@ const SubscribeMailVerification = ({ route }: any) => {
                   index: 0,
                   routes: [{ name: "Home" }],
                 });
+                // Consume any pending deep-link from cold-start notification
+                setTimeout(() => { consumePendingDeepLink(); }, 300);
               } else {
                 navigation.navigate("Login");
               }
