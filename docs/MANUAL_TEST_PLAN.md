@@ -1,7 +1,11 @@
 # Plan de Tests Manuels — Cobbr App
 
-> **Dernière mise à jour :** 3 avril 2026
+> **Dernière mise à jour :** 5 mai 2026
 > **Couvre :** Onboarding v2, Stripe Subscriptions, Contrats Modulaires, Job Templates, Stripe Detection Fix
+> **Deadline tests pre-launch : 18 mai 2026**
+
+> ⚠️ **Note (5 mai 2026) :** Les tests B-01 à B-13 (wizard 8 étapes) sont **obsolètes** — le wizard a été remplacé par une inscription 1 écran unique (`subscribe.tsx`). Les tests 1.3 ne s'appliquent plus.
+> Tests prioritaires avant le 18 mai : **B4, B5, B6, B7, B8, B9, B10 + B11 à B16** (voir `docs/TODO.md`).
 
 ---
 
@@ -38,7 +42,9 @@
 | V-04 | Tokens stockés | 1. Après V-01<br>2. Fermer et rouvrir l'app | Session maintenue, pas de re-login nécessaire | |
 | V-05 | Code expiré | 1. Attendre expiration<br>2. Entrer le code | Erreur code expiré, bouton "Renvoyer" | |
 
-### 1.3 Inscription Business Owner (Parcours B — 8 étapes)
+### 1.3 Inscription Business Owner (Parcours B — ~~8 étapes~~ — OBSOLÈTE)
+
+> ❌ **CE PARCOURS N'EXISTE PLUS** — Remplacé par l'inscription 1 écran unique dans `subscribe.tsx`. Les tests ci-dessous ne s'appliquent plus.
 
 | ID | Test | Étapes | Résultat attendu | Statut |
 |----|------|--------|-------------------|--------|
@@ -139,13 +145,13 @@
 
 | ID | Test | Étapes | Résultat attendu | Statut |
 |----|------|--------|-------------------|--------|
-| SUB-01 | Voir les plans | 1. Naviguer vers SubscriptionScreen<br>2. Voir la liste des plans | 4 plans affichés (Free, Pro, Expert, Unlimited) avec prix | |
+| SUB-01 | Voir les plans | 1. Naviguer vers SubscriptionScreen<br>2. Voir la liste des plans | 4 plans affichés : Invited Worker $0/mo, ABN Contractor $29/mo, Pro $99/mo, Company $179/mo | |
 | SUB-02 | Souscrire à un plan | 1. Sélectionner un plan payant<br>2. Cliquer "Subscribe"<br>3. Remplir PaymentSheet | PaymentSheet s'ouvre, paiement traité, statut "Active" | |
 | SUB-03 | Voir statut abonnement | 1. Après SUB-02<br>2. Vérifier la section "Current Subscription" | Plan actuel, statut, prochaine facture affichés | |
 | SUB-04 | Annuler abonnement | 1. Cliquer "Cancel subscription"<br>2. Confirmer | Statut passe à "Canceling", valid until date affichée | |
 | SUB-05 | Réactiver abonnement | 1. Depuis statut "Canceling"<br>2. Cliquer "Resume" | Statut repasse à "Active" | |
-| SUB-06 | Changer de plan (upgrade) | 1. Depuis un plan Pro<br>2. Sélectionner Expert<br>3. Confirmer upgrade | Plan mis à jour, nouveau prix affiché | |
-| SUB-07 | Changer de plan (downgrade) | 1. Depuis Expert<br>2. Sélectionner Pro | Downgrade effectif à la fin du billing period | |
+| SUB-06 | Changer de plan (upgrade) | 1. Depuis un plan ABN Contractor ($29)<br>2. Sélectionner Pro ($99)<br>3. Confirmer upgrade | Plan mis à jour, nouveau prix affiché | |
+| SUB-07 | Changer de plan (downgrade) | 1. Depuis Pro ($99)<br>2. Sélectionner ABN Contractor ($29) | Downgrade effectif à la fin du billing period | |
 
 > ⚠️ **Prérequis :** Products & Prices doivent être créés dans le Stripe Dashboard et `stripe_price_id` renseigné dans la table `plans`.
 

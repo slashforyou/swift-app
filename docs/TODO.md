@@ -166,7 +166,7 @@
 
 - [x] Bug détection activation Stripe (fallback + anti-flickering + condition erreur)
 - [x] Stripe Subscriptions via PaymentSheet natif
-- [x] 4 plans backend (free/pro/expert/unlimited) + limites par plan
+- [x] 4 plans (invited_worker $0 / abn_contractor $29/mo / pro $99/mo / company $179/mo) + limites par plan
 - [x] Commission sync automatique plan → stripe_platform_fee_percentage
 - [x] Bouton signaler problème de paiement (ReportPaymentIssueModal + push notification)
 
@@ -208,7 +208,7 @@
 
 | # | Tâche | Scope | Notes |
 |---|-------|-------|-------|
-| ~~1~~ | ~~Créer Products/Prices dans Stripe Dashboard live et renseigner `stripe_price_id` en DB~~ | 👤 | ✅ Vérifié en prod: seuls les plans payants nécessitent Stripe (`pro`, `expert`) et ils sont configurés. `free`/`unlimited` restent volontairement sans `stripe_price_id` (non facturés). |
+| ~~1~~ | ~~Créer Products/Prices dans Stripe Dashboard live et renseigner `stripe_price_id` en DB~~ | 👤 | ✅ Vérifié en prod: seuls les plans payants nécessitent Stripe (`abn_contractor` $29, `pro` $99, `company` $179) et ils sont configurés. `invited_worker` reste volontairement sans `stripe_price_id` (non facturé). |
 | ~~2~~ | ~~Effectuer un paiement réel de test en production~~ | 👤 | ✅ Flow paiement réel validé en production |
 | **89** | **Fix config API** — `api.config.ts` pointe vers `https://api.swiftapp.com.au` au lieu de `https://cobbr-app.com/swift-app/` → `businessStatsService.ts` et `staffService.ts` importent cette config et appellent le mauvais serveur en prod. Faire pointer vers `API_URL` de `environment.ts` ou supprimer `api.config.ts`. | [C] | **🚨 BLOQUANT 18 mai** |
 | **90** | **Retirer `RECORD_AUDIO`** de `android/app/src/main/AndroidManifest.xml` ligne 5 — permission non utilisée dans le code. Risque de rejet Play Store ou demande de justification. | [C] | **🚨 BLOQUANT 18 mai** |
