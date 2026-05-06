@@ -8,6 +8,7 @@ import RoundLanguageButton from "../components/ui/RoundLanguageButton";
 import { useCommonThemedStyles } from "../hooks/useCommonStyles";
 import { useTranslation } from "../localization";
 import { analytics } from "../services/analytics";
+import { consumePendingDeepLink } from "../services/navRef";
 import { ensureSession } from "../utils/session";
 
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -39,6 +40,8 @@ const ConnectionScreen: React.FC<ConnectionScreenProps> = ({ navigation }) => {
         const userLoggedIn = await ensureSession();
         if (userLoggedIn && userLoggedIn.authenticated === true) {
           navigation.navigate("Home");
+          // Consommer un éventuel deep link sauvegardé (cold-start depuis une notification)
+          setTimeout(() => { consumePendingDeepLink(); }, 300);
         }
       } catch (error) {
         console.error("Error checking session:", error);

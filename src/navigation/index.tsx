@@ -8,6 +8,7 @@ import * as SecureStore from "expo-secure-store";
 import React, { useEffect, useRef } from "react";
 import { analytics } from "../services/analytics";
 import {
+    consumePendingDeepLink,
     isColdStartConsumed,
     markColdStartConsumed,
     navigationContainerRef,
@@ -250,17 +251,16 @@ export default function Navigation() {
         // #100 — Guard auth : vérifier si l'user est connecté
         const sessionToken = await SecureStore.getItemAsync("session_token");
 
-        if (sessionToken) {
-          // Connecté → naviguer directement
-          // Délai 800ms pour laisser Connection screen finir son init et naviguer vers Home
-          // avant qu'on redirige vers la destination finale (évite la race condition)
-          setTimeout(() => {
-            navigationRef.current?.navigate(targetScreen as any, targetParams as any);
-          }, 800);
-        } else {
-          // Non connecté → sauvegarder pour après le login
-          await savePendingDeepLink({ screen: targetScreen, params: targetParams });
+        // Dans les deux cas (auth ou non), on sauvegarde le deep link.
+        // - Auth : Connection.tsx appellera consumePendingDeepLink() après navigate("Home")
+        // - Non-auth : login.tsx appellera consumePendingDeepLink() après connexion réussie
+        await savePendingDeepLink({ screen: targetScreen, params: targetParams });
+
+        if (!sessionToken) {
+          // Non connecté : on ne navigue pas, le login s'en charge
+          return;
         }
+        // Connecté : Connection va naviguer vers Home, consumePendingDeepLink() sera appelé là-bas
       }).catch(() => { /* ignore */ });
     }
   };
