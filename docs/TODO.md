@@ -21,7 +21,7 @@
 | **B4** | PaymentSheet Stripe abonnement Pro — test sur iPhone réel | ✅ Résolu 5 mai 2026 | Romain |
 | **B5** | PaymentSheet Stripe abonnement Pro — test sur Android réel | ✅ Résolu 5 mai 2026 | Romain |
 | **B6** | Push notifications — device token iOS physique + routing (fg/bg/fermée) | 👤 À tester | Romain |
-| **B7** | Push notifications — device token Android physique + routing | 👤 À tester | Romain |
+| **B7** | Push notifications — device token Android physique + routing | ✅ Token enregistré (2 tokens Android actifs). Cold-start routing étendu (`job_assigned`, `job_reminder_morning`, etc. → Calendar + fallback générique). 3 boutons routing dans DevMenu (B7 → Calendar/JobDetails/Payments). `admin_test` bypasse le throttle. À tester manuellement fg/bg/closed. | Romain |
 | **B8** | Flow complet boss (inscription → job → paiement) validé sur device | 👤 À tester | Romain |
 | **B9** | Webhook Stripe actif en prod (`customer.subscription.updated`) | 👤 Vérifier | Romain |
 | **B10** | Email vérification reçu sur vraie boîte (SMTP IONOS) | 👤 À tester | Romain |
