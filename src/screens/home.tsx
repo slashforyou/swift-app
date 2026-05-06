@@ -616,21 +616,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               />
             )}
 
-            {/* Manager Dashboard — visible uniquement pour patron et cadre */}
-            {(profile?.company_role === "patron" || profile?.company_role === "cadre") && (
-              <MenuItem
-                testID="home-manager-dashboard-btn"
-                title="Dashboard Manager"
-                icon="stats-chart"
-                description="Vue superviseur · Jobs équipe · KPIs"
-                onPress={() => {
-                  analytics.trackButtonPress('menu_manager_dashboard', 'Home');
-                  navigation.navigate("ManagerDashboard");
-                }}
-                color="#9B59B6"
-              />
-            )}
-
             {/* Settings (petit, gauche) + Déconnexion (droite) */}
             <View
               style={{ flexDirection: "row", gap: DESIGN_TOKENS.spacing.sm }}
